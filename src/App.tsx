@@ -22,6 +22,7 @@ const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Community = lazy(() => import("./pages/Community"));
 const InstitutionApply = lazy(() => import("./pages/InstitutionApply"));
 const Volunteer = lazy(() => import("./pages/Volunteer"));
+const Help = lazy(() => import("./pages/Help"));
 
 // Loading fallback
 function PageLoader() {
@@ -36,7 +37,7 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer";
+type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help";
 
 export default function App() {
   const [view, setView] = useState<View>("explore");
@@ -77,6 +78,7 @@ export default function App() {
       { id: "facebook", label: "Sectors", icon: "f" },
       { id: "dashboard", label: "My Missions", icon: "\u{1F680}" },
       { id: "community", label: "Community", icon: "\u{1F465}" },
+      { id: "help", label: "Help", icon: "?" },
     ],
     []
   );
@@ -182,6 +184,7 @@ export default function App() {
                  view === "volunteer" ? "Volunteer Opportunities" :
                  view === "community" ? "Community Groups" :
                  view === "detail" ? "Community Groups" :
+                 view === "help" ? "Help Center" :
                  view === "login" ? "Pilot Sign In" :
                  "Fuel a cause today"}
               </p>
@@ -246,6 +249,7 @@ export default function App() {
           {view === "institutions" && <ErrorBoundary><InstitutionApply /></ErrorBoundary>}
           {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
           {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "help" && <ErrorBoundary><Help /></ErrorBoundary>}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (

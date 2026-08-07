@@ -7,6 +7,7 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import ShareModal from "../components/ShareModal";
 
 type CampaignDetailProps = {
   campaignId: string;
@@ -38,6 +39,15 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
   const [donationMessage, setDonationMessage] = useState("");
   const [donationStep, setDonationStep] = useState<"amount" | "info" | "processing" | "done">("amount");
   const [copied, setCopied] = useState(false);
+  const [showShare, setShowShare] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentName, setCommentName] = useState("");
+  const [showComments, setShowComments] = useState(false);
+  const comments = useQuery(api.comments.getComments, { campaignId });
+  const isSaved = useQuery(api.savedCampaigns.isSaved, userId ? { campaignId, userId } : "skip");
+  const addComment = useMutation(api.comments.addComment);
+  const saveCampaign = useMutation(api.savedCampaigns.saveCampaign);
+  const unsaveCampaign = useMutation(api.savedCampaigns.unsaveCampaign);
 
   const isFollowing = useMemo(() => {
     if (!followed || !userId) return false;
@@ -80,17 +90,29 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
     }
   };
 
-  const handleShare = async () => {
-    const url = window.location.origin + window.location.pathname;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: campaign.title, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      }
-    } catch {}
+  const handleShare = () => {
+    setShowShare(true);
+  };
+
+  const handleSave = async () => {
+    if (!userId) { onLogin(); return; }
+    if (isSaved) {
+      await unsaveCampaign({ campaignId, userId });
+    } else {
+      await saveCampaign({ campaignId, userId });
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !commentName.trim()) return;
+    await addComment({
+      campaignId,
+      authorName: commentName,
+      authorId: userId || undefined,
+      body: commentText,
+    });
+    setCommentText("");
+    setCommentName("");
   };
 
   const handleDonate = async () => {
@@ -221,10 +243,20 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
           {isFollowing ? "✓ Following" : "Follow"}
         </button>
         <button
+          onClick={handleSave}
+          className={"px-4 py-3 rounded-xl font-medium text-sm transition-colors " + (
+            isSaved
+              ? "bg-ifaccent/20 text-ifaccent border border-ifaccent/40"
+              : "bg-ifcard text-iftext border border-ifborder"
+          )}
+        >
+          {isSaved ? "★ Saved" : "☆ Save"}
+        </button>
+        <button
           onClick={handleShare}
           className="px-4 py-3 rounded-xl bg-ifcard text-iftext border border-ifborder font-medium text-sm"
         >
-          {copied ? "✓" : "Share"}
+          {"Share"}
         </button>
       </div>
 
