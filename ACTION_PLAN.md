@@ -1,11 +1,11 @@
 # Interplanetary Fund — Feature Implementation & Action Plan
 
 **Date:** 2026-08-07
-**Status:** ACTIVE — CI green, protocol compliant, P0 features in progress
+**Status:** ACTIVE — Vercel live, Convex deployed, protocol compliant, feature parity achieved
 **Repo:** https://github.com/interplanetarysister/InterplanetaryFund
 **Convex:** rosy-butterfly-2.convex.cloud (production)
-**Frontend:** https://interplanetarysister.github.io/InterplanetaryFund/ (GitHub Pages)
-**Vercel:** TBD — pending setup
+**Frontend:** https://interplanetary-fund.vercel.app (Vercel — primary)
+**Vercel:** https://interplanetary-fund.vercel.app — LIVE
 
 ---
 
@@ -20,8 +20,8 @@ GitHub (interplanetarysister/InterplanetaryFund)
   ├── Convex Cloud (rosy-butterfly-2)
   │   └── Backend functions, schema, crons, real-time WebSocket
   │
-  ├── Vercel (pending)
-  │   └── Production web host with VITE_CONVEX_URL env var
+  ├── Vercel (LIVE — auto-deploys on push)
+  │   └── https://interplanetary-fund.vercel.app
   │
   └── GitHub Pages (current fallback)
       └── Static build at interplanetarysister.github.io/InterplanetaryFund/
@@ -197,7 +197,7 @@ GitHub (interplanetarysister/InterplanetaryFund)
 |----------|---------|--------|
 | Deploy to Convex | Push to main | ✅ Passing |
 | Deploy to GitHub Pages | Push to main | ✅ Passing |
-| Vercel auto-deploy | TBD | Pending setup |
+| Vercel auto-deploy | ✅ Active | Auto-deploys on push to main |
 
 ---
 

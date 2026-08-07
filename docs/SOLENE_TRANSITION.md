@@ -53,3 +53,38 @@ Full fundforge-ai codebase integrated at `fundforge/` directory:
 - fundforge-ai serves as reference architecture for payment integration (Action Plan #001)
 - Convex backend remains the primary data layer
 - Vercel deployment is live at interplanetary-fund.vercel.app
+
+
+## Post-Transition Completion Log (2026-08-07)
+
+### Resolved by Solene
+- [x] Vercel deployment — now LIVE at https://interplanetary-fund.vercel.app (was TBD/pending under Lyra)
+- [x] Blank screen fix — ErrorBoundary wraps all pages, trending query crash resolved
+- [x] Help page with FAQ articles (11 seeded) and support ticket system
+- [x] ShareModal component (Facebook, Twitter, WhatsApp, Email, PayPal)
+- [x] Comments section on campaign detail pages
+- [x] Save/Bookmark campaigns (savedCampaigns table)
+- [x] ThankYou page (post-donation confirmation with share + impact stats)
+- [x] PlatformAccountsSheet — downloadable CSV tracker for all social media credentials (9 platforms seeded)
+- [x] VerifiedBadge component for campaign owner verification
+- [x] Cyberpunk-Afropunk-Interstellar photo style guidance added to CampaignEditor
+- [x] PayPal donate links integrated into CampaignDetail + ShareModal
+- [x] Convex backend fully deployed (39 modules, 38 tables, all crons running)
+- [x] Feature parity migration completed:
+  - Community discussions (groups, discussions, replies)
+  - Institution/grant applications
+  - Volunteer opportunities + signups
+  - AI recommendations + Explore page
+  - Campaign updates + notifications
+  - Followed campaigns
+  - Mission briefs + agent activity logging
+  - Feature flags + treasury snapshots
+  - Knowledge articles + support tickets
+  - User auth + dashboard + campaign editor with ownership
+
+### Still Pending (Non-Code)
+- Platform account creation (Patreon, Spotfund, FundRazr, Indiegogo, GiveSendGo, Kickstarter) — blocked by CAPTCHAs, requires manual signup
+- PayPal IPN setup for automatic donation tracking — requires PayPal business dashboard configuration
+- End-to-end donation flow test (donor → PayPal → fees → payout) — requires live payment test
+- "Woman with a Dream" campaign — $0 in real donations, needs marketing/donor acquisition
+- BROWSERBASE_API_KEY for remote browser research — available via built-in platform Browserbase tools
