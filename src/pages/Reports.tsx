@@ -1,25 +1,129 @@
 /*
- * Interplanetary Fund — Copyright © 2026 Michelle Rogers. All Rights Reserved.
- * PROPRIETARY AND CONFIDENTIAL. Do not copy, distribute, or modify without
- * express written permission. See LICENSE file for full terms.
+ * Interplanetary Fund — Reports & Analytics
+ * Copyright © 2026 Michelle Rogers. All Rights Reserved.
+ *
+ * Combines protocol compliance reports with donation analytics.
+ * Charts are dependency-free (pure SVG) — no recharts needed.
  */
 
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { MiniBarChart, MiniPieChart, MiniLineChart } from "../components/MiniCharts";
 
 export default function Reports() {
   const reports = useQuery(api.protocol.getReports, { limit: 10 });
   const audit = useQuery(api.protocol.enforceProtocol, {});
+  const donations = useQuery(api.campaigns.getDonations, {});
+  const campaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
 
   if (!reports) {
     return <div className="text-center text-ifmuted py-20">Loading reports...</div>;
   }
 
+  // Compute analytics from donations
+  const allDonations = donations || [];
+  const allCampaigns = campaigns || [];
+
+  // Donations over time (last 14 days)
+  const byDate: Record<string, { ts: number; label: string; value: number }> = {};
+  allDonations.forEach((d: any) => {
+    const dt = new Date(d.created_date || d._creationTime || Date.now());
+    const key = dt.toISOString().slice(0, 10);
+    if (!byDate[key]) {
+      byDate[key] = { ts: dt.getTime(), label: dt.toLocaleDateString("en", { month: "short", day: "numeric" }), value: 0 };
+    }
+    byDate[key].value += d.amount || 0;
+  });
+  const donationsOverTime = Object.values(byDate).sort((a, b) => a.ts - b.ts).slice(-14);
+
+  // By platform
+  const byPlatformMap: Record<string, number> = {};
+  allDonations.forEach((d: any) => {
+    const k = d.platform || "direct";
+    byPlatformMap[k] = (byPlatformMap[k] || 0) + (d.amount || 0);
+  });
+  const byPlatform = Object.entries(byPlatformMap).map(([name, value]) => ({ name, value }));
+
+  // By category
+  const byCategoryMap: Record<string, number> = {};
+  allCampaigns.forEach((c: any) => {
+    const k = c.category || "other";
+    byCategoryMap[k] = (byCategoryMap[k] || 0) + 1;
+  });
+  const byCategory = Object.entries(byCategoryMap).map(([name, value]) => ({ name, value }));
+
+  // Top donors
+  const donorMap: Record<string, { name: string; total: number; count: number }> = {};
+  allDonations.forEach((d: any) => {
+    const name = d.donorName || d.donor_name || "Anonymous";
+    if (!donorMap[name]) donorMap[name] = { name, total: 0, count: 0 };
+    donorMap[name].total += d.amount || 0;
+    donorMap[name].count += 1;
+  });
+  const topDonors = Object.values(donorMap).sort((a, b) => b.total - a.total).slice(0, 8);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 pb-20">
       <div>
-        <h2 className="page-title">Protocol Reports</h2>
-        <p className="page-subtitle">Audit history · P-1 through P-8 compliance</p>
+        <h2 className="page-title">Reports & Analytics</h2>
+        <p className="page-subtitle">Protocol compliance · Donation insights · Audit history</p>
+      </div>
+
+      {/* Analytics Section */}
+      {allDonations.length > 0 && (
+        <>
+          {/* Donations Over Time */}
+          <div className="card">
+            <h3 className="text-sm font-semibold text-iftext mb-3">📈 Donations Over Time</h3>
+            <MiniLineChart data={donationsOverTime} height={140} />
+          </div>
+
+          {/* Two-column charts */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="card">
+              <h3 className="text-sm font-semibold text-iftext mb-3">📊 By Platform</h3>
+              {byPlatform.length > 0 ? (
+                <MiniBarChart data={byPlatform} height={100} />
+              ) : (
+                <p className="text-xs text-ifmuted text-center py-4">No platform data</p>
+              )}
+            </div>
+            <div className="card">
+              <h3 className="text-sm font-semibold text-iftext mb-3">🥧 By Category</h3>
+              {byCategory.length > 0 ? (
+                <MiniPieChart data={byCategory} size={100} />
+              ) : (
+                <p className="text-xs text-ifmuted text-center py-4">No category data</p>
+              )}
+            </div>
+          </div>
+
+          {/* Top Donors */}
+          <div className="card">
+            <h3 className="text-sm font-semibold text-iftext mb-3">🏆 Top Donors</h3>
+            {topDonors.length > 0 ? (
+              <div className="space-y-2">
+                {topDonors.map((d, i) => (
+                  <div key={i} className="flex items-center justify-between bg-ifdark rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-ifcyan">#{i + 1}</span>
+                      <span className="text-sm text-iftext">{d.name}</span>
+                      <span className="text-[10px] text-ifmuted">{d.count} gifts</span>
+                    </div>
+                    <span className="text-sm font-bold text-ifgreen">${d.total.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-ifmuted text-center py-4">No donor data yet</p>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Protocol Compliance Section */}
+      <div className="border-t border-ifborder pt-4">
+        <h3 className="text-sm font-semibold text-iftext mb-3">🛡️ Protocol Compliance</h3>
       </div>
 
       {/* Live Audit */}
