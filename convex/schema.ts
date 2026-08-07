@@ -524,4 +524,43 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("byUserId", ["userId"]).index("byRead", ["read"]),
 
+
+  // Comments on campaigns (from fundforge-ai)
+  comments: defineTable({
+    campaignId: v.string(),
+    authorName: v.string(),
+    authorId: v.optional(v.string()),
+    content: v.string(),
+    likes: v.number(),
+    likedBy: v.array(v.string()),
+    createdAt: v.string(),
+  }).index("byCampaign", ["campaignId"]),
+
+  // Saved/bookmarked campaigns (from fundforge-ai)
+  savedCampaigns: defineTable({
+    userId: v.string(),
+    campaignId: v.string(),
+    campaignTitle: v.string(),
+    savedAt: v.string(),
+  }).index("byUser", ["userId"]),
+
+  // Support tickets (from fundforge-ai)
+  supportTickets: defineTable({
+    name: v.string(),
+    email: v.string(),
+    subject: v.string(),
+    message: v.string(),
+    status: v.string(),
+    createdAt: v.string(),
+  }).index("byStatus", ["status"]),
+
+  // Help articles (from fundforge-ai)
+  helpArticles: defineTable({
+    category: v.string(),
+    question: v.string(),
+    answer: v.string(),
+    helpfulYes: v.number(),
+    helpfulNo: v.number(),
+  }).index("byCategory", ["category"]),
+
 });

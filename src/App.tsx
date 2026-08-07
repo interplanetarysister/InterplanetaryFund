@@ -222,9 +222,9 @@ export default function App() {
       {/* Content */}
       <main className={`max-w-md mx-auto px-4 py-4 pb-20 min-h-screen flex-1 ${view === "globe" ? "p-0 max-w-none" : ""}`}>
         <Suspense fallback={<PageLoader />}>
-          {view === "explore" && <Explore onViewCampaign={handleViewCampaign} onNavigate={(v) => setView(v as View)} />}
-          {view === "globe" && <GlobePage />}
-          {view === "facebook" && <FacebookGroups />}
+          {view === "explore" && <ErrorBoundary><Explore onViewCampaign={handleViewCampaign} onNavigate={(v) => setView(v as View)} /></ErrorBoundary>}
+          {view === "globe" && <ErrorBoundary><GlobePage /></ErrorBoundary>}
+          {view === "facebook" && <ErrorBoundary><FacebookGroups /></ErrorBoundary>}
           {view === "admin" && <ErrorBoundary><Admin adminUser={adminUser} /></ErrorBoundary>}
           {view === "login" && <UserLogin onLogin={handleUserLogin} />}
           {view === "dashboard" && userId && (
@@ -243,7 +243,7 @@ export default function App() {
               onBack={() => setView("dashboard")}
             />
           )}
-          {view === "institutions" && <InstitutionApply />}
+          {view === "institutions" && <ErrorBoundary><InstitutionApply /></ErrorBoundary>}
           {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
           {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "community" && userId && <Community userId={userId} />}

@@ -24,6 +24,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const recordDonation = useMutation(api.campaigns.recordDonation);
   const recordInteraction = useMutation(api.interactions.recordInteraction);
   const recommendations = useQuery(api.userCampaigns.getRecommendations, { limit: 3 });
+  const safeRecs = recommendations || [];
 
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
@@ -34,18 +35,22 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const [donationStep, setDonationStep] = useState<"amount" | "info" | "processing" | "done">("amount");
   const [viewedCampaigns, setViewedCampaigns] = useState<Set<string>>(new Set());
 
-  if (userCampaigns === undefined || !stats || !balances) {
+  if (userCampaigns === undefined) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />
+        <div className="flex gap-2">
+          <span className="w-2 h-2 rounded-full bg-ifcyan animate-pulse-glow" />
+          <span className="w-2 h-2 rounded-full bg-ifaccent animate-pulse-glow" style={{ animationDelay: "0.2s" }} />
+          <span className="w-2 h-2 rounded-full bg-ifcyan animate-pulse-glow" style={{ animationDelay: "0.4s" }} />
+        </div>
       </div>
     );
   }
 
   // Stats come from lightweight query, not from loading all campaigns
-  const totalRaised = balances.grandTotal?.raised || 0;
+  const totalRaised = balances?.grandTotal?.raised || 0;
   const totalDonors = balances.grandTotal?.donors || 0;
-  const activeCount = stats.activeCount || 0;
+  const activeCount = stats?.activeCount || 0;
 
   const categories = ["All", "Community", "Medical", "Education", "Animals", "Emergency", "Other"];
   const campaigns = (userCampaigns || []).filter((c: any) =>
@@ -220,7 +225,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         <div>
           <h3 className="text-sm font-semibold text-iftext mb-3">Recommended for You</h3>
           <div className="space-y-2">
-            {recommendations.map((r: any) => (
+            {safeRecs.map((r: any) => (
               <button
                 key={r._id}
                 onClick={() => onViewCampaign ? onViewCampaign(r._id) : handleSupport(r)}
