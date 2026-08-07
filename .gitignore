@@ -8,3 +8,4 @@ dist/
 .env.convex
 .env.production
 .netlify/
+.env.deploy
