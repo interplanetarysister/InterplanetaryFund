@@ -33,6 +33,7 @@ import type * as institutions from "../institutions.js";
 import type * as interactions from "../interactions.js";
 import type * as outreach from "../outreach.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
+import type * as paypalWebhook from "../paypalWebhook.js";
 import type * as postContent from "../postContent.js";
 import type * as protocol from "../protocol.js";
 import type * as protocolAutoFix from "../protocolAutoFix.js";
@@ -83,6 +84,7 @@ declare const fullApi: ApiFromModules<{
   interactions: typeof interactions;
   outreach: typeof outreach;
   paypalCheckout: typeof paypalCheckout;
+  paypalWebhook: typeof paypalWebhook;
   postContent: typeof postContent;
   protocol: typeof protocol;
   protocolAutoFix: typeof protocolAutoFix;

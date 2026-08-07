@@ -291,6 +291,7 @@ export default defineSchema({
     message: v.optional(v.string()),
     paymentMethod: v.string(),
     status: v.string(),
+    txnId: v.optional(v.string()),
     createdAt: v.string(),
   }).index("byCampaignId", ["campaignId"]).index("byStatus", ["status"]),
 

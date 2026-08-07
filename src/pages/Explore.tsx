@@ -22,7 +22,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   // Keep admin stats for the hero banner
   const stats = useQuery(api.campaigns.getCampaignStats, {});
   const balances = useQuery(api.treasury.aggregateBalances, {});
-  const recordDonation = useMutation(api.campaigns.recordDonation);
+  const recordDonation = useMutation(api.userCampaigns.recordDonation);
   const recordInteraction = useMutation(api.interactions.recordInteraction);
   const recommendations = useQuery(api.userCampaigns.getRecommendations, { limit: 3 });
   const safeRecs = recommendations || [];
@@ -118,11 +118,9 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
     try {
       await recordDonation({
         campaignId: selectedCampaign.id,
-        campaignTitle: selectedCampaign.title,
         amount: numericAmount,
         donorName: donorName || "Anonymous",
         message: donationMessage || undefined,
-        paymentMethod: "cashapp",
       });
 
       const cashappPayUrl = `${CASHAPP_URL}/${numericAmount}`;
