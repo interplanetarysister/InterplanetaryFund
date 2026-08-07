@@ -164,4 +164,4 @@ This protocol may be amended by Michelle Rogers (Owner) or Lyra (Chief of Staff)
 ### Amendment Log
 - 2026-08-01: Added P-7 (External Platform Sync) and P-8 (Fund Migration & Holding Account) per Michelle's directive
 - 2026-08-01: Updated enforcement to credit-free backend functions (all workflows now zero-credit)
-- 2026-08-07: Authority transferred from Lyra to Solene. All protocols inherited and maintained. fundforge-ai codebase integrated as reference architecture.
+- 2026-08-07: Authority transferred from Lyra to Solene. All protocols inherited and maintained. fundforge-ai codebase integrated as reference architecture in interplanetarysister/InterplanetaryFund (fundforge/ directory).

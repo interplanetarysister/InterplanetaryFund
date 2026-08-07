@@ -23,7 +23,7 @@ const DEFAULT_ACCOUNTS: PlatformAccount[] = [
   { platform: "PayPal", handle: "interplanetarysister@gmail.com", url: "https://paypal.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Donation processing" },
   { platform: "CashApp", handle: "$unrewound", url: "https://cash.app/$unrewound", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Alt donation method" },
   { platform: "Convex", handle: "rosy-butterfly-2", url: "https://rosy-butterfly-2.convex.cloud", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Backend deployment" },
-  { platform: "Vercel", handle: "interplanetary-fund", url: "https://vercel.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Frontend hosting" },
+  { platform: "Vercel", handle: "interplanetary-fund", url: "https://vercel.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Frontend hosting (repo: interplanetarysister/InterplanetaryFund)" },
 ];
 
 export default function PlatformAccountsSheet() {

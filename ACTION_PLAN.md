@@ -204,4 +204,4 @@ GitHub (interplanetarysister/InterplanetaryFund)
 ## Change Log
 
 - 2026-08-07: Completed Phase 2 frontend. Campaign Detail page with donation flow (PayPal+CashApp), follow/unfollow, updates feed, recent supporters. Explore switched to userCampaigns with category filter. App.tsx wired with full user flow routing. Fixed getDonations bug. Added unfollowCampaign mutation. Vercel deployment verified live.
-- 2026-08-07: Migrated from iFUND_admin (enterprise) to interplanetarysister (personal). Fixed CI (removed invalid --prod flag, added codegen step). Fixed all protocol violations. Set up Convex deploy key as GitHub secret. Enabled GitHub Pages. Deployed Convex backend to production.
+- 2026-08-07: Migrated from iFUND_admin/Interplanetary-fund (enterprise, archived) to interplanetarysister/InterplanetaryFund (personal). All repos consolidated: interplanetary-fund-backend and fundforge-ai merged into InterplanetaryFund. Fixed CI (removed invalid --prod flag, added codegen step). Fixed all protocol violations. Set up Convex deploy key as GitHub secret. Enabled GitHub Pages. Deployed Convex backend to production.

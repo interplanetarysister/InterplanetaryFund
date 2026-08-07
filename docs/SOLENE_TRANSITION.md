@@ -9,8 +9,8 @@
 
 ### Repositories (all on interplanetarysister account)
 1. InterplanetaryFund — main app repo (Convex + React/TS + Vercel)
-2. interplanetary-fund-backend — Convex backend functions, docs, protocol docs
-3. fundforge-ai — alternative Base44 app (React/JSX + Base44 entities/functions/workflows)
+2. interplanetary-fund-backend (MERGED into InterplanetaryFund) — Convex backend functions, docs, protocol docs now live in interplanetarysister/InterplanetaryFund
+3. fundforge-ai (MERGED into InterplanetaryFund/fundforge/) — alternative Base44 app (React/JSX + Base44 entities/functions/workflows), now integrated as reference architecture
 
 ### Protocol Framework
 - Campaign Protocol P-1 through P-8 — fully inherited
@@ -39,7 +39,7 @@
 - #003 Agent Creation — PENDING (depends on #001)
 - #004 Story Optimization — PENDING (depends on outreach)
 
-### fundforge-ai Integration
+### fundforge-ai Integration (merged into interplanetarysister/InterplanetaryFund)
 Full fundforge-ai codebase integrated at `fundforge/` directory:
 - 9 Base44 entity schemas (Campaign, Donation, Follow, Comment, etc.)
 - 7 Base44 backend functions (checkout, chat, recommendations, email, etc.)
@@ -50,7 +50,7 @@ Full fundforge-ai codebase integrated at `fundforge/` directory:
 
 ## Transition Notes
 - All protocol docs updated to reflect Solene as authority
-- fundforge-ai serves as reference architecture for payment integration (Action Plan #001)
+- fundforge/ directory in interplanetarysister/InterplanetaryFund serves as reference architecture for payment integration (Action Plan #001)
 - Convex backend remains the primary data layer
 - Vercel deployment is live at interplanetary-fund.vercel.app
 

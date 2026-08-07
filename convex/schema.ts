@@ -525,7 +525,7 @@ export default defineSchema({
   }).index("byUserId", ["userId"]).index("byRead", ["read"]),
 
 
-  // Comments on campaigns (from fundforge-ai)
+  // Comments on campaigns (integrated from fundforge/)
   comments: defineTable({
     campaignId: v.string(),
     authorName: v.string(),
@@ -536,7 +536,7 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("byCampaign", ["campaignId"]),
 
-  // Saved/bookmarked campaigns (from fundforge-ai)
+  // Saved/bookmarked campaigns (integrated from fundforge/)
   savedCampaigns: defineTable({
     userId: v.string(),
     campaignId: v.string(),
@@ -544,7 +544,7 @@ export default defineSchema({
     savedAt: v.string(),
   }).index("byUser", ["userId"]),
 
-  // Support tickets (from fundforge-ai)
+  // Support tickets (integrated from fundforge/)
   supportTickets: defineTable({
     name: v.string(),
     email: v.string(),
@@ -554,7 +554,7 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("byStatus", ["status"]),
 
-  // Help articles (from fundforge-ai)
+  // Help articles (integrated from fundforge/)
   helpArticles: defineTable({
     category: v.string(),
     question: v.string(),
