@@ -24,7 +24,10 @@ jobs:
         run: npx convex codegen
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-      - run: npm run build
+      - name: Build with Pages base path
+        run: npm run build
+        env:
+          VITE_BASE_PATH: "/InterplanetaryFund/"
       - name: Add .nojekyll
         run: touch dist/.nojekyll
       - uses: actions/upload-pages-artifact@v3
