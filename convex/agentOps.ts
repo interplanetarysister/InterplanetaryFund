@@ -30,7 +30,6 @@ export const getRecentActivity = query({
     const max = limit ?? 50;
     return await ctx.db
       .query("agentActivityLog")
-      .withIndex("byTimestamp", (q) => q.eq("timestamp", ""))
       .order("desc")
       .take(max);
   },
@@ -43,7 +42,7 @@ export const getAgentActivity = query({
     const max = limit ?? 50;
     return await ctx.db
       .query("agentActivityLog")
-      .withIndex("byAgent", (q) => q.eq("agentName", agentName))
+      .filter((q) => q.eq(q.field("agentName"), agentName))
       .order("desc")
       .take(max);
   },
@@ -56,7 +55,7 @@ export const getActivityByCategory = query({
     const max = limit ?? 50;
     return await ctx.db
       .query("agentActivityLog")
-      .withIndex("byCategory", (q) => q.eq("category", category))
+      .filter((q) => q.eq(q.field("category"), category))
       .order("desc")
       .take(max);
   },

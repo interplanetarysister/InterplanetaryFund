@@ -424,6 +424,7 @@ export default defineSchema({
     platform: v.string(),
     postType: v.string(),
     content: v.string(),
+    imageUrl: v.optional(v.string()),
     paypalLink: v.optional(v.string()),
     postUrl: v.optional(v.string()),
     status: v.string(),

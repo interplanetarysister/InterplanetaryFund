@@ -16,7 +16,7 @@ import { v } from "convex/values";
 // AI CAMPAIGN GENERATION — Template-Based, Credit-Free
 // =====================================================
 
-const STYLE_DESCRIPTION = "Cyberpunk-Afropunk-Interstellar: neon African futurism, cosmic cityscapes, vibrant purple and cyan tones, interstellar backgrounds, afro-punk comic book energy";
+const STYLE_DESCRIPTION = "Afro-punk cyber-punk futuristic interstellar comic book style, hyper-realistic rendering, neon African futurism, cosmic cityscapes, vibrant purple and cyan tones, deep space starfield backgrounds, dramatic cinematic lighting, afro-punk geometric patterns, interplanetary energy";
 
 function generateTitle(what: string, beneficiary: string, category: string): string {
   const categoryEmojis: Record<string, string> = {
@@ -210,7 +210,7 @@ export const generateCampaignContent = mutation({
       donorThankYou,
       seoContent,
       tags,
-      imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt.substring(0, 500))}?width=800&height=600&nologo=true`,
+      imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(imagePrompt.substring(0, 800))}?width=800&height=600&nologo=true`,
       style: STYLE_DESCRIPTION,
     };
   },
@@ -230,7 +230,7 @@ export const generateImageUrl = mutation({
     const w = args.width || 800;
     const h = args.height || 600;
     const fullPrompt = `${args.prompt}. ${STYLE_DESCRIPTION}. Deep space black background, electric cyan and purple accents, afrofuturism, cosmic energy.`;
-    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt.substring(0, 500))}?width=${w}&height=${h}&nologo=true`;
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt.substring(0, 800))}?width=${w}&height=${h}&nologo=true`;
     return { url, prompt: fullPrompt };
   },
 });
@@ -245,6 +245,7 @@ export const generatePlatformPosts = mutation({
     campaignTitle: v.string(),
     campaignSummary: v.string(),
     platforms: v.array(v.string()),
+    campaignImageUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const paypalLink = `https://www.paypal.com/donate/?cmd=_donations&business=interplanetarysister@gmail.com&item_name=${encodeURIComponent(args.campaignTitle)}&currency_code=USD`;
@@ -292,6 +293,7 @@ export const generatePlatformPosts = mutation({
           platform,
           postType: "ai_generated",
           content: platformContent[platform],
+          imageUrl: args.campaignImageUrl || undefined,
           paypalLink,
           status: "pending",
           createdAt: new Date().toISOString(),

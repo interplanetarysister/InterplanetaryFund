@@ -2,7 +2,7 @@
  * Interplanetary Fund — Copyright © 2026 Michelle Rogers. All Rights Reserved.
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -12,9 +12,25 @@ export default function UserLogin({ onLogin }: { onLogin: (userId: string, name:
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [shouldLogin, setShouldLogin] = useState(false);
 
   const loginQuery = useQuery(api.userAuth.login, email && mode === "login" ? { email } : "skip");
   const register = useMutation(api.userAuth.register);
+
+  // Watch for login query result — fixes the race condition
+  // where the query hadn't loaded when the user clicked Sign In
+  useEffect(() => {
+    if (shouldLogin && loginQuery !== undefined) {
+      setShouldLogin(false);
+      setLoading(false);
+      if (loginQuery.success) {
+        onLogin(loginQuery.userId, loginQuery.name);
+      } else if (mode === "login") {
+        setError("No account found with this email. Create one?");
+        setMode("register");
+      }
+    }
+  }, [shouldLogin, loginQuery, mode, onLogin]);
 
   const handleSubmit = async () => {
     setError("");
@@ -34,29 +50,27 @@ export default function UserLogin({ onLogin }: { onLogin: (userId: string, name:
         if (result.success) {
           onLogin(result.userId, result.name);
         } else {
-          // Account exists — switch to login
+          // Account exists — switch to login mode
           setMode("login");
-          setError("Account exists. Logging you in...");
-          if (loginQuery && loginQuery.success) {
-            onLogin(loginQuery.userId, loginQuery.name);
-          }
+          setError("Account already exists. Sign in with your email.");
+          setShouldLogin(true);
         }
       } catch (e: any) {
         setError(e.message || "Something went wrong");
       }
       setLoading(false);
     } else {
-      // Login mode — the query runs automatically
-      if (loginQuery === undefined) {
-        setLoading(true);
-        return;
-      }
-      if (!loginQuery.success) {
-        setError("No account found. Create one?");
+      // Login mode — trigger the query watcher
+      if (loginQuery !== undefined && loginQuery.success) {
+        onLogin(loginQuery.userId, loginQuery.name);
+      } else if (loginQuery !== undefined && !loginQuery.success) {
+        setError("No account found with this email. Create one?");
         setMode("register");
-        return;
+      } else {
+        // Query is loading — set flag so useEffect handles it when ready
+        setLoading(true);
+        setShouldLogin(true);
       }
-      onLogin(loginQuery.userId, loginQuery.name);
     }
   };
 

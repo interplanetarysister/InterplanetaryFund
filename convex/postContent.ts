@@ -149,6 +149,7 @@ export const autoGeneratePosts = internalMutation({
             platform: platform.name,
             postType: "outreach",
             content,
+            imageUrl: campaign.coverImageUrl || undefined,
             paypalLink,
             status: "pending",
             createdAt: new Date().toISOString(),

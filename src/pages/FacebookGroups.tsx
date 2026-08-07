@@ -32,6 +32,7 @@ export default function FacebookGroups() {
   const [isPosting, setIsPosting] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
+  const [hideZeroMembers, setHideZeroMembers] = useState(true);
 
   if (!campaigns || !dashboard || !allGroups || !allPosts) {
     return (
@@ -228,9 +229,27 @@ export default function FacebookGroups() {
                 )}
               </div>
 
-              <div className="space-y-3">
+              {(() => {
+                const zeroCount = allGroups.groups.filter((g: any) => g.memberCount === 0 && (!selectedCampaign || g.campaignId === selectedCampaign)).length;
+                const visibleCount = allGroups.groups.filter((g: any) => (!selectedCampaign || g.campaignId === selectedCampaign) && (!hideZeroMembers || g.memberCount > 0)).length;
+                return (
+                  <>
+                    {zeroCount > 0 && (
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] text-ifmuted">{visibleCount} groups shown{hideZeroMembers ? `, ${zeroCount} hidden (0 members)` : ""}</p>
+                        <button
+                          onClick={() => setHideZeroMembers(!hideZeroMembers)}
+                          className="text-[10px] text-ifaccent font-medium"
+                        >
+                          {hideZeroMembers ? `Show ${zeroCount} empty groups` : "Hide empty groups"}
+                        </button>
+                      </div>
+                    )}
+                    <div className="space-y-3">
+                );
+              })()}
                 {allGroups.groups
-                  .filter((g: any) => !selectedCampaign || g.campaignId === selectedCampaign)
+                  .filter((g: any) => (!selectedCampaign || g.campaignId === selectedCampaign) && (!hideZeroMembers || g.memberCount > 0))
                   .map((g: any) => (
                   <div key={g._id} className="card space-y-2">
                     <div className="flex items-start justify-between">
