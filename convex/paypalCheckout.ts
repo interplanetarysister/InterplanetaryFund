@@ -43,9 +43,9 @@ export const createCheckoutSession = mutation({
     paypalUrl.searchParams.set("custom", donationId);
 
     // IPN webhook URL for payment confirmation
-    paypalUrl.searchParams.set("notify_url", "https://rosy-butterfly-2.convex.cloud/paypalWebhook");
+    paypalUrl.searchParams.set("notify_url", "https://rosy-butterfly-2.convex.site/paypalWebhook");
     // Return URL after payment
-    paypalUrl.searchParams.set("return", "https://rosy-butterfly-2.convex.cloud/paypalReturn?donationId=" + donationId);
+    paypalUrl.searchParams.set("return", "https://rosy-butterfly-2.convex.site/paypalReturn?donationId=" + donationId);
     paypalUrl.searchParams.set("cancel_return", "https://interplanetary-fund.vercel.app");
 
     return {
