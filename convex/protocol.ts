@@ -72,6 +72,44 @@ export const enforceProtocol = query({
       if (!campaign.coverImagePresent) violations.push({ standard: "P-5", missing: "coverImageUrl" });
       if (campaign.status === "active" && !campaign.endDate) violations.push({ standard: "P-5", missing: "endDate on active campaign" });
 
+      // P-6: Agent Assignment — every active campaign should have agent assignments
+      if (campaign.status === "active") {
+        const agents = await ctx.db.query("agents").collect();
+        const assignedAgents = agents.filter((a: any) => 
+          a.managedCampaigns?.includes(campaign.ifCampaignId)
+        );
+        if (assignedAgents.length === 0) {
+          violations.push({ standard: "P-6", issue: "No agents assigned to active campaign", severity: "warning" });
+        }
+      }
+
+      // P-7: External Platform Sync — campaigns with external platforms should be synced
+      const externalPlatforms = await ctx.db
+        .query("externalPlatforms")
+        .filter((q) => q.eq(q.field("campaignId"), campaign.ifCampaignId))
+        .collect();
+      for (const platform of externalPlatforms) {
+        const lastSync = platform.lastSynced ? new Date(platform.lastSynced).getTime() : 0;
+        const hoursSinceSync = (Date.now() - lastSync) / (1000 * 60 * 60);
+        if (hoursSinceSync > 24) {
+          violations.push({ standard: "P-7", issue: `Platform ${platform.platform} not synced in ${Math.floor(hoursSinceSync)} hours` });
+        }
+        if (platform.status === "error") {
+          violations.push({ standard: "P-7", issue: `Platform ${platform.platform} sync error: ${platform.lastError || "unknown"}`, severity: "critical" });
+        }
+      }
+
+      // P-8: Fund Migration — migrated funds must show fee transparency
+      const migratedFunds = await ctx.db
+        .query("payoutRequests")
+        .filter((q) => q.eq(q.field("campaignId"), campaign.ifCampaignId))
+        .collect();
+      for (const withdrawal of migratedFunds) {
+        if (withdrawal.grossAmount !== undefined && (withdrawal.platformFee === undefined || withdrawal.netAmount === undefined)) {
+          violations.push({ standard: "P-8", issue: "Payout missing fee breakdown (gross/fee/net)", severity: "critical" });
+        }
+      }
+
       const isCompliant = violations.length === 0 && autoFixes.length === 0;
       if (isCompliant) compliantCount++; else nonCompliantCount++;
 
@@ -86,7 +124,7 @@ export const enforceProtocol = query({
         raisedAmount: campaign.raisedAmount,
         donorCount: campaign.donorCount,
         outreachEnabled: campaign.outreachEnabled,
-        complianceScore: Math.max(0, 6 - violations.length - autoFixes.length),
+        complianceScore: Math.max(0, 8 - violations.length - autoFixes.length),
         violations,
         autoFixes,
       });

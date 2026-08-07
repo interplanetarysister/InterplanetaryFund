@@ -152,9 +152,9 @@ All agents stored as entity records in Lyra's app. Updated by weeklyTrainingSync
 | P-3 Story | ✅ 4/4 compliant | All have AI-generated stories |
 | P-4 Payment | ❌ 0/4 compliant | Critical blocker — no payment processing |
 | P-5 Data | ⚠️ 0/4 fully compliant | Missing end_dates and summaries |
-| P-6 Agent | ✅ 7 agents active | All campaigns assigned |
-| P-7 Platform Sync | ⏳ PENDING | Action Plan #003 submitted to Builder AI |
-| P-8 Fund Migration | ⏳ PARTIAL | Fee logic ready, holding account needs Builder AI |
+| P-6 Agent | ✅ ENFORCED | Agent assignment checked per campaign |
+| P-7 Platform Sync | ✅ ENFORCED | Sync staleness + error detection |
+| P-8 Fund Migration | ✅ ENFORCED | Fee breakdown validation on all payouts |
 
 ---
 
