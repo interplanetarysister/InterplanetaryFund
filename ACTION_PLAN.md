@@ -133,7 +133,7 @@ GitHub (interplanetarysister/InterplanetaryFund)
 17. Community features (groups, discussions)
 18. Institution and grant applications
 19. Volunteer opportunities
-20. AI recommendations per campaign
+20. AI recommendations per campaign ✅ DONE
 21. Agent activity logging
 22. Mission briefs and executive reports
 23. Feature flags

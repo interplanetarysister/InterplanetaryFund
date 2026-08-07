@@ -21,6 +21,7 @@ export default function Explore({ onViewCampaign }: { onViewCampaign?: (campaign
   const balances = useQuery(api.treasury.aggregateBalances, {});
   const recordDonation = useMutation(api.campaigns.recordDonation);
   const recordInteraction = useMutation(api.interactions.recordInteraction);
+  const recommendations = useQuery(api.userCampaigns.getRecommendations, { limit: 3 });
 
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
@@ -141,6 +142,35 @@ export default function Explore({ onViewCampaign }: { onViewCampaign?: (campaign
           </div>
         </div>
       </div>
+
+      {/* AI Recommendations */}
+      {recommendations && recommendations.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-iftext mb-3">Recommended for You</h3>
+          <div className="space-y-2">
+            {recommendations.map((r: any) => (
+              <button
+                key={r._id}
+                onClick={() => onViewCampaign ? onViewCampaign(r._id) : handleSupport(r)}
+                className="card w-full flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+              >
+                {r.coverImageUrl ? (
+                  <img src={r.coverImageUrl} alt="" className="w-12 h-12 rounded-lg object-cover" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-ifaccent/20 flex items-center justify-center">
+                    <span className="text-xs font-bold text-ifaccent">{(r.category || "?")[0]}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-iftext truncate">{r.title}</p>
+                  <p className="text-[10px] text-ifaccent">{r.reason}</p>
+                  <p className="text-[10px] text-ifmuted">${(r.raisedAmount || 0).toLocaleString()} raised</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Category filter */}
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">

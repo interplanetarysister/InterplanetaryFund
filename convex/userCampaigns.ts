@@ -504,3 +504,74 @@ export const getPendingPayouts = query({
     return payouts;
   },
 });
+
+// Query: Get personalized campaign recommendations
+export const getRecommendations = query({
+  args: { userId: v.optional(v.string()), limit: v.optional(v.number()) },
+  handler: async (ctx, { userId, limit }) => {
+    const maxResults = limit ?? 5;
+
+    // Get all active campaigns
+    const allCampaigns = await ctx.db
+      .query("userCampaigns")
+      .withIndex("byStatus", (q) => q.eq("status", "active"))
+      .collect();
+
+    if (allCampaigns.length === 0) return [];
+
+    // Get user's followed campaigns and donations for personalization
+    let interactedCampaigns = new Set<string>();
+    let userCategories = new Set<string>();
+
+    if (userId) {
+      const followed = await ctx.db
+        .query("followedCampaigns")
+        .withIndex("byUserId", (q) => q.eq("userId", userId))
+        .collect();
+      followed.forEach((f: any) => {
+        interactedCampaigns.add(f.campaignId);
+      });
+
+      const donations = await ctx.db
+        .query("donations")
+        .filter((q) => q.eq("userId", userId))
+        .collect();
+      donations.forEach((d: any) => {
+        interactedCampaigns.add(d.campaignId);
+        if (d.campaignTitle) {
+          const campaign = allCampaigns.find((c) => c.title === d.campaignTitle);
+          if (campaign?.category) userCategories.add(campaign.category);
+        }
+      });
+    }
+
+    // Trending = sorted by raised amount
+    const trending = [...allCampaigns].sort((a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0));
+
+    let recommendations;
+    if (userCategories.size > 0) {
+      // Personalized: campaigns in same categories user has interacted with
+      const personalized = allCampaigns
+        .filter((c) => userCategories.has(c.category) && !interactedCampaigns.has(c.id))
+        .sort((a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0))
+        .map((c: any) => ({
+          ...c,
+          reason: `Matches your interest in ${(c.category || "").toLowerCase()}`,
+        }));
+
+      // Fill with trending
+      const fill = trending
+        .filter((c) => !personalized.find((r: any) => r.id === c.id) && !interactedCampaigns.has(c.id))
+        .map((c: any) => ({ ...c, reason: "Trending now" }));
+
+      recommendations = [...personalized, ...fill];
+    } else {
+      // No personalization data — just trending
+      recommendations = trending
+        .filter((c) => !interactedCampaigns.has(c.id))
+        .map((c: any) => ({ ...c, reason: "Trending now" }));
+    }
+
+    return recommendations.slice(0, maxResults);
+  },
+});
