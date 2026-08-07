@@ -7,6 +7,7 @@
 import { useState } from "react";
 import { usePaginatedQuery, useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
 const CASHAPP_TAG = "unrewound";

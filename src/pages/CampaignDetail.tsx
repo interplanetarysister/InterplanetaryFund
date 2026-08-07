@@ -8,6 +8,7 @@ import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import ShareModal from "../components/ShareModal";
+import VerifiedBadge from "../components/VerifiedBadge";
 
 type CampaignDetailProps = {
   campaignId: string;

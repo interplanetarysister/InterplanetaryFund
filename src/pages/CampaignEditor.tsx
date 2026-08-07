@@ -136,6 +136,15 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
         <div>
           <label className="text-[10px] text-ifmuted mb-1 block">Cover Image URL</label>
           <input type="text" placeholder="https://..." value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} className="input-field" />
+          <p className="text-[10px] text-ifcyan mt-1">
+            Style: Cyberpunk-Afropunk-Interstellar. Think neon African futurism, cosmic cityscapes, vibrant purple/cyan tones.
+          </p>
+          <div className="flex gap-2 mt-1 flex-wrap">
+            <span className="text-[9px] bg-ifbg2 border border-ifborder rounded-full px-2 py-0.5 text-ifmuted">Neon + African motifs</span>
+            <span className="text-[9px] bg-ifbg2 border border-ifborder rounded-full px-2 py-0.5 text-ifmuted">Cosmic backgrounds</span>
+            <span className="text-[9px] bg-ifbg2 border border-ifborder rounded-full px-2 py-0.5 text-ifmuted">Purple/Cyan palette</span>
+            <span className="text-[9px] bg-ifbg2 border border-ifborder rounded-full px-2 py-0.5 text-ifmuted">Futuristic typography</span>
+          </div>
         </div>
         <div>
           <label className="text-[10px] text-ifmuted mb-1 block">CashApp Tag</label>

@@ -23,6 +23,7 @@ const Community = lazy(() => import("./pages/Community"));
 const InstitutionApply = lazy(() => import("./pages/InstitutionApply"));
 const Volunteer = lazy(() => import("./pages/Volunteer"));
 const Help = lazy(() => import("./pages/Help"));
+const ThankYou = lazy(() => import("./pages/ThankYou"));
 
 // Loading fallback
 function PageLoader() {
@@ -37,7 +38,7 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help";
+type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms";
 
 export default function App() {
   const [view, setView] = useState<View>("explore");
@@ -185,6 +186,8 @@ export default function App() {
                  view === "community" ? "Community Groups" :
                  view === "detail" ? "Community Groups" :
                  view === "help" ? "Help Center" :
+                 view === "thankYou" ? "Thank You" :
+                 view === "platforms" ? "Platform Accounts" :
                  view === "login" ? "Pilot Sign In" :
                  "Fuel a cause today"}
               </p>
@@ -250,6 +253,8 @@ export default function App() {
           {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
           {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "help" && <ErrorBoundary><Help /></ErrorBoundary>}
+          {view === "thankYou" && <ErrorBoundary><ThankYou onBackToExplore={() => setView("explore")} /></ErrorBoundary>}
+          {view === "platforms" && authed && <ErrorBoundary><PlatformAccountsSheet /></ErrorBoundary>}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (
