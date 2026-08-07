@@ -25,7 +25,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const recordInteraction = useMutation(api.interactions.recordInteraction);
   const recommendations = useQuery(api.userCampaigns.getRecommendations, { limit: 3 });
   const safeRecs = recommendations || [];
-  const trending = useQuery(api.userCampaigns.getTrendingCampaigns, { limit: 3 });
+  const trending = useQuery(api.userCampaigns.getTrendingCampaigns, {});
   const safeTrending = trending || [];
 
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
