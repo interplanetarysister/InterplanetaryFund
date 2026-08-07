@@ -49,11 +49,29 @@ jobs:
         env:
           VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
 
-      - name: Initialize Capacitor
+      - name: Create Capacitor config
         run: |
-          npx cap init "Interplanetary Fund" "com.interplanetaryfund.app" --web-dir=dist
-          npx cap add android
-          npx cap copy
+          cat > capacitor.config.json << 'CONF'
+          {
+            "appId": "com.interplanetaryfund.app",
+            "appName": "Interplanetary Fund",
+            "webDir": "dist",
+            "server": {
+              "androidScheme": "https"
+            },
+            "android": {
+              "allowMixedContent": true
+            }
+          }
+          CONF
+          # Remove any TS config that might conflict
+          rm -f capacitor.config.ts
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Copy web assets
+        run: npx cap copy
 
       - name: Generate signing key
         run: |
@@ -62,13 +80,12 @@ jobs:
             -storepass interplanetary -keypass interplanetary \
             -dname "CN=Interplanetary Fund, O=Interplanetary Fund, L=Earth, ST=Earth, C=US"
 
-      - name: Build APK
+      - name: Build debug APK
         working-directory: android
-        env:
-          JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
           chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon -x lint 2>&1 || true
+          ./gradlew assembleDebug --no-daemon -x lint 2>&1
+          find . -name "*.apk" -type f
 
       - name: Find and rename APK
         run: |
@@ -76,8 +93,10 @@ jobs:
           if [ -n "$APK_PATH" ]; then
             cp "$APK_PATH" "interplanetary-fund.apk"
             ls -la interplanetary-fund.apk
+            echo "APK found at: $APK_PATH"
           else
             echo "No APK was built"
+            exit 1
           fi
 
       - name: Upload APK artifact
@@ -85,11 +104,10 @@ jobs:
         with:
           name: interplanetary-fund-apk
           path: interplanetary-fund.apk
-          if-no-files-found: warn
+          if-no-files-found: error
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
-        if: hashFiles('interplanetary-fund.apk') != ''
         with:
           tag_name: latest-apk
           name: "Interplanetary Fund APK (Latest)"
