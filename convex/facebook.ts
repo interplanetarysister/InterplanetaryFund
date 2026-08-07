@@ -728,44 +728,39 @@ export const submitGroupQuestionnaire = mutation({
 export const discoverGroupsProactively = internalMutation({
   args: {},
   handler: async (ctx) => {
-    // General fundraising categories to search for
-    const searchCategories = [
-      { category: "fundraising", keywords: "fundraising charity donation crowdfunding" },
-      { category: "community_help", keywords: "community help mutual aid neighbors helping" },
-      { category: "homelessness", keywords: "homeless housing shelter community support" },
-      { category: "medical_fundraising", keywords: "medical bills fundraiser healthcare help" },
-      { category: "education_funding", keywords: "education tuition scholarship school fundraiser" },
-      { category: "emergency_relief", keywords: "emergency relief disaster recovery help" },
-      { category: "animal_rescue", keywords: "animal rescue shelter pet fundraiser" },
-      { category: "environment_cause", keywords: "environment climate action community fundraiser" },
-    ];
-
-    // Check if we already have enough groups discovered (cap at 200)
     const allGroups = await ctx.db.query("facebookGroups").collect();
+
     if (allGroups.length >= 200) {
       return { status: "skip", reason: "Max groups reached (200)", total: allGroups.length };
     }
 
-    // Find groups that haven't been joined yet
-    const discovered = allGroups.filter(g => g.joinStatus === "discovered" || g.joinStatus === "join_requested");
+    // Process "to_discover" entries — mark them as "discovered" so browser agent can search
+    const toDiscover = allGroups.filter(g => g.joinStatus === "to_discover");
+    let discoveryActivated = 0;
+    for (const group of toDiscover) {
+      await ctx.db.patch(group._id, { joinStatus: "discovered" });
+      discoveryActivated++;
+    }
+
+    // Auto-request to join discovered groups (browser agent handles actual joining)
+    const discovered = allGroups.filter(g => g.joinStatus === "discovered");
     const joined = allGroups.filter(g => g.joinStatus === "joined");
 
-    // Auto-request to join discovered groups (the browser agent handles actual joining)
     let joinRequestsSent = 0;
     for (const group of discovered) {
-      if (group.joinStatus === "discovered") {
-        await ctx.db.patch(group._id, { joinStatus: "join_requested", lastError: undefined });
-        joinRequestsSent++;
-      }
+      await ctx.db.patch(group._id, { joinStatus: "join_requested", lastError: undefined });
+      joinRequestsSent++;
     }
 
     return {
       status: "success",
       totalGroups: allGroups.length,
+      toDiscover: toDiscover.length,
       discovered: discovered.length,
       joined: joined.length,
+      discoveryActivated,
       joinRequestsSent,
-      message: "Proactively discovering and requesting to join groups. No test campaigns posted.",
+      message: `Activated ${discoveryActivated} discovery targets, sent ${joinRequestsSent} join requests.`,
     };
   },
 });
