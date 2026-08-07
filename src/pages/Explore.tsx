@@ -14,6 +14,8 @@ const CASHAPP_URL = `https://cash.app/$${CASHAPP_TAG}`;
 const MIN_AMOUNT = 1;
 
 export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign?: (campaignId: string) => void; onNavigate?: (view: string) => void }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   // User-created campaigns (public explore page)
   const userCampaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
   // Keep admin stats for the hero banner
@@ -143,6 +145,45 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         </div>
       </div>
 
+
+      {/* Search Bar */}
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search campaigns..."
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setShowSearch(e.target.value.length > 0); }}
+          className="input-field pl-9"
+        />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-ifmuted">🔍</span>
+      </div>
+
+      {/* Search Results */}
+      {showSearch && searchQuery && (
+        <div className="space-y-2">
+          <p className="text-[10px] text-ifmuted uppercase tracking-wide">Search Results</p>
+          {campaigns?.filter((c: any) =>
+            c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.category?.toLowerCase().includes(searchQuery.toLowerCase())
+          ).map((c: any) => (
+            <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
+              <p className="text-sm font-semibold text-iftext">{c.title}</p>
+              <p className="text-xs text-ifmuted line-clamp-1">{c.summary}</p>
+              <span className="text-[10px] text-ifaccent">{c.category}</span>
+            </button>
+          ))}
+          {campaigns?.filter((c: any) =>
+            c.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            c.category?.toLowerCase().includes(searchQuery.toLowerCase())
+          ).length === 0 && (
+            <p className="text-xs text-ifmuted text-center py-2">No campaigns found</p>
+          )}
+        </div>
+      )
+
+      }
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-2">
         <button onClick={() => onNavigate?.("institutions")} className="card flex flex-col items-center gap-1 py-3 w-full">
@@ -155,6 +196,25 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         </button>
       </div>
 
+
+      {/* Trending Campaigns */}
+      {!showSearch && trending && trending.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-[10px] text-ifmuted uppercase tracking-wide">🔥 Trending Now</p>
+          {trending.slice(0, 3).map((c: any) => (
+            <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
+              <p className="text-sm font-semibold text-iftext">{c.title}</p>
+              <p className="text-xs text-ifmuted line-clamp-1">{c.summary}</p>
+              <div className="flex justify-between mt-1 text-[10px] text-ifmuted">
+                <span>{c.category}</span>
+                <span>{c.donorCount || 0} supporters</span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )
+
+      }
       {/* AI Recommendations */}
       {recommendations && recommendations.length > 0 && (
         <div>

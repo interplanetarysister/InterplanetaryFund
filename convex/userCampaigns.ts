@@ -575,3 +575,69 @@ export const getRecommendations = query({
     return recommendations.slice(0, maxResults);
   },
 });
+
+// Query: Search campaigns by title, description, or category
+export const searchCampaigns = query({
+  args: { query: v.string(), category: v.optional(v.string()) },
+  handler: async (ctx, { query, category }) => {
+    const allCampaigns = await ctx.db.query("userCampaigns").collect();
+    const q = query.toLowerCase().trim();
+
+    let results = allCampaigns.filter((c: any) => {
+      const matchesQuery = !q ||
+        c.title?.toLowerCase().includes(q) ||
+        c.summary?.toLowerCase().includes(q) ||
+ c.description?.toLowerCase().includes(q) ||
+        c.category?.toLowerCase().includes(q) ||
+        c.organizerName?.toLowerCase().includes(q);
+      const matchesCategory = !category || category === "All" || c.category === category;
+      return matchesQuery && matchesCategory;
+    });
+
+    // Sort by raised amount descending
+    results.sort((a: any, b: any) => (b.raisedAmount || 0) - (a.raisedAmount || 0));
+
+    return results.slice(0, 50);
+  },
+});
+
+// Query: Get trending campaigns (most donors in last 7 days)
+export const getTrendingCampaigns = query({
+  args: {},
+  handler: async (ctx) => {
+    const allCampaigns = await ctx.db.query("userCampaigns").collect();
+    const active = allCampaigns.filter((c: any) => c.status === "active");
+
+    // Sort by donor count then by raised amount
+    active.sort((a: any, b: any) => {
+      if ((b.donorCount || 0) !== (a.donorCount || 0)) {
+        return (b.donorCount || 0) - (a.donorCount || 0);
+      }
+      return (b.raisedAmount || 0) - (a.raisedAmount || 0);
+    });
+
+    return active.slice(0, 5);
+  },
+});
+
+// Query: Get campaign stats for dashboard
+export const getPlatformStats = query({
+  args: {},
+  handler: async (ctx) => {
+    const allCampaigns = await ctx.db.query("userCampaigns").collect();
+    const activeCampaigns = allCampaigns.filter((c: any) => c.status === "active");
+    const totalRaised = allCampaigns.reduce((s: number, c: any) => s + (c.raisedAmount || 0), 0);
+    const totalGoal = allCampaigns.reduce((s: number, c: any) => s + (c.goalAmount || 0), 0);
+    const totalDonors = allCampaigns.reduce((s: number, c: any) => s + (c.donorCount || 0), 0);
+
+    return {
+      totalCampaigns: allCampaigns.length,
+      activeCampaigns: activeCampaigns.length,
+      totalRaised,
+      totalGoal,
+      totalDonors,
+      averageRaised: allCampaigns.length > 0 ? Math.round(totalRaised / allCampaigns.length) : 0,
+      completionRate: totalGoal > 0 ? Math.round((totalRaised / totalGoal) * 100) : 0,
+    };
+  },
+});
