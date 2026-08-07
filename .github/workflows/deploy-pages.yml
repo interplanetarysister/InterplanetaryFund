@@ -30,6 +30,8 @@ jobs:
           VITE_BASE_PATH: "/InterplanetaryFund/"
       - name: Add .nojekyll
         run: touch dist/.nojekyll
+      - name: Copy 404.html for SPA routing
+        run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

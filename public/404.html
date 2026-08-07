@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Interplanetary Fund</title>
+<script>
+// GitHub Pages SPA redirect — captures the path and redirects to index with query param
+// The SPA router then reads the query param and routes accordingly
+var pathSegmentsToKeep = 1; // /InterplanetaryFund/
+var l = window.location;
+l.replace(
+  l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+  l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?' +
+  (l.search ? l.search.slice(1) + '&' : '') +
+  'p=' + l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+  (l.hash ? '#' + l.hash.slice(1) : '')
+);
+</script>
+</head>
+<body>
+<p>Redirecting to Interplanetary Fund...</p>
+</body>
+</html>
