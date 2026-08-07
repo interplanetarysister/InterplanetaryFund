@@ -35,6 +35,9 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Donors = lazy(() => import("./pages/Donors"));
 const NotificationsPage = lazy(() => import("./pages/Notifications"));
 const Compare = lazy(() => import("./pages/Compare"));
+const Profile = lazy(() => import("./pages/Profile"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 
 // Loading fallback
 function PageLoader() {
@@ -49,7 +52,7 @@ function PageLoader() {
   );
 }
 
-type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare";
+type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare" | "profile" | "forgotPassword" | "resetPassword";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
@@ -99,6 +102,7 @@ export default function App() {
       { id: "saved", label: "Saved", icon: "\u{1F516}" },
       { id: "categories", label: "Categories", icon: "\u{1F3F7}\uFE0F" },
       { id: "settings", label: "Settings", icon: "\u2699\uFE0F" },
+      { id: "profile", label: "Profile", icon: "\u{1F464}" },
     ],
     []
   );
@@ -292,7 +296,16 @@ export default function App() {
           {view === "globe" && <ErrorBoundary><GlobePage /></ErrorBoundary>}
           {view === "facebook" && <ErrorBoundary><FacebookGroups /></ErrorBoundary>}
           {view === "admin" && <ErrorBoundary><Admin adminUser={adminUser} /></ErrorBoundary>}
-          {view === "login" && <UserLogin onLogin={handleUserLogin} />}
+          {view === "login" && (
+            <>
+              <UserLogin onLogin={handleUserLogin} />
+              <div className="text-center mt-2">
+                <button onClick={() => setView("forgotPassword")} className="text-xs text-ifcyan hover:underline">
+                  Forgot password?
+                </button>
+              </div>
+            </>
+          )}
           {view === "dashboard" && userId && (
             <UserDashboard
               userId={userId}
@@ -321,6 +334,12 @@ export default function App() {
           {view === "donors" && <Donors onViewCampaign={handleViewCampaign} />}
           {view === "notificationsPage" && userId && <NotificationsPage userId={userId} />}
           {view === "notificationsPage" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "forgotPassword" && <ForgotPassword onBack={() => setView("login")} />}
+          {view === "resetPassword" && <ResetPassword onComplete={() => setView("login")} />}
+
+          {view === "profile" && userId && <Profile userId={userId} userName={userName} onNavigate={handleNavigate} onViewCampaign={handleViewCampaign} />}
+          {view === "profile" && !userId && <UserLogin onLogin={handleUserLogin} />}
+
           {view === "compare" && <Compare onViewCampaign={handleViewCampaign} />}
 
           {view === "saved" && userId && <SavedCampaigns userId={userId} />}
