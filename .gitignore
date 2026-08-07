@@ -1,6 +1,10 @@
-.agents/.env
 node_modules/
-.npm/
-__pycache__/
-.cache/
-blobs/
+.env
+.env.local
+convex/_generated/
+*.log
+.DS_Store
+dist/
+.env.convex
+.env.production
+.netlify/

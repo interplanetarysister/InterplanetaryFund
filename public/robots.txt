@@ -1,0 +1,41 @@
+# Interplanetary Fund — Copyright © 2026 Michelle Rogers
+# All Rights Reserved. Scraping, crawling, or data extraction prohibited.
+
+User-agent: *
+Disallow: /api/
+Disallow: /admin/
+Disallow: /treasury/
+Disallow: /agents/
+Disallow: /reports/
+Disallow: /platforms/
+
+# Block known scraping bots
+User-agent: Scrapy
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SiteAuditBot
+Disallow: /
+
+# Allow indexing of public campaign pages only
+User-agent: Googlebot
+Allow: /explore
+Disallow: /
+
+User-agent: Bingbot
+Allow: /explore
+Disallow: /

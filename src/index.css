@@ -1,0 +1,404 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background: #05060f;
+  color: #f8fafc;
+  font-family: "Inter", system-ui, sans-serif;
+  overscroll-behavior: none;
+  background-image:
+    radial-gradient(ellipse at top, rgba(34, 211, 238, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(139, 92, 246, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 600px 400px at 85% 100%, rgba(249, 115, 22, 0.03) 0%, transparent 60%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ===== INTERPLANETARY BRANDING ===== */
+
+/* Planet glow — the blue glow around Earth on the home page */
+.planet-glow {
+  background: radial-gradient(circle at center,
+    rgba(34, 211, 238, 0.2) 0%,
+    rgba(59, 130, 246, 0.1) 30%,
+    rgba(139, 92, 246, 0.05) 50%,
+    transparent 70%);
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* Solar system background — stars + nebula */
+.solar-bg {
+  background:
+    radial-gradient(2px 2px at 20% 30%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 60% 70%, rgba(34, 211, 238, 0.6), transparent),
+    radial-gradient(1px 1px at 80% 20%, rgba(139, 92, 246, 0.5), transparent),
+    radial-gradient(2px 2px at 40% 80%, rgba(255, 255, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 90% 50%, rgba(34, 211, 238, 0.3), transparent);
+  background-size: 200% 200%;
+  animation: drift 30s linear infinite;
+}
+
+/* Electric text — white with cyan glow */
+.text-electric {
+  color: #f8fafc;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+/* Neon border — gradient cyan to purple */
+.neon-border {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#0c0d1a, #0c0d1a) padding-box,
+    linear-gradient(90deg, #22d3ee, #8b5cf6, #22d3ee) border-box;
+}
+
+/* Glow card — card with subtle planet glow */
+.glow-card {
+  background: #0c0d1a;
+  border: 1px solid #1a1d3a;
+  border-radius: 16px;
+  box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.03);
+  transition: box-shadow 0.3s ease;
+}
+
+.glow-card:hover {
+  box-shadow: inset 0 0 20px rgba(34, 211, 238, 0.05), 0 0 15px rgba(34, 211, 238, 0.1);
+}
+
+/* Interplanetary badge */
+.ipf-badge {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(139, 92, 246, 0.15));
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  color: #22d3ee;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+/* Orbit divider — line with gradient */
+.orbit-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #22d3ee, #8b5cf6, transparent);
+  opacity: 0.3;
+}
+
+/* Page title with glow */
+.page-title {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+
+/* ===== HYPER-REALISTIC PLANETARY EFFECTS ===== */
+
+/* Earth-like planet — blue atmosphere glow on dark sphere */
+.planet-earth {
+  background: radial-gradient(circle at 30% 30%,
+    rgba(34, 211, 238, 0.4) 0%,
+    rgba(59, 130, 246, 0.2) 25%,
+    rgba(10, 11, 30, 0.9) 60%,
+    #05060f 100%);
+  box-shadow:
+    inset -10px -10px 30px rgba(0, 0, 0, 0.5),
+    0 0 60px rgba(34, 211, 238, 0.15),
+    0 0 120px rgba(59, 130, 246, 0.08);
+  border-radius: 50%;
+}
+
+/* Saturn-like planet — ringed gas giant */
+.planet-saturn {
+  background: radial-gradient(circle at 35% 35%,
+    rgba(251, 191, 36, 0.3) 0%,
+    rgba(251, 146, 60, 0.15) 30%,
+    rgba(10, 11, 30, 0.9) 65%,
+    #05060f 100%);
+  box-shadow:
+    inset -8px -8px 20px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(251, 191, 36, 0.1);
+  border-radius: 50%;
+}
+
+/* Comet streak — warm trailing element */
+.comet-streak {
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(251, 146, 60, 0.4) 40%,
+    rgba(249, 115, 22, 0.8) 70%,
+    rgba(255, 255, 255, 0.9) 100%);
+  height: 2px;
+  border-radius: 9999px;
+  box-shadow: 0 0 8px rgba(251, 146, 60, 0.5);
+}
+
+/* Solar flare — warm radial burst (use for urgency/highlights) */
+.solar-flare {
+  background: radial-gradient(circle,
+    rgba(249, 115, 22, 0.25) 0%,
+    rgba(251, 191, 36, 0.1) 40%,
+    transparent 70%);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Nebula cloud — deep warm nebula in background */
+.nebula-warm {
+  background: radial-gradient(ellipse 600px 400px at 80% 100%,
+    rgba(220, 38, 38, 0.06) 0%,
+    rgba(249, 115, 22, 0.04) 30%,
+    transparent 60%);
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Star core — bright gold point */
+.star-core {
+  background: radial-gradient(circle, #ffffff 0%, #fbbf24 30%, transparent 70%);
+  box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+  border-radius: 50%;
+}
+
+/* Atmosphere ring — thin glowing ring around elements */
+.atmosphere-ring {
+  border: 1px solid rgba(34, 211, 238, 0.15);
+  border-radius: 50%;
+  box-shadow:
+    0 0 20px rgba(34, 211, 238, 0.1),
+    inset 0 0 20px rgba(34, 211, 238, 0.05);
+}
+
+/* Warm badge — for mayday/urgent states */
+.badge-mayday {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.2), rgba(220, 38, 38, 0.2));
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fb923c;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+}
+
+/* Warm stat card — solar accent for important metrics */
+.stat-card-solar {
+  background: #0c0d1a;
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  border-radius: 16px;
+  box-shadow: inset 0 0 20px rgba(249, 115, 22, 0.03);
+  transition: all 0.3s ease;
+}
+
+.stat-card-solar:hover {
+  border-color: rgba(249, 115, 22, 0.4);
+  box-shadow: 0 0 15px rgba(249, 115, 22, 0.1);
+}
+
+/* ===== END PLANETARY EFFECTS ===== */
+
+/* ===== COMPONENT STYLES ===== */
+
+.card {
+  @apply bg-ifcard border border-ifborder rounded-2xl p-4;
+}
+
+.stat-card {
+  @apply bg-ifcard border border-ifborder rounded-2xl p-4;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: rgba(34, 211, 238, 0.3);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.08);
+}
+
+.badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-green { @apply bg-ifgreen/20 text-ifgreen; }
+.badge-red { @apply bg-ifred/20 text-ifred; }
+.badge-amber { @apply bg-ifamber/20 text-ifamber; }
+.badge-cyan { @apply bg-ifcyan/20 text-ifcyan; }
+
+.btn-primary {
+  @apply w-full text-ifwhite font-semibold rounded-xl py-3 px-4 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed;
+  background: linear-gradient(135deg, #22d3ee, #8b5cf6);
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.2);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  @apply w-full bg-ifborder text-iftext font-medium rounded-xl py-3 px-4 hover:bg-ifborder/80 transition-colors;
+}
+
+.input-field {
+  @apply w-full bg-ifdark border border-ifborder rounded-xl px-4 py-3 text-iftext placeholder-ifmuted focus:outline-none transition-colors;
+}
+
+.input-field:focus {
+  border-color: #22d3ee;
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+}
+
+/* Bottom nav with glow */
+.nav-item {
+  @apply flex flex-col items-center gap-1 py-2 px-1 text-xs font-medium transition-colors;
+}
+
+.nav-item-active {
+  color: #22d3ee;
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.4);
+}
+
+.nav-item-inactive {
+  color: #64748b;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes drift {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 200%; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+/* ===== SCROLL FIXES ===== */
+
+/* Allow horizontal scrolling on all overflow-x containers */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #22d3ee transparent;
+}
+
+/* Make scrollbar visible but subtle for horizontal scroll areas */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 3px;
+  display: block;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.3);
+  border-radius: 9999px;
+}
+
+/* Vertical scroll for modal content */
+.overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Ensure body can always scroll vertically */
+html, body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix for Base44 preview iframe — allow bidirectional scroll */
+html {
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+}
+
+/* Ensure main content area scrolls properly on all devices */
+main {
+  overflow-y: visible;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Don't constrain width on very small screens */
+@media (max-width: 380px) {
+  .max-w-md {
+    max-width: 100%;
+  }
+}
+
+/* Allow admin tab bar to scroll smoothly */
+.scrollbar-hide {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Fix for campaign cards — ensure they fit container width */
+.card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Prevent any element from causing horizontal overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Table-responsive for any data tables */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+}

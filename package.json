@@ -1,0 +1,53 @@
+{
+  "name": "interplanetary-fund",
+  "version": "1.0.0",
+  "description": "Interplanetary Fund — full-stack app with agents, protocol enforcement, treasury management, and external platform sync. Frontend: React + Vite. Backend: Convex. Credit-free.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "convex": "convex dev",
+    "convex:deploy": "convex deploy",
+    "convex:dashboard": "convex dashboard",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:android": "npm run cap:sync && npx cap open android",
+    "cap:ios": "npm run cap:sync && npx cap open ios",
+    "cap:init:android": "npx cap add android",
+    "cap:init:ios": "npx cap add ios",
+    "mobile:build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@browserbasehq/sdk": "^2.16.0",
+    "@capacitor/android": "^6.1.0",
+    "@capacitor/core": "^6.1.0",
+    "@capacitor/ios": "^6.1.0",
+    "@capacitor/splash-screen": "^6.0.0",
+    "convex": "^1.43.0",
+    "globe.gl": "^2.46.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "stagehand": "^1.0.1",
+    "three": "^0.185.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.41",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.0",
+    "vite": "^5.4.0"
+  },
+  "keywords": [
+    "interplanetary-fund",
+    "agents",
+    "protocol",
+    "treasury",
+    "convex",
+    "react",
+    "capacitor",
+    "mobile"
+  ],
+  "license": "UNLICENSED",
+  "author": "Michelle Rogers"
+}

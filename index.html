@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Mobile-first viewport — disable zoom for app-like feel on Galaxy A16 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <!-- Instant dark mode — prevents white flash on load -->
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#05060f" />
+    <meta name="description" content="Interplanetary Fund — Credit-free fundraising platform with AI agent coordination" />
+
+    <!-- PWA / mobile web app -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Interplanetary Fund" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Icons -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <!-- PRECONNECT — establish connections early for faster load -->
+    <link rel="preconnect" href="https://rosy-butterfly-2.convex.cloud" crossorigin />
+    <link rel="dns-prefetch" href="https://rosy-butterfly-2.convex.cloud" />
+    <link rel="preconnect" href="https://www.paypal.com" />
+    <link rel="dns-prefetch" href="https://www.paypal.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+
+    <!-- Fonts — display=swap prevents FOIT, only load weights we use -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Inline critical CSS — prevents white flash before main CSS loads -->
+    <style>
+      html { background: #05060f; color-scheme: dark; }
+      body { margin: 0; background: #05060f; }
+      #root { min-height: 100vh; background: #05060f; }
+      /* Loading shimmer — shows instantly before React hydrates */
+      .app-loading {
+        display: flex; align-items: center; justify-content: center;
+        min-height: 100vh; background: #05060f;
+      }
+      .app-loading-dot {
+        width: 8px; height: 8px; border-radius: 50%; background: #22d3ee;
+        margin: 0 4px; display: inline-block;
+        animation: loadpulse 1.4s infinite ease-in-out both;
+      }
+      .app-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+      .app-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+      @keyframes loadpulse {
+        0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+        40% { opacity: 1; transform: scale(1.1); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="app-loading">
+        <span class="app-loading-dot"></span>
+        <span class="app-loading-dot"></span>
+        <span class="app-loading-dot"></span>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
