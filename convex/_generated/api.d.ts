@@ -17,6 +17,7 @@ import type * as autonomous from "../autonomous.js";
 import type * as campaignDefaults from "../campaignDefaults.js";
 import type * as campaigns from "../campaigns.js";
 import type * as cleanupPlatforms from "../cleanupPlatforms.js";
+import type * as community from "../community.js";
 import type * as crons from "../crons.js";
 import type * as facebook from "../facebook.js";
 import type * as fixCampaignStatus from "../fixCampaignStatus.js";
@@ -57,6 +58,7 @@ declare const fullApi: ApiFromModules<{
   campaignDefaults: typeof campaignDefaults;
   campaigns: typeof campaigns;
   cleanupPlatforms: typeof cleanupPlatforms;
+  community: typeof community;
   crons: typeof crons;
   facebook: typeof facebook;
   fixCampaignStatus: typeof fixCampaignStatus;

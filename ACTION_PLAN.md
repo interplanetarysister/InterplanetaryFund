@@ -130,7 +130,7 @@ GitHub (interplanetarysister/InterplanetaryFund)
 ### Phase 4: Platform Growth Features
 *Can be done in parallel after Phase 3*
 
-17. Community features (groups, discussions)
+17. Community features (groups, discussions) ✅ DONE
 18. Institution and grant applications
 19. Volunteer opportunities
 20. AI recommendations per campaign ✅ DONE

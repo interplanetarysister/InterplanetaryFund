@@ -19,6 +19,7 @@ const UserLogin = lazy(() => import("./pages/UserLogin"));
 const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const CampaignEditor = lazy(() => import("./pages/CampaignEditor"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
+const Community = lazy(() => import("./pages/Community"));
 
 // Loading fallback
 function PageLoader() {
@@ -33,7 +34,7 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail";
+type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community";
 
 export default function App() {
   const [view, setView] = useState<View>("explore");
@@ -73,6 +74,7 @@ export default function App() {
       { id: "globe", label: "Earth", icon: "\u{1F30D}" },
       { id: "facebook", label: "Sectors", icon: "f" },
       { id: "dashboard", label: "My Missions", icon: "\u{1F680}" },
+      { id: "community", label: "Community", icon: "\u{1F465}" },
     ],
     []
   );
@@ -174,7 +176,8 @@ export default function App() {
                  view === "globe" ? "Global Campaign Locator" :
                  view === "dashboard" ? "My Missions" :
                  view === "editor" ? "Campaign Editor" :
-                 view === "detail" ? "Campaign Details" :
+                 view === "community" ? "Community Groups" :
+                 view === "detail" ? "Community Groups" :
                  view === "login" ? "Pilot Sign In" :
                  "Fuel a cause today"}
               </p>
@@ -236,6 +239,8 @@ export default function App() {
               onBack={() => setView("dashboard")}
             />
           )}
+          {view === "community" && userId && <Community userId={userId} />}
+          {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (
             <CampaignDetail
               campaignId={viewCampaignId}

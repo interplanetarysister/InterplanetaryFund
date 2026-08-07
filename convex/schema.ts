@@ -144,6 +144,41 @@ export default defineSchema({
     reviewedAt: v.optional(v.string()),
   }).index("byUserId", ["userId"]).index("byStatus", ["status"]),
 
+
+  // COMMUNITY FEATURES
+  communityGroups: defineTable({
+    name: v.string(),
+    description: v.string(),
+    category: v.string(),
+    createdBy: v.string(),
+    memberCount: v.number(),
+    createdAt: v.string(),
+  }).index("byCategory", ["category"]).index("byCreatedBy", ["createdBy"]),
+
+  groupMembers: defineTable({
+    groupId: v.string(),
+    userId: v.string(),
+    joinedAt: v.string(),
+  }).index("byGroupId", ["groupId"]).index("byUserId", ["userId"]),
+
+  discussions: defineTable({
+    groupId: v.string(),
+    authorId: v.string(),
+    authorName: v.string(),
+    title: v.string(),
+    content: v.string(),
+    replyCount: v.number(),
+    createdAt: v.string(),
+  }).index("byGroupId", ["groupId"]).index("byAuthorId", ["authorId"]),
+
+  discussionReplies: defineTable({
+    discussionId: v.string(),
+    authorId: v.string(),
+    authorName: v.string(),
+    content: v.string(),
+    createdAt: v.string(),
+  }).index("byDiscussionId", ["discussionId"]),
+
   // TRANSACTIONS
   transactions: defineTable({
     userId: v.string(),
