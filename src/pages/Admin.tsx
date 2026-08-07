@@ -12,6 +12,7 @@ import PermissionsManager from "../components/PermissionsManager";
 import FraudControl from "../components/FraudControl";
 import AgentActivity from "../components/AgentActivity";
 import MissionBriefs from "../components/MissionBriefs";
+import { useMutation } from "convex/react";
 import UserManagement from "../components/UserManagement";
 import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
@@ -87,6 +88,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const balances = useQuery(api.treasury.aggregateBalances, {});
   const agentsStats = useQuery(api.agents.getAgentStats, {});
   const agentsList = useQuery(api.agents.getAgents, {});
+  const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
   const campaigns = useQuery(api.campaigns.getAllCampaigns, {});
   const latestReport = useQuery(api.protocol.getLatestReport, {});
   const reports = useQuery(api.protocol.getReports, { limit: 10 });
@@ -481,6 +483,31 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
                   ))}
                 </div>
               )}
+
+              {/* Automation Toggle */}
+              <div className="pt-2 border-t border-ifborder">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-ifmuted font-medium">Automation</p>
+                    <p className="text-[10px] text-ifmuted">
+                      Last run: {a.lastAutomationRun ? new Date(a.lastAutomationRun).toLocaleString() : "never"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      const enabled = a.automationEnabled ?? true;
+                      await toggleAutomation({ agentName: a.name, enabled: !enabled });
+                    }}
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
+                      (a.automationEnabled ?? true)
+                        ? "bg-ifgreen/20 text-ifgreen border border-ifgreen/30"
+                        : "bg-ifborder text-ifmuted border border-ifborder"
+                    }`}
+                  >
+                    {(a.automationEnabled ?? true) ? "● Auto ON" : "○ Auto OFF"}
+                  </button>
+                </div>
+              </div>
 
               {a.managedCampaigns && a.managedCampaigns.length > 0 && (
                 <div className="pt-2 border-t border-ifborder">

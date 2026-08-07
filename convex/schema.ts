@@ -39,6 +39,10 @@ export default defineSchema({
     status: v.string(),
     version: v.number(),
     accentColor: v.string(),
+    // Automation controls — per-agent toggles
+    automationEnabled: v.optional(v.boolean()),    // Toggle on/off
+    lastAutomationRun: v.optional(v.string()),     // ISO timestamp of last automation cycle
+    automationInterval: v.optional(v.string()),    // Human-readable interval (e.g. "4h", "6h", "8h")
   }).index("byRole", ["role"]).index("byStatus", ["status"]),
 
   // MONITORED CAMPAIGNS
