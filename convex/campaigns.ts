@@ -48,15 +48,22 @@ export const getAllCampaigns = query({
 export const getCampaignStats = query({
   args: {},
   handler: async (ctx) => {
-    const active = await ctx.db.query("monitoredCampaigns")
+    // Get active campaigns from BOTH tables
+    const monitoredActive = await ctx.db.query("monitoredCampaigns")
+      .withIndex("byStatus", (q) => q.eq("status", "active"))
+      .collect();
+    const userActive = await ctx.db.query("userCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "active"))
       .collect();
     
-    const totalRaised = active.reduce((sum, c) => sum + (c.raisedAmount || 0), 0);
-    const totalDonors = active.reduce((sum, c) => sum + (c.donorCount || 0), 0);
+    const allActive = [...monitoredActive, ...userActive];
+    const totalRaised = allActive.reduce((sum, c) => sum + ((c as any).raisedAmount || 0), 0);
+    const totalDonors = allActive.reduce((sum, c) => sum + ((c as any).donorCount || 0), 0);
     
     return {
-      activeCount: active.length,
+      activeCount: allActive.length,
+      monitoredCount: monitoredActive.length,
+      userCampaignCount: userActive.length,
       totalRaised,
       totalDonors,
     };
