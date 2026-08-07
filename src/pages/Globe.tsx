@@ -16,14 +16,14 @@ let THREE: any = null;
 
 async function loadGlobe() {
   if (!GlobeConstructor) {
-    const [globeMod, threeMod] = await Promise.all([
-      import("three"),
-      import("globe.gl"),
-    ]);
-    // globe.gl's internal deps (three-conic-polygon-geometry, etc.) check window.THREE
-    // Set it before storing the constructor so all deps resolve correctly
+    // Must load three.js FIRST and set window.THREE before globe.gl loads,
+    // because globe.gl's internal deps check window.THREE at module eval time
+    const threeMod = await import("three");
     (window as any).THREE = threeMod;
     THREE = threeMod;
+
+    // Now load globe.gl — its deps will find window.THREE
+    const globeMod = await import("globe.gl");
     GlobeConstructor = (globeMod as any).default || (globeMod as any).Globe || globeMod;
   }
   return { Globe: GlobeConstructor, THREE };
