@@ -1,5 +1,5 @@
 {
-  "name": "interplanetary-fund",
+  "name": "interplanetaryfund",
   "version": "1.0.0",
   "description": "Interplanetary Fund \u2014 full-stack app with agents, protocol enforcement, treasury management, and external platform sync. Frontend: React + Vite. Backend: Convex. Credit-free.",
   "scripts": {
@@ -49,5 +49,9 @@
     "mobile"
   ],
   "license": "UNLICENSED",
-  "author": "Michelle Rogers"
+  "author": "Michelle Rogers",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/interplanetarysister/InterplanetaryFund.git"
+  }
 }
