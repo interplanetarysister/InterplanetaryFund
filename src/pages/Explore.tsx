@@ -25,6 +25,8 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const recordInteraction = useMutation(api.interactions.recordInteraction);
   const recommendations = useQuery(api.userCampaigns.getRecommendations, { limit: 3 });
   const safeRecs = recommendations || [];
+  const trending = useQuery(api.userCampaigns.getTrendingCampaigns, { limit: 3 });
+  const safeTrending = trending || [];
 
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
@@ -203,10 +205,10 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
 
 
       {/* Trending Campaigns */}
-      {!showSearch && trending && trending.length > 0 && (
+      {!showSearch && safeTrending && safeTrending.length > 0 && (
         <div className="space-y-2">
           <p className="text-[10px] text-ifmuted uppercase tracking-wide">🔥 Trending Now</p>
-          {trending.slice(0, 3).map((c: any) => (
+          {safeTrending.slice(0, 3).map((c: any) => (
             <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
               <p className="text-sm font-semibold text-iftext">{c.title}</p>
               <p className="text-xs text-ifmuted line-clamp-1">{c.summary}</p>
