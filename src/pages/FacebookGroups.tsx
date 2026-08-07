@@ -137,9 +137,7 @@ export default function FacebookGroups() {
       <div className="card">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center">
-              <span className="text-white text-lg font-bold">f</span>
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-ifaccent/20 border border-ifaccent/30 flex items-center justify-center text-lg">📡</div>
             <div>
               <h3 className="text-sm font-semibold text-iftext">Facebook Outreach</h3>
               <p className="text-xs text-ifmuted">
@@ -150,7 +148,7 @@ export default function FacebookGroups() {
           {!facebookConnected ? (
             <button
               onClick={handleConnectFacebook}
-              className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-semibold active:scale-[0.98] transition-transform"
+              className="px-4 py-2 rounded-xl bg-ifaccent text-white text-xs font-semibold active:scale-[0.98] transition-transform"
             >
               Connect
             </button>
@@ -325,7 +323,7 @@ export default function FacebookGroups() {
               <button
                 onClick={handlePostToAll}
                 disabled={!postContent || isPosting}
-                className="w-full py-3 rounded-xl bg-blue-600 text-white text-sm font-semibold active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-ifaccent text-white text-sm font-semibold active:scale-[0.98] transition-transform disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isPosting ? (
                   <>
@@ -376,8 +374,8 @@ export default function FacebookGroups() {
       {/* Empty state */}
       {!facebookConnected && (
         <div className="card text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-blue-600/20 flex items-center justify-center mx-auto mb-3">
-            <span className="text-2xl font-bold text-blue-600">f</span>
+          <div className="w-16 h-16 rounded-full bg-ifaccent/20 border border-ifaccent/30 flex items-center justify-center mx-auto mb-3">
+            <span class="text-3xl">📡</span>
           </div>
           <h3 className="text-sm font-semibold text-iftext">Facebook Group Outreach</h3>
           <p className="text-xs text-ifmuted mt-1 max-w-xs mx-auto">

@@ -38,6 +38,7 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
   const [donationAmount, setDonationAmount] = useState("25");
   const [donorName, setDonorName] = useState("");
   const [donationMessage, setDonationMessage] = useState("");
+  const [donateError, setDonateError] = useState<string | null>(null);
   const [donationStep, setDonationStep] = useState<"amount" | "info" | "processing" | "done">("amount");
   const [copied, setCopied] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -149,7 +150,8 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         } else {
           setDonationStep("done");
         }
-      } catch (e) {
+      } catch (e: any) {
+        setDonateError(e?.message || "Donation failed. Please try again.");
         setDonationStep("info");
       }
     }
@@ -228,7 +230,8 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
       {/* Action buttons */}
       <div className="flex gap-2">
         <button
-          onClick={() => { setShowDonate(!showDonate); setDonationStep("amount"); }}
+          onClick={() => { setShowDonate(!showDonate); setDonateError(null);
+    setDonationStep("amount"); }}
           className="flex-1 py-3 rounded-xl bg-gradient-to-r from-ifcyan to-ifaccent text-ifwhite font-semibold text-sm shadow-glow-purple"
         >
           Support This Mission
@@ -302,6 +305,11 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
             </>
           )}
 
+          {donateError && (
+            <div className="mb-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center">
+              {donateError}
+            </div>
+          )}
           {donationStep === "info" && (
             <>
               <p className="text-sm font-semibold text-iftext">Your details</p>

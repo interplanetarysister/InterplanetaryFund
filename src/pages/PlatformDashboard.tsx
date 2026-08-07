@@ -32,7 +32,7 @@ export default function PlatformDashboard({ userId }: { userId: string }) {
   // Fetch all distributed posts
   const allPosts = useQuery(api.postContent.getDistributedPosts, {});
   // Fetch external platforms
-  const externalPlatforms = useQuery(api.campaigns.getAllExternalPlatforms, {});
+  const externalPlatforms = useQuery(api.campaigns.getExternalPlatforms, {});
 
   const generatePosts = useMutation(api.aiCampaignGen.generatePlatformPosts);
 

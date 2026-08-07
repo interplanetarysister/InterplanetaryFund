@@ -77,7 +77,7 @@ export default function App() {
 
   const navItems = useMemo<{ id: View; label: string; icon: string }[]>(
     () => [
-      { id: "home", label: "Mission", icon: "\u{1F680}" },
+      { id: "home", label: "Home", icon: "\u{1F3E0}" },
       { id: "explore", label: "Discover", icon: "\u{1F50D}" },
       { id: "globe", label: "Earth", icon: "\u{1F30D}" },
       { id: "facebook", label: "Sectors", icon: "\u{1F4E1}" },
