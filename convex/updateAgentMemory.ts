@@ -7,6 +7,14 @@ export const updateAllAgentMemory = mutation({
     const now = new Date().toISOString();
     const updates: Record<string, string> = {};
 
+    const intervals: Record<string, string> = {
+      "Atlas": "Every 4 hours",
+      "Post Production Agent": "Every 6 hours",
+      "Donor Relations Agent": "Every 6 hours",
+      "Scout Agent": "Every 8 hours",
+      "Platform Coordinator Agent": "Every 4 hours",
+    };
+
     for (const agent of agents) {
       let workingMemory = agent.workingMemory || [];
 
@@ -51,15 +59,18 @@ export const updateAllAgentMemory = mutation({
         ];
       }
 
-      await ctx.db.patch(agent._id, { workingMemory });
-      updates[agent.name] = "Memory updated for universal campaign/user support";
+      await ctx.db.patch(agent._id, {
+        workingMemory,
+        automationInterval: intervals[agent.name] || "varies",
+      });
+      updates[agent.name] = "Memory + interval updated";
     }
 
     await ctx.db.insert("agentActivityLog", {
       agentName: "Solene",
       action: "agent_memory_update",
       category: "protocol",
-      description: "All agent working memories updated to explicitly support ALL campaigns and ALL users — both monitored and user-created.",
+      description: "All agent working memories updated + interval labels set. First automation cycle completed for all 5 agents.",
       creditCost: 0,
       timestamp: now,
     });
