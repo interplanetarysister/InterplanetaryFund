@@ -310,6 +310,17 @@ export default defineSchema({
     createdAt: v.string(),
   }).index("byCampaignId", ["campaignId"]).index("byType", ["interactionType"]),
 
+  // EMAIL SUBSCRIBERS — Newsletter / mailing list for retargeting
+  emailSubscribers: defineTable({
+    email: v.string(),
+    name: v.optional(v.string()),
+    source: v.optional(v.string()),        // "footer", "campaign_page", "exit_intent"
+    interestedIn: v.optional(v.array(v.string())),  // campaign categories they care about
+    isActive: v.boolean(),                   // soft opt-out
+    subscribedAt: v.string(),
+    unsubscribedAt: v.optional(v.string()),
+  }).index("byEmail", ["email"]).index("byActive", ["isActive"]),
+
   // FEE CONFIGURATION
   feeConfig: defineTable({
     platformFeePercent: v.number(),

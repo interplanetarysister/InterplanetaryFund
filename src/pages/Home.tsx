@@ -7,8 +7,9 @@
  * "Welcome to Mission Control — your interplanetary fundraising command center."
  */
 
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useState } from "react";
 
 import ifHero from "/if-hero.png";
 
@@ -160,6 +161,9 @@ export default function Home({ onNavigate, userId, onViewCampaign }: {
         </p>
       </div>
 
+      {/* Newsletter Signup */}
+      <NewsletterSignup />
+
       {/* Footer */}
       <div className="text-center pt-2 pb-4">
         <p className="text-[10px] text-ifmuted">
@@ -169,6 +173,59 @@ export default function Home({ onNavigate, userId, onViewCampaign }: {
           © 2026 Michelle Rogers. All Rights Reserved.
         </p>
       </div>
+    </div>
+  );
+}
+
+function NewsletterSignup() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const subscribe = useMutation(api.emailCapture.subscribe);
+
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    if (!email || !email.includes("@")) return;
+    try {
+      await subscribe({ email, source: "home_page" });
+      setSubmitted(true);
+      setEmail("");
+      setTimeout(() => setSubmitted(false), 4000);
+    } catch (err) {
+      console.error("Newsletter signup error:", err);
+    }
+  };
+
+  return (
+    <div className="card p-4 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-lg">{"\u{1F4E7}"}</span>
+        <h3 className="text-sm font-semibold text-iftext">Stay in Orbit</h3>
+      </div>
+      <p className="text-[10px] text-ifmuted">
+        Get notified about new campaigns, milestones, and launch opportunities. No spam, ever.
+      </p>
+      {submitted ? (
+        <div className="text-center py-2">
+          <p className="text-xs text-ifcyan font-semibold">{"\u2713"} You're on the list! Watch your inbox.</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex gap-2">
+          <input
+            type="email"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-1 px-3 py-2 text-xs bg-ifdark border border-ifborder rounded-lg focus:border-ifcyan outline-none text-iftext"
+            required
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 text-xs font-semibold text-ifwhite bg-ifaccent rounded-lg hover:bg-ifaccent/80 transition-colors whitespace-nowrap"
+          >
+            Subscribe
+          </button>
+        </form>
+      )}
     </div>
   );
 }
