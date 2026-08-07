@@ -517,11 +517,19 @@ export const runAllAgentAutomation = internalMutation({
       results.push({ agent: agent.name, status: "triggered", timestamp: now });
     }
 
+    // Trigger Browserbase research for all agents with auto-research enabled
+    try {
+      const researchResult = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+      results.push({ agent: "Browserbase Research", status: "research_completed", ...researchResult });
+    } catch (err) {
+      results.push({ agent: "Browserbase Research", status: "research_failed", error: String(err) });
+    }
+
     await ctx.db.insert("agentActivityLog", {
       agentName: "System",
       action: "master_automation_cycle",
       category: "analytics",
-      description: `Master automation triggered. ${agents.length} agents checked. ${results.filter((r: any) => !r.skipped).length} active.`,
+      description: `Master automation triggered. ${agents.length} agents checked. ${results.filter((r: any) => !r.skipped).length} active. Browserbase research cycle included.`,
       creditCost: 0,
       timestamp: now,
     });

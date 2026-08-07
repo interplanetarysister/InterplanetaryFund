@@ -31,8 +31,10 @@ crons.interval("outreach-strategy-improvement", { minutes: 360 }, internal.faceb
 crons.interval("site-health-monitor", { minutes: 60 }, internal.autonomous.checkSiteHealth, {});
 // Auto-Repair — Every 6 hours
 crons.interval("auto-repair", { minutes: 360 }, internal.autonomous.autoRepair, {});
-// Agent Research Sprint — Every 12 hours
+// Agent Research Sprint — Every 12 hours (now via Browserbase)
 crons.interval("agent-research-sprint", { minutes: 720 }, internal.research.runAgentResearch, {});
+// Browserbase Research — Every 6 hours (per-agent browser research)
+crons.interval("browserbase-research", { minutes: 360 }, internal.browserbase.runAllAgentBrowserResearch, {});
 
 // === PER-AGENT AUTOMATION (Credit-Free) ===
 // Each agent has its own cron schedule and can be individually toggled on/off

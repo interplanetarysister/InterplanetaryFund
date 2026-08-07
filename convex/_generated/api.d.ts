@@ -18,6 +18,7 @@ import type * as aiCampaignGen from "../aiCampaignGen.js";
 import type * as antiSpam from "../antiSpam.js";
 import type * as auth from "../auth.js";
 import type * as autonomous from "../autonomous.js";
+import type * as browserbase from "../browserbase.js";
 import type * as campaignDefaults from "../campaignDefaults.js";
 import type * as campaigns from "../campaigns.js";
 import type * as cleanupPlatforms from "../cleanupPlatforms.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   antiSpam: typeof antiSpam;
   auth: typeof auth;
   autonomous: typeof autonomous;
+  browserbase: typeof browserbase;
   campaignDefaults: typeof campaignDefaults;
   campaigns: typeof campaigns;
   cleanupPlatforms: typeof cleanupPlatforms;

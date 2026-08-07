@@ -1,19 +1,17 @@
 /*
- * Interplanetary Fund — Browserbase Research Module
+ * Interplanetary Fund — Browserbase Research Module (v2)
  * Copyright © 2026 Michelle Rogers. All Rights Reserved.
  *
  * Agent Internet Research Database Sprint
- * Provides browser-based research capabilities for all IF agents.
- * Uses Browserbase Fetch API (HTTP-based, works from Convex serverless)
- * and browse CLI (for complex interactive research in sandbox/CLI).
+ * Delegates to convex/browserbase.ts for actual Browserbase API calls.
+ * This module manages research task queuing and result retrieval.
  */
 
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // =====================================================
-// AGENT RESEARCH PROFILES
-// Each agent has a specialized research configuration
+// AGENT RESEARCH PROFILES (Updated for Solene era)
 // =====================================================
 
 const AGENT_PROFILES = {
@@ -65,13 +63,24 @@ const AGENT_PROFILES = {
     searchKeywords: ["social media outreach", "facebook groups", "content distribution"],
     outputType: "outreach scripts and posting schedules",
   },
-  lyra: {
-    name: "Lyra — Chief of Staff",
+  atlas: {
+    name: "Atlas — Facebook Outreach",
+    researchTopics: [
+      "facebook group discovery and engagement",
+      "anti-spam outreach strategies",
+      "community building for fundraising",
+    ],
+    searchKeywords: ["facebook groups", "charity communities", "outreach tactics"],
+    outputType: "group lists and engagement scripts",
+  },
+  solene: {
+    name: "Solene — Chief of Staff",
     researchTopics: [
       "AI agent orchestration patterns",
       "multi-agent system coordination",
       "nonprofit platform architecture",
       "revenue optimization strategies",
+      "Browserbase API integration patterns",
     ],
     searchKeywords: ["agent coordination", "platform architecture", "revenue optimization"],
     outputType: "program-level insights and recommendations",
@@ -82,19 +91,17 @@ const AGENT_PROFILES = {
 // CONVEX FUNCTIONS — Research Task Management
 // =====================================================
 
-// Query: Get research profile for an agent
 export const getAgentResearchProfile = query({
   args: { agentRole: v.string() },
   handler: async (ctx, { agentRole }) => {
     const profile = AGENT_PROFILES[agentRole as keyof typeof AGENT_PROFILES];
     if (!profile) {
-      return { error: `Unknown agent role: ${agentRole}` };
+      return { error: "Unknown agent role: " + agentRole };
     }
     return profile;
   },
 });
 
-// Query: Get all agent research profiles
 export const getAllResearchProfiles = query({
   args: {},
   handler: async (ctx) => {
@@ -102,7 +109,6 @@ export const getAllResearchProfiles = query({
   },
 });
 
-// Mutation: Store research results from a Browserbase session
 export const storeResearchResult = mutation({
   args: {
     agentRole: v.string(),
@@ -114,11 +120,9 @@ export const storeResearchResult = mutation({
     tags: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
-    // Store in distributedPosts as a research artifact
-    // (reusing the table since it has the right structure for content storage)
     const id = await ctx.db.insert("distributedPosts", {
-      campaignId: `research_${args.agentRole}`,
-      campaignTitle: `Research: ${args.topic}`,
+      campaignId: "research_" + args.agentRole,
+      campaignTitle: "Research: " + args.topic,
       platform: "browserbase_research",
       postType: args.agentRole,
       content: args.content,
@@ -131,7 +135,6 @@ export const storeResearchResult = mutation({
   },
 });
 
-// Query: Get stored research results for an agent
 export const getResearchResults = query({
   args: {
     agentRole: v.string(),
@@ -139,7 +142,7 @@ export const getResearchResults = query({
   },
   handler: async (ctx, { agentRole, limit }) => {
     const results = await ctx.db.query("distributedPosts")
-      .withIndex("byCampaignId", (q) => q.eq("campaignId", `research_${agentRole}`))
+      .withIndex("byCampaignId", (q) => q.eq("campaignId", "research_" + agentRole))
       .take(limit || 20);
 
     return results;
@@ -147,49 +150,21 @@ export const getResearchResults = query({
 });
 
 // Internal mutation: Run automated research for all agents
-// This is called by a cron job — uses Browserbase Fetch API to
-// research trending topics for each agent's specialization
+// Now delegates to the browserbase module for actual API calls
 export const runAgentResearch = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const results = [];
-
-    for (const [role, profile] of Object.entries(AGENT_PROFILES)) {
-      // For each agent, research their top topic
-      const topic = profile.researchTopics[0];
-
-      // Use Browserbase Fetch API via HTTP (works from Convex serverless)
-      // The actual fetch happens via the browse CLI or the platform's
-      // browserbase tools — this function stores the results
-      results.push({
-        agent: profile.name,
-        role,
-        topic,
-        status: "queued",
-        message: `Research queued for ${profile.name}. Will be executed by browse CLI or platform Browserbase tools.`,
-      });
-    }
-
-    return {
-      status: "success",
-      agentsProcessed: results.length,
-      results,
-    };
+    // Delegate to the browserbase module
+    const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+    return result;
   },
 });
 
-// Query: Check Browserbase configuration status
 export const getBrowserbaseStatus = query({
   args: {},
   handler: async (ctx) => {
-    return {
-      cliInstalled: true, // browse CLI installed in sandbox
-      sdkInstalled: true,  // @browserbasehq/sdk installed in package.json
-      apiKeyRequired: true,
-      apiKeyConfigured: false, // Will be true when BROWSERBASE_API_KEY is set
-      agentsConfigured: Object.keys(AGENT_PROFILES).length,
-      agentRoles: Object.keys(AGENT_PROFILES),
-      message: "Browserbase CLI and SDK installed. Set BROWSERBASE_API_KEY in .env.local to enable remote research.",
-    };
+    // Delegate to browserbase module
+    const status = await ctx.runQuery(internal.browserbase.getBrowserbaseStatus, {});
+    return status;
   },
 });
