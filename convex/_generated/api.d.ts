@@ -50,6 +50,7 @@ import type * as support from "../support.js";
 import type * as syncRaisedAmounts from "../syncRaisedAmounts.js";
 import type * as syncToUserCampaigns from "../syncToUserCampaigns.js";
 import type * as treasury from "../treasury.js";
+import type * as updateAgentMemory from "../updateAgentMemory.js";
 import type * as userAuth from "../userAuth.js";
 import type * as userCampaigns from "../userCampaigns.js";
 import type * as userManagement from "../userManagement.js";
@@ -105,6 +106,7 @@ declare const fullApi: ApiFromModules<{
   syncRaisedAmounts: typeof syncRaisedAmounts;
   syncToUserCampaigns: typeof syncToUserCampaigns;
   treasury: typeof treasury;
+  updateAgentMemory: typeof updateAgentMemory;
   userAuth: typeof userAuth;
   userCampaigns: typeof userCampaigns;
   userManagement: typeof userManagement;
