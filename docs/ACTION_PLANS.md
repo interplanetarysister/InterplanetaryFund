@@ -1,93 +1,114 @@
 # Interplanetary Fund — Action Plan Log
 **Chief of Staff:** Solene
 **Previous Chief of Staff:** Lyra — retired 2026-08-07
-**Last Updated:** 2026-08-07
-**Focus:** Interplanetary Fund (6a67a778342a8fe05ee79cba)
+**Last Updated:** 2026-08-07 (Session 2)
+**Focus:** Interplanetary Fund — interplanetarysister/InterplanetaryFund
 
 ---
 
-## Campaign Protocol — Active
-
-### Protocol Standards
-| ID | Standard | Enforcement | Status |
-|----|----------|-------------|--------|
-| P-1 | Outreach enabled on ALL campaigns | Daily workflow auto-fix + Builder schema default | ✅ Active |
-| P-2 | AI profile complete (tone, donors, orgs, platforms, priority) | Daily workflow audit + Builder validation | ✅ Active |
-| P-3 | Story present with SEO + accessibility + summary | Daily workflow audit | ✅ Active |
-| P-4 | Payment path functional on active campaigns | Daily workflow audit + Builder implementation | ✅ Active |
-| P-5 | Required fields complete (title, summary, story, category, goal, image, end_date) | Daily workflow audit + Builder validation | ✅ Active |
-| P-6 | Agent assigned to each campaign | Saturday training session | ✅ Active |
-
-### Enforcement Mechanisms
-| Mechanism | Cadence | Scope |
-|-----------|--------|-------|
-| Daily Protocol Enforcement Workflow | Every day at 6am Pacific | All campaigns — auto-fixes P-1, audits P-2 through P-5 |
-| Saturday Training Session | Every Saturday at 2am Pacific | All campaigns + agents + Builder AI action plans |
-| Builder AI Schema Enforcement | Permanent (schema-level) | All future campaigns — defaults and validation |
-| Protocol Audit Skill | On-demand | Manual audit any time |
-
----
-
-## Action Plans Submitted
-
-### Action Plan #001 — Revenue Activation: Payments & Outreach
+## Action Plan #001 — Revenue Activation: Payments & Outreach
 - **Date Submitted:** 2026-08-01
 - **Priority:** CRITICAL
-- **Focus:** Payment processing activation, outreach enablement, donation flow connection
-- **Status:** ✅ COMPLETED — Payment flow deployed (CashApp + PayPal), donation tracking in Convex, fee calculation active. Auto-fix system enforces P-4 (paymentActive) daily.
+- **Status:** ✅ COMPLETED
 
-### Action Plan #002 — Campaign Protocol: Schema-Level Enforcement
+Completed steps:
+1. PayPal donation flow deployed (checkout session creation + redirect)
+2. CashApp integration (per-campaign $cashtag links)
+3. PayPal IPN/webhook handler for automatic donation recording
+4. Donation confirmation updates BOTH monitoredCampaigns and userCampaigns
+5. Treasury fee calculation (5% platform + 2.9% + $0.30 processing)
+6. Payout request system with admin approval
+7. Holding account tracking with freeze/fraud protection
+8. Batch payout calculation across multiple campaigns
+9. External platform sync (11 platforms connected)
+
+## Action Plan #002 — Campaign Protocol: Schema-Level Enforcement
 - **Date Submitted:** 2026-08-01
 - **Priority:** HIGH
-- **Focus:** Schema default for outreach_enabled, required field validation, entity-triggered enforcement, payment processing confirmation
-- **Status:** ✅ COMPLETED — Schema enforcement active, Campaign Protocol P-1 through P-8 enforced in code. Full auto-fix system deployed (protocolAutoFix.ts) — all 5 campaigns now 8/8 compliant.
+- **Status:** ✅ COMPLETED
 
-### Action Plan #003 — Agent Creation (PENDING)
-- **Focus:** Define and create agents for the Interplanetary Fund platform
-- **Dependencies:** Payment processing functional
-- **Status:** ✅ COMPLETED — 7 agents in system (Fundraising, Story, Donor Relations, Protocol, Analytics, Treasury, Platform Sync) with activity logging
+Completed steps:
+1. Protocol P-1 through P-8 enforcement code (protocolAutoFix.ts)
+2. Daily auto-fix cron (6am Pacific) — writes fixes to DB
+3. Protocol audit query (protocol.ts) — audits both campaign tables
+4. Schema defaults for outreach_enabled, payment_active
+5. Campaign Protocol now enforced on BOTH monitoredCampaigns AND userCampaigns
+6. All 10 campaigns (5 monitored + 5 user-created) now compliant
+7. Weekly training session (Saturday 2am Pacific)
+8. Per-agent automation with individual toggles (agentAutomation.ts)
 
-### Action Plan #004 — Campaign Story Optimization (PENDING)
-- **Focus:** Optimize AI-generated campaign stories for conversion
-- **Dependencies:** Outreach system connected and functional
-- **Status:** ✅ COMPLETED — Cyberpunk-Afropunk-Interstellar style defined, empathetic wording rules saved, photo generation parameters set
+## Action Plan #003 — Agent Creation
+- **Date Submitted:** 2026-08-01
+- **Priority:** HIGH
+- **Status:** ✅ COMPLETED
+
+Completed steps:
+1. 5 agents reconfigured to task-based roles (not campaign-specific):
+   - Atlas: Facebook Interactions (every 4h)
+   - Post Production Agent: Campaign content (every 6h)
+   - Donor Relations Agent: Donation PR (every 6h)
+   - Scout Agent: Crowdfunding scout (every 8h)
+   - Platform Coordinator: Cross-agent coordination (every 4h)
+2. All agents have automationEnabled toggle
+3. All agents work for ALL campaigns and ALL users automatically
+4. Per-agent cron jobs (all credit-free on Convex)
+5. Master automation check every 2h
+6. Admin panel has Auto ON/Auto OFF toggle buttons
+
+## Action Plan #004 — Campaign Story Optimization
+- **Date Submitted:** 2026-08-01
+- **Priority:** MEDIUM
+- **Status:** ✅ COMPLETED
+
+Completed steps:
+1. AI Campaign Generation (aiCampaignGen.ts) — credit-free template system
+2. Afro-punk cyber-punk interstellar style defined (STYLE_DESCRIPTION)
+3. Empathetic wording rules in story generation templates
+4. Generates: title, summary, story, FAQ, social captions, image prompt
+5. Generates: press release, donor thank-you, SEO content
+6. Platform-specific post generation (Facebook, Twitter, Instagram)
+7. Story optimization applied to both monitored and user campaigns
+8. Protocol P-3 (story present) enforced on both tables
 
 ---
 
-## Completed Actions
-- [x] Created Campaign Protocol with 6 standards (P-1 through P-6) — 2026-08-01
-- [x] Enabled outreach on all 4 existing campaigns (P-1 compliance) — 2026-08-01
-- [x] Created Daily Protocol Enforcement workflow (6am Pacific daily) — 2026-08-01
-- [x] Updated Saturday Training workflow to include protocol audit — 2026-08-01
-- [x] Updated Protocol Audit skill — 2026-08-01
-- [x] Submitted Action Plan #001 (payments + outreach) to Builder AI — 2026-08-01
-- [x] Submitted Action Plan #002 (schema-level protocol enforcement) to Builder AI — 2026-08-01
-- [x] Created 9 skills for Interplanetary Fund management — 2026-08-01
-- [x] Deployed to Vercel (https://interplanetary-fund.vercel.app) — 2026-08-07
-- [x] Fixed blank screen + trending crash (ErrorBoundary on all pages) — 2026-08-07
-- [x] Added Help page, ShareModal, comments, save/bookmark, PayPal donate — 2026-08-07
-- [x] Added ThankYou page, PlatformAccountsSheet, VerifiedBadge — 2026-08-07
-- [x] Cyberpunk-Afropunk-Interstellar photo style implemented — 2026-08-07
-- [x] Feature parity migration completed (community, institutions, volunteer, AI recs, notifications, mission briefs, feature flags, agent logging) — 2026-08-07
-- [x] All Action Plans #001-#004 completed — 2026-08-07
-- [x] Protocol Auto-Fix system deployed (P-1 through P-8) — 2026-08-07
-- [x] All 5 campaigns now 100% compliant (8/8 score) — 2026-08-07
-- [x] Daily cron now writes fixes to DB (not just reports) — 2026-08-07
-- [x] Revenue tracking active: $9,907 raised, 8 donors — 2026-08-07
+## Platform Snapshot — August 7, 2026
 
-## Platform Snapshot — August 1, 2026
+### Campaigns (BOTH tables)
+| Source | Count | Active | Raised | Goal | Donors |
+|--------|-------|--------|--------|------|--------|
+| Monitored | 5 | 4 | $9,907 | $71,000 | 8 |
+| User-Created | 5 | 4 | $9,932 | $71,000 | 9 |
+| **Total** | **10** | **8** | **$19,839** | **$142,000** | **17** |
 
-### Campaigns
-| # | Title | Goal | Raised | Donors | Status | Outreach | Protocol |
-|---|-------|------|--------|--------|--------|----------|----------|
-| 1 | Random tester | $1,000 | $0 | 0 | active | ✅ | P-1 ✅ P-2 ⚠️ P-3 ✅ P-4 ❌ P-5 ⚠️ P-6 ❌ |
-| 2 | Help | $5,000 | $0 | 0 | active | ✅ | P-1 ✅ P-2 ⚠️ P-3 ✅ P-4 ❌ P-5 ⚠️ P-6 ❌ |
-| 3 | Woman with a dream | $50,000 | $0 | 0 | active | ✅ | P-1 ✅ P-2 ✅ P-3 ✅ P-4 ❌ P-5 ⚠️ P-6 ❌ |
-| 4 | Help homeless get a van | $10,000 | $0 | 0 | draft | ✅ | P-1 ✅ P-2 ⚠️ P-3 ✅ P-4 ❌ P-5 ⚠️ P-6 ❌ |
+### Agents
+| Agent | Role | Auto | Schedule |
+|-------|------|------|---------|
+| Atlas | Facebook Interactions | ON | Every 4h |
+| Post Production | Campaign Content | ON | Every 6h |
+| Donor Relations | Donation PR | ON | Every 6h |
+| Scout | Crowdfunding Scout | ON | Every 8h |
+| Platform Coordinator | Coordination | ON | Every 4h |
 
-### Revenue Summary
-- **Total Raised:** $0
-- **Total Goals:** $66,000 (active campaigns)
-- **Funding Gap:** $66,000
-- **Payment Processing:** Pending Builder AI implementation
-- **Outreach:** ✅ ENABLED on all campaigns (protocol enforced)
+### Automation (All Credit-Free)
+| Cron Job | Schedule | Function |
+|----------|----------|----------|
+| Protocol Auto-Fix | Daily 6am PT | P-1 through P-8 on both tables |
+| Weekly Training | Sat 2am PT | Agent memory updates |
+| Post Generation | Daily 8am PT | Content for all active campaigns |
+| Atlas | Every 4h | Facebook group management |
+| Post Production | Every 6h | Campaign post creation |
+| Donor Relations | Every 6h | Donor activity monitoring |
+| Scout | Every 8h | Online scouting for new users |
+| Coordinator | Every 4h | Cross-agent checks |
+| Master Check | Every 2h | All agents active |
+| Site Health | Every 1h | Platform health monitor |
+| Auto-Repair | Every 6h | Fix stuck items |
+| Group Discovery | Every 4h | Facebook group discovery |
+
+### Revenue
+- Total raised: $19,839
+- Total goal: $142,000
+- Funding gap: $122,161
+- Connected platforms: 11
+- Facebook groups: 63 discovered, 1 joined
