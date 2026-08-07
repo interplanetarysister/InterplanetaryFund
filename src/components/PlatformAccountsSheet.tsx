@@ -20,10 +20,10 @@ const DEFAULT_ACCOUNTS: PlatformAccount[] = [
   { platform: "Instagram", handle: "@interplanetaryfund", url: "https://instagram.com/interplanetaryfund", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Not yet linked" },
   { platform: "WhatsApp", handle: "Interplanetary Fund Group", url: "", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Agent group chat" },
   { platform: "GitHub", handle: "interplanetarysister", url: "https://github.com/interplanetarysister", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Primary repo account" },
-  { platform: "PayPal", handle: "interplanetarysister@gmail.com", url: "https://paypal.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Donation processing" },
+  { platform: "PayPal", handle: "interplanetarysister@gmail.com", url: "https://www.paypal.com/donate/?cmd=_donations&business=interplanetarysister@gmail.com&currency_code=USD", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Donation processing" },
   { platform: "CashApp", handle: "$unrewound", url: "https://cash.app/$unrewound", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Alt donation method" },
   { platform: "Convex", handle: "rosy-butterfly-2", url: "https://rosy-butterfly-2.convex.cloud", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Backend deployment" },
-  { platform: "Vercel", handle: "interplanetary-fund", url: "https://vercel.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Frontend hosting (repo: interplanetarysister/InterplanetaryFund)" },
+  { platform: "Vercel", handle: "interplanetary-fund", url: "https://interplanetary-fund.vercel.app", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Frontend hosting (repo: interplanetarysister/InterplanetaryFund)" },
 ];
 
 export default function PlatformAccountsSheet() {

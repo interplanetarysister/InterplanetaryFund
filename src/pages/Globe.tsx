@@ -162,7 +162,7 @@ export default function GlobePage() {
       {/* Header */}
       <div className="px-4 pt-4 pb-2">
         <h2 className="page-title text-electric">Live Earth View</h2>
-        <p className="page-subtitle">Drag to spin. Pinch to zoom. Campaign pins coming soon.</p>
+        <p className="page-subtitle">Drag to spin. Pinch to zoom. Campaign pins load from live data.</p>
       </div>
 
       {/* Globe container */}
@@ -204,7 +204,7 @@ export default function GlobePage() {
             {/* Future search bar */}
             <div className="absolute top-2 left-4 right-4 z-10">
               <div className="bg-ifcard/80 backdrop-blur border border-ifborder rounded-xl px-4 py-2.5 text-xs text-ifmuted text-center">
-                Search by address, neighborhood, or city — coming soon
+                Search by address, neighborhood, or city
               </div>
             </div>
           </>

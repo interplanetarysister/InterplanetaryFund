@@ -61,13 +61,13 @@ VITE_CONVEX_URL=https://rosy-butterfly-2.convex.cloud
 VITE_CONVEX_URL=https://rosy-butterfly-2.convex.cloud
 
 # GitHub Actions (CI/CD) — set as repository secrets
-VITE_CONVEX_URL=<your-convex-url>
-CONVEX_DEPLOY_KEY=<your-convex-deploy-key>
+VITE_CONVEX_URL=https://rosy-butterfly-2.convex.cloud
+CONVEX_DEPLOY_KEY=<set-in-github-secrets>
 ```
 
 ## Convex Backend
 
-8 tables, 7 agents, protocol enforcement (P-1 through P-8), treasury management, and scheduled crons.
+15+ tables, 7 agents, protocol enforcement (P-1 through P-8), treasury management, and scheduled crons.
 
 | File | Description |
 |------|-------------|

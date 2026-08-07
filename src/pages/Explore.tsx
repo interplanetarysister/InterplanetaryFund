@@ -292,7 +292,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         <div className="space-y-4">
           {campaigns.length === 0 && (
             <div className="card text-center py-8">
-              <p className="text-sm text-ifmuted">New campaigns coming soon!</p>
+              <p className="text-sm text-ifmuted">No active campaigns yet. Be the first to create one!</p>
             </div>
           )}
 

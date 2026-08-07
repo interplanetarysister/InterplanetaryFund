@@ -3,7 +3,7 @@
 **Repo:** https://github.com/interplanetarysister/InterplanetaryFund
 **Convex:** rosy-butterfly-2.convex.cloud
 **Frontend:** https://interplanetarysister.github.io/InterplanetaryFund/
-**Vercel:** TBD (pending setup)
+**Vercel:** https://interplanetary-fund.vercel.app (LIVE)
 
 ## System Diagram
 

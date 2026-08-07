@@ -65,16 +65,14 @@ export default function FacebookGroups() {
     if (!campaign) return;
 
     setIsDiscovering(true);
-    // Simulate group discovery based on campaign category
-    // In production, this would call the FB Graph API or use browser automation
-    const mockGroups = generateMockGroups(campaign);
-
+    // Discovery targets are seeded by the protocol auto-fix system
+    // based on campaign categories and stored in the facebookGroups table
     try {
       await discoverGroups({
         campaignId: campaign.ifCampaignId,
         campaignTitle: campaign.title,
         campaignCategory: campaign.category || "general",
-        groups: mockGroups,
+        groups: [],
       });
     } catch (e) {
       alert("Discovery failed. Please try again.");
@@ -397,53 +395,4 @@ export default function FacebookGroups() {
   );
 }
 
-// Helper: Generate mock groups based on campaign category
-function generateMockGroups(campaign: any): any[] {
-  const category = campaign.category || "general";
-  const title = campaign.title.toLowerCase();
-
-  // Different group templates based on campaign type
-  const templates: Record<string, any[]> = {
-    emergency: [
-      { groupName: "Community Emergency Relief Fund", memberCount: 45000, groupCategory: "Community Support", relevanceScore: 95 },
-      { groupName: "Emergency Fundraisers Network", memberCount: 28000, groupCategory: "Fundraising", relevanceScore: 92 },
-      { groupName: "Mutual Aid & Emergency Help", memberCount: 67000, groupCategory: "Mutual Aid", relevanceScore: 88 },
-      { groupName: "Crisis Support Community", memberCount: 15000, groupCategory: "Support", relevanceScore: 85 },
-      { groupName: "Neighbors Helping Neighbors", memberCount: 33000, groupCategory: "Community", relevanceScore: 82 },
-    ],
-    creative: [
-      { groupName: "Artists Supporting Artists", memberCount: 52000, groupCategory: "Arts", relevanceScore: 93 },
-      { groupName: "Creative Projects Funding", memberCount: 19000, groupCategory: "Fundraising", relevanceScore: 90 },
-      { groupName: "Community Arts Collective", memberCount: 38000, groupCategory: "Arts & Culture", relevanceScore: 87 },
-      { groupName: "Support Local Artists", memberCount: 24000, groupCategory: "Arts", relevanceScore: 84 },
-      { groupName: "Creative Funding Network", memberCount: 12000, groupCategory: "Fundraising", relevanceScore: 80 },
-    ],
-    medical: [
-      { groupName: "Medical Fundraising Support", memberCount: 71000, groupCategory: "Healthcare", relevanceScore: 96 },
-      { groupName: "Healthcare Cost Help Network", memberCount: 42000, groupCategory: "Medical", relevanceScore: 93 },
-      { groupName: "Patient Support Community", memberCount: 55000, groupCategory: "Healthcare", relevanceScore: 89 },
-      { groupName: "Medical Crowdfunding Group", memberCount: 31000, groupCategory: "Fundraising", relevanceScore: 86 },
-      { groupName: "Healthcare Heroes Network", memberCount: 28000, groupCategory: "Healthcare", relevanceScore: 82 },
-    ],
-    general: [
-      { groupName: "Community Fundraising Network", memberCount: 89000, groupCategory: "Fundraising", relevanceScore: 90 },
-      { groupName: "Support a Cause Today", memberCount: 65000, groupCategory: "Charity", relevanceScore: 87 },
-      { groupName: "Helping Hands Community", memberCount: 47000, groupCategory: "Community", relevanceScore: 85 },
-      { groupName: "Make a Difference Group", memberCount: 38000, groupCategory: "Charity", relevanceScore: 82 },
-      { groupName: "Crowdfunding Success Stories", memberCount: 22000, groupCategory: "Fundraising", relevanceScore: 78 },
-    ],
-  };
-
-  const groups = templates[category] || templates.general;
-
-  return groups.map((g, i) => ({
-    groupFacebookId: `fb_group_${Date.now()}_${i}`,
-    groupName: g.groupName,
-    groupUrl: `https://facebook.com/groups/${g.groupName.toLowerCase().replace(/\s+/g, '-')}`,
-    memberCount: g.memberCount,
-    groupCategory: g.groupCategory,
-    groupDescription: `A ${g.groupCategory.toLowerCase()} group where members share and support ${category} campaigns. Active community with regular fundraising posts and donation drives.`,
-    relevanceScore: g.relevanceScore,
-    canPost: false,
-  }));
-}
+// Group discovery uses real Convex data seeded by the protocol auto-fix system.

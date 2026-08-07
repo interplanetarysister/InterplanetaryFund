@@ -50,8 +50,8 @@ Open the local URL printed by Vite.
 For frontend-only development, create or update `.env.local` in the project root:
 
 ```bash
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=https://your-app.base44.app
+VITE_BASE44_APP_ID=<set-in-vercel-dashboard>
+VITE_BASE44_APP_BASE_URL=https://app.base44.com
 ```
 
 `VITE_BASE44_APP_ID` identifies the Base44 app.
