@@ -24,6 +24,9 @@ const InstitutionApply = lazy(() => import("./pages/InstitutionApply"));
 const Volunteer = lazy(() => import("./pages/Volunteer"));
 const Help = lazy(() => import("./pages/Help"));
 const ThankYou = lazy(() => import("./pages/ThankYou"));
+const HomePage = lazy(() => import("./pages/Home"));
+const AICampaignWizard = lazy(() => import("./pages/AICampaignWizard"));
+const PlatformDashboard = lazy(() => import("./pages/PlatformDashboard"));
 
 // Loading fallback
 function PageLoader() {
@@ -38,10 +41,10 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms";
+type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations";
 
 export default function App() {
-  const [view, setView] = useState<View>("explore");
+  const [view, setView] = useState<View>("home");
   const [tapCount, setTapCount] = useState(0);
   const [showPinGate, setShowPinGate] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -74,7 +77,8 @@ export default function App() {
 
   const navItems = useMemo<{ id: View; label: string; icon: string }[]>(
     () => [
-      { id: "explore", label: "Launch Pads", icon: "\u2705" },
+      { id: "home", label: "Mission", icon: "\u{1F680}" },
+      { id: "explore", label: "Discover", icon: "\u{1F50D}" },
       { id: "globe", label: "Earth", icon: "\u{1F30D}" },
       { id: "facebook", label: "Sectors", icon: "f" },
       { id: "dashboard", label: "My Missions", icon: "\u{1F680}" },
@@ -187,6 +191,9 @@ export default function App() {
                  view === "detail" ? "Community Groups" :
                  view === "help" ? "Help Center" :
                  view === "thankYou" ? "Thank You" :
+                 view === "home" ? "Mission Control" :
+                 view === "aiwizard" ? "AI Campaign Wizard" :
+                 view === "stations" ? "Connected Stations" :
                  view === "platforms" ? "Platform Accounts" :
                  view === "login" ? "Pilot Sign In" :
                  "Fuel a cause today"}
@@ -199,6 +206,10 @@ export default function App() {
             <button onClick={() => setView("dashboard")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
           ) : view === "detail" ? (
             <button onClick={() => setView("explore")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
+          ) : view === "aiwizard" ? (
+            <button onClick={() => setView("dashboard")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
+          ) : view === "stations" ? (
+            <button onClick={() => setView("home")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
           ) : (
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" />
@@ -228,6 +239,23 @@ export default function App() {
       {/* Content */}
       <main className={`max-w-md mx-auto px-4 py-4 pb-20 min-h-screen flex-1 ${view === "globe" ? "p-0 max-w-none" : ""}`}>
         <Suspense fallback={<PageLoader />}>
+          {view === "home" && <ErrorBoundary><HomePage onNavigate={(v) => setView(v as View)} userId={userId} onViewCampaign={handleViewCampaign} /></ErrorBoundary>}
+          {view === "aiwizard" && userId && (
+            <ErrorBoundary>
+              <AICampaignWizard
+                userId={userId}
+                onComplete={(cid) => { setViewCampaignId(cid); setView("detail"); }}
+                onCancel={() => setView("dashboard")}
+              />
+            </ErrorBoundary>
+          )}
+          {view === "aiwizard" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "stations" && userId && (
+            <ErrorBoundary>
+              <PlatformDashboard userId={userId} />
+            </ErrorBoundary>
+          )}
+          {view === "stations" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "explore" && <ErrorBoundary><Explore onViewCampaign={handleViewCampaign} onNavigate={(v) => setView(v as View)} /></ErrorBoundary>}
           {view === "globe" && <ErrorBoundary><GlobePage /></ErrorBoundary>}
           {view === "facebook" && <ErrorBoundary><FacebookGroups /></ErrorBoundary>}
@@ -239,6 +267,7 @@ export default function App() {
               userName={userName}
               onLogout={handleUserLogout}
               onEditCampaign={handleEditCampaign}
+              onNavigate={(v) => setView(v as View)}
             />
           )}
           {view === "dashboard" && !userId && <UserLogin onLogin={handleUserLogin} />}
@@ -269,7 +298,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      {view !== "admin" && !showPinGate && view !== "login" && view !== "detail" && (
+      {view !== "admin" && !showPinGate && view !== "login" && view !== "detail" && view !== "aiwizard" && view !== "stations" && (
         <nav className="sticky bottom-0 z-40 bg-ifdark/95 backdrop-blur border-t border-ifborder">
           <div className="max-w-md mx-auto px-4 py-2 flex items-center justify-around">
             {navItems.map((item) => (

@@ -690,3 +690,17 @@ export const seedDiscoveryTargets = mutation({
     };
   },
 });
+
+// =====================================================
+// QUERY: Get all distributed posts (for platform dashboard)
+// =====================================================
+
+export const getDistributedPosts = query({
+  args: {},
+  handler: async (ctx) => {
+    const posts = await ctx.db.query("distributedPosts").collect();
+    return posts
+      .filter(p => p.platform !== "health_monitor" && p.status !== "system")
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+});

@@ -12,6 +12,7 @@ import type * as accountTracker from "../accountTracker.js";
 import type * as adminUsers from "../adminUsers.js";
 import type * as agentOps from "../agentOps.js";
 import type * as agents from "../agents.js";
+import type * as aiCampaignGen from "../aiCampaignGen.js";
 import type * as antiSpam from "../antiSpam.js";
 import type * as auth from "../auth.js";
 import type * as autonomous from "../autonomous.js";
@@ -61,6 +62,7 @@ declare const fullApi: ApiFromModules<{
   adminUsers: typeof adminUsers;
   agentOps: typeof agentOps;
   agents: typeof agents;
+  aiCampaignGen: typeof aiCampaignGen;
   antiSpam: typeof antiSpam;
   auth: typeof auth;
   autonomous: typeof autonomous;

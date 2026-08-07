@@ -11,11 +11,12 @@ type UserDashboardProps = {
   userName: string;
   onLogout: () => void;
   onEditCampaign: (campaignId: string) => void;
+  onNavigate?: (view: string) => void;
 };
 
 type TabName = "campaigns" | "following" | "notifications" | "withdrawals";
 
-export default function UserDashboard({ userId, userName, onLogout, onEditCampaign }: UserDashboardProps) {
+export default function UserDashboard({ userId, userName, onLogout, onEditCampaign, onNavigate }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<TabName>("campaigns");
   const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -117,10 +118,10 @@ export default function UserDashboard({ userId, userName, onLogout, onEditCampai
       {activeTab === "campaigns" && (
         <>
           <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
+            onClick={() => onNavigate?.("aiwizard")}
             className="w-full py-3 rounded-xl bg-ifaccent text-white text-sm font-semibold"
           >
-            + Launch New Campaign
+            🚀 Launch New Campaign with AI
           </button>
 
           {showCreateForm && (
