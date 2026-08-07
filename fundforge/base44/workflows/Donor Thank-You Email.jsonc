@@ -1,0 +1,40 @@
+{
+  "name": "Donor Thank-You Email",
+  "description": "Sends a customized thank-you email with a donation summary link immediately after a donation is marked paid.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Donation",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"paid\" and .trigger.old_data.status != \"paid\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "donor_thankyou_email",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "send_thankyou": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "send-donor-thankyou",
+            "args": {
+              "donation_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Send donor thank-you email",
+            "description": "Customized receipt with summary link"
+          }
+        }
+      }
+    ]
+  }
+}

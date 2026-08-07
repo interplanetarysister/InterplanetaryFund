@@ -1,0 +1,127 @@
+{
+  "name": "Campaign",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "short_description": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "story": {
+      "type": "string"
+    },
+    "goal": {
+      "type": "number"
+    },
+    "raised": {
+      "type": "number",
+      "default": 0
+    },
+    "currency": {
+      "type": "string",
+      "enum": [
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD"
+      ],
+      "default": "USD"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "medical",
+        "education",
+        "disaster-relief",
+        "animals",
+        "community",
+        "memorial",
+        "business",
+        "creative",
+        "charity",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "funded",
+        "closed"
+      ],
+      "default": "draft"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "beneficiary": {
+      "type": "string"
+    },
+    "timeline": {
+      "type": "string"
+    },
+    "organizer_name": {
+      "type": "string"
+    },
+    "faq": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "seo_content": {
+      "type": "string"
+    },
+    "social_captions": {
+      "type": "string"
+    },
+    "press_release": {
+      "type": "string"
+    },
+    "donor_thank_you": {
+      "type": "string"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "shares": {
+      "type": "number",
+      "default": 0
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "none"
+    },
+    "verification_date": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "goal",
+    "category"
+  ]
+}

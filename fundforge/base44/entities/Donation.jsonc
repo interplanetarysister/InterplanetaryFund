@@ -1,0 +1,66 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "donor_name": {
+      "type": "string"
+    },
+    "donor_email": {
+      "type": "string"
+    },
+    "donor_user_id": {
+      "type": "string"
+    },
+    "summary_url": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "gofundme",
+        "kickstarter",
+        "indiegogo",
+        "givesendgo",
+        "fundly",
+        "mightycause"
+      ],
+      "default": "direct"
+    },
+    "message": {
+      "type": "string"
+    },
+    "anonymous": {
+      "type": "boolean",
+      "default": false
+    },
+    "checkout_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "paid"
+      ],
+      "default": "pending"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "amount"
+  ]
+}

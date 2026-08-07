@@ -1,5 +1,6 @@
 # Interplanetary Fund — Action Plan Log
-**Chief of Staff:** Lyra
+**Chief of Staff:** Solene
+**Previous Chief of Staff:** Lyra — retired 2026-08-07
 **Last Updated:** 2026-08-01
 **Focus:** Interplanetary Fund (6a67a778342a8fe05ee79cba)
 

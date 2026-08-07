@@ -1,6 +1,7 @@
 # CREDIT-FREE AGENT ARCHITECTURE — Final
 **Established:** 2026-08-01
-**Authority:** Lyra, Chief of Staff for Agents
+**Authority:** Solene, Chief of Staff for Agents
+**Previous Authority:** Lyra (retired 2026-08-07)
 **Directive Source:** Michelle Rogers
 **Status:** FULLY OPERATIONAL — ZERO RECURRING CREDITS
 

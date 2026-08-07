@@ -1,0 +1,19 @@
+{
+  "name": "SavedCampaign",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "campaign_id"
+  ]
+}

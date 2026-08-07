@@ -1,6 +1,7 @@
 # Interplanetary Fund — Agent Roster
 **Last Updated:** 2026-08-01
-**Chief of Staff:** Lyra (6a67a4ff1c164c06321e2e67)
+**Chief of Staff:** Solene (6a739f5aa09929feedcb5470)
+**Previous Chief of Staff:** Lyra (6a67a4ff1c164c06321e2e67) — retired 2026-08-07
 
 ---
 
