@@ -14,6 +14,7 @@ import AgentActivity from "../components/AgentActivity";
 import MissionBriefs from "../components/MissionBriefs";
 import UserManagement from "../components/UserManagement";
 import { api } from "../../convex/_generated/api";
+import { useMutation } from "convex/react";
 
 type AdminTab =
   | "overview"
@@ -90,6 +91,10 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const latestReport = useQuery(api.protocol.getLatestReport, {});
   const reports = useQuery(api.protocol.getReports, { limit: 10 });
   const audit = useQuery(api.protocol.enforceProtocol, {});
+  const compliance = useQuery(api.protocolAutoFix.getComplianceStatus, {});
+  const migrateCampaigns = useMutation(api.protocolAutoFix.migrateAllCampaigns);
+  const [migrating, setMigrating] = useState(false);
+  const [migrationResult, setMigrationResult] = useState<string | null>(null);
   const externalBalances = useQuery(api.campaigns.getAllExternalBalances, {});
   const interactionStats = useQuery(api.interactions.getAllInteractionStats, {});
 
@@ -98,6 +103,17 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const [payoutMethod, setPayoutMethod] = useState("cashapp");
   const [payoutDest, setPayoutDest] = useState("");
   const [depositAmount, setDepositAmount] = useState("");
+
+  const handleMigration = async () => {
+    setMigrating(true);
+    try {
+      const result = await migrateCampaigns({});
+      setMigrationResult(`Fixed ${result.campaignsFixed} of ${result.totalCampaigns} campaigns`);
+    } catch (e: any) {
+      setMigrationResult(`Error: ${e.message}`);
+    }
+    setMigrating(false);
+  };
   const [depositPlatform, setDepositPlatform] = useState("GoFundMe");
   const [treasuryUser, setTreasuryUser] = useState("user1");
   const [showResult, setShowResult] = useState<any>(null);
@@ -767,6 +783,53 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
       {/* ============ REPORTS ============ */}
       {tab === "reports" && (
         <div className="space-y-3">
+          {/* Protocol Auto-Fix Dashboard */}
+          {compliance && (
+            <div className="card">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-iftext">Protocol Compliance</h3>
+                <button
+                  onClick={handleMigration}
+                  disabled={migrating}
+                  className="px-3 py-1.5 rounded-lg bg-ifaccent text-ifdark text-xs font-bold disabled:opacity-50"
+                >
+                  {migrating ? "Fixing..." : "Auto-Fix All"}
+                </button>
+              </div>
+              {migrationResult && (
+                <p className="text-[11px] text-ifcyan mb-2">{migrationResult}</p>
+              )}
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <p className="text-xl font-bold text-ifgreen">{compliance.compliant}</p>
+                  <p className="text-[10px] text-ifmuted">Compliant</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-ifred">{compliance.nonCompliant}</p>
+                  <p className="text-[10px] text-ifmuted">Non-Compliant</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-ifaccent">{compliance.total}</p>
+                  <p className="text-[10px] text-ifmuted">Total</p>
+                </div>
+              </div>
+              {compliance.results && compliance.results.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-ifborder space-y-2">
+                  {compliance.results.map((r: any, i: number) => (
+                    <div key={i} className="bg-ifdark rounded-lg px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-iftext">{r.title}</span>
+                        <span className={`text-[10px] font-bold ${r.compliant ? "text-ifgreen" : "text-ifred"}`}>
+                          {r.compliant ? "✓ COMPLIANT" : `${r.violations.join(", ")} pending`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Live Audit */}
           {audit && (
             <div className="card">
