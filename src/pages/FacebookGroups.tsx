@@ -245,9 +245,10 @@ export default function FacebookGroups() {
                         </button>
                       </div>
                     )}
-                    <div className="space-y-3">
+                  </>
                 );
               })()}
+              <div className="space-y-3">
                 {allGroups.groups
                   .filter((g: any) => (!selectedCampaign || g.campaignId === selectedCampaign) && (!hideZeroMembers || g.memberCount > 0))
                   .map((g: any) => (
