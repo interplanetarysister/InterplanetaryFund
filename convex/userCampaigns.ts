@@ -370,3 +370,137 @@ export const unfollowCampaign = mutation({
     return { success: true, message: "Not following" };
   },
 });
+
+// Query: Get available balance for a user's campaign
+export const getCampaignBalance = query({
+  args: { campaignId: v.string(), userId: v.string() },
+  handler: async (ctx, { campaignId, userId }) => {
+    const campaign = await ctx.db.get(campaignId as any);
+    if (!campaign || campaign.userId !== userId) {
+      return { found: false, available: 0, raised: 0 };
+    }
+
+    const pendingPayouts = await ctx.db
+      .query("payoutRequests")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("status"), "pending_payout"),
+          q.eq(q.field("status"), "pending_user_selection"),
+          q.eq(q.field("status"), "pending_admin_review")
+        )
+      )
+      .collect();
+
+    const pendingAmount = pendingPayouts
+      .filter((p: any) => p.campaignId === campaignId)
+      .reduce((s: number, p: any) => s + p.amountRequested, 0);
+
+    return {
+      found: true,
+      campaignId,
+      title: campaign.title,
+      raised: campaign.raisedAmount || 0,
+      pending: pendingAmount,
+      available: Math.max(0, (campaign.raisedAmount || 0) - pendingAmount),
+    };
+  },
+});
+
+// Mutation: Request a payout for a user campaign
+export const requestPayout = mutation({
+  args: {
+    campaignId: v.string(),
+    userId: v.string(),
+    amount: v.number(),
+    payoutMethod: v.string(),
+    payoutDestination: v.string(),
+  },
+  handler: async (ctx, { campaignId, userId, amount, payoutMethod, payoutDestination }) => {
+    const campaign = await ctx.db.get(campaignId as any);
+    if (!campaign) return { success: false as const, error: "Campaign not found" };
+    if (campaign.userId !== userId) return { success: false as const, error: "Not authorized" };
+    if (amount <= 0) return { success: false as const, error: "Invalid amount" };
+
+    // Calculate fees: 5% platform + 2.9% + $0.30 processing
+    const platformFee = amount * 0.05;
+    const processingFee = amount * 0.029 + 0.30;
+    const totalFees = platformFee + processingFee;
+    const netAmount = amount - totalFees;
+
+    // Check available balance
+    const pendingPayouts = await ctx.db
+      .query("payoutRequests")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.or(
+          q.eq(q.field("status"), "pending_payout"),
+          q.eq(q.field("status"), "pending_user_selection"),
+          q.eq(q.field("status"), "pending_admin_review")
+        )
+      )
+      .collect();
+
+    const pendingAmount = pendingPayouts
+      .filter((p: any) => p.campaignId === campaignId)
+      .reduce((s: number, p: any) => s + p.amountRequested, 0);
+
+    const available = Math.max(0, (campaign.raisedAmount || 0) - pendingAmount);
+    if (amount > available) {
+      return { success: false as const, error: `Amount exceeds available balance of $${available.toFixed(2)}` };
+    }
+
+    const payoutId = await ctx.db.insert("payoutRequests", {
+      userId,
+      campaignId,
+      amountRequested: amount,
+      feeAmount: totalFees,
+      netAmount,
+      payoutMethod,
+      payoutDestination,
+      status: "pending_admin_review",
+      requestedDate: new Date().toISOString(),
+      adminReviewStatus: "pending",
+    });
+
+    return {
+      success: true as const,
+      payoutId,
+      grossAmount: amount,
+      fees: totalFees,
+      netAmount,
+      display: {
+        available: `$${amount.toFixed(2)}`,
+        youReceive: `$${netAmount.toFixed(2)}`,
+        ourFee: `$${totalFees.toFixed(2)}`,
+      },
+    };
+  },
+});
+
+// Query: Get payout history for a user
+export const getPayoutHistory = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const payouts = await ctx.db
+      .query("payoutRequests")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .order("desc")
+      .take(50);
+
+    return payouts;
+  },
+});
+
+// Query: Get all pending payouts for admin cockpit
+export const getPendingPayouts = query({
+  args: {},
+  handler: async (ctx) => {
+    const payouts = await ctx.db
+      .query("payoutRequests")
+      .withIndex("byStatus", (q) => q.eq("status", "pending_admin_review"))
+      .collect();
+
+    return payouts;
+  },
+});

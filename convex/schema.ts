@@ -127,6 +127,8 @@ export default defineSchema({
   // PAYOUT REQUESTS
   payoutRequests: defineTable({
     userId: v.string(),
+    campaignId: v.optional(v.string()),
+    campaignTitle: v.optional(v.string()),
     amountRequested: v.number(),
     feeAmount: v.number(),
     netAmount: v.number(),

@@ -115,14 +115,14 @@ GitHub (interplanetarysister/InterplanetaryFund)
 ### Phase 3: Payment Integration
 *Depends on Phase 2 frontend*
 
-15. *Donation flow on campaign detail page* ⬜ TODO
+15. *Donation flow on campaign detail page* ✅ DONE
     - Amount selector + custom amount
     - PayPal checkout (existing paypalCheckout.ts)
     - CashApp link (existing cashappTag field)
     - On success: call recordDonation mutation
     - Update campaign raisedAmount in real-time
 
-16. *Payout/withdrawal flow* ⬜ TODO
+16. *Payout/withdrawal flow* ✅ DONE
     - User requests payout from dashboard
     - Platform fee deduction (existing treasury.ts)
     - Admin approval in cockpit
