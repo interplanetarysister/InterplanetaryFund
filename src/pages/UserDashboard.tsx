@@ -22,6 +22,7 @@ export default function UserDashboard({ userId, userName, onLogout, onEditCampai
 
   const myCampaigns = useQuery(api.userCampaigns.getMyCampaigns, { userId });
   const notifications = useQuery(api.userCampaigns.getNotifications, { userId });
+  const markAllRead = useMutation(api.comments.markAllNotificationsRead);
   const followed = useQuery(api.userCampaigns.getFollowedCampaigns, { userId });
   const payoutHistory = useQuery(api.userCampaigns.getPayoutHistory, { userId });
 
@@ -358,16 +359,26 @@ export default function UserDashboard({ userId, userName, onLogout, onEditCampai
       {/* === NOTIFICATIONS TAB === */}
       {activeTab === "notifications" && (
         <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-iftext">Notifications</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-iftext">Notifications</h3>
+            {notifications && notifications.length > 0 && (
+              <button
+                onClick={() => markAllRead({ userId })}
+                className="text-[10px] text-ifaccent hover:text-cyan-400"
+              >
+                Mark all read
+              </button>
+            )}
+          </div>
           {notifications && notifications.length === 0 && (
             <div className="card text-center py-6">
               <p className="text-xs text-ifmuted">No notifications.</p>
             </div>
           )}
           {notifications?.map((n: any) => (
-            <div key={n._id} className="card">
-              <p className="text-xs text-iftext">{n.message}</p>
-              <p className="text-[10px] text-ifmuted mt-1">{new Date(n.createdDate).toLocaleDateString()}</p>
+            <div key={n._id} className={`card ${!n.read ? "border-ifaccent/40" : ""}`}>
+              <p className="text-xs text-iftext">{n.body || n.message}</p>
+              <p className="text-[10px] text-ifmuted mt-1">{new Date(n.createdAt || n.createdDate || Date.now()).toLocaleDateString()}</p>
             </div>
           ))}
         </div>

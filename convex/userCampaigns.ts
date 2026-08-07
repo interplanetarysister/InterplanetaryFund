@@ -318,7 +318,24 @@ export const addCampaignUpdate = mutation({
       createdAt: new Date().toISOString(),
     });
 
-    return { success: true };
+    // Notify all followers of this campaign
+    const followers = await ctx.db
+      .query("followedCampaigns")
+      .withIndex("byCampaignId", (q) => q.eq("campaignId", campaignId))
+      .collect();
+    for (const f of followers) {
+      await ctx.db.insert("notifications", {
+        userId: f.userId,
+        title: "New Campaign Update",
+        body: title,
+        type: "campaign_update",
+        link: campaignId,
+        read: false,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    return { success: true, notified: followers.length };
   },
 });
 
