@@ -1,142 +1,206 @@
-# Interplanetary Fund — Feature Parity Audit & Action Plan
+# Interplanetary Fund — Feature Implementation & Action Plan
 
-**Date:** 2026-08-04
-**Status:** ACTIVE — Critical gaps identified
-
-## Executive Summary
-
-The GitHub/Convex version of Interplanetary Fund is missing approximately 98% of the features in the published Base44 version. This document outlines what's missing and prioritizes the work.
-
----
-
-## What the Base44 Version Has (30+ entities)
-
-### User-Facing Features
-- Campaign — Full campaign CRUD with user ownership
-- Donation — Donations with donor_user_id, Stripe, recurring, institutional
-- Withdrawal — Payout system with platform fee deduction
-- CampaignUpdate — Campaign updates/posts with media
-- FollowedCampaign — Users following campaigns with notification prefs
-- Notification — User notification system (read/unread)
-- PlatformConnection — User's connected external platforms
-- InboxItem — Unified inbox for platform messages
-
-### Community Features
-- Community — Groups with location, type, cover images
-- CommunityMember — Membership with roles
-- DiscussionPost — Community discussions with categories
-- DiscussionReply — Threaded replies
-- VolunteerOpportunity — Volunteer roles linked to communities
-- VolunteerSignup — Volunteer registrations
-
-### Institutional Features
-- Institution — Institutions with grants, matching gifts, volunteer programs
-- InstitutionOpportunity — Grant/volunteer opportunities from institutions
-- GrantApplication — Campaign applications for institutional grants
-
-### AI/Analytics Features
-- AgentActivity — Agent activity logging with artifacts
-- Recommendation — AI recommendations per campaign
-- MissionBrief — AI-generated mission briefings
-- ExecutiveReport — Executive-level reporting
-- KnowledgeArticle — Knowledge base articles
-- Opportunity — General opportunities (funding, partnerships)
-- PlatformEvent — Platform event tracking
-
-### Admin/Infrastructure
-- FeatureFlag — Feature flags with scope
-- TreasurySnapshot — Treasury snapshots
-- Agent — Agent definitions
-- MonitoredCampaign — Campaign monitoring mirror
-- ProtocolReport — Protocol compliance reports
+**Date:** 2026-08-07
+**Status:** ACTIVE — CI green, protocol compliant, P0 features in progress
+**Repo:** https://github.com/interplanetarysister/InterplanetaryFund
+**Convex:** rosy-butterfly-2.convex.cloud (production)
+**Frontend:** https://interplanetarysister.github.io/InterplanetaryFund/ (GitHub Pages)
+**Vercel:** TBD — pending setup
 
 ---
 
-## What the Convex Version Has (20 tables)
+## Deployment Architecture
 
-### Working Features
-- Admin cockpit with PIN gate (10 tabs)
-- Campaign display (Explore page)
-- Interactive globe (Earth page)
-- Facebook groups page (outreach management)
-- Convex backend with 28 function files
-- PayPal checkout integration
-- Fund migration system
-- Protocol enforcement (P-1 through P-8)
-- Anti-spam guardrails
-- Treasury management with fee calculation
-- Fraud control
-- Role-based admin permissions
-- Universal inbox forwarding
-- External platform sync
-- User profiles table (but no UI)
-
-### Missing Tables (vs Base44)
-- Campaign (uses monitoredCampaigns instead — no user ownership)
-- CampaignUpdate
-- Community, CommunityMember, DiscussionPost, DiscussionReply
-- Institution, InstitutionOpportunity, GrantApplication
-- FollowedCampaign
-- Notification
-- MissionBrief, ExecutiveReport
-- Recommendation
-- KnowledgeArticle
-- Opportunity, VolunteerOpportunity, VolunteerSignup
-- PlatformEvent
-- FeatureFlag
-- AgentActivity
-
-### Missing Frontend Views
-- User login/signup
-- User dashboard (My Campaigns)
-- Campaign creation/editing UI
-- Campaign detail page with donation flow
-- Community/discussion pages
-- Institution/grant pages
-- Notification center
-- Followed campaigns page
-- Volunteer pages
+```
+GitHub (interplanetarysister/InterplanetaryFund)
+  ├── main branch
+  │   ├── .github/workflows/convex-deploy.yml → Auto-deploys Convex on push
+  │   └── .github/workflows/deploy-pages.yml → Auto-deploys Pages on push
+  │
+  ├── Convex Cloud (rosy-butterfly-2)
+  │   └── Backend functions, schema, crons, real-time WebSocket
+  │
+  ├── Vercel (pending)
+  │   └── Production web host with VITE_CONVEX_URL env var
+  │
+  └── GitHub Pages (current fallback)
+      └── Static build at interplanetarysister.github.io/InterplanetaryFund/
+```
 
 ---
 
-## Priority Order
+## Implementation Order
 
-### P0 — Critical (Blocks core platform usage)
-1. User authentication (login/signup)
-2. User dashboard — My Campaigns page
-3. Campaign creation/editing with ownership enforcement
-4. Campaign detail page — view + donate (non-owners can only view/donate)
-5. Facebook agent — proactive group joining + never post test campaigns
+### Phase 1: Backend Foundation (Convex)
+*Must be done before frontend can function*
 
-### P1 — High (Core platform features)
-6. Campaign updates (posts with media)
-7. Followed campaigns
-8. Notifications
-9. Facebook agent — improve donation copywriting when idle
+1. *Schema — userProfiles table* ✅ DONE
+   - Fields: userId, name, email, subscriptionTier, adminAccessStatus, timestamps
+   - Index: byUserId, byEmail
 
-### P2 — Medium (Platform growth features)
-10. Community features
-11. Discussion posts/replies
-12. Institution and grant applications
-13. Volunteer opportunities
-14. AI recommendations
-15. Agent activity logging
+2. *Schema — userCampaigns table* ✅ DONE
+   - Fields: userId, title, summary, story, category, goalAmount, raisedAmount, donorCount, status, coverImageUrl, endDate, location, cashappTag, outreachEnabled, timestamps
+   - Index: byUserId, byStatus
+   - Ownership enforced in all mutations
 
-### P3 — Lower (Nice to have)
-16. Mission briefs
-17. Executive reports
-18. Knowledge articles
-19. Platform events
-20. Feature flags
-21. Treasury snapshots
+3. *Backend — userAuth.ts* ✅ DONE
+   - register(email, name) → creates userProfile, returns userId
+   - login(email) → passwordless, returns userId + profile data
+   - getProfile(userId) → returns user profile
+
+4. *Backend — userCampaigns.ts* ✅ DONE
+   - getMyCampaigns(userId) → campaigns owned by user
+   - getActiveCampaigns() → public list for explore page
+   - getCampaign(campaignId) → single campaign (public view)
+   - createCampaign(userId, ...) → creates with ownership
+   - updateCampaign(campaignId, userId, ...) → ownership enforced
+   - deleteCampaign(campaignId, userId) → ownership enforced
+   - recordDonation(campaignId, amount, donorName, message) → updates raised amount
+
+5. *Backend — campaignUpdates table* ✅ DONE
+   - addCampaignUpdate, getCampaignUpdates
+
+6. *Backend — followedCampaigns table* ✅ DONE
+   - followCampaign, unfollowCampaign, getFollowedCampaigns
+
+7. *Backend — notifications table* ✅ DONE
+   - getNotifications, markNotificationRead
+
+8. *Backend — donations table* ✅ DONE
+   - Linked to userCampaigns via campaignId
+
+### Phase 2: Frontend — Core User Flow (React/Vite)
+*Depends on Phase 1 backend being deployed*
+
+9. *UserLogin.tsx* ✅ DONE
+   - Login/register with email
+   - Passwordless (email-based)
+   - Calls userAuth.register and userAuth.login
+
+10. *UserDashboard.tsx* ✅ DONE
+    - My Campaigns tab (create, view, edit)
+    - Following tab
+    - Notifications tab
+    - Create campaign form inline
+
+11. *CampaignEditor.tsx* ✅ DONE
+    - Edit all campaign fields
+    - Ownership check (non-owners can only view)
+    - Campaign updates section (add posts)
+    - Donation recording
+
+12. *Campaign Detail Page* ⬜ TODO
+    - Public view of campaign (non-owners)
+    - Story display with formatting
+    - Donation flow (PayPal/CashApp integration)
+    - Progress bar (raised vs goal)
+    - Campaign updates feed
+    - Follow button
+
+13. *Explore.tsx — Update to use userCampaigns* ⬜ TODO
+    - Currently reads from monitoredCampaigns (admin mirror)
+    - Should display userCampaigns (user-created campaigns)
+    - Keep monitoredCampaigns for admin cockpit only
+    - Show campaign cards with: title, summary, progress, category filter
+
+14. *App.tsx — Wire user flow* ⬜ TODO
+    - Auth state management (localStorage userId)
+    - Route: not logged in → UserLogin
+    - Route: logged in → UserDashboard (default)
+    - Route: edit campaign → CampaignEditor
+    - Route: explore → Explore (public)
+    - Route: campaign detail → CampaignDetail
+    - Admin route stays as-is (PIN-gated)
+
+### Phase 3: Payment Integration
+*Depends on Phase 2 frontend*
+
+15. *Donation flow on campaign detail page* ⬜ TODO
+    - Amount selector + custom amount
+    - PayPal checkout (existing paypalCheckout.ts)
+    - CashApp link (existing cashappTag field)
+    - On success: call recordDonation mutation
+    - Update campaign raisedAmount in real-time
+
+16. *Payout/withdrawal flow* ⬜ TODO
+    - User requests payout from dashboard
+    - Platform fee deduction (existing treasury.ts)
+    - Admin approval in cockpit
+
+### Phase 4: Platform Growth Features
+*Can be done in parallel after Phase 3*
+
+17. Community features (groups, discussions)
+18. Institution and grant applications
+19. Volunteer opportunities
+20. AI recommendations per campaign
+21. Agent activity logging
+22. Mission briefs and executive reports
+23. Feature flags
+24. Treasury snapshots
+
+---
+
+## Protocol Status
+
+| Protocol | Standard | Status |
+|----------|----------|--------|
+| P-1 | Outreach enabled | ✅ All campaigns compliant |
+| P-2 | AI profile complete | ✅ All campaigns compliant |
+| P-3 | Story present | ✅ All campaigns compliant |
+| P-4 | Payment active | ✅ All campaigns compliant |
+| P-5 | Required fields complete | ✅ All campaigns compliant |
+| P-6 | Agent assigned | ✅ Active |
+| P-7 | Gross-to-net fee calc | ✅ Active |
+| P-8 | Batch payout processing | ✅ Active |
+
+---
+
+## Current Portfolio
+
+| Campaign | Goal | Raised | Donors | Status |
+|----------|------|--------|--------|--------|
+| Help | $5,000 | $9,000 | 4 | active |
+| Woman with a dream | $50,000 | $330 | 0 | active |
+| Random tester | $1,000 | $502 | 3 | active |
+| Help homeless get a van | $10,000 | $75 | 1 | active |
+| Help Homeless Get a Van | $5,000 | $0 | 0 | completed |
+
+*Total raised: $9,907 / Total goal: $71,000*
+*Funding gap: $61,093*
 
 ---
 
 ## Facebook Agent Behavior Rules
 
 1. Proactively join groups — even when no active campaigns exist
-2. Silent membership is OK — being in groups without posting
-3. Never post test campaigns to groups — use user feed for testing
+2. Silent membership is OK
+3. Never post test campaigns to groups
 4. Always awaiting new campaign data input
 5. When idle — improve post syntax for donation-evoking language
-6. Never post test campaigns to Facebook groups
+
+---
+
+## Vercel Deployment Setup (Pending)
+
+1. Install Vercel CLI: `npm i -g vercel`
+2. Link project: `vercel link` (select interplanetarysister/InterplanetaryFund)
+3. Set env vars: `VITE_CONVEX_URL=https://rosy-butterfly-2.convex.cloud`
+4. Deploy: `vercel --prod`
+5. Update GitHub Actions to deploy to Vercel instead of Pages (optional — can keep both)
+
+---
+
+## CI/CD Pipeline
+
+| Workflow | Trigger | Status |
+|----------|---------|--------|
+| Deploy to Convex | Push to main | ✅ Passing |
+| Deploy to GitHub Pages | Push to main | ✅ Passing |
+| Vercel auto-deploy | TBD | Pending setup |
+
+---
+
+## Change Log
+
+- 2026-08-07: Migrated from iFUND_admin (enterprise) to interplanetarysister (personal). Fixed CI (removed invalid --prod flag, added codegen step). Fixed all protocol violations. Set up Convex deploy key as GitHub secret. Enabled GitHub Pages. Deployed Convex backend to production.
