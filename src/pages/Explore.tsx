@@ -157,7 +157,6 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
           <div className="flex-1">
             <h3 className="text-sm font-bold text-iftext">Get the App</h3>
             <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
-            <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
           </div>
           <a
             href="https://github.com/interplanetarysister/InterplanetaryFund/releases/latest"
@@ -287,11 +286,11 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
 
       {/* Campaign Cards */}
       <div>
-        <h3 className="text-sm font-semibold text-iftext mb-3">Active Campaigns</h3>
+        <h3 className="text-sm font-semibold text-iftext mb-3">Active Missions</h3>
         <div className="space-y-4">
           {campaigns.length === 0 && (
             <div className="card text-center py-8">
-              <p className="text-sm text-ifmuted">No active campaigns yet. Be the first to create one!</p>
+              <p className="text-sm text-ifmuted">No active missions yet. Be the first to create one!</p>
             </div>
           )}
 

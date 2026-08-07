@@ -45,6 +45,7 @@ import type * as seedNewFeatures from "../seedNewFeatures.js";
 import type * as simpleWithdraw from "../simpleWithdraw.js";
 import type * as support from "../support.js";
 import type * as syncRaisedAmounts from "../syncRaisedAmounts.js";
+import type * as syncToUserCampaigns from "../syncToUserCampaigns.js";
 import type * as treasury from "../treasury.js";
 import type * as userAuth from "../userAuth.js";
 import type * as userCampaigns from "../userCampaigns.js";
@@ -96,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   simpleWithdraw: typeof simpleWithdraw;
   support: typeof support;
   syncRaisedAmounts: typeof syncRaisedAmounts;
+  syncToUserCampaigns: typeof syncToUserCampaigns;
   treasury: typeof treasury;
   userAuth: typeof userAuth;
   userCampaigns: typeof userCampaigns;
