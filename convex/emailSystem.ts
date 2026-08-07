@@ -12,7 +12,7 @@
 import { action, query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-const FROM_EMAIL = "Interplanetary Fund <noreply@interplanetaryfund.com>";
+const FROM_EMAIL = "Interplanetary Fund <noreply@onboarding.resend.com>";
 const SITE_URL = "https://interplanetary-fund.vercel.app";
 
 // =====================================================
