@@ -377,6 +377,36 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         </div>
       )}
 
+      {/* AI-Generated FAQ */}
+      {campaign.aiFaq && (
+        <div className="bg-ifcard rounded-2xl p-4 border border-ifborder">
+          <h2 className="text-sm font-semibold text-iftext mb-3">FAQ</h2>
+          <div className="space-y-3">
+            {campaign.aiFaq.split("\n\n").filter((block: string) => block.startsWith("Q:")).map((block: string, i: number) => {
+              const q = block.split("A:")[0]?.replace("Q:", "").trim();
+              const a = block.split("A:")[1]?.trim();
+              return (
+                <div key={i}>
+                  <p className="text-xs font-semibold text-ifcyan">{q}</p>
+                  <p className="text-xs text-ifmuted mt-0.5 leading-relaxed">{a}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* AI-Generated Tags */}
+      {campaign.aiTags && campaign.aiTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-1">
+          {campaign.aiTags.map((tag: string, i: number) => (
+            <span key={i} className="text-[10px] bg-ifdark border border-ifborder rounded-full px-2 py-1 text-ifmuted">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Campaign updates */}
       <div className="space-y-2">
         <h2 className="text-sm font-semibold text-iftext px-1">Updates</h2>

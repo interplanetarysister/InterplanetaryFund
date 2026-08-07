@@ -103,8 +103,18 @@ export const createCampaign = mutation({
     endDate: v.optional(v.string()),
     location: v.optional(v.string()),
     cashappTag: v.optional(v.string()),
+    // AI-generated content
+    aiFaq: v.optional(v.string()),
+    aiSocialCaptions: v.optional(v.string()),
+    aiPressRelease: v.optional(v.string()),
+    aiDonorThankYou: v.optional(v.string()),
+    aiSeoContent: v.optional(v.string()),
+    aiImagePrompt: v.optional(v.string()),
+    aiTags: v.optional(v.array(v.string())),
+    aiGenerated: v.optional(v.boolean()),
+    outreachEnabled: v.optional(v.boolean()),
   },
-  handler: async (ctx, { userId, title, summary, story, category, goalAmount, coverImageUrl, endDate, location, cashappTag }) => {
+  handler: async (ctx, { userId, title, summary, story, category, goalAmount, coverImageUrl, endDate, location, cashappTag, aiFaq, aiSocialCaptions, aiPressRelease, aiDonorThankYou, aiSeoContent, aiImagePrompt, aiTags, aiGenerated, outreachEnabled }) => {
     const now = new Date().toISOString();
 
     const id = await ctx.db.insert("userCampaigns", {
@@ -121,7 +131,15 @@ export const createCampaign = mutation({
       endDate,
       location,
       cashappTag,
-      outreachEnabled: false,
+      outreachEnabled: outreachEnabled || false,
+      aiFaq,
+      aiSocialCaptions,
+      aiPressRelease,
+      aiDonorThankYou,
+      aiSeoContent,
+      aiImagePrompt,
+      aiTags,
+      aiGenerated: aiGenerated || false,
       createdAt: now,
       updatedAt: now,
     });

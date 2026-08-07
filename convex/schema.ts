@@ -486,6 +486,15 @@ export default defineSchema({
     location: v.optional(v.string()),
     cashappTag: v.optional(v.string()),
     outreachEnabled: v.boolean(),
+    // AI-generated content (from AI Campaign Wizard)
+    aiFaq: v.optional(v.string()),
+    aiSocialCaptions: v.optional(v.string()),       // JSON array of {platform, caption}
+    aiPressRelease: v.optional(v.string()),
+    aiDonorThankYou: v.optional(v.string()),
+    aiSeoContent: v.optional(v.string()),
+    aiImagePrompt: v.optional(v.string()),
+    aiTags: v.optional(v.array(v.string())),
+    aiGenerated: v.optional(v.boolean()),            // true if created via AI wizard
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index("byUserId", ["userId"]).index("byStatus", ["status"]),

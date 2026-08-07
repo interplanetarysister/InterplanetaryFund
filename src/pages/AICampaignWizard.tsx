@@ -103,6 +103,14 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
         goalAmount: editing.goalAmount,
         coverImageUrl: editing.coverImageUrl,
         outreachEnabled: true,
+        aiFaq: editing.faq,
+        aiSocialCaptions: JSON.stringify(editing.socialCaptions),
+        aiPressRelease: editing.pressRelease,
+        aiDonorThankYou: editing.donorThankYou,
+        aiSeoContent: editing.seoContent,
+        aiImagePrompt: editing.imagePrompt,
+        aiTags: editing.tags,
+        aiGenerated: true,
       });
       if (result.success) {
         setPublished(result.campaignId);
