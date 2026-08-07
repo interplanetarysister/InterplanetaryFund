@@ -10,7 +10,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
-import earthHero from "/earth-hero.png";
+import ifHero from "/if-hero.png";
 
 export default function Home({ onNavigate, userId, onViewCampaign }: { 
   onNavigate?: (view: string) => void;
@@ -32,7 +32,7 @@ export default function Home({ onNavigate, userId, onViewCampaign }: {
     <div className="space-y-5">
       {/* Hero — Glowing Earth on Deep Space */}
       <div className="relative rounded-2xl overflow-hidden border border-ifborder" style={{ height: "340px" }}>
-        <img src={earthHero} alt="Earth from deep space" className="absolute inset-0 w-full h-full object-cover" />
+        <img src={ifHero} alt="Earth from deep space" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-ifdark via-ifdark/30 to-transparent" />
         
         {/* Overlay text */}
