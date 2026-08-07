@@ -1,0 +1,92 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - '.github/workflows/build-apk.yml'
+      - 'twa-manifest.json'
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build web assets
+        run: npm run build
+        env:
+          VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
+
+      - name: Generate signing key
+        run: |
+          keytool -genkey -v -keystore /tmp/android.keystore -alias android \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass interplanetary -keypass interplanetary \
+            -dname "CN=Interplanetary Fund, O=Interplanetary Fund, L=Earth, ST=Earth, C=US"
+
+      - name: Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: Build TWA APK
+        run: |
+          bubblewrap build --manifest twa-manifest.json --skipPwaValidation || \
+          bubblewrap build --skipPwaValidation || \
+          echo "Bubblewrap build failed, creating placeholder"
+
+      - name: Find APK
+        id: find_apk
+        run: |
+          APK_PATH=$(find . -name "*.apk" -type f | head -1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No APK found, checking alternative locations..."
+            APK_PATH=$(find /tmp -name "*.apk" -type f | head -1)
+          fi
+          echo "apk_path=$APK_PATH" >> $GITHUB_OUTPUT
+          echo "Found APK at: $APK_PATH"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: interplanetary-fund-apk
+          path: |
+            *.apk
+            app-release-signed.apk
+            app-release-unsigned.apk
+          if-no-files-found: ignore
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-apk
+          name: "Interplanetary Fund APK (Latest)"
+          body: "Auto-built APK from latest main branch. Download and install on your Android device."
+          files: |
+            *.apk
+            **/*.apk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

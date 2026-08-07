@@ -1,0 +1,39 @@
+{
+  "packageId": "com.interplanetaryfund.app",
+  "host": "interplanetary-fund.vercel.app",
+  "name": "Interplanetary Fund",
+  "launcherName": "Interplanetary Fund",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#05060f",
+  "navigationColor": "#05060f",
+  "navigationColorDark": "#05060f",
+  "navigationDividerColor": "#05060f",
+  "navigationDividerColorDark": "#05060f",
+  "backgroundColor": "#05060f",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://interplanetary-fund.vercel.app/icon-512.png",
+  "maskableIconUrl": "https://interplanetary-fund.vercel.app/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/tmp/android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Explore Campaigns",
+      "shortName": "Explore",
+      "url": "/",
+      "iconUrl": "https://interplanetary-fund.vercel.app/icon-192.png"
+    },
+    {
+      "name": "My Missions",
+      "shortName": "Missions",
+      "url": "/?view=dashboard",
+      "iconUrl": "https://interplanetary-fund.vercel.app/icon-192.png"
+    }
+  ]
+}

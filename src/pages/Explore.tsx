@@ -153,6 +153,23 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         </div>
       </div>
 
+      {/* Get the App */}
+      <div className="rounded-2xl bg-gradient-to-br from-ifaccent/15 to-transparent border border-ifaccent/30 p-4">
+        <div className="flex items-center gap-3">
+          <div className="flex-1">
+            <h3 className="text-sm font-bold text-iftext">Get the App</h3>
+            <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
+          </div>
+          <a
+            href="https://github.com/interplanetarysister/InterplanetaryFund/releases/latest"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2 rounded-xl bg-ifaccent text-ifdark text-xs font-bold whitespace-nowrap"
+          >
+            Download APK
+          </a>
+        </div>
+      </div>
 
       {/* Search Bar */}
       <div className="relative">
