@@ -81,7 +81,7 @@ export default function App() {
       { id: "explore", label: "Discover", icon: "\u{1F50D}" },
       { id: "globe", label: "Earth", icon: "\u{1F30D}" },
       { id: "facebook", label: "Sectors", icon: "\u{1F4E1}" },
-      { id: "dashboard", label: "My Missions", icon: "\u{1F680}" },
+      { id: "dashboard", label: "My Missions", icon: "\u{1F4CB}" },
       { id: "community", label: "Community", icon: "\u{1F465}" },
       { id: "help", label: "Help", icon: "?" },
     ],

@@ -108,7 +108,7 @@ export default function UserDashboard({ userId, userName, onLogout, onEditCampai
 
       {/* Tab nav */}
       <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-hide">
-        <TabButton active={activeTab === "campaigns"} onClick={() => setActiveTab("campaigns")} label="My Campaigns" />
+        <TabButton active={activeTab === "campaigns"} onClick={() => setActiveTab("campaigns")} label="My Missions" />
         <TabButton active={activeTab === "withdrawals"} onClick={() => setActiveTab("withdrawals")} label="Withdrawals" />
         <TabButton active={activeTab === "following"} onClick={() => setActiveTab("following")} label="Following" />
         <TabButton active={activeTab === "notifications"} onClick={() => setActiveTab("notifications")} label="Notifications" />
@@ -149,7 +149,7 @@ export default function UserDashboard({ userId, userName, onLogout, onEditCampai
           )}
 
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-iftext">My Campaigns</h3>
+            <h3 className="text-sm font-semibold text-iftext">My Missions</h3>
             {!myCampaigns && (
               <div className="flex justify-center py-8">
                 <div className="w-6 h-6 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />

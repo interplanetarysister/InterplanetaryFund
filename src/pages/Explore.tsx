@@ -137,9 +137,9 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
     <div className="space-y-5">
       {/* Hero Banner */}
       <div className="rounded-2xl bg-gradient-to-br from-ifaccent/20 to-ifcyan/10 border border-ifborder p-5">
-        <h2 className="text-xl font-bold text-iftext">Together we can</h2>
+        <h2 className="text-xl font-bold text-iftext">Explore the galaxy of campaigns</h2>
         <p className="text-sm text-ifmuted mt-1">
-          ${totalRaised.toLocaleString()} raised by {totalDonors} supporters
+          ${totalRaised.toLocaleString()} in fuel raised by {totalDonors} navigators
         </p>
         <div className="mt-3 flex gap-2">
           <div className="flex-1 h-1.5 bg-ifborder rounded-full overflow-hidden">
@@ -156,6 +156,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         <div className="flex items-center gap-3">
           <div className="flex-1">
             <h3 className="text-sm font-bold text-iftext">Get the App</h3>
+            <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
             <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
           </div>
           <a
@@ -223,7 +224,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
       {/* Trending Campaigns */}
       {!showSearch && safeTrending && safeTrending.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[10px] text-ifmuted uppercase tracking-wide">🔥 Trending Now</p>
+          <p className="text-[10px] text-ifmuted uppercase tracking-wide">🔥 Trending Missions</p>
           {safeTrending.slice(0, 3).map((c: any) => (
             <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
               <p className="text-sm font-semibold text-iftext">{c.title}</p>
