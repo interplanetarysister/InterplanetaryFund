@@ -38,6 +38,7 @@ import type * as paypalWebhook from "../paypalWebhook.js";
 import type * as postContent from "../postContent.js";
 import type * as protocol from "../protocol.js";
 import type * as protocolAutoFix from "../protocolAutoFix.js";
+import type * as reconfigureAgents from "../reconfigureAgents.js";
 import type * as research from "../research.js";
 import type * as savedCampaigns from "../savedCampaigns.js";
 import type * as security from "../security.js";
@@ -91,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   postContent: typeof postContent;
   protocol: typeof protocol;
   protocolAutoFix: typeof protocolAutoFix;
+  reconfigureAgents: typeof reconfigureAgents;
   research: typeof research;
   savedCampaigns: typeof savedCampaigns;
   security: typeof security;
