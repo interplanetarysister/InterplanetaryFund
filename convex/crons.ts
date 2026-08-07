@@ -56,4 +56,8 @@ crons.interval("coordinator-automation", { minutes: 240 }, internal.agentAutomat
 // Master Automation Check — Every 2 hours (ensures all agents are active)
 crons.interval("master-agent-check", { minutes: 120 }, internal.agentAutomation.runAllAgentAutomation, {});
 
+// === IMAGE GENERATION (Credit-Free via Pollinations.ai) ===
+// Auto-generate cover images for new campaigns — Every 12 hours
+crons.interval("auto-cover-images", { minutes: 720 }, internal.imageGen.generateCampaignCoverUrls, {});
+
 export default crons;

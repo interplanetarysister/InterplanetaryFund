@@ -89,3 +89,125 @@ export const deleteComment = mutation({
     return { success: false, error: "Not authorized" };
   },
 });
+
+// =====================================================
+// CAMPAIGN UPDATES — CRUD
+// =====================================================
+import { mutation as mut2, query as q2 } from "./_generated/server";
+
+export const createCampaignUpdate = mut2({
+  args: {
+    campaignId: v.string(),
+    title: v.string(),
+    content: v.string(),
+    mediaUrl: v.optional(v.string()),
+    mediaType: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date().toISOString();
+    await ctx.db.insert("campaignUpdates", {
+      campaignId: args.campaignId,
+      title: args.title,
+      content: args.content,
+      mediaUrl: args.mediaUrl,
+      mediaType: args.mediaType,
+      createdAt: now,
+    });
+    // Also create a notification for all followers
+    const followers = await ctx.db
+      .query("followedCampaigns")
+      .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
+      .collect();
+    for (const f of followers) {
+      await ctx.db.insert("notifications", {
+        userId: f.userId,
+        title: "New Campaign Update",
+        body: args.title,
+        type: "campaign_update",
+        link: args.campaignId,
+        read: false,
+        createdAt: now,
+      });
+    }
+    return { status: "success", notified: followers.length };
+  },
+});
+
+export const getCampaignUpdates = q2({
+  args: { campaignId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("campaignUpdates")
+      .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
+      .order("desc")
+      .collect();
+  },
+});
+
+export const deleteCampaignUpdate = mut2({
+  args: { updateId: v.id("campaignUpdates") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.updateId);
+    return { status: "success" };
+  },
+});
+
+// =====================================================
+// NOTIFICATIONS — CRUD
+// =====================================================
+
+export const getUserNotifications = q2({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("notifications")
+      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
+      .order("desc")
+      .take(50);
+  },
+});
+
+export const markNotificationRead = mut2({
+  args: { notificationId: v.id("notifications") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.notificationId, { read: true });
+    return { status: "success" };
+  },
+});
+
+export const markAllNotificationsRead = mut2({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const unread = await ctx.db
+      .query("notifications")
+      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
+      .filter((q) => q.eq(q.field("read"), false))
+      .collect();
+    for (const n of unread) {
+      await ctx.db.patch(n._id, { read: true });
+    }
+    return { status: "success", marked: unread.length };
+  },
+});
+
+export const createNotification = mut2({
+  args: {
+    userId: v.string(),
+    title: v.string(),
+    body: v.string(),
+    type: v.string(),
+    link: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.insert("notifications", {
+      userId: args.userId,
+      title: args.title,
+      body: args.body,
+      type: args.type,
+      link: args.link,
+      read: false,
+      createdAt: new Date().toISOString(),
+    });
+    return { status: "success" };
+  },
+});

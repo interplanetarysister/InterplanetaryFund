@@ -97,6 +97,40 @@ export const confirmDonation = mutation({
       }
     }
 
+    // Queue donor thank-you interaction record
+    await ctx.db.insert("supporterInteractions", {
+      campaignId: donation.campaignId || "",
+      supporterName: donation.donorName || "Anonymous",
+      supporterEmail: donation.donorEmail || "",
+      interactionType: "donation",
+      status: "completed",
+      timestamp: new Date().toISOString(),
+      notes: `$${donation.amount} donation — thank-you email queued`,
+    });
+
+    // Create milestone notifications for followers
+    const newTotal = (campaign?.raisedAmount || 0) + donation.amount;
+    if (campaign) {
+      const pct = campaign.goalAmount > 0 ? Math.round((newTotal / campaign.goalAmount) * 100) : 0;
+      if (pct >= 50 && pct < 52) {
+        const followers = await ctx.db
+          .query("followedCampaigns")
+          .withIndex("byCampaignId", (q) => q.eq("campaignId", donation.campaignId || ""))
+          .collect();
+        for (const f of followers) {
+          await ctx.db.insert("notifications", {
+            userId: f.userId,
+            title: "Campaign Milestone! 🎉",
+            body: `${campaign.title} has reached ${pct}% of its goal!`,
+            type: "milestone",
+            link: donation.campaignId,
+            read: false,
+            createdAt: new Date().toISOString(),
+          });
+        }
+      }
+    }
+
     // Record transaction in treasury
     const platformFee = donation.amount * 0.05;
     const processingFee = donation.amount * 0.029 + 0.30;
