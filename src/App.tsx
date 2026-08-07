@@ -18,6 +18,7 @@ const GlobePage = lazy(() => import("./pages/Globe"));
 const UserLogin = lazy(() => import("./pages/UserLogin"));
 const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const CampaignEditor = lazy(() => import("./pages/CampaignEditor"));
+const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 
 // Loading fallback
 function PageLoader() {
@@ -32,7 +33,7 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor";
+type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail";
 
 export default function App() {
   const [view, setView] = useState<View>("explore");
@@ -47,6 +48,7 @@ export default function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
+  const [viewCampaignId, setViewCampaignId] = useState<string | null>(null);
 
   // Restore user session from localStorage
   useEffect(() => {
@@ -151,6 +153,11 @@ export default function App() {
     setView("editor");
   }, []);
 
+  const handleViewCampaign = useCallback((campaignId: string) => {
+    setViewCampaignId(campaignId);
+    setView("detail");
+  }, []);
+
   return (
     <TermsAcceptance>
     <div className="min-h-screen bg-ifdark flex flex-col">
@@ -167,6 +174,7 @@ export default function App() {
                  view === "globe" ? "Global Campaign Locator" :
                  view === "dashboard" ? "My Missions" :
                  view === "editor" ? "Campaign Editor" :
+                 view === "detail" ? "Campaign Details" :
                  view === "login" ? "Pilot Sign In" :
                  "Fuel a cause today"}
               </p>
@@ -176,6 +184,8 @@ export default function App() {
             <button onClick={exitAdmin} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Exit Cockpit</button>
           ) : view === "editor" ? (
             <button onClick={() => setView("dashboard")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
+          ) : view === "detail" ? (
+            <button onClick={() => setView("explore")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
           ) : (
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" />
@@ -205,7 +215,7 @@ export default function App() {
       {/* Content */}
       <main className={`max-w-md mx-auto px-4 py-4 pb-20 min-h-screen flex-1 ${view === "globe" ? "p-0 max-w-none" : ""}`}>
         <Suspense fallback={<PageLoader />}>
-          {view === "explore" && <Explore />}
+          {view === "explore" && <Explore onViewCampaign={handleViewCampaign} />}
           {view === "globe" && <GlobePage />}
           {view === "facebook" && <FacebookGroups />}
           {view === "admin" && <ErrorBoundary><Admin adminUser={adminUser} /></ErrorBoundary>}
@@ -226,11 +236,19 @@ export default function App() {
               onBack={() => setView("dashboard")}
             />
           )}
+          {view === "detail" && viewCampaignId && (
+            <CampaignDetail
+              campaignId={viewCampaignId}
+              userId={userId}
+              onBack={() => setView("explore")}
+              onLogin={() => setView("login")}
+            />
+          )}
         </Suspense>
       </main>
 
       {/* Bottom Navigation */}
-      {view !== "admin" && !showPinGate && view !== "login" && (
+      {view !== "admin" && !showPinGate && view !== "login" && view !== "detail" && (
         <nav className="sticky bottom-0 z-40 bg-ifdark/95 backdrop-blur border-t border-ifborder">
           <div className="max-w-md mx-auto px-4 py-2 flex items-center justify-around">
             {navItems.map((item) => (

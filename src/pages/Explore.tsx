@@ -13,18 +13,16 @@ const CASHAPP_TAG = "unrewound";
 const CASHAPP_URL = `https://cash.app/$${CASHAPP_TAG}`;
 const MIN_AMOUNT = 1;
 
-export default function Explore() {
-  // Paginated campaigns — loads 8 at a time, more on scroll
-  const { results: campaigns, status: campaignStatus, loadMore } = usePaginatedQuery(
-    api.campaigns.getCampaigns,
-    { status: "active" },
-    { initialNumItems: 8 }
-  );
-  // Lightweight stats query — just numbers, no campaign data
+export default function Explore({ onViewCampaign }: { onViewCampaign?: (campaignId: string) => void }) {
+  // User-created campaigns (public explore page)
+  const userCampaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
+  // Keep admin stats for the hero banner
   const stats = useQuery(api.campaigns.getCampaignStats, {});
   const balances = useQuery(api.treasury.aggregateBalances, {});
   const recordDonation = useMutation(api.campaigns.recordDonation);
   const recordInteraction = useMutation(api.interactions.recordInteraction);
+
+  const [categoryFilter, setCategoryFilter] = useState<string>("All");
 
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [donationAmount, setDonationAmount] = useState<string>("25");
@@ -33,7 +31,7 @@ export default function Explore() {
   const [donationStep, setDonationStep] = useState<"amount" | "info" | "processing" | "done">("amount");
   const [viewedCampaigns, setViewedCampaigns] = useState<Set<string>>(new Set());
 
-  if (campaignStatus === "LoadingFirstPage" || !stats || !balances) {
+  if (userCampaigns === undefined || !stats || !balances) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-8 h-8 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />
@@ -46,15 +44,19 @@ export default function Explore() {
   const totalDonors = balances.grandTotal?.donors || 0;
   const activeCount = stats.activeCount || 0;
 
+  const categories = ["All", "Community", "Medical", "Education", "Animals", "Emergency", "Other"];
+  const campaigns = (userCampaigns || []).filter((c: any) =>
+    categoryFilter === "All" || c.category === categoryFilter
+  );
   const numericAmount = parseFloat(donationAmount) || 0;
   const isValidAmount = numericAmount >= MIN_AMOUNT;
 
   const handleCampaignView = (campaign: any) => {
-    const campaignKey = campaign.ifCampaignId;
+    const campaignKey = campaign.id;
     if (!viewedCampaigns.has(campaignKey)) {
       setViewedCampaigns(prev => new Set([...prev, campaignKey]));
       recordInteraction({
-        campaignId: campaign.ifCampaignId,
+        campaignId: campaign.id,
         campaignTitle: campaign.title,
         interactionType: "view",
       }).catch(() => {});
@@ -64,7 +66,7 @@ export default function Explore() {
   const handleSupport = (campaign: any) => {
     handleCampaignView(campaign);
     recordInteraction({
-      campaignId: campaign.ifCampaignId,
+      campaignId: campaign.id,
       campaignTitle: campaign.title,
       interactionType: "click",
     }).catch(() => {});
@@ -83,7 +85,7 @@ export default function Explore() {
 
   const handleShare = (campaign: any) => {
     recordInteraction({
-      campaignId: campaign.ifCampaignId,
+      campaignId: campaign.id,
       campaignTitle: campaign.title,
       interactionType: "share",
     }).catch(() => {});
@@ -104,7 +106,7 @@ export default function Explore() {
     setDonationStep("processing");
     try {
       await recordDonation({
-        campaignId: selectedCampaign.ifCampaignId,
+        campaignId: selectedCampaign.id,
         campaignTitle: selectedCampaign.title,
         amount: numericAmount,
         donorName: donorName || "Anonymous",
@@ -138,6 +140,23 @@ export default function Explore() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Category filter */}
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCategoryFilter(cat)}
+            className={"px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors " + (
+              categoryFilter === cat
+                ? "bg-ifaccent text-ifwhite"
+                : "bg-ifcard text-ifmuted border border-ifborder"
+            )}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
 
       {/* Campaign Cards */}
@@ -204,6 +223,14 @@ export default function Explore() {
                   >
                     Support
                   </button>
+                  {onViewCampaign && (
+                    <button
+                      onClick={() => onViewCampaign(c.id)}
+                      className="px-3 py-2.5 rounded-xl bg-ifcyan/20 text-ifcyan text-sm font-semibold active:scale-[0.98] transition-transform border border-ifcyan/30"
+                    >
+                      View
+                    </button>
+                  )}
                   <button
                     onClick={() => handleShare(c)}
                     className="px-3 py-2.5 rounded-xl bg-ifborder text-iftext text-sm font-semibold active:scale-[0.98] transition-transform"
@@ -217,20 +244,7 @@ export default function Explore() {
         </div>
       </div>
 
-      {/* Load more campaigns */}
-      {campaignStatus === "CanLoadMore" && (
-        <button
-          onClick={() => loadMore(8)}
-          className="w-full py-3 rounded-xl border border-ifborder text-sm text-iftext font-semibold active:scale-[0.98] transition-transform"
-        >
-          Load more campaigns
-        </button>
-      )}
-      {campaignStatus === "LoadingMore" && (
-        <div className="flex items-center justify-center py-4">
-          <div className="w-6 h-6 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />
-        </div>
-      )}
+
 
       {/* Impact stats */}
       <div className="grid grid-cols-2 gap-3 pt-2">

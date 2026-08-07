@@ -116,13 +116,9 @@ export const confirmDonation = mutation({
 export const getDonations = query({
   args: { campaignId: v.string() },
   handler: async (ctx, args) => {
-    checkRateLimit("checkout", 10, 60000); // Max 10 per minute
-    if (!validateDonation(args.amount || 0)) {
-      throw new Error("Invalid donation amount.");
-    }
     return await ctx.db
       .query("donations")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
-      .collect();
+      .take(50);
   },
 });

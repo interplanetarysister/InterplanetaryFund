@@ -350,3 +350,23 @@ export const getFollowedCampaigns = query({
     return followed;
   },
 });
+
+// Mutation: Unfollow a campaign
+export const unfollowCampaign = mutation({
+  args: {
+    userId: v.string(),
+    campaignId: v.string(),
+  },
+  handler: async (ctx, { userId, campaignId }) => {
+    const existing = await ctx.db.query("followedCampaigns")
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("campaignId"), campaignId))
+      .first();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+      return { success: true };
+    }
+    return { success: true, message: "Not following" };
+  },
+});
