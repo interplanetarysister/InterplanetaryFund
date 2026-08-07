@@ -24,6 +24,16 @@ const DEFAULT_ACCOUNTS: PlatformAccount[] = [
   { platform: "CashApp", handle: "$unrewound", url: "https://cash.app/$unrewound", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Alt donation method" },
   { platform: "Convex", handle: "rosy-butterfly-2", url: "https://rosy-butterfly-2.convex.cloud", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Backend deployment" },
   { platform: "Vercel", handle: "interplanetary-fund", url: "https://interplanetary-fund.vercel.app", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: true, notes: "Frontend hosting (repo: interplanetarysister/InterplanetaryFund)" },
+  { platform: "GoFundMe", handle: "Interplanetary Fund", url: "https://gofundme.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Crowdfunding — campaign outreach" },
+  { platform: "Patreon", handle: "interplanetaryfund", url: "https://patreon.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Recurring support platform" },
+  { platform: "Buy Me a Coffee", handle: "interplanetaryfund", url: "https://buymeacoffee.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Micro-donations platform" },
+  { platform: "Ko-fi", handle: "interplanetaryfund", url: "https://ko-fi.com", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Creator support platform" },
+  { platform: "Spotfund", handle: "interplanetaryfund", url: "https://spotfund.com", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Account creation in progress" },
+  { platform: "FundRazr", handle: "interplanetaryfund", url: "https://fundrazr.com", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Account creation in progress" },
+  { platform: "GiveSendGo", handle: "interplanetaryfund", url: "https://givesendgo.com", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Account creation in progress" },
+  { platform: "Indiegogo", handle: "interplanetaryfund", url: "https://indiegogo.com", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Account creation in progress" },
+  { platform: "Kickstarter", handle: "interplanetaryfund", url: "https://kickstarter.com", email: "cuddlemeplatonically@gmail.com", status: "pending", twoFactor: false, notes: "Account creation in progress" },
+  { platform: "Bluesky", handle: "interplanetaryfund.bsky.social", url: "https://bsky.app/profile/interplanetaryfund.bsky.social", email: "cuddlemeplatonically@gmail.com", status: "active", twoFactor: false, notes: "Cross-posting platform" },
 ];
 
 export default function PlatformAccountsSheet() {
