@@ -133,6 +133,15 @@ export default function App() {
     }
   }, [pinCheck, showPinGate]);
 
+  // Detect PayPal donation success from URL hash
+  useEffect(() => {
+    if (window.location.hash.includes("donation=success")) {
+      setView("thankYou");
+      // Clean the URL
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
   const exitAdmin = useCallback(() => {
     setView("explore");
     setAuthed(false);

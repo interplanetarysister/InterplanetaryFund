@@ -227,6 +227,24 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         </div>
       </div>
 
+      {/* Social proof / urgency banner */}
+      {campaign.donorCount > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-ifcyan/5 border border-ifcyan/20">
+          <span className="text-sm">{"\u{1F680}"}</span>
+          <p className="text-[11px] text-ifmuted">
+            <span className="text-ifcyan font-semibold">{campaign.donorCount} {campaign.donorCount === 1 ? "person has" : "people have"}</span> already supported this mission. Join them!
+          </p>
+        </div>
+      )}
+      {progress >= 50 && progress < 100 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-ifaccent/5 border border-ifaccent/20">
+          <span className="text-sm">{"\u{1F525}"}</span>
+          <p className="text-[11px] text-ifmuted">
+            <span className="text-ifaccent font-semibold">{progress.toFixed(0)}% funded!</span> {((campaign.goalAmount - campaign.raisedAmount).toLocaleString())} left to reach the goal.
+          </p>
+        </div>
+      )}
+
       {/* Action buttons */}
       <div className="flex gap-2">
         <button
