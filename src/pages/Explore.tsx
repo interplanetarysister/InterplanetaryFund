@@ -52,7 +52,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
 
   // Stats come from lightweight query, not from loading all campaigns
   const totalRaised = balances?.grandTotal?.raised || 0;
-  const totalDonors = balances.grandTotal?.donors || 0;
+  const totalDonors = balances?.grandTotal?.donors || 0;
   const activeCount = stats?.activeCount || 0;
 
   const categories = ["All", "Community", "Medical", "Education", "Animals", "Emergency", "Other"];

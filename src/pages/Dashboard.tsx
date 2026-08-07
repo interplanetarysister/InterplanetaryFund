@@ -28,7 +28,7 @@ export default function Dashboard() {
         <div className="stat-card">
           <p className="text-xs text-ifmuted font-medium">Total Raised</p>
           <p className="text-2xl font-bold text-ifcyan mt-1">
-            ${balances.grandTotal.raised.toLocaleString()}
+            ${(balances?.grandTotal?.raised || 0).toLocaleString()}
           </p>
           <p className="text-[10px] text-ifmuted mt-1">All platforms combined</p>
         </div>
@@ -42,7 +42,7 @@ export default function Dashboard() {
         <div className="stat-card">
           <p className="text-xs text-ifmuted font-medium">Total Donors</p>
           <p className="text-2xl font-bold text-ifgreen mt-1">
-            {balances.grandTotal.donors.toLocaleString()}
+            {(balances?.grandTotal?.donors || 0).toLocaleString()}
           </p>
         </div>
         <div className="stat-card">

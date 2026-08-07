@@ -50,13 +50,13 @@ export default function Platforms() {
             <div className="bg-ifdark rounded-xl p-3">
               <p className="text-xs text-ifmuted">External Raised</p>
               <p className="text-xl font-bold text-ifcyan mt-1">
-                ${externalBalances.grandTotalRaised.toLocaleString()}
+                ${(externalBalances?.grandTotalRaised || 0).toLocaleString()}
               </p>
             </div>
             <div className="bg-ifdark rounded-xl p-3">
               <p className="text-xs text-ifmuted">External Donors</p>
               <p className="text-xl font-bold text-ifgreen mt-1">
-                {externalBalances.grandTotalDonors.toLocaleString()}
+                {(externalBalances?.grandTotalDonors || 0).toLocaleString()}
               </p>
             </div>
           </div>

@@ -210,7 +210,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
             <div className="stat-card">
               <p className="text-xs text-ifmuted font-medium">Total Raised</p>
               <p className="text-2xl font-bold text-ifcyan mt-1">
-                ${balances.grandTotal.raised.toLocaleString()}
+                ${(balances?.grandTotal?.raised || 0).toLocaleString()}
               </p>
               <p className="text-[10px] text-ifmuted mt-0.5">All platforms</p>
             </div>
@@ -224,7 +224,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
             <div className="stat-card">
               <p className="text-xs text-ifmuted font-medium">Total Donors</p>
               <p className="text-2xl font-bold text-ifgreen mt-1">
-                {balances.grandTotal.donors.toLocaleString()}
+                {(balances?.grandTotal?.donors || 0).toLocaleString()}
               </p>
             </div>
             <div className="stat-card">
@@ -678,13 +678,13 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
                 <div className="bg-ifdark rounded-xl p-3">
                   <p className="text-xs text-ifmuted">External Raised</p>
                   <p className="text-xl font-bold text-ifcyan mt-1">
-                    ${externalBalances.grandTotalRaised.toLocaleString()}
+                    ${(externalBalances?.grandTotalRaised || 0).toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-ifdark rounded-xl p-3">
                   <p className="text-xs text-ifmuted">External Donors</p>
                   <p className="text-xl font-bold text-ifgreen mt-1">
-                    {externalBalances.grandTotalDonors.toLocaleString()}
+                    {(externalBalances?.grandTotalDonors || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
