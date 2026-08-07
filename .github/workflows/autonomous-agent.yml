@@ -1,0 +1,92 @@
+# Interplanetary Fund — Credit-Free Autonomous Agent
+# Runs every 30 minutes on GitHub Actions (free for public repos)
+# Performs: build check, protocol enforcement, deployment, reporting
+# Zero Base44 credits consumed — all work done in GitHub Actions runners
+#
+# Copyright © 2026 Michelle Rogers. All Rights Reserved.
+
+name: Autonomous Agent
+
+on:
+  schedule:
+    # Every 30 minutes (GitHub Actions cron is UTC)
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Convex types
+        run: npx convex codegen
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        continue-on-error: true
+
+      - name: Build check
+        run: npm run build
+        continue-on-error: true
+
+      - name: Deploy to Convex
+        run: npx convex deploy
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        continue-on-error: true
+
+      - name: Run protocol enforcement
+        run: |
+          npx convex run protocol/enforceProtocol --env-name prod 2>/dev/null || true
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        continue-on-error: true
+
+      - name: Run treasury aggregation
+        run: |
+          npx convex run treasury/aggregateBalances --env-name prod 2>/dev/null || true
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+        continue-on-error: true
+
+      - name: Check for uncommitted changes
+        id: changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit and push changes
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "IF Autonomous Agent"
+          git config user.email "actions@github.com"
+          git add -A
+          git commit -m "chore: autonomous agent sync ($(date -u +%Y-%m-%d_%H:%M))"
+          git push
+
+      - name: Agent status report
+        run: |
+          echo "=== IF AUTONOMOUS AGENT REPORT ==="
+          echo "Timestamp: $(date -u)"
+          echo "Build: $(if npm run build >/dev/null 2>&1; then echo 'PASS'; else echo 'FAIL'; fi)"
+          echo "Convex: $(if npx convex deploy --dry-run >/dev/null 2>&1; then echo 'READY'; else echo 'CHECK'; fi)"
+          echo "Changes: ${{ steps.changes.outputs.changed }}"
+          echo "=== END REPORT ==="
