@@ -9,7 +9,6 @@ on:
       - 'index.html'
       - 'package.json'
       - '.github/workflows/build-apk.yml'
-      - 'twa-manifest.json'
   workflow_dispatch:
 
 permissions:
@@ -40,12 +39,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
-
-      - name: Initialize TWA project
+      - name: Install Capacitor
         run: |
-          echo "n" | bubblewrap init --manifest https://interplanetary-fund.vercel.app/manifest.json --directory ./twa-project || true
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install -g @capacitor/cli
+
+      - name: Build web app
+        run: npm run build
+        env:
+          VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
+
+      - name: Initialize Capacitor
+        run: |
+          npx cap init "Interplanetary Fund" "com.interplanetaryfund.app" --web-dir=dist
+          npx cap add android
+          npx cap copy
 
       - name: Generate signing key
         run: |
@@ -55,24 +63,18 @@ jobs:
             -dname "CN=Interplanetary Fund, O=Interplanetary Fund, L=Earth, ST=Earth, C=US"
 
       - name: Build APK
-        working-directory: ./twa-project
+        working-directory: android
         env:
           JAVA_HOME: ${{ env.JAVA_HOME }}
         run: |
-          echo "n" | bubblewrap build --skipPwaValidation 2>&1 || true
-          # Also try gradle directly if bubblewrap fails
-          if ! find . -name "*.apk" -type f | head -1 | grep -q .; then
-            echo "Bubblewrap build failed, trying gradle directly..."
-            chmod +x ./gradlew 2>/dev/null || true
-            ./gradlew assembleRelease --no-daemon -x lint 2>&1 || true
-          fi
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon -x lint 2>&1 || true
 
-      - name: Find and copy APK
+      - name: Find and rename APK
         run: |
-          APK_PATH=$(find . -name "*.apk" -type f | head -1)
+          APK_PATH=$(find android -name "*.apk" -type f | head -1)
           if [ -n "$APK_PATH" ]; then
             cp "$APK_PATH" "interplanetary-fund.apk"
-            echo "Found APK: $APK_PATH"
             ls -la interplanetary-fund.apk
           else
             echo "No APK was built"
@@ -83,7 +85,7 @@ jobs:
         with:
           name: interplanetary-fund-apk
           path: interplanetary-fund.apk
-          if-no-files-found: ignore
+          if-no-files-found: warn
 
       - name: Create or update release
         uses: softprops/action-gh-release@v2
@@ -93,7 +95,7 @@ jobs:
           name: "Interplanetary Fund APK (Latest)"
           body: |
             Auto-built APK from latest main branch.
-            
+
             Download and install on your Android device.
             You may need to enable "Install from unknown sources" in your settings.
           files: interplanetary-fund.apk
