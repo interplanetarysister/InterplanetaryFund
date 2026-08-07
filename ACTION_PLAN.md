@@ -89,7 +89,7 @@ GitHub (interplanetarysister/InterplanetaryFund)
     - Campaign updates section (add posts)
     - Donation recording
 
-12. *Campaign Detail Page* ⬜ TODO
+12. *Campaign Detail Page* ✅ DONE
     - Public view of campaign (non-owners)
     - Story display with formatting
     - Donation flow (PayPal/CashApp integration)
@@ -97,13 +97,13 @@ GitHub (interplanetarysister/InterplanetaryFund)
     - Campaign updates feed
     - Follow button
 
-13. *Explore.tsx — Update to use userCampaigns* ⬜ TODO
+13. *Explore.tsx — Update to use userCampaigns* ✅ DONE
     - Currently reads from monitoredCampaigns (admin mirror)
     - Should display userCampaigns (user-created campaigns)
     - Keep monitoredCampaigns for admin cockpit only
     - Show campaign cards with: title, summary, progress, category filter
 
-14. *App.tsx — Wire user flow* ⬜ TODO
+14. *App.tsx — Wire user flow* ✅ DONE
     - Auth state management (localStorage userId)
     - Route: not logged in → UserLogin
     - Route: logged in → UserDashboard (default)
@@ -203,4 +203,5 @@ GitHub (interplanetarysister/InterplanetaryFund)
 
 ## Change Log
 
+- 2026-08-07: Completed Phase 2 frontend. Campaign Detail page with donation flow (PayPal+CashApp), follow/unfollow, updates feed, recent supporters. Explore switched to userCampaigns with category filter. App.tsx wired with full user flow routing. Fixed getDonations bug. Added unfollowCampaign mutation. Vercel deployment verified live.
 - 2026-08-07: Migrated from iFUND_admin (enterprise) to interplanetarysister (personal). Fixed CI (removed invalid --prod flag, added codegen step). Fixed all protocol violations. Set up Convex deploy key as GitHub secret. Enabled GitHub Pages. Deployed Convex backend to production.
