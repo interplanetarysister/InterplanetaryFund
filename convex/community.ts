@@ -98,9 +98,9 @@ export const joinGroup = mutation({
 
     // Increment member count
     const group = await ctx.db.get(groupId as any);
-    if (group) {
+    if (group && 'memberCount' in group) {
       await ctx.db.patch(groupId as any, {
-        memberCount: (group.memberCount || 0) + 1,
+        memberCount: ((group as any).memberCount || 0) + 1,
       });
     }
 
@@ -121,9 +121,9 @@ export const leaveGroup = mutation({
     if (membership) {
       await ctx.db.delete(membership._id);
       const group = await ctx.db.get(groupId as any);
-      if (group) {
+      if (group && 'memberCount' in group) {
         await ctx.db.patch(groupId as any, {
-          memberCount: Math.max(0, (group.memberCount || 1) - 1),
+          memberCount: Math.max(0, ((group as any).memberCount || 1) - 1),
         });
       }
     }
@@ -199,9 +199,9 @@ export const replyToDiscussion = mutation({
 
     // Increment reply count
     const discussion = await ctx.db.get(discussionId as any);
-    if (discussion) {
+    if (discussion && 'replyCount' in discussion) {
       await ctx.db.patch(discussionId as any, {
-        replyCount: (discussion.replyCount || 0) + 1,
+        replyCount: ((discussion as any).replyCount || 0) + 1,
       });
     }
 

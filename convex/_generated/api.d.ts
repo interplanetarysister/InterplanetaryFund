@@ -36,6 +36,7 @@ import type * as protocol from "../protocol.js";
 import type * as research from "../research.js";
 import type * as security from "../security.js";
 import type * as seed from "../seed.js";
+import type * as seedNewFeatures from "../seedNewFeatures.js";
 import type * as simpleWithdraw from "../simpleWithdraw.js";
 import type * as syncRaisedAmounts from "../syncRaisedAmounts.js";
 import type * as treasury from "../treasury.js";
@@ -80,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   research: typeof research;
   security: typeof security;
   seed: typeof seed;
+  seedNewFeatures: typeof seedNewFeatures;
   simpleWithdraw: typeof simpleWithdraw;
   syncRaisedAmounts: typeof syncRaisedAmounts;
   treasury: typeof treasury;
