@@ -146,6 +146,54 @@ export default defineSchema({
 
 
 
+
+  // AGENT ACTIVITY LOGGING
+  agentActivityLog: defineTable({
+    agentName: v.string(),
+    agentId: v.optional(v.string()),
+    action: v.string(),
+    category: v.string(), // "fundraising", "story", "donor", "protocol", "analytics", "treasury", "platform"
+    description: v.string(),
+    metadata: v.optional(v.string()),
+    creditCost: v.optional(v.number()),
+    timestamp: v.string(),
+  }).index("byAgent", ["agentName"]).index("byCategory", ["category"]).index("byTimestamp", ["timestamp"]),
+
+  // MISSION BRIEFS & EXECUTIVE REPORTS
+  missionBriefs: defineTable({
+    title: v.string(),
+    type: v.string(), // "daily", "weekly", "executive", "ad_hoc"
+    author: v.string(), // "Solene", "system", agent name
+    summary: v.string(),
+    metrics: v.optional(v.string()), // JSON string of key metrics
+    actionItems: v.optional(v.string()), // JSON array of action items
+    status: v.string(), // "draft", "published", "archived"
+    createdAt: v.string(),
+    publishedAt: v.optional(v.string()),
+  }).index("byType", ["type"]).index("byStatus", ["status"]),
+
+  // FEATURE FLAGS
+  featureFlags: defineTable({
+    name: v.string(),
+    description: v.string(),
+    enabled: v.boolean(),
+    rolloutPercent: v.optional(v.number()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("byName", ["name"]),
+
+  // TREASURY SNAPSHOTS
+  treasurySnapshots: defineTable({
+    totalRaised: v.number(),
+    totalDistributed: v.number(),
+    totalFees: v.number(),
+    totalHeld: v.number(),
+    campaignCount: v.number(),
+    donorCount: v.number(),
+    snapshotDate: v.string(),
+    breakdown: v.optional(v.string()), // JSON string
+  }).index("byDate", ["snapshotDate"]),
+
   // INSTITUTION & GRANT APPLICATIONS
   institutionApplications: defineTable({
     institutionName: v.string(),

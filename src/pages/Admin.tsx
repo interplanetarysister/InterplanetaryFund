@@ -10,6 +10,8 @@ import { useQuery, useMutation } from "convex/react";
 import type { AdminUser } from "../types";
 import PermissionsManager from "../components/PermissionsManager";
 import FraudControl from "../components/FraudControl";
+import AgentActivity from "../components/AgentActivity";
+import MissionBriefs from "../components/MissionBriefs";
 import UserManagement from "../components/UserManagement";
 import { api } from "../../convex/_generated/api";
 
@@ -21,7 +23,9 @@ type AdminTab =
   | "platforms"
   | "reports"
   | "interactions"
-  | "permissions";
+  | "permissions"
+  | "activity"
+  | "briefs";
 
 // Each tab maps to a permission scope (or "all" for super admin)
 const TAB_PERMISSIONS: Record<AdminTab, string> = {
@@ -34,6 +38,8 @@ const TAB_PERMISSIONS: Record<AdminTab, string> = {
   interactions: "reports",
   permissions: "users",  // only super admin
   control: "finance",  // super admin only — fraud prevention
+  activity: "all",
+  briefs: "all",
   users: "campaigns",  // admin with campaigns permission can view users
 };
 
@@ -48,6 +54,8 @@ const ALL_TABS: { id: AdminTab; label: string }[] = [
   { id: "users", label: "Users" },
   { id: "permissions", label: "Access" },
   { id: "control", label: "Control" },
+  { id: "activity", label: "Agent Log" },
+  { id: "briefs", label: "Briefs" },
 ];
 
 const ROLE_COLORS: Record<string, string> = {

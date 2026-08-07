@@ -10,6 +10,7 @@
 
 import type * as accountTracker from "../accountTracker.js";
 import type * as adminUsers from "../adminUsers.js";
+import type * as agentOps from "../agentOps.js";
 import type * as agents from "../agents.js";
 import type * as antiSpam from "../antiSpam.js";
 import type * as auth from "../auth.js";
@@ -53,6 +54,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accountTracker: typeof accountTracker;
   adminUsers: typeof adminUsers;
+  agentOps: typeof agentOps;
   agents: typeof agents;
   antiSpam: typeof antiSpam;
   auth: typeof auth;
