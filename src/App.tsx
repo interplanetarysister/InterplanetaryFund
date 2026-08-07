@@ -80,7 +80,7 @@ export default function App() {
       { id: "home", label: "Mission", icon: "\u{1F680}" },
       { id: "explore", label: "Discover", icon: "\u{1F50D}" },
       { id: "globe", label: "Earth", icon: "\u{1F30D}" },
-      { id: "facebook", label: "Sectors", icon: "f" },
+      { id: "facebook", label: "Sectors", icon: "\u{1F4E1}" },
       { id: "dashboard", label: "My Missions", icon: "\u{1F680}" },
       { id: "community", label: "Community", icon: "\u{1F465}" },
       { id: "help", label: "Help", icon: "?" },
@@ -176,9 +176,9 @@ export default function App() {
       <header className="sticky top-0 z-40 bg-ifdark/95 backdrop-blur border-b border-ifborder">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button onClick={handleLogoTap} className="w-9 h-9 rounded-xl bg-ifaccent flex items-center justify-center text-ifwhite font-bold text-sm shadow-glow-purple">IF</button>
+            <button onClick={() => { handleLogoTap(); }} className="w-9 h-9 rounded-xl bg-ifaccent flex items-center justify-center text-ifwhite font-bold text-sm shadow-glow-purple hover:scale-105 transition-transform">IF</button>
             <div>
-              <h1 className="text-sm font-bold text-iftext">Interplanetary Fund</h1>
+              <button onClick={() => setView("home")} className="text-sm font-bold text-iftext hover:text-ifcyan transition-colors">Interplanetary Fund</button>
               <p className="text-[10px] text-ifmuted">
                 {view === "admin" ? `Cockpit — ${adminUser?.name || ""}` :
                  view === "facebook" ? "Outreach Sectors" :
@@ -211,9 +211,17 @@ export default function App() {
           ) : view === "stations" ? (
             <button onClick={() => setView("home")} className="text-[10px] text-ifmuted px-3 py-1 rounded-full border border-ifborder">Back</button>
           ) : (
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" />
-              <span className="text-[10px] text-ifmuted">Live</span>
+            <div className="flex items-center gap-2">
+              {view !== "home" && (
+                <button onClick={() => setView("home")} className="flex items-center gap-1 text-[10px] text-ifmuted px-2 py-1 rounded-full border border-ifborder hover:text-ifcyan hover:border-ifcyan transition-colors">
+                  <span>{"\u{1F3E0}"}</span>
+                  <span>Home</span>
+                </button>
+              )}
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" />
+                <span className="text-[10px] text-ifmuted">Live</span>
+              </div>
             </div>
           )}
         </div>
@@ -313,7 +321,7 @@ export default function App() {
                 }}
                 className={`nav-item ${view === item.id ? "nav-item-active" : "nav-item-inactive"}`}
               >
-                <span className={`text-lg ${item.id === "facebook" ? "font-bold" : ""}`}>{item.icon}</span>
+                <span className="text-lg">{item.icon}</span>
                 <span className="text-[10px] font-semibold">{item.label}</span>
               </button>
             ))}
