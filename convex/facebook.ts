@@ -412,7 +412,7 @@ export const bulkCreateGroupPosts = mutation({
       }
 
     // GUARD: Never post test campaigns to groups
-    if (args.campaignTitle.toLowerCase().includes("test") || args.campaignTitle.toLowerCase().includes("random tester")) {
+    if (campaignTitle.toLowerCase().includes("test") || campaignTitle.toLowerCase().includes("random tester")) {
       return { status: "blocked", reason: "test_campaign_not_allowed_in_groups" };
     }
 
@@ -471,7 +471,7 @@ export const markPostPosted = mutation({
     });
 
     // Increment the group's post count
-    const group = await ctx.db.get(post.groupId);
+    const group: any = await ctx.db.get(post.groupId as any);
     if (group) {
       await ctx.db.patch(group._id, {
         postsCount: group.postsCount + 1,

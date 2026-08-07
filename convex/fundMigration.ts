@@ -20,9 +20,6 @@ export const recordMigration = mutation({
   },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
-    if (args.amount !== undefined && !validateDonation(args.amount)) {
-      throw new Error("Invalid amount for fund migration.");
-    }
     // Calculate fees
     const platformFee = args.grossAmount * 0.05;
     const processingFee = args.grossAmount * 0.029 + 0.30;
@@ -99,9 +96,6 @@ export const getPendingPayouts = query({
   args: { campaignId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
-    if (args.amount !== undefined && !validateDonation(args.amount)) {
-      throw new Error("Invalid amount for fund migration.");
-    }
     let payouts = await ctx.db.query("payoutRequests").collect();
     
     if (args.campaignId) {
@@ -124,16 +118,13 @@ export const getPendingPayouts = query({
 // User selects payout method for their migrated funds
 export const selectPayoutMethod = mutation({
   args: {
-    payoutId: v.string(),
+    payoutId: v.id("payoutRequests"),
     payoutMethod: v.string(),
     payoutDestination: v.string(),
   },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
-    if (args.amount !== undefined && !validateDonation(args.amount)) {
-      throw new Error("Invalid amount for fund migration.");
-    }
-    const payout = await ctx.db.get(args.payoutId);
+    const payout: any = await ctx.db.get(args.payoutId);
     if (!payout) {
       throw new Error("Payout not found");
     }
@@ -156,9 +147,6 @@ export const getMigrationHistory = query({
   args: { campaignId: v.string() },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
-    if (args.amount !== undefined && !validateDonation(args.amount)) {
-      throw new Error("Invalid amount for fund migration.");
-    }
     const donations = await ctx.db
       .query("donations")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
@@ -190,9 +178,6 @@ export const batchMigrate = mutation({
   },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
-    if (args.amount !== undefined && !validateDonation(args.amount)) {
-      throw new Error("Invalid amount for fund migration.");
-    }
     const results = [];
     let totalGross = 0;
     let totalFees = 0;

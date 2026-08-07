@@ -39,14 +39,17 @@ export const updateAdminPin = mutation({
     }
 
     if (settings) {
-      await ctx.db.patch(settings._id, { adminPin: newPin });
+      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system" });
     } else {
       // If no feeConfig record exists, create one with just the PIN
       await ctx.db.insert("feeConfig", {
+        active: true,
         platformFeePercent: 5,
         processingFeePercent: 2.9,
         processingFeeFlat: 0.30,
         adminPin: newPin,
+        updatedAt: new Date().toISOString(),
+        updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system",
       });
     }
 

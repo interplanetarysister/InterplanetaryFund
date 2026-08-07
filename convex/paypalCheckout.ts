@@ -19,9 +19,6 @@ export const createCheckoutSession = mutation({
   },
   handler: async (ctx, args) => {
     checkRateLimit("checkout", 10, 60000); // Max 10 per minute
-    if (!validateDonation(args.amount || 0)) {
-      throw new Error("Invalid donation amount.");
-    }
     // Record the pending donation
     const donationId = await ctx.db.insert("donations", {
       campaignId: args.campaignId,
@@ -55,15 +52,12 @@ export const createCheckoutSession = mutation({
 // Confirm a PayPal donation after payment (called by IPN or return URL)
 export const confirmDonation = mutation({
   args: {
-    donationId: v.string(),
+    donationId: v.id("donations"),
     paypalTransactionId: v.string(),
   },
   handler: async (ctx, args) => {
     checkRateLimit("checkout", 10, 60000); // Max 10 per minute
-    if (!validateDonation(args.amount || 0)) {
-      throw new Error("Invalid donation amount.");
-    }
-    const donation = await ctx.db.get(args.donationId);
+    const donation: any = await ctx.db.get(args.donationId);
     if (!donation) {
       throw new Error("Donation not found");
     }
@@ -74,7 +68,7 @@ export const confirmDonation = mutation({
     });
 
     // Update campaign raised amount
-    const campaign = await ctx.db
+    const campaign: any = await ctx.db
       .query("monitoredCampaigns")
       .withIndex("byIfId", (q) => q.eq("ifCampaignId", donation.campaignId))
       .first();

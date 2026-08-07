@@ -107,7 +107,7 @@ export const signUp = mutation({
     });
 
     // Increment volunteer count
-    const opp = await ctx.db.get(opportunityId as any);
+    const opp: any = await ctx.db.get(opportunityId as any);
     if (opp) {
       const newCount = (opp.currentVolunteers || 0) + 1;
       await ctx.db.patch(opportunityId as any, {

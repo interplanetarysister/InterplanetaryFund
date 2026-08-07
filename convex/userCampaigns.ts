@@ -67,7 +67,7 @@ export const getActiveCampaigns = query({
 export const getCampaign = query({
   args: { campaignId: v.string() },
   handler: async (ctx, { campaignId }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) return null;
 
     return {
@@ -154,7 +154,7 @@ export const updateCampaign = mutation({
     }
 
     // OWNERSHIP CHECK — only the owner can edit
-    if (campaign.userId !== args.userId) {
+    if ((campaign as any).userId !== args.userId) {
       return { success: false, error: "You do not have permission to edit this campaign" };
     }
 
@@ -184,7 +184,7 @@ export const deleteCampaign = mutation({
     userId: v.string(),
   },
   handler: async (ctx, { campaignId, userId }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) {
       return { success: false, error: "Campaign not found" };
     }
@@ -207,7 +207,7 @@ export const recordDonation = mutation({
     message: v.optional(v.string()),
   },
   handler: async (ctx, { campaignId, amount, donorName, message }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) {
       return { success: false, error: "Campaign not found" };
     }
@@ -216,13 +216,11 @@ export const recordDonation = mutation({
     await ctx.db.insert("donations", {
       campaignId,
       campaignTitle: campaign.title,
+      status: "completed",
       amount,
       donorName: donorName || "Anonymous",
       message: message || "",
-      isRecurring: false,
-      recurringStatus: "",
       paymentMethod: "paypal",
-      cleared: true,
       createdAt: new Date().toISOString(),
     });
 
@@ -284,7 +282,7 @@ export const addCampaignUpdate = mutation({
     mediaType: v.optional(v.string()),
   },
   handler: async (ctx, { campaignId, userId, title, content, mediaUrl, mediaType }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) {
       return { success: false, error: "Campaign not found" };
     }
@@ -322,7 +320,7 @@ export const followCampaign = mutation({
       return { success: true, message: "Already following" };
     }
 
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     await ctx.db.insert("followedCampaigns", {
       userId,
       campaignId,
@@ -375,7 +373,7 @@ export const unfollowCampaign = mutation({
 export const getCampaignBalance = query({
   args: { campaignId: v.string(), userId: v.string() },
   handler: async (ctx, { campaignId, userId }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign || campaign.userId !== userId) {
       return { found: false, available: 0, raised: 0 };
     }
@@ -417,7 +415,7 @@ export const requestPayout = mutation({
     payoutDestination: v.string(),
   },
   handler: async (ctx, { campaignId, userId, amount, payoutMethod, payoutDestination }) => {
-    const campaign = await ctx.db.get(campaignId as any);
+    const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) return { success: false as const, error: "Campaign not found" };
     if (campaign.userId !== userId) return { success: false as const, error: "Not authorized" };
     if (amount <= 0) return { success: false as const, error: "Invalid amount" };
@@ -552,7 +550,7 @@ export const getRecommendations = query({
     if (userCategories.size > 0) {
       // Personalized: campaigns in same categories user has interacted with
       const personalized = allCampaigns
-        .filter((c) => userCategories.has(c.category) && !interactedCampaigns.has(c.id))
+        .filter((c) => userCategories.has(c.category) && !interactedCampaigns.has(c._id))
         .sort((a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0))
         .map((c: any) => ({
           ...c,
@@ -561,14 +559,14 @@ export const getRecommendations = query({
 
       // Fill with trending
       const fill = trending
-        .filter((c) => !personalized.find((r: any) => r.id === c.id) && !interactedCampaigns.has(c.id))
+        .filter((c) => !personalized.find((r: any) => r.id === c._id) && !interactedCampaigns.has(c._id))
         .map((c: any) => ({ ...c, reason: "Trending now" }));
 
       recommendations = [...personalized, ...fill];
     } else {
       // No personalization data — just trending
       recommendations = trending
-        .filter((c) => !interactedCampaigns.has(c.id))
+        .filter((c) => !interactedCampaigns.has(c._id))
         .map((c: any) => ({ ...c, reason: "Trending now" }));
     }
 

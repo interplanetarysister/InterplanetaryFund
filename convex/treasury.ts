@@ -5,6 +5,7 @@
  */
 
 import { query, mutation, internalMutation } from "./_generated/server";
+import { requireSuperAdmin } from "./security";
 import { validateDonation, validateWithdrawal, checkRateLimit } from "./security";
 import { v } from "convex/values";
 
@@ -22,7 +23,7 @@ export const calculatePayout = query({
   },
   handler: async (ctx, args) => {
     // Get fee config from database or use defaults
-    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq("active", true)).first();
+    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
     const platformFeePercent = args.platformFeePercent ?? feeConfigs?.platformFeePercent ?? 5;
     const processingFeePercent = args.processingFeePercent ?? feeConfigs?.processingFeePercent ?? 2.9;
     const processingFeeFlat = args.processingFeeFlat ?? feeConfigs?.processingFeeFlat ?? 0.30;
@@ -64,7 +65,7 @@ export const calculateBatchPayout = query({
     processingFeeFlat: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq("active", true)).first();
+    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
     const platformFeePercent = args.platformFeePercent ?? feeConfigs?.platformFeePercent ?? 5;
     const processingFeePercent = args.processingFeePercent ?? feeConfigs?.processingFeePercent ?? 2.9;
     const processingFeeFlat = args.processingFeeFlat ?? feeConfigs?.processingFeeFlat ?? 0.30;
@@ -218,7 +219,7 @@ export const requestPayout = mutation({
       throw new Error("Account is frozen. Contact support.");
     }
 
-    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq("active", true)).first();
+    const feeConfigs = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
     const platformFeePercent = feeConfigs?.platformFeePercent ?? 5;
     const processingFeePercent = feeConfigs?.processingFeePercent ?? 2.9;
     const processingFeeFlat = feeConfigs?.processingFeeFlat ?? 0.30;
@@ -285,15 +286,16 @@ export const completePayout = mutation({
     checkRateLimit("payout_complete", 5, 300000);
     const payout = await ctx.db.get(args.payoutId);
     if (!payout) throw new Error("Payout request not found");
-    if (payout.status !== "pending") throw new Error(`Payout already ${payout.status}`);
+    const p: any = payout;
+    if (p.status !== "pending") throw new Error(`Payout already ${p.status}`);
     // SUPER ADMIN APPROVAL REQUIRED — no payout can complete without explicit approval
-    if (payout.adminReviewStatus !== "approved") {
+    if (p.adminReviewStatus !== "approved") {
       throw new Error("Payout requires super admin approval before completion. Use the Fraud Control panel to approve.");
     }
-    if (payout.adminReviewStatus === "denied") {
+    if (p.adminReviewStatus === "denied") {
       throw new Error("Payout was denied by super admin.");
     }
-    if (payout.adminReviewStatus === "frozen") {
+    if (p.adminReviewStatus === "frozen") {
       throw new Error("Payout is frozen due to campaign freeze. Unfreeze the campaign first.");
     }
 
@@ -332,7 +334,7 @@ export const updateFeeConfig = mutation({
   },
   handler: async (ctx, args) => {
     // Deactivate existing configs
-    const existing = await ctx.db.query("feeConfig").filter((q) => q.eq("active", true)).collect();
+    const existing = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).collect();
     for (const config of existing) {
       await ctx.db.patch(config._id, { active: false });
     }

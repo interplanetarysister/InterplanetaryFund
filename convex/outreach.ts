@@ -170,7 +170,7 @@ export const createPendingPost = mutation({
     });
 
     // Increment group post count
-    const group = await ctx.db.get(args.groupId as any);
+    const group: any = await ctx.db.get(args.groupId as any);
     if (group) {
       await ctx.db.patch(args.groupId as any, {
         postsCount: (group.postsCount || 0) + 1,

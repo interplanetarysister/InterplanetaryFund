@@ -118,10 +118,10 @@ export const syncCampaign = mutation({
       lastSynced: new Date().toISOString(),
     };
     if (existing) {
-      await ctx.db.patch(existing._id, enforced);
+      await ctx.db.patch(existing._id, enforced as any);
       return { status: "updated", campaignId: existing._id };
     }
-    const campaignId = await ctx.db.insert("monitoredCampaigns", enforced);
+    const campaignId = await ctx.db.insert("monitoredCampaigns", enforced as any);
     return { status: "created", campaignId };
   },
 });
@@ -142,17 +142,22 @@ export const bulkSyncCampaigns = mutation({
     for (const c of campaigns) {
       const existing = await ctx.db.query("monitoredCampaigns")
         .withIndex("byIfId", (q) => q.eq("ifCampaignId", c.ifCampaignId)).first();
+      const { aiIdealDonors: _cid, aiInterestedOrgs: _cio, endDate: _ced, ...restC } = c as any;
       const enforced = {
-        ...c, outreachEnabled: true, paymentActive: true,
+        ...restC, outreachEnabled: true, paymentActive: true,
         status: c.status || "active", raisedAmount: c.raisedAmount ?? 0, donorCount: c.donorCount ?? 0,
         summary: c.summary || `${c.title} — a campaign by Interplanetary Fund.`,
         category: c.category || "general",
         aiTone: c.aiTone || "emotional", aiPriority: c.aiPriority || "emotional",
         aiPlatforms: c.aiPlatforms || "Facebook, Instagram, Email",
+        aiIdealDonors: c.aiIdealDonors || "",
+        aiInterestedOrgs: c.aiInterestedOrgs || "",
+        storyPresent: Boolean((c as any)?.story),
+        endDate: c.endDate || "",
         lastSynced: new Date().toISOString(),
       };
-      if (existing) { await ctx.db.patch(existing._id, enforced); updated++; }
-      else { await ctx.db.insert("monitoredCampaigns", enforced); created++; }
+      if (existing) { await ctx.db.patch(existing._id, enforced as any); updated++; }
+      else { await ctx.db.insert("monitoredCampaigns", enforced as any); created++; }
     }
     return { status: "success", updated, created, total: campaigns.length };
   },

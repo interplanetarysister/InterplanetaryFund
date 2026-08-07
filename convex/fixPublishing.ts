@@ -13,7 +13,7 @@ export const getApprovedUnpublishedPosts = query({
   handler: async (ctx) => {
     const posts = await ctx.db.query("distributedPosts").collect();
     return posts
-      .filter((p) => p.status === "approved" && !p.publishedAt)
+      .filter((p) => p.status === "approved" && !p.postedAt)
       .map((p) => ({
         id: p._id,
         campaignTitle: p.campaignTitle,
@@ -37,7 +37,7 @@ export const reclassifyManualPosts = mutation({
     let reclassified = 0;
     
     for (const post of posts) {
-      if (post.status === "approved" && !post.publishedAt) {
+      if (post.status === "approved" && !post.postedAt) {
         const isManualPlatform = manualPlatforms.some(
           (mp) => post.platform?.toLowerCase().includes(mp)
         );
@@ -62,14 +62,14 @@ export const reclassifyManualPosts = mutation({
 // Mark a post as published (for manual publishing by agents)
 export const markPostPublished = mutation({
   args: {
-    postId: v.string(),
-    externalPostUrl: v.optional(v.string()),
+    postId: v.id("distributedPosts"),
+    postUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.postId, {
       status: "published",
-      publishedAt: new Date().toISOString(),
-      externalPostUrl: args.externalPostUrl || "",
+      postedAt: new Date().toISOString(),
+      postUrl: args.postUrl || "",
     });
     return { status: "success", message: "Post marked as published" };
   },

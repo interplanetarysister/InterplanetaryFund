@@ -104,7 +104,7 @@ export const enforceProtocol = query({
         .query("payoutRequests")
         .filter((q) => q.eq(q.field("campaignId"), campaign.ifCampaignId))
         .collect();
-      for (const withdrawal of migratedFunds) {
+      for (const withdrawal of migratedFunds as any[]) {
         if (withdrawal.grossAmount !== undefined && (withdrawal.platformFee === undefined || withdrawal.netAmount === undefined)) {
           violations.push({ standard: "P-8", issue: "Payout missing fee breakdown (gross/fee/net)", severity: "critical" });
         }

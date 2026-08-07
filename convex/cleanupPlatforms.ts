@@ -24,7 +24,7 @@ export const cleanupPlaceholderUrls = mutation({
         });
         cleaned.push({
           id: platform._id,
-          platform: platform.platformName,
+          platform: platform.platform,
           oldUrl: platform.externalUrl,
           status: "draft",
         });
@@ -52,7 +52,7 @@ export const fixPlatformStatuses = mutation({
           status: "draft",
         });
         fixed.push({
-          platform: platform.platformName,
+          platform: platform.platform,
           campaign: platform.campaignId,
           reason: "Invalid URL",
         });
