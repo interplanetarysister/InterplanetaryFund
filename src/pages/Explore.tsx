@@ -30,6 +30,9 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const safeTrending = trending || [];
 
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("new");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
 
   const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
   const [donationAmount, setDonationAmount] = useState<string>("25");
@@ -56,9 +59,16 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
   const activeCount = stats?.activeCount || 0;
 
   const categories = ["All", "Community", "Medical", "Education", "Animals", "Emergency", "Other"];
-  const campaigns = (userCampaigns || []).filter((c: any) =>
-    categoryFilter === "All" || c.category === categoryFilter
-  );
+  const campaigns = (userCampaigns || [])
+    .filter((c: any) => categoryFilter === "All" || c.category === categoryFilter)
+    .filter((c: any) => statusFilter === "all" || c.status === statusFilter)
+    .filter((c: any) => !verifiedOnly || c.isVerified)
+    .sort((a: any, b: any) => {
+      if (sortBy === "funded") return (b.raisedAmount || 0) - (a.raisedAmount || 0);
+      if (sortBy === "urgent") return (a.goalAmount - (a.raisedAmount || 0)) - (b.goalAmount - (b.raisedAmount || 0));
+      return (b._creationTime || 0) - (a._creationTime || 0);
+    })
+    .sort((a: any, b: any) => (b.isVerified ? 1 : 0) - (a.isVerified ? 1 : 0));
   const numericAmount = parseFloat(donationAmount) || 0;
   const isValidAmount = numericAmount >= MIN_AMOUNT;
 
@@ -283,6 +293,43 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
           </button>
         ))}
       </div>
+
+      {/* Sort & Status Filters */}
+      <div className="flex gap-2 flex-wrap mt-2">
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="px-3 py-1.5 rounded-full text-xs font-medium bg-ifcard text-iftext border border-ifborder focus:border-ifcyan outline-none"
+        >
+          <option value="new">Newest</option>
+          <option value="funded">Most Funded</option>
+          <option value="urgent">Most Urgent</option>
+        </select>
+        {["all", "active", "funded", "closed"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={"px-3 py-1.5 rounded-full text-[11px] font-medium capitalize transition-colors " + (
+              statusFilter === s
+                ? "bg-ifcyan/20 text-ifcyan"
+                : "bg-ifcard text-ifmuted border border-ifborder"
+            )}
+          >
+            {s}
+          </button>
+        ))}
+        <button
+          onClick={() => setVerifiedOnly(!verifiedOnly)}
+          className={"px-3 py-1.5 rounded-full text-[11px] font-medium transition-colors " + (
+            verifiedOnly
+              ? "bg-sky-500/20 text-sky-400"
+              : "bg-ifcard text-ifmuted border border-ifborder"
+          )}
+        >
+          ✓ Verified
+        </button>
+      </div>
+
 
       {/* Campaign Cards */}
       <div>

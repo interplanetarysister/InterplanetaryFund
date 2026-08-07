@@ -4,7 +4,7 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import ShareModal from "../components/ShareModal";
@@ -77,6 +77,61 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
   }
 
   const progress = campaign.goalAmount > 0 ? Math.min((campaign.raisedAmount / campaign.goalAmount) * 100, 100) : 0;
+  // Live donation indicator
+  const isLive = donations ? donations.some((d: any) => {
+    const created = new Date(d._creationTime || 0);
+    return Date.now() - created.getTime() < 300000;
+  }) : false;
+
+  // Top donors aggregation
+  const topDonors = donations ? Object.values(
+    donations.reduce((m: any, d: any) => {
+      const n = d.anonymous ? "Anonymous" : (d.donorName || "Supporter");
+      if (!m[n]) m[n] = { name: n, total: 0 };
+      m[n].total += d.amount || 0;
+      return m;
+    }, {} as Record<string, any>)
+  ).sort((a: any, b: any) => b.total - a.total).slice(0, 5) : [];
+
+  // SEO
+  useEffect(() => {
+    if (campaign) {
+      document.title = `${campaign.title} · Interplanetary Fund`;
+      let meta = document.querySelector('meta[name="description"]');
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.setAttribute("name", "description");
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute("content", campaign.shortDescription || campaign.story || "");
+    }
+    return () => { document.title = "Interplanetary Fund"; };
+  }, [campaign]);
+
+  // Confetti on milestones
+  useEffect(() => {
+    if (progress >= 100) {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999";
+        document.body.appendChild(canvas);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          for (let i = 0; i < 80; i++) {
+            const p = { x: Math.random() * canvas.width, y: -20, vx: (Math.random() - 0.5) * 6, vy: Math.random() * 3 + 2, c: ["#22d3ee", "#8b5cf6", "#10b981"][Math.floor(Math.random() * 3)], s: Math.random() * 4 + 2 };
+            const animate = () => {
+              p.x += p.vx; p.y += p.vy; p.vy += 0.1;
+              ctx.fillStyle = p.c; ctx.fillRect(p.x, p.y, p.s, p.s);
+              if (p.y < canvas.height) requestAnimationFrame(animate);
+            };
+            animate();
+          }
+        }
+        setTimeout(() => canvas.remove(), 3000);
+      } catch {}
+    }
+  }, [progress]);
+
   const numericAmount = parseFloat(donationAmount) || 0;
   const isValidAmount = numericAmount >= MIN_AMOUNT;
 
@@ -221,6 +276,11 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         </div>
         <div className="flex justify-between text-[10px] text-ifmuted">
           <span>{progress.toFixed(0)}% funded</span>
+            {isLive && (
+              <p className="text-[10px] text-emerald-400 flex items-center gap-1 mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · donations incoming
+              </p>
+            )}
           {campaign.endDate && (
             <span>Ends {new Date(campaign.endDate).toLocaleDateString()}</span>
           )}
@@ -241,6 +301,11 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
           <span className="text-sm">{"\u{1F525}"}</span>
           <p className="text-[11px] text-ifmuted">
             <span className="text-ifaccent font-semibold">{progress.toFixed(0)}% funded!</span> {((campaign.goalAmount - campaign.raisedAmount).toLocaleString())} left to reach the goal.
+            {isLive && (
+              <p className="text-[10px] text-emerald-400 flex items-center gap-1 mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live · donations incoming
+              </p>
+            )}
           </p>
         </div>
       )}
@@ -393,6 +458,15 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         </div>
       )}
 
+      {/* Timeline & Milestones */}
+      {campaign.timeline && (
+        <div className="bg-ifcard rounded-2xl p-4 border border-ifborder">
+          <h2 className="text-sm font-semibold text-iftext mb-2">📅 Timeline & Milestones</h2>
+          <div className="text-sm text-ifmuted leading-relaxed whitespace-pre-wrap">{campaign.timeline}</div>
+        </div>
+      )}
+
+
       {/* Story */}
       {campaign.story && (
         <div className="bg-ifcard rounded-2xl p-4 border border-ifborder">
@@ -433,6 +507,26 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
         </div>
       )}
 
+      {/* Social Captions & Press Release */}
+      {(campaign.socialCaptions || campaign.pressRelease) && (
+        <div className="bg-ifcard rounded-2xl p-4 border border-ifborder space-y-3">
+          <h2 className="text-sm font-semibold text-iftext">📡 Updates & Outreach</h2>
+          {campaign.socialCaptions && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-ifcyan mb-1">Social Captions</p>
+              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.socialCaptions}</div>
+            </div>
+          )}
+          {campaign.pressRelease && (
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-ifcyan mb-1">Press Release</p>
+              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.pressRelease}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+
       {/* Campaign updates */}
       <div className="space-y-2">
         <h2 className="text-sm font-semibold text-iftext px-1">Updates</h2>
@@ -468,6 +562,25 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
       {/* Recent supporters */}
       {donations && donations.length > 0 && (
         <div className="space-y-2">
+      {/* Top Donors */}
+      {topDonors && topDonors.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-iftext px-1">🏆 Campaign Backed By</h2>
+          <div className="flex items-center gap-2 px-1">
+            {topDonors.map((d: any, i: number) => (
+              <div
+                key={i}
+                className="w-9 h-9 rounded-full bg-gradient-to-br from-ifcyan to-ifaccent flex items-center justify-center text-black font-semibold text-sm border-2 border-ifdark"
+                title={`${d.name} · $${d.total.toLocaleString()}`}
+              >
+                {d.name[0]?.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
           <h2 className="text-sm font-semibold text-iftext px-1">Recent Supporters</h2>
           <div className="space-y-1.5">
             {donations.slice(0, 10).map((d: any) => (

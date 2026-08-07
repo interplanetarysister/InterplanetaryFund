@@ -12,6 +12,10 @@ import { api } from "../../convex/_generated/api";
 import { useState } from "react";
 
 import ifHero from "/if-hero.png";
+import FeaturedCarousel from "../components/FeaturedCarousel";
+import RecentActivity from "../components/RecentActivity";
+import SuccessStories from "../components/SuccessStories";
+import RecommendationsSection from "../components/RecommendationsSection";
 
 export default function Home({ onNavigate, userId, onViewCampaign }: { 
   onNavigate?: (view: string) => void;
@@ -163,6 +167,11 @@ export default function Home({ onNavigate, userId, onViewCampaign }: {
 
       {/* Newsletter Signup */}
       <NewsletterSignup />
+
+        <FeaturedCarousel onViewCampaign={onViewCampaign} />
+        <RecommendationsSection onViewCampaign={onViewCampaign} />
+        <SuccessStories onViewCampaign={onViewCampaign} />
+        <RecentActivity onViewCampaign={onViewCampaign} />
 
       {/* Footer */}
       <div className="text-center pt-2 pb-4">

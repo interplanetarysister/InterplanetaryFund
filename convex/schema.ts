@@ -501,6 +501,10 @@ export default defineSchema({
     coverImageUrl: v.optional(v.string()),
     endDate: v.optional(v.string()),
     location: v.optional(v.string()),
+    beneficiary: v.optional(v.string()),
+    timeline: v.optional(v.string()),
+    isFeatured: v.optional(v.boolean()),
+    isVerified: v.optional(v.boolean()),
     cashappTag: v.optional(v.string()),
     outreachEnabled: v.boolean(),
     // AI-generated content (from AI Campaign Wizard)

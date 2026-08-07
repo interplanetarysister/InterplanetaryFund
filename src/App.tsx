@@ -27,6 +27,14 @@ const ThankYou = lazy(() => import("./pages/ThankYou"));
 const HomePage = lazy(() => import("./pages/Home"));
 const AICampaignWizard = lazy(() => import("./pages/AICampaignWizard"));
 const PlatformDashboard = lazy(() => import("./pages/PlatformDashboard"));
+const SavedCampaigns = lazy(() => import("./pages/SavedCampaigns"));
+const Donations = lazy(() => import("./pages/Donations"));
+const Leaderboard = lazy(() => import("./pages/Leaderboard"));
+const Categories = lazy(() => import("./pages/Categories"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Donors = lazy(() => import("./pages/Donors"));
+const NotificationsPage = lazy(() => import("./pages/Notifications"));
+const Compare = lazy(() => import("./pages/Compare"));
 
 // Loading fallback
 function PageLoader() {
@@ -41,7 +49,7 @@ function PageLoader() {
   );
 }
 
-type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations";
+type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
@@ -84,6 +92,13 @@ export default function App() {
       { id: "dashboard", label: "My Missions", icon: "\u{1F4CB}" },
       { id: "community", label: "Community", icon: "\u{1F465}" },
       { id: "help", label: "Help", icon: "?" },
+      { id: "leaderboard", label: "Leaders", icon: "\u{1F3C6}" },
+      { id: "compare", label: "Compare", icon: "\u2696\uFE0F" },
+      { id: "donors", label: "Donors", icon: "\u{1F465}" },
+      { id: "donations", label: "Donations", icon: "\u{1F4B2}" },
+      { id: "saved", label: "Saved", icon: "\u{1F516}" },
+      { id: "categories", label: "Categories", icon: "\u{1F3F7}\uFE0F" },
+      { id: "settings", label: "Settings", icon: "\u2699\uFE0F" },
     ],
     []
   );
@@ -303,6 +318,18 @@ export default function App() {
           {view === "platforms" && authed && <ErrorBoundary><PlatformAccountsSheet /></ErrorBoundary>}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "donors" && <Donors onViewCampaign={handleViewCampaign} />}
+          {view === "notificationsPage" && userId && <NotificationsPage userId={userId} />}
+          {view === "notificationsPage" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "compare" && <Compare onViewCampaign={handleViewCampaign} />}
+
+          {view === "saved" && userId && <SavedCampaigns userId={userId} />}
+          {view === "saved" && !userId && <UserLogin onLogin={handleUserLogin} />}
+          {view === "donations" && <Donations userId={userId} />}
+          {view === "leaderboard" && <Leaderboard />}
+          {view === "categories" && <Categories onSelectCategory={() => setView("explore")} />}
+          {view === "settings" && userId && <Settings userId={userId} userName={userName} />}
+          {view === "settings" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (
             <CampaignDetail
               campaignId={viewCampaignId}

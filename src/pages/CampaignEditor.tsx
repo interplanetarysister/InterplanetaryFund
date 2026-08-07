@@ -14,8 +14,9 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
   const recordDonation = useMutation(api.userCampaigns.recordDonation);
 
   const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
   const [story, setStory] = useState("");
+  const [beneficiary, setBeneficiary] = useState("");
+  const [timeline, setTimeline] = useState("");
   const [category, setCategory] = useState("Community");
   const [goalAmount, setGoalAmount] = useState("");
   const [status, setStatus] = useState("draft");
@@ -37,6 +38,8 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
       setTitle(campaign.title || "");
       setSummary(campaign.summary || "");
       setStory(campaign.story || "");
+      setBeneficiary(campaign.beneficiary || "");
+      setTimeline(campaign.timeline || "");
       setCategory(campaign.category || "Community");
       setGoalAmount(String(campaign.goalAmount || ""));
       setStatus(campaign.status || "draft");
@@ -55,6 +58,8 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
       title,
       summary,
       story,
+      beneficiary,
+      timeline,
       category,
       goalAmount: parseFloat(goalAmount) || 0,
       coverImageUrl: coverImageUrl || undefined,
@@ -118,6 +123,18 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
         <div>
           <label className="text-[10px] text-ifmuted mb-1 block">Story</label>
           <textarea value={story} onChange={(e) => setStory(e.target.value)} className="input-field min-h-[120px]" />
+        </div>
+
+        {/* Beneficiary */}
+        <div className="space-y-1">
+          <label className="text-xs text-ifmuted font-medium">Beneficiary</label>
+          <input type="text" value={beneficiary} onChange={(e) => setBeneficiary(e.target.value)} placeholder="Who will receive the support?" className="input-field" />
+        </div>
+
+        {/* Timeline */}
+        <div className="space-y-1">
+          <label className="text-xs text-ifmuted font-medium">Timeline</label>
+          <input type="text" value={timeline} onChange={(e) => setTimeline(e.target.value)} placeholder="e.g. 30 days, or by end of August" className="input-field" />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
