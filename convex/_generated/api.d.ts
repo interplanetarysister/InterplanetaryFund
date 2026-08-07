@@ -26,6 +26,7 @@ import type * as fixPublishing from "../fixPublishing.js";
 import type * as fraudControl from "../fraudControl.js";
 import type * as fundMigration from "../fundMigration.js";
 import type * as inbox from "../inbox.js";
+import type * as institutions from "../institutions.js";
 import type * as interactions from "../interactions.js";
 import type * as outreach from "../outreach.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
@@ -40,6 +41,7 @@ import type * as treasury from "../treasury.js";
 import type * as userAuth from "../userAuth.js";
 import type * as userCampaigns from "../userCampaigns.js";
 import type * as userManagement from "../userManagement.js";
+import type * as volunteer from "../volunteer.js";
 import type * as withdrawalMethods from "../withdrawalMethods.js";
 
 import type {
@@ -67,6 +69,7 @@ declare const fullApi: ApiFromModules<{
   fraudControl: typeof fraudControl;
   fundMigration: typeof fundMigration;
   inbox: typeof inbox;
+  institutions: typeof institutions;
   interactions: typeof interactions;
   outreach: typeof outreach;
   paypalCheckout: typeof paypalCheckout;
@@ -81,6 +84,7 @@ declare const fullApi: ApiFromModules<{
   userAuth: typeof userAuth;
   userCampaigns: typeof userCampaigns;
   userManagement: typeof userManagement;
+  volunteer: typeof volunteer;
   withdrawalMethods: typeof withdrawalMethods;
 }>;
 

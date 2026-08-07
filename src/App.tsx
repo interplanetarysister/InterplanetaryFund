@@ -20,6 +20,8 @@ const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const CampaignEditor = lazy(() => import("./pages/CampaignEditor"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Community = lazy(() => import("./pages/Community"));
+const InstitutionApply = lazy(() => import("./pages/InstitutionApply"));
+const Volunteer = lazy(() => import("./pages/Volunteer"));
 
 // Loading fallback
 function PageLoader() {
@@ -34,7 +36,7 @@ function PageLoader() {
   );
 }
 
-type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community";
+type View = "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer";
 
 export default function App() {
   const [view, setView] = useState<View>("explore");
@@ -176,6 +178,8 @@ export default function App() {
                  view === "globe" ? "Global Campaign Locator" :
                  view === "dashboard" ? "My Missions" :
                  view === "editor" ? "Campaign Editor" :
+                 view === "institutions" ? "Grant Applications" :
+                 view === "volunteer" ? "Volunteer Opportunities" :
                  view === "community" ? "Community Groups" :
                  view === "detail" ? "Community Groups" :
                  view === "login" ? "Pilot Sign In" :
@@ -218,7 +222,7 @@ export default function App() {
       {/* Content */}
       <main className={`max-w-md mx-auto px-4 py-4 pb-20 min-h-screen flex-1 ${view === "globe" ? "p-0 max-w-none" : ""}`}>
         <Suspense fallback={<PageLoader />}>
-          {view === "explore" && <Explore onViewCampaign={handleViewCampaign} />}
+          {view === "explore" && <Explore onViewCampaign={handleViewCampaign} onNavigate={(v) => setView(v as View)} />}
           {view === "globe" && <GlobePage />}
           {view === "facebook" && <FacebookGroups />}
           {view === "admin" && <ErrorBoundary><Admin adminUser={adminUser} /></ErrorBoundary>}
@@ -239,6 +243,9 @@ export default function App() {
               onBack={() => setView("dashboard")}
             />
           )}
+          {view === "institutions" && <InstitutionApply />}
+          {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
+          {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (

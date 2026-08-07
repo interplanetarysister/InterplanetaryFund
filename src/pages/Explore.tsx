@@ -13,7 +13,7 @@ const CASHAPP_TAG = "unrewound";
 const CASHAPP_URL = `https://cash.app/$${CASHAPP_TAG}`;
 const MIN_AMOUNT = 1;
 
-export default function Explore({ onViewCampaign }: { onViewCampaign?: (campaignId: string) => void }) {
+export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign?: (campaignId: string) => void; onNavigate?: (view: string) => void }) {
   // User-created campaigns (public explore page)
   const userCampaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
   // Keep admin stats for the hero banner
@@ -141,6 +141,18 @@ export default function Explore({ onViewCampaign }: { onViewCampaign?: (campaign
             />
           </div>
         </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={() => onNavigate?.("institutions")} className="card flex flex-col items-center gap-1 py-3 w-full">
+          <span className="text-xl">🏛</span>
+          <span className="text-[10px] font-medium text-iftext">Apply for Grant</span>
+        </button>
+        <button onClick={() => onNavigate?.("volunteer")} className="card flex flex-col items-center gap-1 py-3 w-full">
+          <span className="text-xl">🤝</span>
+          <span className="text-[10px] font-medium text-iftext">Volunteer</span>
+        </button>
       </div>
 
       {/* AI Recommendations */}

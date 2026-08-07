@@ -145,6 +145,49 @@ export default defineSchema({
   }).index("byUserId", ["userId"]).index("byStatus", ["status"]),
 
 
+
+  // INSTITUTION & GRANT APPLICATIONS
+  institutionApplications: defineTable({
+    institutionName: v.string(),
+    contactName: v.string(),
+    contactEmail: v.string(),
+    type: v.string(), // "nonprofit", "school", "religious", "government", "other"
+    description: v.string(),
+    requestedAmount: v.number(),
+    campaignId: v.optional(v.string()),
+    status: v.string(), // "pending", "under_review", "approved", "rejected"
+    submittedAt: v.string(),
+    reviewedAt: v.optional(v.string()),
+    reviewedBy: v.optional(v.string()),
+    reviewNotes: v.optional(v.string()),
+  }).index("byStatus", ["status"]).index("byCampaignId", ["campaignId"]),
+
+  // VOLUNTEER OPPORTUNITIES
+  volunteerOpportunities: defineTable({
+    campaignId: v.string(),
+    campaignTitle: v.string(),
+    title: v.string(),
+    description: v.string(),
+    location: v.string(), // "remote" or city/country
+    timeCommitment: v.string(), // "one-time", "weekly", "flexible"
+    skills: v.array(v.string()),
+    maxVolunteers: v.number(),
+    currentVolunteers: v.number(),
+    postedBy: v.string(),
+    postedAt: v.string(),
+    status: v.string(), // "open", "filled", "closed"
+  }).index("byCampaignId", ["campaignId"]).index("byStatus", ["status"]),
+
+  volunteerSignups: defineTable({
+    opportunityId: v.string(),
+    userId: v.string(),
+    userName: v.string(),
+    userEmail: v.string(),
+    message: v.optional(v.string()),
+    status: v.string(), // "pending", "accepted", "declined"
+    signedUpAt: v.string(),
+  }).index("byOpportunityId", ["opportunityId"]).index("byUserId", ["userId"]),
+
   // COMMUNITY FEATURES
   communityGroups: defineTable({
     name: v.string(),
