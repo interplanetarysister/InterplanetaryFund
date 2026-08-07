@@ -67,8 +67,9 @@ export const confirmDonation = mutation({
       status: "completed",
     });
 
-    // Update campaign raised amount
-    const campaign: any = await ctx.db
+    // Update campaign raised amount — check BOTH tables
+    // First try monitoredCampaigns (external campaigns)
+    let campaign: any = await ctx.db
       .query("monitoredCampaigns")
       .withIndex("byIfId", (q) => q.eq("ifCampaignId", donation.campaignId))
       .first();
@@ -79,6 +80,21 @@ export const confirmDonation = mutation({
         donorCount: (campaign.donorCount || 0) + 1,
         lastSynced: new Date().toISOString(),
       });
+    } else {
+      // If not found in monitoredCampaigns, try userCampaigns
+      try {
+        const userCampaign: any = await ctx.db.get(donation.campaignId as any);
+        if (userCampaign) {
+          await ctx.db.patch(userCampaign._id, {
+            raisedAmount: (userCampaign.raisedAmount || 0) + donation.amount,
+            donorCount: (userCampaign.donorCount || 0) + 1,
+            updatedAt: new Date().toISOString(),
+          });
+          campaign = userCampaign;
+        }
+      } catch {
+        // campaignId doesn't match any table
+      }
     }
 
     // Record transaction in treasury

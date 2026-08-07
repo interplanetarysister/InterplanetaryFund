@@ -79,9 +79,17 @@ function getDayOfYear(): number {
 export const autoGeneratePosts = internalMutation({
   args: {},
   handler: async (ctx) => {
-    const campaigns = await ctx.db.query("monitoredCampaigns")
+    const monitoredCampaigns = await ctx.db.query("monitoredCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "active"))
       .collect();
+    const userCampaigns = await ctx.db.query("userCampaigns")
+      .withIndex("byStatus", (q) => q.eq("status", "active"))
+      .collect();
+    const campaigns = [...monitoredCampaigns, ...userCampaigns.map((c: any) => ({
+      ...c,
+      ifCampaignId: c._id,
+      storyPresent: (c.story && c.story.length > 50) || false,
+    }))];
 
     // Filter to real campaigns with outreach + payment active
     const activeCampaigns = campaigns.filter(c =>

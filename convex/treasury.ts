@@ -105,14 +105,23 @@ export const calculateBatchPayout = query({
 export const aggregateBalances = query({
   args: {},
   handler: async (ctx) => {
-    const campaigns = await ctx.db.query("monitoredCampaigns").collect();
+    // Get campaigns from BOTH tables
+    const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
+    const userCampaigns = await ctx.db.query("userCampaigns").collect();
     const externalPlatforms = await ctx.db.query("externalPlatforms").collect();
     const holdingAccounts = await ctx.db.query("holdingAccounts").collect();
 
-    const localTotalRaised = campaigns.reduce((s, c) => s + (c.raisedAmount || 0), 0);
-    const localTotalGoal = campaigns.reduce((s, c) => s + (c.goalAmount || 0), 0);
-    const localTotalDonors = campaigns.reduce((s, c) => s + (c.donorCount || 0), 0);
+    // Monitored campaigns (external platform campaigns)
+    const monitoredRaised = monitoredCampaigns.reduce((s, c) => s + (c.raisedAmount || 0), 0);
+    const monitoredGoal = monitoredCampaigns.reduce((s, c) => s + (c.goalAmount || 0), 0);
+    const monitoredDonors = monitoredCampaigns.reduce((s, c) => s + (c.donorCount || 0), 0);
 
+    // User campaigns (created on the platform)
+    const userRaised = userCampaigns.reduce((s, c) => s + (c.raisedAmount || 0), 0);
+    const userGoal = userCampaigns.reduce((s, c) => s + (c.goalAmount || 0), 0);
+    const userDonors = userCampaigns.reduce((s, c) => s + (c.donorCount || 0), 0);
+
+    // External platforms
     const externalTotalRaised = externalPlatforms.reduce((s, p) => s + (p.externalTotal || 0), 0);
     const externalTotalDonors = externalPlatforms.reduce((s, p) => s + (p.externalDonorCount || 0), 0);
 
@@ -120,14 +129,33 @@ export const aggregateBalances = query({
     const totalPaidOut = holdingAccounts.reduce((s, a) => s + (a.totalPaidOut || 0), 0);
     const totalFees = holdingAccounts.reduce((s, a) => s + (a.totalFeesDeducted || 0), 0);
 
+    const localTotalRaised = monitoredRaised + userRaised;
+    const localTotalGoal = monitoredGoal + userGoal;
+    const localTotalDonors = monitoredDonors + userDonors;
+
     return {
+      monitoredCampaigns: {
+        count: monitoredCampaigns.length,
+        totalRaised: monitoredRaised,
+        totalGoal: monitoredGoal,
+        totalDonors: monitoredDonors,
+        active: monitoredCampaigns.filter((c) => c.status === "active").length,
+        draft: monitoredCampaigns.filter((c) => c.status === "draft").length,
+      },
+      userCampaigns: {
+        count: userCampaigns.length,
+        totalRaised: userRaised,
+        totalGoal: userGoal,
+        totalDonors: userDonors,
+        active: userCampaigns.filter((c) => c.status === "active").length,
+      },
       localCampaigns: {
-        count: campaigns.length,
+        count: monitoredCampaigns.length + userCampaigns.length,
         totalRaised: localTotalRaised,
         totalGoal: localTotalGoal,
         totalDonors: localTotalDonors,
-        active: campaigns.filter((c) => c.status === "active").length,
-        draft: campaigns.filter((c) => c.status === "draft").length,
+        active: monitoredCampaigns.filter((c) => c.status === "active").length + userCampaigns.filter((c) => c.status === "active").length,
+        draft: monitoredCampaigns.filter((c) => c.status === "draft").length,
       },
       externalPlatforms: {
         count: externalPlatforms.length,

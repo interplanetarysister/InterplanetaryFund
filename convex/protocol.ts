@@ -15,7 +15,25 @@ import { v } from "convex/values";
 export const enforceProtocol = query({
   args: {},
   handler: async (ctx) => {
-    const campaigns = await ctx.db.query("monitoredCampaigns").collect();
+    // Get campaigns from BOTH tables for protocol audit
+    const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
+    const userCampaigns = await ctx.db.query("userCampaigns").collect();
+    // Normalize user campaigns to match monitored format
+    const campaigns = [
+      ...monitoredCampaigns,
+      ...userCampaigns.map((c: any) => ({
+        ...c,
+        ifCampaignId: c._id,
+        storyPresent: (c.story && c.story.length > 50) || (c.summary && c.summary.length > 50) || false,
+        aiTone: c.aiFaq ? "AI-assisted" : "",
+        aiIdealDonors: "",
+        aiInterestedOrgs: "",
+        aiPlatforms: c.aiSocialCaptions ? "AI-generated" : "",
+        aiPriority: c.outreachEnabled ? "medium" : "",
+        coverImagePresent: !!c.coverImageUrl,
+        paymentActive: c.status === "active",
+      })),
+    ];
 
     const results: any[] = [];
     let compliantCount = 0;
