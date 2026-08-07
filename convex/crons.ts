@@ -12,10 +12,10 @@ import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
-// === PROTOCOL & TRAINING ===
-// Daily Protocol Enforcement — 6am Pacific (13:00 UTC)
-crons.daily("daily-protocol-enforcement", { hourUTC: 13, minuteUTC: 0 }, internal.protocol.weeklyTraining, {});
-// Weekly Training — Saturday 2am Pacific (09:00 UTC Saturday)
+// === PROTOCOL ENFORCEMENT (Credit-Free Auto-Fix) ===
+// Daily Protocol Auto-Fix — 6am Pacific (13:00 UTC) — WRITES fixes to DB
+crons.daily("daily-protocol-autofix", { hourUTC: 13, minuteUTC: 0 }, internal.protocolAutoFix.runFullAutoFix, {});
+// Weekly Training — Saturday 2am Pacific (09:00 UTC Saturday) — Updates agent memory + reports
 crons.weekly("weekly-training-session", { dayOfWeek: "saturday", hourUTC: 9, minuteUTC: 0 }, internal.protocol.weeklyTraining, {});
 
 // === POST GENERATION & OUTREACH ===

@@ -34,6 +34,7 @@ import type * as outreach from "../outreach.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
 import type * as postContent from "../postContent.js";
 import type * as protocol from "../protocol.js";
+import type * as protocolAutoFix from "../protocolAutoFix.js";
 import type * as research from "../research.js";
 import type * as savedCampaigns from "../savedCampaigns.js";
 import type * as security from "../security.js";
@@ -82,6 +83,7 @@ declare const fullApi: ApiFromModules<{
   paypalCheckout: typeof paypalCheckout;
   postContent: typeof postContent;
   protocol: typeof protocol;
+  protocolAutoFix: typeof protocolAutoFix;
   research: typeof research;
   savedCampaigns: typeof savedCampaigns;
   security: typeof security;
