@@ -17,11 +17,14 @@ let THREE: any = null;
 async function loadGlobe() {
   if (!GlobeConstructor) {
     const [globeMod, threeMod] = await Promise.all([
-      import("globe.gl"),
       import("three"),
+      import("globe.gl"),
     ]);
-    GlobeConstructor = globeMod.default || globeMod.Globe || globeMod;
+    // globe.gl's internal deps (three-conic-polygon-geometry, etc.) check window.THREE
+    // Set it before storing the constructor so all deps resolve correctly
+    (window as any).THREE = threeMod;
     THREE = threeMod;
+    GlobeConstructor = (globeMod as any).default || (globeMod as any).Globe || globeMod;
   }
   return { Globe: GlobeConstructor, THREE };
 }
