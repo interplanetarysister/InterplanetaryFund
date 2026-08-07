@@ -9,7 +9,8 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useEffect, useRef } from "react";
+
+import earthHero from "/earth-hero.png";
 
 export default function Home({ onNavigate, userId, onViewCampaign }: { 
   onNavigate?: (view: string) => void;
@@ -19,174 +20,20 @@ export default function Home({ onNavigate, userId, onViewCampaign }: {
   const stats = useQuery(api.campaigns.getCampaignStats, {});
   const balances = useQuery(api.treasury.aggregateBalances, {});
   const userCampaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const totalRaised = balances?.grandTotal?.raised || 0;
   const totalDonors = balances?.grandTotal?.donors || 0;
   const activeCount = stats?.activeCount || 0;
   const campaignCount = userCampaigns?.length || 0;
 
-  // Animated glowing Earth on canvas — credit-free, no external deps
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
 
-    let animationId: number;
-    let angle = 0;
-
-    function resize() {
-      const parent = canvas.parentElement;
-      if (!parent) return;
-      canvas.width = parent.clientWidth;
-      canvas.height = parent.clientHeight;
-    }
-    resize();
-    window.addEventListener("resize", resize);
-
-    function draw() {
-      if (!ctx || !canvas) return;
-      const w = canvas.width;
-      const h = canvas.height;
-      const cx = w / 2;
-      const cy = h / 2;
-      const radius = Math.min(w, h) * 0.28;
-
-      // Clear with deep space gradient
-      const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h));
-      bgGrad.addColorStop(0, "#0c0d1a");
-      bgGrad.addColorStop(0.5, "#05060f");
-      bgGrad.addColorStop(1, "#020308");
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, w, h);
-
-      // Draw stars
-      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-      for (let i = 0; i < 80; i++) {
-        const sx = (Math.sin(i * 7.3) * 0.5 + 0.5) * w;
-        const sy = (Math.cos(i * 3.7) * 0.5 + 0.5) * h;
-        const sr = Math.sin(i + angle * 0.5) * 0.5 + 0.8;
-        ctx.globalAlpha = sr * 0.7;
-        ctx.beginPath();
-        ctx.arc(sx, sy, 0.8, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.globalAlpha = 1;
-
-      // Outer glow — pulsing cyan to purple
-      const pulse = Math.sin(angle * 0.02) * 0.15 + 0.85;
-      const glowGrad = ctx.createRadialGradient(cx, cy, radius * 0.8, cx, cy, radius * 2);
-      glowGrad.addColorStop(0, `rgba(34, 211, 238, ${0.25 * pulse})`);
-      glowGrad.addColorStop(0.4, `rgba(139, 92, 246, ${0.08 * pulse})`);
-      glowGrad.addColorStop(1, "rgba(139, 92, 246, 0)");
-      ctx.fillStyle = glowGrad;
-      ctx.fillRect(0, 0, w, h);
-
-      // Atmosphere ring
-      const atmoGrad = ctx.createRadialGradient(cx, cy, radius * 0.95, cx, cy, radius * 1.15);
-      atmoGrad.addColorStop(0, "rgba(34, 211, 238, 0)");
-      atmoGrad.addColorStop(0.5, `rgba(34, 211, 238, ${0.3 * pulse})`);
-      atmoGrad.addColorStop(1, "rgba(34, 211, 238, 0)");
-      ctx.fillStyle = atmoGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius * 1.15, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Earth body — deep blue-green gradient
-      const earthGrad = ctx.createRadialGradient(
-        cx - radius * 0.3, cy - radius * 0.3, radius * 0.1,
-        cx, cy, radius
-      );
-      earthGrad.addColorStop(0, "#1a4d6e");
-      earthGrad.addColorStop(0.4, "#0d2d4a");
-      earthGrad.addColorStop(0.7, "#0a1e30");
-      earthGrad.addColorStop(1, "#050f1a");
-      ctx.fillStyle = earthGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Continent shapes — simplified, rotating
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.clip();
-
-      const rotOffset = angle * 0.003;
-      ctx.fillStyle = "rgba(34, 197, 94, 0.5)";
-      
-      // Africa-like shape
-      const aX = cx + Math.cos(rotOffset) * radius * 0.2;
-      const aY = cy + radius * 0.1;
-      ctx.beginPath();
-      ctx.ellipse(aX, aY, radius * 0.18, radius * 0.35, rotOffset * 0.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Americas-like shape
-      const amX = cx + Math.cos(rotOffset + Math.PI) * radius * 0.3;
-      const amY = cy - radius * 0.1;
-      ctx.beginPath();
-      ctx.ellipse(amX, amY, radius * 0.12, radius * 0.4, rotOffset * 0.3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Asia-like shape
-      const asX = cx + Math.cos(rotOffset + Math.PI * 0.7) * radius * 0.35;
-      const asY = cy - radius * 0.2;
-      ctx.beginPath();
-      ctx.ellipse(asX, asY, radius * 0.2, radius * 0.15, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Australia-like shape
-      const auX = cx + Math.cos(rotOffset + Math.PI * 1.3) * radius * 0.3;
-      const auY = cy + radius * 0.3;
-      ctx.beginPath();
-      ctx.ellipse(auX, auY, radius * 0.1, radius * 0.07, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.restore();
-
-      // Highlight — light from upper left
-      const highlightGrad = ctx.createRadialGradient(
-        cx - radius * 0.4, cy - radius * 0.4, 0,
-        cx - radius * 0.4, cy - radius * 0.4, radius * 0.6
-      );
-      highlightGrad.addColorStop(0, "rgba(255, 255, 255, 0.15)");
-      highlightGrad.addColorStop(1, "rgba(255, 255, 255, 0)");
-      ctx.fillStyle = highlightGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Shadow — dark side
-      const shadowGrad = ctx.createRadialGradient(
-        cx + radius * 0.5, cy + radius * 0.3, 0,
-        cx + radius * 0.5, cy + radius * 0.3, radius * 0.8
-      );
-      shadowGrad.addColorStop(0, "rgba(0, 0, 0, 0)");
-      shadowGrad.addColorStop(1, "rgba(0, 0, 0, 0.6)");
-      ctx.fillStyle = shadowGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-      ctx.fill();
-
-      angle++;
-      animationId = requestAnimationFrame(draw);
-    }
-
-    draw();
-
-    return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener("resize", resize);
-    };
-  }, []);
 
   return (
     <div className="space-y-5">
       {/* Hero — Glowing Earth on Deep Space */}
-      <div className="relative rounded-2xl overflow-hidden border border-ifborder" style={{ height: "320px" }}>
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <div className="relative rounded-2xl overflow-hidden border border-ifborder" style={{ height: "340px" }}>
+        <img src={earthHero} alt="Earth from deep space" className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ifdark via-ifdark/30 to-transparent" />
         
         {/* Overlay text */}
         <div className="absolute inset-0 flex flex-col items-center justify-end pb-6 z-10">

@@ -159,12 +159,12 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
             <p className="text-[11px] text-ifmuted mt-0.5">Install on Android for the full experience</p>
           </div>
           <a
-            href="https://github.com/interplanetarysister/InterplanetaryFund/releases/latest"
+            href="https://interplanetary-fund.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="px-4 py-2 rounded-xl bg-ifaccent text-ifdark text-xs font-bold whitespace-nowrap"
           >
-            Download APK
+            Install App
           </a>
         </div>
       </div>
