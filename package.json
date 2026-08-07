@@ -4,7 +4,7 @@
   "description": "Interplanetary Fund \u2014 full-stack app with agents, protocol enforcement, treasury management, and external platform sync. Frontend: React + Vite. Backend: Convex. Credit-free.",
   "scripts": {
     "dev": "vite",
-    "build": "npx convex codegen && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "convex": "convex dev",
     "convex:deploy": "convex deploy",
