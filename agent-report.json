@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-08-07T18:07:15.738Z",
+  "checks": {
+    "build": "PASS",
+    "convex": "DEPLOYED",
+    "protocol": "SKIPPED",
+    "treasury": "SKIPPED",
+    "Vercel": "200",
+    "GitHub Pages": "200",
+    "Convex": "200",
+    "githubActions": "5 recent runs, 0 failed"
+  },
+  "alerts": [],
+  "sync": {}
+}
