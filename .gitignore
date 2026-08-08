@@ -9,3 +9,14 @@ dist/
 .netlify/
 .env.deploy
 .env.deploy
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+qa-summary.txt
+qa-status.txt
+
+# QA test report artifacts (committed manually by workflow to qa-results/)
+qa-report.json

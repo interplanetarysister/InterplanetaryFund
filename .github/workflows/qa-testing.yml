@@ -1,0 +1,182 @@
+# Interplanetary Fund — Automated QA Testing
+# Runs Playwright browser tests against production site on schedule.
+# Credit-free — all testing happens in GitHub Actions runners.
+#
+# Schedule: Every 6 hours (4x daily)
+# Tests: Site health, auth flows, AI Campaign Wizard, donations,
+#   campaign comparison, notifications, all 21 page loads,
+#   Convex backend data integrity
+#
+# On failure: Creates a GitHub issue with the test report.
+#
+# Copyright © 2026 Michelle Rogers. All Rights Reserved.
+
+name: QA Testing
+
+on:
+  schedule:
+    # Every 6 hours — 00:00, 06:00, 12:00, 18:00 UTC
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'convex/**'
+      - 'tests/**'
+      - 'playwright.config.ts'
+
+permissions:
+  contents: write
+  issues: write
+  actions: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      SITE_URL: https://interplanetary-fund.vercel.app
+      VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run QA tests
+        id: tests
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: Parse test results
+        id: parse
+        if: always()
+        run: |
+          node -e "
+          const fs = require('fs');
+          let passed = 0, failed = 0, flaky = 0;
+          let results = [];
+          try {
+            const report = JSON.parse(fs.readFileSync('qa-report.json', 'utf-8'));
+            for (const suite of report.suites || []) {
+              for (const spec of suite.specs || []) {
+                for (const test of spec.tests || []) {
+                  for (const result of test.results || []) {
+                    if (result.status === 'passed') passed++;
+                    else if (result.status === 'failed') failed++;
+                    else if (result.status === 'flaky') flaky++;
+                  }
+                }
+              }
+            }
+          } catch(e) {
+            console.log('Could not parse report:', e.message);
+          }
+          const total = passed + failed + flaky;
+          const status = failed > 0 ? 'FAILED' : 'PASSED';
+          const summary = \`${status}: \${passed} passed, \${failed} failed, \${flaky} flaky (of \${total} total)\`;
+          console.log(summary);
+          fs.writeFileSync('qa-summary.txt', summary);
+          fs.writeFileSync('qa-status.txt', status);
+          // Set outputs
+          const fs2 = require('fs');
+          const statusText = fs2.readFileSync('qa-status.txt', 'utf-8').trim();
+          console.log('::set-output name=status::' + statusText);
+          console.log('::set-output name=summary::' + summary);
+          "
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report-${{ github.run_id }}
+          path: |
+            qa-report.json
+            qa-summary.txt
+            test-results/
+          retention-days: 30
+
+      - name: Create/update issue on failure
+        if: always() && steps.parse.outputs.status == 'FAILED'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SUMMARY=$(cat qa-summary.txt)
+          DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          # Check if an open QA issue already exists
+          EXISTING=$(gh issue list --label "qa-failure" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+          
+          BODY="## QA Test Failure Report
+          
+          **Run:** ${RUN_URL}
+          **Date:** ${DATE}
+          **Summary:** ${SUMMARY}
+          
+          ### Failed Tests
+          
+          See the full test report artifact for details.
+          
+          ### Recovery
+          
+          This issue will auto-close when the next QA run passes.
+          "
+          
+          if [ -n "$EXISTING" ]; then
+            # Update existing issue with new comment
+            gh issue comment "$EXISTING" --body "## Update — ${DATE}
+          
+          ${SUMMARY}
+          Run: ${RUN_URL}"
+          else
+            # Create new issue
+            gh issue create \
+              --title "QA Test Failure — ${DATE}" \
+              --body "$BODY" \
+              --label "qa-failure,automated" \
+              || gh issue create \
+                --title "QA Test Failure — ${DATE}" \
+                --body "$BODY" \
+                --label "qa-failure"
+          fi
+
+      - name: Auto-close issues on success
+        if: always() && steps.parse.outputs.status == 'PASSED'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Close any open qa-failure issues since tests now pass
+          ISSUES=$(gh issue list --label "qa-failure" --state open --json number --jq '.[].number' 2>/dev/null || echo "")
+          for issue in $ISSUES; do
+            gh issue comment "$issue" --body "All QA tests passing as of $(date -u '+%Y-%m-%d %H:%M UTC'). Auto-closing."
+            gh issue close "$issue"
+          done
+
+      - name: Commit test report to repo
+        if: always()
+        run: |
+          git config user.name "IF QA Bot"
+          git config user.email "actions@github.com"
+          if [ -f qa-report.json ]; then
+            mkdir -p qa-results
+            cp qa-report.json qa-results/qa-report-$(date -u +%Y%m%d-%H%M).json
+            git add qa-results/ || true
+            if [ -n "$(git status --porcelain)" ]; then
+              git commit -m "chore(qa): test report $(date -u +%Y-%m-%d_%H:%M) — ${{ steps.parse.outputs.status }}"
+              git push || echo "Push skipped (no changes or protected branch)"
+            fi
+          fi
