@@ -56,27 +56,7 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
     return followed.some((f: any) => f.campaignId === campaignId);
   }, [followed, userId, campaignId]);
 
-  if (campaign === undefined) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (campaign === null) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 space-y-4">
-        <p className="text-iftext text-lg font-semibold">Campaign not found</p>
-        <p className="text-ifmuted text-sm">This campaign may have been removed.</p>
-        <button onClick={onBack} className="px-4 py-2 rounded-full bg-ifaccent text-ifwhite text-sm font-medium">
-          Back to Launch Pads
-        </button>
-      </div>
-    );
-  }
-
-  const progress = campaign.goalAmount > 0 ? Math.min((campaign.raisedAmount / campaign.goalAmount) * 100, 100) : 0;
+  const progress = campaign ? (campaign.goalAmount > 0 ? Math.min((campaign.raisedAmount / campaign.goalAmount) * 100, 100) : 0) : 0;
   // Live donation indicator
   const isLive = donations ? donations.some((d: any) => {
     const created = new Date(d._creationTime || 0);
@@ -131,6 +111,28 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
       } catch {}
     }
   }, [progress]);
+
+  if (campaign === undefined) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-ifaccent border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (campaign === null) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 space-y-4">
+        <p className="text-iftext text-lg font-semibold">Campaign not found</p>
+        <p className="text-ifmuted text-sm">This campaign may have been removed.</p>
+        <button onClick={onBack} className="px-4 py-2 rounded-full bg-ifaccent text-ifwhite text-sm font-medium">
+          Back to Launch Pads
+        </button>
+      </div>
+    );
+  }
+
+
 
   const numericAmount = parseFloat(donationAmount) || 0;
   const isValidAmount = numericAmount >= MIN_AMOUNT;

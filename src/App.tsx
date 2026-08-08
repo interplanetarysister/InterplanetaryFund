@@ -350,12 +350,14 @@ export default function App() {
           {view === "settings" && userId && <Settings userId={userId} userName={userName} />}
           {view === "settings" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "detail" && viewCampaignId && (
+            <ErrorBoundary>
             <CampaignDetail
               campaignId={viewCampaignId}
               userId={userId}
               onBack={() => setView("explore")}
               onLogin={() => setView("login")}
             />
+            </ErrorBoundary>
           )}
         </Suspense>
       </main>
