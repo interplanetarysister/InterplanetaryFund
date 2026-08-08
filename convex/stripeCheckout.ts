@@ -230,7 +230,7 @@ export const confirmDonation = mutation({
       interactionType: "donation",
       status: "completed",
       supporterName: donation.donorName || "Anonymous",
-      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       notes: `$${donation.amount} donation via Stripe - thank-you email queued`,
     });
 
@@ -258,6 +258,9 @@ export const confirmDonation = mutation({
       campaignId: donation.campaignId,
       userId: campaign?.userId || "",
       entryType: "donation",
+      amount: grossAmount,
+      source: "webhook",
+      initiatedBy: "user",
       provider: "stripe",
       providerTransactionId: args.stripePaymentIntentId || args.stripeSessionId,
       grossAmount,
@@ -275,11 +278,12 @@ export const confirmDonation = mutation({
       campaignId: donation.campaignId,
       provider: "stripe",
       action: "donation_confirmed",
+      initiatedBy: "system",
       actionPerformedBy: "user",
-      transactionId: args.stripePaymentIntentId || args.stripeSessionId,
+      metadata: JSON.stringify({ transactionId: args.stripePaymentIntentId || args.stripeSessionId }),
       authorizationState: "verified",
       result: "success",
-      details: `Stripe donation of $${donation.amount} confirmed for campaign ${donation.campaignTitle}`,
+      description: `Stripe donation of $${donation.amount} confirmed for campaign ${donation.campaignTitle}`,
       timestamp: new Date().toISOString(),
     });
 
@@ -361,6 +365,9 @@ export const confirmDonationInternal = internalMutation({
       campaignId: donation.campaignId,
       userId: campaign?.userId || "",
       entryType: "donation",
+      amount: grossAmount,
+      source: "webhook",
+      initiatedBy: "user",
       provider: "stripe",
       providerTransactionId: args.stripePaymentIntentId || args.stripeSessionId || donation.txnId || "",
       grossAmount,
@@ -378,11 +385,12 @@ export const confirmDonationInternal = internalMutation({
       campaignId: donation.campaignId,
       provider: "stripe",
       action: "donation_confirmed",
+      initiatedBy: "system",
       actionPerformedBy: "system",
-      transactionId: args.stripePaymentIntentId || args.stripeSessionId || "",
+      metadata: JSON.stringify({ transactionId: args.stripePaymentIntentId || args.stripeSessionId || "" }),
       authorizationState: "webhook_verified",
       result: "success",
-      details: `Stripe webhook confirmed donation of $${donation.amount}`,
+      description: `Stripe webhook confirmed donation of $${donation.amount}`,
       timestamp: new Date().toISOString(),
     });
 

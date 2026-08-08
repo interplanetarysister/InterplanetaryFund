@@ -27,6 +27,7 @@ export async function logFinancialAction(ctx: MutationCtx, args: {
   errorMessage?: string;
   metadata?: string;
   description?: string;
+  actionPerformedBy?: string;
 }) {
   await ctx.db.insert("financialAuditLog", {
     userId: args.userId,
@@ -42,7 +43,9 @@ export async function logFinancialAction(ctx: MutationCtx, args: {
     beforeState: args.beforeState,
     afterState: args.afterState,
     errorMessage: args.errorMessage,
-    metadata: args.metadata || (args.description ? JSON.stringify({ description: args.description }) : undefined),
+    description: args.description,
+    metadata: args.metadata,
+    actionPerformedBy: args.actionPerformedBy,
     timestamp: new Date().toISOString(),
   });
 }
@@ -63,6 +66,8 @@ export const logAction = mutation({
     beforeState: v.optional(v.string()),
     afterState: v.optional(v.string()),
     errorMessage: v.optional(v.string()),
+    description: v.optional(v.string()),
+    actionPerformedBy: v.optional(v.string()),
     metadata: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -80,6 +85,8 @@ export const logAction = mutation({
       beforeState: args.beforeState,
       afterState: args.afterState,
       errorMessage: args.errorMessage,
+      description: args.description,
+      actionPerformedBy: args.actionPerformedBy,
       metadata: args.metadata,
       timestamp: new Date().toISOString(),
     });

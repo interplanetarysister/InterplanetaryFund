@@ -138,7 +138,7 @@ export const handleStripeEvent = internalMutation({
             interactionType: "donation",
             status: "completed",
             supporterName: donation.donorName || "Anonymous",
-            timestamp: new Date().toISOString(),
+            createdAt: new Date().toISOString(),
             notes: `$${donation.amount} Stripe donation confirmed`,
           });
 

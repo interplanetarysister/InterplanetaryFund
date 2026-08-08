@@ -7,7 +7,7 @@
  * This module manages research task queuing and result retrieval.
  */
 
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
@@ -154,18 +154,18 @@ export const getResearchResults = query({
 // Now delegates to the browserbase module for actual API calls
 export const runAgentResearch = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     // Delegate to the browserbase module
     const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
     return result;
   },
 });
 
-export const getBrowserbaseStatus = query({
+export const getBrowserbaseStatus = internalQuery({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     // Delegate to browserbase module
-    const status = await ctx.runQuery(internal.browserbase.getBrowserbaseStatus, {});
+    const status = await ctx.runQuery(internal.research.getBrowserbaseStatus, {});
     return status;
   },
 });

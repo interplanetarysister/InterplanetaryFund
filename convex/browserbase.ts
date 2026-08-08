@@ -456,7 +456,7 @@ export const runAgentBrowserResearch = internalMutation({
  */
 export const runAllAgentBrowserResearch = internalMutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<any> => {
     const allResults = [];
 
     for (const [role, profile] of Object.entries(AGENT_BROWSER_PROFILES)) {

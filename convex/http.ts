@@ -42,7 +42,7 @@ export const payPalIPN = httpAction(async (ctx, request) => {
     const mcGross = parseFloat(params.get("mc_gross") || "0");
     const mcCurrency = params.get("mc_currency") || "USD";
     const payerEmail = params.get("payer_email") || "";
-    const payerName = params.get("first_name", "") + " " + params.get("last_name");
+    const payerName = params.get("first_name") || "";
     const receiverEmail = params.get("receiver_email") || "";
     const txnId = params.get("txn_id") || "";
     const itemName = params.get("item_name") || "";

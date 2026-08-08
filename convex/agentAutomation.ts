@@ -71,12 +71,12 @@ export const getAutomationStatus = query({
 async function getAllActiveCampaigns(ctx: any) {
   // From monitoredCampaigns (external campaigns)
   const monitored = await ctx.db.query("monitoredCampaigns")
-    .withIndex("byStatus", (q) => q.eq("status", "active"))
+    .withIndex("byStatus", (q: any) => q.eq("status", "active"))
     .collect();
 
   // From userCampaigns (user-created campaigns)
   const userCreated = await ctx.db.query("userCampaigns")
-    .withIndex("byStatus", (q) => q.eq("status", "active"))
+    .withIndex("byStatus", (q: any) => q.eq("status", "active"))
     .collect();
 
   // Normalize both into a common format

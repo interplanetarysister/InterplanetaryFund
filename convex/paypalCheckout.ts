@@ -217,11 +217,12 @@ export const confirmDonationInternal = internalMutation({
     // Queue donor thank-you interaction record
     await ctx.db.insert("supporterInteractions", {
       campaignId: donation.campaignId || "",
+      campaignTitle: donation.campaignTitle || campaign?.title || "",
       supporterName: donation.donorName || "Anonymous",
       supporterEmail: donation.donorEmail || "",
       interactionType: "donation",
       status: "completed",
-      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       notes: `$${donation.amount} donation via PayPal — thank-you email queued`,
     });
 
@@ -272,6 +273,9 @@ export const confirmDonationInternal = internalMutation({
       campaignId: donation.campaignId,
       userId: campaign?.userId || "",
       entryType: "donation",
+      amount: grossAmount,
+      source: "webhook",
+      initiatedBy: "user",
       provider: "paypal",
       providerTransactionId: args.paypalTransactionId || donation.txnId || "",
       grossAmount,
@@ -289,11 +293,12 @@ export const confirmDonationInternal = internalMutation({
       campaignId: donation.campaignId,
       provider: "paypal",
       action: "donation_confirmed",
+      initiatedBy: "system",
       actionPerformedBy: "system",
-      transactionId: args.paypalTransactionId || "",
       authorizationState: "ipn_verified",
       result: "success",
-      details: `PayPal IPN confirmed donation of $${donation.amount}`,
+      description: `PayPal IPN confirmed donation of $${donation.amount}`,
+      metadata: JSON.stringify({ transactionId: args.paypalTransactionId || "" }),
       timestamp: new Date().toISOString(),
     });
 

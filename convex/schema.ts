@@ -317,6 +317,9 @@ export default defineSchema({
     interactionType: v.string(),
     supporterName: v.optional(v.string()),
     supporterId: v.optional(v.string()),
+    supporterEmail: v.optional(v.string()),
+    status: v.optional(v.string()),
+    notes: v.optional(v.string()),
     metadata: v.optional(v.string()),
     createdAt: v.string(),
   }).index("byCampaignId", ["campaignId"]).index("byType", ["interactionType"]),
@@ -548,6 +551,7 @@ export default defineSchema({
     automationConsentId: v.optional(v.string()),         // Reference to automationConsents._id
     connectedAccountIds: v.optional(v.array(v.string())),// Connected account IDs for this campaign
     lastConsolidationAt: v.optional(v.string()),         // Last fund consolidation timestamp
+    deletedAt: v.optional(v.string()),                   // Soft-delete timestamp
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index("byUserId", ["userId"]).index("byStatus", ["status"]),
@@ -736,6 +740,8 @@ export default defineSchema({
     transactionAmount: v.optional(v.number()),
     authorizationState: v.string(),       // "authorized" | "unauthorized" | "expired" | "revoked"
     result: v.string(),                   // "success" | "failure" | "partial"
+    description: v.optional(v.string()),   // Human-readable description of the action
+    actionPerformedBy: v.optional(v.string()), // Who performed the action (distinct from initiatedBy for AI-initiated)
     beforeState: v.optional(v.string()),  // JSON string of state before action
     afterState: v.optional(v.string()),   // JSON string of state after action
     errorMessage: v.optional(v.string()),

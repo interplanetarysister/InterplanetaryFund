@@ -177,11 +177,12 @@ export const autoSendThankYou = internalMutation({
     // Log that we attempted to send (actual sending happens via action called from webhook)
     await ctx.db.insert("supporterInteractions", {
       campaignId: donation.campaignId || "",
+      campaignTitle: campaignTitle || "",
       supporterName: donation.donorName || "Anonymous",
       supporterEmail: donation.donorEmail || "",
       interactionType: "thank_you_email",
       status: "queued",
-      timestamp: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       notes: `Thank-you email queued for $${donation.amount} donation to ${campaignTitle}`,
     });
 
