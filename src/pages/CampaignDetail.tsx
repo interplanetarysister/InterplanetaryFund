@@ -195,18 +195,27 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
           message: donationMessage,
         });
 
-        // Record donation locally for instant feedback
-        await recordDonation({
-          campaignId,
-          amount: numericAmount,
-          donorName: donorName || "Anonymous",
-          message: donationMessage,
-        });
+        // NOTE: Do NOT call recordDonation here — the PayPal webhook is the
+        // single source of truth for confirmed payments. Calling recordDonation
+        // here would double-count the donation (once here, once in the webhook).
+        // The webhook updates raisedAmount and donorCount after payment confirmation.
 
-        // Redirect to PayPal
+        // Redirect to PayPal checkout
         if (result?.checkoutUrl) {
           window.location.href = result.checkoutUrl;
         } else {
+          // No redirect needed (e.g., free tier without real PayPal)
+          // Record donation only if no external redirect (no webhook will fire)
+          try {
+            await recordDonation({
+              campaignId,
+              amount: numericAmount,
+              donorName: donorName || "Anonymous",
+              message: donationMessage,
+            });
+          } catch (e) {
+            // Ignore — donation tracking is best-effort without webhook
+          }
           setDonationStep("done");
         }
       } catch (e: any) {

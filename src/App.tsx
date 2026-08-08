@@ -70,6 +70,7 @@ export default function App() {
   const [userName, setUserName] = useState<string>("");
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [viewCampaignId, setViewCampaignId] = useState<string | null>(null);
+  const [lastDonation, setLastDonation] = useState<{title: string; amount: number; donor: string} | null>(null);
 
   // Restore user session from localStorage
   useEffect(() => {
@@ -329,12 +330,24 @@ export default function App() {
               onBack={() => setView("dashboard")}
             />
           )}
+          {view === "editor" && userId && !editCampaignId && (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <p className="text-ifmuted text-sm">No campaign selected for editing.</p>
+              <button onClick={() => setView("dashboard")} className="text-ifcyan text-sm hover:underline">Go to Dashboard</button>
+            </div>
+          )}
           {view === "institutions" && <ErrorBoundary><InstitutionApply /></ErrorBoundary>}
           {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
           {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "help" && <ErrorBoundary><Help /></ErrorBoundary>}
-          {view === "thankYou" && <ErrorBoundary><ThankYou onBackToExplore={() => setView("explore")} /></ErrorBoundary>}
+          {view === "thankYou" && <ErrorBoundary><ThankYou campaignTitle={lastDonation?.title} amount={lastDonation?.amount} donorName={lastDonation?.donor} onBackToExplore={() => setView("explore")} onViewCampaign={() => { if (viewCampaignId) setView("detail"); }} /></ErrorBoundary>}
           {view === "platforms" && authed && <ErrorBoundary><PlatformAccountsSheet /></ErrorBoundary>}
+          {view === "platforms" && !authed && (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <p className="text-ifmuted text-sm">Admin access required.</p>
+              <button onClick={() => setView("login")} className="text-ifcyan text-sm hover:underline">Sign in as admin</button>
+            </div>
+          )}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "donors" && <Donors onViewCampaign={handleViewCampaign} />}
@@ -352,6 +365,7 @@ export default function App() {
           {view === "saved" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "donations" && <Donations userId={userId} />}
           {view === "financial" && userId && <ErrorBoundary><FinancialManagement userId={userId} /></ErrorBoundary>}
+          {view === "financial" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "leaderboard" && <Leaderboard />}
           {view === "categories" && <Categories onSelectCategory={() => setView("explore")} />}
           {view === "settings" && userId && <Settings userId={userId} userName={userName} />}
