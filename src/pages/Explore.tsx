@@ -200,7 +200,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
             c.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
             c.category?.toLowerCase().includes(searchQuery.toLowerCase())
           ).map((c: any) => (
-            <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
+            <button key={c.id} onClick={() => onViewCampaign?.(c.id)} className="card w-full text-left active:scale-[0.99] transition-transform">
               <p className="text-sm font-semibold text-iftext">{c.title}</p>
               <p className="text-xs text-ifmuted line-clamp-1">{c.summary}</p>
               <span className="text-[10px] text-ifaccent">{c.category}</span>
@@ -235,7 +235,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
         <div className="space-y-2">
           <p className="text-[10px] text-ifmuted uppercase tracking-wide">🔥 Trending Missions</p>
           {safeTrending.slice(0, 3).map((c: any) => (
-            <button key={c._id} onClick={() => onViewCampaign?.(c._id)} className="card w-full text-left active:scale-[0.99] transition-transform">
+            <button key={c.id} onClick={() => onViewCampaign?.(c.id)} className="card w-full text-left active:scale-[0.99] transition-transform">
               <p className="text-sm font-semibold text-iftext">{c.title}</p>
               <p className="text-xs text-ifmuted line-clamp-1">{c.summary}</p>
               <div className="flex justify-between mt-1 text-[10px] text-ifmuted">
@@ -255,8 +255,8 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
           <div className="space-y-2">
             {safeRecs.map((r: any) => (
               <button
-                key={r._id}
-                onClick={() => onViewCampaign ? onViewCampaign(r._id) : handleSupport(r)}
+                key={r.id}
+                onClick={() => onViewCampaign ? onViewCampaign(r.id) : handleSupport(r)}
                 className="card w-full flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
               >
                 {r.coverImageUrl ? (
@@ -347,7 +347,7 @@ export default function Explore({ onViewCampaign, onNavigate }: { onViewCampaign
               : 0;
 
             return (
-              <div key={c._id} className="card overflow-hidden">
+              <div key={c.id} className="card overflow-hidden">
                 <div className="h-40 -mx-4 -mt-4 mb-3 overflow-hidden relative">
                   {c.coverImageUrl ? (
                     <img

@@ -588,6 +588,7 @@ export const getRecommendations = query({
         .filter((c) => userCategories.has(c.category) && !interactedCampaigns.has(c._id))
         .sort((a, b) => (b.raisedAmount || 0) - (a.raisedAmount || 0))
         .map((c: any) => ({
+          id: c._id,
           ...c,
           reason: `Matches your interest in ${(c.category || "").toLowerCase()}`,
         }));
@@ -595,14 +596,14 @@ export const getRecommendations = query({
       // Fill with trending
       const fill = trending
         .filter((c) => !personalized.find((r: any) => r.id === c._id) && !interactedCampaigns.has(c._id))
-        .map((c: any) => ({ ...c, reason: "Trending now" }));
+        .map((c: any) => ({ id: c._id, ...c, reason: "Trending now" }));
 
       recommendations = [...personalized, ...fill];
     } else {
       // No personalization data — just trending
       recommendations = trending
         .filter((c) => !interactedCampaigns.has(c._id))
-        .map((c: any) => ({ ...c, reason: "Trending now" }));
+        .map((c: any) => ({ id: c._id, ...c, reason: "Trending now" }));
     }
 
     return recommendations.slice(0, maxResults);
@@ -630,7 +631,19 @@ export const searchCampaigns = query({
     // Sort by raised amount descending
     results.sort((a: any, b: any) => (b.raisedAmount || 0) - (a.raisedAmount || 0));
 
-    return results.slice(0, 50);
+    return results.slice(0, 50).map(c => ({
+      id: c._id,
+      title: c.title,
+      summary: c.summary,
+      category: c.category,
+      goalAmount: c.goalAmount,
+      raisedAmount: c.raisedAmount,
+      donorCount: c.donorCount,
+      status: c.status,
+      coverImageUrl: c.coverImageUrl,
+      endDate: c.endDate,
+      location: c.location,
+    }));
   },
 });
 
@@ -649,7 +662,20 @@ export const getTrendingCampaigns = query({
       return (b.raisedAmount || 0) - (a.raisedAmount || 0);
     });
 
-    return active.slice(0, 5);
+    return active.slice(0, 5).map(c => ({
+      id: c._id,
+      title: c.title,
+      summary: c.summary,
+      story: c.story,
+      category: c.category,
+      goalAmount: c.goalAmount,
+      raisedAmount: c.raisedAmount,
+      donorCount: c.donorCount,
+      status: c.status,
+      coverImageUrl: c.coverImageUrl,
+      endDate: c.endDate,
+      location: c.location,
+    }));
   },
 });
 

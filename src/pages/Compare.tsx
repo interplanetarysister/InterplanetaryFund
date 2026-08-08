@@ -35,7 +35,7 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
     }
   };
 
-  const selected = campaigns.filter((c: any) => selectedIds.includes(c._id));
+  const selected = campaigns.filter((c: any) => selectedIds.includes(c.id));
   const allDonations = useQuery(api.campaigns.getDonations, {});
 
   const getDonorCount = (campaignId: string) => {
@@ -61,11 +61,11 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {campaigns
-              .filter((c: any) => !selectedIds.includes(c._id))
+              .filter((c: any) => !selectedIds.includes(c.id))
               .map((c: any) => (
                 <button
-                  key={c._id}
-                  onClick={() => toggleSelect(c._id)}
+                  key={c.id}
+                  onClick={() => toggleSelect(c.id)}
                   className="flex items-center gap-3 p-3 bg-zinc-900/50 border border-zinc-800 rounded-xl hover:border-ifcyan/30 transition-colors text-left"
                 >
                   <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-lg">
@@ -94,12 +94,12 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
               <tr className="border-b border-zinc-800">
                 <th className="text-left p-3 text-xs text-zinc-500 font-medium">Metric</th>
                 {selected.map((c: any) => (
-                  <th key={c._id} className="text-left p-3 text-xs text-ifcyan font-bold min-w-[150px]">
-                    <button onClick={() => onViewCampaign?.(c._id)} className="hover:underline text-left">
+                  <th key={c.id} className="text-left p-3 text-xs text-ifcyan font-bold min-w-[150px]">
+                    <button onClick={() => onViewCampaign?.(c.id)} className="hover:underline text-left">
                       {c.title}
                     </button>
                     <button
-                      onClick={() => toggleSelect(c._id)}
+                      onClick={() => toggleSelect(c.id)}
                       className="ml-2 text-zinc-500 hover:text-rose-400 text-xs"
                     >
                       ✕
@@ -112,19 +112,19 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Category</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext capitalize">{(c.category || "other").replace("-", " ")}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext capitalize">{(c.category || "other").replace("-", " ")}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Goal</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext">${(c.goalAmount || 0).toLocaleString()}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext">${(c.goalAmount || 0).toLocaleString()}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Raised</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs font-bold text-ifcyan">${(c.raisedAmount || 0).toLocaleString()}</td>
+                  <td key={c.id} className="p-3 text-xs font-bold text-ifcyan">${(c.raisedAmount || 0).toLocaleString()}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
@@ -132,7 +132,7 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
                 {selected.map((c: any) => {
                   const pct = c.goalAmount ? Math.min(100, ((c.raisedAmount || 0) / c.goalAmount) * 100) : 0;
                   return (
-                    <td key={c._id} className="p-3">
+                    <td key={c.id} className="p-3">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                           <div className="h-full bg-gradient-to-r from-ifcyan to-ifaccent" style={{ width: `${pct}%` }} />
@@ -146,13 +146,13 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Donors</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext">{getDonorCount(c._id)}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext">{getDonorCount(c.id)}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Status</td>
                 {selected.map((c: any) => (
-                  <td key={c._id}>
+                  <td key={c.id}>
                     <span className={`text-xs px-2 py-1 rounded-full ${
                       c.status === "active" ? "bg-emerald-500/15 text-emerald-400" :
                       c.status === "funded" ? "bg-sky-500/15 text-sky-400" :
@@ -166,25 +166,25 @@ export default function Compare({ onViewCampaign }: { onViewCampaign?: (id: stri
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Beneficiary</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext">{c.beneficiary || "—"}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext">{c.beneficiary || "—"}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">Location</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext">{c.location || "—"}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext">{c.location || "—"}</td>
                 ))}
               </tr>
               <tr className="border-b border-zinc-800/50">
                 <td className="p-3 text-xs text-zinc-500">AI Generated</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-iftext">{c.aiGenerated ? "✓ Yes" : "—"}</td>
+                  <td key={c.id} className="p-3 text-xs text-iftext">{c.aiGenerated ? "✓ Yes" : "—"}</td>
                 ))}
               </tr>
               <tr>
                 <td className="p-3 text-xs text-zinc-500">Summary</td>
                 {selected.map((c: any) => (
-                  <td key={c._id} className="p-3 text-xs text-ifmuted leading-relaxed">{c.summary || c.shortDescription || "—"}</td>
+                  <td key={c.id} className="p-3 text-xs text-ifmuted leading-relaxed">{c.summary || c.shortDescription || "—"}</td>
                 ))}
               </tr>
             </tbody>

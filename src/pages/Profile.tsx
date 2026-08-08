@@ -57,7 +57,7 @@ export default function Profile({
 
   const allCampaigns = useQuery(api.userCampaigns.getActiveCampaigns, {});
   const supportedCampaigns = (allCampaigns || []).filter((c: any) =>
-    supportedIds.includes(c._id)
+    supportedIds.includes(c.id)
   );
 
   const name = userName || "Interplanetary Pilot";
@@ -121,8 +121,8 @@ export default function Profile({
           <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
             {supportedCampaigns.slice(0, 6).map((c: any) => (
               <button
-                key={c._id}
-                onClick={() => onViewCampaign?.(c._id)}
+                key={c.id}
+                onClick={() => onViewCampaign?.(c.id)}
                 className="block text-center"
               >
                 <div className="aspect-square rounded-lg overflow-hidden border border-ifborder bg-ifcard">
@@ -163,7 +163,7 @@ export default function Profile({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {myCampaigns.map((c: any) => (
-              <CampaignCard key={c._id} campaign={c} onClick={() => onViewCampaign?.(c._id)} />
+              <CampaignCard key={c.id} campaign={c} onClick={() => onViewCampaign?.(c.id)} />
             ))}
           </div>
         )}
@@ -189,7 +189,7 @@ export default function Profile({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {supportedCampaigns.map((c: any) => (
-              <CampaignCard key={c._id} campaign={c} onClick={() => onViewCampaign?.(c._id)} />
+              <CampaignCard key={c.id} campaign={c} onClick={() => onViewCampaign?.(c.id)} />
             ))}
           </div>
         )}
