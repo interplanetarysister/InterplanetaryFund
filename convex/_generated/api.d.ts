@@ -52,6 +52,8 @@ import type * as seed from "../seed.js";
 import type * as seedHelp from "../seedHelp.js";
 import type * as seedNewFeatures from "../seedNewFeatures.js";
 import type * as simpleWithdraw from "../simpleWithdraw.js";
+import type * as stripeCheckout from "../stripeCheckout.js";
+import type * as stripeWebhook from "../stripeWebhook.js";
 import type * as support from "../support.js";
 import type * as syncRaisedAmounts from "../syncRaisedAmounts.js";
 import type * as syncToUserCampaigns from "../syncToUserCampaigns.js";
@@ -114,6 +116,8 @@ declare const fullApi: ApiFromModules<{
   seedHelp: typeof seedHelp;
   seedNewFeatures: typeof seedNewFeatures;
   simpleWithdraw: typeof simpleWithdraw;
+  stripeCheckout: typeof stripeCheckout;
+  stripeWebhook: typeof stripeWebhook;
   support: typeof support;
   syncRaisedAmounts: typeof syncRaisedAmounts;
   syncToUserCampaigns: typeof syncToUserCampaigns;
