@@ -805,4 +805,16 @@ export default defineSchema({
   // (No duplicate — this is just a comment marker)
 
 
+
+  // TASK RELAY — Agent session persistence (replaces Base44 TaskRelay entity)
+  taskRelay: defineTable({
+    sprintId: v.string(),                    // Unique relay identifier
+    context: v.string(),                     // Session context summary
+    nextSteps: v.array(v.string()),          // Pending next steps
+    completedThisSession: v.array(v.string()), // Completed items
+    status: v.string(),                      // paused, active, completed
+    lastUpdated: v.string(),                 // ISO timestamp
+    activeSprint: v.optional(v.string()),    // Current sprint identifier
+    totalSprints: v.number(),                // Cumulative sprint count
+  }).index("bySprintId", ["sprintId"]),
 });

@@ -29,7 +29,7 @@ $STARTING_COMMIT
 6. base44-sync/syncConvexData.ts — Obsolete sync, Convex is canonical
 7. base44/agents/your_agent.jsonc — Historical agent config
 8. base44/entities/User.jsonc — Historical entity schema
-9. functions/taskRelay.ts — Used Base44 SDK, TaskRelay entity was Base44-only
+9. functions/taskRelay.ts — Replaced by convex/taskRelay.ts (native Convex implementation with taskRelay table in schema)
 10. docs/platform_accounts.csv — Plaintext credentials, security risk
 
 ## Files Modified
@@ -40,6 +40,8 @@ $STARTING_COMMIT
 5. MOBILE_BUILD.md — Base44 APK labeled LEGACY/DEPRECATED
 6. MOBILE_ROADMAP.md — Replaced Base44 reference with Capacitor
 7. .gitignore — Added docs/platform_accounts.csv
+8. convex/taskRelay.ts — NEW: Native Convex replacement for Base44 taskRelay function
+9. convex/schema.ts — Added taskRelay table with bySprintId index
 
 ## Files Intentionally Retained
 1. base44-app-schema.json — Historical migration artifact documenting 31 Base44 entity schemas. Retained for reference and potential data migration needs.
