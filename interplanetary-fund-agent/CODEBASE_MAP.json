@@ -1,0 +1,82 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-08-07",
+  "repository": "https://github.com/interplanetarysister/InterplanetaryFund",
+  "structure": {
+    "convex/": {
+      "purpose": "Backend functions and schema",
+      "file_count": 64,
+      "key_files": {
+        "schema.ts": "47 table definitions (808 lines)",
+        "crons.ts": "15 cron job definitions",
+        "protocol.ts": "Protocol P-1 through P-8 enforcement",
+        "protocolAutoFix.ts": "Daily auto-fix for non-compliant campaigns",
+        "treasury.ts": "Treasury management",
+        "campaigns.ts": "Monitored campaign CRUD + external platform sync",
+        "userCampaigns.ts": "User campaign CRUD with ownership",
+        "aiCampaignGen.ts": "AI campaign content generation",
+        "imageGen.ts": "Image generation via Pollinations.ai",
+        "agentAutomation.ts": "Per-agent automation cycles",
+        "agentOnboarding.ts": "Agent onboarding and briefings",
+        "paypalCheckout.ts": "PayPal payment flow",
+        "stripeCheckout.ts": "Stripe checkout session",
+        "fundConsolidation.ts": "Fund consolidation engine",
+        "facebook.ts": "Facebook group management",
+        "auth.ts": "Legacy auth",
+        "userAuth.ts": "Passwordless email auth"
+      }
+    },
+    "src/": {
+      "purpose": "React frontend",
+      "pages_count": 30,
+      "components_count": 26,
+      "key_pages": {
+        "Home.tsx": "Landing page with stats and featured carousel",
+        "UserLogin.tsx": "Login + registration",
+        "Admin.tsx": "Multi-tab admin panel",
+        "AICampaignWizard.tsx": "6-step AI campaign wizard",
+        "CampaignDetail.tsx": "Single campaign view",
+        "FinancialManagement.tsx": "Treasury and withdrawals",
+        "Dashboard.tsx": "User dashboard"
+      }
+    },
+    "fundforge/": {
+      "purpose": "Reference architecture (integrated from fundforge-ai)",
+      "note": "All 21 pages and 18 components ported to IF"
+    },
+    ".github/workflows/": {
+      "purpose": "CI/CD pipelines",
+      "workflows": ["build-apk.yml", "convex-deploy.yml", "deploy-pages.yml"]
+    },
+    "docs/": {
+      "purpose": "Project documentation",
+      "key_docs": [
+        "CAMPAIGN_PROTOCOL.md", "AGENT_ROSTER.md",
+        "CREDIT_FREE_AGENT_PROTOCOL.md", "SOLENE_TRANSITION.md",
+        "ACTION_PLANS.md", "FINANCIAL_CONSOLIDATION_AUDIT.md"
+      ]
+    },
+    "interplanetary-fund-agent/": {
+      "purpose": "Portable agent knowledge base (this directory)",
+      "subdirectories": 30
+    }
+  },
+  "deployments": {
+    "convex": "rosy-butterfly-2.convex.cloud",
+    "vercel": "interplanetary-fund.vercel.app",
+    "github_pages": "interplanetarysister.github.io/InterplanetaryFund/"
+  },
+  "stats": {
+    "convex_functions": 64,
+    "database_tables": 47,
+    "frontend_pages": 30,
+    "frontend_components": 26,
+    "cron_jobs": 15,
+    "github_workflows": 4,
+    "ai_agents": 7,
+    "type_errors": 0,
+    "total_raised": 19839,
+    "total_campaigns": 10,
+    "total_donors": 17
+  }
+}
