@@ -7,9 +7,12 @@
  * Creates Stripe Checkout sessions for campaign donations.
  * Uses Stripe Checkout Hosted page — no frontend SDK needed.
  * Test mode keys from Stripe sandbox (acct_1TxcmP2OFuU4kOD2).
+ *
+ * SECURITY FIX (2026-08-07): confirmDonation now verifies Stripe session
+ * status server-side before marking as completed. Idempotency guard added.
  */
 
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { checkRateLimit } from "./security";
 import { v } from "convex/values";
 
@@ -33,6 +36,26 @@ export const createCheckoutSession = mutation({
       throw new Error("Stripe secret key not configured. Set STRIPE_SECRET_KEY in Convex environment.");
     }
 
+    // Validate donation amount
+    if (args.amount <= 0 || args.amount > 100000) {
+      throw new Error("Invalid donation amount. Must be between $0.01 and $100,000.");
+    }
+
+    // SECURITY: Verify campaign exists and is active before accepting donations
+    const campaign: any = await ctx.db.get(args.campaignId as any);
+    if (!campaign) {
+      // Check monitoredCampaigns table
+      const monitored = await ctx.db
+        .query("monitoredCampaigns")
+        .withIndex("byIfId", (q) => q.eq("ifCampaignId", args.campaignId))
+        .first();
+      if (!monitored) {
+        throw new Error("Campaign not found");
+      }
+    } else if (campaign.status && campaign.status !== "active" && campaign.status !== "draft") {
+      throw new Error("This campaign is not currently accepting donations.");
+    }
+
     // Record the pending donation
     const donationId = await ctx.db.insert("donations", {
       campaignId: args.campaignId,
@@ -47,7 +70,7 @@ export const createCheckoutSession = mutation({
     });
 
     // Create Stripe Checkout Session via API
-    const siteUrl = "https://interplanetary-fund.vercel.app";
+    const siteUrl = process.env.SITE_URL || "https://interplanetary-fund.vercel.app";
 
     const sessionResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -93,18 +116,77 @@ export const createCheckoutSession = mutation({
   },
 });
 
-// Confirm a Stripe donation after webhook payment_succeeded event
+// Confirm a Stripe donation — NOW VERIFIES WITH STRIPE SERVER-SIDE
+// This is called after the client is redirected from Stripe checkout.
+// It verifies the session is actually paid before marking as completed.
 export const confirmDonation = mutation({
   args: {
     donationId: v.id("donations"),
     stripeSessionId: v.string(),
     stripePaymentIntentId: v.optional(v.string()),
-    amount: v.number(),
+    amount: v.optional(v.number()), // Made optional — server uses donation record
   },
   handler: async (ctx, args) => {
     const donation: any = await ctx.db.get(args.donationId);
     if (!donation) {
       throw new Error("Donation not found");
+    }
+
+    // IDEMPOTENCY: If already completed, return existing result
+    if (donation.status === "completed") {
+      return {
+        status: "already_completed",
+        summary: {
+          donation: donation.amount,
+          message: "This donation was already confirmed.",
+        },
+      };
+    }
+
+    // SECURITY: Verify the Stripe session is actually paid
+    if (!STRIPE_SECRET_KEY) {
+      throw new Error("Stripe is not configured. Cannot verify payment.");
+    }
+
+    try {
+      const verifyResponse = await fetch(
+        `https://api.stripe.com/v1/checkout/sessions/${args.stripeSessionId}`,
+        {
+          headers: { "Authorization": `Bearer ${STRIPE_SECRET_KEY}` },
+        }
+      );
+
+      if (!verifyResponse.ok) {
+        throw new Error(`Stripe session verification failed: ${verifyResponse.status}`);
+      }
+
+      const session = await verifyResponse.json();
+
+      // Only confirm if payment_status is "paid"
+      if (session.payment_status !== "paid") {
+        return {
+          status: "pending",
+          message: `Payment status is "${session.payment_status}". Donation remains pending.`,
+        };
+      }
+
+      // Verify the session matches our donation record
+      if (session.metadata?.donationId !== args.donationId) {
+        throw new Error("Stripe session does not match donation record. Possible fraud attempt.");
+      }
+
+      // Verify amount matches (Stripe stores in cents)
+      const stripeAmount = session.amount_total / 100;
+      if (Math.abs(stripeAmount - donation.amount) > 0.01) {
+        throw new Error(`Amount mismatch: Stripe reports $${stripeAmount}, donation record shows $${donation.amount}`);
+      }
+    } catch (error: any) {
+      // If Stripe API is unreachable, DON'T confirm — safer to leave pending
+      console.error("Stripe verification error:", error.message);
+      return {
+        status: "verification_failed",
+        message: `Could not verify payment with Stripe: ${error.message}. Donation remains pending. The webhook handler will confirm when the event arrives.`,
+      };
     }
 
     // Mark donation as completed
@@ -161,15 +243,150 @@ export const confirmDonation = mutation({
       createdAt: new Date().toISOString(),
     });
 
+    // Record in campaign ledger (new financial system)
+    const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
+    const platformFeePercent = feeConfig?.platformFeePercent ?? 5;
+    const processingFeePercent = feeConfig?.processingFeePercent ?? 2.9;
+    const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
+
+    const grossAmount = donation.amount;
+    const platformFee = grossAmount * (platformFeePercent / 100);
+    const processingFee = grossAmount * (processingFeePercent / 100) + processingFeeFlat;
+    const netAmount = grossAmount - platformFee - processingFee;
+
+    await ctx.db.insert("campaignLedger", {
+      campaignId: donation.campaignId,
+      userId: campaign?.userId || "",
+      entryType: "donation",
+      provider: "stripe",
+      providerTransactionId: args.stripePaymentIntentId || args.stripeSessionId,
+      grossAmount,
+      platformFee,
+      processingFee,
+      netAmount,
+      status: "completed",
+      description: `Donation from ${donation.donorName || "Anonymous"}`,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Record in financial audit log
+    await ctx.db.insert("financialAuditLog", {
+      userId: campaign?.userId || "",
+      campaignId: donation.campaignId,
+      provider: "stripe",
+      action: "donation_confirmed",
+      actionPerformedBy: "user",
+      transactionId: args.stripePaymentIntentId || args.stripeSessionId,
+      authorizationState: "verified",
+      result: "success",
+      details: `Stripe donation of $${donation.amount} confirmed for campaign ${donation.campaignTitle}`,
+      timestamp: new Date().toISOString(),
+    });
+
     return {
       status: "success",
       summary: {
         donation: donation.amount,
-        platformFee: (donation.amount * 0.05).toFixed(2),
-        processingFee: (donation.amount * 0.029 + 0.30).toFixed(2),
-        netAmount: (donation.amount * 0.05 - 0.029 * donation.amount - 0.30).toFixed(2),
+        platformFee: platformFee.toFixed(2),
+        processingFee: processingFee.toFixed(2),
+        netAmount: netAmount.toFixed(2),
       },
     };
+  },
+});
+
+// Internal mutation for webhook handler — bypasses Stripe API verification
+// since the webhook itself IS the verification (Stripe sent it)
+export const confirmDonationInternal = internalMutation({
+  args: {
+    donationId: v.string(),
+    stripeSessionId: v.optional(v.string()),
+    stripePaymentIntentId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const donation: any = await ctx.db.get(args.donationId as any);
+    if (!donation) {
+      return { status: "ignored", reason: "Donation not found" };
+    }
+
+    // IDEMPOTENCY: If already completed, skip
+    if (donation.status === "completed") {
+      return { status: "already_completed" };
+    }
+
+    // Mark donation as completed
+    await ctx.db.patch(args.donationId as any, {
+      status: "completed",
+      txnId: args.stripePaymentIntentId || args.stripeSessionId || donation.txnId,
+    });
+
+    // Update campaign raised amount
+    let campaign: any = await ctx.db
+      .query("monitoredCampaigns")
+      .withIndex("byIfId", (q) => q.eq("ifCampaignId", donation.campaignId))
+      .first();
+
+    if (campaign) {
+      await ctx.db.patch(campaign._id, {
+        raisedAmount: (campaign.raisedAmount || 0) + donation.amount,
+        donorCount: (campaign.donorCount || 0) + 1,
+        lastSynced: new Date().toISOString(),
+      });
+    } else {
+      try {
+        const userCampaign: any = await ctx.db.get(donation.campaignId as any);
+        if (userCampaign) {
+          await ctx.db.patch(userCampaign._id, {
+            raisedAmount: (userCampaign.raisedAmount || 0) + donation.amount,
+            donorCount: (userCampaign.donorCount || 0) + 1,
+            updatedAt: new Date().toISOString(),
+          });
+          campaign = userCampaign;
+        }
+      } catch { /* campaignId doesn't match */ }
+    }
+
+    // Record in campaign ledger
+    const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
+    const platformFeePercent = feeConfig?.platformFeePercent ?? 5;
+    const processingFeePercent = feeConfig?.processingFeePercent ?? 2.9;
+    const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
+
+    const grossAmount = donation.amount;
+    const platformFee = grossAmount * (platformFeePercent / 100);
+    const processingFee = grossAmount * (processingFeePercent / 100) + processingFeeFlat;
+    const netAmount = grossAmount - platformFee - processingFee;
+
+    await ctx.db.insert("campaignLedger", {
+      campaignId: donation.campaignId,
+      userId: campaign?.userId || "",
+      entryType: "donation",
+      provider: "stripe",
+      providerTransactionId: args.stripePaymentIntentId || args.stripeSessionId || donation.txnId || "",
+      grossAmount,
+      platformFee,
+      processingFee,
+      netAmount,
+      status: "completed",
+      description: `Donation from ${donation.donorName || "Anonymous"}`,
+      createdAt: new Date().toISOString(),
+    });
+
+    // Record in financial audit log
+    await ctx.db.insert("financialAuditLog", {
+      userId: campaign?.userId || "",
+      campaignId: donation.campaignId,
+      provider: "stripe",
+      action: "donation_confirmed",
+      actionPerformedBy: "system",
+      transactionId: args.stripePaymentIntentId || args.stripeSessionId || "",
+      authorizationState: "webhook_verified",
+      result: "success",
+      details: `Stripe webhook confirmed donation of $${donation.amount}`,
+      timestamp: new Date().toISOString(),
+    });
+
+    return { status: "success" };
   },
 });
 

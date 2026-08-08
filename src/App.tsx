@@ -38,6 +38,7 @@ const Compare = lazy(() => import("./pages/Compare"));
 const Profile = lazy(() => import("./pages/Profile"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const FinancialManagement = lazy(() => import("./pages/FinancialManagement"));
 
 // Loading fallback
 function PageLoader() {
@@ -52,7 +53,7 @@ function PageLoader() {
   );
 }
 
-type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare" | "profile" | "forgotPassword" | "resetPassword";
+type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare" | "profile" | "forgotPassword" | "resetPassword" | "financial";
 
 export default function App() {
   const [view, setView] = useState<View>("home");
@@ -99,6 +100,7 @@ export default function App() {
       { id: "compare", label: "Compare", icon: "\u2696\uFE0F" },
       { id: "donors", label: "Donors", icon: "\u{1F465}" },
       { id: "donations", label: "Donations", icon: "\u{1F4B2}" },
+      { id: "financial", label: "Finance", icon: "\u{1F4B0}" },
       { id: "saved", label: "Saved", icon: "\u{1F516}" },
       { id: "categories", label: "Categories", icon: "\u{1F3F7}\uFE0F" },
       { id: "settings", label: "Settings", icon: "\u2699\uFE0F" },
@@ -345,6 +347,7 @@ export default function App() {
           {view === "saved" && userId && <SavedCampaigns userId={userId} />}
           {view === "saved" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "donations" && <Donations userId={userId} />}
+          {view === "financial" && userId && <ErrorBoundary><FinancialManagement userId={userId} /></ErrorBoundary>}
           {view === "leaderboard" && <Leaderboard />}
           {view === "categories" && <Categories onSelectCategory={() => setView("explore")} />}
           {view === "settings" && userId && <Settings userId={userId} userName={userName} />}

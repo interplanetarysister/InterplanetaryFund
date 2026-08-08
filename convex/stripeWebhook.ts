@@ -1,11 +1,10 @@
 /*
- * Interplanetary Fund — Stripe Webhook Handler
+ * Interplanetary Fund — Stripe Webhook Handler (Updated)
  * Copyright © 2026 Michelle Rogers. All Rights Reserved.
- * PROPRIETARY AND CONFIDENTIAL. Do not copy, distribute, or modify without
- * express written permission. See LICENSE file for full terms.
  *
- * Internal mutations called by the HTTP webhook handler in http.ts.
- * Processes Stripe checkout.session.completed events.
+ * Updated to record all donations in the campaign financial ledger
+ * with proper fee breakdown and provider transaction ID for
+ * deduplication.
  */
 
 import { internalMutation } from "./_generated/server";
@@ -30,6 +29,12 @@ export const handleStripeEvent = internalMutation({
       return { status: "ignored", reason: `Event type ${args.eventType} not handled` };
     }
 
+    // Get fee config for ledger entry
+    const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
+    const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+    const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
+    const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
+
     // If we have a donationId from metadata, confirm the existing record
     if (args.donationId) {
       try {
@@ -40,31 +45,90 @@ export const handleStripeEvent = internalMutation({
             txnId: args.paymentIntentId || args.sessionId,
           });
 
-          // Update campaign raised amount - check BOTH tables
-          let campaign: any = await ctx.db
+          // Get campaign owner for ledger
+          let campaignOwner = donation.campaignId;
+          let campaignFound: any = null;
+
+          // Check monitoredCampaigns
+          campaignFound = await ctx.db
             .query("monitoredCampaigns")
             .withIndex("byIfId", (q) => q.eq("ifCampaignId", donation.campaignId))
             .first();
 
-          if (campaign) {
-            await ctx.db.patch(campaign._id, {
-              raisedAmount: (campaign.raisedAmount || 0) + donation.amount,
-              donorCount: (campaign.donorCount || 0) + 1,
+          if (campaignFound) {
+            await ctx.db.patch(campaignFound._id, {
+              raisedAmount: (campaignFound.raisedAmount || 0) + donation.amount,
+              donorCount: (campaignFound.donorCount || 0) + 1,
               lastSynced: new Date().toISOString(),
             });
           } else {
             try {
-              const userCampaign: any = await ctx.db.get(donation.campaignId as any);
-              if (userCampaign) {
-                await ctx.db.patch(userCampaign._id, {
-                  raisedAmount: (userCampaign.raisedAmount || 0) + donation.amount,
-                  donorCount: (userCampaign.donorCount || 0) + 1,
+              campaignFound = await ctx.db.get(donation.campaignId as any);
+              if (campaignFound) {
+                campaignOwner = campaignFound.userId || campaignFound._id;
+                await ctx.db.patch(campaignFound._id, {
+                  raisedAmount: (campaignFound.raisedAmount || 0) + donation.amount,
+                  donorCount: (campaignFound.donorCount || 0) + 1,
                   updatedAt: new Date().toISOString(),
                 });
               }
-            } catch {
-              // campaignId doesn't match
-            }
+            } catch {}
+          }
+
+          // Record in campaign ledger with fee breakdown
+          const platformFee = donation.amount * (platformFeePct / 100);
+          const processingFee = donation.amount * (processingFeePct / 100) + processingFeeFlat;
+          const netAmount = donation.amount - platformFee - processingFee;
+          const providerTxnId = args.paymentIntentId || args.sessionId;
+
+          // Check for duplicate in ledger
+          const existingLedger = await ctx.db
+            .query("campaignLedger")
+            .withIndex("byProviderTxn", (q) => q.eq("providerTransactionId", providerTxnId))
+            .filter((q) => q.eq(q.field("provider"), "stripe"))
+            .first();
+
+          if (!existingLedger) {
+            await ctx.db.insert("campaignLedger", {
+              campaignId: donation.campaignId,
+              userId: campaignOwner,
+              entryType: "donation",
+              amount: donation.amount,
+              grossAmount: donation.amount,
+              platformFee,
+              processingFee,
+              netAmount,
+              provider: "stripe",
+              providerTransactionId: providerTxnId,
+              source: "webhook",
+              initiatedBy: "system",
+              description: `Stripe donation from ${donation.donorName || "Anonymous"}`,
+              status: "completed",
+              reconciliationStatus: "reconciled",
+              metadata: JSON.stringify({ donationId: donation._id, sessionId: args.sessionId }),
+              createdAt: new Date().toISOString(),
+            });
+          }
+
+          // Also record in providerTransactions
+          if (!existingLedger) {
+            await ctx.db.insert("providerTransactions", {
+              provider: "stripe",
+              providerTransactionId: providerTxnId,
+              providerAccountId: "platform_stripe",
+              campaignId: donation.campaignId,
+              userId: campaignOwner,
+              amount: donation.amount,
+              currency: "USD",
+              transactionType: "donation",
+              status: "completed",
+              donorName: donation.donorName,
+              donorEmail: donation.donorEmail,
+              importedAt: new Date().toISOString(),
+              ledgerEntryId: undefined,
+              reconciliationStatus: "matched",
+              rawData: JSON.stringify({ sessionId: args.sessionId, paymentIntentId: args.paymentIntentId }),
+            });
           }
 
           // Record interaction
@@ -80,11 +144,28 @@ export const handleStripeEvent = internalMutation({
 
           // Record treasury transaction
           await ctx.db.insert("transactions", {
-            userId: donation.campaignId,
+            userId: campaignOwner,
             type: "donation_received",
             amount: donation.amount,
+            campaignId: donation.campaignId,
             status: "completed",
+            providerTransactionId: providerTxnId,
+            reconciliationStatus: "reconciled",
             createdAt: new Date().toISOString(),
+          });
+
+          // Log to audit
+          await ctx.db.insert("financialAuditLog", {
+            userId: campaignOwner,
+            campaignId: donation.campaignId,
+            action: "donation_received",
+            initiatedBy: "system",
+            provider: "stripe",
+            transactionAmount: donation.amount,
+            authorizationState: "authorized",
+            result: "success",
+            description: `Stripe donation of $${donation.amount} from ${donation.donorName || "Anonymous"}`,
+            timestamp: new Date().toISOString(),
           });
 
           return { status: "success", donationId: args.donationId };
@@ -95,10 +176,11 @@ export const handleStripeEvent = internalMutation({
     }
 
     // Fallback: create a new donation record if no existing one found
+    const amount = args.amountTotal / 100;
     const donationId = await ctx.db.insert("donations", {
       campaignId: args.campaignId || "",
       campaignTitle: args.campaignTitle || "Unknown Campaign",
-      amount: args.amountTotal / 100, // Convert cents to dollars
+      amount,
       donorName: args.donorName || "Anonymous",
       donorEmail: args.customerEmail,
       message: "",
@@ -108,16 +190,42 @@ export const handleStripeEvent = internalMutation({
       createdAt: new Date().toISOString(),
     });
 
+    // Record in ledger
+    const platformFee = amount * (platformFeePct / 100);
+    const processingFee = amount * (processingFeePct / 100) + processingFeeFlat;
+    const netAmount = amount - platformFee - processingFee;
+    const providerTxnId = args.paymentIntentId || args.sessionId;
+
+    await ctx.db.insert("campaignLedger", {
+      campaignId: args.campaignId || "",
+      userId: args.campaignId || "",
+      entryType: "donation",
+      amount,
+      grossAmount: amount,
+      platformFee,
+      processingFee,
+      netAmount,
+      provider: "stripe",
+      providerTransactionId: providerTxnId,
+      source: "webhook",
+      initiatedBy: "system",
+      description: `Stripe donation from ${args.donorName || "Anonymous"}`,
+      status: "completed",
+      reconciliationStatus: "reconciled",
+      metadata: JSON.stringify({ donationId, sessionId: args.sessionId }),
+      createdAt: new Date().toISOString(),
+    });
+
     // Update campaign
     if (args.campaignId) {
-      let campaign: any = await ctx.db
+      const campaign: any = await ctx.db
         .query("monitoredCampaigns")
         .withIndex("byIfId", (q) => q.eq("ifCampaignId", args.campaignId!))
         .first();
 
       if (campaign) {
         await ctx.db.patch(campaign._id, {
-          raisedAmount: (campaign.raisedAmount || 0) + (args.amountTotal / 100),
+          raisedAmount: (campaign.raisedAmount || 0) + amount,
           donorCount: (campaign.donorCount || 0) + 1,
           lastSynced: new Date().toISOString(),
         });

@@ -170,7 +170,7 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
       campaignId,
       authorName: commentName,
       authorId: userId || undefined,
-      body: commentText,
+      content: commentText,
     });
     setCommentText("");
     setCommentName("");

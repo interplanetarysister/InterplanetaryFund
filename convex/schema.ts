@@ -146,7 +146,13 @@ export default defineSchema({
     adminReviewNote: v.optional(v.string()),
     reviewedBy: v.optional(v.string()),
     reviewedAt: v.optional(v.string()),
-  }).index("byUserId", ["userId"]).index("byStatus", ["status"]),
+    // Financial consolidation fields
+    idempotencyKey: v.optional(v.string()),              // Prevents duplicate/replayed withdrawals
+    providerTransactionId: v.optional(v.string()),       // External provider's transaction ID
+    ledgerEntryId: v.optional(v.string()),               // Reference to campaignLedger entry
+    connectedAccountId: v.optional(v.string()),          // Which connected account was used
+    authorizationId: v.optional(v.string()),              // Which authorization was used
+  }).index("byUserId", ["userId"]).index("byStatus", ["status"]).index("byIdempotency", ["idempotencyKey"]),
 
 
 
@@ -284,7 +290,11 @@ export default defineSchema({
     payoutRequestId: v.optional(v.string()),
     status: v.string(),
     createdAt: v.string(),
-  }).index("byUserId", ["userId"]).index("byType", ["type"]),
+    // Financial consolidation fields
+    providerTransactionId: v.optional(v.string()),
+    ledgerEntryId: v.optional(v.string()),
+    reconciliationStatus: v.optional(v.string()),
+  }).index("byUserId", ["userId"]).index("byType", ["type"]).index("byCampaign", ["campaignId"]),
 
   // DONATIONS
   donations: defineTable({
@@ -465,6 +475,22 @@ export default defineSchema({
     adminAccessStatus: v.string(),        // "none" | "requested" | "granted" | "denied" | "revoked"
     adminAccessRequestedAt: v.optional(v.string()),
     adminAccessGrantedAt: v.optional(v.string()),
+    // Onboarding state
+    onboardingCompleted: v.optional(v.boolean()),
+    onboardingStep: v.optional(v.string()),   // "welcome" | "profile" | "preferences" | "first_campaign" | "done"
+    onboardingCompletedAt: v.optional(v.string()),
+    // Communication preferences
+    emailNotifications: v.optional(v.boolean()),
+    donationAlerts: v.optional(v.boolean()),
+    campaignUpdates: v.optional(v.boolean()),
+    marketingEmails: v.optional(v.boolean()),
+    smsNotifications: v.optional(v.boolean()),
+    // Profile metadata
+    avatarUrl: v.optional(v.string()),
+    bio: v.optional(v.string()),
+    location: v.optional(v.string()),
+    websiteUrl: v.optional(v.string()),
+    socialLinks: v.optional(v.string()),    // JSON string of { platform: url }
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index("byUserId", ["userId"]).index("byTier", ["subscriptionTier"]),
@@ -517,6 +543,11 @@ export default defineSchema({
     aiImagePrompt: v.optional(v.string()),
     aiTags: v.optional(v.array(v.string())),
     aiGenerated: v.optional(v.boolean()),            // true if created via AI wizard
+    // Financial consolidation & automation fields
+    automationEnabled: v.optional(v.boolean()),         // AI campaign management toggle
+    automationConsentId: v.optional(v.string()),         // Reference to automationConsents._id
+    connectedAccountIds: v.optional(v.array(v.string())),// Connected account IDs for this campaign
+    lastConsolidationAt: v.optional(v.string()),         // Last fund consolidation timestamp
     createdAt: v.string(),
     updatedAt: v.string(),
   }).index("byUserId", ["userId"]).index("byStatus", ["status"]),
@@ -593,5 +624,179 @@ export default defineSchema({
     helpfulYes: v.number(),
     helpfulNo: v.number(),
   }).index("byCategory", ["category"]),
+
+
+  // ============================================================
+  // FINANCIAL CONSOLIDATION SYSTEM — New tables for the
+  // campaign-creator delegated authorization, account linkage,
+  // financial ledger, fund consolidation, automation consent,
+  // audit logging, and universal integration design.
+  // ============================================================
+
+  // CONNECTED ACCOUNTS — External payment/funding provider accounts
+  // linked to an Interplanetary Fund user. A connected account
+  // represents a credential-grant or OAuth link to an external
+  // provider (PayPal, Stripe, Cash App, bank, etc.). It does NOT
+  // grant the AI any permissions — those are tracked separately in
+  // accountAuthorizations.
+  connectedAccounts: defineTable({
+    userId: v.string(),                  // IF user who owns this connection
+    provider: v.string(),                // "paypal" | "stripe" | "cashapp" | "bank" | "gofundme" | ...
+    providerAccountId: v.string(),       // External provider's account identifier (email, account ID, etc.)
+    providerDisplayName: v.string(),     // Human-readable account label (e.g. "interplanetarysister@gmail.com")
+    connectionMethod: v.string(),        // "oauth" | "api_key" | "manual" | "webhook"
+    connectionStatus: v.string(),        // "active" | "expired" | "revoked" | "error"
+    scopes: v.array(v.string()),         // Provider-specific scopes/permissions granted
+    accessToken: v.optional(v.string()), // OAuth access token (encrypted server-side)
+    refreshToken: v.optional(v.string()),// OAuth refresh token
+    tokenExpiresAt: v.optional(v.string()),
+    metadata: v.optional(v.string()),    // JSON string of provider-specific data
+    connectedAt: v.string(),
+    lastVerifiedAt: v.optional(v.string()),
+    revokedAt: v.optional(v.string()),
+    revokedReason: v.optional(v.string()),
+  }).index("byUserId", ["userId"]).index("byProvider", ["provider"]).index("byStatus", ["connectionStatus"]),
+
+  // ACCOUNT AUTHORIZATIONS — Records of which campaign creator
+  // authorized which connected account for which campaign(s).
+  // A connected account does NOT automatically mean authorization
+  // for any campaign. Each authorization is explicit, scoped, and
+  // revocable.
+  accountAuthorizations: defineTable({
+    userId: v.string(),                   // The campaign creator who granted this authorization
+    campaignId: v.string(),               // The campaign this authorization applies to
+    connectedAccountId: v.string(),        // Reference to connectedAccounts._id
+    provider: v.string(),                  // Provider type for quick reference
+    permissions: v.array(v.string()),     // ["read_transactions", "sync_funds", "initiate_payout", ...]
+    authorizationScope: v.string(),        // "read_only" | "full_management" | "sync_and_reconcile"
+    status: v.string(),                    // "active" | "revoked" | "expired"
+    grantedAt: v.string(),
+    revokedAt: v.optional(v.string()),
+    revokedReason: v.optional(v.string()),
+    expiresAt: v.optional(v.string()),     // Optional expiry
+    agreementVersion: v.optional(v.string()),// Version of consent agreement accepted
+  }).index("byUserId", ["userId"]).index("byCampaignId", ["campaignId"]).index("byConnectedAccount", ["connectedAccountId"]).index("byStatus", ["status"]),
+
+  // CAMPAIGN LEDGER — Per-campaign financial ledger entries.
+  // Every financial event for a campaign is recorded here as an
+  // immutable ledger entry. This is the source of truth for
+  // campaign finances — NOT client-side balances.
+  campaignLedger: defineTable({
+    campaignId: v.string(),
+    userId: v.string(),                   // Campaign owner
+    entryType: v.string(),                // "donation" | "refund" | "chargeback" | "fee" | "payout" | "adjustment" | "consolidation"
+    amount: v.number(),                   // Positive for credits, negative for debits
+    grossAmount: v.optional(v.number()),   // For donations: gross before fees
+    platformFee: v.optional(v.number()),   // IF platform fee
+    processingFee: v.optional(v.number()), // Payment processor fee
+    netAmount: v.optional(v.number()),     // Net after all fees
+    provider: v.optional(v.string()),      // "paypal" | "stripe" | "cashapp" | "manual" | ...
+    providerTransactionId: v.optional(v.string()), // External provider's transaction ID for deduplication
+    connectedAccountId: v.optional(v.string()),
+    authorizationId: v.optional(v.string()),
+    source: v.string(),                   // "manual" | "webhook" | "consolidation" | "ai_automation"
+    initiatedBy: v.string(),              // "user" | "ai_agent" | "system" | "admin"
+    description: v.string(),
+    status: v.string(),                    // "pending" | "completed" | "failed" | "reversed"
+    reconciliationStatus: v.optional(v.string()), // "unreconciled" | "reconciled" | "flagged" | "duplicate"
+    relatedEntryId: v.optional(v.string()),// For reversals/chargebacks linked to original entry
+    metadata: v.optional(v.string()),     // JSON string of extra data
+    createdAt: v.string(),
+  }).index("byCampaignId", ["campaignId"]).index("byUserId", ["userId"]).index("byType", ["entryType"]).index("byProviderTxn", ["providerTransactionId"]).index("byStatus", ["status"]),
+
+  // AUTOMATION CONSENTS — Records of explicit user consent for
+  // AI-managed campaign automation. Every time a campaign creator
+  // enables automated AI campaign management, a consent record is
+  // created here. Revocation is also tracked.
+  automationConsents: defineTable({
+    userId: v.string(),
+    campaignId: v.string(),
+    agreementVersion: v.string(),          // Version of the consent agreement
+    permissions: v.array(v.string()),     // What the AI is allowed to do
+    connectedProviders: v.array(v.string()),// Which providers are covered
+    automationStatus: v.string(),         // "active" | "revoked" | "paused"
+    acceptedAt: v.string(),
+    revokedAt: v.optional(v.string()),
+    revokedReason: v.optional(v.string()),
+    ipAddress: v.optional(v.string()),    // For audit trail
+    userAgent: v.optional(v.string()),    // For audit trail
+  }).index("byUserId", ["userId"]).index("byCampaignId", ["campaignId"]).index("byStatus", ["automationStatus"]),
+
+  // FINANCIAL AUDIT LOG — Immutable audit trail for all financial
+  // actions. Records who did what, when, with what authorization,
+  // and the before/after state.
+  financialAuditLog: defineTable({
+    userId: v.optional(v.string()),
+    campaignId: v.optional(v.string()),
+    action: v.string(),                   // "connect_account" | "authorize_account" | "consolidate_funds" | "enable_automation" | "disable_automation" | "withdraw" | "reconcile" | ...
+    initiatedBy: v.string(),              // "user" | "ai_agent" | "system" | "admin"
+    provider: v.optional(v.string()),
+    connectedAccountId: v.optional(v.string()),
+    authorizationId: v.optional(v.string()),
+    transactionAmount: v.optional(v.number()),
+    authorizationState: v.string(),       // "authorized" | "unauthorized" | "expired" | "revoked"
+    result: v.string(),                   // "success" | "failure" | "partial"
+    beforeState: v.optional(v.string()),  // JSON string of state before action
+    afterState: v.optional(v.string()),   // JSON string of state after action
+    errorMessage: v.optional(v.string()),
+    metadata: v.optional(v.string()),
+    timestamp: v.string(),
+  }).index("byUserId", ["userId"]).index("byCampaignId", ["campaignId"]).index("byAction", ["action"]).index("byTimestamp", ["timestamp"]),
+
+  // CONSOLIDATION RUNS — Records of each fund consolidation run.
+  // Tracks what was discovered, what was reconciled, what was flagged.
+  consolidationRuns: defineTable({
+    campaignId: v.string(),
+    userId: v.string(),
+    initiatedBy: v.string(),              // "user" | "ai_agent" | "system"
+    status: v.string(),                   // "running" | "completed" | "failed" | "partial"
+    providers: v.array(v.string()),       // Which providers were checked
+    connectedAccountIds: v.array(v.string()),
+    transactionsDiscovered: v.number(),
+    transactionsImported: v.number(),     // New entries added to ledger
+    transactionsDuplicate: v.number(),    // Already existed (deduped)
+    transactionsFlagged: v.number(),       // Couldn't be confidently attributed
+    totalDiscoveredAmount: v.number(),
+    totalImportedAmount: v.number(),
+    previouslyReconciledAmount: v.number(),
+    pendingAmount: v.number(),
+    failedAmount: v.number(),
+    discrepancies: v.optional(v.array(v.object({
+      type: v.string(),
+      description: v.string(),
+      amount: v.optional(v.number()),
+    }))),
+    accountsRequiringReauth: v.optional(v.array(v.string())),
+    startedAt: v.string(),
+    completedAt: v.optional(v.string()),
+    durationMs: v.optional(v.number()),
+    error: v.optional(v.string()),
+  }).index("byCampaignId", ["campaignId"]).index("byUserId", ["userId"]).index("byStatus", ["status"]),
+
+  // PROVIDER TRANSACTIONS — Imported transactions from external
+  // providers, stored for deduplication and reconciliation. Each
+  // has a provider-specific transaction ID to prevent duplicates.
+  providerTransactions: defineTable({
+    provider: v.string(),                 // "paypal" | "stripe" | "cashapp" | "gofundme" | ...
+    providerTransactionId: v.string(),    // External provider's unique transaction ID
+    providerAccountId: v.string(),        // Which external account this came from
+    connectedAccountId: v.optional(v.string()),
+    campaignId: v.optional(v.string()),   // Matched campaign (if any)
+    userId: v.optional(v.string()),       // Matched user (if any)
+    amount: v.number(),
+    currency: v.string(),                 // "USD" by default
+    transactionType: v.string(),          // "donation" | "refund" | "chargeback" | "payout" | "fee"
+    status: v.string(),                   // "pending" | "completed" | "failed"
+    donorName: v.optional(v.string()),
+    donorEmail: v.optional(v.string()),
+    importedAt: v.string(),
+    ledgerEntryId: v.optional(v.string()),// Reference to campaignLedger entry (if reconciled)
+    reconciliationStatus: v.string(),     // "pending" | "matched" | "flagged" | "orphaned"
+    rawData: v.optional(v.string()),      // JSON string of raw provider data
+  }).index("byProvider", ["provider"]).index("byProviderTxnId", ["providerTransactionId"]).index("byCampaignId", ["campaignId"]).index("byReconciliation", ["reconciliationStatus"]),
+
+  // FEE CONFIG — Already exists above, adding index for clarity
+  // (No duplicate — this is just a comment marker)
+
 
 });

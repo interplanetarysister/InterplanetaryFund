@@ -7,7 +7,7 @@
  * All images are free, no credits consumed.
  */
 
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation, action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 const STYLE_DESCRIPTION = "Afro-punk cyber-punk futuristic interstellar comic book style, hyper-realistic rendering, neon African futurism, cosmic cityscapes, vibrant purple and cyan tones, deep space starfield backgrounds, dramatic cinematic lighting, afro-punk geometric patterns, interplanetary energy";
@@ -56,7 +56,7 @@ export const getShareImageUrl = query({
 // GENERATE CAMPAIGN IMAGES FOR ALL ACTIVE CAMPAIGNS
 // =====================================================
 
-export const generateCampaignCoverUrls = mutation({
+export const generateCampaignCoverUrls = internalMutation({
   args: {},
   handler: async (ctx) => {
     const monitoredActive = await ctx.db.query("monitoredCampaigns")

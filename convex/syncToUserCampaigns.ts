@@ -30,10 +30,10 @@ export const syncAdminCampaigns = mutation({
       // Map admin campaign to userCampaign schema
       const now = new Date().toISOString();
       await ctx.db.insert("userCampaigns", {
-        userId: c.ownerId || "admin_sync",
+        userId: (c as any).ownerId || "admin_sync",
         title: c.title,
         summary: c.summary || `${c.title} — a campaign by Interplanetary Fund.`,
-        story: c.story || c.summary || `Support "${c.title}" on Interplanetary Fund.`,
+        story: (c as any).story || c.summary || `Support "${c.title}" on Interplanetary Fund.`,
         category: c.category === "general" ? "Community" : 
                   c.category === "business" ? "Education" : "Other",
         goalAmount: c.goalAmount || 5000,
@@ -42,11 +42,11 @@ export const syncAdminCampaigns = mutation({
         status: "active",
         coverImageUrl: c.coverImageUrl,
         endDate: c.endDate,
-        location: c.location,
-        cashappTag: c.cashappTag || "$interplanetarysister",
+        location: (c as any).location,
+        cashappTag: (c as any).cashappTag || "$interplanetarysister",
         outreachEnabled: c.outreachEnabled ?? true,
         aiGenerated: false,
-        createdAt: c.createdAt || now,
+        createdAt: (c as any).createdAt || now,
         updatedAt: now,
       });
       created++;

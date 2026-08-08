@@ -110,7 +110,7 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
         aiSeoContent: editing.seoContent,
         aiImagePrompt: editing.imagePrompt,
         aiTags: editing.tags,
-        aiGenerated: true,
+        aiGenerated: true, publish: true,
       });
       if (result.success) {
         setPublished(result.campaignId);

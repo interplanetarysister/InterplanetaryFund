@@ -62,4 +62,8 @@ crons.interval("master-agent-check", { minutes: 120 }, internal.agentAutomation.
 // Auto-generate cover images for new campaigns — Every 12 hours
 crons.interval("auto-cover-images", { minutes: 720 }, internal.imageGen.generateCampaignCoverUrls, {});
 
+// === FUND CONSOLIDATION (Credit-Free) ===
+// Auto-consolidate funds for campaigns with AI automation enabled — Every 6 hours
+crons.interval("auto-fund-consolidation", { minutes: 360 }, internal.fundConsolidation.runAutoConsolidation, {});
+
 export default crons;

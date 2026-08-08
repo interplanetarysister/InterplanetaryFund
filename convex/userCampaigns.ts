@@ -113,8 +113,9 @@ export const createCampaign = mutation({
     aiTags: v.optional(v.array(v.string())),
     aiGenerated: v.optional(v.boolean()),
     outreachEnabled: v.optional(v.boolean()),
+    publish: v.optional(v.boolean()),
   },
-  handler: async (ctx, { userId, title, summary, story, category, goalAmount, coverImageUrl, endDate, location, cashappTag, aiFaq, aiSocialCaptions, aiPressRelease, aiDonorThankYou, aiSeoContent, aiImagePrompt, aiTags, aiGenerated, outreachEnabled }) => {
+  handler: async (ctx, { userId, title, summary, story, category, goalAmount, coverImageUrl, endDate, location, cashappTag, aiFaq, aiSocialCaptions, aiPressRelease, aiDonorThankYou, aiSeoContent, aiImagePrompt, aiTags, aiGenerated, outreachEnabled, publish }) => {
     const now = new Date().toISOString();
 
     const id = await ctx.db.insert("userCampaigns", {
@@ -126,7 +127,7 @@ export const createCampaign = mutation({
       goalAmount,
       raisedAmount: 0,
       donorCount: 0,
-      status: "draft",
+      status: publish ? "active" : "draft",
       coverImageUrl,
       endDate,
       location,
@@ -211,7 +212,25 @@ export const deleteCampaign = mutation({
       return { success: false, error: "You do not have permission to delete this campaign" };
     }
 
-    await ctx.db.delete(campaignId as any);
+    // SOFT DELETE — preserve financial records (ledger, donations, payouts)
+    // Hard-deleting would orphan campaignLedger, transactions, and audit logs
+    await ctx.db.patch(campaignId as any, {
+      status: "deleted",
+      deletedAt: new Date().toISOString(),
+    });
+
+    // Log to audit trail
+    await ctx.db.insert("financialAuditLog", {
+      userId,
+      campaignId,
+      action: "campaign_deleted",
+      initiatedBy: "user",
+      authorizationState: "authorized",
+      result: "success",
+      metadata: JSON.stringify({ campaignTitle: campaign.title, previousStatus: campaign.status }),
+      timestamp: new Date().toISOString(),
+    });
+
     return { success: true };
   },
 });
@@ -228,6 +247,16 @@ export const recordDonation = mutation({
     const campaign: any = await ctx.db.get(campaignId as any);
     if (!campaign) {
       return { success: false, error: "Campaign not found" };
+    }
+
+    // SECURITY: Only accept donations on active campaigns
+    if (campaign.status !== "active") {
+      return { success: false, error: "Campaign is not active" };
+    }
+
+    // Validate amount
+    if (amount <= 0 || amount > 100000) {
+      return { success: false, error: "Invalid donation amount" };
     }
 
     // Record the donation
