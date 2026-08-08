@@ -292,6 +292,7 @@ export default defineSchema({
     campaignTitle: v.string(),
     amount: v.number(),
     donorName: v.string(),
+    donorEmail: v.optional(v.string()),
     message: v.optional(v.string()),
     paymentMethod: v.string(),
     status: v.string(),

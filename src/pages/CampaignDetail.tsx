@@ -7,6 +7,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { StripeDonateButton } from "../components/StripeDonateButton";
 import ShareModal from "../components/ShareModal";
 import VerifiedBadge from "../components/VerifiedBadge";
 
@@ -32,6 +33,7 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
   const followCampaign = useMutation(api.userCampaigns.followCampaign);
   const unfollowCampaign = useMutation(api.userCampaigns.unfollowCampaign);
   const createCheckout = useMutation(api.paypalCheckout.createCheckoutSession);
+  const createStripeCheckout = useMutation(api.stripeCheckout.createCheckoutSession);
   const recordDonation = useMutation(api.userCampaigns.recordDonation);
 
   const [showDonate, setShowDonate] = useState(false);

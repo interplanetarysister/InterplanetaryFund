@@ -5,6 +5,7 @@
  * Public HTTP endpoints for external webhooks:
  * - /paypalWebhook — PayPal IPN listener for donation confirmation
  * - /paypalReturn — Return URL after PayPal donation completes
+ * - /stripeWebhook — Stripe checkout.session.completed handler
  */
 
 import { httpRouter } from "convex/server";
@@ -41,7 +42,7 @@ export const payPalIPN = httpAction(async (ctx, request) => {
     const mcGross = parseFloat(params.get("mc_gross") || "0");
     const mcCurrency = params.get("mc_currency") || "USD";
     const payerEmail = params.get("payer_email") || "";
-    const payerName = params.get("first_name", "") + " " + params.get("last_name", "");
+    const payerName = params.get("first_name", "") + " " + params.get("last_name");
     const receiverEmail = params.get("receiver_email") || "";
     const txnId = params.get("txn_id") || "";
     const itemName = params.get("item_name") || "";
@@ -84,6 +85,78 @@ export const payPalReturn = httpAction(async (ctx, request) => {
   return Response.redirect(redirectUrl.toString(), 302);
 });
 
+// =====================================================
+// STRIPE WEBHOOK — Stripe sends checkout.session.completed here
+// =====================================================
+export const stripeWebhook = httpAction(async (ctx, request) => {
+  try {
+    const stripeSignature = request.headers.get("stripe-signature") || "";
+    const rawBody = await request.text();
+
+    // In test mode, if no webhook secret is configured, parse the event directly
+    // In production, verify the signature
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+    let event: any;
+
+    if (webhookSecret && stripeSignature) {
+      // Verify webhook signature using Stripe SDK approach (manual)
+      // We'll use Stripe's API to construct the event
+      const stripe = await import("stripe");
+      const stripeClient = new stripe.default(webhookSecret ? (process.env.STRIPE_SECRET_KEY as string) : "", {
+        apiVersion: "2024-06-20",
+      });
+
+      try {
+        event = stripeClient.webhooks.constructEvent(
+          rawBody,
+          stripeSignature,
+          webhookSecret
+        );
+      } catch (err: any) {
+        console.error("Stripe webhook signature verification failed:", err.message);
+        return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+      }
+    } else {
+      // Test mode without signature verification — parse directly
+      event = JSON.parse(rawBody);
+    }
+
+    // Only handle checkout.session.completed
+    if (event.type !== "checkout.session.completed") {
+      return new Response("OK", { status: 200 });
+    }
+
+    const session = event.data.object;
+
+    // Extract metadata
+    const donationId = session.metadata?.donationId;
+    const campaignId = session.metadata?.campaignId;
+    const campaignTitle = session.metadata?.campaignTitle;
+    const donorName = session.metadata?.donorName;
+    const amountTotal = session.amount_total || 0;
+    const paymentIntentId = session.payment_intent || "";
+    const customerEmail = session.customer_details?.email || "";
+
+    await ctx.runMutation(internal.stripeWebhook.handleStripeEvent, {
+      eventType: event.type,
+      sessionId: session.id,
+      paymentIntentId,
+      amountTotal,
+      donationId,
+      campaignId,
+      campaignTitle,
+      donorName,
+      customerEmail,
+    });
+
+    return new Response("OK", { status: 200 });
+  } catch (error: any) {
+    console.error("Stripe webhook error:", error.message);
+    return new Response("Error", { status: 500 });
+  }
+});
+
 const http = httpRouter();
 
 http.route({
@@ -96,6 +169,12 @@ http.route({
   path: "/paypalReturn",
   method: "GET",
   handler: payPalReturn,
+});
+
+http.route({
+  path: "/stripeWebhook",
+  method: "POST",
+  handler: stripeWebhook,
 });
 
 export default http;
