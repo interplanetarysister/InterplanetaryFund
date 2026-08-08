@@ -43,6 +43,7 @@ import type * as imageGen from "../imageGen.js";
 import type * as inbox from "../inbox.js";
 import type * as institutions from "../institutions.js";
 import type * as interactions from "../interactions.js";
+import type * as midnightAccountReport from "../midnightAccountReport.js";
 import type * as outreach from "../outreach.js";
 import type * as paymentProviders from "../paymentProviders.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   inbox: typeof inbox;
   institutions: typeof institutions;
   interactions: typeof interactions;
+  midnightAccountReport: typeof midnightAccountReport;
   outreach: typeof outreach;
   paymentProviders: typeof paymentProviders;
   paypalCheckout: typeof paypalCheckout;

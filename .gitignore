@@ -20,3 +20,4 @@ qa-status.txt
 
 # QA test report artifacts (committed manually by workflow to qa-results/)
 qa-report.json
+docs/platform_accounts.csv

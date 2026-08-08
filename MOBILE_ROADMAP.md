@@ -84,7 +84,7 @@
 See MOBILE_BUILD.md for complete step-by-step build commands including:
 - One-time Capacitor setup (npm install, npx cap add android/ios)
 - Build & sync workflow (npm run build → npx cap sync → npx cap open)
-- APK production (Android Studio, command line, or Base44)
+- APK production (Android Studio, command line, or Capacitor)
 - Environment configuration (dev, production, mobile)
 - App update workflow
 

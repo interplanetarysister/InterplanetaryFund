@@ -56,10 +56,9 @@ cd android
 # APK at: android/app/build/outputs/apk/release/app-release.apk
 ```
 
-### Method 3: Base44 APK
-1. Base44 builds the APK from its app builder
-2. Base44 backend function syncs data from Convex API
-3. The APK connects to Convex via the Base44 backend function
+### Method 3: LEGACY — Base44 APK (DEPRECATED)
+_NOTE: Base44 APK method is deprecated. Use Capacitor (Method 1 or 2) for mobile builds._
+_Historically, Base44 built an APK that synced Convex data via backend functions. This is no longer the canonical approach._
 
 ## Environment Configuration
 

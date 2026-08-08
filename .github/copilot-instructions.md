@@ -1,20 +1,19 @@
 # GitHub Copilot Instructions — Interplanetary Fund
 
 ## Project Overview
-The Interplanetary Fund is a woman-owned fundraising platform built by Michelle Rogers. It streamlines fundraising, manages donor relationships, and maximizes campaign impact through AI agents and real-time insights. The platform is built on Base44 (primary app), with a credit-free Convex backend for analytics and automation, and a React frontend for dashboards.
+The Interplanetary Fund is a woman-owned fundraising platform built by Michelle Rogers. It streamlines fundraising, manages donor relationships, and maximizes campaign impact through AI agents and real-time insights. The platform uses React/Vite (canonical frontend), Convex (canonical backend/source of truth), Vercel (web hosting), and Capacitor (Android/iOS packaging). Base44 is LEGACY/transitional only.
 
 ## Architecture — THREE Connected Systems
 
-### 1. Base44 App (Primary — Source of Truth)
-- **App ID**: 6a67a778342a8fe05ee79cba
-- **URL**: base44-dispatcher-production.base44.workers.dev
-- **Description**: AI-powered operating system for organizers and nonprofits
+### 1. Convex Backend (Canonical — Source of Truth)
+- **URL**: https://rosy-butterfly-2.convex.cloud
+- **Description**: Canonical backend, database, business logic, agents, protocol enforcement, treasury, payments
 - **30+ Entities**: Campaign, Donation, Community, Institution, GrantApplication, AgentActivity, Institution, Notification, PlatformConnection, PlatformEvent, FeatureFlag, Opportunity, KnowledgeArticle, CampaignUpdate, MissionBrief, VolunteerOpportunity, Withdrawal, ExecutiveReport, CommunityMember, DiscussionPost, Message, DistributedPost, DiscussionReply, InstitutionOpportunity, InboxItem, FollowedCampaign, Recommendation
 
 ### 2. Convex Backend (Credit-Free Analytics & Automation)
 - **URL**: https://rosy-butterfly-2.convex.cloud
 - **REST API**: POST https://rosy-butterfly-2.convex.cloud/api/query
-- **Purpose**: Mirrors Base44 data for credit-free analytics, protocol enforcement, and automation
+- **Purpose**: Canonical backend for analytics, protocol enforcement, automation, and all business logic (credit-free)
 - **8 Tables**: agents, monitoredCampaigns, protocolReports, externalPlatforms, holdingAccounts, payoutRequests, transactions, feeConfig
 - **Crons**: Daily 6am audit, weekly Saturday 2am training
 
@@ -33,8 +32,8 @@ Base44 App (source of truth)
   → React dashboard (reads from Convex)
 ```
 
-## 4 Built-in AI Agents (from Base44 App)
-These agents are built into the Base44 app's architecture by the Builder AI. They generate recommendations, mission briefs, and distributed posts.
+## 7 AI Agents (Convex-native, credit-free)
+These agents operate entirely through Convex with per-agent automation crons. They generate recommendations, mission briefs, and distributed posts.
 
 | Agent | Role | Specialization |
 |-------|------|----------------|
@@ -43,7 +42,7 @@ These agents are built into the Base44 app's architecture by the Builder AI. The
 | Growth Agent | growth | Donor acquisition, social proof, seed funding |
 | Communications Agent | communications | Multi-platform outreach, content distribution |
 
-## 5 Campaigns (Real Data from Base44)
+## Campaigns (Canonical Data in Convex)
 | Campaign | Status | Category | Goal | External Raised |
 |----------|--------|----------|------|-----------------|
 | Running against the wind | draft | disaster_relief | $5,000 | $0 |
@@ -53,20 +52,20 @@ These agents are built into the Base44 app's architecture by the Builder AI. The
 | Help homeless get a conversion van | draft | housing | $10,000 | $0 |
 | **TOTAL** | | | **$71,000** | **$9,830** |
 
-## 11 Platform Connections (Real Data from Base44)
+## Platform Connections (Canonical Data in Convex)
 Bluesky (social, auto, published), Patreon ($500, 2 donors), Facebook (social, auto), Ko-fi ($250), Buy Me a Coffee ($9,000, 4 donors), Spotfund ($80), FundRazr, Indiegogo, GiveSendGo, Kickstarter, GoFundMe
 
-## 10 Funding Opportunities (Real Data from Base44)
+## Funding Opportunities (Historical — see Convex tables)
 Grants.gov, IFundWomen Universal Grant, Amber Grant for Women ($10K monthly / $50K annual), 37 Angels ($50K-$200K), Skip Instant Grants
 
 ## Convex Backend Files
-- `convex/schema.ts` — 8 tables matching Base44 data structure
+- `convex/schema.ts` — 47 tables (canonical database schema)
 - `convex/agents.ts` — Agent CRUD, stats, memory updates
 - `convex/campaigns.ts` — Campaign sync, platform connections
 - `convex/treasury.ts` — Fees, payouts, balance aggregation
 - `convex/protocol.ts` — P-1 through P-8 enforcement, auto-fix
 - `convex/crons.ts` — Daily audit + weekly training
-- `convex/seed.ts` — Seeds real data from Base44 app (4 agents, 5 campaigns, 11 platforms)
+- `convex/seed.ts` — Initial seed data (historical)
 
 ## Protocol Standards (P-1 through P-8)
 - P-1: outreach_enabled = true
