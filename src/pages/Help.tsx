@@ -25,9 +25,9 @@ export default function Help() {
     await createTicket({
       subject: ticketSubject,
       message: ticketMessage,
+      name: ticketEmail,
       email: ticketEmail,
-      category: "general",
-    });
+      });
     setTicketSubmitted(true);
     setTicketSubject("");
     setTicketMessage("");
@@ -49,13 +49,13 @@ export default function Help() {
           <p className="text-ifmuted text-sm leading-relaxed">{selectedArticle.answer}</p>
           <div className="flex items-center gap-4 mt-4 pt-4 border-t border-ifborder">
             <button
-              onClick={() => markHelpful({ id: selectedArticle._id, helpful: true })}
+              onClick={() => markHelpful({ articleId: selectedArticle._id, helpful: true })}
               className="text-xs text-ifmuted hover:text-ifcyan flex items-center gap-1"
             >
               👍 Helpful ({selectedArticle.helpfulYes})
             </button>
             <button
-              onClick={() => markHelpful({ id: selectedArticle._id, helpful: false })}
+              onClick={() => markHelpful({ articleId: selectedArticle._id, helpful: false })}
               className="text-xs text-ifmuted hover:text-red-400 flex items-center gap-1"
             >
               👎 Not helpful ({selectedArticle.helpfulNo})

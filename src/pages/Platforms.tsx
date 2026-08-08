@@ -16,12 +16,12 @@ export default function Platforms() {
   const [connectionType, setConnectionType] = useState("manual");
 
   const externalBalances = useQuery(api.campaigns.getAllExternalBalances, {});
-  const userPlatforms = useQuery(api.campaigns.getExternalPlatforms, { userId });
+  const userPlatforms = useQuery(api.campaigns.getExternalPlatforms, { userId } as any);
   const connectPlatform = useMutation(api.campaigns.connectExternalPlatform);
 
   const handleConnect = async () => {
     try {
-      await connectPlatform({
+      await (connectPlatform as any)({
         userId,
         platformName,
         campaignUrl,

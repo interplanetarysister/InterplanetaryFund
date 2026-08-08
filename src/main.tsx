@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /*
  * Interplanetary Fund — Copyright © 2026 Michelle Rogers. All Rights Reserved.
  * PROPRIETARY AND CONFIDENTIAL. Do not copy, distribute, or modify without

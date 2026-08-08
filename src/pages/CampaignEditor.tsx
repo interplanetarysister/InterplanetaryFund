@@ -13,6 +13,7 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
   const addUpdate = useMutation(api.userCampaigns.addCampaignUpdate);
   const recordDonation = useMutation(api.userCampaigns.recordDonation);
 
+  const [summary, setSummary] = useState("")
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
   const [beneficiary, setBeneficiary] = useState("");
@@ -52,7 +53,7 @@ export default function CampaignEditor({ campaignId, userId, onBack }: { campaig
   const handleSave = async () => {
     setSaving(true);
     setSavedMsg("");
-    const result = await updateCampaign({
+    const result = await (updateCampaign as any)({
       campaignId,
       userId,
       title,

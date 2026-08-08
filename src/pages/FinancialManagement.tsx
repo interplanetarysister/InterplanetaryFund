@@ -549,10 +549,10 @@ function AutomationTab({ userId, campaignId }: any) {
             The AI is monitoring authorized integrations and reconciling transactions for this campaign.
           </p>
           <div className="mt-3 text-sm space-y-1">
-            <p><span className="text-gray-500">Agreement Version:</span> {automationStatus.agreementVersion}</p>
-            <p><span className="text-gray-500">Accepted:</span> {new Date(automationStatus.acceptedAt).toLocaleString()}</p>
-            <p><span className="text-gray-500">Permissions:</span> {automationStatus.permissions.join(", ")}</p>
-            <p><span className="text-gray-500">Providers:</span> {automationStatus.connectedProviders.join(", ") || "None connected"}</p>
+            <p><span className="text-gray-500">Agreement Version:</span> {(automationStatus as any)?.agreementVersion}</p>
+            <p><span className="text-gray-500">Accepted:</span> {new Date((automationStatus as any)?.acceptedAt || Date.now()).toLocaleString()}</p>
+            <p><span className="text-gray-500">Permissions:</span> {(automationStatus as any)?.permissions?.join(", ")}</p>
+            <p><span className="text-gray-500">Providers:</span> {(automationStatus as any)?.connectedProviders?.join(", ") || "None connected"}</p>
           </div>
           <button
             onClick={handleRevoke}
@@ -619,7 +619,7 @@ function WithdrawTab({ userId, campaignId }: any) {
   const handleWithdraw = async () => {
     if (!campaignId) { alert("Select a campaign first"); return; }
     if (!destination) { alert("Enter a payout destination"); return; }
-    if (!confirm(`Withdraw $${balance?.availableBalance.toFixed(2)} to receive $${balance?.netAmount.toFixed(2)} via ${method}?`)) return;
+    if (!confirm(`Withdraw $${(balance?.availableBalance || 0).toFixed(2)} to receive $${(balance?.netAmount || 0).toFixed(2)} via ${method}?`)) return;
 
     try {
       const res = await withdraw({
@@ -661,7 +661,7 @@ function WithdrawTab({ userId, campaignId }: any) {
             </div>
             <div className="flex justify-between border-t border-gray-200 dark:border-gray-800 pt-2 font-semibold">
               <span className="text-gray-900 dark:text-white">You Receive</span>
-              <span className="text-green-600 dark:text-green-400">${balance.netAmount?.toFixed(2)}</span>
+              <span className="text-green-600 dark:text-green-400">${balance?.netAmount || 0?.toFixed(2)}</span>
             </div>
           </div>
 
@@ -691,11 +691,11 @@ function WithdrawTab({ userId, campaignId }: any) {
             </div>
             <button
               onClick={handleWithdraw}
-              disabled={balance.availableBalance <= 0}
+              disabled={(balance?.availableBalance || 0) <= 0}
               className="w-full px-4 py-3 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 disabled:opacity-50"
             >
-              {balance.availableBalance > 0
-                ? `Withdraw $${balance.availableBalance.toFixed(2)} → Receive $${balance.netAmount.toFixed(2)}`
+              {(balance?.availableBalance || 0) > 0
+                ? `Withdraw $${(balance?.availableBalance || 0).toFixed(2)} → Receive $${(balance?.netAmount || 0).toFixed(2)}`
                 : "No Funds Available"
               }
             </button>

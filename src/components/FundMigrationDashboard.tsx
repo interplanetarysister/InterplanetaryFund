@@ -17,7 +17,7 @@ export function FundMigrationDashboard() {
   const [migrations, setMigrations] = useState<Migration[]>([
     { campaignId: "", campaignTitle: "", sourcePlatform: "", grossAmount: 0 },
   ]);
-  const [results, setResults] = useState(null);
+  const [results, setResults] = useState<string | null>(null);
 
   const addMigration = () => {
     setMigrations([...migrations, { campaignId: "", campaignTitle: "", sourcePlatform: "", grossAmount: 0 }]);

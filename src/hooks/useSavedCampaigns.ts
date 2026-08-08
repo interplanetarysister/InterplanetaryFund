@@ -27,7 +27,7 @@ export function useSavedCampaigns(userId?: string) {
       await unsaveMutation({ userId, campaignId });
     } else {
       setSavedIds((prev) => [...prev, campaignId]);
-      await saveMutation({ userId, campaignId });
+      await saveMutation({ userId, campaignId, campaignTitle: "" });
     }
   }, [userId, savedIds, saveMutation, unsaveMutation]);
 

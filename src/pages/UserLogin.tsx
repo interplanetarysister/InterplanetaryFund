@@ -24,7 +24,7 @@ export default function UserLogin({ onLogin }: { onLogin: (userId: string, name:
       setShouldLogin(false);
       setLoading(false);
       if (loginQuery.success) {
-        onLogin(loginQuery.userId, loginQuery.name);
+        onLogin(loginQuery.userId || "", loginQuery.name || "");
       } else if (mode === "login") {
         setError("No account found with this email. Create one?");
         setMode("register");
@@ -48,7 +48,7 @@ export default function UserLogin({ onLogin }: { onLogin: (userId: string, name:
       try {
         const result = await register({ email, name });
         if (result.success) {
-          onLogin(result.userId, result.name);
+          onLogin(result.userId || "", result.name || "");
         } else {
           // Account exists — switch to login mode
           setMode("login");
@@ -62,7 +62,7 @@ export default function UserLogin({ onLogin }: { onLogin: (userId: string, name:
     } else {
       // Login mode — trigger the query watcher
       if (loginQuery !== undefined && loginQuery.success) {
-        onLogin(loginQuery.userId, loginQuery.name);
+        onLogin(loginQuery.userId || "", loginQuery.name || "");
       } else if (loginQuery !== undefined && !loginQuery.success) {
         setError("No account found with this email. Create one?");
         setMode("register");

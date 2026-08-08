@@ -160,7 +160,7 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
     if (isSaved) {
       await unsaveCampaign({ campaignId, userId });
     } else {
-      await saveCampaign({ campaignId, userId });
+      await saveCampaign({ campaignId, userId, campaignTitle: campaign?.title || "" });
     }
   };
 
@@ -512,19 +512,19 @@ export default function CampaignDetail({ campaignId, userId, onBack, onLogin }: 
       )}
 
       {/* Social Captions & Press Release */}
-      {(campaign.socialCaptions || campaign.pressRelease) && (
+      {(campaign.aiSocialCaptions || campaign.aiPressRelease) && (
         <div className="bg-ifcard rounded-2xl p-4 border border-ifborder space-y-3">
           <h2 className="text-sm font-semibold text-iftext">📡 Updates & Outreach</h2>
-          {campaign.socialCaptions && (
+          {campaign.aiSocialCaptions && (
             <div>
               <p className="text-[10px] uppercase tracking-wider text-ifcyan mb-1">Social Captions</p>
-              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.socialCaptions}</div>
+              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.aiSocialCaptions}</div>
             </div>
           )}
-          {campaign.pressRelease && (
+          {campaign.aiPressRelease && (
             <div>
               <p className="text-[10px] uppercase tracking-wider text-ifcyan mb-1">Press Release</p>
-              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.pressRelease}</div>
+              <div className="text-xs text-ifmuted whitespace-pre-wrap rounded-lg bg-ifdark p-3 border border-ifborder">{campaign.aiPressRelease}</div>
             </div>
           )}
         </div>

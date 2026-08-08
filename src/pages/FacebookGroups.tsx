@@ -395,7 +395,7 @@ export default function FacebookGroups() {
       {!facebookConnected && (
         <div className="card text-center py-12">
           <div className="w-16 h-16 rounded-full bg-ifaccent/20 border border-ifaccent/30 flex items-center justify-center mx-auto mb-3">
-            <span class="text-3xl">📡</span>
+            <span className="text-3xl">📡</span>
           </div>
           <h3 className="text-sm font-semibold text-iftext">Facebook Group Outreach</h3>
           <p className="text-xs text-ifmuted mt-1 max-w-xs mx-auto">

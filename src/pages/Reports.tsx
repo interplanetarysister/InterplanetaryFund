@@ -42,7 +42,7 @@ export default function Reports() {
     const k = d.platform || "direct";
     byPlatformMap[k] = (byPlatformMap[k] || 0) + (d.amount || 0);
   });
-  const byPlatform = Object.entries(byPlatformMap).map(([name, value]) => ({ name, value }));
+  const byPlatform = Object.entries(byPlatformMap).map(([label, value]) => ({ label, value }));
 
   // By category
   const byCategoryMap: Record<string, number> = {};
@@ -53,10 +53,10 @@ export default function Reports() {
   const byCategory = Object.entries(byCategoryMap).map(([name, value]) => ({ name, value }));
 
   // Top donors
-  const donorMap: Record<string, { name: string; total: number; count: number }> = {};
+  const donorMap: Record<string, { label: string; total: number; count: number }> = {};
   allDonations.forEach((d: any) => {
     const name = d.donorName || d.donor_name || "Anonymous";
-    if (!donorMap[name]) donorMap[name] = { name, total: 0, count: 0 };
+    if (!donorMap[name]) donorMap[name] = { label: name, total: 0, count: 0 };
     donorMap[name].total += d.amount || 0;
     donorMap[name].count += 1;
   });
@@ -107,7 +107,7 @@ export default function Reports() {
                   <div key={i} className="flex items-center justify-between bg-ifdark rounded-lg px-3 py-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-ifcyan">#{i + 1}</span>
-                      <span className="text-sm text-iftext">{d.name}</span>
+                      <span className="text-sm text-iftext">{d.label}</span>
                       <span className="text-[10px] text-ifmuted">{d.count} gifts</span>
                     </div>
                     <span className="text-sm font-bold text-ifgreen">${d.total.toLocaleString()}</span>

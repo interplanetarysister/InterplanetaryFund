@@ -94,7 +94,7 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
   const handlePublish = async () => {
     setSaving(true);
     try {
-      const result = await createCampaign({
+      const result: any = await createCampaign({
         userId,
         title: editing.title,
         summary: editing.summary,

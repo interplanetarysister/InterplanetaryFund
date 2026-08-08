@@ -5,6 +5,7 @@
  */
 
 import { TermsAcceptance } from "./components/TermsAcceptance";
+import PlatformAccountsSheet from "./components/PlatformAccountsSheet";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
 import { useQuery } from "convex/react";
@@ -194,6 +195,9 @@ export default function App() {
     setView("editor");
   }, []);
 
+  const handleNavigate = useCallback((target: string) => {
+    setView(target as any);
+  }, []);
   const handleViewCampaign = useCallback((campaignId: string) => {
     setViewCampaignId(campaignId);
     setView("detail");

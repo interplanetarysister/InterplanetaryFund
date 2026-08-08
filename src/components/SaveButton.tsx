@@ -27,7 +27,7 @@ export default function SaveButton({
     if (isSaved) {
       await unsaveCampaign({ campaignId, userId });
     } else {
-      await saveCampaign({ campaignId, userId });
+      await saveCampaign({ campaignId, userId, campaignTitle: "" });
     }
   };
 
