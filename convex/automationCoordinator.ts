@@ -19,11 +19,13 @@ const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
   "Post Production Agent": 6 * 60 * 60 * 1000,
   "Donor Relations Agent": 6 * 60 * 60 * 1000,
+  Scout: 8 * 60 * 60 * 1000,
   "Scout Agent": 8 * 60 * 60 * 1000,
   "Platform Coordinator Agent": 4 * 60 * 60 * 1000,
 };
 
 const LANE_LEASE_MS = 2 * 60 * 60 * 1000;
+const LANE_LEASE_SPRINT_ID = "platform-serialized-automation-lane";
 
 function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   if (!lastRun) return true;
@@ -35,6 +37,15 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
 function isSixHourSlot(nowMs: number) {
   const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
   return epochHour % 6 === 0;
+}
+
+function parseLeaseContext(context: string | undefined) {
+  try {
+    const parsed = context ? JSON.parse(context) : null;
+    return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : null;
+  } catch {
+    return null;
+  }
 }
 
 export const getAgentAutomationStatus = internalQuery({
@@ -52,68 +63,91 @@ export const getAgentAutomationStatus = internalQuery({
 /**
  * Durable duplicate-run guard for the serialized lane.
  *
- * Convex already guarantees that one cron job cannot overlap with itself, but
- * this claim also protects against a manual/internal invocation racing the
- * cron. The claim is transactional: concurrent claimers reading the same
- * latest lease cannot both commit successfully.
+ * A fixed taskRelay key gives the lane one transactional claim record instead
+ * of deriving exclusivity from append-only audit logs. Concurrent claimers read
+ * the same indexed record; if neither exists, the competing insert is subject
+ * to Convex's transactional conflict detection and the losing transaction is
+ * retried against the newly-created claim.
  */
 export const claimSerializedAutomation = internalMutation({
   args: { runId: v.string(), nowMs: v.number() },
   handler: async (ctx, { runId, nowMs }) => {
-    const cutoff = nowMs - LANE_LEASE_MS;
-    const recentLogs = await ctx.db
-      .query("agentActivityLog")
-      .withIndex("byTimestamp")
-      .order("desc")
-      .take(200);
+    const existing = await ctx.db
+      .query("taskRelay")
+      .withIndex("bySprintId", (q: any) => q.eq("sprintId", LANE_LEASE_SPRINT_ID))
+      .first();
 
-    const latestLaneClaim = recentLogs.find(
-      (entry) =>
-        entry.agentName === "Platform Coordinator" &&
-        entry.action === "serialized_automation_claim",
-    );
+    const existingContext = parseLeaseContext(existing?.context);
+    const leaseUntil = typeof existingContext?.leaseUntil === "number" ? existingContext.leaseUntil : 0;
+    const existingStatus = typeof existingContext?.status === "string" ? existingContext.status : null;
 
-    if (latestLaneClaim) {
-      const claimedAt = Date.parse(latestLaneClaim.timestamp);
-      if (Number.isFinite(claimedAt) && claimedAt >= cutoff) {
-        try {
-          const metadata = latestLaneClaim.metadata ? JSON.parse(latestLaneClaim.metadata) : null;
-          if (metadata?.status === "claimed") {
-            return { acquired: false, reason: "active_lease" };
-          }
-        } catch {
-          // Treat malformed historical metadata as non-authoritative and allow
-          // a fresh claim rather than permanently wedging the automation lane.
-        }
-      }
+    if (existing && existingStatus === "claimed" && leaseUntil > nowMs) {
+      return { acquired: false, reason: "active_lease", runId };
     }
 
-    await ctx.db.insert("agentActivityLog", {
-      agentName: "Platform Coordinator",
-      action: "serialized_automation_claim",
-      category: "platform",
-      description: `Serialized automation lane claimed: ${runId}`,
-      metadata: JSON.stringify({ runId, status: "claimed", leaseUntil: nowMs + LANE_LEASE_MS }),
-      creditCost: 0,
-      timestamp: new Date(nowMs).toISOString(),
+    const nextContext = JSON.stringify({
+      runId,
+      status: "claimed",
+      claimedAt: new Date(nowMs).toISOString(),
+      leaseUntil: nowMs + LANE_LEASE_MS,
     });
 
-    return { acquired: true, reason: "claimed" };
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        context: nextContext,
+        status: "running",
+        completedThisSession: [],
+        nextSteps: ["serialized automation lane"],
+        activeSprint: "platform-foundation",
+        totalSprints: 1,
+        lastUpdated: new Date(nowMs).toISOString(),
+      });
+    } else {
+      await ctx.db.insert("taskRelay", {
+        sprintId: LANE_LEASE_SPRINT_ID,
+        context: nextContext,
+        nextSteps: ["serialized automation lane"],
+        completedThisSession: [],
+        status: "running",
+        lastUpdated: new Date(nowMs).toISOString(),
+        activeSprint: "platform-foundation",
+        totalSprints: 1,
+      });
+    }
+
+    return { acquired: true, reason: "claimed", runId };
   },
 });
 
 export const releaseSerializedAutomation = internalMutation({
   args: { runId: v.string(), nowMs: v.number(), status: v.union(v.literal("completed"), v.literal("failed")) },
   handler: async (ctx, { runId, nowMs, status }) => {
-    await ctx.db.insert("agentActivityLog", {
-      agentName: "Platform Coordinator",
-      action: "serialized_automation_claim",
-      category: "platform",
-      description: `Serialized automation lane ${status}: ${runId}`,
-      metadata: JSON.stringify({ runId, status }),
-      creditCost: 0,
-      timestamp: new Date(nowMs).toISOString(),
+    const existing = await ctx.db
+      .query("taskRelay")
+      .withIndex("bySprintId", (q: any) => q.eq("sprintId", LANE_LEASE_SPRINT_ID))
+      .first();
+
+    if (!existing) return { released: false, runId, status };
+
+    const existingContext = parseLeaseContext(existing.context);
+    if (existingContext?.runId !== runId) {
+      return { released: false, runId, status, reason: "lease_owned_by_another_run" };
+    }
+
+    await ctx.db.patch(existing._id, {
+      context: JSON.stringify({
+        ...existingContext,
+        runId,
+        status,
+        releasedAt: new Date(nowMs).toISOString(),
+        leaseUntil: 0,
+      }),
+      status,
+      completedThisSession: [status],
+      nextSteps: [],
+      lastUpdated: new Date(nowMs).toISOString(),
     });
+
     return { released: true, runId, status };
   },
 });
