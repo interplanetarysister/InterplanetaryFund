@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-22T07:07:08.344Z",
+  "timestamp": "2026-08-22T07:52:13.414Z",
   "checks": {
     "build": "PASS",
     "convex": "DEPLOYED",
@@ -8,8 +8,10 @@
     "Vercel": "200",
     "GitHub Pages": "200",
     "Convex": "200",
-    "githubActions": "5 recent runs, 0 failed"
+    "githubActions": "5 recent runs, 3 failed"
   },
-  "alerts": [],
+  "alerts": [
+    "3 FAILED_GH_ACTIONS"
+  ],
   "sync": {}
 }
