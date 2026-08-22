@@ -114,4 +114,21 @@ if (!coordinatorSource.includes("utcHour === 15")) {
   throw new Error("Daily 15:00 UTC post-generation cadence gate is missing.");
 }
 
+// Duplicate-run prevention must be durable and transactional rather than a
+// process-local flag. The latest claim/release record is the authoritative
+// lease state, with an expiry so a crashed action cannot wedge the lane.
+for (const required of [
+  "claimSerializedAutomation",
+  "releaseSerializedAutomation",
+  "LANE_LEASE_MS = 2 * 60 * 60 * 1000",
+  "serialized_automation_claim",
+  "metadata?.status === \"claimed\"",
+  "ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation",
+  "ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation",
+]) {
+  if (!coordinatorSource.includes(required)) {
+    throw new Error(`Durable duplicate-run guard is incomplete: ${required}`);
+  }
+}
+
 console.log("Automation concurrency verification passed.");
