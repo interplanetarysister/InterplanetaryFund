@@ -15,6 +15,9 @@ const EVENT_VERSION = 1;
 const MAX_PAYLOAD_BYTES = 32_000;
 const MAX_JOB_ATTEMPTS = 5;
 
+// Keep the authoritative Convex catalog in lockstep with the application
+// foundation contract. A producer accepted by Base44 must be accepted by the
+// authoritative runtime, and vice versa.
 const EVENT_NAMES = new Set([
   "platform.configuration.changed",
   "platform.health_check.executed",
@@ -23,6 +26,13 @@ const EVENT_NAMES = new Set([
   "platform.security.action",
   "platform.recovery.executed",
   "platform.event.recorded",
+  "platform.health.check",
+  "platform.feature.flag.updated",
+  "platform.knowledge.published",
+  "platform.agent.interaction.recorded",
+  "platform.connection.synced",
+  "platform.campaign.updated",
+  "platform.payment.updated",
 ]);
 
 function assertValidIsoTimestamp(value: string) {
