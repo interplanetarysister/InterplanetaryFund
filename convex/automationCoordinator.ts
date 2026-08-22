@@ -18,7 +18,7 @@ const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
   "Post Production Agent": 6 * 60 * 60 * 1000,
   "Donor Relations Agent": 6 * 60 * 60 * 1000,
-  "Scout Agent": 8 * 60 * 60 * 1000,
+  Scout: 8 * 60 * 60 * 1000,
   "Platform Coordinator Agent": 4 * 60 * 60 * 1000,
 };
 
@@ -50,6 +50,7 @@ export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
     const nowMs = Date.now();
+    const runId = `serialized-automation:${new Date(nowMs).toISOString()}`;
     const results: Array<Record<string, unknown>> = [];
     const utcHour = new Date(nowMs).getUTCHours();
 
@@ -59,33 +60,33 @@ export const runSerializedAutomation = internalAction({
     // 1. Site health — hourly. It writes a health record to distributedPosts.
     try {
       const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
-      results.push({ task: "site-health", status: "completed", result });
+      results.push({ runId, task: "site-health", status: "completed", result });
     } catch (error) {
-      results.push({ task: "site-health", status: "failed", error: String(error) });
+      results.push({ runId, task: "site-health", status: "failed", error: String(error) });
     }
 
     // 2. Auto-repair — historical six-hour cadence. It can patch distributedPosts.
     if (isSixHourSlot(nowMs)) {
       try {
         const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
-        results.push({ task: "auto-repair", status: "completed", result });
+        results.push({ runId, task: "auto-repair", status: "completed", result });
       } catch (error) {
-        results.push({ task: "auto-repair", status: "failed", error: String(error) });
+        results.push({ runId, task: "auto-repair", status: "failed", error: String(error) });
       }
     } else {
-      results.push({ task: "auto-repair", status: "skipped", reason: "not_due" });
+      results.push({ runId, task: "auto-repair", status: "skipped", reason: "not_due" });
     }
 
     // 3. Daily post generation — historical 15:00 UTC cadence.
     if (utcHour === 15) {
       try {
         const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
-        results.push({ task: "daily-post-generation", status: "completed", result });
+        results.push({ runId, task: "daily-post-generation", status: "completed", result });
       } catch (error) {
-        results.push({ task: "daily-post-generation", status: "failed", error: String(error) });
+        results.push({ runId, task: "daily-post-generation", status: "failed", error: String(error) });
       }
     } else {
-      results.push({ task: "daily-post-generation", status: "skipped", reason: "not_due" });
+      results.push({ runId, task: "daily-post-generation", status: "skipped", reason: "not_due" });
     }
 
     // 4. Outreach strategy improvement — historical six-hour cadence.
@@ -93,43 +94,46 @@ export const runSerializedAutomation = internalAction({
     if (isSixHourSlot(nowMs)) {
       try {
         const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
-        results.push({ task: "outreach-strategy-improvement", status: "completed", result });
+        results.push({ runId, task: "outreach-strategy-improvement", status: "completed", result });
       } catch (error) {
-        results.push({ task: "outreach-strategy-improvement", status: "failed", error: String(error) });
+        results.push({ runId, task: "outreach-strategy-improvement", status: "failed", error: String(error) });
       }
     } else {
-      results.push({ task: "outreach-strategy-improvement", status: "skipped", reason: "not_due" });
+      results.push({ runId, task: "outreach-strategy-improvement", status: "skipped", reason: "not_due" });
     }
+
+    // Snapshot automation state once. Re-querying between workers adds avoidable
+    // reads and makes cadence decisions depend on intermediate worker mutations.
+    const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
 
     const agentRuns = [
       ["Atlas", internal.agentAutomation.runAtlasAutomation],
       ["Post Production Agent", internal.agentAutomation.runPostProductionAutomation],
       ["Donor Relations Agent", internal.agentAutomation.runDonorRelationsAutomation],
-      ["Scout Agent", internal.agentAutomation.runScoutAutomation],
+      ["Scout", internal.agentAutomation.runScoutAutomation],
       ["Platform Coordinator Agent", internal.agentAutomation.runCoordinatorAutomation],
     ] as const;
 
     for (const [agentName, functionRef] of agentRuns) {
-      const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
       const agent = agents.find((item) => item.name === agentName);
 
       if (!agent || agent.automationEnabled === false) {
-        results.push({ task: agentName, status: "skipped", reason: agent ? "disabled" : "missing" });
+        results.push({ runId, task: agentName, status: "skipped", reason: agent ? "disabled" : "missing" });
         continue;
       }
 
       const intervalMs = AGENT_INTERVALS_MS[agentName];
       if (!isDue(agent.lastAutomationRun, intervalMs, nowMs)) {
-        results.push({ task: agentName, status: "skipped", reason: "not_due", lastRun: agent.lastAutomationRun });
+        results.push({ runId, task: agentName, status: "skipped", reason: "not_due", lastRun: agent.lastAutomationRun });
         continue;
       }
 
       try {
         const result = await ctx.runMutation(functionRef, {});
-        results.push({ task: agentName, status: "completed", result });
+        results.push({ runId, task: agentName, status: "completed", result });
       } catch (error) {
         // One worker failure must not fan out into parallel retries.
-        results.push({ task: agentName, status: "failed", error: String(error) });
+        results.push({ runId, task: agentName, status: "failed", error: String(error) });
       }
     }
 
@@ -138,17 +142,18 @@ export const runSerializedAutomation = internalAction({
     if (isSixHourSlot(nowMs)) {
       try {
         const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
-        results.push({ task: "browserbase-research", status: "completed", result });
+        results.push({ runId, task: "browserbase-research", status: "completed", result });
       } catch (error) {
-        results.push({ task: "browserbase-research", status: "failed", error: String(error) });
+        results.push({ runId, task: "browserbase-research", status: "failed", error: String(error) });
       }
     } else {
-      results.push({ task: "browserbase-research", status: "skipped", reason: "not_due" });
+      results.push({ runId, task: "browserbase-research", status: "skipped", reason: "not_due" });
     }
 
     return {
       success: true,
       serialized: true,
+      runId,
       timestamp: new Date(nowMs).toISOString(),
       results,
     };
