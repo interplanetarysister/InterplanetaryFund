@@ -19,25 +19,14 @@ crons.daily("daily-protocol-autofix", { hourUTC: 13, minuteUTC: 0 }, internal.pr
 crons.weekly("weekly-training-session", { dayOfWeek: "saturday", hourUTC: 9, minuteUTC: 0 }, internal.protocol.weeklyTraining, {});
 
 // === POST GENERATION & OUTREACH ===
-// Daily Auto-Post Generation — 8am Pacific (15:00 UTC)
-crons.daily("daily-post-generation", { hourUTC: 15, minuteUTC: 0 }, internal.postContent.autoGeneratePosts, {});
-// Proactive Group Discovery — Every 4 hours
+// Proactive Group Discovery — Every 4 hours.
+// This lane owns facebookGroups discovery state and does not write distributedPosts.
 crons.interval("proactive-group-discovery", { minutes: 240 }, internal.facebook.discoverGroupsProactively, {});
-// Outreach Strategy Improvement — Every 6 hours
-crons.interval("outreach-strategy-improvement", { minutes: 360 }, internal.facebook.improveOutreachStrategy, {});
-
-// === AUTONOMOUS OPERATIONS (Credit-Free) ===
-// Auto-Repair — Every 6 hours
-crons.interval("auto-repair", { minutes: 360 }, internal.autonomous.autoRepair, {});
-// Agent Research Sprint — Every 12 hours (now via Browserbase)
-crons.interval("agent-research-sprint", { minutes: 720 }, internal.research.runAgentResearch, {});
 
 // === SERIALIZED AUTOMATION LANE ===
-// Site health + agent automation + Browserbase research are deliberately
-// executed through ONE cron lane. This replaces the previous independent
-// crons that could mutate overlapping agent/distributedPosts state at once.
-// The coordinator preserves each agent's historical cadence internally.
-// Hourly is the cadence of the lane; individual work is run only when due.
+// All automation that can read/write shared agent or distributedPosts state is
+// executed through ONE hourly lane. Historical cadences are enforced inside
+// the coordinator. This prevents independent crons from racing shared writes.
 crons.hourly("serialized-automation-lane", internal.automationCoordinator.runSerializedAutomation, {});
 
 // === IMAGE GENERATION (Credit-Free via Pollinations.ai) ===
