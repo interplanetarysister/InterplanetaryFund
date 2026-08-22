@@ -62,6 +62,25 @@ function validateJobKey(idempotencyKey: string) {
   if (!idempotencyKey.trim() || idempotencyKey.length > 200) throw new Error("Valid idempotencyKey is required");
 }
 
+function safePayloadMetadata(payload: unknown) {
+  const serialized = JSON.stringify(payload);
+  const keys = Object.keys(payload as Record<string, unknown>).slice(0, 50);
+  return {
+    payloadKeys: keys,
+    payloadBytes: serialized.length,
+    payloadRedacted: true,
+  };
+}
+
+function parseJobOwner(context: string) {
+  try {
+    const parsed = JSON.parse(context);
+    return typeof parsed?.ownerActorId === "string" ? parsed.ownerActorId : null;
+  } catch {
+    return null;
+  }
+}
+
 async function recordEvent(ctx: any, input: {
   eventId: string;
   name: string;
@@ -86,9 +105,21 @@ async function recordEvent(ctx: any, input: {
 
   if (existing) return { recorded: false, duplicate: true, eventId: input.eventId, sprintId };
 
+  const payloadMetadata = safePayloadMetadata(parsedPayload);
   await ctx.db.insert("taskRelay", {
     sprintId,
-    context: JSON.stringify({ ...input, payload: parsedPayload }),
+    context: JSON.stringify({
+      eventId: input.eventId,
+      name: input.name,
+      actorId: input.actorId,
+      resourceType: input.resourceType,
+      resourceId: input.resourceId,
+      correlationId: input.correlationId,
+      idempotencyKey: input.idempotencyKey,
+      occurredAt: input.occurredAt,
+      version: input.version,
+      ...payloadMetadata,
+    }),
     nextSteps: [],
     completedThisSession: ["recorded"],
     status: "completed",
@@ -111,7 +142,7 @@ async function recordEvent(ctx: any, input: {
       occurredAt: input.occurredAt,
       resourceType: input.resourceType,
       resourceId: input.resourceId,
-      payload: parsedPayload,
+      ...payloadMetadata,
     }),
     creditCost: 0,
     timestamp: input.occurredAt,
@@ -120,7 +151,7 @@ async function recordEvent(ctx: any, input: {
   return { recorded: true, duplicate: false, eventId: input.eventId, sprintId };
 }
 
-/** Authenticated application callers may record their own platform events. */
+/** Authenticated application callers may record only events for themselves. */
 export const recordPlatformEvent = mutation({
   args: {
     eventId: v.string(), name: v.string(), actorId: v.string(), resourceType: v.string(),
@@ -128,7 +159,11 @@ export const recordPlatformEvent = mutation({
     occurredAt: v.string(), version: v.number(), payload: v.string(),
   },
   handler: async (ctx, input) => {
-    await requireAuth(ctx);
+    const identity = await requireAuth(ctx);
+    const identityIds = [identity.subject, identity.tokenIdentifier, identity.email].filter(Boolean).map(String);
+    if (!identityIds.includes(String(input.actorId))) {
+      throw new Error("Actor does not match authenticated identity");
+    }
     return recordEvent(ctx, input);
   },
 });
@@ -146,16 +181,23 @@ export const recordPlatformEventInternal = internalMutation({
 export const beginPlatformJob = mutation({
   args: { idempotencyKey: v.string(), context: v.string() },
   handler: async (ctx, { idempotencyKey, context }) => {
-    await requireAuth(ctx);
+    const identity = await requireAuth(ctx);
     validateJobKey(idempotencyKey);
     if (!context.trim() || context.length > 10_000) throw new Error("Valid job context is required");
     const sprintId = `platform-job:${idempotencyKey}`;
     const existing = await ctx.db.query("taskRelay")
       .withIndex("bySprintId", (q: any) => q.eq("sprintId", sprintId)).first();
     if (existing) return { claimed: false, duplicate: true, status: existing.status, sprintId };
+    const ownerActorId = String(identity.subject || identity.tokenIdentifier || identity.email || "");
     await ctx.db.insert("taskRelay", {
-      sprintId, context, nextSteps: ["complete platform job"], completedThisSession: [],
-      status: "running", lastUpdated: new Date().toISOString(), activeSprint: "platform-foundation", totalSprints: 1,
+      sprintId,
+      context: JSON.stringify({ ownerActorId, context }),
+      nextSteps: ["complete platform job"],
+      completedThisSession: [],
+      status: "running",
+      lastUpdated: new Date().toISOString(),
+      activeSprint: "platform-foundation",
+      totalSprints: 1,
     });
     return { claimed: true, duplicate: false, status: "running", sprintId };
   },
@@ -168,17 +210,24 @@ export const completePlatformJob = mutation({
     result: v.optional(v.string()),
   },
   handler: async (ctx, { idempotencyKey, status, result }) => {
-    await requireAuth(ctx);
+    const identity = await requireAuth(ctx);
     validateJobKey(idempotencyKey);
     if (result && result.length > 10_000) throw new Error("Job result exceeds maximum size");
     const sprintId = `platform-job:${idempotencyKey}`;
     const existing = await ctx.db.query("taskRelay")
       .withIndex("bySprintId", (q: any) => q.eq("sprintId", sprintId)).first();
     if (!existing) throw new Error("Platform job claim not found");
+    const ownerActorId = String(identity.subject || identity.tokenIdentifier || identity.email || "");
+    if (parseJobOwner(existing.context) !== ownerActorId) throw new Error("Platform job is owned by another user");
     await ctx.db.patch(existing._id, {
       status,
-      context: result ? JSON.stringify({ result }) : existing.context,
-      completedThisSession: [status], nextSteps: [], lastUpdated: new Date().toISOString(),
+      context: JSON.stringify({
+        ownerActorId,
+        result: result ? "[redacted from shared job context]" : undefined,
+      }),
+      completedThisSession: [status],
+      nextSteps: [],
+      lastUpdated: new Date().toISOString(),
     });
     return { success: true, status, sprintId };
   },
@@ -187,12 +236,14 @@ export const completePlatformJob = mutation({
 export const getPlatformJob = query({
   args: { idempotencyKey: v.string() },
   handler: async (ctx, { idempotencyKey }) => {
-    await requireAuth(ctx);
+    const identity = await requireAuth(ctx);
     validateJobKey(idempotencyKey);
     const sprintId = `platform-job:${idempotencyKey}`;
     const existing = await ctx.db.query("taskRelay")
       .withIndex("bySprintId", (q: any) => q.eq("sprintId", sprintId)).first();
     if (!existing) return null;
+    const ownerActorId = String(identity.subject || identity.tokenIdentifier || identity.email || "");
+    if (parseJobOwner(existing.context) !== ownerActorId) throw new Error("Platform job is owned by another user");
     return { sprintId, status: existing.status, context: existing.context, lastUpdated: existing.lastUpdated };
   },
 });
