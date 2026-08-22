@@ -1,0 +1,37 @@
+name: Backend Quality Gates
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "agent1/**"
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Production build
+        run: npm run build
+
+      - name: Generate Convex API types in isolated local backend
+        run: npx convex dev --once --typecheck disable --codegen enable
+
+      - name: Typecheck Convex and application code
+        run: npx tsc --noEmit
