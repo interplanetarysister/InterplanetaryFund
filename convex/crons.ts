@@ -39,6 +39,10 @@ crons.interval("browserbase-research", { minutes: 360 }, internal.browserbase.ru
 // === PER-AGENT AUTOMATION (Credit-Free) ===
 // Each agent has its own cron schedule and can be individually toggled on/off
 // via the automationEnabled field in the agents table.
+//
+// IMPORTANT CONCURRENCY RULE:
+// Each shared-state automation has one scheduled owner here until a
+// serialized/idempotent coordinator is implemented and validated.
 
 // Atlas — Facebook Interactions Agent — Every 4 hours
 crons.interval("atlas-facebook-automation", { minutes: 240 }, internal.agentAutomation.runAtlasAutomation, {});
@@ -52,11 +56,16 @@ crons.interval("donor-relations-automation", { minutes: 360 }, internal.agentAut
 // Scout Agent — Crowdfunding Scout — Every 8 hours
 crons.interval("scout-automation", { minutes: 480 }, internal.agentAutomation.runScoutAutomation, {});
 
-// Platform Coordinator — Cross-Agent Coordination — Every 4 hours
-crons.interval("coordinator-automation", { minutes: 240 }, internal.agentAutomation.runCoordinatorAutomation, {});
+// NOTE: The Platform Coordinator cron is temporarily disabled because its
+// implementation reads/patches shared agent and distributed-post state that is
+// also written by the per-agent crons, creating avoidable OCC/write conflicts.
+// Restore it only after serialized/idempotent coordination is implemented and
+// validated in Development.
 
-// Master Automation Check — Every 2 hours (ensures all agents are active)
-crons.interval("master-agent-check", { minutes: 120 }, internal.agentAutomation.runAllAgentAutomation, {});
+// NOTE: The Master Automation Check cron is temporarily disabled because
+// runAllAgentAutomation patches every agent's lastAutomationRun while the
+// individual agent crons already execute independently, creating duplicate
+// writers without adding execution capability.
 
 // === IMAGE GENERATION (Credit-Free via Pollinations.ai) ===
 // Auto-generate cover images for new campaigns — Every 12 hours
