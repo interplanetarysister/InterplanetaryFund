@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 const cronSource = await readFile(new URL("../convex/crons.ts", import.meta.url), "utf8");
 const coordinatorSource = await readFile(new URL("../convex/automationCoordinator.ts", import.meta.url), "utf8");
 
-// These workers must not have independent cron writers because they can touch
-// shared agent or distributedPosts state owned by the serialized lane.
+// Shared writers must not have independent cron registrations. Check both the
+// historical cron identifiers and the function references so a renamed cron
+// cannot accidentally reintroduce a second scheduling path.
 const forbiddenIndependentCrons = [
   "site-health-monitor",
   "auto-repair",
@@ -23,6 +24,29 @@ const forbiddenIndependentCrons = [
 for (const name of forbiddenIndependentCrons) {
   if (cronSource.includes(`\"${name}\"`)) {
     throw new Error(`Independent automation cron still registered: ${name}`);
+  }
+}
+
+const sharedWriterRefs = [
+  "internal.autonomous.checkSiteHealth",
+  "internal.autonomous.autoRepair",
+  "internal.postContent.autoGeneratePosts",
+  "internal.facebook.improveOutreachStrategy",
+  "internal.agentAutomation.runAtlasAutomation",
+  "internal.agentAutomation.runPostProductionAutomation",
+  "internal.agentAutomation.runDonorRelationsAutomation",
+  "internal.agentAutomation.runScoutAutomation",
+  "internal.agentAutomation.runCoordinatorAutomation",
+  "internal.browserbase.runAllAgentBrowserResearch",
+];
+
+for (const ref of sharedWriterRefs) {
+  const occurrencesInCron = cronSource.split(ref).length - 1;
+  if (occurrencesInCron !== 0) {
+    throw new Error(`Shared writer is directly scheduled outside the serialized lane: ${ref}`);
+  }
+  if (!coordinatorSource.includes(ref)) {
+    throw new Error(`Serialized coordinator is missing shared writer: ${ref}`);
   }
 }
 
@@ -68,11 +92,21 @@ for (const call of awaitedWorkerCalls) {
   }
 }
 
-if (!coordinatorSource.includes("AGENT_INTERVALS_MS")) {
-  throw new Error("Historical per-agent cadence gating is missing.");
+const requiredCadences = [
+  ["Atlas", "4 * 60 * 60 * 1000"],
+  ["Post Production Agent", "6 * 60 * 60 * 1000"],
+  ["Donor Relations Agent", "6 * 60 * 60 * 1000"],
+  ["Scout Agent", "8 * 60 * 60 * 1000"],
+  ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
+];
+
+for (const [agent, interval] of requiredCadences) {
+  if (!coordinatorSource.includes(`\"${agent}\": ${interval}`)) {
+    throw new Error(`Historical cadence missing for ${agent}: ${interval}`);
+  }
 }
 
-if (!coordinatorSource.includes("isSixHourSlot")) {
+if (!coordinatorSource.includes("isSixHourSlot(nowMs)")) {
   throw new Error("Six-hour shared-writer cadence gate is missing.");
 }
 
