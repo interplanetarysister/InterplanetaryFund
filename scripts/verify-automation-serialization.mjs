@@ -5,7 +5,11 @@ const coordinator = fs.readFileSync(new URL("../convex/automationCoordinator.ts"
 
 const removedCronIdentifiers = [
   '"site-health-monitor"',
+  '"auto-repair"',
+  '"agent-research-sprint"',
   '"browserbase-research"',
+  '"daily-post-generation"',
+  '"outreach-strategy-improvement"',
   '"atlas-facebook-automation"',
   '"post-production-automation"',
   '"donor-relations-automation"',
@@ -26,6 +30,9 @@ if (!crons.includes('"serialized-automation-lane"')) {
 
 for (const requiredReference of [
   "internal.autonomous.checkSiteHealth",
+  "internal.autonomous.autoRepair",
+  "internal.postContent.autoGeneratePosts",
+  "internal.facebook.improveOutreachStrategy",
   "internal.agentAutomation.runAtlasAutomation",
   "internal.agentAutomation.runPostProductionAutomation",
   "internal.agentAutomation.runDonorRelationsAutomation",
@@ -38,8 +45,17 @@ for (const requiredReference of [
   }
 }
 
-if (!coordinator.includes("await ctx.runMutation(functionRef, {})")) {
-  throw new Error("Agent automation is not explicitly awaited/serialized");
+for (const awaitedCall of [
+  "await ctx.runMutation(internal.autonomous.checkSiteHealth, {})",
+  "await ctx.runMutation(internal.autonomous.autoRepair, {})",
+  "await ctx.runMutation(internal.postContent.autoGeneratePosts, {})",
+  "await ctx.runMutation(internal.facebook.improveOutreachStrategy, {})",
+  "await ctx.runMutation(functionRef, {})",
+  "await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {})",
+]) {
+  if (!coordinator.includes(awaitedCall)) {
+    throw new Error(`Required shared writer is not awaited: ${awaitedCall}`);
+  }
 }
 
 for (const cadence of [
@@ -52,6 +68,14 @@ for (const cadence of [
   if (!coordinator.includes(cadence)) {
     throw new Error(`Historical cadence is missing: ${cadence}`);
   }
+}
+
+if (!coordinator.includes("utcHour === 15")) {
+  throw new Error("Daily post-generation cadence gate is missing");
+}
+
+if (!coordinator.includes("isSixHourSlot(nowMs)")) {
+  throw new Error("Six-hour shared-writer cadence gate is missing");
 }
 
 console.log("Automation serialization static verification: PASS");
