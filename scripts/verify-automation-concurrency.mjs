@@ -76,7 +76,7 @@ assertIncludes(coordinatorSource, "utcHour === 15", "daily 15:00 UTC post-genera
 for (const required of [
   "claimSerializedAutomation", "releaseSerializedAutomation", "LANE_LEASE_SPRINT_ID",
   "platform-serialized-automation-lane", "withIndex(\"bySprintId\"", "existingContext?.leaseUntil",
-  'existingContext?.status === "claimed"',
+  'existingStatus === "claimed"',
   "await ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation",
   "await ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation",
 ]) {
