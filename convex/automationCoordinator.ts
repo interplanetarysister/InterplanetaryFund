@@ -4,14 +4,15 @@
  * Production reliability guard for the agent/site-health cron lane.
  * Multiple independent crons were previously able to mutate overlapping
  * agent/distribution state concurrently. This coordinator makes the named
- * automation work execute sequentially inside one scheduled transaction.
+ * automation work execute sequentially through awaited Convex sub-mutations.
  *
- * The individual automation functions remain intact and callable; the cron
- * schedule is the serialization boundary. No retry count is increased and no
- * failures are hidden.
+ * The coordinator is an action so each child mutation remains its own
+ * transaction and long-running/external work does not consume one parent
+ * mutation's transaction budget. The cron itself is the single scheduling
+ * lane; Convex guarantees at most one run of that cron job at a time.
  */
 
-import { internalMutation } from "./_generated/server";
+import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 const AGENT_INTERVALS_MS: Record<string, number> = {
@@ -29,7 +30,7 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   return nowMs - parsed >= intervalMs;
 }
 
-export const runSerializedAutomation = internalMutation({
+export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
     const nowMs = Date.now();
@@ -53,10 +54,8 @@ export const runSerializedAutomation = internalMutation({
     ] as const;
 
     for (const [agentName, functionRef] of agentRuns) {
-      const agent = await ctx.db
-        .query("agents")
-        .filter((q) => q.eq(q.field("name"), agentName))
-        .first();
+      const agents = await ctx.runQuery(internal.agentAutomation.getAutomationStatus, {});
+      const agent = agents.find((item) => item.name === agentName);
 
       if (!agent || agent.automationEnabled === false) {
         results.push({ task: agentName, status: "skipped", reason: agent ? "disabled" : "missing" });
@@ -70,15 +69,30 @@ export const runSerializedAutomation = internalMutation({
       }
 
       try {
-        // Awaiting each nested mutation is intentional: the next automation
-        // does not begin until the prior mutation has committed/failed.
+        // Awaiting each child mutation is intentional: the next automation
+        // does not begin until the prior mutation has committed or failed.
         const result = await ctx.runMutation(functionRef, {});
         results.push({ task: agentName, status: "completed", result });
       } catch (error) {
-        // Record the failure and continue the lane. One agent failure must not
-        // fan out into parallel retries of the other automation functions.
+        // One agent failure must not fan out into parallel retries of the
+        // other automation functions.
         results.push({ task: agentName, status: "failed", error: String(error) });
       }
+    }
+
+    // Browserbase research is part of the same serialized lane. The epoch-hour
+    // gate preserves the historical six-hour cadence without introducing a
+    // second cron that can race distributedPosts writes.
+    const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
+    if (epochHour % 6 === 0) {
+      try {
+        const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+        results.push({ task: "browserbase-research", status: "completed", result });
+      } catch (error) {
+        results.push({ task: "browserbase-research", status: "failed", error: String(error) });
+      }
+    } else {
+      results.push({ task: "browserbase-research", status: "skipped", reason: "not_due" });
     }
 
     return {
