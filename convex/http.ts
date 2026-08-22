@@ -70,21 +70,31 @@ export const stripeWebhook = httpAction(async (ctx, request) => {
     const stripeSignature = request.headers.get("stripe-signature") || "";
     const rawBody = await request.text();
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
-    let event: any;
 
-    if (webhookSecret && stripeSignature) {
-      const stripe = await import("stripe");
-      const stripeClient = new stripe.default(process.env.STRIPE_SECRET_KEY as string, {
-        apiVersion: "2024-06-20",
-      });
-      try {
-        event = stripeClient.webhooks.constructEvent(rawBody, stripeSignature, webhookSecret);
-      } catch (err: any) {
-        console.error("Stripe webhook signature verification failed:", err.message);
-        return new Response("Webhook signature verification failed", { status: 400 });
-      }
-    } else {
-      event = JSON.parse(rawBody);
+    // Production webhook verification must fail closed. Never parse unsigned
+    // webhook JSON as trusted payment truth when the secret/signature is absent.
+    if (!webhookSecret || !stripeSignature) {
+      console.error("Stripe webhook rejected: signature verification is not configured");
+      return new Response("Webhook signature verification required", { status: 503 });
+    }
+
+    const stripe = await import("stripe");
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY as string;
+    if (!stripeSecretKey) {
+      console.error("Stripe webhook rejected: Stripe secret key is not configured");
+      return new Response("Webhook verification is not configured", { status: 503 });
+    }
+
+    const stripeClient = new stripe.default(stripeSecretKey, {
+      apiVersion: "2024-06-20",
+    });
+
+    let event: any;
+    try {
+      event = stripeClient.webhooks.constructEvent(rawBody, stripeSignature, webhookSecret);
+    } catch (err: any) {
+      console.error("Stripe webhook signature verification failed:", err.message);
+      return new Response("Webhook signature verification failed", { status: 400 });
     }
 
     if (event.type !== "checkout.session.completed") return new Response("OK", { status: 200 });
