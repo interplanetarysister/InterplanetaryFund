@@ -1,23 +1,48 @@
-name: Deploy to Convex
+# Interplanetary Fund — Production Convex Deployment
+#
+# Production deployment is intentionally isolated from the 30-minute
+# observability agent. Only backend-relevant changes trigger this workflow.
+# A single concurrency gate prevents parallel production Convex deployments.
+
+name: Convex Production Deploy
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    paths:
+      - 'convex/**'
+      - 'package.json'
+      - 'package-lock.json'
   workflow_dispatch:
+
+# Never run two production Convex deployments at once.
+concurrency:
+  group: convex-production-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    timeout-minutes: 20
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
-      - uses: actions/setup-node@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Deploy to Convex
+      - name: Deploy Convex production
         run: npx convex deploy
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
