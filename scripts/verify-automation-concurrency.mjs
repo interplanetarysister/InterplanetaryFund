@@ -114,17 +114,19 @@ if (!coordinatorSource.includes("utcHour === 15")) {
   throw new Error("Daily 15:00 UTC post-generation cadence gate is missing.");
 }
 
-// Duplicate-run prevention must be durable and transactional rather than a
-// process-local flag. The latest claim/release record is the authoritative
-// lease state, with an expiry so a crashed action cannot wedge the lane.
+// Duplicate-run prevention must use a durable transactional claim record rather
+// than append-only logs or a process-local flag. The fixed taskRelay key is the
+// single lease record; its read-before-write participates in Convex's
+// transaction conflict detection, and the lease expires after two hours.
 for (const required of [
   "claimSerializedAutomation",
   "releaseSerializedAutomation",
-  "LANE_LEASE_MS = 2 * 60 * 60 * 1000",
-  "serialized_automation_claim",
-  "metadata?.status === \"claimed\"",
-  "ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation",
-  "ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation",
+  "LANE_LEASE_SPRINT_ID = \"platform-serialized-automation-lane\"",
+  "withIndex(\"bySprintId\"",
+  "existingContext?.leaseUntil",
+  "existingContext?.status === \"claimed\"",
+  "await ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation",
+  "await ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation",
 ]) {
   if (!coordinatorSource.includes(required)) {
     throw new Error(`Durable duplicate-run guard is incomplete: ${required}`);
