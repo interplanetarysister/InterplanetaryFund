@@ -3,7 +3,9 @@ name: Backend Quality Gates
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
+      - "agent1/**"
 
 permissions:
   contents: read
@@ -28,5 +30,5 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Convex typecheck/codegen validation
-        run: npx convex codegen
+      - name: Typecheck Convex and application code
+        run: npx tsc --noEmit
