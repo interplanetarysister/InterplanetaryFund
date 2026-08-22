@@ -18,7 +18,7 @@ const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
   "Post Production Agent": 6 * 60 * 60 * 1000,
   "Donor Relations Agent": 6 * 60 * 60 * 1000,
-  Scout: 8 * 60 * 60 * 1000,
+  "Scout Agent": 8 * 60 * 60 * 1000,
   "Platform Coordinator Agent": 4 * 60 * 60 * 1000,
 };
 
@@ -110,7 +110,7 @@ export const runSerializedAutomation = internalAction({
       ["Atlas", internal.agentAutomation.runAtlasAutomation],
       ["Post Production Agent", internal.agentAutomation.runPostProductionAutomation],
       ["Donor Relations Agent", internal.agentAutomation.runDonorRelationsAutomation],
-      ["Scout", internal.agentAutomation.runScoutAutomation],
+      ["Scout Agent", internal.agentAutomation.runScoutAutomation],
       ["Platform Coordinator Agent", internal.agentAutomation.runCoordinatorAutomation],
     ] as const;
 
