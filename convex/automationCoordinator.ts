@@ -2,9 +2,8 @@
  * Interplanetary Fund — Serialized Automation Coordinator
  *
  * Production reliability guard for the agent/site-health cron lane.
- * Multiple independent crons were previously able to mutate overlapping
- * agent/distribution state concurrently. This coordinator makes the named
- * automation work execute sequentially through awaited Convex sub-mutations.
+ * All automation that can mutate shared agent or distributedPosts state is
+ * executed sequentially through awaited Convex sub-mutations.
  *
  * The coordinator is an action so each child mutation remains its own
  * transaction and long-running/external work does not consume one parent
@@ -30,6 +29,11 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   return nowMs - parsed >= intervalMs;
 }
 
+function isSixHourSlot(nowMs: number) {
+  const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
+  return epochHour % 6 === 0;
+}
+
 export const getAgentAutomationStatus = internalQuery({
   args: {},
   handler: async (ctx) => {
@@ -47,14 +51,54 @@ export const runSerializedAutomation = internalAction({
   handler: async (ctx) => {
     const nowMs = Date.now();
     const results: Array<Record<string, unknown>> = [];
+    const utcHour = new Date(nowMs).getUTCHours();
 
-    // Site health remains hourly. It is executed first so a degraded platform
-    // can be observed before campaign/distribution automation begins.
+    // IMPORTANT: Every worker below is awaited before the next worker starts.
+    // This is the shared-write serialization boundary.
+
+    // 1. Site health — hourly. It writes a health record to distributedPosts.
     try {
       const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
       results.push({ task: "site-health", status: "completed", result });
     } catch (error) {
       results.push({ task: "site-health", status: "failed", error: String(error) });
+    }
+
+    // 2. Auto-repair — historical six-hour cadence. It can patch distributedPosts.
+    if (isSixHourSlot(nowMs)) {
+      try {
+        const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
+        results.push({ task: "auto-repair", status: "completed", result });
+      } catch (error) {
+        results.push({ task: "auto-repair", status: "failed", error: String(error) });
+      }
+    } else {
+      results.push({ task: "auto-repair", status: "skipped", reason: "not_due" });
+    }
+
+    // 3. Daily post generation — historical 15:00 UTC cadence.
+    if (utcHour === 15) {
+      try {
+        const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
+        results.push({ task: "daily-post-generation", status: "completed", result });
+      } catch (error) {
+        results.push({ task: "daily-post-generation", status: "failed", error: String(error) });
+      }
+    } else {
+      results.push({ task: "daily-post-generation", status: "skipped", reason: "not_due" });
+    }
+
+    // 4. Outreach strategy improvement — historical six-hour cadence.
+    // It is serialized here because it can share campaign/distribution state.
+    if (isSixHourSlot(nowMs)) {
+      try {
+        const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
+        results.push({ task: "outreach-strategy-improvement", status: "completed", result });
+      } catch (error) {
+        results.push({ task: "outreach-strategy-improvement", status: "failed", error: String(error) });
+      }
+    } else {
+      results.push({ task: "outreach-strategy-improvement", status: "skipped", reason: "not_due" });
     }
 
     const agentRuns = [
@@ -81,22 +125,17 @@ export const runSerializedAutomation = internalAction({
       }
 
       try {
-        // Awaiting each child mutation is intentional: the next automation
-        // does not begin until the prior mutation has committed or failed.
         const result = await ctx.runMutation(functionRef, {});
         results.push({ task: agentName, status: "completed", result });
       } catch (error) {
-        // One agent failure must not fan out into parallel retries of the
-        // other automation functions.
+        // One worker failure must not fan out into parallel retries.
         results.push({ task: agentName, status: "failed", error: String(error) });
       }
     }
 
-    // Browserbase research is part of the same serialized lane. The epoch-hour
-    // gate preserves the historical six-hour cadence without introducing a
-    // second cron that can race distributedPosts writes.
-    const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
-    if (epochHour % 6 === 0) {
+    // Browserbase research is also a distributedPosts writer. Keep it inside
+    // this same lane so research can never race post generation or repair.
+    if (isSixHourSlot(nowMs)) {
       try {
         const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
         results.push({ task: "browserbase-research", status: "completed", result });
