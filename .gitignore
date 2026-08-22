@@ -9,6 +9,7 @@ dist/
 .netlify/
 .env.deploy
 .env.deploy
+agent-report.json
 
 # Playwright
 test-results/
