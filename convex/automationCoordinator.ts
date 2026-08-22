@@ -55,7 +55,7 @@ export const getAgentAutomationStatus = internalQuery({
  * Convex already guarantees that one cron job cannot overlap with itself, but
  * this claim also protects against a manual/internal invocation racing the
  * cron. The claim is transactional: concurrent claimers reading the same
- * active lease cannot both commit successfully.
+ * latest lease cannot both commit successfully.
  */
 export const claimSerializedAutomation = internalMutation({
   args: { runId: v.string(), nowMs: v.number() },
@@ -67,21 +67,25 @@ export const claimSerializedAutomation = internalMutation({
       .order("desc")
       .take(200);
 
-    const activeClaim = recentLogs.find((entry) => {
-      if (entry.agentName !== "Platform Coordinator") return false;
-      if (entry.action !== "serialized_automation_claim") return false;
-      const claimedAt = Date.parse(entry.timestamp);
-      if (!Number.isFinite(claimedAt) || claimedAt < cutoff) return false;
-      try {
-        const metadata = entry.metadata ? JSON.parse(entry.metadata) : null;
-        return metadata?.status === "claimed";
-      } catch {
-        return false;
-      }
-    });
+    const latestLaneClaim = recentLogs.find(
+      (entry) =>
+        entry.agentName === "Platform Coordinator" &&
+        entry.action === "serialized_automation_claim",
+    );
 
-    if (activeClaim) {
-      return { acquired: false, reason: "active_lease" };
+    if (latestLaneClaim) {
+      const claimedAt = Date.parse(latestLaneClaim.timestamp);
+      if (Number.isFinite(claimedAt) && claimedAt >= cutoff) {
+        try {
+          const metadata = latestLaneClaim.metadata ? JSON.parse(latestLaneClaim.metadata) : null;
+          if (metadata?.status === "claimed") {
+            return { acquired: false, reason: "active_lease" };
+          }
+        } catch {
+          // Treat malformed historical metadata as non-authoritative and allow
+          // a fresh claim rather than permanently wedging the automation lane.
+        }
+      }
     }
 
     await ctx.db.insert("agentActivityLog", {
@@ -118,7 +122,7 @@ export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
     const nowMs = Date.now();
-    const runId = `serialized-automation:${new Date(nowMs).toISOString()}`;
+    const runId = `serialized-automation:${new Date(nowMs).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
     const claim = await ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation, {
       runId,
       nowMs,
@@ -143,44 +147,40 @@ export const runSerializedAutomation = internalAction({
       // IMPORTANT: Every worker below is awaited before the next worker starts.
       // This is the shared-write serialization boundary.
 
-      // 1. Site health — hourly. It writes a health record to distributedPosts.
       try {
         const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
         results.push({ runId, task: "site-health", status: "completed", result });
-      } catch (error) {
+      } catch {
         results.push({ runId, task: "site-health", status: "failed", error: "site_health_failed" });
       }
 
-      // 2. Auto-repair — historical six-hour cadence. It can patch distributedPosts.
       if (isSixHourSlot(nowMs)) {
         try {
           const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
           results.push({ runId, task: "auto-repair", status: "completed", result });
-        } catch (error) {
+        } catch {
           results.push({ runId, task: "auto-repair", status: "failed", error: "auto_repair_failed" });
         }
       } else {
         results.push({ runId, task: "auto-repair", status: "skipped", reason: "not_due" });
       }
 
-      // 3. Daily post generation — historical 15:00 UTC cadence.
       if (utcHour === 15) {
         try {
           const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
           results.push({ runId, task: "daily-post-generation", status: "completed", result });
-        } catch (error) {
+        } catch {
           results.push({ runId, task: "daily-post-generation", status: "failed", error: "daily_post_generation_failed" });
         }
       } else {
         results.push({ runId, task: "daily-post-generation", status: "skipped", reason: "not_due" });
       }
 
-      // 4. Outreach strategy improvement — historical six-hour cadence.
       if (isSixHourSlot(nowMs)) {
         try {
           const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
           results.push({ runId, task: "outreach-strategy-improvement", status: "completed", result });
-        } catch (error) {
+        } catch {
           results.push({ runId, task: "outreach-strategy-improvement", status: "failed", error: "outreach_strategy_failed" });
         }
       } else {
@@ -216,19 +216,21 @@ export const runSerializedAutomation = internalAction({
         try {
           const result = await ctx.runMutation(functionRef, {});
           results.push({ runId, task: agentName, status: "completed", result });
-        } catch (error) {
-          // One worker failure must not fan out into parallel retries.
-          results.push({ runId, task: agentName, status: "failed", error: `${agentName.toLowerCase().replaceAll(" ", "_")}_failed` });
+        } catch {
+          results.push({
+            runId,
+            task: agentName,
+            status: "failed",
+            error: `${agentName.toLowerCase().replaceAll(" ", "_")}_failed`,
+          });
         }
       }
 
-      // Browserbase research is also a distributedPosts writer. Keep it inside
-      // this same lane so research can never race post generation or repair.
       if (isSixHourSlot(nowMs)) {
         try {
           const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
           results.push({ runId, task: "browserbase-research", status: "completed", result });
-        } catch (error) {
+        } catch {
           results.push({ runId, task: "browserbase-research", status: "failed", error: "browserbase_research_failed" });
         }
       } else {
