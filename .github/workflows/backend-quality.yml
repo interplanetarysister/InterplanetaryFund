@@ -23,8 +23,8 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
 
-      - name: Convex code generation
-        run: npx convex codegen
+      - name: Convex code generation check
+        run: npx convex codegen --dry-run
 
       - name: Automation concurrency verification
         run: npm run verify:automation-concurrency
