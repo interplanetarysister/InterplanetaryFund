@@ -19,44 +19,15 @@ crons.daily("daily-protocol-autofix", { hourUTC: 13, minuteUTC: 0 }, internal.pr
 crons.weekly("weekly-training-session", { dayOfWeek: "saturday", hourUTC: 9, minuteUTC: 0 }, internal.protocol.weeklyTraining, {});
 
 // === POST GENERATION & OUTREACH ===
-// Daily Auto-Post Generation — 8am Pacific (15:00 UTC)
-crons.daily("daily-post-generation", { hourUTC: 15, minuteUTC: 0 }, internal.postContent.autoGeneratePosts, {});
-// Proactive Group Discovery — Every 4 hours
+// Proactive Group Discovery — Every 4 hours.
+// This lane owns facebookGroups discovery state and does not write distributedPosts.
 crons.interval("proactive-group-discovery", { minutes: 240 }, internal.facebook.discoverGroupsProactively, {});
-// Outreach Strategy Improvement — Every 6 hours
-crons.interval("outreach-strategy-improvement", { minutes: 360 }, internal.facebook.improveOutreachStrategy, {});
 
-// === AUTONOMOUS OPERATIONS (Credit-Free) ===
-// Site Health Monitor — Every hour
-crons.interval("site-health-monitor", { minutes: 60 }, internal.autonomous.checkSiteHealth, {});
-// Auto-Repair — Every 6 hours
-crons.interval("auto-repair", { minutes: 360 }, internal.autonomous.autoRepair, {});
-// Agent Research Sprint — Every 12 hours (now via Browserbase)
-crons.interval("agent-research-sprint", { minutes: 720 }, internal.research.runAgentResearch, {});
-// Browserbase Research — Every 6 hours (per-agent browser research)
-crons.interval("browserbase-research", { minutes: 360 }, internal.browserbase.runAllAgentBrowserResearch, {});
-
-// === PER-AGENT AUTOMATION (Credit-Free) ===
-// Each agent has its own cron schedule and can be individually toggled on/off
-// via the automationEnabled field in the agents table.
-
-// Atlas — Facebook Interactions Agent — Every 4 hours
-crons.interval("atlas-facebook-automation", { minutes: 240 }, internal.agentAutomation.runAtlasAutomation, {});
-
-// Post Production Agent — Campaign Content — Every 6 hours
-crons.interval("post-production-automation", { minutes: 360 }, internal.agentAutomation.runPostProductionAutomation, {});
-
-// Donor Relations Agent — Donation PR — Every 6 hours
-crons.interval("donor-relations-automation", { minutes: 360 }, internal.agentAutomation.runDonorRelationsAutomation, {});
-
-// Scout Agent — Crowdfunding Scout — Every 8 hours
-crons.interval("scout-automation", { minutes: 480 }, internal.agentAutomation.runScoutAutomation, {});
-
-// Platform Coordinator — Cross-Agent Coordination — Every 4 hours
-crons.interval("coordinator-automation", { minutes: 240 }, internal.agentAutomation.runCoordinatorAutomation, {});
-
-// Master Automation Check — Every 2 hours (ensures all agents are active)
-crons.interval("master-agent-check", { minutes: 120 }, internal.agentAutomation.runAllAgentAutomation, {});
+// === SERIALIZED AUTOMATION LANE ===
+// All automation that can read/write shared agent or distributedPosts state is
+// executed through ONE hourly lane. Historical cadences are enforced inside
+// the coordinator. This prevents independent crons from racing shared writes.
+crons.hourly("serialized-automation-lane", internal.automationCoordinator.runSerializedAutomation, {});
 
 // === IMAGE GENERATION (Credit-Free via Pollinations.ai) ===
 // Auto-generate cover images for new campaigns — Every 12 hours
