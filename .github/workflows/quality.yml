@@ -13,7 +13,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,8 +30,8 @@ jobs:
       - name: Production build
         run: npm run build
 
-      - name: Regenerate Convex API types
-        run: npx convex codegen
+      - name: Generate Convex API types in isolated local backend
+        run: npx convex dev --once --typecheck disable --codegen enable
 
       - name: Typecheck Convex and application code
         run: npx tsc --noEmit
