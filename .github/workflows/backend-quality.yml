@@ -1,0 +1,35 @@
+name: Backend Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, agent1/automation-concurrency-repair]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Convex code generation
+        run: npx convex codegen
+
+      - name: Automation concurrency verification
+        run: npm run verify:automation-concurrency
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Production build
+        run: npm run build
