@@ -12,7 +12,7 @@
  * lane; Convex guarantees at most one run of that cron job at a time.
  */
 
-import { internalAction } from "./_generated/server";
+import { internalAction, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 const AGENT_INTERVALS_MS: Record<string, number> = {
@@ -29,6 +29,18 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   if (!Number.isFinite(parsed)) return true;
   return nowMs - parsed >= intervalMs;
 }
+
+export const getAgentAutomationStatus = internalQuery({
+  args: {},
+  handler: async (ctx) => {
+    const agents = await ctx.db.query("agents").collect();
+    return agents.map((agent) => ({
+      name: agent.name,
+      automationEnabled: agent.automationEnabled ?? true,
+      lastAutomationRun: agent.lastAutomationRun,
+    }));
+  },
+});
 
 export const runSerializedAutomation = internalAction({
   args: {},
@@ -54,7 +66,7 @@ export const runSerializedAutomation = internalAction({
     ] as const;
 
     for (const [agentName, functionRef] of agentRuns) {
-      const agents = await ctx.runQuery(internal.agentAutomation.getAutomationStatus, {});
+      const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
       const agent = agents.find((item) => item.name === agentName);
 
       if (!agent || agent.automationEnabled === false) {
