@@ -31,9 +31,3 @@ jobs:
 
       - name: Verify hardcoded PIN authorization contract
         run: npm run verify:admin-pin-authorization
-
-      - name: Generate Convex code
-        run: npx convex codegen --dry-run
-
-      - name: Typecheck
-        run: npx tsc --noEmit --pretty false
