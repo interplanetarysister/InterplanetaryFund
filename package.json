@@ -17,7 +17,8 @@
     "cap:ios": "npm run cap:sync && npx cap open ios",
     "cap:init:android": "npx cap add android",
     "cap:init:ios": "npx cap add ios",
-    "mobile:build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
+    "mobile:build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
+    "verify:agent-automation-telemetry": "node scripts/verify-agent-automation-telemetry.mjs"
   },
   "dependencies": {
     "@browserbasehq/sdk": "^2.16.0",
