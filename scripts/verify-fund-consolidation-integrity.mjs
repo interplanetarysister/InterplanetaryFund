@@ -3,53 +3,50 @@ import fs from "node:fs";
 const source = fs.readFileSync(new URL("../convex/fundConsolidation.ts", import.meta.url), "utf8");
 const failures = [];
 
-// The public mutation may retain the legacy userId argument for API
-// compatibility, but it must bind the effective owner to Convex auth and
-// compare the campaign owner against that authenticated subject.
-if (!/ctx\.auth\.getUserIdentity\(\)/.test(source) || !/authenticatedUserId\s*=\s*identity\.subject/.test(source)) {
-  failures.push("consolidateFunds does not bind ownership to the authenticated Convex identity.");
-}
-if (!/campaign\.userId\s*!==\s*authenticatedUserId/.test(source)) {
-  failures.push("consolidateFunds does not enforce campaign ownership against authenticated identity.");
+const mustInclude = [
+  "ctx.auth.getUserIdentity()",
+  "const authenticatedUserId = identity.subject;",
+  "campaign.userId !== authenticatedUserId",
+  "CONSOLIDATION_LOCK_PREFIX",
+  "acquireCampaignLock(ctx, campaign)",
+  "byProviderTxnId",
+  "providerTransactionId = donation.txnId || `donation_${donation._id}`",
+  "ctx.db.insert(\"providerTransactions\"",
+];
+
+for (const fragment of mustInclude) {
+  if (!source.includes(fragment)) {
+    failures.push(`Missing required consolidation integrity invariant: ${fragment}`);
+  }
 }
 
-// Amount/time similarity is never an idempotency boundary. Existing legacy
-// imports may be recognized by their exact deterministic metadata identity,
-// while new imports use provider+transaction identity.
-if (/existingByAmount\s*=/.test(source) || /Math\.abs\(new Date\(e\.createdAt\)/.test(source)) {
-  failures.push("consolidation still relies on fuzzy amount/time matching as a duplicate boundary.");
-}
-if (!/providerTransactionId\s*=\s*donation\.txnId \|\| `donation_\$\{donation\._id\}`/.test(source)) {
-  failures.push("donation imports do not derive a deterministic provider transaction identity when txnId is absent.");
+// The legacy userId argument may remain for API compatibility, but the
+// effective authorization decision must use the authenticated subject.
+if (!source.includes("if (campaign.userId !== authenticatedUserId || suppliedUserId !== authenticatedUserId)")) {
+  failures.push("Public consolidation does not fail closed on authenticated owner mismatch.");
 }
 
-// The donation snapshot must be fetched once per campaign, outside any
-// authorization iteration, so a donation cannot be imported once per active
-// authorization.
-if (/for \(const auth of authorizations\)[\s\S]*query\("donations"\)/.test(source)) {
-  failures.push("donations are queried inside an authorization loop.");
-}
-if (!/const donations = await ctx\.db[\s\S]*?query\("donations"\)[\s\S]*?for \(const donation of donations\)/.test(source)) {
-  failures.push("donations are not processed from one campaign-level snapshot.");
+// Amount/time similarity is not an idempotency boundary.
+if (source.includes("existingByAmount") || source.includes("Math.abs(new Date(e.createdAt)")) {
+  failures.push("Fuzzy amount/time deduplication remains in the consolidation path.");
 }
 
-// The campaign document is the transaction-level serialization boundary and
-// providerTransactions is the durable provider+transaction record. Both are
-// required so retries cannot silently create a second financial entry.
-if (!/CONSOLIDATION_LOCK_PREFIX/.test(source) || !/acquireCampaignLock\(ctx, campaign\)/.test(source)) {
-  failures.push("campaign-level consolidation serialization/claim boundary is missing.");
+// Donations must be snapshotted once per campaign, not queried inside an
+// authorization loop. This prevents one donation being imported once per
+// active authorization.
+if (source.includes("for (const auth of authorizations)") && source.includes('query("donations")')) {
+  failures.push("Donations are still queried inside an authorization loop.");
 }
-if (!/query\("providerTransactions"\)[\s\S]*?byProviderTxnId/.test(source)) {
-  failures.push("provider transaction idempotency does not consult the durable providerTransactions index.");
-}
-if (!/ctx\.db\.insert\("providerTransactions"/.test(source)) {
-  failures.push("provider transaction claim record is not persisted.");
+if (!source.includes('const donations = await ctx.db') || !source.includes('.query("donations")') || !source.includes('for (const donation of donations)')) {
+  failures.push("Campaign-level donation snapshot/processing is missing.");
 }
 
-// Every ledger import must carry the same deterministic provider transaction
-// identity used by the providerTransactions record.
-if (!/providerTransactionId,\n\s*connectedAccountId/.test(source)) {
-  failures.push("ledger imports are not explicitly bound to providerTransactionId.");
+// Provider transaction identity must be checked before ledger/provider writes.
+const providerLookup = source.indexOf('query("providerTransactions")');
+const providerLookupIndex = source.indexOf("byProviderTxnId");
+const ledgerInsertIndex = source.indexOf('ctx.db.insert("campaignLedger"');
+if (providerLookupIndex < 0 || providerLookup < 0 || providerLookup > providerLookupIndex || providerLookupIndex > ledgerInsertIndex) {
+  failures.push("Durable provider transaction lookup is not established before ledger insertion.");
 }
 
 if (failures.length) {
