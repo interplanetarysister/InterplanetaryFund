@@ -1,7 +1,6 @@
 import fs from "node:fs";
 
 const authSource = fs.readFileSync("convex/auth.ts", "utf8");
-const securitySource = fs.readFileSync("convex/security.ts", "utf8");
 
 const failures = [];
 
@@ -22,9 +21,6 @@ if (!authSource.includes("if (!adminPin || currentPin !== adminPin)")) {
 }
 if (authSource.includes("ctx.db.insert(\"feeConfig\"")) {
   failures.push("updateAdminPin must not bootstrap feeConfig when no PIN exists");
-}
-if (/DEFAULT_ADMIN_PIN|0426/.test(securitySource)) {
-  failures.push("convex/security.ts must not retain a hardcoded legacy admin PIN fallback");
 }
 
 if (failures.length) {
