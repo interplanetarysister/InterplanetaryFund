@@ -34,6 +34,7 @@ const sharedWriterRefs = [
   "internal.autonomous.autoRepair",
   "internal.postContent.autoGeneratePosts",
   "internal.facebook.improveOutreachStrategy",
+  "internal.research.runAgentResearch",
   "internal.agentAutomation.runAtlasAutomation",
   "internal.agentAutomation.runPostProductionAutomation",
   "internal.agentAutomation.runDonorRelationsAutomation",
@@ -51,7 +52,7 @@ assertIncludes(cronSource, "internal.automationCoordinator.runSerializedAutomati
 
 for (const worker of [
   "checkSiteHealth", "autoRepair", "autoGeneratePosts", "improveOutreachStrategy",
-  "runAtlasAutomation", "runPostProductionAutomation", "runDonorRelationsAutomation",
+  "runAgentResearch", "runAtlasAutomation", "runPostProductionAutomation", "runDonorRelationsAutomation",
   "runScoutAutomation", "runCoordinatorAutomation", "runAllAgentBrowserResearch",
 ]) {
   assertIncludes(coordinatorSource, worker, "serialized coordinator worker");
@@ -62,6 +63,7 @@ for (const call of [
   /await\s+ctx\.runMutation\(internal\.autonomous\.autoRepair,\s*\{\}\)/,
   /await\s+ctx\.runMutation\(internal\.postContent\.autoGeneratePosts,\s*\{\}\)/,
   /await\s+ctx\.runMutation\(internal\.facebook\.improveOutreachStrategy,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(internal\.research\.runAgentResearch,\s*\{\}\)/,
   /await\s+ctx\.runMutation\(functionRef,\s*\{\}\)/,
   /await\s+ctx\.runMutation\(internal\.browserbase\.runAllAgentBrowserResearch,\s*\{\}\)/,
 ]) {
@@ -83,6 +85,7 @@ for (const [agent, interval] of [
 }
 
 assertIncludes(coordinatorSource, "isSixHourSlot(nowMs)", "six-hour shared-writer cadence gate");
+assertIncludes(coordinatorSource, "isTwelveHourSlot(nowMs)", "twelve-hour research cadence gate");
 assertIncludes(coordinatorSource, "utcHour === 15", "daily 15:00 UTC post-generation cadence gate");
 
 assertIncludes(coordinatorSource, "The coordinator is an internal action invoked only by the single", "cron-owned serialization boundary documentation");
