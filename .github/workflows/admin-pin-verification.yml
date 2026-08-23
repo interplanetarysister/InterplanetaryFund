@@ -24,4 +24,4 @@ jobs:
         run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
 
       - name: Verify admin PIN public boundary
-        run: npm run verify:admin-pin-security
+        run: npm run verify:admin-pin-oracle
