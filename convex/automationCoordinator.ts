@@ -38,6 +38,11 @@ function isSixHourSlot(nowMs: number) {
   return epochHour % 6 === 0;
 }
 
+function isTwelveHourSlot(nowMs: number) {
+  const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
+  return epochHour % 12 === 0;
+}
+
 export const getAgentAutomationStatus = internalQuery({
   args: {},
   handler: async (ctx) => {
@@ -101,6 +106,17 @@ export const runSerializedAutomation = internalAction({
         }
       } else {
         results.push({ runId, task: "outreach-strategy-improvement", status: "skipped", reason: "not_due" });
+      }
+
+      if (isTwelveHourSlot(nowMs)) {
+        try {
+          const result = await ctx.runMutation(internal.research.runAgentResearch, {});
+          results.push({ runId, task: "agent-research-sprint", status: "completed", result });
+        } catch {
+          results.push({ runId, task: "agent-research-sprint", status: "failed", error: "agent_research_failed" });
+        }
+      } else {
+        results.push({ runId, task: "agent-research-sprint", status: "skipped", reason: "not_due" });
       }
 
       const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
