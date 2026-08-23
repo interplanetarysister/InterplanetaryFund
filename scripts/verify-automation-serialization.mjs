@@ -58,6 +58,7 @@ for (const awaitedCall of [
   }
 }
 
+const normalizedCoordinator = coordinator.replace(/\s+/g, " ");
 for (const [agent, interval] of [
   ["Atlas", "4 * 60 * 60 * 1000"],
   ["Post Production Agent", "6 * 60 * 60 * 1000"],
@@ -65,10 +66,12 @@ for (const [agent, interval] of [
   ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  const cadencePattern = new RegExp(
-    `(?:[\\\"']?${agent.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}[\\\"']?)\\s*:\\s*${interval.replaceAll(" ", "\\s*")}`,
+  const cadenceVariants = [agent, `"${agent}"`, `'${agent}'`];
+  const hasCadence = cadenceVariants.some((key) =>
+    normalizedCoordinator.includes(`${key}: ${interval}`),
   );
-  if (!cadencePattern.test(coordinator)) {
+
+  if (!hasCadence) {
     throw new Error(`Historical cadence is missing for ${agent}: ${interval}`);
   }
 }
