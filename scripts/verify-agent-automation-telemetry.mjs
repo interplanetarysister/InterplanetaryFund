@@ -10,15 +10,16 @@ const sensitiveFields = [
   "trustScore",
 ];
 
-if (!publicQueryPattern.test(source)) {
-  throw new Error("Expected the current getAutomationStatus exposure to be detectable before the source-level authorization fix.");
+if (publicQueryPattern.test(source)) {
+  throw new Error(
+    "getAutomationStatus is still publicly exported as a Convex query. The telemetry boundary must be authenticated/authorized before publication."
+  );
 }
 
-for (const field of sensitiveFields) {
-  if (!source.includes(field)) {
-    throw new Error(`Telemetry regression guard could not find expected sensitive field: ${field}`);
-  }
+if (sensitiveFields.some((field) => source.includes(field))) {
+  console.log(
+    "Telemetry fields remain in the backend source, but the verifier no longer allows them to be returned by the public getAutomationStatus query."
+  );
 }
 
-console.log("Telemetry exposure guard: current public automation-status telemetry is detected and remains a tracked security boundary.");
-console.log("Next implementation requirement: replace the public query with an authenticated/authorized, minimized response without exposing these fields to unauthorized callers.");
+console.log("Agent automation telemetry boundary verifier passed: no public getAutomationStatus query export detected.");
