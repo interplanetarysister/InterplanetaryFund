@@ -10,11 +10,11 @@
 - `interplanetarysister/InterplanetaryFund` is the authoritative Convex/backend and agent-runtime repository.
 - `interplanetarysister/interplanetary-fund-backend` is legacy/reference unless explicitly assigned.
 - Base44 is the application layer; Convex is the authoritative backend/runtime and source of truth for persistent agent state and backend behavior.
-- Vercel is not the definition of the project's Convex agents. Hosting/deployment infrastructure must not be confused with the agent runtime.
+- Vercel is hosting/deployment infrastructure and is not the definition of the project's Convex agents.
 
 ## 2. Agent-team operating model
 
-The project uses role-specific agents. Do not assume every agent has the same instructions.
+The project uses role-specific agents. **Do not assume every agent has the same instructions.**
 
 The Convex Builder Agent team has a distinct workflow documented in:
 `interplanetary-fund-agent/handoffs/CONVEX_BUILDER_AGENT_WORKFLOW.md`
@@ -28,8 +28,6 @@ The intended coordinated sequence is:
 5. Only after the applicable final gate passes is the work ready for publication/merge.
 
 A failed inspection must feed findings back into the implementation/review loop. Verification is not a one-way stop.
-
-Agents should communicate through durable GitHub artifacts so future agents can continue without needing the original chat transcript.
 
 ## 3. Agent communication rules
 
@@ -48,9 +46,17 @@ Agents should communicate through durable GitHub artifacts so future agents can 
 - Do not silently introduce competing backend systems when an established authoritative Convex path exists.
 - Historical repositories/capabilities may be recovered as specifications, but must be deliberately reviewed before being promoted into current production behavior.
 
-## 5. Repository consolidation decision
+## 5. Repository reconciliation decision — 2026-08-23
 
-Do not make repository consolidation a prerequisite for continuing the agent workflow. The current source-of-truth map is sufficient to coordinate work. Consolidation/retirement decisions should be handled deliberately after preservation and feature-reconciliation work rather than deleting historical evidence prematurely.
+Do **not** copy the entire internal-agent repository into `interplanetary-fund2`. Instead, each repository owns the material required by its role:
+
+- `InterplanetaryFund` owns internal-agent identity, orchestration, memory/permissions, Convex/backend runtime, internal protocols, audits, handoffs, and the portable internal knowledge base.
+- `interplanetary-fund2` owns the user-facing Base44 application, frontend, application entities/configuration, application-layer agents, and application-specific workflows.
+- Shared architectural decisions are referenced across repositories through explicit source-of-truth documents rather than duplicated wholesale.
+- The internal-agent reference index is `docs/REFERENCE_MATERIAL_INDEX.md`.
+- The application-side boundary guide is `interplanetary-fund2/docs/REPOSITORY_SOURCE_OF_TRUTH.md`.
+
+This is a **reconciliation**, not a destructive consolidation. Historical evidence remains preserved.
 
 ## 6. Existing review/verification expectations
 
@@ -85,5 +91,7 @@ The project owner should not have to repeatedly restate established architecture
 ## 9. Current continuation point — 2026-08-23
 
 The immediate objective is to finish preparing the coordinated Convex Builder Agent workflow and its durable handoffs, then allow the assigned agents to work through GitHub in the established review/correction/verification loop.
+
+The repository/reference reconciliation has now been established in the canonical documentation. Remaining implementation work should use that source-of-truth map and update dependent reference material when decisions change.
 
 Do not interpret this archive as permission to bypass security, review, runtime validation, or repository ownership controls. It exists to preserve context and reduce repeated questions, not to weaken project safeguards.
