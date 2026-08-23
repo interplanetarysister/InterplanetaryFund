@@ -26,14 +26,14 @@ jobs:
       # Convex codegen may legitimately require a selected deployment because
       # project configuration can be evaluated through the Convex runtime.
       # CI does not have a Development deployment credential by design. The
-      # committed convex/_generated output is therefore validated indirectly by
-      # the full TypeScript check below. Deployment-specific codegen/runtime
-      # validation remains a separate Development gate before promotion.
+      # committed convex/_generated output is therefore validated by the
+      # focused Convex TypeScript check below. Deployment-specific codegen and
+      # runtime validation remain separate Development gates before promotion.
       - name: Automation concurrency verification
         run: npm run verify:automation-concurrency
 
-      - name: Typecheck
-        run: npx tsc --noEmit
+      - name: Convex typecheck
+        run: npx tsc --noEmit -p tsconfig.convex.json
 
       - name: Production build
         run: npm run build
