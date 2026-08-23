@@ -1,13 +1,43 @@
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-const securitySource = await readFile(
-  fileURLToPath(new URL("../convex/security.ts", import.meta.url)),
-  "utf8",
-);
+const readRepoFile = async (relativePath) =>
+  readFile(fileURLToPath(new URL(relativePath, import.meta.url)), "utf8");
 
-if (securitySource.includes("0426")) {
-  throw new Error("Hardcoded legacy admin PIN detected in the authoritative security module.");
+const securitySource = await readRepoFile("../convex/security.ts");
+const authSource = await readRepoFile("../convex/auth.ts");
+
+if (securitySource.includes("0426") || authSource.includes("0426")) {
+  throw new Error("Hardcoded legacy admin PIN detected in the authoritative authorization modules.");
+}
+
+if (authSource.includes("DEFAULT_ADMIN_PIN") || authSource.includes("?? DEFAULT_ADMIN_PIN")) {
+  throw new Error("Admin PIN verification still contains a hardcoded/default credential fallback.");
+}
+
+const verifyPinStart = authSource.indexOf("export const verifyAdminPin");
+const updatePinStart = authSource.indexOf("export const updateAdminPin");
+if (verifyPinStart === -1 || updatePinStart === -1) {
+  throw new Error("Expected admin PIN verification/update functions were not found.");
+}
+
+const verifyPinSource = authSource.slice(verifyPinStart, updatePinStart);
+const updatePinSource = authSource.slice(updatePinStart);
+
+if (!verifyPinSource.includes("if (!settings?.adminPin)")) {
+  throw new Error("verifyAdminPin must fail closed when no configured admin PIN exists.");
+}
+
+if (!verifyPinSource.includes("return { valid: false }")) {
+  throw new Error("verifyAdminPin does not have an explicit unconfigured denial path.");
+}
+
+if (!updatePinSource.includes("if (!settings?.adminPin)")) {
+  throw new Error("updateAdminPin must reject first-time updates through the public mutation.");
+}
+
+if (!updatePinSource.includes('"Admin PIN is not configured"')) {
+  throw new Error("updateAdminPin does not explicitly reject an unconfigured PIN state.");
 }
 
 const requireSuperAdminStart = securitySource.indexOf("export async function requireSuperAdmin");
