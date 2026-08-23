@@ -135,9 +135,18 @@ export function validateWithdrawal(amount: number, availableBalance: number): bo
 }
 
 // Admin settings query
+// Public clients may only read authenticated, non-sensitive settings. Credentials,
+// secrets, tokens, and PIN-bearing keys are never returned through this boundary.
 export const getAdminSetting = query({
   args: { key: v.string() },
   handler: async (ctx, args) => {
+    await requireAuth(ctx);
+
+    const normalizedKey = args.key.trim().toLowerCase();
+    if (!normalizedKey || /(pin|password|secret|token|credential|private.?key|api.?key)/i.test(normalizedKey)) {
+      throw new Error("This admin setting cannot be read through the public query.");
+    }
+
     const setting = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", args.key))
