@@ -46,27 +46,30 @@ for (const requiredReference of [
 }
 
 for (const awaitedCall of [
-  "await ctx.runMutation(internal.autonomous.checkSiteHealth, {})",
-  "await ctx.runMutation(internal.autonomous.autoRepair, {})",
-  "await ctx.runMutation(internal.postContent.autoGeneratePosts, {})",
-  "await ctx.runMutation(internal.facebook.improveOutreachStrategy, {})",
-  "await ctx.runMutation(functionRef, {})",
-  "await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {})",
+  /await\s+ctx\.runMutation\(internal\.autonomous\.checkSiteHealth,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(internal\.autonomous\.autoRepair,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(internal\.postContent\.autoGeneratePosts,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(internal\.facebook\.improveOutreachStrategy,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(functionRef,\s*\{\}\)/,
+  /await\s+ctx\.runMutation\(internal\.browserbase\.runAllAgentBrowserResearch,\s*\{\}\)/,
 ]) {
-  if (!coordinator.includes(awaitedCall)) {
+  if (!awaitedCall.test(coordinator)) {
     throw new Error(`Required shared writer is not awaited: ${awaitedCall}`);
   }
 }
 
-for (const cadence of [
-  'Atlas: 4 * 60 * 60 * 1000',
-  'Post Production Agent: 6 * 60 * 60 * 1000',
-  'Donor Relations Agent: 6 * 60 * 60 * 1000',
-  'Scout Agent: 8 * 60 * 60 * 1000',
-  'Platform Coordinator Agent: 4 * 60 * 60 * 1000',
+for (const [agent, interval] of [
+  ["Atlas", "4 * 60 * 60 * 1000"],
+  ["Post Production Agent", "6 * 60 * 60 * 1000"],
+  ["Donor Relations Agent", "6 * 60 * 60 * 1000"],
+  ["Scout Agent", "8 * 60 * 60 * 1000"],
+  ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  if (!coordinator.includes(cadence)) {
-    throw new Error(`Historical cadence is missing: ${cadence}`);
+  const escapedAgent = agent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapedInterval = interval.replaceAll(" ", "\\s*");
+  const cadencePattern = new RegExp(`(?:[\\\"']${escapedAgent}[\\\"']|\\b${escapedAgent}\\b)\\s*:\\s*${escapedInterval}`);
+  if (!cadencePattern.test(coordinator)) {
+    throw new Error(`Historical cadence is missing for ${agent}: ${interval}`);
   }
 }
 
