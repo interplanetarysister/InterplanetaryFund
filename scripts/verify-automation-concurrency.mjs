@@ -85,14 +85,10 @@ for (const [agent, interval] of [
 assertIncludes(coordinatorSource, "isSixHourSlot(nowMs)", "six-hour shared-writer cadence gate");
 assertIncludes(coordinatorSource, "utcHour === 15", "daily 15:00 UTC post-generation cadence gate");
 
-for (const required of [
-  "claimSerializedAutomation", "releaseSerializedAutomation", "LANE_LEASE_SPRINT_ID",
-  "platform-serialized-automation-lane", "withIndex(\"bySprintId\"", "existingContext?.leaseUntil",
-  'existingStatus === "claimed"',
-  "await ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation",
-  "await ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation",
-]) {
-  assertIncludes(coordinatorSource, required, "durable duplicate-run guard");
-}
+assertIncludes(coordinatorSource, "The coordinator is an internal action invoked only by the single", "cron-owned serialization boundary documentation");
+assertIncludes(coordinatorSource, "do not add a time-expiring secondary lease", "lease-expiry safety rationale");
+assert(!coordinatorSource.includes("claimSerializedAutomation"), "Secondary time-expiring lease claim must not be present");
+assert(!coordinatorSource.includes("releaseSerializedAutomation"), "Secondary time-expiring lease release must not be present");
+assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Secondary time-expiring lease constant must not be present");
 
 console.log("Automation concurrency verification passed.");
