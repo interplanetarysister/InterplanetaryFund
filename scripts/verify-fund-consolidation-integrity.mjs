@@ -32,13 +32,16 @@ if (source.includes("existingByAmount") || source.includes("Math.abs(new Date(e.
 }
 
 // Donations must be snapshotted once per campaign, not queried inside an
-// authorization loop. This prevents one donation being imported once per
-// active authorization.
-if (source.includes("for (const auth of authorizations)") && source.includes('query("donations")')) {
-  failures.push("Donations are still queried inside an authorization loop.");
+// authorization loop. Compare the actual query position with the authorization
+// loop rather than merely checking whether both strings exist somewhere in the file.
+const authorizationLoopIndex = source.indexOf("for (const auth of authorizations)");
+const donationQueryIndex = source.indexOf('const donations = await ctx.db');
+const donationProcessingIndex = source.indexOf("for (const donation of donations)");
+if (donationQueryIndex < 0 || donationProcessingIndex < 0 || donationQueryIndex > donationProcessingIndex) {
+  failures.push("Campaign-level donation snapshot/processing is missing or ordered incorrectly.");
 }
-if (!source.includes('const donations = await ctx.db') || !source.includes('.query("donations")') || !source.includes('for (const donation of donations)')) {
-  failures.push("Campaign-level donation snapshot/processing is missing.");
+if (authorizationLoopIndex >= 0 && donationQueryIndex >= 0 && donationQueryIndex > authorizationLoopIndex) {
+  failures.push("Donations are still queried after entering the authorization loop.");
 }
 
 // Provider transaction identity must be checked before ledger/provider writes.
