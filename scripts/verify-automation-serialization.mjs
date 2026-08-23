@@ -65,9 +65,9 @@ for (const [agent, interval] of [
   ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  const escapedAgent = agent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const escapedInterval = interval.replaceAll(" ", "\\s*");
-  const cadencePattern = new RegExp(`(?:[\\\"']${escapedAgent}[\\\"']|\\b${escapedAgent}\\b)\\s*:\\s*${escapedInterval}`);
+  const cadencePattern = new RegExp(
+    `(?:[\\\"']?${agent.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}[\\\"']?)\\s*:\\s*${interval.replaceAll(" ", "\\s*")}`,
+  );
   if (!cadencePattern.test(coordinator)) {
     throw new Error(`Historical cadence is missing for ${agent}: ${interval}`);
   }
