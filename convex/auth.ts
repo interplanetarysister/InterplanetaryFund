@@ -4,19 +4,20 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { query, mutation } from "./_generated/server";
-import { checkRateLimit } from "./security";
+import { internalQuery, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Admin PIN — stored server-side only, never exposed to client
 // Default PIN: 0426 (change via updateAdminPin mutation)
 const DEFAULT_ADMIN_PIN = "0426";
 
-// Query: Verify admin PIN
-export const verifyAdminPin = query({
+// Internal-only verification helper. The repository audit found no legitimate
+// public callers, so this credential oracle is deliberately removed from the
+// public Convex API. Privileged flows should use the authenticated admin
+// authorization functions instead of exposing PIN validity to clients.
+export const verifyAdminPin = internalQuery({
   args: { pin: v.string() },
   handler: async (ctx, { pin }) => {
-    // Check if a custom PIN is stored in the database
     const settings = await ctx.db.query("feeConfig").first();
     const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
     return { valid: pin === adminPin };
