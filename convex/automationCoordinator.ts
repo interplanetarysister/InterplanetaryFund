@@ -5,15 +5,17 @@
  * All automation that can mutate shared agent or distributedPosts state is
  * executed sequentially through awaited Convex sub-mutations.
  *
- * The coordinator is an action so each child mutation remains its own
- * transaction and long-running/external work does not consume one parent
- * mutation transaction budget. The cron itself is the single scheduling
- * lane; Convex guarantees at most one run of that cron job at a time.
+ * The coordinator is an internal action invoked only by the single
+ * serialized-automation-lane cron. Convex guarantees that a given cron job
+ * does not overlap with another invocation of itself, so the cron is the
+ * authoritative ownership/serialization boundary. No expiring secondary
+ * lease is used: a time-based lease could expire during a long-running worker
+ * and falsely permit a second lane invocation. Keeping one scheduler and one
+ * sequential action path is the safer invariant.
  */
 
-import { internalAction, internalMutation, internalQuery } from "./_generated/server";
+import { internalAction, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { v } from "convex/values";
 
 const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
@@ -23,9 +25,6 @@ const AGENT_INTERVALS_MS: Record<string, number> = {
   "Scout Agent": 8 * 60 * 60 * 1000,
   "Platform Coordinator Agent": 4 * 60 * 60 * 1000,
 };
-
-const LANE_LEASE_MS = 2 * 60 * 60 * 1000;
-const LANE_LEASE_SPRINT_ID = "platform-serialized-automation-lane";
 
 function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   if (!lastRun) return true;
@@ -37,15 +36,6 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
 function isSixHourSlot(nowMs: number) {
   const epochHour = Math.floor(nowMs / (60 * 60 * 1000));
   return epochHour % 6 === 0;
-}
-
-function parseLeaseContext(context: string | undefined) {
-  try {
-    const parsed = context ? JSON.parse(context) : null;
-    return parsed && typeof parsed === "object" ? parsed as Record<string, unknown> : null;
-  } catch {
-    return null;
-  }
 }
 
 export const getAgentAutomationStatus = internalQuery({
@@ -60,126 +50,18 @@ export const getAgentAutomationStatus = internalQuery({
   },
 });
 
-/**
- * Durable duplicate-run guard for the serialized lane.
- *
- * A fixed taskRelay key gives the lane one transactional claim record instead
- * of deriving exclusivity from append-only audit logs. Concurrent claimers read
- * the same indexed record; if neither exists, the competing insert is subject
- * to Convex's transactional conflict detection and the losing transaction is
- * retried against the newly-created claim.
- */
-export const claimSerializedAutomation = internalMutation({
-  args: { runId: v.string(), nowMs: v.number() },
-  handler: async (ctx, { runId, nowMs }) => {
-    const existing = await ctx.db
-      .query("taskRelay")
-      .withIndex("bySprintId", (q: any) => q.eq("sprintId", LANE_LEASE_SPRINT_ID))
-      .first();
-
-    const existingContext = parseLeaseContext(existing?.context);
-    const leaseUntil = typeof existingContext?.leaseUntil === "number" ? existingContext.leaseUntil : 0;
-    const existingStatus = typeof existingContext?.status === "string" ? existingContext.status : null;
-
-    if (existing && existingStatus === "claimed" && leaseUntil > nowMs) {
-      return { acquired: false, reason: "active_lease", runId };
-    }
-
-    const nextContext = JSON.stringify({
-      runId,
-      status: "claimed",
-      claimedAt: new Date(nowMs).toISOString(),
-      leaseUntil: nowMs + LANE_LEASE_MS,
-    });
-
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        context: nextContext,
-        status: "running",
-        completedThisSession: [],
-        nextSteps: ["serialized automation lane"],
-        activeSprint: "platform-foundation",
-        totalSprints: 1,
-        lastUpdated: new Date(nowMs).toISOString(),
-      });
-    } else {
-      await ctx.db.insert("taskRelay", {
-        sprintId: LANE_LEASE_SPRINT_ID,
-        context: nextContext,
-        nextSteps: ["serialized automation lane"],
-        completedThisSession: [],
-        status: "running",
-        lastUpdated: new Date(nowMs).toISOString(),
-        activeSprint: "platform-foundation",
-        totalSprints: 1,
-      });
-    }
-
-    return { acquired: true, reason: "claimed", runId };
-  },
-});
-
-export const releaseSerializedAutomation = internalMutation({
-  args: { runId: v.string(), nowMs: v.number(), status: v.union(v.literal("completed"), v.literal("failed")) },
-  handler: async (ctx, { runId, nowMs, status }) => {
-    const existing = await ctx.db
-      .query("taskRelay")
-      .withIndex("bySprintId", (q: any) => q.eq("sprintId", LANE_LEASE_SPRINT_ID))
-      .first();
-
-    if (!existing) return { released: false, runId, status };
-
-    const existingContext = parseLeaseContext(existing.context);
-    if (existingContext?.runId !== runId) {
-      return { released: false, runId, status, reason: "lease_owned_by_another_run" };
-    }
-
-    await ctx.db.patch(existing._id, {
-      context: JSON.stringify({
-        ...existingContext,
-        runId,
-        status,
-        releasedAt: new Date(nowMs).toISOString(),
-        leaseUntil: 0,
-      }),
-      status,
-      completedThisSession: [status],
-      nextSteps: [],
-      lastUpdated: new Date(nowMs).toISOString(),
-    });
-
-    return { released: true, runId, status };
-  },
-});
-
 export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
     const nowMs = Date.now();
     const runId = `serialized-automation:${new Date(nowMs).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
-    const claim = await ctx.runMutation(internal.automationCoordinator.claimSerializedAutomation, {
-      runId,
-      nowMs,
-    });
-
-    if (!claim.acquired) {
-      return {
-        success: true,
-        serialized: true,
-        skipped: true,
-        reason: claim.reason,
-        runId,
-        timestamp: new Date(nowMs).toISOString(),
-        results: [],
-      };
-    }
-
     const results: Array<Record<string, unknown>> = [];
     const utcHour = new Date(nowMs).getUTCHours();
 
     try {
       // IMPORTANT: Every worker below is awaited before the next worker starts.
-      // This is the shared-write serialization boundary.
+      // This is the shared-write serialization boundary. The cron job itself is
+      // the ownership boundary; do not add a time-expiring secondary lease here.
 
       try {
         const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
@@ -271,12 +153,6 @@ export const runSerializedAutomation = internalAction({
         results.push({ runId, task: "browserbase-research", status: "skipped", reason: "not_due" });
       }
 
-      await ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation, {
-        runId,
-        nowMs: Date.now(),
-        status: "completed",
-      });
-
       return {
         success: true,
         serialized: true,
@@ -285,11 +161,6 @@ export const runSerializedAutomation = internalAction({
         results,
       };
     } catch (error) {
-      await ctx.runMutation(internal.automationCoordinator.releaseSerializedAutomation, {
-        runId,
-        nowMs: Date.now(),
-        status: "failed",
-      });
       throw error;
     }
   },
