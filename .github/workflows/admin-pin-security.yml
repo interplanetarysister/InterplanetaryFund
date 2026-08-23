@@ -1,0 +1,39 @@
+name: Admin PIN Security Verification
+
+on:
+  pull_request:
+    paths:
+      - "convex/security.ts"
+      - "scripts/verify-admin-pin-authorization.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/admin-pin-security.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify-admin-pin-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Verify hardcoded PIN authorization contract
+        run: npm run verify:admin-pin-authorization
+
+      - name: Generate Convex code
+        run: npx convex codegen --dry-run
+
+      - name: Typecheck
+        run: npx tsc --noEmit --pretty false
