@@ -67,7 +67,9 @@ for (const [agent, interval] of [
   ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  assert(coordinatorSource.includes(`\"${agent}\": ${interval}`), `Historical cadence missing for ${agent}: ${interval}`);
+  const escapedAgent = agent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const cadencePattern = new RegExp(`(?:[\"']${escapedAgent}[\"']|\\b${escapedAgent}\\b)\\s*:\\s*${interval.replaceAll(" ", "\\s*")}`);
+  assert(cadencePattern.test(coordinatorSource), `Historical cadence missing for ${agent}: ${interval}`);
 }
 
 assertIncludes(coordinatorSource, "isSixHourSlot(nowMs)", "six-hour shared-writer cadence gate");
