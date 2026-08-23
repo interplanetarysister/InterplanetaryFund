@@ -11,6 +11,10 @@ function assertIncludes(source, fragment, label) {
   assert(source.includes(fragment), `Missing ${label}: ${fragment}`);
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 const forbiddenIndependentCrons = [
   "site-health-monitor", "auto-repair", "agent-research-sprint", "browserbase-research",
   "daily-post-generation", "outreach-strategy-improvement", "atlas-facebook-automation",
@@ -67,8 +71,9 @@ for (const [agent, interval] of [
   ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  const escapedAgent = agent.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const cadencePattern = new RegExp(`(?:[\"']${escapedAgent}[\"']|\\b${escapedAgent}\\b)\\s*:\\s*${interval.replaceAll(" ", "\\s*")}`);
+  const escapedAgent = escapeRegex(agent);
+  const escapedInterval = interval.split(" * ").map(escapeRegex).join("\\s*\\*\\s*");
+  const cadencePattern = new RegExp(`(?:[\"']?${escapedAgent}[\"']?)\\s*:\\s*${escapedInterval}`);
   assert(cadencePattern.test(coordinatorSource), `Historical cadence missing for ${agent}: ${interval}`);
 }
 
