@@ -7,7 +7,7 @@
  * Without these guards, anyone with the deployment URL could call mutations directly.
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Admin PIN — stored in the database, verified before any admin action
@@ -155,18 +155,24 @@ export const getAdminSetting = query({
   },
 });
 
-// Initialize admin PIN (called once during setup)
-export const initAdminPin = mutation({
+// Initialize admin PIN through a controlled internal bootstrap path only.
+// There are no repository callers for this function, so exposing it publicly would
+// allow an unauthenticated first caller to become the platform administrator.
+// Deployment/bootstrap tooling must invoke this internal mutation explicitly.
+export const initAdminPin = internalMutation({
   args: { pin: v.string() },
   handler: async (ctx, args) => {
-    // Only allow if no PIN is set yet
+    if (args.pin.length < 4) {
+      throw new Error("Admin PIN must be at least 4 characters.");
+    }
+
     const existing = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
       .first();
     
     if (existing) {
-      throw new Error("Admin PIN already initialized. Use updateAdminPin to change it.");
+      throw new Error("Admin PIN already initialized. Use changeAdminPin to change it.");
     }
     
     await ctx.db.insert("adminSettings", {
