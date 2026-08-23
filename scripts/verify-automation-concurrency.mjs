@@ -15,15 +15,19 @@ function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+function assertNoCronName(source, name) {
+  const escaped = escapeRegex(name);
+  const pattern = new RegExp(`[\\\"']${escaped}[\\\"']`);
+  assert(!pattern.test(source), `Independent automation cron still registered: ${name}`);
+}
+
 const forbiddenIndependentCrons = [
   "site-health-monitor", "auto-repair", "agent-research-sprint", "browserbase-research",
   "daily-post-generation", "outreach-strategy-improvement", "atlas-facebook-automation",
   "post-production-automation", "donor-relations-automation", "scout-automation",
   "coordinator-automation", "master-agent-check",
 ];
-for (const name of forbiddenIndependentCrons) {
-  assert(!cronSource.includes(`\"${name}\"`), `Independent automation cron still registered: ${name}`);
-}
+for (const name of forbiddenIndependentCrons) assertNoCronName(cronSource, name);
 
 const sharedWriterRefs = [
   "internal.autonomous.checkSiteHealth",
@@ -68,6 +72,7 @@ for (const [agent, interval] of [
   ["Atlas", "4 * 60 * 60 * 1000"],
   ["Post Production Agent", "6 * 60 * 60 * 1000"],
   ["Donor Relations Agent", "6 * 60 * 60 * 1000"],
+  ["Scout", "8 * 60 * 60 * 1000"],
   ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
