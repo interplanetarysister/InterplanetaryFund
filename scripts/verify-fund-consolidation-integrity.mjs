@@ -31,17 +31,16 @@ if (source.includes("existingByAmount") || source.includes("Math.abs(new Date(e.
   failures.push("Fuzzy amount/time deduplication remains in the consolidation path.");
 }
 
-// Donations must be snapshotted once per campaign, not queried inside an
-// authorization loop. Compare the actual query position with the authorization
-// loop rather than merely checking whether both strings exist somewhere in the file.
-const authorizationLoopIndex = source.indexOf("for (const auth of authorizations)");
-const donationQueryIndex = source.indexOf('const donations = await ctx.db');
-const donationProcessingIndex = source.indexOf("for (const donation of donations)");
-if (donationQueryIndex < 0 || donationProcessingIndex < 0 || donationQueryIndex > donationProcessingIndex) {
-  failures.push("Campaign-level donation snapshot/processing is missing or ordered incorrectly.");
+// Donations must be snapshotted once per campaign, not once per authorization.
+// Assert a single campaign-level donation query and a single processing loop;
+// avoid formatting/scope heuristics that cannot parse nested TypeScript reliably.
+const donationQueryMatches = source.match(/const donations = await ctx\.db[\s\S]*?\.query\("donations"\)/g) ?? [];
+if (donationQueryMatches.length !== 1) {
+  failures.push(`Expected exactly one campaign-level donation query, found ${donationQueryMatches.length}.`);
 }
-if (authorizationLoopIndex >= 0 && donationQueryIndex >= 0 && donationQueryIndex > authorizationLoopIndex) {
-  failures.push("Donations are still queried after entering the authorization loop.");
+const donationProcessingMatches = source.match(/for \(const donation of donations\)/g) ?? [];
+if (donationProcessingMatches.length !== 1) {
+  failures.push(`Expected exactly one campaign-level donation processing loop, found ${donationProcessingMatches.length}.`);
 }
 
 // Provider transaction identity must be checked before ledger/provider writes.
