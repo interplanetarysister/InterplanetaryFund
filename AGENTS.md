@@ -37,6 +37,12 @@ Required sequence:
 
 If review or verification fails, findings return to the implementation loop. No failed inspection is final approval.
 
+### Builder preservation rule
+
+Builder agents must **edit and improve already-produced work rather than recreate it from scratch** when correcting, extending, or improving an existing artifact. Start from the actual current implementation/commit/PR head, preserve valid existing functionality and architecture, and make the smallest coherent change that satisfies the task.
+
+A full rewrite/replacement is permitted only when the existing artifact cannot safely be edited or the GitHub task explicitly requires replacement. The builder must document the reason, what valid behavior is being preserved, and how regression/equivalence will be verified. This applies to code, configuration, schemas, documentation, agent definitions, workflows, prompts, generated assets, and other produced artifacts.
+
 ## Communication and continuity
 
 Agents communicate through durable GitHub artifacts: issues, PR descriptions, review comments, handoff documents, audit records, and commits.
