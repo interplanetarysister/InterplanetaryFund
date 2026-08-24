@@ -1,0 +1,22 @@
+name: Consolidation Summary Authorization
+
+on:
+  pull_request:
+    paths:
+      - "convex/fundConsolidation.ts"
+      - "scripts/verify-consolidation-summary-auth.mjs"
+      - ".github/workflows/consolidation-summary-auth.yml"
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify authenticated consolidation summary boundary
+        run: node scripts/verify-consolidation-summary-auth.mjs
