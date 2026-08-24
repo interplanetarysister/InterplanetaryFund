@@ -12,7 +12,7 @@
  * Both tables are queried every cycle — new campaigns and new users are picked up automatically.
  */
 
-import { internalMutation, query, mutation } from "./_generated/server";
+import { internalMutation, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 
@@ -43,26 +43,12 @@ export const toggleAgentAutomation = mutation({
   },
 });
 
-// =====================================================
-// GET AUTOMATION STATUS — For dashboard display
-// =====================================================
-
-export const getAutomationStatus = query({
-  args: {},
-  handler: async (ctx) => {
-    const agents = await ctx.db.query("agents").collect();
-    return agents.map(a => ({
-      name: a.name,
-      role: a.role,
-      status: a.status,
-      automationEnabled: a.automationEnabled ?? true,
-      lastAutomationRun: a.lastAutomationRun ?? "never",
-      automationInterval: a.automationInterval ?? "varies",
-      tasksCompleted: a.tasksCompleted ?? 0,
-      trustScore: a.trustScore ?? 0,
-    }));
-  },
-});
+// Public getAutomationStatus was intentionally removed.
+// The canonical Agents page does not consume it, and exposing internal
+// execution timing, task counts, trust scores, and automation state through
+// an unauthenticated query created an unnecessary telemetry boundary.
+// Any future telemetry UI must use an authenticated/authorized internal path
+// and return only the minimum fields required by that UI.
 
 // =====================================================
 // HELPER: Gather ALL active campaigns from BOTH tables
@@ -94,7 +80,7 @@ async function getAllActiveCampaigns(ctx: any) {
       outreachEnabled: c.outreachEnabled ?? false,
       endDate: c.endDate || "",
       coverImageUrl: c.coverImageUrl || null,
-      userId: null, // monitored campaigns aren't user-scoped
+      userId: null,
     })),
     ...userCreated.map((c: any) => ({
       id: c._id,
@@ -110,7 +96,7 @@ async function getAllActiveCampaigns(ctx: any) {
       outreachEnabled: c.outreachEnabled ?? false,
       endDate: c.endDate || "",
       coverImageUrl: c.coverImageUrl || null,
-      userId: c.userId, // user-created campaigns are owned by specific users
+      userId: c.userId,
     })),
   ];
 
@@ -135,7 +121,6 @@ export const runAtlasAutomation = internalMutation({
     let actions = 0;
     const tasks: string[] = [];
 
-    // Task 1: Filter 0-member groups
     const allGroups = await ctx.db.query("facebookGroups").collect();
     const zeroMemberGroups = allGroups.filter((g: any) => g.memberCount === 0);
     for (const g of zeroMemberGroups) {
@@ -146,12 +131,10 @@ export const runAtlasAutomation = internalMutation({
     }
     if (zeroMemberGroups.length > 0) tasks.push(`Filtered ${zeroMemberGroups.length} zero-member groups`);
 
-    // Task 2: Get ALL active campaigns from BOTH tables
     const allCampaigns = await getAllActiveCampaigns(ctx);
     const joinedGroups = allGroups.filter((g: any) => g.joinStatus === "joined");
     tasks.push(`Monitoring ${joinedGroups.length} joined groups across ${allCampaigns.length} active campaigns (monitored + user-created)`);
 
-    // Task 3: Check for groups pending join >48h
     const pendingJoins = allGroups.filter((g: any) => g.joinStatus === "join_requested");
     const nowMs = Date.now();
     const stuckJoins = pendingJoins.filter((g: any) => {
@@ -162,13 +145,11 @@ export const runAtlasAutomation = internalMutation({
       tasks.push(`${stuckJoins.length} group joins pending >48h — may need manual approval`);
     }
 
-    // Task 4: Check distributed posts for Facebook
     const fbPosts = await ctx.db.query("distributedPosts")
       .filter((q) => q.and(q.eq(q.field("platform"), "facebook"), q.eq(q.field("status"), "pending")))
       .take(20);
     if (fbPosts.length > 0) tasks.push(`${fbPosts.length} Facebook posts pending distribution`);
 
-    // Task 5: Discover new groups for any new campaigns that don't have groups yet
     const campaignsWithOutreach = allCampaigns.filter((c: any) => c.outreachEnabled);
     if (campaignsWithOutreach.length > 0) {
       tasks.push(`${campaignsWithOutreach.length} campaigns with outreach enabled — scanning for relevant groups`);
@@ -210,11 +191,9 @@ export const runPostProductionAutomation = internalMutation({
     let actions = 0;
     const tasks: string[] = [];
 
-    // Get ALL active campaigns from BOTH tables
     const allCampaigns = await getAllActiveCampaigns(ctx);
 
     for (const campaign of allCampaigns) {
-      // Check which campaigns need fresh posts
       const existingPosts = await ctx.db.query("distributedPosts")
         .filter((q) => q.eq(q.field("campaignId"), campaign.id))
         .take(10);
@@ -224,7 +203,6 @@ export const runPostProductionAutomation = internalMutation({
 
       if (needsPost && campaign.goalAmount > 0) {
         const progressPct = Math.round((campaign.raisedAmount / campaign.goalAmount) * 100);
-        // Adaptive content based on campaign source and progress
         const sourceLabel = campaign.table === "userCampaigns" ? "on Interplanetary Fund" : "";
         const postContent = `🚀 ${campaign.title} — ${progressPct}% funded! $${campaign.raisedAmount?.toLocaleString()} raised of $${campaign.goalAmount?.toLocaleString()} goal${sourceLabel ? " " + sourceLabel : ""}. Every contribution fuels the mission. 🌟`;
 
@@ -243,7 +221,6 @@ export const runPostProductionAutomation = internalMutation({
     }
     tasks.push(`Generated ${actions} fresh campaign posts for ${allCampaigns.length} active campaigns`);
 
-    // Check post pipeline health
     const allPending = await ctx.db.query("distributedPosts")
       .withIndex("byStatus", (q) => q.eq("status", "pending"))
       .collect();
@@ -285,7 +262,6 @@ export const runDonorRelationsAutomation = internalMutation({
     let actions = 0;
     const tasks: string[] = [];
 
-    // Get ALL active campaigns from BOTH tables
     const allCampaigns = await getAllActiveCampaigns(ctx);
 
     let totalDonors = 0;
@@ -294,7 +270,6 @@ export const runDonorRelationsAutomation = internalMutation({
       totalDonors += c.donorCount || 0;
       totalRaised += c.raisedAmount || 0;
 
-      // Check for campaigns that hit milestones
       const pct = c.goalAmount > 0 ? (c.raisedAmount / c.goalAmount) * 100 : 0;
       if (pct >= 100) {
         tasks.push(`"${c.title}" reached ${Math.round(pct)}% — needs donor thank-you campaign`);
@@ -306,14 +281,12 @@ export const runDonorRelationsAutomation = internalMutation({
     }
     tasks.push(`Monitoring ${totalDonors} total donors across ${allCampaigns.length} campaigns ($${totalRaised.toLocaleString()} raised)`);
 
-    // Check for campaigns with 0 donors that need attention
     const noDonorCampaigns = allCampaigns.filter((c: any) => (c.donorCount || 0) === 0);
     if (noDonorCampaigns.length > 0) {
       tasks.push(`${noDonorCampaigns.length} campaigns with 0 donors — need outreach boost`);
       actions++;
     }
 
-    // Check completed campaigns in both tables
     const completedMonitored = await ctx.db.query("monitoredCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "completed"))
       .collect();
@@ -361,15 +334,12 @@ export const runScoutAutomation = internalMutation({
     let actions = 0;
     const tasks: string[] = [];
 
-    // Get ALL active campaigns from BOTH tables
     const allCampaigns = await getAllActiveCampaigns(ctx);
 
-    // Task 1: Check existing Facebook groups for potential campaign creators
     const groups = await ctx.db.query("facebookGroups").collect();
     const joinedGroups = groups.filter((g: any) => g.joinStatus === "joined");
     tasks.push(`Scanning ${joinedGroups.length} joined Facebook groups for people who need crowdfunding`);
 
-    // Task 2: Check for campaigns with low progress that might benefit from outreach
     const strugglingCampaigns = allCampaigns.filter((c: any) => {
       const pct = c.goalAmount > 0 ? (c.raisedAmount / c.goalAmount) * 100 : 0;
       return pct < 25;
@@ -379,16 +349,13 @@ export const runScoutAutomation = internalMutation({
       actions++;
     }
 
-    // Task 3: Track platform growth — new users = potential campaign creators
     const totalUsers = await ctx.db.query("userProfiles").collect();
     tasks.push(`${totalUsers.length} platform users — ${allCampaigns.length} active campaigns — pipeline health check`);
 
-    // Task 4: Check external platforms for sync opportunities
     const externalPlatforms = await ctx.db.query("externalPlatforms").collect();
     const connectedPlatforms = externalPlatforms.filter((p: any) => p.status === "active");
     tasks.push(`${connectedPlatforms.length} external platforms connected — monitor for cross-posting opportunities`);
 
-    // Task 5: Identify new users who haven't created campaigns yet — outreach opportunity
     const userCampaigns = await ctx.db.query("userCampaigns").collect();
     const usersWithCampaigns = new Set(userCampaigns.map((c: any) => c.userId));
     const usersWithoutCampaigns = totalUsers.filter((u: any) => !usersWithCampaigns.has(u.userId));
@@ -433,7 +400,6 @@ export const runCoordinatorAutomation = internalMutation({
     const tasks: string[] = [];
     const alerts: string[] = [];
 
-    // Task 1: Check all agents are active
     const allAgents = await ctx.db.query("agents").collect();
     for (const a of allAgents) {
       if (a.status !== "active") {
@@ -447,7 +413,6 @@ export const runCoordinatorAutomation = internalMutation({
     }
     tasks.push(`Checked ${allAgents.length} agents — all should be active`);
 
-    // Task 2: Route pending posts to correct platforms
     const pendingPosts = await ctx.db.query("distributedPosts")
       .withIndex("byStatus", (q) => q.eq("status", "pending"))
       .collect();
@@ -459,12 +424,10 @@ export const runCoordinatorAutomation = internalMutation({
     const platformSummary = Object.entries(platformGroups).map(([k, v]) => `${k}: ${v}`).join(", ");
     tasks.push(`Routing ${pendingPosts.length} pending posts (${platformSummary})`);
 
-    // Task 3: Generate status summary across ALL campaigns
     const allCampaigns = await getAllActiveCampaigns(ctx);
     const totalRaised = allCampaigns.reduce((s: number, c: any) => s + (c.raisedAmount || 0), 0);
     tasks.push(`Platform status: ${allCampaigns.length} active campaigns, $${totalRaised.toLocaleString()} raised`);
 
-    // Task 4: Check for stuck posts >24h
     const nowMs = Date.now();
     const stuckPosts = pendingPosts.filter((p: any) => {
       const age = (nowMs - new Date(p.createdAt).getTime()) / (1000 * 60 * 60);
@@ -518,7 +481,6 @@ export const runAllAgentAutomation = internalMutation({
       results.push({ agent: agent.name, status: "triggered", timestamp: now });
     }
 
-    // Trigger Browserbase research for all agents with auto-research enabled
     try {
       const researchResult = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
       results.push({ agent: "Browserbase Research", status: "research_completed", ...researchResult });
