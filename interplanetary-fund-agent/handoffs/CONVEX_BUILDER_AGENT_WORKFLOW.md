@@ -49,6 +49,16 @@ Agents must communicate through durable GitHub artifacts (PR descriptions, revie
 
 Before starting work, the assigned agent must inspect the relevant GitHub issue/PR, current branch/head, existing agent handoff documents, and recent findings. If another agent is already working on the same scope, coordinate through GitHub rather than creating a competing implementation.
 
+### Edit the existing produced work — do not rebuild from scratch
+
+When a builder agent is correcting, extending, or improving work that has already been produced, it **must modify the existing implementation/artifact in place** rather than recreating an equivalent implementation from scratch. Preserve the existing work, history, architecture, interfaces, and valid functionality unless the GitHub task explicitly requires replacement.
+
+Before making changes, identify the exact current artifact/commit/PR head that is the subject of the work. Apply the smallest coherent modification that satisfies the requested correction. Do not discard a prior implementation and regenerate it merely because regeneration is easier.
+
+If a true replacement or rewrite is necessary, the agent must document why the existing produced work cannot safely be edited, what will be preserved, and how equivalence/regression will be verified. A replacement must be explicitly justified in the GitHub handoff/review record.
+
+This rule applies to code, configuration, documentation, schemas, agent definitions, workflows, prompts, generated assets, and other produced project artifacts.
+
 ## Verification principle
 
 Static inspection alone must not be represented as runtime proof. When runtime behavior is required, the workflow must identify the required environment and evidence. Historical/simulated events must not be presented as proof of current runtime behavior.
