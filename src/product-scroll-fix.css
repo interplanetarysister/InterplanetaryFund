@@ -1,0 +1,33 @@
+/* Cross-host document scrolling fix.
+ * The user-facing application must scroll as a normal document outside Base44
+ * preview/iframe environments. Keep the bottom navigation out of document
+ * flow so it cannot constrain the page's scroll container.
+ */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* App shell: do not create a nested flex scroll container. */
+.min-h-screen.bg-ifdark.flex.flex-col {
+  display: block !important;
+  min-height: 100vh;
+}
+
+/* User-facing bottom navigation stays visible without becoming the scroll owner. */
+nav.sticky.bottom-0 {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Keep content accessible above the fixed navigation. */
+main {
+  padding-bottom: max(5rem, env(safe-area-inset-bottom) + 4.5rem) !important;
+}
