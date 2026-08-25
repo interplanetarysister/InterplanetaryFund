@@ -1,16 +1,34 @@
 # Interplanetary Fund — Project Context Archive
 
-**Purpose:** Durable project memory for future agents and continuation work.
-**Last updated:** 2026-08-23
+**Purpose:** Durable project memory for future agents and continuation work.  
+**Last updated:** 2026-08-24
 
 ## Canonical architecture
 
 - `interplanetarysister/interplanetary-fund2` — canonical user-facing Base44 application.
-- `interplanetarysister/InterplanetaryFund` — authoritative Convex/backend and internal-agent runtime.
+- `interplanetarysister/InterplanetaryFund` — authoritative Convex/backend and internal-agent runtime; also contains the active React/Vite web application documented in `BUILD_MAPPING.md`.
 - `interplanetarysister/interplanetary-fund-backend` — legacy/reference unless explicitly assigned.
 - `interplanetarysister/fundforge-ai` — older Base44 application repository, reconciled for decommissioning; not a production source of truth.
 - Base44 is the application layer; Convex is the authoritative backend/runtime and source of truth for persistent agent state and backend behavior.
-- Vercel is hosting/deployment infrastructure and is not the definition of the project's Convex agents. Current GitHub inspection has not established Vercel as an essential active component of the current architecture.
+- Vercel is the primary web host for the active `InterplanetaryFund` React/Vite application, with GitHub Pages documented as fallback.
+
+## Frontend framework correction — 2026-08-24
+
+**Project-wide authoritative fact: the current Interplanetary Fund web applications use React + Vite, not Next.js.**
+
+Verified repository evidence:
+- `interplanetarysister/InterplanetaryFund/package.json` declares `react`, `react-dom`, `@vitejs/plugin-react`, and `vite`, with `vite`/`vite build` scripts and no `next` framework dependency.
+- `interplanetarysister/interplanetary-fund2/package.json` declares `react`, `react-dom`, `@vitejs/plugin-react`, `vite`, and `react-router-dom`, with `vite`/`vite build` scripts and no `next` framework dependency.
+- `interplanetarysister/interplanetary-fund-backend/package.json` likewise declares React + Vite and no Next.js framework.
+- `next-themes` in `interplanetary-fund2` is a React-compatible theme utility; it does **not** mean the repository uses Next.js.
+
+Therefore:
+1. Do not describe these repositories as Next.js applications.
+2. Do not introduce Next.js-specific assumptions such as App Router, Pages Router, Next server components, or Next build/deployment configuration.
+3. Preserve React/Vite build commands and configuration unless a future, explicit architecture decision changes the framework.
+4. When a document or agent instruction incorrectly says Next.js, correct it to the verified React + Vite stack and record the correction in the appropriate repository build/architecture document.
+
+The detailed deployment and repository mapping is preserved in `BUILD_MAPPING.md`.
 
 ## Agent-team operating model
 
