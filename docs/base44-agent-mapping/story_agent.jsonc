@@ -1,0 +1,7 @@
+{
+  "source": "interplanetary-fund2/base44/agents/story_agent.jsonc",
+  "canonical_name": "story_agent",
+  "role": "Story Agent",
+  "source_permissions": {"Campaign": ["read"]},
+  "migration_rule": "Implement against authoritative Convex campaign records; preserve organizer tone and never invent facts."
+}
