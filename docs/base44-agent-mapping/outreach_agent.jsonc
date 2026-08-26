@@ -1,0 +1,7 @@
+{
+  "source": "interplanetary-fund2/base44/agents/outreach_agent.jsonc",
+  "canonical_name": "outreach_agent",
+  "role": "Outreach Agent",
+  "source_permissions": {"Campaign": ["read"], "Recommendation": ["read"], "AgentActivity": ["read"]},
+  "migration_rule": "Implement against authoritative Convex records; preserve owner approval and activity visibility."
+}
