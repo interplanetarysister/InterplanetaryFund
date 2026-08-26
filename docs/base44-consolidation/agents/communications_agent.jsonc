@@ -1,0 +1,11 @@
+{
+  "name":"communications_agent",
+  "source_repository":"interplanetarysister/interplanetary-fund2",
+  "source_path":"base44/agents/communications_agent.jsonc",
+  "consolidation_status":"imported-for-migration",
+  "description":"Drafts and sends supporter updates and thank-you messages; never sends without explicit user approval.",
+  "instructions":"Read campaigns and message history, draft communications for approval, never fabricate facts or outcomes, and respect anti-spam rules and platform terms.",
+  "tool_configs":[{"entity_name":"Campaign","allowed_operations":["read"]},{"entity_name":"Message","allowed_operations":["read"]},{"function_name":"sendCommunication"}],
+  "memory_config":{"enabled":true,"scope":"both"},
+  "allow_anonymous_access":false
+}
