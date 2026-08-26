@@ -97,6 +97,25 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
   throw new Error("Invalid admin credentials. Access denied.");
 }
 
+// Identity-bound permission check for read-only public-query boundaries.
+// This avoids sending an administrator PIN as a query argument and reuses the
+// existing adminUsers role/permission model.
+export async function requireIdentityPermission(ctx: any, permission: string) {
+  const identity = await requireAuth(ctx);
+  const email = typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "";
+  if (!email) throw new Error("Admin authorization required.");
+
+  const adminUser = await ctx.db
+    .query("adminUsers")
+    .withIndex("byEmail", (q: any) => q.eq("email", email))
+    .first();
+
+  if (!adminUser?.active) throw new Error("Admin authorization required.");
+  if (adminUser.role === "super_admin" || adminUser.permissions.includes(permission)) return true;
+
+  throw new Error("Admin authorization required.");
+}
+
 // Rate limiting — prevents brute force on sensitive operations
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>();
 
@@ -134,13 +153,12 @@ export function validateWithdrawal(amount: number, availableBalance: number): bo
   return true;
 }
 
-// Admin settings query — require the existing admin permission model rather than
-// allowing any authenticated user to read platform configuration. Credential-like
-// keys are still denied as defense-in-depth.
+// Admin settings query — require the authenticated admin identity rather than
+// accepting a client-supplied PIN. Credential-like keys are defense-in-depth.
 export const getAdminSetting = query({
-  args: { key: v.string(), adminPin: v.string() },
+  args: { key: v.string() },
   handler: async (ctx, args) => {
-    await requirePermission(ctx, args.adminPin, "settings");
+    await requireIdentityPermission(ctx, "settings");
 
     const normalizedKey = args.key.trim().toLowerCase();
     if (!normalizedKey || /(pin|password|secret|token|credential|private.?key|api.?key)/i.test(normalizedKey)) {
@@ -149,7 +167,7 @@ export const getAdminSetting = query({
 
     const setting = await ctx.db
       .query("adminSettings")
-      .withIndex("byKey", (q: any) => q.eq("key", args.key))
+      .withIndex("byKey", (q: any) => q.eq("key", normalizedKey))
       .first();
     return setting?.value || null;
   },
