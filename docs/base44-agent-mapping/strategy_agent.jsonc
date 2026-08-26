@@ -1,0 +1,8 @@
+{
+  "source": "interplanetary-fund2/base44/agents/strategy_agent.jsonc",
+  "canonical_name": "strategy_agent",
+  "role": "Strategy Agent",
+  "source_permissions": {"Campaign": ["read"], "Recommendation": ["read"]},
+  "source_functions": ["generateIntelligence"],
+  "migration_rule": "Implement against authoritative Convex records and canonical intelligence functions."
+}
