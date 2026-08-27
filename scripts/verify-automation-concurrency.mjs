@@ -30,7 +30,7 @@ for (const ref of sharedWriterRefs) {
   assert(coordinatorSource.includes(ref), `Serialized coordinator is missing ${ref}`);
 }
 
-assert(cronSource.includes('"serialized-automation-lane"'), "Serialized automation lane cron is missing");
+assert(cronSource.includes('\"serialized-automation-lane\"'), "Serialized automation lane cron is missing");
 assert(cronSource.includes("internal.automationCoordinator.runSerializedAutomation"), "Serialized coordinator target is missing");
 for (const pattern of [
   /await\s+ctx\.runMutation\(internal\.autonomous\.checkSiteHealth,\s*\{\}\)/,
@@ -54,7 +54,7 @@ for (const [agent, interval] of [
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
-assert(/no expiring\s+secondary lease/.test(coordinatorSource), "Lease safety rationale missing");
+assert(/no\s+expiring\s+secondary\s+lease/.test(coordinatorSource), "Lease safety rationale missing");
 assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Time-expiring lease must not be introduced");
 
 console.log("Automation concurrency verification passed.");
