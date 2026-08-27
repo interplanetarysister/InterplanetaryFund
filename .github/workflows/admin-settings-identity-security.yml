@@ -1,0 +1,41 @@
+name: Admin Settings Identity Security
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'convex/security.ts'
+      - 'scripts/verify-admin-settings-identity-security.mjs'
+      - '.github/workflows/admin-settings-identity-security.yml'
+      - 'package.json'
+  push:
+    branches: [main, agent1/admin-settings-identity-current-main]
+    paths:
+      - 'convex/security.ts'
+      - 'scripts/verify-admin-settings-identity-security.mjs'
+      - '.github/workflows/admin-settings-identity-security.yml'
+      - 'package.json'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact reviewed head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: Verify admin settings identity security
+        run: npm run verify:admin-settings-identity-security
+      - name: Convex codegen
+        run: npx convex codegen
+      - name: Typecheck
+        run: npx tsc --noEmit --pretty false
+      - name: Production build
+        run: npm run build
