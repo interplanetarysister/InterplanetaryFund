@@ -11,8 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout
+      - name: Checkout exact reviewed head
         uses: actions/checkout@v4
+        with:
+          # pull_request normally checks out GitHub's synthetic merge ref.
+          # Security/quality gates must execute against the actual PR head so
+          # an older merge-ref verifier cannot produce a false result.
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -20,7 +25,6 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
-      # Exact-head rerun after the verifier's lease-safety assertion was aligned.
       - name: Automation concurrency verification
         run: npm run verify:automation-concurrency
       - name: Convex typecheck
