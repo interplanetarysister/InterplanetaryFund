@@ -83,7 +83,7 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
   if (adminUser && adminUser.active) {
     if (adminUser.role === "super_admin") return true;
     if (adminUser.permissions.includes(permission)) return true;
-    throw new Error(`Access denied. You need the "${permission}" permission.`);
+    throw new Error(`Access denied. You need the \"${permission}\" permission.`);
   }
 
   // Legacy PIN check (super admin)
@@ -134,15 +134,31 @@ export function validateWithdrawal(amount: number, availableBalance: number): bo
   return true;
 }
 
-// Admin settings query
+// Admin settings query — identity and permission bound; never expose settings to anonymous callers.
 export const getAdminSetting = query({
   args: { key: v.string() },
   handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const adminUser = await ctx.db
+      .query("adminUsers")
+      .withIndex("byEmail", (q: any) => q.eq("email", identity.email))
+      .first();
+
+    if (!adminUser || !adminUser.active ||
+        (adminUser.role !== "super_admin" && !adminUser.permissions.includes("settings"))) {
+      throw new Error("Access denied. Settings permission required.");
+    }
+
+    // Never return credential-bearing or other sensitive settings through this generic query.
     const setting = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", args.key))
       .first();
-    return setting?.value || null;
+    if (!setting) return null;
+    if (setting.key === ADMIN_PIN_KEY || /(?:private|secret|token|password|credential|api.?key)/i.test(setting.key)) {
+      throw new Error("Access denied. This setting cannot be read through the generic settings query.");
+    }
+    return setting.value || null;
   },
 });
 
