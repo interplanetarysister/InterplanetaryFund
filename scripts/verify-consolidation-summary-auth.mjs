@@ -10,21 +10,21 @@ if (!functionMatch) throw new Error("getConsolidationSummary implementation coul
 const implementation = functionMatch[0];
 const failures = [];
 
-if (/args:\s*\{\s*userId:\s*v\.string\(\)\s*\}/.test(implementation)) {
-  failures.push("getConsolidationSummary still accepts a client-supplied userId argument");
+if (!/args:\s*\{\s*\}/.test(implementation)) {
+  failures.push("getConsolidationSummary must declare an empty argument object");
 }
-
-// The implementation intentionally queries userCampaigns by the authenticated
-// subject. This is not a client-supplied ownership value. Reject only an
-// argument-derived userId reference inside this query boundary.
-if (/args[\s\S]{0,250}?userId/.test(implementation)) {
-  failures.push("getConsolidationSummary appears to derive ownership from query arguments");
+if (/args:\s*\{[\s\S]*?userId\s*:/.test(implementation)) {
+  failures.push("getConsolidationSummary still declares a client-supplied userId argument");
 }
-
+if (/handler:\s*async\s*\(ctx\s*,\s*\{[\s\S]*?userId/.test(implementation)) {
+  failures.push("getConsolidationSummary still destructures userId from query arguments");
+}
+if (/args\.userId/.test(implementation)) {
+  failures.push("getConsolidationSummary still reads args.userId");
+}
 if (!/const identity = await requireAuth\(ctx\)/.test(implementation)) {
   failures.push("getConsolidationSummary does not use the canonical requireAuth(ctx) security boundary");
 }
-
 if (!/const userId = identity\.subject/.test(implementation)) {
   failures.push("getConsolidationSummary does not bind ownership to the authenticated identity subject");
 }
