@@ -54,7 +54,7 @@ for (const [agent, interval] of [
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
-assert(/time-expiring secondary lease/.test(coordinatorSource), "Lease safety rationale missing");
+assert(/no expiring\s+secondary lease/.test(coordinatorSource), "Lease safety rationale missing");
 assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Time-expiring lease must not be introduced");
 
 console.log("Automation concurrency verification passed.");
