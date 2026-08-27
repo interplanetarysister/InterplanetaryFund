@@ -54,9 +54,8 @@ for (const [agent, interval] of [
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
-// Normalize source whitespace before checking the safety rationale so formatting cannot invalidate the guard.
-const normalizedCoordinatorSource = coordinatorSource.replace(/\s+/g, " ");
-assert(normalizedCoordinatorSource.includes("no expiring secondary lease"), "Lease safety rationale missing");
+// Match the documented safety rationale structurally so source wrapping/comments cannot invalidate the guard.
+assert(/no\s+expiring\s+secondary\s+lease/i.test(coordinatorSource), "Lease safety rationale missing");
 assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Time-expiring lease must not be introduced");
 
 console.log("Automation concurrency verification passed.");
