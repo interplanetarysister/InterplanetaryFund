@@ -1,0 +1,28 @@
+name: Backend Quality Gates
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, agent1/automation-concurrency-current-main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
+      - name: Automation concurrency verification
+        run: npm run verify:automation-concurrency
+      - name: Convex typecheck
+        run: npx tsc --noEmit -p tsconfig.convex.json
+      - name: Production build
+        run: npm run build
