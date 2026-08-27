@@ -21,8 +21,12 @@ if (/eq\(\"userId\",\s*userId\)/.test(implementation)) {
   failures.push("getConsolidationSummary still filters ownership using the supplied userId");
 }
 
-if (!/ctx\.auth\.getUserIdentity\(\)/.test(implementation)) {
-  failures.push("getConsolidationSummary does not bind the request to ctx.auth.getUserIdentity()");
+// The implementation may obtain identity through the repository's canonical
+// requireAuth helper. Verify that helper usage is present and identity.subject
+// is used for the ownership query rather than requiring an implementation
+// detail (a literal ctx.auth.getUserIdentity() call) inside this function.
+if (!/requireAuth\(ctx\)/.test(implementation)) {
+  failures.push("getConsolidationSummary does not use the canonical requireAuth(ctx) security boundary");
 }
 
 if (!/identity\.subject/.test(implementation)) {
