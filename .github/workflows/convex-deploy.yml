@@ -24,6 +24,11 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # Opt legacy action runtimes into Node 24 while all affected actions are
+  # migrated to Node-24-compatible majors. Remove once no legacy action needs it.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -33,10 +38,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
