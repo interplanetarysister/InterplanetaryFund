@@ -14,7 +14,7 @@ const forbiddenIndependentCrons = [
   "coordinator-automation", "master-agent-check",
 ];
 for (const name of forbiddenIndependentCrons) {
-  assert(!cronSource.includes(`\"${name}\"`), `Independent automation cron still registered: ${name}`);
+  assert(!cronSource.includes(`"${name}"`), `Independent automation cron still registered: ${name}`);
 }
 
 const sharedWriterRefs = [
@@ -30,7 +30,7 @@ for (const ref of sharedWriterRefs) {
   assert(coordinatorSource.includes(ref), `Serialized coordinator is missing ${ref}`);
 }
 
-assert(cronSource.includes('\"serialized-automation-lane\"'), "Serialized automation lane cron is missing");
+assert(cronSource.includes('"serialized-automation-lane"'), "Serialized automation lane cron is missing");
 assert(cronSource.includes("internal.automationCoordinator.runSerializedAutomation"), "Serialized coordinator target is missing");
 for (const pattern of [
   /await\s+ctx\.runMutation\(internal\.autonomous\.checkSiteHealth,\s*\{\}\)/,
@@ -49,13 +49,14 @@ for (const [agent, interval] of [
   ["Donor Relations Agent", "6 * 60 * 60 * 1000"], ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
-  assert(coordinatorSource.includes(`${agent}: ${interval}`) || coordinatorSource.includes(`\"${agent}\": ${interval}`), `Historical cadence missing for ${agent}`);
+  assert(coordinatorSource.includes(`${agent}: ${interval}`) || coordinatorSource.includes(`"${agent}": ${interval}`), `Historical cadence missing for ${agent}`);
 }
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
-// Match the documented safety rationale structurally so source wrapping/comments cannot invalidate the guard.
-assert(/no\s+expiring\s+secondary\s+lease/i.test(coordinatorSource), "Lease safety rationale missing");
+// Normalize wrapped block-comment decoration so the documented rationale is checked semantically.
+const normalizedCoordinatorSource = coordinatorSource.replace(/\s*\*\s*/g, " ");
+assert(/no\s+expiring\s+secondary\s+lease/i.test(normalizedCoordinatorSource), "Lease safety rationale missing");
 assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Time-expiring lease must not be introduced");
 
 console.log("Automation concurrency verification passed.");
