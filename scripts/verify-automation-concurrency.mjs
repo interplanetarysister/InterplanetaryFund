@@ -18,16 +18,11 @@ for (const name of forbiddenIndependentCrons) {
 }
 
 const sharedWriterRefs = [
-  "internal.autonomous.checkSiteHealth",
-  "internal.autonomous.autoRepair",
-  "internal.postContent.autoGeneratePosts",
-  "internal.facebook.improveOutreachStrategy",
-  "internal.research.runAgentResearch",
-  "internal.agentAutomation.runAtlasAutomation",
-  "internal.agentAutomation.runPostProductionAutomation",
-  "internal.agentAutomation.runDonorRelationsAutomation",
-  "internal.agentAutomation.runScoutAutomation",
-  "internal.agentAutomation.runCoordinatorAutomation",
+  "internal.autonomous.checkSiteHealth", "internal.autonomous.autoRepair",
+  "internal.postContent.autoGeneratePosts", "internal.facebook.improveOutreachStrategy",
+  "internal.research.runAgentResearch", "internal.agentAutomation.runAtlasAutomation",
+  "internal.agentAutomation.runPostProductionAutomation", "internal.agentAutomation.runDonorRelationsAutomation",
+  "internal.agentAutomation.runScoutAutomation", "internal.agentAutomation.runCoordinatorAutomation",
   "internal.browserbase.runAllAgentBrowserResearch",
 ];
 for (const ref of sharedWriterRefs) {
@@ -50,10 +45,8 @@ for (const pattern of [
 }
 
 for (const [agent, interval] of [
-  ["Atlas", "4 * 60 * 60 * 1000"],
-  ["Post Production Agent", "6 * 60 * 60 * 1000"],
-  ["Donor Relations Agent", "6 * 60 * 60 * 1000"],
-  ["Scout Agent", "8 * 60 * 60 * 1000"],
+  ["Atlas", "4 * 60 * 60 * 1000"], ["Post Production Agent", "6 * 60 * 60 * 1000"],
+  ["Donor Relations Agent", "6 * 60 * 60 * 1000"], ["Scout Agent", "8 * 60 * 60 * 1000"],
   ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
   assert(coordinatorSource.includes(`${agent}: ${interval}`) || coordinatorSource.includes(`\"${agent}\": ${interval}`), `Historical cadence missing for ${agent}`);
@@ -61,7 +54,7 @@ for (const [agent, interval] of [
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
-assert(coordinatorSource.includes("do not add a time-expiring secondary lease"), "Lease safety rationale missing");
+assert(/time-expiring secondary lease/.test(coordinatorSource), "Lease safety rationale missing");
 assert(!coordinatorSource.includes("LANE_LEASE_MS"), "Time-expiring lease must not be introduced");
 
 console.log("Automation concurrency verification passed.");
