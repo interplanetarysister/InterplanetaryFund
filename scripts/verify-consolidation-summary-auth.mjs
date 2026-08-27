@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const target = fs.readFileSync(path.join(root, "convex", "fundConsolidation.ts"), "utf8");
 
-const functionMatch = target.match(/export const getConsolidationSummary[\s\S]*?\n\};\n\n\/\/ =====================================================/);
+const functionMatch = target.match(/export const getConsolidationSummary\s*=\s*query\(\{[\s\S]*?\n\}\);/);
 if (!functionMatch) {
   throw new Error("getConsolidationSummary implementation could not be located");
 }
@@ -21,10 +21,6 @@ if (/eq\(\"userId\",\s*userId\)/.test(implementation)) {
   failures.push("getConsolidationSummary still filters ownership using the supplied userId");
 }
 
-// The implementation may obtain identity through the repository's canonical
-// requireAuth helper. Verify that helper usage is present and identity.subject
-// is used for the ownership query rather than requiring an implementation
-// detail (a literal ctx.auth.getUserIdentity() call) inside this function.
 if (!/requireAuth\(ctx\)/.test(implementation)) {
   failures.push("getConsolidationSummary does not use the canonical requireAuth(ctx) security boundary");
 }
