@@ -7,7 +7,7 @@ const required = [
   ['existing adminUsers lookup by email', /query\("adminUsers"\)[\s\S]*withIndex\("byEmail"/],
   ['settings permission enforced', /requireIdentityPermission\(ctx, "settings"\)/],
   ['public query does not accept admin PIN', /export const getAdminSetting = query\([\s\S]*args:\s*\{\s*key:\s*v\.string\(\)\s*\}/],
-  ['credential-like keys denied', /pin\|password\|secret\|token\|credential\|private\.key\|api\.key/],
+  ['credential-like keys denied', /\(pin\|password\|secret\|token\|credential\|private\.\?key\|api\.\?key\)/],
 ];
 
 for (const [label, pattern] of required) {
