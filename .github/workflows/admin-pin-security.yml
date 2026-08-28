@@ -1,0 +1,30 @@
+name: Admin PIN Security Verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'convex/auth.ts'
+      - 'convex/security.ts'
+      - 'scripts/verify-admin-pin-security.mjs'
+      - '.github/workflows/admin-pin-security.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify admin PIN security
+        run: node scripts/verify-admin-pin-security.mjs
