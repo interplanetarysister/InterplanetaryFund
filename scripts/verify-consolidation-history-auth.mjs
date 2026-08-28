@@ -35,7 +35,7 @@ for (const name of ["getLastConsolidation", "getConsolidationHistory"]) {
   if (!/campaignId/.test(implementation)) {
     failures.push(`${name} does not resolve the requested campaign`);
   }
-  if (!/(userId|ownerId)\s*!==?\s*identity\.subject|identity\.subject\s*!==?\s*(campaign\.)?(userId|ownerId)/.test(implementation)) {
+  if (!/userId\s*!==\s*identity\.subject|identity\.subject\s*!==\s*(?:campaign\.)?userId/.test(implementation)) {
     failures.push(`${name} does not explicitly reject a campaign owned by another identity`);
   }
 }
