@@ -40,28 +40,18 @@ export async function requireAdmin(ctx: any, adminPin: string) {
   return true;
 }
 
-
 // Check if caller is super_admin (full access)
 export async function requireSuperAdmin(ctx: any, adminPin: string) {
   if (!adminPin || adminPin.length < 4) {
     throw new Error("Admin PIN required for this action.");
   }
 
-  // Check adminUsers table
   const adminUser = await ctx.db
     .query("adminUsers")
     .withIndex("byPin", (q: any) => q.eq("pin", adminPin))
     .first();
 
   if (adminUser && adminUser.active && adminUser.role === "super_admin") {
-    return true;
-  }
-
-  // Legacy PIN check (Michelle's original)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
     return true;
   }
 
@@ -74,7 +64,6 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
     throw new Error("Admin PIN required for this action.");
   }
 
-  // Check adminUsers table
   const adminUser = await ctx.db
     .query("adminUsers")
     .withIndex("byPin", (q: any) => q.eq("pin", adminPin))
@@ -83,15 +72,7 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
   if (adminUser && adminUser.active) {
     if (adminUser.role === "super_admin") return true;
     if (adminUser.permissions.includes(permission)) return true;
-    throw new Error(`Access denied. You need the "${permission}" permission.`);
-  }
-
-  // Legacy PIN check (super admin)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
-    return true;
+    throw new Error(`Access denied. You need the \"${permission}\" permission.`);
   }
 
   throw new Error("Invalid admin credentials. Access denied.");
@@ -150,7 +131,6 @@ export const getAdminSetting = query({
 export const initAdminPin = mutation({
   args: { pin: v.string() },
   handler: async (ctx, args) => {
-    // Only allow if no PIN is set yet
     const existing = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
