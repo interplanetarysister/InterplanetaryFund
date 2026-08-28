@@ -64,7 +64,6 @@ jobs:
             }
           }
           CONF
-          # Remove any TS config that might conflict
           rm -f capacitor.config.ts
 
       - name: Add Android platform
@@ -72,13 +71,6 @@ jobs:
 
       - name: Copy web assets
         run: npx cap copy
-
-      - name: Generate signing key
-        run: |
-          keytool -genkey -v -keystore android.keystore -alias android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass interplanetary -keypass interplanetary \
-            -dname "CN=Interplanetary Fund, O=Interplanetary Fund, L=Earth, ST=Earth, C=US"
 
       - name: Build debug APK
         working-directory: android
