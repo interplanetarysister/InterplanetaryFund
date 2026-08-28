@@ -11,6 +11,9 @@ for (const identifier of [
 ]) {
   if (crons.includes(`\"${identifier}\"`)) throw new Error(`Conflicting independent cron still present: ${identifier}`);
 }
+
+if (!crons.includes('"weekly-training-session"')) throw new Error("Weekly training cron was unintentionally removed");
+if (!crons.includes("internal.protocol.weeklyTraining")) throw new Error("Weekly training target is missing");
 if (!crons.includes('"serialized-automation-lane"')) throw new Error("Serialized automation lane cron is missing");
 
 for (const ref of [
@@ -18,11 +21,17 @@ for (const ref of [
   "internal.postContent.autoGeneratePosts", "internal.facebook.improveOutreachStrategy",
   "internal.research.runAgentResearch", "internal.agentAutomation.runAtlasAutomation",
   "internal.agentAutomation.runPostProductionAutomation", "internal.agentAutomation.runDonorRelationsAutomation",
-  "internal.agentAutomation.runScoutAutomation", "internal.agentAutomation.runCoordinatorAutomation",
-  "internal.browserbase.runAllAgentBrowserResearch",
+  "internal.agentAutomation.runScoutAutomation", "internal.browserbase.runAllAgentBrowserResearch",
 ]) {
   if (!coordinator.includes(ref)) throw new Error(`Serialized coordinator is missing ${ref}`);
 }
+
+// Platform Coordinator's former mutation cron is intentionally replaced by the
+// serialized lane. It must not be reintroduced as a child of that same lane.
+if (coordinator.includes("internal.agentAutomation.runCoordinatorAutomation")) {
+  throw new Error("Serialized coordinator must not recursively invoke runCoordinatorAutomation");
+}
+
 for (const pattern of [
   /await\s+ctx\.runMutation\(internal\.autonomous\.checkSiteHealth,\s*\{\}\)/,
   /await\s+ctx\.runMutation\(internal\.autonomous\.autoRepair,\s*\{\}\)/,
@@ -41,12 +50,16 @@ for (const [agent, interval] of [
   ["Post Production Agent", "6 * 60 * 60 * 1000"],
   ["Donor Relations Agent", "6 * 60 * 60 * 1000"],
   ["Scout Agent", "8 * 60 * 60 * 1000"],
-  ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
   if (!normalized.includes(`${agent}: ${interval}`) && !normalized.includes(`\"${agent}\": ${interval}`)) {
     throw new Error(`Historical cadence missing for ${agent}: ${interval}`);
   }
 }
+
+if (!normalized.includes("AGENT_INTERVALS_MS")) throw new Error("Agent cadence table is missing");
+if (!coordinator.includes("function isTwoHourSlot")) throw new Error("Two-hour cadence helper is missing");
+if (!coordinator.includes("master-agent-health-check")) throw new Error("Two-hour health-check task is missing");
+if (!coordinator.includes("getAgentAutomationStatus")) throw new Error("Read-only health query is missing");
 if (!coordinator.includes("utcHour === 15")) throw new Error("Daily post-generation cadence gate is missing");
 if (!coordinator.includes("isSixHourSlot(nowMs)")) throw new Error("Six-hour cadence gate is missing");
 if (!coordinator.includes("isTwelveHourSlot(nowMs)")) throw new Error("Twelve-hour cadence gate is missing");
