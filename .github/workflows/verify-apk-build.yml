@@ -1,0 +1,86 @@
+name: Verify Android APK Build
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-apk.yml'
+      - '.github/workflows/verify-apk-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Capacitor
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npm install -g @capacitor/cli
+
+      - name: Build web app
+        run: npm run build
+        env:
+          VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
+
+      - name: Create Capacitor config
+        run: |
+          cat > capacitor.config.json << 'CONF'
+          {
+            "appId": "com.interplanetaryfund.app",
+            "appName": "Interplanetary Fund",
+            "webDir": "dist",
+            "server": {
+              "androidScheme": "https"
+            },
+            "android": {
+              "allowMixedContent": true
+            }
+          }
+          CONF
+          rm -f capacitor.config.ts
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Copy web assets
+        run: npx cap copy
+
+      - name: Build debug APK without release signing
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon -x lint
+          test -n "$(find . -name '*.apk' -type f -print -quit)"
