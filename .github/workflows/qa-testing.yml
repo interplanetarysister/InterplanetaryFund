@@ -31,6 +31,9 @@ permissions:
   issues: write
   actions: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -41,11 +44,11 @@ jobs:
       VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -100,7 +103,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: qa-report-${{ github.run_id }}
           path: |
@@ -160,9 +163,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Close any open qa-failure issues since tests now pass
-          ISSUES=$(gh issue list --label "qa-failure" --state open --json number --jq '.[].number' 2>/dev/null || echo "")
+          ISSUES=$(gh issue list --label "qa-failure" --state open --json number --jq '[].number' 2>/dev/null || echo "")
           for issue in $ISSUES; do
-            gh issue comment "$issue" --body "All QA tests passing as of $(date -u '+%Y-%m-%d %H:%M UTC'). Auto-closing."
+            gh issue comment "$issue" --body "All QA tests passing as of $(date -u +%Y-%m-%d %H:%M UTC). Auto-closing."
             gh issue close "$issue"
           done
 
