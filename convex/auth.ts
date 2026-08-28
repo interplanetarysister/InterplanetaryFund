@@ -5,7 +5,7 @@
  */
 
 import { internalQuery, mutation } from "./_generated/server";
-import { requireAuth, checkRateLimit } from "./security";
+import { requireAuth } from "./security";
 import { v } from "convex/values";
 
 // Query: Verify admin PIN
