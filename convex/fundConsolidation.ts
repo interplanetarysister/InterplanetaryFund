@@ -2,10 +2,9 @@
  * Interplanetary Fund — Fund Consolidation System
  * Copyright © 2026 Michelle Rogers. All Rights Reserved.
  *
- * Financial reconciliation uses a committed per-campaign claim before any
- * ledger/provider writes. Processing is scheduled only after the claim
- * mutation commits, so competing requests cannot both enter the financial
- * write path from the same transaction snapshot.
+ * Financial reconciliation uses the campaign document as the durable
+ * optimistic-concurrency claim boundary. Only the mutation that successfully
+ * changes that campaign marker may create a run and schedule processing.
  */
 
 import { query, mutation, internalMutation } from "./_generated/server";
@@ -22,35 +21,39 @@ function lockStartedAt(value: string | undefined) {
   return Number.isFinite(timestamp) ? timestamp : null;
 }
 
+function claimTokenForRun(run: any) {
+  const timestamp = Date.parse(run.startedAt);
+  return Number.isFinite(timestamp) ? `${CONSOLIDATION_LOCK_PREFIX}${timestamp}` : null;
+}
+
 async function getCampaign(ctx: any, campaignId: string) {
   return ctx.db.query("userCampaigns").filter((q: any) => q.eq(q.field("_id"), campaignId as any)).first();
 }
 
-async function getActiveClaim(ctx: any, campaignId: string) {
+async function getCurrentClaimRun(ctx: any, campaignId: string) {
   const runs = await ctx.db
     .query("consolidationRuns")
     .withIndex("byCampaignId", (q: any) => q.eq("campaignId", campaignId))
     .collect();
-  const active = runs
+  return runs
     .filter((run: any) => run.status === "claimed" || run.status === "running")
-    .sort((a: any, b: any) => b.startedAt.localeCompare(a.startedAt))[0];
-  if (!active) return null;
-  const started = Date.parse(active.startedAt);
-  if (Number.isFinite(started) && Date.now() - started < CONSOLIDATION_LOCK_TTL_MS) return active;
-  return null;
+    .sort((a: any, b: any) => b.startedAt.localeCompare(a.startedAt))[0] ?? null;
 }
 
-async function findExistingProviderTransaction(ctx: any, provider: string, providerTransactionId: string) {
+async function findExistingProviderTransaction(ctx: any, provider: string, providerAccountId: string, providerTransactionId: string) {
   const providerTransaction = await ctx.db
     .query("providerTransactions")
     .withIndex("byProviderTxnId", (q: any) => q.eq("providerTransactionId", providerTransactionId))
     .filter((q: any) => q.eq(q.field("provider"), provider))
+    .filter((q: any) => q.eq(q.field("providerAccountId"), providerAccountId))
     .first();
   if (providerTransaction) return providerTransaction;
+
   return ctx.db
     .query("campaignLedger")
     .withIndex("byProviderTxn", (q: any) => q.eq("providerTransactionId", providerTransactionId))
     .filter((q: any) => q.eq(q.field("provider"), provider))
+    .filter((q: any) => q.eq(q.field("connectedAccountId"), providerAccountId))
     .first();
 }
 
@@ -75,13 +78,22 @@ async function claimAndScheduleConsolidation(ctx: any, {
   userId: string;
   initiatedBy: "user" | "ai_agent" | "system";
 }) {
-  const now = Date.now();
-  const activeClaim = await getActiveClaim(ctx, campaign._id);
-  if (activeClaim) {
-    return { status: "in_progress", runId: activeClaim._id };
+  const existingMarker = campaign.lastConsolidationAt;
+  const existingStartedAt = lockStartedAt(existingMarker);
+
+  if (existingStartedAt !== null && Date.now() - existingStartedAt < CONSOLIDATION_LOCK_TTL_MS) {
+    const existingRun = await getCurrentClaimRun(ctx, campaign._id);
+    return { status: "in_progress", runId: existingRun?._id ?? null };
   }
 
-  const startedAt = new Date(now).toISOString();
+  const now = Date.now();
+  const claimToken = `${CONSOLIDATION_LOCK_PREFIX}${now}`;
+
+  // This write is the authoritative winner boundary. Convex OCC compares the
+  // campaign document version read above; concurrent claimers cannot both commit
+  // a different marker. The losing mutation is retried against the new marker.
+  await ctx.db.patch(campaign._id, { lastConsolidationAt: claimToken });
+
   const runId = await ctx.db.insert("consolidationRuns", {
     campaignId: campaign._id,
     userId,
@@ -98,15 +110,11 @@ async function claimAndScheduleConsolidation(ctx: any, {
     previouslyReconciledAmount: 0,
     pendingAmount: 0,
     failedAmount: 0,
-    startedAt,
+    startedAt: new Date(now).toISOString(),
   });
 
-  // The campaign marker is intentionally committed with the claim mutation.
-  // The actual financial work happens in a separate scheduled mutation.
-  await ctx.db.patch(campaign._id, {
-    lastConsolidationAt: `${CONSOLIDATION_LOCK_PREFIX}${now}`,
-  });
-
+  // Scheduling is atomic with this mutation and occurs only after the claim
+  // mutation commits, so only the winning claim can create this job.
   await ctx.scheduler.runAfter(0, internal.fundConsolidation.processConsolidationRun, { runId });
   return { status: "claimed", runId };
 }
@@ -118,7 +126,12 @@ async function processConsolidationRun(ctx: any, runId: any) {
   const campaign = await ctx.db.get(run.campaignId);
   if (!campaign) return { status: "failed", message: "Campaign not found" };
 
-  const startedAt = run.startedAt;
+  // A stale scheduled job must never reacquire work after a replacement claim.
+  const runClaimToken = claimTokenForRun(run);
+  if (!runClaimToken || campaign.lastConsolidationAt !== runClaimToken) {
+    return { status: "ignored", reason: "stale_claim" };
+  }
+
   const startTime = Date.now();
   await ctx.db.patch(runId, { status: "running" });
 
@@ -129,17 +142,20 @@ async function processConsolidationRun(ctx: any, runId: any) {
     .collect();
 
   if (authorizations.length === 0) {
+    const completedAt = new Date().toISOString();
     await ctx.db.patch(runId, {
       status: "completed",
       transactionsDiscovered: 0,
       transactionsImported: 0,
       transactionsDuplicate: 0,
       transactionsFlagged: 1,
-      completedAt: new Date().toISOString(),
+      completedAt,
       durationMs: Date.now() - startTime,
       discrepancies: [{ type: "authorization_missing", description: "No authorized accounts found for this campaign." }],
     });
-    await ctx.db.patch(campaign._id, { lastConsolidationAt: new Date().toISOString() });
+    if (campaign.lastConsolidationAt === runClaimToken) {
+      await ctx.db.patch(campaign._id, { lastConsolidationAt: completedAt });
+    }
     return { status: "completed", runId };
   }
 
@@ -175,6 +191,11 @@ async function processConsolidationRun(ctx: any, runId: any) {
       discrepancies.push({ type: "account_inactive", description: `Connected account for ${auth.provider} is ${account?.connectionStatus || "not found"}. Reauthorization required.` });
       continue;
     }
+
+    // The connected-account write is a second serialization boundary. Two
+    // campaigns using the same provider account cannot concurrently import the
+    // same provider transaction and both commit financial writes.
+    await ctx.db.patch(account._id, { lastVerifiedAt: new Date().toISOString() });
     activeAccounts.set(auth.connectedAccountId, { auth, account });
   }
 
@@ -203,7 +224,8 @@ async function processConsolidationRun(ctx: any, runId: any) {
     }
 
     const providerTransactionId = donation.txnId || `donation_${donation._id}`;
-    const existingProviderTransaction = await findExistingProviderTransaction(ctx, provider, providerTransactionId);
+    const providerAccountId = selected.account.providerAccountId;
+    const existingProviderTransaction = await findExistingProviderTransaction(ctx, provider, providerAccountId, providerTransactionId);
     if (existingProviderTransaction || legacyDonationAlreadyImported(existingEntries, donation._id)) { totalDuplicate++; continue; }
 
     totalDiscovered++;
@@ -237,7 +259,7 @@ async function processConsolidationRun(ctx: any, runId: any) {
     await ctx.db.insert("providerTransactions", {
       provider,
       providerTransactionId,
-      providerAccountId: selected.account.providerAccountId,
+      providerAccountId,
       connectedAccountId: selected.auth.connectedAccountId,
       campaignId: campaign._id,
       userId: run.userId,
@@ -261,14 +283,15 @@ async function processConsolidationRun(ctx: any, runId: any) {
     if (platform.externalTotal <= 0) continue;
     const provider = platform.platform;
     const providerTransactionId = `external_${platform.platform}_${platform._id}`;
-    const existingProviderTransaction = await findExistingProviderTransaction(ctx, provider, providerTransactionId);
-    if (existingProviderTransaction || legacyExternalPlatformAlreadyImported(existingEntries, platform._id)) { totalDuplicate++; continue; }
-
     const selected = providerAuth.get(provider) || fallbackAuthorization;
     if (!selected) {
       discrepancies.push({ type: "authorization_missing", description: `No active authorization is available for ${platform.displayName}.`, amount: platform.externalTotal });
       continue;
     }
+
+    const providerAccountId = selected.account.providerAccountId;
+    const existingProviderTransaction = await findExistingProviderTransaction(ctx, provider, providerAccountId, providerTransactionId);
+    if (existingProviderTransaction || legacyExternalPlatformAlreadyImported(existingEntries, platform._id)) { totalDuplicate++; continue; }
 
     totalDiscovered++;
     totalDiscoveredAmount += platform.externalTotal;
@@ -301,7 +324,7 @@ async function processConsolidationRun(ctx: any, runId: any) {
     await ctx.db.insert("providerTransactions", {
       provider,
       providerTransactionId,
-      providerAccountId: selected.account.providerAccountId,
+      providerAccountId,
       connectedAccountId: selected.auth.connectedAccountId,
       campaignId: campaign._id,
       userId: run.userId,
@@ -336,6 +359,7 @@ async function processConsolidationRun(ctx: any, runId: any) {
     completedAt,
     durationMs,
   });
+
   await logFinancialAction(ctx, {
     userId: run.userId,
     campaignId: campaign._id,
@@ -347,7 +371,11 @@ async function processConsolidationRun(ctx: any, runId: any) {
     description: `Consolidated ${totalImported} new transactions ($${totalImportedAmount.toFixed(2)}). ${totalDuplicate} duplicates skipped.`,
     metadata: JSON.stringify({ runId, totalDiscovered, totalImported, totalDuplicate }),
   });
-  await ctx.db.patch(campaign._id, { lastConsolidationAt: completedAt });
+
+  if (campaign.lastConsolidationAt === runClaimToken) {
+    await ctx.db.patch(campaign._id, { lastConsolidationAt: completedAt });
+  }
+
   return { status: "success", runId, newlyDiscovered: totalDiscovered, newlyImported: totalImported, duplicates: totalDuplicate, previouslyReconciled: previouslyReconciledAmount, pending: pendingAmount, failed: failedAmount, totalImportedAmount, discrepancies, accountsRequiringReauth, durationMs };
 }
 
