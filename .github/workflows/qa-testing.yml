@@ -15,7 +15,6 @@ name: QA Testing
 
 on:
   schedule:
-    # Every 6 hours — 00:00, 06:00, 12:00, 18:00 UTC
     - cron: '0 */6 * * *'
   workflow_dispatch:
   push:
@@ -92,10 +91,8 @@ jobs:
           const summary = \`${status}: \${passed} passed, \${failed} failed, \${flaky} flaky (of \${total} total)\`;
           console.log(summary);
           fs.writeFileSync('qa-summary.txt', summary);
-          fs.writeFileSync('qa-status.txt', status);
-          const statusText = fs.readFileSync('qa-status.txt', 'utf-8').trim();
-          console.log('::set-output name=status::' + statusText);
-          console.log('::set-output name=summary::' + summary);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=' + status + '\\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'summary=' + summary.replace(/\\n/g, ' ') + '\\n');
           "
 
       - name: Upload test report
