@@ -12,7 +12,7 @@ This runbook is the release gate for the serialized automation repair. It must b
 6. Verify shared mutations execute sequentially and that no overlapping shared-writer runs occur.
 7. Inspect telemetry for the previously observed `cron_commit_mut...` conflict/retry class. A successful retry is not evidence that the underlying contention is fixed; the conflict must be absent for the repaired topology.
 8. Exercise a representative child-worker failure and verify the failed child is observable while later work remains serialized and the next scheduled cadence can retry it.
-9. Record the exact deployed SHA, cron topology, cycle evidence, conflict observations, and failure-path result on the PR/Issue #47 audit trail.
+9. Record the exact deployed SHA, cron topology, cycle evidence, conflict observations, and failure-path result on the owning PR #59 and Issue #60.
 10. Before promotion, reconcile the intended Production cron/function source against the same reviewed SHA.
 
 ## Safety
