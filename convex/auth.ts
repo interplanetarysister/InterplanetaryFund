@@ -4,22 +4,18 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { query, mutation } from "./_generated/server";
-import { checkRateLimit } from "./security";
+import { internalQuery, mutation } from "./_generated/server";
+import { requireAuth, checkRateLimit } from "./security";
 import { v } from "convex/values";
 
-// Admin PIN — stored server-side only, never exposed to client
-// Default PIN: 0426 (change via updateAdminPin mutation)
-const DEFAULT_ADMIN_PIN = "0426";
-
 // Query: Verify admin PIN
-export const verifyAdminPin = query({
+// Internal-only: callers must not receive a public PIN-validity oracle.
+export const verifyAdminPin = internalQuery({
   args: { pin: v.string() },
   handler: async (ctx, { pin }) => {
-    // Check if a custom PIN is stored in the database
     const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
-    return { valid: pin === adminPin };
+    const adminPin = settings?.adminPin;
+    return { valid: Boolean(adminPin) && pin === adminPin };
   },
 });
 
@@ -27,30 +23,22 @@ export const verifyAdminPin = query({
 export const updateAdminPin = mutation({
   args: { currentPin: v.string(), newPin: v.string() },
   handler: async (ctx, { currentPin, newPin }) => {
+    const identity = await requireAuth(ctx);
     const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
+    const adminPin = settings?.adminPin;
 
-    if (currentPin !== adminPin) {
+    if (!adminPin || currentPin !== adminPin) {
       return { success: false, error: "Current PIN is incorrect" };
     }
 
-    if (newPin.length < 4) {
+    if (newPin.length < 4 || !/^\d+$/.test(newPin)) {
       return { success: false, error: "PIN must be at least 4 digits" };
     }
 
     if (settings) {
-      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system" });
+      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: identity.subject });
     } else {
-      // If no feeConfig record exists, create one with just the PIN
-      await ctx.db.insert("feeConfig", {
-        active: true,
-        platformFeePercent: 5,
-        processingFeePercent: 2.9,
-        processingFeeFlat: 0.30,
-        adminPin: newPin,
-        updatedAt: new Date().toISOString(),
-        updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system",
-      });
+      return { success: false, error: "Admin PIN is not configured" };
     }
 
     return { success: true };
