@@ -27,9 +27,12 @@ on:
       - 'playwright.config.ts'
 
 permissions:
-  contents: write
+  contents: read
   issues: write
   actions: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test:
@@ -41,11 +44,11 @@ jobs:
       VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -68,7 +71,6 @@ jobs:
           node -e "
           const fs = require('fs');
           let passed = 0, failed = 0, flaky = 0;
-          let results = [];
           try {
             const report = JSON.parse(fs.readFileSync('qa-report.json', 'utf-8'));
             for (const suite of report.suites || []) {
@@ -91,16 +93,14 @@ jobs:
           console.log(summary);
           fs.writeFileSync('qa-summary.txt', summary);
           fs.writeFileSync('qa-status.txt', status);
-          // Set outputs
-          const fs2 = require('fs');
-          const statusText = fs2.readFileSync('qa-status.txt', 'utf-8').trim();
+          const statusText = fs.readFileSync('qa-status.txt', 'utf-8').trim();
           console.log('::set-output name=status::' + statusText);
           console.log('::set-output name=summary::' + summary);
           "
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: qa-report-${{ github.run_id }}
           path: |
@@ -117,10 +117,7 @@ jobs:
           SUMMARY=$(cat qa-summary.txt)
           DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
           RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          
-          # Check if an open QA issue already exists
           EXISTING=$(gh issue list --label "qa-failure" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
-          
           BODY="## QA Test Failure Report
           
           **Run:** ${RUN_URL}
@@ -135,23 +132,14 @@ jobs:
           
           This issue will auto-close when the next QA run passes.
           "
-          
           if [ -n "$EXISTING" ]; then
-            # Update existing issue with new comment
             gh issue comment "$EXISTING" --body "## Update — ${DATE}
           
           ${SUMMARY}
           Run: ${RUN_URL}"
           else
-            # Create new issue
-            gh issue create \
-              --title "QA Test Failure — ${DATE}" \
-              --body "$BODY" \
-              --label "qa-failure,automated" \
-              || gh issue create \
-                --title "QA Test Failure — ${DATE}" \
-                --body "$BODY" \
-                --label "qa-failure"
+            gh issue create --title "QA Test Failure — ${DATE}" --body "$BODY" --label "qa-failure,automated" \
+              || gh issue create --title "QA Test Failure — ${DATE}" --body "$BODY" --label "qa-failure"
           fi
 
       - name: Auto-close issues on success
@@ -159,24 +147,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Close any open qa-failure issues since tests now pass
           ISSUES=$(gh issue list --label "qa-failure" --state open --json number --jq '.[].number' 2>/dev/null || echo "")
           for issue in $ISSUES; do
             gh issue comment "$issue" --body "All QA tests passing as of $(date -u '+%Y-%m-%d %H:%M UTC'). Auto-closing."
             gh issue close "$issue"
           done
-
-      - name: Commit test report to repo
-        if: always()
-        run: |
-          git config user.name "IF QA Bot"
-          git config user.email "actions@github.com"
-          if [ -f qa-report.json ]; then
-            mkdir -p qa-results
-            cp qa-report.json qa-results/qa-report-$(date -u +%Y%m%d-%H%M).json
-            git add qa-results/ || true
-            if [ -n "$(git status --porcelain)" ]; then
-              git commit -m "chore(qa): test report $(date -u +%Y-%m-%d_%H:%M) — ${{ steps.parse.outputs.status }}"
-              git push || echo "Push skipped (no changes or protected branch)"
-            fi
-          fi
