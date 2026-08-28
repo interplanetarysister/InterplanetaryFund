@@ -19,19 +19,13 @@ const ROLE_COLORS: Record<string, string> = {
 
 export default function Agents() {
   const agents = useQuery(api.agents.getAgents, {});
-  const automationStatus = useQuery(api.agentAutomation.getAutomationStatus, {});
   const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
 
   if (!agents) {
     return <div className="text-center text-ifmuted py-20">Loading agents...</div>;
   }
 
-  const autoMap = new Map<string, any>();
-  if (automationStatus) {
-    for (const a of automationStatus) {
-      autoMap.set(a.name, a);
-    }
-  }
+  const automationStatus = agents;
 
   return (
     <div className="space-y-4">
@@ -39,35 +33,32 @@ export default function Agents() {
         <h2 className="page-title">Agent Roster</h2>
         <p className="page-subtitle">
           {agents.length} agents · All credit-free ·{" "}
-          {automationStatus ? `${automationStatus.filter(a => a.automationEnabled).length} automated` : "loading..."}
+          {`${automationStatus.filter(a => a.automationEnabled ?? true).length} automated`}
         </p>
       </div>
 
       {/* Master Automation Summary */}
-      {automationStatus && (
-        <div className="card space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-iftext">Automation Overview</h3>
-              <p className="text-[10px] text-ifmuted">
-                Each agent runs on its own schedule. Toggle individual agents on or off below.
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <span className="badge badge-green">
-                {automationStatus.filter(a => a.automationEnabled).length} ON
-              </span>
-              <span className="badge badge-muted">
-                {automationStatus.filter(a => !a.automationEnabled).length} OFF
-              </span>
-            </div>
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-iftext">Automation Overview</h3>
+            <p className="text-[10px] text-ifmuted">
+              Each agent runs on its own schedule. Toggle individual agents on or off below.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <span className="badge badge-green">
+              {automationStatus.filter(a => a.automationEnabled ?? true).length} ON
+            </span>
+            <span className="badge badge-muted">
+              {automationStatus.filter(a => !(a.automationEnabled ?? true)).length} OFF
+            </span>
           </div>
         </div>
-      )}
+      </div>
 
       {agents.map((a: any) => {
-        const auto = autoMap.get(a.name);
-        const isEnabled = auto?.automationEnabled ?? true;
+        const isEnabled = a.automationEnabled ?? true;
 
         return (
           <div key={a._id} className="card space-y-3">
@@ -89,15 +80,13 @@ export default function Agents() {
                 <span className={`badge ${ROLE_COLORS[a.role] || "badge-muted"}`}>
                   {a.status === "active" ? "● Active" : "○ Inactive"}
                 </span>
-                {auto && (
-                  <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
-                    isEnabled
-                      ? "bg-ifgreen/20 text-ifgreen"
-                      : "bg-ifborder text-ifmuted"
-                  }`}>
-                    {isEnabled ? "● Auto ON" : "○ Auto OFF"}
-                  </span>
-                )}
+                <span className={`text-[9px] font-semibold px-2 py-0.5 rounded-full ${
+                  isEnabled
+                    ? "bg-ifgreen/20 text-ifgreen"
+                    : "bg-ifborder text-ifmuted"
+                }`}>
+                  {isEnabled ? "● Auto ON" : "○ Auto OFF"}
+                </span>
               </div>
             </div>
 
@@ -129,47 +118,45 @@ export default function Agents() {
               <span className="text-ifgreen">✓ {a.successfulOutcomes} success</span>
               <span className="text-ifred">✗ {a.failedOutcomes} failed</span>
               <span className="text-ifmuted">{a.tasksCompleted} total tasks</span>
-              {auto?.automationInterval && (
-                <span className="text-ifaccent">⏱ {auto.automationInterval}</span>
+              {a.automationInterval && (
+                <span className="text-ifaccent">⏱ {a.automationInterval}</span>
               )}
             </div>
 
             {/* Automation Toggle + Last Run */}
-            {auto && (
-              <div className="pt-2 border-t border-ifborder space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] text-ifmuted font-medium">Automated Work</p>
-                    <p className="text-[9px] text-ifmuted">
-                      Last run: {auto.lastAutomationRun && auto.lastAutomationRun !== "never"
-                        ? new Date(auto.lastAutomationRun).toLocaleString()
-                        : "never"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={async () => {
-                      await toggleAutomation({ agentName: a.name, enabled: !isEnabled });
-                    }}
-                    className={`px-4 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
-                      isEnabled
-                        ? "bg-ifgreen/20 text-ifgreen border border-ifgreen/30"
-                        : "bg-ifaccent text-white border border-ifaccent"
-                    }`}
-                  >
-                    {isEnabled ? "● Automation ON" : "○ Turn On Automation"}
-                  </button>
+            <div className="pt-2 border-t border-ifborder space-y-2">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-ifmuted font-medium">Automated Work</p>
+                  <p className="text-[9px] text-ifmuted">
+                    Last run: {a.lastAutomationRun && a.lastAutomationRun !== "never"
+                      ? new Date(a.lastAutomationRun).toLocaleString()
+                      : "never"}
+                  </p>
                 </div>
-                {isEnabled ? (
-                  <p className="text-[9px] text-ifmuted">
-                    This agent is running automated tasks on its schedule. Turn off to pause all automated work.
-                  </p>
-                ) : (
-                  <p className="text-[9px] text-ifmuted">
-                    Automation is paused. The agent will not run any scheduled tasks until turned back on.
-                  </p>
-                )}
+                <button
+                  onClick={async () => {
+                    await toggleAutomation({ agentName: a.name, enabled: !isEnabled });
+                  }}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
+                    isEnabled
+                      ? "bg-ifgreen/20 text-ifgreen border border-ifgreen/30"
+                      : "bg-ifaccent text-white border border-ifaccent"
+                  }`}
+                >
+                  {isEnabled ? "● Automation ON" : "○ Turn On Automation"}
+                </button>
               </div>
-            )}
+              {isEnabled ? (
+                <p className="text-[9px] text-ifmuted">
+                  This agent is running automated tasks on its schedule. Turn off to pause all automated work.
+                </p>
+              ) : (
+                <p className="text-[9px] text-ifmuted">
+                  Automation is paused. The agent will not run any scheduled tasks until turned back on.
+                </p>
+              )}
+            </div>
 
             {/* Capabilities */}
             <div className="flex flex-wrap gap-1">
