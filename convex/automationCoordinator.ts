@@ -28,6 +28,10 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   return nowMs - parsed >= intervalMs;
 }
 
+function isTwoHourSlot(nowMs: number) {
+  return Math.floor(nowMs / (60 * 60 * 1000)) % 2 === 0;
+}
+
 function isSixHourSlot(nowMs: number) {
   return Math.floor(nowMs / (60 * 60 * 1000)) % 6 === 0;
 }
@@ -64,6 +68,23 @@ export const runSerializedAutomation = internalAction({
     // not abort the entire lane, and its own persisted last-run marker is only
     // advanced by the child when that child actually completes its work.
     try {
+      if (isTwoHourSlot(nowMs)) {
+        try {
+          const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
+          const enabled = agents.filter((agent) => agent.automationEnabled !== false).length;
+          const disabled = agents.length - enabled;
+          record("master-agent-health-check", "completed", {
+            agentCount: agents.length,
+            enabledCount: enabled,
+            disabledCount: disabled,
+          });
+        } catch {
+          record("master-agent-health-check", "failed", { error: "master_agent_health_check_failed" });
+        }
+      } else {
+        record("master-agent-health-check", "skipped", { reason: "not_due" });
+      }
+
       try {
         const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
         record("site-health", "completed", { result });
