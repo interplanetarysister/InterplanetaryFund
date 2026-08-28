@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "convex/fundConsolidation.ts"
+      - "convex/fundConsolidation.concurrency.test.ts"
       - "scripts/verify-fund-consolidation-integrity.mjs"
       - ".github/workflows/fund-consolidation-integrity.yml"
   push:
@@ -11,6 +12,7 @@ on:
       - main
     paths:
       - "convex/fundConsolidation.ts"
+      - "convex/fundConsolidation.concurrency.test.ts"
       - "scripts/verify-fund-consolidation-integrity.mjs"
       - ".github/workflows/fund-consolidation-integrity.yml"
 
@@ -24,3 +26,7 @@ jobs:
           node-version: 20
       - name: Verify consolidation integrity boundary
         run: node scripts/verify-fund-consolidation-integrity.mjs
+      - name: Install isolated Convex test dependencies
+        run: npm install --no-save --package-lock=false convex-test vitest @edge-runtime/vm
+      - name: Run consolidation concurrency test
+        run: npx vitest run convex/fundConsolidation.concurrency.test.ts
