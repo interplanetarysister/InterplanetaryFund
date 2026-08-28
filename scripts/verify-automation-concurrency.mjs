@@ -51,6 +51,16 @@ for (const [agent, interval] of [
 ]) {
   assert(coordinatorSource.includes(`${agent}: ${interval}`) || coordinatorSource.includes(`"${agent}": ${interval}`), `Historical cadence missing for ${agent}`);
 }
+
+// The retired master-agent-check had a 2-hour cadence. Its old mutation runner
+// is intentionally gone, but the safe read-only health check must still run on
+// the same 2-hour cadence inside the serialized lane.
+assert(coordinatorSource.includes("function isTwoHourSlot"), "Two-hour cadence helper missing");
+assert(coordinatorSource.includes("if (isTwoHourSlot(nowMs))"), "Two-hour health-check gate missing");
+assert(coordinatorSource.includes('"master-agent-health-check"'), "Two-hour health-check task missing");
+assert(coordinatorSource.includes("getAgentAutomationStatus"), "Read-only agent health query missing");
+assert(coordinatorSource.includes('record("master-agent-health-check", "skipped"'), "Two-hour health-check skip path missing");
+
 assert(coordinatorSource.includes("isSixHourSlot(nowMs)"), "Six-hour cadence gate missing");
 assert(coordinatorSource.includes("isTwelveHourSlot(nowMs)"), "Twelve-hour research cadence gate missing");
 assert(coordinatorSource.includes("utcHour === 15"), "Daily post-generation cadence gate missing");
