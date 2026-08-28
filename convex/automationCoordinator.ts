@@ -18,7 +18,6 @@ const AGENT_INTERVALS_MS: Record<string, number> = {
   "Donor Relations Agent": 6 * 60 * 60 * 1000,
   Scout: 8 * 60 * 60 * 1000,
   "Scout Agent": 8 * 60 * 60 * 1000,
-  "Platform Coordinator Agent": 4 * 60 * 60 * 1000,
 };
 
 function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
@@ -142,7 +141,6 @@ export const runSerializedAutomation = internalAction({
         ["Post Production Agent", internal.agentAutomation.runPostProductionAutomation],
         ["Donor Relations Agent", internal.agentAutomation.runDonorRelationsAutomation],
         ["Scout Agent", internal.agentAutomation.runScoutAutomation],
-        ["Platform Coordinator Agent", internal.agentAutomation.runCoordinatorAutomation],
       ] as const;
 
       for (const [agentName, functionRef] of agentRuns) {
