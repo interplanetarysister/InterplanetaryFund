@@ -1,0 +1,33 @@
+name: Verify Node 24 Action Migration
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Verify affected action majors and Node 24 transition guard
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if grep -RInE 'actions/checkout@v[1-4]([^0-9]|$)|actions/setup-node@v[1-5]([^0-9]|$)|actions/setup-java@v[1-4]([^0-9]|$)|actions/upload-artifact@v[1-5]([^0-9]|$)|actions/upload-pages-artifact@v[1-4]([^0-9]|$)|softprops/action-gh-release@v[1-2]([^0-9]|$)|android-actions/setup-android@v[1-3]([^0-9]|$)' .github/workflows; then
+            echo 'Found an affected legacy action major in .github/workflows.'
+            exit 1
+          fi
+
+          grep -RIn 'FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true' .github/workflows >/dev/null
+          echo 'Node 24 action migration invariants passed.'
