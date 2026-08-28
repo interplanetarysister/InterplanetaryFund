@@ -22,13 +22,31 @@ const sharedWriterRefs = [
   "internal.postContent.autoGeneratePosts", "internal.facebook.improveOutreachStrategy",
   "internal.research.runAgentResearch", "internal.agentAutomation.runAtlasAutomation",
   "internal.agentAutomation.runPostProductionAutomation", "internal.agentAutomation.runDonorRelationsAutomation",
-  "internal.agentAutomation.runScoutAutomation", "internal.agentAutomation.runCoordinatorAutomation",
-  "internal.browserbase.runAllAgentBrowserResearch",
+  "internal.agentAutomation.runScoutAutomation", "internal.browserbase.runAllAgentBrowserResearch",
 ];
 for (const ref of sharedWriterRefs) {
   assert(!cronSource.includes(ref), `Shared writer is directly scheduled outside serialized lane: ${ref}`);
   assert(coordinatorSource.includes(ref), `Serialized coordinator is missing ${ref}`);
 }
+
+// The coordinator entry point is intentionally replaced by the serialized lane;
+// it must never be invoked as its own child, which would recursively re-enter
+// orchestration and undermine the single-writer boundary.
+assert(!coordinatorSource.includes("internal.agentAutomation.runCoordinatorAutomation"), "Coordinator recursively invokes its own automation");
+
+// Independent jobs remain registered only when they target workloads outside
+// the shared automation writer set. This is a static topology assertion; the
+// Development gate must still prove their deployed write sets are disjoint.
+for (const independentRef of [
+  "internal.protocolAutoFix.runFullAutoFix",
+  "internal.protocol.weeklyTraining",
+  "internal.facebook.discoverGroupsProactively",
+  "internal.imageGen.generateCampaignCoverUrls",
+  "internal.fundConsolidation.runAutoConsolidation",
+]) {
+  assert(cronSource.includes(independentRef), `Expected independent workload cron missing: ${independentRef}`);
+}
+assert(cronSource.includes('"weekly-training-session"'), "Weekly training cron was unintentionally removed");
 
 assert(cronSource.includes('"serialized-automation-lane"'), "Serialized automation lane cron is missing");
 assert(cronSource.includes("internal.automationCoordinator.runSerializedAutomation"), "Serialized coordinator target is missing");
@@ -47,10 +65,14 @@ for (const pattern of [
 for (const [agent, interval] of [
   ["Atlas", "4 * 60 * 60 * 1000"], ["Post Production Agent", "6 * 60 * 60 * 1000"],
   ["Donor Relations Agent", "6 * 60 * 60 * 1000"], ["Scout Agent", "8 * 60 * 60 * 1000"],
-  ["Platform Coordinator Agent", "4 * 60 * 60 * 1000"],
 ]) {
   assert(coordinatorSource.includes(`${agent}: ${interval}`) || coordinatorSource.includes(`"${agent}": ${interval}`), `Historical cadence missing for ${agent}`);
 }
+
+// Platform Coordinator's former 4-hour mutation cron is intentionally retired;
+// the serialized lane is now the coordinator's single scheduler. Preserve the
+// invariant explicitly so future edits do not reintroduce a parallel scheduler.
+assert(!cronSource.includes('"coordinator-automation"'), "Retired coordinator cron was reintroduced");
 
 // The retired master-agent-check had a 2-hour cadence. Its old mutation runner
 // is intentionally gone, but the safe read-only health check must still run on
