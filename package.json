@@ -24,7 +24,7 @@
     "@browserbasehq/sdk": "^2.16.0",
     "@capacitor/android": "^6.1.0",
     "@capacitor/core": "^6.1.0",
-    "@capacitor/ios": "^6.0.0",
+    "@capacitor/ios": "^6.1.0",
     "@capacitor/splash-screen": "^6.0.0",
     "convex": "^1.43.0",
     "globe.gl": "^2.46.1",
@@ -52,7 +52,7 @@
     "protocol",
     "treasury",
     "convex",
-    "react",
+    "capacitor",
     "mobile"
   ],
   "license": "UNLICENSED",
