@@ -44,27 +44,6 @@ export const toggleAgentAutomation = mutation({
 });
 
 // =====================================================
-// GET AUTOMATION STATUS — For dashboard display
-// =====================================================
-
-export const getAutomationStatus = query({
-  args: {},
-  handler: async (ctx) => {
-    const agents = await ctx.db.query("agents").collect();
-    return agents.map(a => ({
-      name: a.name,
-      role: a.role,
-      status: a.status,
-      automationEnabled: a.automationEnabled ?? true,
-      lastAutomationRun: a.lastAutomationRun ?? "never",
-      automationInterval: a.automationInterval ?? "varies",
-      tasksCompleted: a.tasksCompleted ?? 0,
-      trustScore: a.trustScore ?? 0,
-    }));
-  },
-});
-
-// =====================================================
 // HELPER: Gather ALL active campaigns from BOTH tables
 // Returns unified array regardless of source table
 // =====================================================
