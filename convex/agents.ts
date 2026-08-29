@@ -6,15 +6,43 @@
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAuth } from "./security";
 
 // =====================================================
 // AGENT MANAGEMENT (Credit-Free — direct database CRUD)
 // =====================================================
 
+// Agent management is an authenticated admin capability. Identity is resolved
+// from Convex auth context and matched to an active adminUsers record; no
+// client-supplied PIN or user identifier is accepted as the authorization source.
+async function requireAgentManager(ctx: any) {
+  const identity = await requireAuth(ctx);
+  const email = identity.email;
+  if (!email) {
+    throw new Error("Authenticated email required for agent management.");
+  }
+
+  const adminUser = await ctx.db
+    .query("adminUsers")
+    .filter((q: any) => q.eq(q.field("email"), email))
+    .first();
+
+  if (!adminUser || !adminUser.active) {
+    throw new Error("Agent management access denied.");
+  }
+
+  if (adminUser.role === "super_admin" || adminUser.permissions.includes("settings")) {
+    return identity;
+  }
+
+  throw new Error("Agent management access denied.");
+}
+
 // Query: List all agents
 export const getAgents = query({
   args: { status: v.optional(v.string()) },
   handler: async (ctx, { status }) => {
+    await requireAgentManager(ctx);
     let q = ctx.db.query("agents");
     if (status) {
       return await q.filter((qq) => qq.eq("status", status)).collect();
@@ -27,6 +55,7 @@ export const getAgents = query({
 export const getAgentByRole = query({
   args: { role: v.string() },
   handler: async (ctx, { role }) => {
+    await requireAgentManager(ctx);
     return await ctx.db.query("agents")
       .filter((q) => q.eq("role", role))
       .first();
@@ -37,11 +66,12 @@ export const getAgentByRole = query({
 export const getAgentStats = query({
   args: {},
   handler: async (ctx) => {
+    await requireAgentManager(ctx);
     const agents = await ctx.db.query("agents").collect();
     return {
       total: agents.length,
       active: agents.filter((a) => a.status === "active").length,
-      averageTrust: agents.reduce((s, a) => s + a.trustScore, 0) / agents.length,
+      averageTrust: agents.length === 0 ? 0 : agents.reduce((s, a) => s + a.trustScore, 0) / agents.length,
       totalTasksCompleted: agents.reduce((s, a) => s + a.tasksCompleted, 0),
       totalSuccessfulOutcomes: agents.reduce((s, a) => s + a.successfulOutcomes, 0),
       totalFailedOutcomes: agents.reduce((s, a) => s + a.failedOutcomes, 0),
@@ -83,6 +113,7 @@ export const createAgent = mutation({
     accentColor: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAgentManager(ctx);
     const agentId = await ctx.db.insert("agents", {
       ...args,
       workingMemory: [],
@@ -105,6 +136,7 @@ export const updateAgentMemory = mutation({
     longTermMemory: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAgentManager(ctx);
     await ctx.db.patch(args.agentId, {
       workingMemory: args.workingMemory,
       longTermMemory: args.longTermMemory,
@@ -120,6 +152,7 @@ export const recordTaskOutcome = mutation({
     successful: v.boolean(),
   },
   handler: async (ctx, { agentId, successful }) => {
+    await requireAgentManager(ctx);
     const agent = await ctx.db.get(agentId);
     if (!agent) throw new Error("Agent not found");
 
@@ -140,6 +173,7 @@ export const assignCampaigns = mutation({
     campaignIds: v.array(v.string()),
   },
   handler: async (ctx, { agentId, campaignIds }) => {
+    await requireAgentManager(ctx);
     const agent = await ctx.db.get(agentId);
     if (!agent) throw new Error("Agent not found");
 
