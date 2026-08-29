@@ -38,16 +38,43 @@ async function requireAgentManager(ctx: any) {
   throw new Error("Agent management access denied.");
 }
 
-// Query: List all agents
+// Query: List agents for authenticated application surfaces.
+// Intentionally returns only the roster/operational fields required by the
+// Agents UI. Agent memories, permissions, tools, action policy, restrictions,
+// workflow access, and managed-campaign assignments remain server-side.
 export const getAgents = query({
   args: { status: v.optional(v.string()) },
   handler: async (ctx, { status }) => {
     await requireAgentManager(ctx);
+
     let q = ctx.db.query("agents");
-    if (status) {
-      return await q.filter((qq) => qq.eq("status", status)).collect();
-    }
-    return await q.collect();
+    const agents = status
+      ? await q.filter((qq) => qq.eq("status", status)).collect()
+      : await q.collect();
+
+    return agents.map((agent) => ({
+      _id: agent._id,
+      name: agent.name,
+      role: agent.role,
+      purpose: agent.purpose,
+      description: agent.description,
+      capabilities: agent.capabilities,
+      specialization: agent.specialization,
+      knowledgeAreas: agent.knowledgeAreas,
+      trustScore: agent.trustScore,
+      reliabilityScore: agent.reliabilityScore,
+      efficiencyScore: agent.efficiencyScore,
+      collaborationScore: agent.collaborationScore,
+      tasksCompleted: agent.tasksCompleted,
+      successfulOutcomes: agent.successfulOutcomes,
+      failedOutcomes: agent.failedOutcomes,
+      status: agent.status,
+      version: agent.version,
+      accentColor: agent.accentColor,
+      automationEnabled: agent.automationEnabled,
+      lastAutomationRun: agent.lastAutomationRun,
+      automationInterval: agent.automationInterval,
+    }));
   },
 });
 
