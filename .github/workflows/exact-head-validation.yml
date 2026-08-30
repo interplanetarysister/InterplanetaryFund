@@ -3,13 +3,12 @@ name: Exact Head Validation
 on:
   pull_request:
     branches: [main]
-  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: exact-head-validation-${{ github.event.pull_request.number || github.ref }}
+  group: exact-head-validation-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
@@ -20,7 +19,7 @@ jobs:
       - name: Checkout exact pull request head
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: Setup Node 20
