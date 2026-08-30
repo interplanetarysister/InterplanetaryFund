@@ -4,10 +4,9 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
+import { internalMutation } from "./_generated/server";
 
-export const fixAllPlatforms = mutation({
+export const fixAllPlatforms = internalMutation({
   args: {},
   handler: async (ctx) => {
     const platforms = await ctx.db.query("externalPlatforms").collect();
