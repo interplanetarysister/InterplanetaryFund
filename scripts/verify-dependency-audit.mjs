@@ -1,11 +1,21 @@
 import { execFileSync } from "node:child_process";
 
-const result = execFileSync("npm", ["audit", "--audit-level=high", "--json"], {
-  encoding: "utf8",
-  stdio: ["ignore", "pipe", "pipe"],
-});
+let stdout = "";
+try {
+  stdout = execFileSync("npm", ["audit", "--audit-level=high", "--json"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+} catch (error) {
+  stdout = error?.stdout?.toString?.() ?? "";
+}
 
-const report = JSON.parse(result);
+if (!stdout) {
+  console.error("npm audit produced no JSON report; validation cannot establish a dependency state.");
+  process.exit(2);
+}
+
+const report = JSON.parse(stdout);
 const metadata = report.metadata ?? {};
 const vulnerabilities = metadata.vulnerabilities ?? {};
 
