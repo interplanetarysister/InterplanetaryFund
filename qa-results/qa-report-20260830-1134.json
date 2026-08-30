@@ -1,0 +1,2540 @@
+{
+  "config": {
+    "argv": [
+      "/opt/hostedtoolcache/node/20.20.2/x64/bin/node",
+      "/home/runner/work/InterplanetaryFund/InterplanetaryFund/node_modules/.bin/playwright",
+      "test"
+    ],
+    "configFile": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/playwright.config.ts",
+    "rootDir": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "ci": {
+        "commitHref": "https://github.com/interplanetarysister/InterplanetaryFund/commit/5537bef10f6a1f496915839b97ea42b5083c165b",
+        "commitHash": "5537bef10f6a1f496915839b97ea42b5083c165b",
+        "buildHref": "https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/33309147633"
+      },
+      "gitCommit": {
+        "shortHash": "5537bef",
+        "hash": "5537bef10f6a1f496915839b97ea42b5083c165b",
+        "subject": "chore(qa): test report 2026-08-30_04:31 — PASSED",
+        "body": "chore(qa): test report 2026-08-30_04:31 — PASSED\n",
+        "author": {
+          "name": "IF QA Bot",
+          "email": "actions@github.com",
+          "time": 1788064307000
+        },
+        "committer": {
+          "name": "IF QA Bot",
+          "email": "actions@github.com",
+          "time": 1788064307000
+        },
+        "branch": "main"
+      },
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "ci": {
+            "commitHref": "https://github.com/interplanetarysister/InterplanetaryFund/commit/5537bef10f6a1f496915839b97ea42b5083c165b",
+            "commitHash": "5537bef10f6a1f496915839b97ea42b5083c165b",
+            "buildHref": "https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/33309147633"
+          },
+          "gitCommit": {
+            "shortHash": "5537bef",
+            "hash": "5537bef10f6a1f496915839b97ea42b5083c165b",
+            "subject": "chore(qa): test report 2026-08-30_04:31 — PASSED",
+            "body": "chore(qa): test report 2026-08-30_04:31 — PASSED\n",
+            "author": {
+              "name": "IF QA Bot",
+              "email": "actions@github.com",
+              "time": 1788064307000
+            },
+            "committer": {
+              "name": "IF QA Bot",
+              "email": "actions@github.com",
+              "time": 1788064307000
+            },
+            "branch": "main"
+          },
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "json",
+        {
+          "outputFile": "qa-report.json"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.62.1",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "01-health.spec.ts",
+      "file": "01-health.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Site Health",
+          "file": "01-health.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "homepage returns 200 and loads within 10s",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1139,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:21.472Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-118de20aa729dd279d8c",
+              "file": "01-health.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "homepage displays donation metrics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3975,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:22.890Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-302d7bb0d7b197e532d6",
+              "file": "01-health.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "Convex backend is reachable",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 390,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:26.886Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-3c34ff0cf06a3c42cd25",
+              "file": "01-health.spec.ts",
+              "line": 35,
+              "column": 7
+            },
+            {
+              "title": "Convex campaign data query returns results",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 22,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:56:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 56
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 54 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 55 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Should return an array of campaigns (or null/empty, but not error)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 56
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  54 |     });\n  55 |\n> 56 |     expect(response.status()).toBe(200);\n     |                               ^\n  57 |     const data = await response.json();\n  58 |     // Should return an array of campaigns (or null/empty, but not error)\n  59 |     expect(data).toBeTruthy();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:56:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:27.285Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-eb5b1--data-query-returns-results-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 56
+                      }
+                    },
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 423,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:56:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 56
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 54 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 55 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 56 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 57 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 58 |\u001b[39m     \u001b[90m// Should return an array of campaigns (or null/empty, but not error)\u001b[39m\n \u001b[90m 59 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 56
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  54 |     });\n  55 |\n> 56 |     expect(response.status()).toBe(200);\n     |                               ^\n  57 |     const data = await response.json();\n  58 |     // Should return an array of campaigns (or null/empty, but not error)\n  59 |     expect(data).toBeTruthy();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:56:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:32:27.875Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-eb5b1--data-query-returns-results-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-eb5b1--data-query-returns-results-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 56
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-b392ecaf43b29f645f4c",
+              "file": "01-health.spec.ts",
+              "line": 45,
+              "column": 7
+            },
+            {
+              "title": "Convex treasury aggregation returns data",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 392,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:72:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 72
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 70 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 71 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 72 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 73 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 74 |\u001b[39m     \u001b[90m// Treasury should have a grandTotal object with raised and donors\u001b[39m\n \u001b[90m 75 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 72
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  70 |     });\n  71 |\n> 72 |     expect(response.status()).toBe(200);\n     |                               ^\n  73 |     const data = await response.json();\n  74 |     // Treasury should have a grandTotal object with raised and donors\n  75 |     expect(data).toBeTruthy();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:72:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:28.890Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-be35b-ry-aggregation-returns-data-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 72
+                      }
+                    },
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 421,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:72:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 72
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 70 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 71 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 72 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 73 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 74 |\u001b[39m     \u001b[90m// Treasury should have a grandTotal object with raised and donors\u001b[39m\n \u001b[90m 75 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 72
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  70 |     });\n  71 |\n> 72 |     expect(response.status()).toBe(200);\n     |                               ^\n  73 |     const data = await response.json();\n  74 |     // Treasury should have a grandTotal object with raised and donors\n  75 |     expect(data).toBeTruthy();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:72:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:32:29.843Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-be35b-ry-aggregation-returns-data-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Conv-be35b-ry-aggregation-returns-data-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 72
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-a0068779ab1f7e619936",
+              "file": "01-health.spec.ts",
+              "line": 62,
+              "column": 7
+            },
+            {
+              "title": "Convex campaign stats query works",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 399,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:92:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 92
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 90 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 94 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m 95 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 92
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  90 |     });\n  91 |\n> 92 |     expect(response.status()).toBe(200);\n     |                               ^\n  93 |     const data = await response.json();\n  94 |     expect(data).toBeTruthy();\n  95 |   });\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:92:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:30.846Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Convex-campaign-stats-query-works-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 92
+                      }
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 422,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:92:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 31,
+                          "line": 92
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 90 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 91 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 92 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 93 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 94 |\u001b[39m     expect(data)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m 95 |\u001b[39m   })\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 31,
+                            "line": 92
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  90 |     });\n  91 |\n> 92 |     expect(response.status()).toBe(200);\n     |                               ^\n  93 |     const data = await response.json();\n  94 |     expect(data).toBeTruthy();\n  95 |   });\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:92:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:32:31.803Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Convex-campaign-stats-query-works-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-Convex-campaign-stats-query-works-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 31,
+                        "line": 92
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-037f5f3e2a67d9c4ab8e",
+              "file": "01-health.spec.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "navigation renders correctly",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3233,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:103:25",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 25,
+                          "line": 103
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 101 |\u001b[39m     \u001b[90m// Check for key navigation elements — at minimum a body with content\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mconst\u001b[39m bodyVisible \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39misVisible(\u001b[32m\"body\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 103 |\u001b[39m     expect(bodyVisible)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 104 |\u001b[39m\n \u001b[90m 105 |\u001b[39m     \u001b[90m// Check page title\u001b[39m\n \u001b[90m 106 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mtitle()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 25,
+                            "line": 103
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  101 |     // Check for key navigation elements — at minimum a body with content\n  102 |     const bodyVisible = await page.isVisible(\"body\");\n> 103 |     expect(bodyVisible).toBeTruthy();\n      |                         ^\n  104 |\n  105 |     // Check page title\n  106 |     const title = await page.title();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:103:25"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:32.807Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 25,
+                        "line": 103
+                      }
+                    },
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 3178,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:103:25",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                          "column": 25,
+                          "line": 103
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 101 |\u001b[39m     \u001b[90m// Check for key navigation elements — at minimum a body with content\u001b[39m\n \u001b[90m 102 |\u001b[39m     \u001b[36mconst\u001b[39m bodyVisible \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39misVisible(\u001b[32m\"body\"\u001b[39m)\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 103 |\u001b[39m     expect(bodyVisible)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                         \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 104 |\u001b[39m\n \u001b[90m 105 |\u001b[39m     \u001b[90m// Check page title\u001b[39m\n \u001b[90m 106 |\u001b[39m     \u001b[36mconst\u001b[39m title \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mtitle()\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                            "column": 25,
+                            "line": 103
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  101 |     // Check for key navigation elements — at minimum a body with content\n  102 |     const bodyVisible = await page.isVisible(\"body\");\n> 103 |     expect(bodyVisible).toBeTruthy();\n      |                         ^\n  104 |\n  105 |     // Check page title\n  106 |     const title = await page.title();\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts:103:25"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:32:36.747Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/01-health-Site-Health-navigation-renders-correctly-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/01-health.spec.ts",
+                        "column": 25,
+                        "line": 103
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-9dbdb2547837546f5888",
+              "file": "01-health.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "Terms of Service modal is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3003,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:40.637Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d7973ac8dd48b1ba042e-e1473dd8104a2d13bac0",
+              "file": "01-health.spec.ts",
+              "line": 110,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-auth.spec.ts",
+      "file": "02-auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication Flows",
+          "file": "02-auth.spec.ts",
+          "line": 15,
+          "column": 6,
+          "specs": [
+            {
+              "title": "registration flow completes successfully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 13265,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:43.781Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "42ee48a5561f1ffbe298-3da61661fcd3ad1803f2",
+              "file": "02-auth.spec.ts",
+              "line": 16,
+              "column": 7
+            },
+            {
+              "title": "login form is accessible",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5832,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts:181:26",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                          "column": 26,
+                          "line": 181
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 179 |\u001b[39m       pageText\u001b[33m.\u001b[39mincludes(\u001b[32m\"Sign in\"\u001b[39m) \u001b[33m||\u001b[39m pageText\u001b[33m.\u001b[39mincludes(\u001b[32m\"Sign In\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 180 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 181 |\u001b[39m     expect(hasLoginForm)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 182 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 183 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 184 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                            "column": 26,
+                            "line": 181
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  179 |       pageText.includes(\"Sign in\") || pageText.includes(\"Sign In\");\n  180 |\n> 181 |     expect(hasLoginForm).toBeTruthy();\n      |                          ^\n  182 |   });\n  183 | });\n  184 |\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts:181:26"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:32:57.070Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                        "column": 26,
+                        "line": 181
+                      }
+                    },
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5945,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts:181:26",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                          "column": 26,
+                          "line": 181
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 179 |\u001b[39m       pageText\u001b[33m.\u001b[39mincludes(\u001b[32m\"Sign in\"\u001b[39m) \u001b[33m||\u001b[39m pageText\u001b[33m.\u001b[39mincludes(\u001b[32m\"Sign In\"\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m 180 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 181 |\u001b[39m     expect(hasLoginForm)\u001b[33m.\u001b[39mtoBeTruthy()\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m                          \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 182 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 183 |\u001b[39m })\u001b[33m;\u001b[39m\n \u001b[90m 184 |\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                            "column": 26,
+                            "line": 181
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n  179 |       pageText.includes(\"Sign in\") || pageText.includes(\"Sign In\");\n  180 |\n> 181 |     expect(hasLoginForm).toBeTruthy();\n      |                          ^\n  182 |   });\n  183 | });\n  184 |\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts:181:26"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:33:03.489Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/02-auth-Authentication-Flows-login-form-is-accessible-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/02-auth.spec.ts",
+                        "column": 26,
+                        "line": 181
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "42ee48a5561f1ffbe298-a0b39301bb9f97743fd9",
+              "file": "02-auth.spec.ts",
+              "line": 145,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-campaign-wizard.spec.ts",
+      "file": "03-campaign-wizard.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "AI Campaign Wizard",
+          "file": "03-campaign-wizard.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "wizard page loads and shows step content",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4194,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:10.114Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "84ae20619d5814e31864-59137956758fda7abff7",
+              "file": "03-campaign-wizard.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "wizard form fields are present",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4057,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts:37:20",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                          "column": 20,
+                          "line": 37
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m inputs \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m\"input, textarea, select\"\u001b[39m)\u001b[33m.\u001b[39mcount()\u001b[33m;\u001b[39m\n \u001b[90m 36 |\u001b[39m     \u001b[90m// A campaign wizard should have form inputs\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 37 |\u001b[39m     expect(inputs)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 38 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 39 |\u001b[39m\n \u001b[90m 40 |\u001b[39m   test(\u001b[32m\"campaigns page loads with campaign listings\"\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                            "column": 20,
+                            "line": 37
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n  35 |     const inputs = await page.locator(\"input, textarea, select\").count();\n  36 |     // A campaign wizard should have form inputs\n> 37 |     expect(inputs).toBeGreaterThan(0);\n     |                    ^\n  38 |   });\n  39 |\n  40 |   test(\"campaigns page loads with campaign listings\", async ({ page }) => {\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts:37:20"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:14.431Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                        "column": 20,
+                        "line": 37
+                      }
+                    },
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4240,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts:37:20",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                          "column": 20,
+                          "line": 37
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 35 |\u001b[39m     \u001b[36mconst\u001b[39m inputs \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mlocator(\u001b[32m\"input, textarea, select\"\u001b[39m)\u001b[33m.\u001b[39mcount()\u001b[33m;\u001b[39m\n \u001b[90m 36 |\u001b[39m     \u001b[90m// A campaign wizard should have form inputs\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 37 |\u001b[39m     expect(inputs)\u001b[33m.\u001b[39mtoBeGreaterThan(\u001b[35m0\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                    \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 38 |\u001b[39m   })\u001b[33m;\u001b[39m\n \u001b[90m 39 |\u001b[39m\n \u001b[90m 40 |\u001b[39m   test(\u001b[32m\"campaigns page loads with campaign listings\"\u001b[39m\u001b[33m,\u001b[39m \u001b[36masync\u001b[39m ({ page }) \u001b[33m=>\u001b[39m {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                            "column": 20,
+                            "line": 37
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThan\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: > \u001b[32m0\u001b[39m\nReceived:   \u001b[31m0\u001b[39m\n\n  35 |     const inputs = await page.locator(\"input, textarea, select\").count();\n  36 |     // A campaign wizard should have form inputs\n> 37 |     expect(inputs).toBeGreaterThan(0);\n     |                    ^\n  38 |   });\n  39 |\n  40 |   test(\"campaigns page loads with campaign listings\", async ({ page }) => {\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts:37:20"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:33:19.019Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/03-campaign-wizard-AI-Camp-9d513-ard-form-fields-are-present-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/03-campaign-wizard.spec.ts",
+                        "column": 20,
+                        "line": 37
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "84ae20619d5814e31864-fec7fdc19a39f72183e6",
+              "file": "03-campaign-wizard.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "campaigns page loads with campaign listings",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4200,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:23.941Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "84ae20619d5814e31864-14f38a4cf97b8ddd7a39",
+              "file": "03-campaign-wizard.spec.ts",
+              "line": 40,
+              "column": 7
+            },
+            {
+              "title": "campaign detail page loads for an active campaign",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4015,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:28.265Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "84ae20619d5814e31864-9527c2c6f00c3334266d",
+              "file": "03-campaign-wizard.spec.ts",
+              "line": 57,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04-donations.spec.ts",
+      "file": "04-donations.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Donation Flows",
+          "file": "04-donations.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "explore page shows donation metrics",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5021,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:32.303Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2925bce00aba7e0df034-c17dbe2c5226860c5046",
+              "file": "04-donations.spec.ts",
+              "line": 12,
+              "column": 7
+            },
+            {
+              "title": "campaign cards show donation info",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4977,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:37.336Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2925bce00aba7e0df034-cfab3ce52901d3ff02e1",
+              "file": "04-donations.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "CashApp donation link is present on campaign interaction",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 593,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts:61:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                          "column": 31,
+                          "line": 61
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 59 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 60 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 61 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 62 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 63 |\u001b[39m\n \u001b[90m 64 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(data) \u001b[33m&&\u001b[39m data\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                            "column": 31,
+                            "line": 61
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  59 |     });\n  60 |\n> 61 |     expect(response.status()).toBe(200);\n     |                               ^\n  62 |     const data = await response.json();\n  63 |\n  64 |     if (Array.isArray(data) && data.length > 0) {\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts:61:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:42.330Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                        "column": 31,
+                        "line": 61
+                      }
+                    },
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 675,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts:61:31",
+                        "location": {
+                          "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                          "column": 31,
+                          "line": 61
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 59 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 60 |\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 61 |\u001b[39m     expect(response\u001b[33m.\u001b[39mstatus())\u001b[33m.\u001b[39mtoBe(\u001b[35m200\u001b[39m)\u001b[33m;\u001b[39m\n \u001b[90m    |\u001b[39m                               \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 62 |\u001b[39m     \u001b[36mconst\u001b[39m data \u001b[33m=\u001b[39m \u001b[36mawait\u001b[39m response\u001b[33m.\u001b[39mjson()\u001b[33m;\u001b[39m\n \u001b[90m 63 |\u001b[39m\n \u001b[90m 64 |\u001b[39m     \u001b[36mif\u001b[39m (\u001b[33mArray\u001b[39m\u001b[33m.\u001b[39misArray(data) \u001b[33m&&\u001b[39m data\u001b[33m.\u001b[39mlength \u001b[33m>\u001b[39m \u001b[35m0\u001b[39m) {\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                            "column": 31,
+                            "line": 61
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m200\u001b[39m\nReceived: \u001b[31m404\u001b[39m\n\n  59 |     });\n  60 |\n> 61 |     expect(response.status()).toBe(200);\n     |                               ^\n  62 |     const data = await response.json();\n  63 |\n  64 |     if (Array.isArray(data) && data.length > 0) {\n    at /home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts:61:31"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2026-08-30T11:33:43.463Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/test-results/04-donations-Donation-Flow-01d56-ent-on-campaign-interaction-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/runner/work/InterplanetaryFund/InterplanetaryFund/tests/e2e/04-donations.spec.ts",
+                        "column": 31,
+                        "line": 61
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "2925bce00aba7e0df034-9cd9a45463841419f650",
+              "file": "04-donations.spec.ts",
+              "line": 50,
+              "column": 7
+            },
+            {
+              "title": "donation recording function exists in Convex",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 391,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:44.823Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2925bce00aba7e0df034-841c39bd4cf51565d6ce",
+              "file": "04-donations.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "treasury page is accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4146,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:45.256Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "2925bce00aba7e0df034-054380fc83e8460c7d31",
+              "file": "04-donations.spec.ts",
+              "line": 92,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05-compare-notifications.spec.ts",
+      "file": "05-compare-notifications.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Campaign Comparison & Notifications",
+          "file": "05-compare-notifications.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "compare page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4078,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:49.506Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-19b59dc3c295937ba70e",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "notifications page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3934,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:53.598Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-93e0dcce6c91a89af01a",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 28,
+              "column": 7
+            },
+            {
+              "title": "dashboard page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3939,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:33:57.550Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-b262017935bd1e05b5a2",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 36,
+              "column": 7
+            },
+            {
+              "title": "agents page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3963,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:01.506Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-5cf9cf1f863512deb1e8",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "donors page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3927,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:05.488Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-df72d298f22a46b1424f",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "reports page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3968,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:09.432Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-233412f51dad3270d60f",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "admin page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3933,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:13.415Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-84932af3d3eb57bbda3e",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 68,
+              "column": 7
+            },
+            {
+              "title": "platforms page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4050,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:17.361Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-0063a69b73a067f266f3",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 76,
+              "column": 7
+            },
+            {
+              "title": "community page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3957,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:21.425Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-38dec6f9d2575bc1abb5",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 84,
+              "column": 7
+            },
+            {
+              "title": "settings page loads",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4171,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:25.399Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-8bc674784b3b9f26958a",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 92,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Page Load Audit — All 21 Pages",
+          "file": "05-compare-notifications.spec.ts",
+          "line": 101,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Home (/) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 787,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:29.582Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-e64e92bbfa71c8cecf76",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Explore (/explore) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 785,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:30.381Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-b877f2746307da4fb9ee",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Campaigns (/campaigns) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 766,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:31.177Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-fa57094552a5304081e8",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Dashboard (/dashboard) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 810,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:31.954Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-66ce2b32e79738e94f92",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Donors (/donors) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 793,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:32.777Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-77da2ffa21ce83f413d2",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Donations (/donations) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 778,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:33.583Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-830c68107c7e501001ed",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Treasury (/treasury) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 794,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:34.374Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-29b5f98ba9f72687d096",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Compare (/compare) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 863,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:35.181Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-2072f052f6dc9ea8fff1",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Notifications (/notifications) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 777,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:36.055Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-fd14d42f0f66c042c675",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Agents (/agents) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 806,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:36.843Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-8f7ed5168f43468c1221",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Reports (/reports) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 792,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:37.661Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-086f97932b4aec1e75fb",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Platforms (/platforms) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 755,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:38.466Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-c78b00af824659028f76",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Community (/community) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 770,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:39.232Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-d47d9a24fd75de04f6d2",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Settings (/settings) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 793,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:40.015Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-58bf941ffa9bcf092ed5",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Admin (/admin) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 877,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:40.821Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-506aee43872af01d6eb2",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Help (/help) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 758,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:41.711Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-4d1640def7903c30ef4d",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Profile (/profile) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 781,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:42.482Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-199ec69a9e3a1fc02b70",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Categories (/categories) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 822,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:43.273Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-f434bc702a4eae80bd44",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Leaderboard (/leaderboard) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 769,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:44.105Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-c9a83c776a83c12055e1",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "Globe (/globe) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 785,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:44.885Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-861264e6d1a25d7f8dfd",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            },
+            {
+              "title": "AI Campaign Wizard (/create) returns 200",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 830,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-08-30T11:34:45.680Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "35184b4a75750323fe8f-933d86b3b9082a1f99a5",
+              "file": "05-compare-notifications.spec.ts",
+              "line": 127,
+              "column": 9
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-08-30T11:32:20.745Z",
+    "duration": 145819.474,
+    "expected": 43,
+    "skipped": 0,
+    "unexpected": 7,
+    "flaky": 0
+  }
+}
