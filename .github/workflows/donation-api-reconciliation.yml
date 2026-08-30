@@ -1,0 +1,30 @@
+name: Donation API Reconciliation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "convex/userCampaigns.ts"
+      - "convex/_generated/api.d.ts"
+      - "scripts/verify-donation-api-reconciliation.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  donation-api-reconciliation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact pull request head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Verify generated API reconciliation boundary
+        run: node scripts/verify-donation-api-reconciliation.mjs
