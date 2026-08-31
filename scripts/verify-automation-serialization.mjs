@@ -45,6 +45,25 @@ if (!coordinator.includes("getAgentAutomationStatus")) throw new Error("Read-onl
 if (!coordinator.includes("isSixHourSlot(nowMs)")) throw new Error("Six-hour cadence gate missing");
 if (!coordinator.includes("isTwelveHourSlot(nowMs)")) throw new Error("Twelve-hour cadence gate missing");
 if (!coordinator.includes("utcHour === 15")) throw new Error("Daily post-generation cadence gate missing");
-if (coordinator.includes("LANE_LEASE_MS")) throw new Error("Time-expiring lane lease must not be introduced");
+
+for (const required of [
+  "claimAutomationLane",
+  "releaseAutomationLane",
+  "AUTOMATION_LOCK_KEY",
+  "AUTOMATION_LOCK_LEASE_MS",
+  "internal.automationCoordinator.claimAutomationLane",
+  "internal.automationCoordinator.releaseAutomationLane",
+  "reason: \"already_running\"",
+  "finally",
+]) {
+  if (!coordinator.includes(required)) throw new Error(`Durable automation claim contract missing: ${required}`);
+}
+if (!coordinator.includes("withIndex(\"byName\"")) {
+  throw new Error("Automation claim must use the existing byName transactional index");
+}
+if (!coordinator.includes("existing?.description !== `automation-lane-lease:${token}`") &&
+    !coordinator.includes("existing.description !== `automation-lane-lease:${token}`")) {
+  throw new Error("Automation release must be token-owned");
+}
 
 console.log("Automation serialization static verification: PASS");
