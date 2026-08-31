@@ -5,14 +5,18 @@
  * Shared writers execute sequentially through awaited Convex sub-mutations.
  * A single cron owns the shared lane; Convex guarantees at most one run of a
  * cron job is executing at any moment, preventing overlapping lane executions.
- * Failed child work is recorded and remains eligible for its normal next
- * cadence; the coordinator never converts child failure into false success.
- * Durable cross-invocation claiming/idempotency remains a required runtime
- * validation gate before production promotion.
+ * The durable feature-flag record below is reserved exclusively as a lease
+ * boundary for manual/duplicate invocations of this lane. The lease is
+ * conditional and token-owned, so a stale invocation cannot release a newer
+ * owner's claim.
  */
 
-import { internalAction, internalQuery } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { v } from "convex/values";
+
+const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__";
+const AUTOMATION_LOCK_LEASE_MS = 60 * 60 * 1000;
 
 const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
@@ -53,129 +57,221 @@ export const getAgentAutomationStatus = internalQuery({
   },
 });
 
+export const claimAutomationLane = internalMutation({
+  args: {
+    token: v.string(),
+    nowMs: v.number(),
+    leaseMs: v.number(),
+  },
+  handler: async (ctx, { token, nowMs, leaseMs }) => {
+    const existing = await ctx.db
+      .query("featureFlags")
+      .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
+      .unique();
+
+    const expiresAt = nowMs + leaseMs;
+    const currentExpiry = existing?.rolloutPercent;
+    const currentlyHeld = existing?.enabled === true &&
+      typeof currentExpiry === "number" &&
+      currentExpiry > nowMs;
+
+    if (currentlyHeld) return false;
+
+    const description = `automation-lane-lease:${token}`;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        description,
+        enabled: true,
+        rolloutPercent: expiresAt,
+        updatedAt: new Date(nowMs).toISOString(),
+      });
+    } else {
+      await ctx.db.insert("featureFlags", {
+        name: AUTOMATION_LOCK_KEY,
+        description,
+        enabled: true,
+        rolloutPercent: expiresAt,
+        createdAt: new Date(nowMs).toISOString(),
+        updatedAt: new Date(nowMs).toISOString(),
+      });
+    }
+    return true;
+  },
+});
+
+export const releaseAutomationLane = internalMutation({
+  args: {
+    token: v.string(),
+    nowMs: v.number(),
+  },
+  handler: async (ctx, { token, nowMs }) => {
+    const existing = await ctx.db
+      .query("featureFlags")
+      .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
+      .unique();
+
+    if (!existing || existing.description !== `automation-lane-lease:${token}`) {
+      return false;
+    }
+
+    await ctx.db.patch(existing._id, {
+      enabled: false,
+      rolloutPercent: 0,
+      updatedAt: new Date(nowMs).toISOString(),
+    });
+    return true;
+  },
+});
+
 export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
     const nowMs = Date.now();
     const runId = `serialized-automation:${new Date(nowMs).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
-    const results: Array<Record<string, unknown>> = [];
-    const utcHour = new Date(nowMs).getUTCHours();
-    let failedCount = 0;
+    const claimed = await ctx.runMutation(internal.automationCoordinator.claimAutomationLane, {
+      token: runId,
+      nowMs,
+      leaseMs: AUTOMATION_LOCK_LEASE_MS,
+    });
 
-    const record = (task: string, status: string, extra: Record<string, unknown> = {}) => {
-      results.push({ runId, task, status, ...extra });
-      if (status === "failed") failedCount += 1;
-    };
-
-    if (isTwoHourSlot(nowMs)) {
-      try {
-        const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
-        const enabled = agents.filter((agent) => agent.automationEnabled !== false).length;
-        const disabled = agents.length - enabled;
-        record("master-agent-health-check", "completed", { agentCount: agents.length, enabledCount: enabled, disabledCount: disabled });
-      } catch {
-        record("master-agent-health-check", "failed", { error: "master_agent_health_check_failed" });
-      }
-    } else {
-      record("master-agent-health-check", "skipped", { reason: "not_due" });
+    if (!claimed) {
+      return {
+        success: true,
+        serialized: true,
+        skipped: true,
+        reason: "already_running",
+        runId,
+        timestamp: new Date(nowMs).toISOString(),
+        failedCount: 0,
+        results: [{ runId, task: "serialized-automation", status: "skipped", reason: "already_running" }],
+      };
     }
 
     try {
-      const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
-      record("site-health", "completed", { result });
-    } catch {
-      record("site-health", "failed", { error: "site_health_failed" });
-    }
+      const results: Array<Record<string, unknown>> = [];
+      const utcHour = new Date(nowMs).getUTCHours();
+      let failedCount = 0;
 
-    if (isSixHourSlot(nowMs)) {
+      const record = (task: string, status: string, extra: Record<string, unknown> = {}) => {
+        results.push({ runId, task, status, ...extra });
+        if (status === "failed") failedCount += 1;
+      };
+
+      if (isTwoHourSlot(nowMs)) {
+        try {
+          const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
+          const enabled = agents.filter((agent) => agent.automationEnabled !== false).length;
+          const disabled = agents.length - enabled;
+          record("master-agent-health-check", "completed", { agentCount: agents.length, enabledCount: enabled, disabledCount: disabled });
+        } catch {
+          record("master-agent-health-check", "failed", { error: "master_agent_health_check_failed" });
+        }
+      } else {
+        record("master-agent-health-check", "skipped", { reason: "not_due" });
+      }
+
       try {
-        const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
-        record("auto-repair", "completed", { result });
+        const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
+        record("site-health", "completed", { result });
       } catch {
-        record("auto-repair", "failed", { error: "auto_repair_failed" });
+        record("site-health", "failed", { error: "site_health_failed" });
       }
-    } else {
-      record("auto-repair", "skipped", { reason: "not_due" });
+
+      if (isSixHourSlot(nowMs)) {
+        try {
+          const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
+          record("auto-repair", "completed", { result });
+        } catch {
+          record("auto-repair", "failed", { error: "auto_repair_failed" });
+        }
+      } else {
+        record("auto-repair", "skipped", { reason: "not_due" });
+      }
+
+      if (utcHour === 15) {
+        try {
+          const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
+          record("daily-post-generation", "completed", { result });
+        } catch {
+          record("daily-post-generation", "failed", { error: "daily_post_generation_failed" });
+        }
+      } else {
+        record("daily-post-generation", "skipped", { reason: "not_due" });
+      }
+
+      if (isSixHourSlot(nowMs)) {
+        try {
+          const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
+          record("outreach-strategy-improvement", "completed", { result });
+        } catch {
+          record("outreach-strategy-improvement", "failed", { error: "outreach_strategy_failed" });
+        }
+      } else {
+        record("outreach-strategy-improvement", "skipped", { reason: "not_due" });
+      }
+
+      if (isTwelveHourSlot(nowMs)) {
+        try {
+          const result = await ctx.runMutation(internal.research.runAgentResearch, {});
+          record("agent-research-sprint", "completed", { result });
+        } catch {
+          record("agent-research-sprint", "failed", { error: "agent_research_failed" });
+        }
+      } else {
+        record("agent-research-sprint", "skipped", { reason: "not_due" });
+      }
+
+      const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
+      const agentRuns = [
+        ["Atlas", internal.agentAutomation.runAtlasAutomation],
+        ["Post Production Agent", internal.agentAutomation.runPostProductionAutomation],
+        ["Donor Relations Agent", internal.agentAutomation.runDonorRelationsAutomation],
+        ["Scout Agent", internal.agentAutomation.runScoutAutomation],
+      ] as const;
+
+      for (const [agentName, functionRef] of agentRuns) {
+        const agent = agents.find((item) => item.name === agentName);
+        if (!agent || agent.automationEnabled === false) {
+          record(agentName, "skipped", { reason: agent ? "disabled" : "missing" });
+          continue;
+        }
+        const intervalMs = AGENT_INTERVALS_MS[agentName];
+        if (!isDue(agent.lastAutomationRun, intervalMs, nowMs)) {
+          record(agentName, "skipped", { reason: "not_due", lastRun: agent.lastAutomationRun });
+          continue;
+        }
+        try {
+          const result = await ctx.runMutation(functionRef, {});
+          record(agentName, "completed", { result });
+        } catch {
+          record(agentName, "failed", { error: `${agentName.toLowerCase().replaceAll(" ", "_")}_failed` });
+        }
+      }
+
+      if (isSixHourSlot(nowMs)) {
+        try {
+          const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+          record("browserbase-research", "completed", { result });
+        } catch {
+          record("browserbase-research", "failed", { error: "browserbase_research_failed" });
+        }
+      } else {
+        record("browserbase-research", "skipped", { reason: "not_due" });
+      }
+
+      return {
+        success: failedCount === 0,
+        serialized: true,
+        runId,
+        timestamp: new Date(nowMs).toISOString(),
+        failedCount,
+        results,
+      };
+    } finally {
+      await ctx.runMutation(internal.automationCoordinator.releaseAutomationLane, {
+        token: runId,
+        nowMs: Date.now(),
+      });
     }
-
-    if (utcHour === 15) {
-      try {
-        const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
-        record("daily-post-generation", "completed", { result });
-      } catch {
-        record("daily-post-generation", "failed", { error: "daily_post_generation_failed" });
-      }
-    } else {
-      record("daily-post-generation", "skipped", { reason: "not_due" });
-    }
-
-    if (isSixHourSlot(nowMs)) {
-      try {
-        const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
-        record("outreach-strategy-improvement", "completed", { result });
-      } catch {
-        record("outreach-strategy-improvement", "failed", { error: "outreach_strategy_failed" });
-      }
-    } else {
-      record("outreach-strategy-improvement", "skipped", { reason: "not_due" });
-    }
-
-    if (isTwelveHourSlot(nowMs)) {
-      try {
-        const result = await ctx.runMutation(internal.research.runAgentResearch, {});
-        record("agent-research-sprint", "completed", { result });
-      } catch {
-        record("agent-research-sprint", "failed", { error: "agent_research_failed" });
-      }
-    } else {
-      record("agent-research-sprint", "skipped", { reason: "not_due" });
-    }
-
-    const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
-    const agentRuns = [
-      ["Atlas", internal.agentAutomation.runAtlasAutomation],
-      ["Post Production Agent", internal.agentAutomation.runPostProductionAutomation],
-      ["Donor Relations Agent", internal.agentAutomation.runDonorRelationsAutomation],
-      ["Scout Agent", internal.agentAutomation.runScoutAutomation],
-    ] as const;
-
-    for (const [agentName, functionRef] of agentRuns) {
-      const agent = agents.find((item) => item.name === agentName);
-      if (!agent || agent.automationEnabled === false) {
-        record(agentName, "skipped", { reason: agent ? "disabled" : "missing" });
-        continue;
-      }
-      const intervalMs = AGENT_INTERVALS_MS[agentName];
-      if (!isDue(agent.lastAutomationRun, intervalMs, nowMs)) {
-        record(agentName, "skipped", { reason: "not_due", lastRun: agent.lastAutomationRun });
-        continue;
-      }
-      try {
-        const result = await ctx.runMutation(functionRef, {});
-        record(agentName, "completed", { result });
-      } catch {
-        record(agentName, "failed", { error: `${agentName.toLowerCase().replaceAll(" ", "_")}_failed` });
-      }
-    }
-
-    if (isSixHourSlot(nowMs)) {
-      try {
-        const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
-        record("browserbase-research", "completed", { result });
-      } catch {
-        record("browserbase-research", "failed", { error: "browserbase_research_failed" });
-      }
-    } else {
-      record("browserbase-research", "skipped", { reason: "not_due" });
-    }
-
-    return {
-      success: failedCount === 0,
-      serialized: true,
-      runId,
-      timestamp: new Date(nowMs).toISOString(),
-      failedCount,
-      results,
-    };
   },
 });
