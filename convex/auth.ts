@@ -9,8 +9,9 @@ import { checkRateLimit, requireAuth } from "./security";
 import { v } from "convex/values";
 
 // Admin PIN — stored server-side only, never exposed to client
-// Default PIN: 0426 (change via updateAdminPin mutation)
-const DEFAULT_ADMIN_PIN = "0426";
+// A missing persisted PIN fails closed; initialization/rotation must establish
+// the credential through the authorized admin path.
+const DEFAULT_ADMIN_PIN = "";
 
 // Query: Verify admin PIN
 export const verifyAdminPin = query({
