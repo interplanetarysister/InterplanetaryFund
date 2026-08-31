@@ -5,8 +5,10 @@
  * Shared writers execute sequentially through awaited Convex sub-mutations.
  * A single cron owns the shared lane; Convex guarantees at most one run of a
  * cron job is executing at any moment, preventing overlapping lane executions.
- * Failed child work is recorded and left eligible for its normal next cadence;
- * errors are not hidden by artificial retry inflation.
+ * Failed child work is recorded and remains eligible for its normal next
+ * cadence; the coordinator never converts child failure into false success.
+ * Durable cross-invocation claiming/idempotency remains a required runtime
+ * validation gate before production promotion.
  */
 
 import { internalAction, internalQuery } from "./_generated/server";
@@ -58,9 +60,11 @@ export const runSerializedAutomation = internalAction({
     const runId = `serialized-automation:${new Date(nowMs).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
     const results: Array<Record<string, unknown>> = [];
     const utcHour = new Date(nowMs).getUTCHours();
+    let failedCount = 0;
 
     const record = (task: string, status: string, extra: Record<string, unknown> = {}) => {
       results.push({ runId, task, status, ...extra });
+      if (status === "failed") failedCount += 1;
     };
 
     if (isTwoHourSlot(nowMs)) {
@@ -165,6 +169,13 @@ export const runSerializedAutomation = internalAction({
       record("browserbase-research", "skipped", { reason: "not_due" });
     }
 
-    return { success: true, serialized: true, runId, timestamp: new Date(nowMs).toISOString(), results };
+    return {
+      success: failedCount === 0,
+      serialized: true,
+      runId,
+      timestamp: new Date(nowMs).toISOString(),
+      failedCount,
+      results,
+    };
   },
 });
