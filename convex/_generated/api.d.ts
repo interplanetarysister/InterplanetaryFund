@@ -20,6 +20,7 @@ import type * as aiCampaignGen from "../aiCampaignGen.js";
 import type * as antiSpam from "../antiSpam.js";
 import type * as auth from "../auth.js";
 import type * as automationConsent from "../automationConsent.js";
+import type * as automationCoordinator from "../automationCoordinator.js";
 import type * as autonomous from "../autonomous.js";
 import type * as browserbase from "../browserbase.js";
 import type * as campaignDefaults from "../campaignDefaults.js";
@@ -76,11 +77,7 @@ import type * as userManagement from "../userManagement.js";
 import type * as volunteer from "../volunteer.js";
 import type * as withdrawalMethods from "../withdrawalMethods.js";
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
+import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
   accountTracker: typeof accountTracker;
@@ -95,6 +92,7 @@ declare const fullApi: ApiFromModules<{
   antiSpam: typeof antiSpam;
   auth: typeof auth;
   automationConsent: typeof automationConsent;
+  automationCoordinator: typeof automationCoordinator;
   autonomous: typeof autonomous;
   browserbase: typeof browserbase;
   campaignDefaults: typeof campaignDefaults;
@@ -152,30 +150,6 @@ declare const fullApi: ApiFromModules<{
   withdrawalMethods: typeof withdrawalMethods;
 }>;
 
-/**
- * A utility for referencing Convex functions in your app's public API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
-
-/**
- * A utility for referencing Convex functions in your app's internal API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = internal.myModule.myFunction;
- * ```
- */
-export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
->;
-
+export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
 export declare const components: {};
