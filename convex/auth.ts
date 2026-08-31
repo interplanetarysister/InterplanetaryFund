@@ -5,7 +5,7 @@
  */
 
 import { query, mutation } from "./_generated/server";
-import { checkRateLimit } from "./security";
+import { checkRateLimit, requireAuth } from "./security";
 import { v } from "convex/values";
 
 // Admin PIN — stored server-side only, never exposed to client
@@ -23,10 +23,11 @@ export const verifyAdminPin = query({
   },
 });
 
-// Mutation: Update admin PIN (requires current PIN)
+// Mutation: Update admin PIN (requires current PIN and authenticated authorized admin)
 export const updateAdminPin = mutation({
   args: { currentPin: v.string(), newPin: v.string() },
   handler: async (ctx, { currentPin, newPin }) => {
+    const identity = await requireAuth(ctx);
     const settings = await ctx.db.query("feeConfig").first();
     const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
 
@@ -34,12 +35,30 @@ export const updateAdminPin = mutation({
       return { success: false, error: "Current PIN is incorrect" };
     }
 
+    const adminUser = identity.email
+      ? await ctx.db
+          .query("adminUsers")
+          .filter((q) => q.eq(q.field("email"), identity.email))
+          .first()
+      : null;
+
+    const authorized =
+      !!adminUser &&
+      adminUser.active &&
+      (adminUser.role === "super_admin" ||
+        adminUser.permissions.includes("settings") ||
+        adminUser.permissions.includes("finance"));
+
+    if (!authorized) {
+      return { success: false, error: "Admin authorization required" };
+    }
+
     if (newPin.length < 4) {
       return { success: false, error: "PIN must be at least 4 digits" };
     }
 
     if (settings) {
-      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system" });
+      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: identity.subject });
     } else {
       // If no feeConfig record exists, create one with just the PIN
       await ctx.db.insert("feeConfig", {
@@ -49,7 +68,7 @@ export const updateAdminPin = mutation({
         processingFeeFlat: 0.30,
         adminPin: newPin,
         updatedAt: new Date().toISOString(),
-        updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system",
+        updatedBy: identity.subject,
       });
     }
 
