@@ -4,7 +4,7 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { validateDonation, checkRateLimit } from "./security";
 import { v } from "convex/values";
 
@@ -164,17 +164,16 @@ export const getMigrationHistory = query({
   },
 });
 
-// Batch migrate funds from multiple external platforms at once
-export const batchMigrate = mutation({
+// Batch migration is an internal financial operation. There are no repository callers
+// for a public endpoint, so do not expose an admin-PIN-bearing mutation to arbitrary clients.
+export const batchMigrate = internalMutation({
   args: {
-    adminPin: v.optional(v.string()),
     migrations: v.array(v.object({
       campaignId: v.string(),
       campaignTitle: v.string(),
       sourcePlatform: v.string(),
       grossAmount: v.number(),
     })),
-    withdrawnBy: v.string(),
   },
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
@@ -248,7 +247,6 @@ export const batchMigrate = mutation({
         totalGross: `$${totalGross.toFixed(2)}`,
         totalFees: `$${totalFees.toFixed(2)}`,
         totalNet: `$${totalNet.toFixed(2)}`,
-        withdrawnBy: args.withdrawnBy,
       },
       details: results,
     };
