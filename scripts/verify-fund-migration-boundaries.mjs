@@ -14,6 +14,7 @@ const recordMigration = getExportBody("recordMigration");
 const getPendingPayouts = getExportBody("getPendingPayouts");
 const selectPayoutMethod = getExportBody("selectPayoutMethod");
 const getMigrationHistory = getExportBody("getMigrationHistory");
+const batchMigrate = getExportBody("batchMigrate");
 
 const failures = [];
 
@@ -26,10 +27,24 @@ function requireAuthenticatedIdentity(body, name) {
   }
 }
 
+function requireSubjectOwnershipComparison(body, name) {
+  const subjectComparison =
+    /(?:userId|ownerId|ownerUserId)\s*(?:===|!==)\s*identity\.subject/.test(body) ||
+    /identity\.subject\s*(?:===|!==)\s*[^\n;]*(?:userId|ownerId|ownerUserId)/.test(body) ||
+    /\.eq\(\s*["'](?:userId|ownerId|ownerUserId)["']\s*,\s*identity\.subject\s*\)/.test(body);
+
+  if (!subjectComparison) {
+    failures.push(`${name} must compare the authenticated subject with the stored owner identity`);
+  }
+}
+
 requireAuthenticatedIdentity(recordMigration, "recordMigration");
 requireAuthenticatedIdentity(getPendingPayouts, "getPendingPayouts");
 requireAuthenticatedIdentity(selectPayoutMethod, "selectPayoutMethod");
 requireAuthenticatedIdentity(getMigrationHistory, "getMigrationHistory");
+requireSubjectOwnershipComparison(getPendingPayouts, "getPendingPayouts");
+requireSubjectOwnershipComparison(selectPayoutMethod, "selectPayoutMethod");
+requireSubjectOwnershipComparison(getMigrationHistory, "getMigrationHistory");
 
 if (/withdrawnBy\s*:\s*v\.string\(\)/.test(recordMigration)) {
   failures.push("recordMigration must not accept withdrawnBy as an authorization identity from the client");
@@ -43,16 +58,24 @@ if (/status:\s*[\"']completed[\"']/.test(recordMigration)) {
   failures.push("recordMigration must not mark an externally claimed migration completed without provider-verified evidence");
 }
 
-if (/campaignId:\s*v\.optional\(v\.string\(\)\)/.test(getPendingPayouts) && !/identity\.subject/.test(getPendingPayouts)) {
-  failures.push("getPendingPayouts must not use an optional client campaignId without authenticated ownership binding");
+if (/ctx\.db\.query\(["']payoutRequests["']\)\.collect\(\)/.test(getPendingPayouts)) {
+  failures.push("getPendingPayouts must not collect every payout before applying an owner-scoped database predicate");
 }
 
-if (!/payout\.userId/.test(selectPayoutMethod) && !/campaign\.userId/.test(selectPayoutMethod)) {
-  failures.push("selectPayoutMethod must verify payout ownership server-side before mutation");
+if (!/internalMutation\s*\(\s*\{/.test(batchMigrate)) {
+  failures.push("batchMigrate must remain internal-only");
 }
 
-if (/args\.campaignId/.test(getMigrationHistory) && !/identity\.subject/.test(getMigrationHistory)) {
-  failures.push("getMigrationHistory must not authorize campaign history from a client-supplied campaignId alone");
+if (/adminPin\s*:\s*v\.|withdrawnBy\s*:\s*v\./.test(batchMigrate)) {
+  failures.push("batchMigrate must not accept client credentials or actor identity");
+}
+
+if (/userId:\s*migration\.campaignId/.test(batchMigrate)) {
+  failures.push("batchMigrate must not store campaignId as payoutRequests.userId");
+}
+
+if (/status:\s*["']completed["']/.test(batchMigrate)) {
+  failures.push("batchMigrate must not mark externally claimed funds completed without provider verification");
 }
 
 if (failures.length) {
