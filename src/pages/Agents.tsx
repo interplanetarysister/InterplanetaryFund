@@ -20,7 +20,7 @@ const ROLE_COLORS: Record<string, string> = {
 export default function Agents() {
   const agents = useQuery(api.agents.getAgents, {});
   const automationStatus = useQuery(api.agentAutomation.getAutomationStatus, {});
-  const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
+  const toggleAutomation = useMutation(api.agentAutomationAuthorization.toggleAgentAutomation);
 
   if (!agents) {
     return <div className="text-center text-ifmuted py-20">Loading agents...</div>;
@@ -33,6 +33,20 @@ export default function Agents() {
     }
   }
 
+  const handleAutomationToggle = async (agentName: string, enabled: boolean) => {
+    const requestorPin = window.prompt("Enter your admin PIN to change automation settings:");
+    if (!requestorPin) return;
+
+    try {
+      const result = await toggleAutomation({ requestorPin, agentName, enabled });
+      if (!result.success) {
+        window.alert(result.error || "Unable to update automation settings.");
+      }
+    } catch {
+      window.alert("Unable to update automation settings. Check your admin authorization and try again.");
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -43,7 +57,6 @@ export default function Agents() {
         </p>
       </div>
 
-      {/* Master Automation Summary */}
       {automationStatus && (
         <div className="card space-y-3">
           <div className="flex items-center justify-between">
@@ -71,7 +84,6 @@ export default function Agents() {
 
         return (
           <div key={a._id} className="card space-y-3">
-            {/* Agent Header */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <div
@@ -101,10 +113,8 @@ export default function Agents() {
               </div>
             </div>
 
-            {/* Purpose */}
             <p className="text-xs text-ifmuted leading-relaxed">{a.purpose}</p>
 
-            {/* Scores */}
             <div className="grid grid-cols-4 gap-2 text-center">
               <div className="bg-ifdark rounded-lg py-2">
                 <p className="text-sm font-bold text-ifaccent">{a.trustScore}</p>
@@ -124,7 +134,6 @@ export default function Agents() {
               </div>
             </div>
 
-            {/* Task Stats + Automation Info */}
             <div className="flex flex-wrap gap-3 text-xs">
               <span className="text-ifgreen">✓ {a.successfulOutcomes} success</span>
               <span className="text-ifred">✗ {a.failedOutcomes} failed</span>
@@ -134,7 +143,6 @@ export default function Agents() {
               )}
             </div>
 
-            {/* Automation Toggle + Last Run */}
             {auto && (
               <div className="pt-2 border-t border-ifborder space-y-2">
                 <div className="flex items-center justify-between">
@@ -147,9 +155,7 @@ export default function Agents() {
                     </p>
                   </div>
                   <button
-                    onClick={async () => {
-                      await toggleAutomation({ agentName: a.name, enabled: !isEnabled });
-                    }}
+                    onClick={() => handleAutomationToggle(a.name, !isEnabled)}
                     className={`px-4 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
                       isEnabled
                         ? "bg-ifgreen/20 text-ifgreen border border-ifgreen/30"
@@ -171,7 +177,6 @@ export default function Agents() {
               </div>
             )}
 
-            {/* Capabilities */}
             <div className="flex flex-wrap gap-1">
               {a.capabilities.slice(0, 4).map((cap: string) => (
                 <span key={cap} className="badge badge-muted">{cap}</span>
@@ -181,7 +186,6 @@ export default function Agents() {
               )}
             </div>
 
-            {/* Working Memory */}
             {a.workingMemory && a.workingMemory.length > 0 && (
               <div className="pt-2 border-t border-ifborder">
                 <p className="text-[10px] text-ifmuted font-medium mb-1">Working Memory</p>
@@ -193,7 +197,6 @@ export default function Agents() {
               </div>
             )}
 
-            {/* Long-Term Memory */}
             {a.longTermMemory && a.longTermMemory.length > 0 && (
               <div>
                 <p className="text-[10px] text-ifmuted font-medium mb-1">Long-Term Memory</p>
