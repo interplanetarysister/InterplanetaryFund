@@ -14,6 +14,17 @@ import { v } from "convex/values";
 const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__";
 const AUTOMATION_LOCK_LEASE_MS = 60 * 60 * 1000;
 
+// Convex runtime actions are bounded by the platform below this duration.
+// Keep the durable lease materially longer than the maximum possible action
+// lifetime so an action cannot survive past lease expiry and become a stale
+// writer after a newer owner acquires the lane.
+const MAX_SERIALIZED_ACTION_RUNTIME_MS = 30 * 60 * 1000;
+const LEASE_SAFETY_MARGIN_MS = 5 * 60 * 1000;
+
+if (AUTOMATION_LOCK_LEASE_MS <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS) {
+  throw new Error("automation_lease_runtime_invariant_violated");
+}
+
 const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
   "Post Production Agent": 6 * 60 * 60 * 1000,
@@ -56,6 +67,10 @@ export const getAgentAutomationStatus = internalQuery({
 export const claimAutomationLane = internalMutation({
   args: { token: v.string(), nowMs: v.number(), leaseMs: v.number() },
   handler: async (ctx, { token, nowMs, leaseMs }) => {
+    if (leaseMs <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS) {
+      throw new Error("automation_lease_too_short");
+    }
+
     const records = await ctx.db
       .query("featureFlags")
       .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
@@ -235,7 +250,10 @@ export const runSerializedAutomation = internalAction({
         }
       }
 
-      if (isSixHourSlot(nowMs)) {
+      // runAgentResearch already delegates to runAllAgentBrowserResearch. On
+      // 12-hour slots (which are also 6-hour slots), do not invoke Browserbase
+      // a second time or duplicate the same research side effects.
+      if (isSixHourSlot(nowMs) && !isTwelveHourSlot(nowMs)) {
         try {
           const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
           record("browserbase-research", "completed", { result });
@@ -243,7 +261,9 @@ export const runSerializedAutomation = internalAction({
           record("browserbase-research", "failed", { error: "browserbase_research_failed" });
         }
       } else {
-        record("browserbase-research", "skipped", { reason: "not_due" });
+        record("browserbase-research", "skipped", {
+          reason: isTwelveHourSlot(nowMs) ? "covered_by_agent_research" : "not_due",
+        });
       }
 
       return {
