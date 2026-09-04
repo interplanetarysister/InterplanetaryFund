@@ -48,12 +48,33 @@ for (const required of [
   '"master-agent-health-check"', "utcHour === 15",
   "claimAutomationLane", "releaseAutomationLane",
   "AUTOMATION_LOCK_KEY", "AUTOMATION_LOCK_LEASE_MS",
+  "MAX_SERIALIZED_ACTION_RUNTIME_MS", "LEASE_SAFETY_MARGIN_MS",
+  "AUTOMATION_LOCK_LEASE_MS <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS",
+  "leaseMs <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS",
+  'throw new Error("automation_lease_runtime_invariant_violated")',
+  'throw new Error("automation_lease_too_short")',
   "internal.automationCoordinator.claimAutomationLane",
   "internal.automationCoordinator.releaseAutomationLane",
   'reason: "already_running"', "finally",
   'withIndex("byName"',
+  "isSixHourSlot(nowMs) && !isTwelveHourSlot(nowMs)",
+  '"covered_by_agent_research"',
 ]) {
   if (!coordinator.includes(required)) throw new Error(`Required reliability contract missing: ${required}`);
+}
+
+const leaseMatch = coordinator.match(/const AUTOMATION_LOCK_LEASE_MS = (\d+) \* (\d+) \* 1000/);
+const maxRuntimeMatch = coordinator.match(/const MAX_SERIALIZED_ACTION_RUNTIME_MS = (\d+) \* (\d+) \* 1000/);
+const marginMatch = coordinator.match(/const LEASE_SAFETY_MARGIN_MS = (\d+) \* (\d+) \* 1000/);
+if (!leaseMatch || !maxRuntimeMatch || !marginMatch) {
+  throw new Error("Unable to statically verify automation lease timing constants");
+}
+const toMs = (match) => Number(match[1]) * Number(match[2]) * 1000;
+const leaseMs = toMs(leaseMatch);
+const maxRuntimeMs = toMs(maxRuntimeMatch);
+const marginMs = toMs(marginMatch);
+if (leaseMs <= maxRuntimeMs + marginMs) {
+  throw new Error(`Automation lease is not safely longer than max action runtime: lease=${leaseMs}, runtime=${maxRuntimeMs}, margin=${marginMs}`);
 }
 
 console.log("Automation serialization static verification: PASS");
