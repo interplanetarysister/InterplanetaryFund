@@ -110,6 +110,7 @@ export const recordDonation = mutation({
         return {
           status: "duplicate",
           applied: false,
+          created: false,
           operationId: existing._id,
           ledgerEntryId: existing.ledgerEntryId ?? null,
           ...(await currentTotals(ctx, args.campaignId)),
@@ -121,6 +122,7 @@ export const recordDonation = mutation({
         return {
           status: "pending_duplicate",
           applied: false,
+          created: false,
           operationId: existing._id,
           ...(await currentTotals(ctx, args.campaignId)),
         };
@@ -137,7 +139,6 @@ export const recordDonation = mutation({
     // record. They must not increase campaign totals or create withdrawable
     // ledger value until a verified payment path completes the operation.
     if (!args.paymentVerified) {
-      if (existing) return { status: "pending_duplicate", applied: false, operationId: existing._id };
       const donationId = await ctx.db.insert("donations", {
         campaignId: args.campaignId,
         campaignTitle: args.campaignTitle,
@@ -177,6 +178,7 @@ export const recordDonation = mutation({
       return {
         status: "pending_verification",
         applied: false,
+        created: true,
         operationId,
         donationId,
         raisedAmount: campaign.doc.raisedAmount ?? 0,
@@ -194,9 +196,12 @@ export const recordDonation = mutation({
       })();
       donationId = raw.donationId ?? null;
       if (donationId) {
-        const pendingDonation = await ctx.db.get(donationId as any).catch?.(() => null);
+        let pendingDonation: any = null;
+        try { pendingDonation = await ctx.db.get(donationId as any); } catch { /* invalid/stale id */ }
         if (pendingDonation) {
           await ctx.db.patch(donationId as any, { status: "completed", txnId: args.providerTransactionId });
+        } else {
+          donationId = null;
         }
       }
     }
@@ -350,6 +355,7 @@ export const recordDonation = mutation({
     return {
       status: "completed",
       applied: true,
+      created: !existing,
       operationId,
       donationId,
       ledgerEntryId,
