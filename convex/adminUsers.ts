@@ -22,7 +22,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// All possible permissions
+// All non-super-admin permissions. "users" remains super-admin-only.
 export const ALL_PERMISSIONS = [
   "finance",      // Treasury, payouts, fees, fund migration
   "campaigns",    // Campaign CRUD and sync
@@ -56,28 +56,13 @@ export const authenticateAdmin = query({
         name: adminUser.name,
         email: adminUser.email,
         role: adminUser.role,
-        permissions: adminUser.role === "super_admin" 
-          ? SUPER_ADMIN_PERMISSIONS 
+        permissions: adminUser.role === "super_admin"
+          ? SUPER_ADMIN_PERMISSIONS
           : adminUser.permissions,
       };
     }
 
-    // Fallback: check legacy PIN in feeConfig (Michelle's original PIN)
-    const settings = await ctx.db.query("feeConfig").first();
-    const legacyPin = settings?.adminPin ?? "0426";
-    
-    if (pin === legacyPin) {
-      // Auto-create super_admin record for Michelle if not exists
-      return {
-        valid: true,
-        userId: "legacy_super_admin",
-        name: "Michelle Rogers",
-        email: "interplanetarysister@gmail.com",
-        role: "super_admin",
-        permissions: SUPER_ADMIN_PERMISSIONS,
-      };
-    }
-
+    // No legacy/default credential is accepted when no adminUsers record matches.
     return { valid: false, error: "Invalid PIN" };
   },
 });
@@ -227,37 +212,27 @@ export const updateOwnPin = mutation({
       return { success: false, error: "PIN must be at least 4 digits" };
     }
 
-    // Find the admin user by current PIN
+    // Find the admin user by current PIN. No legacy/default fallback is permitted.
     const user = await ctx.db
       .query("adminUsers")
       .withIndex("byPin", (q: any) => q.eq("pin", currentPin))
       .first();
 
-    if (user) {
-      // Check new PIN isn't taken
-      const existing = await ctx.db
-        .query("adminUsers")
-        .withIndex("byPin", (q: any) => q.eq("pin", newPin))
-        .first();
-      if (existing && existing._id !== user._id) {
-        return { success: false, error: "PIN already in use" };
-      }
-
-      await ctx.db.patch(user._id, { pin: newPin });
-      return { success: true };
+    if (!user || !user.active) {
+      return { success: false, error: "Current PIN is incorrect" };
     }
 
-    // Fallback: legacy PIN in feeConfig
-    const settings = await ctx.db.query("feeConfig").first();
-    const legacyPin = settings?.adminPin ?? "0426";
-    if (currentPin === legacyPin) {
-      if (settings) {
-        await ctx.db.patch(settings._id, { adminPin: newPin });
-      }
-      return { success: true };
+    // Check new PIN isn't taken
+    const existing = await ctx.db
+      .query("adminUsers")
+      .withIndex("byPin", (q: any) => q.eq("pin", newPin))
+      .first();
+    if (existing && existing._id !== user._id) {
+      return { success: false, error: "PIN already in use" };
     }
 
-    return { success: false, error: "Current PIN is incorrect" };
+    await ctx.db.patch(user._id, { pin: newPin });
+    return { success: true };
   },
 });
 
@@ -295,18 +270,6 @@ async function authenticateByPin(ctx: any, pin: string) {
       permissions: adminUser.role === "super_admin"
         ? SUPER_ADMIN_PERMISSIONS
         : adminUser.permissions,
-    };
-  }
-
-  // Legacy PIN check
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  if (pin === legacyPin) {
-    return {
-      _id: "legacy_super_admin",
-      name: "Michelle Rogers",
-      role: "super_admin",
-      permissions: SUPER_ADMIN_PERMISSIONS,
     };
   }
 
