@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run verify:automation-serialization && vite build",
     "preview": "vite preview",
     "convex": "convex dev",
     "convex:deploy": "convex deploy",
