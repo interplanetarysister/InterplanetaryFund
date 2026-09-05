@@ -1,11 +1,15 @@
 import fs from "node:fs";
 
 const provisioning = fs.readFileSync(new URL("../convex/automationProvisioning.ts", import.meta.url), "utf8");
+const lease = fs.readFileSync(new URL("../convex/automationLease.ts", import.meta.url), "utf8");
 const coordinator = fs.readFileSync(new URL("../convex/automationCoordinator.ts", import.meta.url), "utf8");
 const generatedApi = fs.readFileSync(new URL("../convex/_generated/api.d.ts", import.meta.url), "utf8");
 
+if (!lease.includes('export const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__"')) {
+  throw new Error("Canonical automation lock key missing from automationLease.ts");
+}
 for (const required of [
-  'const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__"',
+  'import { AUTOMATION_LOCK_KEY } from "./automationLease";',
   "export const provisionAutomationLaneLock = internalMutation",
   "export const getAutomationLaneLockStatus = internalQuery",
   "records.length > 1",
@@ -25,17 +29,17 @@ for (const required of [
 }
 
 const claimStart = coordinator.indexOf("export const claimAutomationLane");
-const releaseStart = coordinator.indexOf("export const releaseAutomationLane");
-if (claimStart < 0 || releaseStart <= claimStart) {
+const renewStart = coordinator.indexOf("export const renewAutomationLane");
+if (claimStart < 0 || renewStart <= claimStart) {
   throw new Error("Could not isolate automation claim implementation");
 }
-const claimSource = coordinator.slice(claimStart, releaseStart);
+const claimSource = coordinator.slice(claimStart, renewStart);
 if (claimSource.includes('ctx.db.insert("featureFlags"')) {
   throw new Error("Runtime claim must never provision the coordination record");
 }
-if (!claimSource.includes('records.length !== 1') ||
-    !claimSource.includes('automation_lock_not_initialized') ||
-    !claimSource.includes('automation_lock_not_unique')) {
+if (!claimSource.includes("records.length !== 1") ||
+    !claimSource.includes("automation_lock_not_initialized") ||
+    !claimSource.includes("automation_lock_not_unique")) {
   throw new Error("Runtime claim must fail closed on missing or duplicate coordination state");
 }
 
