@@ -1,0 +1,46 @@
+name: Fix Stale Treasury Auth Import
+
+on:
+  push:
+    branches:
+      - solstice/complete-admin-auth-surface
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Remove stale legacy auth import
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'convex/treasury.ts';
+          let s = fs.readFileSync(p, 'utf8');
+          const old = 'import { requireSuperAdmin } from "./security";\n';
+          if (!s.includes(old)) throw new Error('stale requireSuperAdmin import not found');
+          s = s.replace(old, '');
+          fs.writeFileSync(p, s);
+          NODE
+      - run: node scripts/verify-complete-admin-auth-surface.mjs
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - name: Commit validated fix
+        run: |
+          git config user.name "IF Repair Bot"
+          git config user.email "actions@github.com"
+          git add convex/treasury.ts
+          git commit -m "fix(security): remove stale PIN-auth treasury import"
+          git push origin HEAD:solstice/complete-admin-auth-surface
