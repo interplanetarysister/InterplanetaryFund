@@ -86,8 +86,8 @@ jobs:
           wait $p1
           wait $p2
           cat /tmp/claim-a.txt /tmp/claim-b.txt
-          winners=$(grep -hxc 'true' /tmp/claim-a.txt /tmp/claim-b.txt || true)
-          losers=$(grep -hxc 'false' /tmp/claim-a.txt /tmp/claim-b.txt || true)
+          winners=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -xc 'true' || true)
+          losers=$(cat /tmp/claim-a.txt /tmp/claim-b.txt | grep -xc 'false' || true)
           test "$winners" -eq 1
           test "$losers" -eq 1
           npx convex run automationCoordinator:releaseAutomationLane "{\"token\":\"agent2-runtime-a\",\"nowMs\":$now_ms}" >/dev/null || true
