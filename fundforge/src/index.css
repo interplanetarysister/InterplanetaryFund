@@ -79,8 +79,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -88,6 +86,29 @@
 
   body {
     @apply bg-background text-foreground font-body;
+  }
+
+  input,
+  textarea,
+  select {
+    color: hsl(var(--foreground));
+    caret-color: #10b981;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 1;
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    caret-color: #10b981;
+    transition: background-color 9999s ease-out 0s;
   }
 
   :focus-visible {
