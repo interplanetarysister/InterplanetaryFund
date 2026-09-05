@@ -30,7 +30,18 @@ jobs:
         run: npm ci
 
       - name: Apply coordinated repair
-        run: node scripts/apply-admin-session-integration-repair.mjs
+        run: |
+          node scripts/apply-admin-session-integration-repair.mjs
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/App.tsx')
+          s = p.read_text()
+          old = 'if (result?.valid === true && result.sessionToken) {'
+          new = 'if (result?.valid === true && "sessionToken" in result) {'
+          if old not in s:
+              raise SystemExit('expected admin login result guard not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
 
       - name: Verify admin session and integration boundary
         run: node scripts/verify-admin-session-integration-boundary.mjs
