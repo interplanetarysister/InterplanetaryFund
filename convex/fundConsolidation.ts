@@ -28,6 +28,7 @@
 
 import { query, mutation, internalMutation } from "./_generated/server";
 import { logFinancialAction } from "./financialAudit";
+import { requireAuth } from "./security";
 import { v } from "convex/values";
 
 // =====================================================
@@ -91,10 +92,13 @@ export const getConsolidationHistory = query({
   },
 });
 
-// Get consolidation summary for all campaigns (dashboard view)
+// Get consolidation summary for the authenticated user's campaigns (dashboard view)
 export const getConsolidationSummary = query({
-  args: { userId: v.string() },
-  handler: async (ctx, { userId }) => {
+  args: {},
+  handler: async (ctx) => {
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
+
     const campaigns = await ctx.db
       .query("userCampaigns")
       .withIndex("byUserId", (q) => q.eq("userId", userId))
