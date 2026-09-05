@@ -13,8 +13,9 @@
  *  - Full audit logging
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { requireAuth, checkRateLimit, validateWithdrawal } from "./security";
+import { requireAdminSession, requireSuperAdminSession } from "./adminUsers";
 import { logFinancialAction } from "./financialAudit";
 import { v } from "convex/values";
 
@@ -72,7 +73,7 @@ export const getBalance = query({
 
       // Get fee config
       const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-      const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+      const platformFeePct = feeConfig?.platformFeePercent ?? 3;
       const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
       const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -123,7 +124,7 @@ export const getBalance = query({
     const available = Math.max(0, (campaign.raisedAmount || 0) - alreadyPending);
 
     const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-    const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+    const platformFeePct = feeConfig?.platformFeePercent ?? 3;
     const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
     const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -275,7 +276,7 @@ export const withdraw = mutation({
 
     // 6. Server-side fee calculation (never trust client amounts)
     const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-    const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+    const platformFeePct = feeConfig?.platformFeePercent ?? 3;
     const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
     const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -390,13 +391,12 @@ export const withdraw = mutation({
 // Admin: Complete a withdrawal (marks as paid)
 export const completeWithdrawal = mutation({
   args: {
-    adminPin: v.string(),
+    sessionToken: v.string(),
     payoutId: v.id("payoutRequests"),
     transactionId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const { requireSuperAdmin } = await import("./security");
-    await requireSuperAdmin(ctx, args.adminPin);
+    await requireSuperAdminSession(ctx, args.sessionToken);
 
     checkRateLimit("withdraw", 3, 300000);
     const payout = await ctx.db.get(args.payoutId);
@@ -450,13 +450,12 @@ export const completeWithdrawal = mutation({
 });
 
 // Admin: Confirm pending PayPal donations (batch — for testing)
-export const confirmPendingDonations = mutation({
+export const confirmPendingDonations = internalMutation({
   args: {
-    adminPin: v.string(),
+    sessionToken: v.string(),
   },
   handler: async (ctx, args) => {
-    const { requireSuperAdmin } = await import("./security");
-    await requireSuperAdmin(ctx, args.adminPin);
+    await requireSuperAdminSession(ctx, args.sessionToken);
 
     const pending = await ctx.db
       .query("donations")
@@ -509,8 +508,9 @@ export const confirmPendingDonations = mutation({
 
 // Get all pending withdrawals (admin view)
 export const getPendingWithdrawals = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    await requireSuperAdminSession(ctx, sessionToken);
     const payouts = await ctx.db
       .query("payoutRequests")
       .withIndex("byStatus", (q) => q.eq("status", "pending_payout"))
@@ -532,8 +532,9 @@ export const getPendingWithdrawals = query({
 
 // Get all completed withdrawals (history)
 export const getWithdrawalHistory = query({
-  args: { campaignId: v.optional(v.string()) },
-  handler: async (ctx, { campaignId }) => {
+  args: { sessionToken: v.string(), campaignId: v.optional(v.string()) },
+  handler: async (ctx, { sessionToken, campaignId }) => {
+    await requireAdminSession(ctx, sessionToken, "finance");
     let payouts = await ctx.db.query("payoutRequests").collect();
 
     if (campaignId) {
