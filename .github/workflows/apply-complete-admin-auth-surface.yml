@@ -33,6 +33,9 @@ jobs:
       - name: Apply complete admin auth surface repair
         run: node scripts/run-complete-admin-auth-surface.mjs
 
+      - name: Apply duplicate withdrawal admin repair
+        run: node scripts/apply-admin-auth-augmentation.mjs
+
       - name: Verify complete admin auth surface
         run: node scripts/verify-complete-admin-auth-surface.mjs
 
@@ -46,7 +49,7 @@ jobs:
         run: |
           git config user.name "IF Repair Bot"
           git config user.email "actions@github.com"
-          git add convex/auth.ts convex/security.ts convex/adminUsers.ts convex/inbox.ts convex/agentAutomationAuthorization.ts convex/secureWithdraw.ts convex/fundMigration.ts scripts/verify-complete-admin-auth-surface.mjs
+          git add convex/auth.ts convex/security.ts convex/adminUsers.ts convex/inbox.ts convex/agentAutomationAuthorization.ts convex/secureWithdraw.ts convex/simpleWithdraw.ts convex/fundMigration.ts scripts/verify-complete-admin-auth-surface.mjs
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "fix(security): complete admin credential and integration session boundary"
             git push origin HEAD:solstice/complete-admin-auth-surface
