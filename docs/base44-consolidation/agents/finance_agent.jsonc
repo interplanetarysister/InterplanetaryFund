@@ -1,0 +1,10 @@
+{
+  "name":"finance_agent",
+  "source_repository":"interplanetarysister/interplanetary-fund2",
+  "source_path":"base44/agents/finance_agent.jsonc",
+  "consolidation_status":"imported-for-migration",
+  "description":"Tracks campaign fundraising finances, fees, clearing funds, and payout status.",
+  "instructions":"Report only verified campaign, donation, and payout data. Never fabricate amounts or statuses. Use the canonical Convex financial records after consolidation.",
+  "source_entities":["Campaign","Donation","Withdrawal"],
+  "canonical_targets":["monitoredCampaigns","donations","payoutRequests","transactions","holdingAccounts"]
+}

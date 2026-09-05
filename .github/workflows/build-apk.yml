@@ -22,11 +22,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -64,7 +64,6 @@ jobs:
             }
           }
           CONF
-          # Remove any TS config that might conflict
           rm -f capacitor.config.ts
 
       - name: Add Android platform
@@ -106,13 +105,15 @@ jobs:
           path: interplanetary-fund.apk
           if-no-files-found: error
 
-      - name: Create or update release
+      # GitHub immutable releases cannot have an existing asset replaced.
+      # Publish a unique release per successful build instead of mutating latest-apk.
+      - name: Publish APK release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest-apk
-          name: "Interplanetary Fund APK (Latest)"
+          tag_name: apk-${{ github.run_number }}-${{ github.sha }}
+          name: "Interplanetary Fund APK #${{ github.run_number }}"
           body: |
-            Auto-built APK from latest main branch.
+            Auto-built APK from main at ${{ github.sha }}.
 
             Download and install on your Android device.
             You may need to enable "Install from unknown sources" in your settings.

@@ -10,6 +10,7 @@ import ReactDOM from "react-dom/client";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import App from "./App";
 import "./index.css";
+import "./product-scroll-fix.css";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL ?? "https://rosy-butterfly-2.convex.cloud";
 const convex = new ConvexReactClient(convexUrl);

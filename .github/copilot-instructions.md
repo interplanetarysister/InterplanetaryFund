@@ -96,3 +96,6 @@ Grants.gov, IFundWomen Universal Grant, Amber Grant for Women ($10K monthly / $5
 
 ## Environment Variables
 - `VITE_CONVEX_URL` — Convex deployment URL (https://rosy-butterfly-2.convex.cloud)
+
+## Agent deletion handoff rule
+When an agent verifies that a file, workflow, branch artifact, duplicate, or other repository item is safe and ready for deletion but cannot perform the deletion itself, it must leave a comment at the bottom of the relevant issue, pull request, review, or work record using the established star-marked deletion-ready notation. The comment must identify exactly what should be deleted and briefly state why deletion is safe. Do not mark anything deletion-ready until dependencies, deployment use, and unique required content have been checked. Agents that can safely perform the authorized deletion should do so instead of leaving a handoff comment.

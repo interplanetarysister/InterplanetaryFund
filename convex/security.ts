@@ -7,10 +7,11 @@
  * Without these guards, anyone with the deployment URL could call mutations directly.
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Admin PIN — stored in the database, verified before any admin action
+// Admin PIN — stored in the database, verified before any admin action.
+// There is intentionally no built-in fallback credential.
 const ADMIN_PIN_KEY = "admin_pin";
 
 // Check if caller is authenticated
@@ -57,14 +58,6 @@ export async function requireSuperAdmin(ctx: any, adminPin: string) {
     return true;
   }
 
-  // Legacy PIN check (Michelle's original)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
-    return true;
-  }
-
   throw new Error("Super admin access required. This action is restricted to the platform owner.");
 }
 
@@ -84,14 +77,6 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
     if (adminUser.role === "super_admin") return true;
     if (adminUser.permissions.includes(permission)) return true;
     throw new Error(`Access denied. You need the "${permission}" permission.`);
-  }
-
-  // Legacy PIN check (super admin)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
-    return true;
   }
 
   throw new Error("Invalid admin credentials. Access denied.");
@@ -146,18 +131,23 @@ export const getAdminSetting = query({
   },
 });
 
-// Initialize admin PIN (called once during setup)
-export const initAdminPin = mutation({
+// Initialize admin PIN (called once during controlled setup).
+// This is internal-only so an arbitrary public caller cannot claim the first
+// privileged credential. Deployment/bootstrap tooling must invoke this path.
+export const initAdminPin = internalMutation({
   args: { pin: v.string() },
   handler: async (ctx, args) => {
-    // Only allow if no PIN is set yet
+    if (!/^\d{4,}$/.test(args.pin)) {
+      throw new Error("Admin PIN must contain at least 4 digits.");
+    }
+
     const existing = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
       .first();
     
     if (existing) {
-      throw new Error("Admin PIN already initialized. Use updateAdminPin to change it.");
+      throw new Error("Admin PIN already initialized. Use changeAdminPin to change it.");
     }
     
     await ctx.db.insert("adminSettings", {
@@ -175,18 +165,24 @@ export const changeAdminPin = mutation({
   args: { currentPin: v.string(), newPin: v.string() },
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.currentPin);
+
+    if (!/^\d{4,}$/.test(args.newPin)) {
+      throw new Error("Admin PIN must contain at least 4 digits.");
+    }
     
     const existing = await ctx.db
       .query("adminSettings")
       .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
       .first();
     
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        value: args.newPin,
-        updatedAt: new Date().toISOString(),
-      });
+    if (!existing) {
+      throw new Error("Admin PIN is not initialized.");
     }
+
+    await ctx.db.patch(existing._id, {
+      value: args.newPin,
+      updatedAt: new Date().toISOString(),
+    });
     
     return { status: "success" };
   },

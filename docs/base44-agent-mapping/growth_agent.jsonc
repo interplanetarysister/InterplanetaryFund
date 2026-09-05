@@ -1,0 +1,7 @@
+{
+  "source": "interplanetary-fund2/base44/agents/growth_agent.jsonc",
+  "canonical_name": "growth_agent",
+  "role": "Growth Agent",
+  "source_permissions": {"Campaign": ["read"], "Donation": ["read"], "PlatformConnection": ["read"]},
+  "migration_rule": "Implement against authoritative Convex records; do not create duplicate Base44 data."
+}

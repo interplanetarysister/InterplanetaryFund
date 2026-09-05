@@ -5,43 +5,71 @@
  */
 
 import { internalQuery, mutation } from "./_generated/server";
+import { requireAdmin, requireAuth } from "./security";
 import { v } from "convex/values";
 
-// Admin PIN is stored server-side only. There is intentionally no fallback
-// credential: missing initialization must fail closed.
+// Admin PIN has one canonical persistence location: adminSettings.admin_pin.
+// feeConfig remains financial configuration and is not an authorization source.
+const ADMIN_PIN_KEY = "admin_pin";
 
-// Internal-only verification helper. The repository audit found no legitimate
-// public callers, so this credential oracle is deliberately removed from the
-// public Convex API. Privileged flows should use the authenticated admin
-// authorization functions instead of exposing PIN validity to clients.
+// Internal-only PIN verification helper. No public client should be able to use
+// the privileged credential as a validity oracle.
 export const verifyAdminPin = internalQuery({
   args: { pin: v.string() },
   handler: async (ctx, { pin }) => {
-    const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin;
+    const settings = await ctx.db
+      .query("adminSettings")
+      .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
+      .first();
+    const adminPin = settings?.value;
     return { valid: Boolean(adminPin) && pin === adminPin };
   },
 });
 
-// Mutation: Update admin PIN (requires current PIN)
+// Mutation: Update admin PIN (requires authenticated authorized admin + current PIN)
 export const updateAdminPin = mutation({
   args: { currentPin: v.string(), newPin: v.string() },
   handler: async (ctx, { currentPin, newPin }) => {
-    const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin;
+    const identity = await requireAuth(ctx);
 
-    // Never bootstrap or authorize from a hardcoded/default credential.
-    if (!adminPin || currentPin !== adminPin) {
-      return { success: false, error: "Current PIN is incorrect" };
+    const adminUser = identity.email
+      ? await ctx.db
+          .query("adminUsers")
+          .withIndex("byEmail", (q: any) => q.eq("email", identity.email))
+          .first()
+      : null;
+
+    const authorized =
+      !!adminUser &&
+      adminUser.active &&
+      (adminUser.role === "super_admin" ||
+        adminUser.permissions.includes("settings") ||
+        adminUser.permissions.includes("finance"));
+
+    if (!authorized) {
+      return { success: false, error: "Admin authorization required" };
     }
 
-    if (newPin.length < 4) {
+    await requireAdmin(ctx, currentPin);
+
+    if (!/^\d{4,}$/.test(newPin)) {
       return { success: false, error: "PIN must be at least 4 digits" };
     }
 
-    if (settings) {
-      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system" });
+    const settings = await ctx.db
+      .query("adminSettings")
+      .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
+      .first();
+
+    if (!settings) {
+      return { success: false, error: "Admin PIN is not initialized" };
     }
+
+    await ctx.db.patch(settings._id, {
+      value: newPin,
+      updatedAt: new Date().toISOString(),
+      updatedBy: identity.subject,
+    });
 
     return { success: true };
   },

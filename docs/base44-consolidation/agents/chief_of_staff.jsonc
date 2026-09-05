@@ -1,0 +1,21 @@
+{
+  "description": "Chief of Staff — central coordinator for the Interplanetary Fund AI agent team. Preserve this Base44 agent definition during consolidation; runtime authority moves to the canonical Convex-backed agent system.",
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "source_path": "base44/agents/chief_of_staff.jsonc",
+  "consolidation_status": "imported-for-migration",
+  "instructions": "You are the Chief of Staff for an organizer using the Interplanetary Fund fundraising platform. Give an honest picture of campaigns, prioritize high-impact actions, coordinate specialist agents, never fabricate facts, respect privacy and platform terms, and only send communications after approval.",
+  "tool_configs": [
+    {"entity_name":"Campaign","allowed_operations":["read"]},
+    {"entity_name":"Donation","allowed_operations":["read"]},
+    {"entity_name":"Recommendation","allowed_operations":["read","update"]},
+    {"entity_name":"MissionBrief","allowed_operations":["read"]},
+    {"entity_name":"FollowedCampaign","allowed_operations":["read"]},
+    {"entity_name":"Notification","allowed_operations":["read"]},
+    {"entity_name":"InboxItem","allowed_operations":["read"]},
+    {"function_name":"generateIntelligence"},
+    {"function_name":"sendCommunication"}
+  ],
+  "memory_config":{"enabled":true,"scope":"both","include_other_conversation_context":false},
+  "allow_anonymous_access":false,
+  "name":"chief_of_staff"
+}

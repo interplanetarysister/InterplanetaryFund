@@ -516,6 +516,7 @@ export default defineSchema({
     key: v.string(),
     value: v.string(),
     updatedAt: v.string(),
+    updatedBy: v.optional(v.string()),
   }).index("byKey", ["key"]),
   // USER CAMPAIGNS — campaigns created by users, with ownership
   userCampaigns: defineTable({

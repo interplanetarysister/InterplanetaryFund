@@ -2,6 +2,9 @@
   "name": "interplanetaryfund",
   "version": "1.0.0",
   "description": "Interplanetary Fund — full-stack app with agents, protocol enforcement, treasury management, and external platform sync. Frontend: React + Vite. Backend: Convex. Credit-free.",
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,13 +15,14 @@
     "test:qa": "playwright test",
     "test:qa:ui": "playwright test --ui",
     "test:qa:report": "playwright show-report",
+    "test:admin-auth-boundary": "node scripts/verify-admin-auth-boundary.mjs",
+    "verify:admin-credential-surface": "node scripts/verify-admin-credential-surface.mjs",
     "cap:sync": "npm run build && npx cap sync",
     "cap:android": "npm run cap:sync && npx cap open android",
     "cap:ios": "npm run cap:sync && npx cap open ios",
     "cap:init:android": "npx cap add android",
     "cap:init:ios": "npx cap add ios",
-    "mobile:build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug",
-    "verify:admin-pin-oracle": "node scripts/verify-admin-pin-oracle.mjs"
+    "mobile:build:apk": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@browserbasehq/sdk": "^2.16.0",
@@ -53,6 +57,7 @@
     "treasury",
     "convex",
     "react",
+    "capacitor",
     "mobile"
   ],
   "license": "UNLICENSED",

@@ -45,9 +45,30 @@ A failed Agent 2 or Agent 3 verification must create a traceable feedback loop. 
 
 Agents must communicate through durable GitHub artifacts (PR descriptions, review comments, issues, audit documents, and commits) so another agent can continue without relying on private conversation history.
 
+## Three-attempt recovery rule
+
+This rule applies to Agent 1, Agent 2, Agent 3, Codex agents, and workflow-driven agents operating under this workflow.
+
+An agent must not repeat the same specific action indefinitely. After **three unsuccessful attempts at the same specific action**, stop retrying that unchanged action. Record the attempts and the available failure evidence in the relevant GitHub artifact, then do one of the following:
+
+1. **Repair the cause:** investigate and correct the underlying code, configuration, dependency, workflow, test, permission, integration, or environment problem before attempting the action again; or
+2. **Move to another actionable task:** when the blocker cannot presently be repaired by that agent, leave a precise handoff/blocker record and begin the next valid task within the agent's assigned scope.
+
+Changing only superficial parameters or repeatedly re-running an unchanged known-broken workflow does not reset the three-attempt count. A materially repaired underlying cause may begin a new attempt cycle. This recovery rule does not permit bypassing security, authorization, review, verification, or human-approval gates.
+
 ## No duplicate work
 
 Before starting work, the assigned agent must inspect the relevant GitHub issue/PR, current branch/head, existing agent handoff documents, and recent findings. If another agent is already working on the same scope, coordinate through GitHub rather than creating a competing implementation.
+
+### Edit the existing produced work — do not rebuild from scratch
+
+When a builder agent is correcting, extending, or improving work that has already been produced, it **must modify the existing implementation/artifact in place** rather than recreating an equivalent implementation from scratch. Preserve the existing work, history, architecture, interfaces, and valid functionality unless the GitHub task explicitly requires replacement.
+
+Before making changes, identify the exact current artifact/commit/PR head that is the subject of the work. Apply the smallest coherent modification that satisfies the requested correction. Do not discard a prior implementation and regenerate it merely because regeneration is easier.
+
+If a true replacement or rewrite is necessary, the agent must document why the existing produced work cannot safely be edited, what will be preserved, and how equivalence/regression will be verified. A replacement must be explicitly justified in the GitHub handoff/review record.
+
+This rule applies to code, configuration, documentation, schemas, agent definitions, workflows, prompts, generated assets, and other produced project artifacts.
 
 ## Verification principle
 
