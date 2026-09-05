@@ -2,6 +2,7 @@ import fs from "node:fs";
 
 const provisioning = fs.readFileSync(new URL("../convex/automationProvisioning.ts", import.meta.url), "utf8");
 const coordinator = fs.readFileSync(new URL("../convex/automationCoordinator.ts", import.meta.url), "utf8");
+const generatedApi = fs.readFileSync(new URL("../convex/_generated/api.d.ts", import.meta.url), "utf8");
 
 for (const required of [
   'const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__"',
@@ -40,6 +41,17 @@ if (!claimSource.includes('records.length !== 1') ||
 
 if (provisioning.includes("ctx.db.delete(")) {
   throw new Error("Provisioning must not auto-delete duplicate coordination records");
+}
+
+for (const generatedContract of [
+  'import type * as automationCoordinator from "../automationCoordinator.js";',
+  'import type * as automationProvisioning from "../automationProvisioning.js";',
+  'automationCoordinator: typeof automationCoordinator;',
+  'automationProvisioning: typeof automationProvisioning;',
+]) {
+  if (!generatedApi.includes(generatedContract)) {
+    throw new Error(`Generated Convex API provenance missing: ${generatedContract}`);
+  }
 }
 
 console.log("Automation provisioning static verification: PASS");
