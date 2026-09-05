@@ -4,9 +4,10 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { validateWithdrawal, checkRateLimit } from "./security";
 import { v } from "convex/values";
+import { requireAdminSession, requireSuperAdminSession } from "./adminUsers";
 
 // =====================================================
 // SIMPLE WITHDRAWAL — for everyday users
@@ -41,7 +42,7 @@ export const getBalance = query({
     const available = (campaign.raisedAmount || 0) - alreadyPending;
 
     // Calculate what they'd receive
-    const platformFee = available * 0.05;
+    const platformFee = available * 0.03;
     const processingFee = available * 0.029 + 0.30;
     const totalFees = platformFee + processingFee;
     const netAmount = Math.max(0, available - totalFees);
@@ -100,7 +101,7 @@ export const withdraw = mutation({
     }
 
     // Calculate fees
-    const platformFee = available * 0.05;
+    const platformFee = available * 0.03;
     const processingFee = available * 0.029 + 0.30;
     const totalFees = platformFee + processingFee;
     const netAmount = Math.max(0, available - totalFees);
@@ -141,10 +142,12 @@ export const withdraw = mutation({
 // Admin: Complete a withdrawal (marks as paid)
 export const completeWithdrawal = mutation({
   args: {
+    sessionToken: v.string(),
     payoutId: v.id("payoutRequests"),
     transactionId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireSuperAdminSession(ctx, args.sessionToken);
     checkRateLimit("withdraw", 3, 300000); // Max 3 withdrawals per 5 minutes
     const payout = await ctx.db.get(args.payoutId);
     if (!payout) throw new Error("Payout not found");
@@ -167,7 +170,7 @@ export const completeWithdrawal = mutation({
 });
 
 // Admin: Confirm pending PayPal donations (batch — for testing)
-export const confirmPendingDonations = mutation({
+export const confirmPendingDonations = internalMutation({
   args: {},
   handler: async (ctx) => {
     const pending = await ctx.db
@@ -215,8 +218,9 @@ export const confirmPendingDonations = mutation({
 
 // Get all pending withdrawals (admin view)
 export const getPendingWithdrawals = query({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    await requireSuperAdminSession(ctx, sessionToken);
     const payouts = await ctx.db
       .query("payoutRequests")
       .withIndex("byStatus", (q) => q.eq("status", "pending_payout"))
@@ -237,8 +241,9 @@ export const getPendingWithdrawals = query({
 
 // Get all completed withdrawals (history)
 export const getWithdrawalHistory = query({
-  args: { campaignId: v.optional(v.string()) },
-  handler: async (ctx, { campaignId }) => {
+  args: { sessionToken: v.string(), campaignId: v.optional(v.string()) },
+  handler: async (ctx, { sessionToken, campaignId }) => {
+    await requireAdminSession(ctx, sessionToken, "finance");
     let payouts = await ctx.db.query("payoutRequests").collect();
 
     if (campaignId) {

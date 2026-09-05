@@ -6,6 +6,7 @@
 
 import { mutation, query } from "./_generated/server";
 import { validateDonation, checkRateLimit } from "./security";
+import { requireAdminSession } from "./adminUsers";
 import { v } from "convex/values";
 
 // Record a fund migration from an external platform
@@ -21,7 +22,7 @@ export const recordMigration = mutation({
   handler: async (ctx, args) => {
     checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
     // Calculate fees
-    const platformFee = args.grossAmount * 0.05;
+    const platformFee = args.grossAmount * 0.03;
     const processingFee = args.grossAmount * 0.029 + 0.30;
     const totalFees = platformFee + processingFee;
     const netAmount = args.grossAmount - totalFees;
@@ -167,7 +168,7 @@ export const getMigrationHistory = query({
 // Batch migrate funds from multiple external platforms at once
 export const batchMigrate = mutation({
   args: {
-    adminPin: v.optional(v.string()),
+    sessionToken: v.string(),
     migrations: v.array(v.object({
       campaignId: v.string(),
       campaignTitle: v.string(),
@@ -177,14 +178,15 @@ export const batchMigrate = mutation({
     withdrawnBy: v.string(),
   },
   handler: async (ctx, args) => {
-    checkRateLimit("fund_migration", 5, 300000); // Max 5 per 5 min
+    const principal = await requireAdminSession(ctx, args.sessionToken, "finance");
+    checkRateLimit(`fund_migration_admin:${principal._id}`, 5, 300000);
     const results = [];
     let totalGross = 0;
     let totalFees = 0;
     let totalNet = 0;
 
     for (const migration of args.migrations) {
-      const platformFee = migration.grossAmount * 0.05;
+      const platformFee = migration.grossAmount * 0.03;
       const processingFee = migration.grossAmount * 0.029 + 0.30;
       const fees = platformFee + processingFee;
       const net = migration.grossAmount - fees;
@@ -248,7 +250,7 @@ export const batchMigrate = mutation({
         totalGross: `$${totalGross.toFixed(2)}`,
         totalFees: `$${totalFees.toFixed(2)}`,
         totalNet: `$${totalNet.toFixed(2)}`,
-        withdrawnBy: args.withdrawnBy,
+        withdrawnBy: principal.name,
       },
       details: results,
     };

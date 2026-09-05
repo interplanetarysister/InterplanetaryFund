@@ -65,8 +65,7 @@ async function bootstrapConfiguredSuperAdmin(ctx: any, pin: string) {
   const existing = await ctx.db.query("adminUsers").collect();
   if (existing.length > 0) return null;
   const configured = await ctx.db.query("adminSettings").withIndex("byKey", (q: any) => q.eq("key", "admin_pin")).first();
-  const legacy = await ctx.db.query("feeConfig").first();
-  const configuredPin = configured?.value || legacy?.adminPin;
+  const configuredPin = configured?.value;
   if (!configuredPin || pin !== configuredPin) return null;
   const id = await ctx.db.insert("adminUsers", {
     name: "Platform Administrator",
