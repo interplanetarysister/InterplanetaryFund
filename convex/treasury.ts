@@ -5,7 +5,6 @@
  */
 
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireSuperAdmin } from "./security";
 import { validateDonation, validateWithdrawal, checkRateLimit } from "./security";
 import { v } from "convex/values";
 import { requireAdminSession, requireSuperAdminSession } from "./adminUsers";
