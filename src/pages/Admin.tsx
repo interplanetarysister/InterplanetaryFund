@@ -86,7 +86,7 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
   const [tab, setTab] = useState<AdminTab>("overview");
 
   // Shared queries
-  const balances = useQuery(api.treasury.aggregateBalances, {});
+  const balances = useQuery(api.treasury.getAdminBalances, sessionToken ? { sessionToken } : "skip");
   const agentsStats = useQuery(api.agents.getAgentStats, {});
   const agentsList = useQuery(api.agents.getAdminAgents, sessionToken ? { sessionToken } : "skip");
   const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
@@ -111,7 +111,7 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
   const handleMigration = async () => {
     setMigrating(true);
     try {
-      const result = await migrateCampaigns({});
+      const result = await migrateCampaigns({ sessionToken });
       setMigrationResult(`Fixed ${result.totalFixed} campaigns`);
     } catch (e: any) {
       setMigrationResult(`Error: ${e.message}`);
@@ -129,8 +129,8 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
   const [connectionType, setConnectionType] = useState("manual");
 
   // Mutations
-  const requestPayout = useMutation(api.treasury.requestPayout);
-  const createDeposit = useMutation(api.treasury.createDeposit);
+  const requestPayout = useMutation(api.treasury.requestAdminPayout);
+  const createDeposit = useMutation(api.treasury.createAdminDeposit);
   const connectPlatform = useMutation(api.campaigns.connectAdminExternalPlatform);
   const feeCalc = useQuery(api.treasury.calculatePayout, {
     amount: parseFloat(payoutAmount) || 0,
@@ -147,7 +147,8 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
   const handlePayout = async () => {
     try {
       const result = await requestPayout({
-        userId: (adminUser as any)?.userId || "",
+        sessionToken,
+        targetUserId: treasuryUser,
         payoutMethod,
         payoutDestination: payoutDest,
       });
@@ -160,7 +161,8 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
   const handleDeposit = async () => {
     try {
       const result = await createDeposit({
-        userId: (adminUser as any)?.userId || "",
+        sessionToken,
+        targetUserId: treasuryUser,
         amount: parseFloat(depositAmount) || 0,
         sourcePlatform: depositPlatform,
       });
@@ -1049,12 +1051,12 @@ export default function Admin({ adminUser }: { adminUser: { userId?: string; nam
 
       {/* ============ USER MANAGEMENT ============ */}
       {tab === "users" && (
-        <UserManagement />
+        <UserManagement sessionToken={sessionToken} />
       )}
 
       {/* ============ FRAUD CONTROL ============ */}
       {tab === "control" && isSuperAdmin && (
-        <FraudControl />
+        <FraudControl sessionToken={sessionToken} />
       )}
       {tab === "control" && !isSuperAdmin && (
         <div className="card text-center py-8">

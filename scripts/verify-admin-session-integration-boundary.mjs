@@ -8,6 +8,12 @@ const campaigns=read("convex/campaigns.ts");
 const app=read("src/App.tsx");
 const page=read("src/pages/Admin.tsx");
 const perms=read("src/components/PermissionsManager.tsx");
+const fraud=read("convex/fraudControl.ts");
+const fraudUi=read("src/components/FraudControl.tsx");
+const users=read("convex/userManagement.ts");
+const usersUi=read("src/components/UserManagement.tsx");
+const treasury=read("convex/treasury.ts");
+const protocolFix=read("convex/protocolAutoFix.ts");
 const failures=[];
 if(!schema.includes("adminSessions: defineTable")) failures.push("admin session table missing");
 if(!admin.includes("tokenHash")||!admin.includes("crypto.getRandomValues")||!admin.includes("requireAdminSession")) failures.push("server-verifiable session boundary missing");
@@ -22,5 +28,15 @@ if(!campaigns.includes("connectAdminExternalPlatform")||!campaigns.includes('req
 if(!app.includes("useMutation(api.adminUsers.authenticateAdmin)")||app.includes("pinCheck = useQuery")) failures.push("frontend still uses PIN query auth");
 if(!page.includes("getAdminExternalBalances")||!page.includes("connectAdminExternalPlatform")||!page.includes("sessionToken")) failures.push("admin integration UI is not session wired");
 if(perms.includes("requestorPin")||perms.includes("Unlock Access Panel")) failures.push("permissions UI still re-prompts for PIN");
+
+if(fraud.includes("adminPin")||fraudUi.includes("adminPin")||fraudUi.includes("Unlock Fraud Control")) failures.push("fraud control still uses PIN authorization");
+if(!fraud.includes("requireSuperAdminSession")) failures.push("fraud control is not super-admin session protected");
+if(users.includes("adminPin")||usersUi.includes("adminPin")||usersUi.includes("Unlock User Panel")) failures.push("user management still uses PIN authorization");
+if(!users.includes("requireAdminSession")||!users.includes("requireSuperAdminSession")) failures.push("user management session permissions missing");
+if(!treasury.includes("getAdminBalances")||!treasury.includes("createAdminDeposit")||!treasury.includes("requestAdminPayout")) failures.push("admin treasury APIs missing");
+if(!treasury.includes('requireAdminSession(ctx,args.sessionToken,"finance")')&&!treasury.includes('requireAdminSession(ctx, args.sessionToken, "finance")')) failures.push("admin treasury finance authorization missing");
+if(!protocolFix.includes('requireAdminSession(ctx, sessionToken, "campaigns")')) failures.push("mass campaign migration remains unauthenticated");
+if(!page.includes("requestAdminPayout")||!page.includes("createAdminDeposit")||!page.includes("targetUserId: treasuryUser")) failures.push("Admin treasury UI still targets user APIs or wrong identity");
+if(!page.includes("<FraudControl sessionToken={sessionToken} />")||!page.includes("<UserManagement sessionToken={sessionToken} />")) failures.push("Admin child panels are not session wired");
 if(failures.length){console.error(failures.join("\n"));process.exit(1)}
 console.log("admin session + integration boundary verified");

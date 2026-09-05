@@ -55,6 +55,12 @@ export async function requireAdminSession(ctx: any, sessionToken: string, requir
   return { ...adminUser, permissions };
 }
 
+export async function requireSuperAdminSession(ctx: any, sessionToken: string) {
+  const principal = await requireAdminSession(ctx, sessionToken);
+  if (principal.role !== "super_admin") throw new Error("Super admin access required");
+  return principal;
+}
+
 async function bootstrapConfiguredSuperAdmin(ctx: any, pin: string) {
   const existing = await ctx.db.query("adminUsers").collect();
   if (existing.length > 0) return null;
