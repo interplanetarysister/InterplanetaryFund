@@ -1,35 +1,25 @@
 /*
  * Interplanetary Fund — Serialized Automation Coordinator
  *
- * P0 production-reliability boundary for shared automation writers.
- * All shared write-producing automation is invoked sequentially from this lane.
- * A durable transactional lease also prevents overlapping manual/duplicate
- * invocations from entering the lane at the same time.
+ * P0 production-reliability boundary for scheduled write-producing automation.
+ * Every scheduled writer runs through one lane. The durable lease is renewed
+ * before each child mutation, while each child independently validates the
+ * same claim inside its own Convex write transaction.
  */
 
 import { internalAction, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
-
-const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__";
-const AUTOMATION_LOCK_LEASE_MS = 60 * 60 * 1000;
-
-// Convex runtime actions are bounded by the platform below this duration.
-// Keep the durable lease materially longer than the maximum possible action
-// lifetime so an action cannot survive past lease expiry and become a stale
-// writer after a newer owner acquires the lane.
-const MAX_SERIALIZED_ACTION_RUNTIME_MS = 30 * 60 * 1000;
-const LEASE_SAFETY_MARGIN_MS = 5 * 60 * 1000;
-
-if (AUTOMATION_LOCK_LEASE_MS <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS) {
-  throw new Error("automation_lease_runtime_invariant_violated");
-}
+import {
+  AUTOMATION_LOCK_KEY,
+  AUTOMATION_LOCK_LEASE_MS,
+  assertAutomationLaneOwnership,
+} from "./automationLease";
 
 const AGENT_INTERVALS_MS: Record<string, number> = {
   Atlas: 4 * 60 * 60 * 1000,
   "Post Production Agent": 6 * 60 * 60 * 1000,
   "Donor Relations Agent": 6 * 60 * 60 * 1000,
-  Scout: 8 * 60 * 60 * 1000,
   "Scout Agent": 8 * 60 * 60 * 1000,
 };
 
@@ -40,16 +30,8 @@ function isDue(lastRun: string | undefined, intervalMs: number, nowMs: number) {
   return nowMs - parsed >= intervalMs;
 }
 
-function isTwoHourSlot(nowMs: number) {
-  return Math.floor(nowMs / (60 * 60 * 1000)) % 2 === 0;
-}
-
-function isSixHourSlot(nowMs: number) {
-  return Math.floor(nowMs / (60 * 60 * 1000)) % 6 === 0;
-}
-
-function isTwelveHourSlot(nowMs: number) {
-  return Math.floor(nowMs / (60 * 60 * 1000)) % 12 === 0;
+function isHourSlot(nowMs: number, hours: number) {
+  return Math.floor(nowMs / (60 * 60 * 1000)) % hours === 0;
 }
 
 export const getAgentAutomationStatus = internalQuery({
@@ -65,19 +47,13 @@ export const getAgentAutomationStatus = internalQuery({
 });
 
 export const claimAutomationLane = internalMutation({
-  args: { token: v.string(), nowMs: v.number(), leaseMs: v.number() },
-  handler: async (ctx, { token, nowMs, leaseMs }) => {
-    if (leaseMs <= MAX_SERIALIZED_ACTION_RUNTIME_MS + LEASE_SAFETY_MARGIN_MS) {
-      throw new Error("automation_lease_too_short");
-    }
-
+  args: { token: v.string(), nowMs: v.number() },
+  handler: async (ctx, { token, nowMs }) => {
     const records = await ctx.db
       .query("featureFlags")
       .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
       .collect();
 
-    // `byName` is not a unique schema index. Never create a competing lock
-    // record during a claim and never silently select one of multiple records.
     if (records.length !== 1) {
       throw new Error(
         records.length === 0
@@ -87,22 +63,31 @@ export const claimAutomationLane = internalMutation({
     }
 
     const existing = records[0];
-    const expiresAt = nowMs + leaseMs;
     const currentlyHeld = existing.enabled === true &&
       typeof existing.rolloutPercent === "number" &&
       existing.rolloutPercent > nowMs;
-
     if (currentlyHeld) return false;
 
-    const description = `automation-lane-lease:${token}`;
-    const timestamp = new Date(nowMs).toISOString();
     await ctx.db.patch(existing._id, {
-      description,
+      description: `automation-lane-lease:${token}`,
       enabled: true,
-      rolloutPercent: expiresAt,
-      updatedAt: timestamp,
+      rolloutPercent: nowMs + AUTOMATION_LOCK_LEASE_MS,
+      updatedAt: new Date(nowMs).toISOString(),
     });
     return true;
+  },
+});
+
+export const renewAutomationLane = internalMutation({
+  args: { token: v.string(), nowMs: v.number() },
+  handler: async (ctx, { token, nowMs }) => {
+    const lease = await assertAutomationLaneOwnership(ctx, token, nowMs);
+    const expiresAt = nowMs + AUTOMATION_LOCK_LEASE_MS;
+    await ctx.db.patch(lease.leaseId, {
+      rolloutPercent: expiresAt,
+      updatedAt: new Date(nowMs).toISOString(),
+    });
+    return { renewed: true, expiresAt };
   },
 });
 
@@ -113,8 +98,8 @@ export const releaseAutomationLane = internalMutation({
       .query("featureFlags")
       .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
       .collect();
-
     if (records.length !== 1) return false;
+
     const existing = records[0];
     if (existing.description !== `automation-lane-lease:${token}`) return false;
 
@@ -130,12 +115,11 @@ export const releaseAutomationLane = internalMutation({
 export const runSerializedAutomation = internalAction({
   args: {},
   handler: async (ctx) => {
-    const nowMs = Date.now();
-    const runId = `serialized-automation:${new Date(nowMs).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
+    const startedAt = Date.now();
+    const runId = `serialized-automation:${new Date(startedAt).toISOString()}:${Math.random().toString(36).slice(2, 10)}`;
     const claimed = await ctx.runMutation(internal.automationCoordinator.claimAutomationLane, {
       token: runId,
-      nowMs,
-      leaseMs: AUTOMATION_LOCK_LEASE_MS,
+      nowMs: startedAt,
     });
 
     if (!claimed) {
@@ -145,26 +129,75 @@ export const runSerializedAutomation = internalAction({
         skipped: true,
         reason: "already_running",
         runId,
-        timestamp: new Date(nowMs).toISOString(),
+        timestamp: new Date(startedAt).toISOString(),
         failedCount: 0,
         results: [{ runId, task: "serialized-automation", status: "skipped", reason: "already_running" }],
       };
     }
 
-    try {
-      const results: Array<Record<string, unknown>> = [];
-      const utcHour = new Date(nowMs).getUTCHours();
-      let failedCount = 0;
-      const record = (task: string, status: string, extra: Record<string, unknown> = {}) => {
-        results.push({ runId, task, status, ...extra });
-        if (status === "failed") failedCount += 1;
-      };
+    const results: Array<Record<string, unknown>> = [];
+    let failedCount = 0;
+    const record = (task: string, status: string, extra: Record<string, unknown> = {}) => {
+      results.push({ runId, task, status, ...extra });
+      if (status === "failed") failedCount += 1;
+    };
 
-      if (isTwoHourSlot(nowMs)) {
+    const renew = async () => {
+      await ctx.runMutation(internal.automationCoordinator.renewAutomationLane, {
+        token: runId,
+        nowMs: Date.now(),
+      });
+    };
+
+    const runFencedMutation = async (
+      task: string,
+      functionRef: any,
+      extraArgs: Record<string, unknown> = {},
+    ) => {
+      try {
+        await renew();
+        const result = await ctx.runMutation(functionRef, {
+          ...extraArgs,
+          claimToken: runId,
+        } as any);
+        record(task, "completed", { result });
+        return result;
+      } catch (error) {
+        record(task, "failed", {
+          error: error instanceof Error ? error.message : `${task.replaceAll(" ", "_")}_failed`,
+        });
+        return null;
+      }
+    };
+
+    try {
+      const clock = new Date(startedAt);
+      const utcHour = clock.getUTCHours();
+      const utcDay = clock.getUTCDay();
+
+      // Fixed-time jobs are executed during the same UTC hour as the legacy
+      // schedule. The single hourly cron is intentionally not pinned to :00.
+      if (utcDay === 6 && utcHour === 9) {
+        await runFencedMutation("weekly-training-session", internal.protocol.weeklyTraining);
+      } else {
+        record("weekly-training-session", "skipped", { reason: "not_due" });
+      }
+
+      if (utcHour === 13) {
+        await runFencedMutation("daily-protocol-autofix", internal.protocolAutoFix.runFullAutoFix);
+      } else {
+        record("daily-protocol-autofix", "skipped", { reason: "not_due" });
+      }
+
+      if (isHourSlot(startedAt, 2)) {
         try {
           const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
           const enabled = agents.filter((agent) => agent.automationEnabled !== false).length;
-          record("master-agent-health-check", "completed", { agentCount: agents.length, enabledCount: enabled, disabledCount: agents.length - enabled });
+          record("master-agent-health-check", "completed", {
+            agentCount: agents.length,
+            enabledCount: enabled,
+            disabledCount: agents.length - enabled,
+          });
         } catch {
           record("master-agent-health-check", "failed", { error: "master_agent_health_check_failed" });
         }
@@ -172,55 +205,38 @@ export const runSerializedAutomation = internalAction({
         record("master-agent-health-check", "skipped", { reason: "not_due" });
       }
 
-      try {
-        const result = await ctx.runMutation(internal.autonomous.checkSiteHealth, {});
-        record("site-health", "completed", { result });
-      } catch {
-        record("site-health", "failed", { error: "site_health_failed" });
+      await runFencedMutation("site-health-monitor", internal.autonomous.checkSiteHealth);
+
+      if (isHourSlot(startedAt, 4)) {
+        await runFencedMutation("proactive-group-discovery", internal.facebook.discoverGroupsProactively);
+        await runFencedMutation("coordinator-automation", internal.agentAutomation.runCoordinatorAutomation);
+      } else {
+        record("proactive-group-discovery", "skipped", { reason: "not_due" });
+        record("coordinator-automation", "skipped", { reason: "not_due" });
       }
 
-      if (isSixHourSlot(nowMs)) {
-        try {
-          const result = await ctx.runMutation(internal.autonomous.autoRepair, {});
-          record("auto-repair", "completed", { result });
-        } catch {
-          record("auto-repair", "failed", { error: "auto_repair_failed" });
-        }
+      if (isHourSlot(startedAt, 6)) {
+        await runFencedMutation("auto-repair", internal.autonomous.autoRepair);
+        await runFencedMutation("outreach-strategy-improvement", internal.facebook.improveOutreachStrategy);
+        await runFencedMutation("auto-fund-consolidation", internal.fundConsolidation.runAutoConsolidation);
       } else {
         record("auto-repair", "skipped", { reason: "not_due" });
+        record("outreach-strategy-improvement", "skipped", { reason: "not_due" });
+        record("auto-fund-consolidation", "skipped", { reason: "not_due" });
       }
 
       if (utcHour === 15) {
-        try {
-          const result = await ctx.runMutation(internal.postContent.autoGeneratePosts, {});
-          record("daily-post-generation", "completed", { result });
-        } catch {
-          record("daily-post-generation", "failed", { error: "daily_post_generation_failed" });
-        }
+        await runFencedMutation("daily-post-generation", internal.postContent.autoGeneratePosts);
       } else {
         record("daily-post-generation", "skipped", { reason: "not_due" });
       }
 
-      if (isSixHourSlot(nowMs)) {
-        try {
-          const result = await ctx.runMutation(internal.facebook.improveOutreachStrategy, {});
-          record("outreach-strategy-improvement", "completed", { result });
-        } catch {
-          record("outreach-strategy-improvement", "failed", { error: "outreach_strategy_failed" });
-        }
-      } else {
-        record("outreach-strategy-improvement", "skipped", { reason: "not_due" });
-      }
-
-      if (isTwelveHourSlot(nowMs)) {
-        try {
-          const result = await ctx.runMutation(internal.research.runAgentResearch, {});
-          record("agent-research-sprint", "completed", { result });
-        } catch {
-          record("agent-research-sprint", "failed", { error: "agent_research_failed" });
-        }
+      if (isHourSlot(startedAt, 12)) {
+        await runFencedMutation("agent-research-sprint", internal.research.runAgentResearch);
+        await runFencedMutation("auto-cover-images", internal.imageGen.generateCampaignCoverUrls);
       } else {
         record("agent-research-sprint", "skipped", { reason: "not_due" });
+        record("auto-cover-images", "skipped", { reason: "not_due" });
       }
 
       const agents = await ctx.runQuery(internal.automationCoordinator.getAgentAutomationStatus, {});
@@ -238,31 +254,20 @@ export const runSerializedAutomation = internalAction({
           continue;
         }
         const intervalMs = AGENT_INTERVALS_MS[agentName];
-        if (!isDue(agent.lastAutomationRun, intervalMs, nowMs)) {
+        if (!isDue(agent.lastAutomationRun, intervalMs, startedAt)) {
           record(agentName, "skipped", { reason: "not_due", lastRun: agent.lastAutomationRun });
           continue;
         }
-        try {
-          const result = await ctx.runMutation(functionRef, {});
-          record(agentName, "completed", { result });
-        } catch {
-          record(agentName, "failed", { error: `${agentName.toLowerCase().replaceAll(" ", "_")}_failed` });
-        }
+        await runFencedMutation(agentName, functionRef);
       }
 
-      // runAgentResearch already delegates to runAllAgentBrowserResearch. On
-      // 12-hour slots (which are also 6-hour slots), do not invoke Browserbase
-      // a second time or duplicate the same research side effects.
-      if (isSixHourSlot(nowMs) && !isTwelveHourSlot(nowMs)) {
-        try {
-          const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
-          record("browserbase-research", "completed", { result });
-        } catch {
-          record("browserbase-research", "failed", { error: "browserbase_research_failed" });
-        }
+      // runAgentResearch delegates to Browserbase on 12-hour slots. The
+      // separate 6-hour Browserbase pass runs only between those slots.
+      if (isHourSlot(startedAt, 6) && !isHourSlot(startedAt, 12)) {
+        await runFencedMutation("browserbase-research", internal.browserbase.runAllAgentBrowserResearch);
       } else {
         record("browserbase-research", "skipped", {
-          reason: isTwelveHourSlot(nowMs) ? "covered_by_agent_research" : "not_due",
+          reason: isHourSlot(startedAt, 12) ? "covered_by_agent_research" : "not_due",
         });
       }
 
@@ -270,7 +275,7 @@ export const runSerializedAutomation = internalAction({
         success: failedCount === 0,
         serialized: true,
         runId,
-        timestamp: new Date(nowMs).toISOString(),
+        timestamp: new Date(startedAt).toISOString(),
         failedCount,
         results,
       };
