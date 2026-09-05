@@ -236,7 +236,7 @@ export const requestAdminPayout = mutation({
     if(!account||account.totalBalance<=0) throw new Error("Insufficient balance");
     if(account.frozen) throw new Error("Account is frozen");
     const feeConfigs=await ctx.db.query("feeConfig").filter(q=>q.eq(q.field("active"),true)).first();
-    const gross=account.totalBalance; const platformFee=gross*((feeConfigs?.platformFeePercent??5)/100); const processingFee=gross*((feeConfigs?.processingFeePercent??2.9)/100)+(feeConfigs?.processingFeeFlat??0.30); const totalFees=platformFee+processingFee; const net=gross-totalFees;
+    const gross=account.totalBalance; const platformFee=gross*((feeConfigs?.platformFeePercent??3)/100); const processingFee=gross*((feeConfigs?.processingFeePercent??2.9)/100)+(feeConfigs?.processingFeeFlat??0.30); const totalFees=platformFee+processingFee; const net=gross-totalFees;
     const now=new Date().toISOString();
     const payoutId=await ctx.db.insert("payoutRequests",{userId:target,amountRequested:gross,feeAmount:totalFees,netAmount:net,payoutMethod:args.payoutMethod,payoutDestination:args.payoutDestination,status:"pending",requestedDate:now});
     await ctx.db.patch(account._id,{pendingPayouts:account.pendingPayouts+gross,totalFeesDeducted:account.totalFeesDeducted+totalFees,lastUpdated:now});
