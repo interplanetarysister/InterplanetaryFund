@@ -57,14 +57,7 @@ export async function requireSuperAdmin(ctx: any, adminPin: string) {
     return true;
   }
 
-  // Legacy PIN check (Michelle's original)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
-    return true;
-  }
-
+  // No hardcoded or implicit fallback credential: missing admin configuration fails closed.
   throw new Error("Super admin access required. This action is restricted to the platform owner.");
 }
 
@@ -83,17 +76,10 @@ export async function requirePermission(ctx: any, adminPin: string, permission: 
   if (adminUser && adminUser.active) {
     if (adminUser.role === "super_admin") return true;
     if (adminUser.permissions.includes(permission)) return true;
-    throw new Error(`Access denied. You need the "${permission}" permission.`);
+    throw new Error(`Access denied. You need the \"${permission}\" permission.`);
   }
 
-  // Legacy PIN check (super admin)
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  
-  if (adminPin === legacyPin) {
-    return true;
-  }
-
+  // No hardcoded or implicit fallback credential: missing admin configuration fails closed.
   throw new Error("Invalid admin credentials. Access denied.");
 }
 
