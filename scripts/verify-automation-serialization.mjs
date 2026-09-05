@@ -106,7 +106,7 @@ for (const required of [
   "utcDay === 6 && utcHour === 9",
   "utcHour === 13",
   "utcHour === 15",
-  '"Atlas": 4 * 60 * 60 * 1000',
+  "Atlas: 4 * 60 * 60 * 1000",
   '"Post Production Agent": 6 * 60 * 60 * 1000',
   '"Donor Relations Agent": 6 * 60 * 60 * 1000',
   '"Scout Agent": 8 * 60 * 60 * 1000',
