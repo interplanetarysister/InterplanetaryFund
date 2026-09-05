@@ -13,6 +13,10 @@ if(!schema.includes("adminSessions: defineTable")) failures.push("admin session 
 if(!admin.includes("tokenHash")||!admin.includes("crypto.getRandomValues")||!admin.includes("requireAdminSession")) failures.push("server-verifiable session boundary missing");
 if(admin.includes('?? "0426"')||admin.includes('DEFAULT_ADMIN_PIN')) failures.push("hardcoded admin fallback remains");
 if(!agents.includes("getAdminAgents")||!agents.includes('requireAdminSession(ctx, args.sessionToken, "users")')) failures.push("agent management is not session protected");
+const roleBlock=agents.match(/export const getAgentByRole = query\(\{[\s\S]*?\n\}\);/)?.[0]||"";
+if(!roleBlock.includes("sessionToken: v.string()")||!roleBlock.includes('requireAdminSession(ctx, sessionToken, "users")')) failures.push("single-agent details remain publicly accessible");
+if(!agents.includes("export const recordTaskOutcome = internalMutation")) failures.push("agent task outcomes remain client-writable");
+if(!agents.includes("agents.length > 0")) failures.push("zero-agent stats guard missing");
 if(!automation.includes('requireAdminSession(ctx, sessionToken, "users")')) failures.push("agent toggle is not session protected");
 if(!campaigns.includes("connectAdminExternalPlatform")||!campaigns.includes('requireAdminSession(ctx, args.sessionToken, "platforms")')) failures.push("admin integration mutation is not platforms-authorized");
 if(!app.includes("useMutation(api.adminUsers.authenticateAdmin)")||app.includes("pinCheck = useQuery")) failures.push("frontend still uses PIN query auth");
