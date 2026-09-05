@@ -4,97 +4,127 @@
  * express written permission. See LICENSE file for full terms.
  *
  * ADMIN USERS & PERMISSIONS SYSTEM
- *
- * Roles:
- *   super_admin — Michelle only. Full access. Cannot be removed.
- *   admin — Scoped admin. Can only access permitted features.
- *
- * Permission scopes:
- *   finance — Treasury, payouts, fee config, fund migration
- *   campaigns — Create, update, sync campaigns
- *   users — Manage admin users and permissions (super_admin only)
- *   platforms — External platform connections
- *   content — Posts, outreach management
- *   settings — Platform settings
- *   reports — View reports and analytics
  */
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { checkRateLimit } from "./security";
+import {
+  createAdminSessionRecord,
+  requireAdminSession,
+  requireSuperAdminSession,
+  revokeAdminSessionRecord,
+} from "./adminSession";
 
-// All possible permissions
 export const ALL_PERMISSIONS = [
-  "finance",      // Treasury, payouts, fees, fund migration
-  "campaigns",    // Campaign CRUD and sync
-  "platforms",    // External platform management
-  "content",      // Posts and outreach
-  "settings",     // Platform configuration
-  "reports",      // Analytics and reports
+  "finance",
+  "campaigns",
+  "platforms",
+  "content",
+  "settings",
+  "reports",
 ] as const;
 
-// Super admin has ALL permissions, always
 const SUPER_ADMIN_PERMISSIONS = [...ALL_PERMISSIONS, "users"];
+const SESSION_ID = v.id("adminSettings");
 
-// Query: Authenticate admin by PIN — returns user info + permissions
-export const authenticateAdmin = query({
+function safeAdmin(user: any) {
+  return {
+    userId: String(user._id),
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    permissions: user.role === "super_admin" ? SUPER_ADMIN_PERMISSIONS : user.permissions,
+  };
+}
+
+async function findExplicitLegacyCredential(ctx: any, pin: string) {
+  const pinSetting = await ctx.db
+    .query("adminSettings")
+    .withIndex("byKey", (q: any) => q.eq("key", "admin_pin"))
+    .first();
+  if (pinSetting?.value && pinSetting.value === pin) {
+    return { updatedAt: pinSetting.updatedAt, source: "adminSettings" as const, document: pinSetting };
+  }
+
+  const feeConfig = await ctx.db.query("feeConfig").first();
+  if (feeConfig?.adminPin && feeConfig.adminPin === pin) {
+    return { updatedAt: feeConfig.updatedAt, source: "feeConfig" as const, document: feeConfig };
+  }
+
+  return null;
+}
+
+// Explicit login mutation. The PIN is checked only when the user submits the
+// login form; it is not exposed through a reactive public query.
+export const createAdminSession = mutation({
   args: { pin: v.string() },
   handler: async (ctx, { pin }) => {
-    if (!pin || pin.length < 4) {
-      return { valid: false, error: "Invalid PIN" };
-    }
+    checkRateLimit("admin-session-create", 20, 60_000);
+    if (!pin || pin.length < 4) return { valid: false as const };
 
-    // Check adminUsers table first
     const adminUser = await ctx.db
       .query("adminUsers")
       .withIndex("byPin", (q: any) => q.eq("pin", pin))
       .first();
 
-    if (adminUser && adminUser.active) {
-      return {
-        valid: true,
-        userId: adminUser._id,
-        name: adminUser.name,
-        email: adminUser.email,
-        role: adminUser.role,
-        permissions: adminUser.role === "super_admin" 
-          ? SUPER_ADMIN_PERMISSIONS 
-          : adminUser.permissions,
-      };
+    if (adminUser?.active) {
+      const sessionId = await createAdminSessionRecord(ctx, {
+        adminUserId: String(adminUser._id),
+      });
+      await ctx.db.patch(adminUser._id, { lastLoginAt: new Date().toISOString() });
+      return { valid: true as const, sessionId, ...safeAdmin(adminUser) };
     }
 
-    // Fallback: check legacy PIN in feeConfig (Michelle's original PIN)
-    const settings = await ctx.db.query("feeConfig").first();
-    const legacyPin = settings?.adminPin ?? "0426";
-    
-    if (pin === legacyPin) {
-      // Auto-create super_admin record for Michelle if not exists
+    // Backward compatibility is retained only for an explicitly configured
+    // legacy credential. The former hard-coded fallback PIN is intentionally gone.
+    const legacy = await findExplicitLegacyCredential(ctx, pin);
+    if (legacy) {
+      const sessionId = await createAdminSessionRecord(ctx, {
+        legacy: true,
+        legacyCredentialUpdatedAt: legacy.updatedAt,
+      });
       return {
-        valid: true,
+        valid: true as const,
+        sessionId,
         userId: "legacy_super_admin",
-        name: "Michelle Rogers",
-        email: "interplanetarysister@gmail.com",
+        name: "Platform Owner",
+        email: "",
         role: "super_admin",
         permissions: SUPER_ADMIN_PERMISSIONS,
       };
     }
 
-    return { valid: false, error: "Invalid PIN" };
+    return { valid: false as const };
   },
 });
 
-// Query: Get all admin users (super_admin only — checked by PIN)
-export const getAdminUsers = query({
-  args: { requestorPin: v.string() },
-  handler: async (ctx, { requestorPin }) => {
-    const requestor = await authenticateByPin(ctx, requestorPin);
-    if (!requestor || requestor.role !== "super_admin") {
-      throw new Error("Access denied. Super admin required.");
+export const validateAdminSession = query({
+  args: { sessionId: SESSION_ID },
+  handler: async (ctx, { sessionId }) => {
+    try {
+      const principal = await requireAdminSession(ctx, sessionId);
+      return { valid: true as const, ...principal };
+    } catch {
+      return { valid: false as const };
     }
+  },
+});
 
+export const revokeAdminSession = mutation({
+  args: { sessionId: SESSION_ID },
+  handler: async (ctx, { sessionId }) => {
+    await revokeAdminSessionRecord(ctx, sessionId);
+    return { success: true };
+  },
+});
+
+export const getAdminUsers = query({
+  args: { sessionId: SESSION_ID },
+  handler: async (ctx, { sessionId }) => {
+    await requireSuperAdminSession(ctx, sessionId);
     const users = await ctx.db.query("adminUsers").collect();
-    
-    // Don't expose PINs to the client — only show masked
-    return users.map(u => ({
+    return users.map((u: any) => ({
       _id: u._id,
       name: u.name,
       email: u.email,
@@ -103,212 +133,111 @@ export const getAdminUsers = query({
       active: u.active,
       createdAt: u.createdAt,
       lastLoginAt: u.lastLoginAt,
-      pinMasked: u.pin ? "\u2022\u2022\u2022\u2022" : null,
+      pinMasked: u.pin ? "••••" : null,
     }));
   },
 });
 
-// Mutation: Create a new admin user (super_admin only)
 export const createAdminUser = mutation({
   args: {
-    requestorPin: v.string(),
+    sessionId: SESSION_ID,
     name: v.string(),
     email: v.string(),
     pin: v.string(),
     permissions: v.array(v.string()),
   },
-  handler: async (ctx, { requestorPin, name, email, pin, permissions }) => {
-    const requestor = await authenticateByPin(ctx, requestorPin);
-    if (!requestor || requestor.role !== "super_admin") {
-      throw new Error("Access denied. Only super admin can create admin users.");
-    }
+  handler: async (ctx, { sessionId, name, email, pin, permissions }) => {
+    const requestor = await requireSuperAdminSession(ctx, sessionId);
+    if (pin.length < 4) return { success: false, error: "PIN must be at least 4 digits" };
 
-    // Validate PIN
-    if (pin.length < 4) {
-      return { success: false, error: "PIN must be at least 4 digits" };
-    }
-
-    // Check if PIN already exists
     const existing = await ctx.db
       .query("adminUsers")
       .withIndex("byPin", (q: any) => q.eq("pin", pin))
       .first();
-    if (existing) {
-      return { success: false, error: "PIN already in use by another admin" };
-    }
+    if (existing) return { success: false, error: "PIN already in use by another admin" };
 
-    // Filter permissions to only valid ones (never allow "users" for non-super)
-    const validPermissions = permissions.filter(p => ALL_PERMISSIONS.includes(p as any));
-
+    const validPermissions = permissions.filter((p) => ALL_PERMISSIONS.includes(p as any));
     const id = await ctx.db.insert("adminUsers", {
       name,
       email,
       pin,
-      role: "admin", // New users are always "admin", never "super_admin"
+      role: "admin",
       permissions: validPermissions,
       active: true,
       createdBy: requestor.name,
       createdAt: new Date().toISOString(),
     });
-
     return { success: true, id };
   },
 });
 
-// Mutation: Update admin user permissions (super_admin only)
 export const updateAdminPermissions = mutation({
   args: {
-    requestorPin: v.string(),
+    sessionId: SESSION_ID,
     userId: v.id("adminUsers"),
     permissions: v.array(v.string()),
     active: v.optional(v.boolean()),
   },
-  handler: async (ctx, { requestorPin, userId, permissions, active }) => {
-    const requestor = await authenticateByPin(ctx, requestorPin);
-    if (!requestor || requestor.role !== "super_admin") {
-      throw new Error("Access denied. Only super admin can modify permissions.");
-    }
-
+  handler: async (ctx, { sessionId, userId, permissions, active }) => {
+    await requireSuperAdminSession(ctx, sessionId);
     const user = await ctx.db.get(userId);
-    if (!user) {
-      return { success: false, error: "Admin user not found" };
-    }
+    if (!user) return { success: false, error: "Admin user not found" };
+    if (user.role === "super_admin") return { success: false, error: "Cannot modify super admin account" };
 
-    // Never allow modifying a super_admin
-    if (user.role === "super_admin") {
-      return { success: false, error: "Cannot modify super admin account" };
-    }
-
-    const validPermissions = permissions.filter(p => ALL_PERMISSIONS.includes(p as any));
-    
+    const validPermissions = permissions.filter((p) => ALL_PERMISSIONS.includes(p as any));
     const updates: any = { permissions: validPermissions };
     if (active !== undefined) updates.active = active;
-
     await ctx.db.patch(userId, updates);
-
     return { success: true };
   },
 });
 
-// Mutation: Delete admin user (super_admin only)
 export const deleteAdminUser = mutation({
-  args: {
-    requestorPin: v.string(),
-    userId: v.id("adminUsers"),
-  },
-  handler: async (ctx, { requestorPin, userId }) => {
-    const requestor = await authenticateByPin(ctx, requestorPin);
-    if (!requestor || requestor.role !== "super_admin") {
-      throw new Error("Access denied. Only super admin can remove admin users.");
-    }
-
+  args: { sessionId: SESSION_ID, userId: v.id("adminUsers") },
+  handler: async (ctx, { sessionId, userId }) => {
+    await requireSuperAdminSession(ctx, sessionId);
     const user = await ctx.db.get(userId);
-    if (!user) {
-      return { success: false, error: "Admin user not found" };
-    }
-
-    if (user.role === "super_admin") {
-      return { success: false, error: "Cannot delete super admin account" };
-    }
-
+    if (!user) return { success: false, error: "Admin user not found" };
+    if (user.role === "super_admin") return { success: false, error: "Cannot delete super admin account" };
     await ctx.db.delete(userId);
     return { success: true };
   },
 });
 
-// Mutation: Update admin PIN (self-service — user knows their current PIN)
 export const updateOwnPin = mutation({
-  args: {
-    currentPin: v.string(),
-    newPin: v.string(),
-  },
-  handler: async (ctx, { currentPin, newPin }) => {
-    if (newPin.length < 4) {
-      return { success: false, error: "PIN must be at least 4 digits" };
+  args: { sessionId: SESSION_ID, newPin: v.string() },
+  handler: async (ctx, { sessionId, newPin }) => {
+    if (newPin.length < 4) return { success: false, error: "PIN must be at least 4 digits" };
+    const principal = await requireAdminSession(ctx, sessionId);
+
+    const duplicate = await ctx.db
+      .query("adminUsers")
+      .withIndex("byPin", (q: any) => q.eq("pin", newPin))
+      .first();
+    if (duplicate && String(duplicate._id) !== principal.userId) {
+      return { success: false, error: "PIN already in use" };
     }
 
-    // Find the admin user by current PIN
-    const user = await ctx.db
-      .query("adminUsers")
-      .withIndex("byPin", (q: any) => q.eq("pin", currentPin))
-      .first();
-
-    if (user) {
-      // Check new PIN isn't taken
-      const existing = await ctx.db
-        .query("adminUsers")
-        .withIndex("byPin", (q: any) => q.eq("pin", newPin))
+    if (!principal.legacy) {
+      await ctx.db.patch(principal.userId as any, { pin: newPin });
+    } else {
+      const pinSetting = await ctx.db
+        .query("adminSettings")
+        .withIndex("byKey", (q: any) => q.eq("key", "admin_pin"))
         .first();
-      if (existing && existing._id !== user._id) {
-        return { success: false, error: "PIN already in use" };
+      const now = new Date().toISOString();
+      if (pinSetting) {
+        await ctx.db.patch(pinSetting._id, { value: newPin, updatedAt: now });
+      } else {
+        const feeConfig = await ctx.db.query("feeConfig").first();
+        if (!feeConfig?.adminPin) {
+          throw new Error("No explicit legacy admin credential exists to update.");
+        }
+        await ctx.db.patch(feeConfig._id, { adminPin: newPin, updatedAt: now });
       }
-
-      await ctx.db.patch(user._id, { pin: newPin });
-      return { success: true };
     }
 
-    // Fallback: legacy PIN in feeConfig
-    const settings = await ctx.db.query("feeConfig").first();
-    const legacyPin = settings?.adminPin ?? "0426";
-    if (currentPin === legacyPin) {
-      if (settings) {
-        await ctx.db.patch(settings._id, { adminPin: newPin });
-      }
-      return { success: true };
-    }
-
-    return { success: false, error: "Current PIN is incorrect" };
+    await revokeAdminSessionRecord(ctx, sessionId);
+    return { success: true, reloginRequired: true };
   },
 });
-
-// Mutation: Record last login time
-export const recordLogin = mutation({
-  args: { pin: v.string() },
-  handler: async (ctx, { pin }) => {
-    const user = await ctx.db
-      .query("adminUsers")
-      .withIndex("byPin", (q: any) => q.eq("pin", pin))
-      .first();
-    
-    if (user) {
-      await ctx.db.patch(user._id, { lastLoginAt: new Date().toISOString() });
-    }
-    
-    return { success: true };
-  },
-});
-
-// Helper: authenticate by PIN (internal)
-async function authenticateByPin(ctx: any, pin: string) {
-  if (!pin || pin.length < 4) return null;
-
-  const adminUser = await ctx.db
-    .query("adminUsers")
-    .withIndex("byPin", (q: any) => q.eq("pin", pin))
-    .first();
-
-  if (adminUser && adminUser.active) {
-    return {
-      _id: adminUser._id,
-      name: adminUser.name,
-      role: adminUser.role,
-      permissions: adminUser.role === "super_admin"
-        ? SUPER_ADMIN_PERMISSIONS
-        : adminUser.permissions,
-    };
-  }
-
-  // Legacy PIN check
-  const settings = await ctx.db.query("feeConfig").first();
-  const legacyPin = settings?.adminPin ?? "0426";
-  if (pin === legacyPin) {
-    return {
-      _id: "legacy_super_admin",
-      name: "Michelle Rogers",
-      role: "super_admin",
-      permissions: SUPER_ADMIN_PERMISSIONS,
-    };
-  }
-
-  return null;
-}
