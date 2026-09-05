@@ -7,8 +7,7 @@
  */
 
 import { internalMutation, internalQuery } from "./_generated/server";
-
-const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__";
+import { AUTOMATION_LOCK_KEY } from "./automationLease";
 
 export const provisionAutomationLaneLock = internalMutation({
   args: {},
@@ -41,9 +40,9 @@ export const provisionAutomationLaneLock = internalMutation({
       updatedAt: now,
     });
 
-    // Re-read inside the same transaction. Convex transaction retry semantics
-    // make concurrent first-provision attempts converge on a single record;
-    // any unexpected duplicate state still fails closed.
+    // Re-read inside the same transaction. Concurrent provisioning attempts
+    // conflict on the same indexed key and retry; any unexpected duplicate
+    // state still fails closed rather than picking an arbitrary record.
     const provisioned = await ctx.db
       .query("featureFlags")
       .withIndex("byName", (q) => q.eq("name", AUTOMATION_LOCK_KEY))
