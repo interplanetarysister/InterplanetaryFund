@@ -10,6 +10,7 @@
 import { query, mutation, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // AGENT RESEARCH PROFILES (Updated for Solene era)
@@ -153,10 +154,12 @@ export const getResearchResults = query({
 // Internal mutation: Run automated research for all agents
 // Now delegates to the browserbase module for actual API calls
 export const runAgentResearch = internalMutation({
-  args: {},
-  handler: async (ctx): Promise<any> => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }): Promise<any> => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     // Delegate to the browserbase module
-    const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+    const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, { claimToken });
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return result;
   },
 });

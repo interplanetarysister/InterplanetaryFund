@@ -9,6 +9,7 @@
 
 import { query, mutation, action, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 const STYLE_DESCRIPTION = "Afro-punk cyber-punk futuristic interstellar comic book style, hyper-realistic rendering, neon African futurism, cosmic cityscapes, vibrant purple and cyan tones, deep space starfield backgrounds, dramatic cinematic lighting, afro-punk geometric patterns, interplanetary energy";
 
@@ -57,8 +58,9 @@ export const getShareImageUrl = query({
 // =====================================================
 
 export const generateCampaignCoverUrls = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const monitoredActive = await ctx.db.query("monitoredCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "active"))
       .collect();
@@ -96,6 +98,7 @@ export const generateCampaignCoverUrls = internalMutation({
       updated++;
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { status: "success", updated, total: monitoredActive.length + userActive.length, results };
   },
 });
