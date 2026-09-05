@@ -32,6 +32,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify admin authentication and integration boundary
+        run: |
+          if [ -f scripts/verify-complete-admin-auth-surface.mjs ]; then
+            node scripts/verify-complete-admin-auth-surface.mjs
+          fi
+
       - name: Typecheck
         run: npx tsc --noEmit
 
