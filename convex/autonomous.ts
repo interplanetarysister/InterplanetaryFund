@@ -15,14 +15,16 @@
 
 import { internalMutation, query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // SITE HEALTH MONITOR — Runs every hour
 // =====================================================
 
 export const checkSiteHealth = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const issues = [];
 
     // Check 1: Active campaigns with broken data
@@ -91,6 +93,7 @@ export const checkSiteHealth = internalMutation({
       createdAt: new Date().toISOString(),
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       timestamp: new Date().toISOString(),
@@ -111,8 +114,9 @@ export const checkSiteHealth = internalMutation({
 // =====================================================
 
 export const autoRepair = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     let fixes = 0;
 
     // Fix 1: Disable outreach on test campaigns
@@ -150,6 +154,7 @@ export const autoRepair = internalMutation({
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       fixesApplied: fixes,

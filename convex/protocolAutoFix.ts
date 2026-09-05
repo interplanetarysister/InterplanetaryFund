@@ -23,6 +23,7 @@
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminSession } from "./adminUsers";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // HELPER: Normalize campaign from either table
@@ -108,8 +109,9 @@ function getPatchFields(table: string, updates: Record<string, any>): Record<str
 // =====================================================
 
 export const runFullAutoFix = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     // Get campaigns from BOTH tables
     const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
     const userCampaigns = await ctx.db.query("userCampaigns").collect();
@@ -260,7 +262,7 @@ export const runFullAutoFix = internalMutation({
     for (const payout of allPayouts as any[]) {
       if (payout.amountRequested !== undefined && (payout.feeAmount === undefined || payout.netAmount === undefined)) {
         const gross = payout.amountRequested;
-        const platformFee = gross * 0.05;
+        const platformFee = gross * 0.03;
         const processingFee = gross * 0.029 + 0.30;
         const netAmount = gross - platformFee - processingFee;
         await ctx.db.patch(payout._id, { feeAmount: platformFee + processingFee, netAmount });
@@ -288,6 +290,7 @@ export const runFullAutoFix = internalMutation({
       syncPerformed: true,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       timestamp: new Date().toISOString(),

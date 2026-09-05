@@ -6,6 +6,7 @@
 
 import { query, mutation, internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // PROTOCOL ENFORCEMENT (Credit-Free — runs as code)
@@ -172,8 +173,9 @@ export const enforceProtocol = query({
 
 // Internal mutation: Run weekly training (updates agents + creates report)
 export const weeklyTraining = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     // Step 1: Run protocol audit
     const campaigns = await ctx.db.query("monitoredCampaigns").collect();
     const results: any[] = [];
@@ -242,6 +244,7 @@ export const weeklyTraining = internalMutation({
       syncPerformed: false,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       message: "Weekly training completed — credit-free",
