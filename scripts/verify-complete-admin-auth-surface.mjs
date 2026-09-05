@@ -37,10 +37,20 @@ check(inbox.includes("requireSuperAdminSession(ctx, sessionToken)"), "inbox.ts: 
 check(!inbox.includes("adminPin:"), "inbox.ts: legacy adminPin argument remains");
 
 const secureWithdraw = read("convex/secureWithdraw.ts");
-check(secureWithdraw.includes("sessionToken: v.string()"), "secureWithdraw.ts: admin completion session token missing");
-check(secureWithdraw.includes("requireSuperAdminSession(ctx, args.sessionToken)"), "secureWithdraw.ts: super-admin completion session guard missing");
+check(secureWithdraw.includes("sessionToken: v.string()"), "secureWithdraw.ts: admin session token missing");
+check(secureWithdraw.includes("requireSuperAdminSession(ctx, args.sessionToken)"), "secureWithdraw.ts: super-admin mutation guard missing");
+check(secureWithdraw.includes("confirmPendingDonations = internalMutation"), "secureWithdraw.ts: testing donation confirmation must be internal-only");
+check(secureWithdraw.includes("getPendingWithdrawals = query"), "secureWithdraw.ts: pending withdrawal view missing");
+check(secureWithdraw.includes('requireAdminSession(ctx, sessionToken, "finance")'), "secureWithdraw.ts: withdrawal history finance guard missing");
 check(!secureWithdraw.includes("adminPin:"), "secureWithdraw.ts: legacy adminPin argument remains");
 check(!secureWithdraw.includes("platformFeePercent ?? 5"), "secureWithdraw.ts: obsolete 5% withdrawal fallback remains");
+
+const simpleWithdraw = read("convex/simpleWithdraw.ts");
+check(simpleWithdraw.includes("sessionToken: v.string()"), "simpleWithdraw.ts: admin session token missing");
+check(simpleWithdraw.includes("requireSuperAdminSession(ctx, args.sessionToken)"), "simpleWithdraw.ts: payout completion super-admin guard missing");
+check(simpleWithdraw.includes("confirmPendingDonations = internalMutation"), "simpleWithdraw.ts: testing donation confirmation must be internal-only");
+check(simpleWithdraw.includes('requireAdminSession(ctx, sessionToken, "finance")'), "simpleWithdraw.ts: withdrawal history finance guard missing");
+check(!simpleWithdraw.includes(" * 0.05"), "simpleWithdraw.ts: obsolete 5% withdrawal fee remains");
 
 const automation = read("convex/agentAutomationAuthorization.ts");
 check(automation.includes("sessionToken: v.string()"), "agentAutomationAuthorization.ts: session token missing");
