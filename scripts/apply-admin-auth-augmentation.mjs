@@ -57,4 +57,8 @@ simple = simple.replace('export const confirmPendingDonations = mutation({', 'ex
 simple = protectWithdrawalViews(simple, "simpleWithdraw.ts");
 write("convex/simpleWithdraw.ts", simple);
 
-console.log("Applied duplicate withdrawal admin authorization augmentation.");
+let treasury = read("convex/treasury.ts");
+treasury = treasury.replace('import { requireSuperAdmin } from "./security";\n', '');
+write("convex/treasury.ts", treasury);
+
+console.log("Applied duplicate withdrawal admin authorization augmentation and removed stale PIN-auth imports.");
