@@ -12,16 +12,23 @@ import { v } from "convex/values";
 // AGENT MANAGEMENT (Credit-Free — direct database CRUD)
 // =====================================================
 
-// Query: Public least-privilege agent roster
+// Public least-privilege roster. Sensitive agent policy/memory/tool fields stay server-side.
 export const getAgents = query({
   args: { status: v.optional(v.string()) },
   handler: async (ctx, { status }) => {
     let agents = await ctx.db.query("agents").collect();
     if (status) agents = agents.filter((a: any) => a.status === status);
-    return agents.map((a: any) => ({ name: a.name, role: a.role, status: a.status, trustScore: a.trustScore, tasksCompleted: a.tasksCompleted }));
+    return agents.map((a: any) => ({
+      name: a.name,
+      role: a.role,
+      status: a.status,
+      trustScore: a.trustScore,
+      tasksCompleted: a.tasksCompleted,
+    }));
   },
 });
 
+// Full agent records are admin-management data and require a valid server session.
 export const getAdminAgents = query({
   args: { sessionToken: v.string(), status: v.optional(v.string()) },
   handler: async (ctx, { sessionToken, status }) => {
@@ -32,17 +39,17 @@ export const getAdminAgents = query({
   },
 });
 
-// Query: Get single agent by role
 export const getAgentByRole = query({
-  args: { role: v.string() },
-  handler: async (ctx, { role }) => {
+  args: { sessionToken: v.string(), role: v.string() },
+  handler: async (ctx, { sessionToken, role }) => {
+    await requireAdminSession(ctx, sessionToken, "users");
     return await ctx.db.query("agents")
       .filter((q) => q.eq("role", role))
       .first();
   },
 });
 
-// Query: Get agent stats summary
+// Public summary contains no memories, tool permissions, restrictions, or campaign assignments.
 export const getAgentStats = query({
   args: {},
   handler: async (ctx) => {
@@ -50,7 +57,9 @@ export const getAgentStats = query({
     return {
       total: agents.length,
       active: agents.filter((a) => a.status === "active").length,
-      averageTrust: agents.reduce((s, a) => s + a.trustScore, 0) / agents.length,
+      averageTrust: agents.length > 0
+        ? agents.reduce((s, a) => s + a.trustScore, 0) / agents.length
+        : 0,
       totalTasksCompleted: agents.reduce((s, a) => s + a.tasksCompleted, 0),
       totalSuccessfulOutcomes: agents.reduce((s, a) => s + a.successfulOutcomes, 0),
       totalFailedOutcomes: agents.reduce((s, a) => s + a.failedOutcomes, 0),
@@ -65,7 +74,6 @@ export const getAgentStats = query({
   },
 });
 
-// Mutation: Create a new agent
 export const createAgent = mutation({
   args: {
     sessionToken: v.string(),
@@ -109,7 +117,6 @@ export const createAgent = mutation({
   },
 });
 
-// Mutation: Update agent training (memory)
 export const updateAgentMemory = mutation({
   args: {
     sessionToken: v.string(),
@@ -127,7 +134,7 @@ export const updateAgentMemory = mutation({
   },
 });
 
-// Mutation: Increment agent task counter
+// Agent runtime bookkeeping is internal-only; clients cannot forge task outcomes.
 export const recordTaskOutcome = internalMutation({
   args: {
     agentId: v.id("agents"),
@@ -147,7 +154,6 @@ export const recordTaskOutcome = internalMutation({
   },
 });
 
-// Mutation: Assign campaigns to an agent
 export const assignCampaigns = mutation({
   args: {
     sessionToken: v.string(),
