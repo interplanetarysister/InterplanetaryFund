@@ -1,0 +1,45 @@
+import fs from "node:fs";
+
+const provisioning = fs.readFileSync(new URL("../convex/automationProvisioning.ts", import.meta.url), "utf8");
+const coordinator = fs.readFileSync(new URL("../convex/automationCoordinator.ts", import.meta.url), "utf8");
+
+for (const required of [
+  'const AUTOMATION_LOCK_KEY = "__system_serialized_automation_lock__"',
+  "export const provisionAutomationLaneLock = internalMutation",
+  "export const getAutomationLaneLockStatus = internalQuery",
+  "records.length > 1",
+  'throw new Error("automation_lock_not_unique")',
+  "records.length === 1",
+  'state: "already_initialized"',
+  'ctx.db.insert("featureFlags"',
+  "enabled: false",
+  "rolloutPercent: 0",
+  "provisioned.length !== 1",
+  'throw new Error("automation_lock_provisioning_failed")',
+  'state: records.length === 0 ? "missing" : "duplicate"',
+]) {
+  if (!provisioning.includes(required)) {
+    throw new Error(`Automation provisioning contract missing: ${required}`);
+  }
+}
+
+const claimStart = coordinator.indexOf("export const claimAutomationLane");
+const releaseStart = coordinator.indexOf("export const releaseAutomationLane");
+if (claimStart < 0 || releaseStart <= claimStart) {
+  throw new Error("Could not isolate automation claim implementation");
+}
+const claimSource = coordinator.slice(claimStart, releaseStart);
+if (claimSource.includes('ctx.db.insert("featureFlags"')) {
+  throw new Error("Runtime claim must never provision the coordination record");
+}
+if (!claimSource.includes('records.length !== 1') ||
+    !claimSource.includes('automation_lock_not_initialized') ||
+    !claimSource.includes('automation_lock_not_unique')) {
+  throw new Error("Runtime claim must fail closed on missing or duplicate coordination state");
+}
+
+if (provisioning.includes("ctx.db.delete(")) {
+  throw new Error("Provisioning must not auto-delete duplicate coordination records");
+}
+
+console.log("Automation provisioning static verification: PASS");
