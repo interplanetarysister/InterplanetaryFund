@@ -1,0 +1,22 @@
+import fs from "node:fs";
+const read=(p)=>fs.readFileSync(p,"utf8");
+const admin=read("convex/adminUsers.ts");
+const schema=read("convex/schema.ts");
+const agents=read("convex/agents.ts");
+const automation=read("convex/agentAutomation.ts");
+const campaigns=read("convex/campaigns.ts");
+const app=read("src/App.tsx");
+const page=read("src/pages/Admin.tsx");
+const perms=read("src/components/PermissionsManager.tsx");
+const failures=[];
+if(!schema.includes("adminSessions: defineTable")) failures.push("admin session table missing");
+if(!admin.includes("tokenHash")||!admin.includes("crypto.getRandomValues")||!admin.includes("requireAdminSession")) failures.push("server-verifiable session boundary missing");
+if(admin.includes('?? "0426"')||admin.includes('DEFAULT_ADMIN_PIN')) failures.push("hardcoded admin fallback remains");
+if(!agents.includes("getAdminAgents")||!agents.includes('requireAdminSession(ctx, args.sessionToken, "users")')) failures.push("agent management is not session protected");
+if(!automation.includes('requireAdminSession(ctx, sessionToken, "users")')) failures.push("agent toggle is not session protected");
+if(!campaigns.includes("connectAdminExternalPlatform")||!campaigns.includes('requireAdminSession(ctx, args.sessionToken, "platforms")')) failures.push("admin integration mutation is not platforms-authorized");
+if(!app.includes("useMutation(api.adminUsers.authenticateAdmin)")||app.includes("pinCheck = useQuery")) failures.push("frontend still uses PIN query auth");
+if(!page.includes("getAdminExternalBalances")||!page.includes("connectAdminExternalPlatform")||!page.includes("sessionToken")) failures.push("admin integration UI is not session wired");
+if(perms.includes("requestorPin")||perms.includes("Unlock Access Panel")) failures.push("permissions UI still re-prompts for PIN");
+if(failures.length){console.error(failures.join("\n"));process.exit(1)}
+console.log("admin session + integration boundary verified");

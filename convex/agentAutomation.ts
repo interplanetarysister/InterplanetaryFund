@@ -15,14 +15,16 @@
 import { internalMutation, query, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { requireAdminSession } from "./adminUsers";
 
 // =====================================================
 // AGENT TOGGLE — Enable/Disable individual agent automation
 // =====================================================
 
 export const toggleAgentAutomation = mutation({
-  args: { agentName: v.string(), enabled: v.boolean() },
-  handler: async (ctx, { agentName, enabled }) => {
+  args: { sessionToken: v.string(), agentName: v.string(), enabled: v.boolean() },
+  handler: async (ctx, { sessionToken, agentName, enabled }) => {
+    await requireAdminSession(ctx, sessionToken, "users");
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), agentName))
       .first();

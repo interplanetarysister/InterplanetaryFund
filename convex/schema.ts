@@ -511,6 +511,15 @@ export default defineSchema({
     lastLoginAt: v.optional(v.string()),
   }).index("byPin", ["pin"]).index("byEmail", ["email"]),
 
+  // ADMIN SESSIONS — opaque bearer tokens are stored only as SHA-256 hashes.
+  adminSessions: defineTable({
+    adminUserId: v.id("adminUsers"),
+    tokenHash: v.string(),
+    expiresAt: v.number(),
+    createdAt: v.string(),
+    revokedAt: v.optional(v.string()),
+  }).index("byTokenHash", ["tokenHash"]).index("byAdminUserId", ["adminUserId"]),
+
 // Admin settings (security PIN, config)
   adminSettings: defineTable({
     key: v.string(),
