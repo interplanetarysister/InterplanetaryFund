@@ -42,7 +42,7 @@
 │  rosy-butterfly-2         │
 │  .convex.cloud            │
 │                          │
-│  26 Tables:              │
+│  Core tables include:    │
 │  - agents (7)            │
 │  - monitoredCampaigns(5) │
 │  - protocolReports       │
