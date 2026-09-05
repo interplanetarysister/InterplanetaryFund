@@ -45,6 +45,17 @@ A failed Agent 2 or Agent 3 verification must create a traceable feedback loop. 
 
 Agents must communicate through durable GitHub artifacts (PR descriptions, review comments, issues, audit documents, and commits) so another agent can continue without relying on private conversation history.
 
+## Three-attempt recovery rule
+
+This rule applies to Agent 1, Agent 2, Agent 3, Codex agents, and workflow-driven agents operating under this workflow.
+
+An agent must not repeat the same specific action indefinitely. After **three unsuccessful attempts at the same specific action**, stop retrying that unchanged action. Record the attempts and the available failure evidence in the relevant GitHub artifact, then do one of the following:
+
+1. **Repair the cause:** investigate and correct the underlying code, configuration, dependency, workflow, test, permission, integration, or environment problem before attempting the action again; or
+2. **Move to another actionable task:** when the blocker cannot presently be repaired by that agent, leave a precise handoff/blocker record and begin the next valid task within the agent's assigned scope.
+
+Changing only superficial parameters or repeatedly re-running an unchanged known-broken workflow does not reset the three-attempt count. A materially repaired underlying cause may begin a new attempt cycle. This recovery rule does not permit bypassing security, authorization, review, verification, or human-approval gates.
+
 ## No duplicate work
 
 Before starting work, the assigned agent must inspect the relevant GitHub issue/PR, current branch/head, existing agent handoff documents, and recent findings. If another agent is already working on the same scope, coordinate through GitHub rather than creating a competing implementation.
