@@ -33,7 +33,7 @@
 │              │    │               │
 │ VITE_CONVEX  │    │ VITE_CONVEX   │
 │ _URL env var │    │ _URL baked in │
-└──────┬───────┘    └──────┬───────┘
+└──────┬───────┘    └──────┬────────┘
        │                   │
        └────────┬──────────┘
                 ▼
@@ -42,7 +42,7 @@
 │  rosy-butterfly-2         │
 │  .convex.cloud            │
 │                          │
-│  25 Tables:              │
+│  26 Tables:              │
 │  - agents (7)            │
 │  - monitoredCampaigns(5) │
 │  - protocolReports       │
@@ -62,6 +62,7 @@
 │  - distributedPosts     │
 │  - userProfiles         │
 │  - adminUsers           │
+│  - adminSessions        │
 │  - adminSettings        │
 │  - userCampaigns        │
 │  - campaignUpdates      │
@@ -149,7 +150,10 @@ All 7 agents stored as Convex records (not Base44 entities):
 ## Security Model
 
 - Convex: Ownership enforcement in mutation handlers (userId check)
-- Admin: PIN-gated access (stored in feeConfig table)
+- Admin interactive authorization: successful admin login issues a cryptographically random, short-lived server session token; only its SHA-256 hash is stored in `adminSessions`. Privileged calls validate the session, expiration/revocation state, active admin account, and required permission.
+- Admin credential bootstrap: the legacy/bootstrap PIN is internal-only in `adminSettings`; there is no hard-coded default PIN and `feeConfig` is not an authentication source.
+- Admin permissions: privileged agent, finance, campaign, platform/integration, content, user-management, fraud-control, payout, and migration operations enforce the shared session boundary with permission or super-admin checks as appropriate.
+- Integrations: incoming universal-inbox ingestion is internal-only; administrative integration/inbox reads and mutations require the authenticated admin session and matching permission.
 - GitHub: Personal access token with workflow scope
 - Vercel: Environment variable isolation
 - No secrets in code — all in environment variables
