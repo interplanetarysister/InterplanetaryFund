@@ -70,9 +70,10 @@ const ROLE_COLORS: Record<string, string> = {
   platform_sync: "badge-green",
 };
 
-export default function Admin({ adminUser }: { adminUser: { name: string; role: string; permissions: string[] } | null }) {
+export default function Admin({ adminUser }: { adminUser: { userId?: string; name: string; role: string; permissions: string[]; sessionToken: string; expiresAt?: number } | null }) {
   const isSuperAdmin = adminUser?.role === "super_admin";
   const userPermissions = adminUser?.permissions || [];
+  const sessionToken = adminUser?.sessionToken || "";
   
   const hasPermission = (perm: string) => {
     if (isSuperAdmin) return true;
@@ -85,9 +86,9 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const [tab, setTab] = useState<AdminTab>("overview");
 
   // Shared queries
-  const balances = useQuery(api.treasury.aggregateBalances, {});
+  const balances = useQuery(api.treasury.getAdminBalances, sessionToken ? { sessionToken } : "skip");
   const agentsStats = useQuery(api.agents.getAgentStats, {});
-  const agentsList = useQuery(api.agents.getAgents, {});
+  const agentsList = useQuery(api.agents.getAdminAgents, sessionToken ? { sessionToken } : "skip");
   const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
   const campaigns = useQuery(api.campaigns.getAllCampaigns, {});
   const latestReport = useQuery(api.protocol.getLatestReport, {});
@@ -98,7 +99,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const migrateCampaigns = useMutation(api.protocolAutoFix.migrateAllCampaigns);
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string | null>(null);
-  const externalBalances = useQuery(api.campaigns.getAllExternalBalances, {});
+  const externalBalances = useQuery(api.campaigns.getAdminExternalBalances, sessionToken ? { sessionToken } : "skip");
   const interactionStats = useQuery(api.interactions.getAllInteractionStats, {});
 
   // Treasury form state
@@ -110,7 +111,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const handleMigration = async () => {
     setMigrating(true);
     try {
-      const result = await migrateCampaigns({});
+      const result = await migrateCampaigns({ sessionToken });
       setMigrationResult(`Fixed ${result.totalFixed} campaigns`);
     } catch (e: any) {
       setMigrationResult(`Error: ${e.message}`);
@@ -128,9 +129,9 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const [connectionType, setConnectionType] = useState("manual");
 
   // Mutations
-  const requestPayout = useMutation(api.treasury.requestPayout);
-  const createDeposit = useMutation(api.treasury.createDeposit);
-  const connectPlatform = useMutation(api.campaigns.connectExternalPlatform);
+  const requestPayout = useMutation(api.treasury.requestAdminPayout);
+  const createDeposit = useMutation(api.treasury.createAdminDeposit);
+  const connectPlatform = useMutation(api.campaigns.connectAdminExternalPlatform);
   const feeCalc = useQuery(api.treasury.calculatePayout, {
     amount: parseFloat(payoutAmount) || 0,
   });
@@ -146,7 +147,8 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const handlePayout = async () => {
     try {
       const result = await requestPayout({
-        userId: (adminUser as any)?.userId || "",
+        sessionToken,
+        targetUserId: treasuryUser,
         payoutMethod,
         payoutDestination: payoutDest,
       });
@@ -159,7 +161,8 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
   const handleDeposit = async () => {
     try {
       const result = await createDeposit({
-        userId: (adminUser as any)?.userId || "",
+        sessionToken,
+        targetUserId: treasuryUser,
         amount: parseFloat(depositAmount) || 0,
         sourcePlatform: depositPlatform,
       });
@@ -171,17 +174,25 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
 
   const handleConnectPlatform = async () => {
     try {
-      await (connectPlatform as any)({
-        userId: (adminUser as any)?.userId || "",
-        platformName,
-        campaignUrl,
-        campaignTitle,
-        connectionType,
+      const matchedCampaign = campaigns?.find((c: any) => c.title === campaignTitle || c.ifCampaignId === campaignTitle || String(c._id) === campaignTitle);
+      if (!matchedCampaign) {
+        setShowResult({ error: "Choose an existing campaign before connecting an external platform." });
+        return;
+      }
+      await connectPlatform({
+        sessionToken,
+        platform: platformName,
+        kind: "crowdfunding",
+        displayName: campaignTitle,
+        campaignId: matchedCampaign.ifCampaignId || String(matchedCampaign._id),
+        externalUrl: campaignUrl,
+        automationMode: connectionType,
       });
       setCampaignUrl("");
       setCampaignTitle("");
-    } catch (e) {
-      console.error(e);
+      setShowResult({ success: true, message: "External platform connected." });
+    } catch (e: any) {
+      setShowResult({ error: e.message || "Unable to connect platform." });
     }
   };
 
@@ -497,7 +508,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
                   <button
                     onClick={async () => {
                       const enabled = a.automationEnabled ?? true;
-                      await toggleAutomation({ agentName: a.name, enabled: !enabled });
+                      await toggleAutomation({ sessionToken, agentName: a.name, enabled: !enabled });
                     }}
                     className={`px-3 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
                       (a.automationEnabled ?? true)
@@ -1040,12 +1051,12 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
 
       {/* ============ USER MANAGEMENT ============ */}
       {tab === "users" && (
-        <UserManagement />
+        <UserManagement sessionToken={sessionToken} />
       )}
 
       {/* ============ FRAUD CONTROL ============ */}
       {tab === "control" && isSuperAdmin && (
-        <FraudControl />
+        <FraudControl sessionToken={sessionToken} />
       )}
       {tab === "control" && !isSuperAdmin && (
         <div className="card text-center py-8">
@@ -1055,7 +1066,7 @@ export default function Admin({ adminUser }: { adminUser: { name: string; role: 
 
       {/* ============ PERMISSIONS / ACCESS CONTROL ============ */}
       {tab === "permissions" && isSuperAdmin && (
-        <PermissionsManager requestorPin={adminUser?.name || ""} />
+        <PermissionsManager sessionToken={sessionToken} />
       )}
       {tab === "permissions" && !isSuperAdmin && (
         <div className="card text-center py-8">

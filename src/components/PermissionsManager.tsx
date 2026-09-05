@@ -23,15 +23,10 @@ const PERMISSION_LABELS: Record<string, string> = {
 
 const ALL_PERMISSIONS = ["finance", "campaigns", "platforms", "content", "settings", "reports"];
 
-export default function PermissionsManager({ requestorPin }: { requestorPin: string }) {
-  // We need the PIN to authenticate — but App.tsx doesn't store it.
-  // For now, the super admin's PIN is their auth. We'll use a local prompt.
-  const [pin, setPin] = useState("");
-  const [unlocked, setUnlocked] = useState(false);
-  
+export default function PermissionsManager({ sessionToken }: { sessionToken: string }) {
   const adminUsers = useQuery(
     api.adminUsers.getAdminUsers,
-    unlocked ? { requestorPin: pin } : "skip"
+    sessionToken ? { sessionToken } : "skip"
   );
   
   const createAdmin = useMutation(api.adminUsers.createAdminUser);
@@ -46,12 +41,6 @@ export default function PermissionsManager({ requestorPin }: { requestorPin: str
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const handleUnlock = () => {
-    if (pin.length >= 4) {
-      setUnlocked(true);
-      setErrorMsg("");
-    }
-  };
 
   const togglePerm = (perm: string, list: string[], setter: (v: string[]) => void) => {
     if (list.includes(perm)) {
@@ -70,7 +59,7 @@ export default function PermissionsManager({ requestorPin }: { requestorPin: str
     }
     try {
       const result = await createAdmin({
-        requestorPin: pin,
+        sessionToken,
         name: newName,
         email: newEmail,
         pin: newPin,
@@ -94,7 +83,7 @@ export default function PermissionsManager({ requestorPin }: { requestorPin: str
   const handleToggleActive = async (userId: string, currentActive: boolean) => {
     try {
       await updatePerms({
-        requestorPin: pin,
+        sessionToken,
         userId: userId as any,
         permissions: [],
         active: !currentActive,
@@ -108,44 +97,12 @@ export default function PermissionsManager({ requestorPin }: { requestorPin: str
   const handleDelete = async (userId: string, name: string) => {
     if (!confirm(`Remove admin access for "${name}"? This cannot be undone.`)) return;
     try {
-      await deleteAdmin({ requestorPin: pin, userId: userId as any });
+      await deleteAdmin({ sessionToken, userId: userId as any });
       setSuccessMsg(`Admin "${name}" removed.`);
     } catch (e: any) {
       setErrorMsg(e.message);
     }
   };
-
-  // PIN unlock gate
-  if (!unlocked) {
-    return (
-      <div className="space-y-4">
-        <div className="card">
-          <h3 className="text-sm font-semibold text-iftext mb-2">Access Control</h3>
-          <p className="text-xs text-ifmuted mb-4">
-            Enter your PIN to manage admin users and permissions.
-          </p>
-          <input
-            type="password"
-            inputMode="numeric"
-            maxLength={8}
-            placeholder="PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-            onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
-            className="input-field text-center text-xl tracking-[0.3em] font-bold"
-            autoFocus
-          />
-          <button
-            onClick={handleUnlock}
-            disabled={pin.length < 4}
-            className="btn-primary mt-3"
-          >
-            Unlock Access Panel
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4">
@@ -263,7 +220,7 @@ export default function PermissionsManager({ requestorPin }: { requestorPin: str
 
         {adminUsers && adminUsers.length === 0 && (
           <p className="text-xs text-ifmuted text-center py-4">
-            No admin users yet. You are the sole super admin via legacy PIN.
+            No additional admin users are configured.
           </p>
         )}
 

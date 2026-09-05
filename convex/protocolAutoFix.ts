@@ -22,6 +22,7 @@
 
 import { internalMutation, mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdminSession } from "./adminUsers";
 
 // =====================================================
 // HELPER: Normalize campaign from either table
@@ -306,8 +307,9 @@ export const runFullAutoFix = internalMutation({
 // =====================================================
 
 export const migrateAllCampaigns = mutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    await requireAdminSession(ctx, sessionToken, "campaigns");
     // Fix monitored campaigns
     const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
     let fixed = 0;

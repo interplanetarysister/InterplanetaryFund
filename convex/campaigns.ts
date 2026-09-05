@@ -8,6 +8,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import { validateDonation } from "./security";
 import { v } from "convex/values";
+import { requireAdminSession } from "./adminUsers";
 
 export const getCampaigns = query({
   args: { 
@@ -243,5 +244,54 @@ export const getAllExternalBalances = query({
       grandTotalRaised: platforms.reduce((s, p) => s + (p.externalTotal || 0), 0),
       grandTotalDonors: platforms.reduce((s, p) => s + (p.externalDonorCount || 0), 0),
     };
+  },
+});
+
+
+// ADMIN INTEGRATION SURFACE — requires a server-issued admin session + platforms permission.
+export const getAdminExternalPlatforms = query({
+  args: { sessionToken: v.string(), campaignId: v.optional(v.string()) },
+  handler: async (ctx, { sessionToken, campaignId }) => {
+    await requireAdminSession(ctx, sessionToken, "platforms");
+    if (campaignId) return await ctx.db.query("externalPlatforms").withIndex("byCampaignId", (q) => q.eq("campaignId", campaignId)).collect();
+    return await ctx.db.query("externalPlatforms").collect();
+  },
+});
+
+export const connectAdminExternalPlatform = mutation({
+  args: { sessionToken: v.string(), platform: v.string(), kind: v.string(), displayName: v.string(), campaignId: v.string(), externalUrl: v.string(), automationMode: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await requireAdminSession(ctx, args.sessionToken, "platforms");
+    const platformId = await ctx.db.insert("externalPlatforms", {
+      platform: args.platform, kind: args.kind, displayName: args.displayName, campaignId: args.campaignId,
+      externalTotal: 0, externalDonorCount: 0, status: "active", automationMode: args.automationMode || "manual",
+      externalUrl: args.externalUrl, lastSynced: new Date().toISOString(), lastError: "",
+    });
+    return { status: "success", platformId };
+  },
+});
+
+export const updateAdminExternalPlatformSync = mutation({
+  args: { sessionToken: v.string(), platformId: v.id("externalPlatforms"), externalTotal: v.number(), externalDonorCount: v.number(), status: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdminSession(ctx, args.sessionToken, "platforms");
+    await ctx.db.patch(args.platformId, { externalTotal: args.externalTotal, externalDonorCount: args.externalDonorCount, status: args.status, lastSynced: new Date().toISOString() });
+    return { status: "success" };
+  },
+});
+
+export const getAdminExternalBalances = query({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    await requireAdminSession(ctx, sessionToken, "platforms");
+    const platforms = await ctx.db.query("externalPlatforms").collect();
+    const byPlatform: Record<string, { count: number; totalRaised: number; totalDonors: number; campaigns: any[] }> = {};
+    for (const p of platforms) {
+      const name = p.platform || "unknown";
+      if (!byPlatform[name]) byPlatform[name] = { count: 0, totalRaised: 0, totalDonors: 0, campaigns: [] };
+      byPlatform[name].count++; byPlatform[name].totalRaised += p.externalTotal || 0; byPlatform[name].totalDonors += p.externalDonorCount || 0;
+      byPlatform[name].campaigns.push({ title: p.displayName || "Unknown", url: p.externalUrl || "", raised: p.externalTotal || 0, donors: p.externalDonorCount || 0, lastSynced: p.lastSynced || "", status: p.status || "unknown" });
+    }
+    return { total: platforms.length, byPlatform, grandTotalRaised: platforms.reduce((s, p) => s + (p.externalTotal || 0), 0), grandTotalDonors: platforms.reduce((s, p) => s + (p.externalDonorCount || 0), 0) };
   },
 });

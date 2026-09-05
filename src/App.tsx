@@ -8,7 +8,7 @@ import { TermsAcceptance } from "./components/TermsAcceptance";
 import PlatformAccountsSheet from "./components/PlatformAccountsSheet";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
 // Lazy load pages
@@ -63,7 +63,7 @@ export default function App() {
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
   const [authed, setAuthed] = useState(false);
-  const [adminUser, setAdminUser] = useState<{name: string; role: string; permissions: string[]} | null>(null);
+  const [adminUser, setAdminUser] = useState<{userId?: string; name: string; role: string; permissions: string[]; sessionToken: string; expiresAt?: number} | null>(null);
 
   // User auth state
   const [userId, setUserId] = useState<string | null>(null);
@@ -84,10 +84,8 @@ export default function App() {
     }
   }, []);
 
-  const pinCheck = useQuery(
-    api.adminUsers.authenticateAdmin,
-    showPinGate && pinInput.length >= 4 ? { pin: pinInput } : "skip"
-  );
+  const authenticateAdmin = useMutation(api.adminUsers.authenticateAdmin);
+  const logoutAdminSession = useMutation(api.adminUsers.logoutAdmin);
 
   const navItems = useMemo<{ id: View; label: string; icon: string }[]>(
     () => [
@@ -122,39 +120,35 @@ export default function App() {
     }
   }, [tapCount, authed]);
 
-  const handlePinSubmit = useCallback(() => {
-    if (pinCheck === undefined) return;
-    if (pinCheck?.valid === true) {
-      setAuthed(true);
-      setAdminUser({
-        name: pinCheck.name || "Admin",
-        role: pinCheck.role || "admin",
-        permissions: pinCheck.permissions || [],
-      });
-      setView("admin");
-      setShowPinGate(false);
-      setPinInput("");
-      setPinError(false);
-    } else {
+  const handlePinSubmit = useCallback(async () => {
+    if (pinInput.length < 4) return;
+    try {
+      const result = await authenticateAdmin({ pin: pinInput });
+      if (result?.valid === true && "sessionToken" in result) {
+        const nextAdmin = {
+          userId: result.userId ? String(result.userId) : undefined,
+          name: result.name || "Admin",
+          role: result.role || "admin",
+          permissions: result.permissions || [],
+          sessionToken: result.sessionToken,
+          expiresAt: result.expiresAt,
+        };
+        setAuthed(true);
+        setAdminUser(nextAdmin);
+        sessionStorage.setItem("if_admin_session", result.sessionToken);
+        setView("admin");
+        setShowPinGate(false);
+        setPinInput("");
+        setPinError(false);
+      } else {
+        setPinError(true);
+        setPinInput("");
+      }
+    } catch {
       setPinError(true);
       setPinInput("");
     }
-  }, [pinCheck]);
-
-  useEffect(() => {
-    if (pinCheck?.valid === true && showPinGate) {
-      setAuthed(true);
-      setAdminUser({
-        name: pinCheck.name || "Admin",
-        role: pinCheck.role || "admin",
-        permissions: pinCheck.permissions || [],
-      });
-      setView("admin");
-      setShowPinGate(false);
-      setPinInput("");
-      setPinError(false);
-    }
-  }, [pinCheck, showPinGate]);
+  }, [authenticateAdmin, pinInput]);
 
   // Detect PayPal donation success from URL hash
   useEffect(() => {
@@ -166,10 +160,13 @@ export default function App() {
   }, []);
 
   const exitAdmin = useCallback(() => {
+    const token = adminUser?.sessionToken;
+    if (token) void logoutAdminSession({ sessionToken: token }).catch(() => undefined);
+    sessionStorage.removeItem("if_admin_session");
     setView("explore");
     setAuthed(false);
     setAdminUser(null);
-  }, []);
+  }, [adminUser, logoutAdminSession]);
 
   const closePinGate = useCallback(() => {
     setShowPinGate(false);
