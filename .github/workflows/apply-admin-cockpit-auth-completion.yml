@@ -1,0 +1,46 @@
+name: Apply Admin Cockpit Auth Completion
+
+on:
+  push:
+    branches:
+      - agent1/admin-session-integration-auth-repair
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout exact branch head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Apply full admin cockpit authorization repair
+        run: node scripts/apply-admin-cockpit-auth-completion.mjs
+      - name: Verify complete admin auth and integrations boundary
+        run: node scripts/verify-admin-session-integration-boundary.mjs
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Production build
+        run: npm run build
+      - name: Commit validated runtime repair
+        run: |
+          git config user.name "IF Repair Bot"
+          git config user.email "actions@github.com"
+          git add convex/adminUsers.ts convex/fraudControl.ts convex/userManagement.ts convex/protocolAutoFix.ts convex/treasury.ts src/components/FraudControl.tsx src/components/UserManagement.tsx src/pages/Admin.tsx scripts/verify-admin-session-integration-boundary.mjs
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "fix(security): complete admin cockpit session authorization"
+            git push origin HEAD:agent1/admin-session-integration-auth-repair
+          fi
