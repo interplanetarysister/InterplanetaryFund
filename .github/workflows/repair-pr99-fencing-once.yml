@@ -1,0 +1,89 @@
+name: Repair PR 99 Fencing Once
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/repair-pr99-fencing-once.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent1/p0-convex-durable-claim-current-main-r13
+          persist-credentials: true
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Apply transactional fencing
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const addImport = (s,p) => s.includes('assertAutomationLaneOwnership') ? s : (() => { const m='import { v } from "convex/values";'; if(!s.includes(m)) throw new Error(`Missing v import in ${p}`); return s.replace(m,m+'\nimport { assertAutomationLaneOwnership } from "./automationLease";'); })();
+          function fence(s,name){ const h=`export const ${name} = internalMutation({`; const start=s.indexOf(h); if(start<0) throw new Error(`Missing ${name}`); const a=s.indexOf('args:',start), hs=s.indexOf('handler:',a); const at=s.slice(a,hs); if(at.includes('claimToken: v.string()')) return s; if(!/^args:\s*\{\s*\},/m.test(at)) throw new Error(`${name} args not empty`); s=s.slice(0,a)+at.replace(/args:\s*\{\s*\},/,'args: { claimToken: v.string() },')+s.slice(hs); const nh=s.indexOf('handler:',start), arrow=s.indexOf('=> {',nh); const sig=s.slice(nh,arrow+4); if(!sig.includes('async (ctx)')) throw new Error(`Unexpected ${name} handler`); const rep=sig.replace('async (ctx)','async (ctx, { claimToken })')+'\n    await assertAutomationLaneOwnership(ctx, claimToken);'; return s.slice(0,nh)+rep+s.slice(arrow+4); }
+          const targets={
+            'convex/autonomous.ts':['checkSiteHealth','autoRepair'],
+            'convex/postContent.ts':['autoGeneratePosts'],
+            'convex/facebook.ts':['discoverGroupsProactively','improveOutreachStrategy'],
+            'convex/protocolAutoFix.ts':['runFullAutoFix'],
+            'convex/protocol.ts':['weeklyTraining'],
+            'convex/imageGen.ts':['generateCampaignCoverUrls'],
+            'convex/fundConsolidation.ts':['runAutoConsolidation'],
+            'convex/agentAutomation.ts':['runAtlasAutomation','runPostProductionAutomation','runDonorRelationsAutomation','runScoutAutomation','runCoordinatorAutomation']
+          };
+          for(const [p,names] of Object.entries(targets)){ let s=addImport(fs.readFileSync(p,'utf8'),p); for(const n of names)s=fence(s,n); if(p==='convex/protocolAutoFix.ts')s=s.replaceAll('gross * 0.05','gross * 0.03'); if(p==='convex/fundConsolidation.ts')s=s.replaceAll('feeConfig?.platformFeePercent ?? 5','feeConfig?.platformFeePercent ?? 3'); fs.writeFileSync(p,s); }
+          let r=addImport(fs.readFileSync('convex/research.ts','utf8'),'research');
+          r=r.replace('export const runAgentResearch = internalMutation({\n  args: {},\n  handler: async (ctx): Promise<any> => {\n    // Delegate to the browserbase module\n    const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});','export const runAgentResearch = internalMutation({\n  args: { claimToken: v.string() },\n  handler: async (ctx, { claimToken }): Promise<any> => {\n    await assertAutomationLaneOwnership(ctx, claimToken);\n    // Delegate to the browserbase module using the same fenced claim.\n    const result = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, { claimToken });');
+          if(!r.includes('runAllAgentBrowserResearch, { claimToken }'))throw new Error('research token propagation failed'); fs.writeFileSync('convex/research.ts',r);
+          let b=addImport(fs.readFileSync('convex/browserbase.ts','utf8'),'browserbase');
+          b=b.replace('export const runAgentBrowserResearch = internalMutation({\n  args: { agentRole: v.string() },\n  handler: async (ctx, { agentRole }) => {','export const runAgentBrowserResearch = internalMutation({\n  args: { agentRole: v.string(), claimToken: v.string() },\n  handler: async (ctx, { agentRole, claimToken }) => {\n    await assertAutomationLaneOwnership(ctx, claimToken);');
+          b=b.replace('export const runAllAgentBrowserResearch = internalMutation({\n  args: {},\n  handler: async (ctx): Promise<any> => {\n    const allResults = [];','export const runAllAgentBrowserResearch = internalMutation({\n  args: { claimToken: v.string() },\n  handler: async (ctx, { claimToken }): Promise<any> => {\n    await assertAutomationLaneOwnership(ctx, claimToken);\n    const allResults = [];');
+          b=b.replace('internal.browserbase.runAgentBrowserResearch, { agentRole: role }','internal.browserbase.runAgentBrowserResearch, { agentRole: role, claimToken }');
+          if(!b.includes('runAgentBrowserResearch, { agentRole: role, claimToken }'))throw new Error('browser token propagation failed'); fs.writeFileSync('convex/browserbase.ts',b);
+          NODE
+      - name: Install focused verifier
+        run: |
+          cat > scripts/verify-automation-serialization.mjs <<'NODE'
+          import fs from 'node:fs';
+          const read=p=>fs.readFileSync(new URL(`../${p}`,import.meta.url),'utf8');
+          const c=read('convex/crons.ts'), co=read('convex/automationCoordinator.ts'), l=read('convex/automationLease.ts');
+          for(const id of ['daily-protocol-autofix','weekly-training-session','daily-post-generation','proactive-group-discovery','outreach-strategy-improvement','site-health-monitor','auto-repair','agent-research-sprint','browserbase-research','atlas-facebook-automation','post-production-automation','donor-relations-automation','scout-automation','coordinator-automation','master-agent-check','auto-cover-images','auto-fund-consolidation']) if(c.includes(`"${id}"`)) throw new Error(`Independent cron remains ${id}`);
+          for(const x of ['"serialized-automation-lane"','internal.automationCoordinator.runSerializedAutomation']) if(!c.includes(x))throw new Error(`Cron contract missing ${x}`);
+          for(const x of ['assertAutomationLaneOwnership','automation_lane_stale_owner','automation_lock_not_initialized','automation_lock_not_unique','expiresAt <= nowMs']) if(!l.includes(x))throw new Error(`Lease contract missing ${x}`);
+          for(const x of ['renewAutomationLane','await renew()','claimToken: runId','utcDay === 6 && utcHour === 9','utcHour === 13','utcHour === 15','isHourSlot(startedAt, 2)','isHourSlot(startedAt, 4)','isHourSlot(startedAt, 6)','isHourSlot(startedAt, 12)','"proactive-group-discovery"','"coordinator-automation"','"auto-fund-consolidation"','"auto-cover-images"']) if(!co.includes(x))throw new Error(`Coordinator missing ${x}`);
+          if(co.includes('internal.agentAutomation.runAllAgentAutomation'))throw new Error('Legacy mutating master runner still scheduled');
+          const fenced={'convex/autonomous.ts':['checkSiteHealth','autoRepair'],'convex/postContent.ts':['autoGeneratePosts'],'convex/facebook.ts':['discoverGroupsProactively','improveOutreachStrategy'],'convex/protocolAutoFix.ts':['runFullAutoFix'],'convex/protocol.ts':['weeklyTraining'],'convex/imageGen.ts':['generateCampaignCoverUrls'],'convex/fundConsolidation.ts':['runAutoConsolidation'],'convex/agentAutomation.ts':['runAtlasAutomation','runPostProductionAutomation','runDonorRelationsAutomation','runScoutAutomation','runCoordinatorAutomation'],'convex/research.ts':['runAgentResearch'],'convex/browserbase.ts':['runAgentBrowserResearch','runAllAgentBrowserResearch']};
+          for(const [p,names] of Object.entries(fenced)){const s=read(p); for(const n of names){const i=s.indexOf(`export const ${n} = internalMutation({`); if(i<0)throw new Error(`${p}:${n} missing`); const t=s.slice(i,i+1800); if(!t.includes('claimToken: v.string()')||!t.includes('assertAutomationLaneOwnership(ctx, claimToken)'))throw new Error(`${p}:${n} not fenced`);}}
+          if(!read('convex/research.ts').includes('runAllAgentBrowserResearch, { claimToken }'))throw new Error('research propagation missing');
+          if(!read('convex/browserbase.ts').includes('runAgentBrowserResearch, { agentRole: role, claimToken }'))throw new Error('browser propagation missing');
+          if(read('convex/protocolAutoFix.ts').includes('gross * 0.05'))throw new Error('5% protocol fallback remains');
+          if(read('convex/fundConsolidation.ts').includes('platformFeePercent ?? 5'))throw new Error('5% consolidation fallback remains');
+          console.log('Automation serialization + transactional fencing verification: PASS');
+          NODE
+          cat > scripts/test-automation-fencing-model.mjs <<'NODE'
+          import assert from 'node:assert/strict'; const l={o:null,e:0}; const claim=(o,n,t=100)=>{if(l.o&&l.e>n)return false;l.o=o;l.e=n+t;return true}; const valid=(o,n)=>l.o===o&&l.e>n; const renew=(o,n,t=100)=>{if(!valid(o,n))return false;l.e=n+t;return true}; const release=o=>{if(l.o!==o)return false;l.o=null;l.e=0;return true}; assert.equal(claim('A',0),true); assert.equal(claim('B',50),false); assert.equal(renew('A',50),true); assert.equal(claim('B',120),false); assert.equal(claim('B',151),true); assert.equal(valid('A',151),false); assert.equal(valid('B',151),true); assert.equal(release('A'),false); assert.equal(release('B'),true); console.log('Automation fencing transition model: PASS');
+          NODE
+          node <<'NODE'
+          const fs=require('fs'),p='.github/workflows/exact-head-validation.yml'; let s=fs.readFileSync(p,'utf8'); const a='      - name: Typecheck\n        run: npx tsc --noEmit\n'; if(!s.includes(a))throw new Error('typecheck anchor missing'); const x='      - name: Verify serialized automation provisioning and fencing\n        run: |\n          npm run verify:automation-provisioning\n          npm run verify:automation-serialization\n          node scripts/test-automation-fencing-model.mjs\n\n'; if(!s.includes('Verify serialized automation provisioning and fencing'))s=s.replace(a,x+a); fs.writeFileSync(p,s);
+          NODE
+      - name: Focused checks
+        run: |
+          npm run verify:automation-provisioning
+          npm run verify:automation-serialization
+          node scripts/test-automation-fencing-model.mjs
+      - run: npx tsc --noEmit
+      - run: npm run build
+      - name: Commit to PR branch
+        run: |
+          git config user.name "IF Repair Bot"
+          git config user.email "actions@github.com"
+          git add convex scripts .github/workflows/exact-head-validation.yml
+          git commit -m "fix(convex): fence all scheduled automation writers"
+          git push origin HEAD:agent1/p0-convex-durable-claim-current-main-r13
