@@ -1,0 +1,42 @@
+name: Reconcile PR 99 With Current Main
+
+on:
+  push:
+    branches:
+      - agent1/p0-convex-durable-claim-current-main-r13
+    paths:
+      - '.github/workflows/reconcile-pr99-current-main.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent1/p0-convex-durable-claim-current-main-r13
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Merge canonical main without discarding PR work
+        run: |
+          set -euo pipefail
+          git config user.name "IF Repair Bot"
+          git config user.email "actions@github.com"
+          git fetch origin main
+          if ! git merge --no-edit origin/main; then
+            # This path was independently added with identical content on both lineages.
+            if git diff --name-only --diff-filter=U | grep -qx 'src/types/three-runtime.d.ts'; then
+              git checkout --theirs src/types/three-runtime.d.ts
+              git add src/types/three-runtime.d.ts
+            fi
+            unresolved="$(git diff --name-only --diff-filter=U)"
+            if [ -n "$unresolved" ]; then
+              printf 'Unresolved merge conflicts:\n%s\n' "$unresolved"
+              exit 1
+            fi
+            git commit --no-edit
+          fi
+          git push origin HEAD:agent1/p0-convex-durable-claim-current-main-r13
