@@ -1,0 +1,10 @@
+name: Keep PR 99 Tool Surface
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  marker:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "No-op reusable branch workflow marker."
