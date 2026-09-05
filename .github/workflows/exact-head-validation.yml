@@ -15,7 +15,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - name: Checkout exact pull request head
         uses: actions/checkout@v6
@@ -43,3 +43,85 @@ jobs:
 
       - name: Build web application
         run: npm run build
+
+      - name: Start anonymous local Convex backend for credit-free runtime checks
+        if: ${{ hashFiles('convex/automationCoordinator.ts') != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CONVEX_AGENT_MODE=anonymous
+          nohup npx convex dev > /tmp/convex-dev.log 2>&1 &
+          echo $! > /tmp/convex-dev.pid
+          for i in $(seq 1 90); do
+            if grep -q "Convex functions ready" /tmp/convex-dev.log; then
+              exit 0
+            fi
+            if ! kill -0 "$(cat /tmp/convex-dev.pid)" 2>/dev/null; then
+              cat /tmp/convex-dev.log
+              exit 1
+            fi
+            sleep 1
+          done
+          cat /tmp/convex-dev.log
+          exit 1
+
+      - name: Verify concurrent provisioning, single-winner claim, stale fencing, and overlap
+        if: ${{ hashFiles('convex/automationCoordinator.ts') != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          npx convex run automationProvisioning:provisionAutomationLaneLock '{}' > /tmp/provision-a.txt 2>&1 & p1=$!
+          npx convex run automationProvisioning:provisionAutomationLaneLock '{}' > /tmp/provision-b.txt 2>&1 & p2=$!
+          wait $p1
+          wait $p2
+          npx convex run automationProvisioning:getAutomationLaneLockStatus '{}' > /tmp/lock-status.txt
+          cat /tmp/provision-a.txt /tmp/provision-b.txt /tmp/lock-status.txt
+          grep -q '"initialized": true' /tmp/lock-status.txt
+          grep -q '"recordCount": 1' /tmp/lock-status.txt
+
+          now_ms=$(node -e 'process.stdout.write(String(Date.now()))')
+          npx convex run automationCoordinator:claimAutomationLane "{\"token\":\"agent2-runtime-a\",\"nowMs\":$now_ms}" > /tmp/claim-a.txt 2>&1 & p1=$!
+          npx convex run automationCoordinator:claimAutomationLane "{\"token\":\"agent3-runtime-b\",\"nowMs\":$now_ms}" > /tmp/claim-b.txt 2>&1 & p2=$!
+          wait $p1
+          wait $p2
+          cat /tmp/claim-a.txt /tmp/claim-b.txt
+          winners=$(grep -hxc 'true' /tmp/claim-a.txt /tmp/claim-b.txt || true)
+          losers=$(grep -hxc 'false' /tmp/claim-a.txt /tmp/claim-b.txt || true)
+          test "$winners" -eq 1
+          test "$losers" -eq 1
+          npx convex run automationCoordinator:releaseAutomationLane "{\"token\":\"agent2-runtime-a\",\"nowMs\":$now_ms}" >/dev/null || true
+          npx convex run automationCoordinator:releaseAutomationLane "{\"token\":\"agent3-runtime-b\",\"nowMs\":$now_ms}" >/dev/null || true
+
+          npx convex run automationCoordinator:claimAutomationLane '{"token":"stale-owner","nowMs":0}' > /tmp/stale-claim.txt
+          grep -qx 'true' /tmp/stale-claim.txt
+          set +e
+          npx convex run autonomous:checkSiteHealth '{"claimToken":"stale-owner"}' > /tmp/stale-write.txt 2>&1
+          stale_rc=$?
+          set -e
+          cat /tmp/stale-write.txt
+          test "$stale_rc" -ne 0
+          grep -q 'automation_lane_stale_owner' /tmp/stale-write.txt
+
+          now_ms=$(node -e 'process.stdout.write(String(Date.now()))')
+          npx convex run automationCoordinator:claimAutomationLane "{\"token\":\"fresh-owner\",\"nowMs\":$now_ms}" > /tmp/fresh-claim.txt
+          grep -qx 'true' /tmp/fresh-claim.txt
+          npx convex run autonomous:checkSiteHealth '{"claimToken":"fresh-owner"}' > /tmp/fresh-write.txt
+          cat /tmp/fresh-write.txt
+          grep -q '"status": "success"' /tmp/fresh-write.txt
+          npx convex run automationCoordinator:releaseAutomationLane "{\"token\":\"fresh-owner\",\"nowMs\":$now_ms}" > /tmp/fresh-release.txt
+          grep -qx 'true' /tmp/fresh-release.txt
+
+          now_ms=$(node -e 'process.stdout.write(String(Date.now()))')
+          npx convex run automationCoordinator:claimAutomationLane "{\"token\":\"manual-blocker\",\"nowMs\":$now_ms}" > /tmp/manual-claim.txt
+          grep -qx 'true' /tmp/manual-claim.txt
+          npx convex run automationCoordinator:runSerializedAutomation '{}' > /tmp/duplicate-run.txt
+          cat /tmp/duplicate-run.txt
+          grep -q '"skipped": true' /tmp/duplicate-run.txt
+          grep -q '"reason": "already_running"' /tmp/duplicate-run.txt
+          npx convex run automationCoordinator:releaseAutomationLane "{\"token\":\"manual-blocker\",\"nowMs\":$now_ms}" > /tmp/manual-release.txt
+          grep -qx 'true' /tmp/manual-release.txt
+
+      - name: Show local Convex diagnostics on failure
+        if: failure()
+        run: cat /tmp/convex-dev.log || true
