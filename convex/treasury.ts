@@ -5,9 +5,9 @@
  */
 
 import { query, mutation, internalMutation } from "./_generated/server";
-import { requireSuperAdmin } from "./security";
 import { validateDonation, validateWithdrawal, checkRateLimit } from "./security";
 import { v } from "convex/values";
+import { requireAdminSession, requireSuperAdminSession } from "./adminUsers";
 
 // =====================================================
 // TREASURY MANAGEMENT (Credit-Free — fee calculation)
@@ -181,6 +181,70 @@ export const aggregateBalances = query({
   },
 });
 
+// Admin-only treasury snapshot. Public/user APIs remain separate.
+export const getAdminBalances = query({
+  args: { sessionToken: v.string() },
+  handler: async (ctx, { sessionToken }) => {
+    await requireAdminSession(ctx, sessionToken, "finance");
+    const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
+    const userCampaigns = await ctx.db.query("userCampaigns").collect();
+    const externalPlatforms = await ctx.db.query("externalPlatforms").collect();
+    const holdingAccounts = await ctx.db.query("holdingAccounts").collect();
+    const localRaised = monitoredCampaigns.reduce((n,c)=>n+(c.raisedAmount||0),0)+userCampaigns.reduce((n,c)=>n+(c.raisedAmount||0),0);
+    const localGoal = monitoredCampaigns.reduce((n,c)=>n+(c.goalAmount||0),0)+userCampaigns.reduce((n,c)=>n+(c.goalAmount||0),0);
+    const localDonors = monitoredCampaigns.reduce((n,c)=>n+(c.donorCount||0),0)+userCampaigns.reduce((n,c)=>n+(c.donorCount||0),0);
+    const extRaised = externalPlatforms.reduce((n,p)=>n+(p.externalTotal||0),0);
+    const extDonors = externalPlatforms.reduce((n,p)=>n+(p.externalDonorCount||0),0);
+    const totalHeld = holdingAccounts.reduce((n,a)=>n+(a.totalBalance||0),0);
+    const totalPaidOut = holdingAccounts.reduce((n,a)=>n+(a.totalPaidOut||0),0);
+    const totalFees = holdingAccounts.reduce((n,a)=>n+(a.totalFeesDeducted||0),0);
+    return {
+      localCampaigns:{count:monitoredCampaigns.length+userCampaigns.length,totalRaised:localRaised,totalGoal:localGoal,totalDonors:localDonors,active:monitoredCampaigns.filter(c=>c.status==="active").length+userCampaigns.filter(c=>c.status==="active").length,draft:monitoredCampaigns.filter(c=>c.status==="draft").length},
+      externalPlatforms:{count:externalPlatforms.length,totalRaised:extRaised,totalDonors:extDonors},
+      holdingAccounts:{totalHeld,totalPaidOut,totalFees,netPosition:totalHeld-totalPaidOut-totalFees},
+      grandTotal:{raised:localRaised+extRaised,donors:localDonors+extDonors,held:totalHeld},
+    };
+  },
+});
+
+export const createAdminDeposit = mutation({
+  args:{sessionToken:v.string(),targetUserId:v.string(),amount:v.number(),sourcePlatform:v.string(),campaignId:v.optional(v.string())},
+  handler:async(ctx,args)=>{
+    const principal=await requireAdminSession(ctx,args.sessionToken,"finance");
+    if(!validateDonation(args.amount)) throw new Error("Deposit amount must be between $0.01 and $100,000");
+    const target=args.targetUserId.trim(); if(!target) throw new Error("Target user is required");
+    const profile=await ctx.db.query("userProfiles").filter(q=>q.eq(q.field("userId"),target)).first();
+    let account=await ctx.db.query("holdingAccounts").filter(q=>q.eq(q.field("userId"),target)).first();
+    if(!profile&&!account) throw new Error("Target user does not exist");
+    const now=new Date().toISOString();
+    const transactionId=await ctx.db.insert("transactions",{userId:target,type:"deposit",amount:args.amount,sourcePlatform:args.sourcePlatform,campaignId:args.campaignId,status:"completed",createdAt:now});
+    if(account) await ctx.db.patch(account._id,{totalBalance:account.totalBalance+args.amount,lastUpdated:now});
+    else await ctx.db.insert("holdingAccounts",{userId:target,totalBalance:args.amount,totalFeesDeducted:0,totalPaidOut:0,pendingPayouts:0,lastUpdated:now});
+    await ctx.db.insert("agentActivityLog",{agentName:principal.name,action:"admin_manual_deposit",category:"treasury",description:`Manual external-fund deposit recorded for user ${target}.`,creditCost:0,timestamp:now});
+    return {status:"success",transactionId,depositedAmount:args.amount,targetUserId:target};
+  },
+});
+
+export const requestAdminPayout = mutation({
+  args:{sessionToken:v.string(),targetUserId:v.string(),payoutMethod:v.string(),payoutDestination:v.string()},
+  handler:async(ctx,args)=>{
+    const principal=await requireAdminSession(ctx,args.sessionToken,"finance");
+    const target=args.targetUserId.trim(); if(!target) throw new Error("Target user is required");
+    checkRateLimit("admin_payout_request",3,300000);
+    const account=await ctx.db.query("holdingAccounts").filter(q=>q.eq(q.field("userId"),target)).first();
+    if(!account||account.totalBalance<=0) throw new Error("Insufficient balance");
+    if(account.frozen) throw new Error("Account is frozen");
+    const feeConfigs=await ctx.db.query("feeConfig").filter(q=>q.eq(q.field("active"),true)).first();
+    const gross=account.totalBalance; const platformFee=gross*((feeConfigs?.platformFeePercent??3)/100); const processingFee=gross*((feeConfigs?.processingFeePercent??2.9)/100)+(feeConfigs?.processingFeeFlat??0.30); const totalFees=platformFee+processingFee; const net=gross-totalFees;
+    const now=new Date().toISOString();
+    const payoutId=await ctx.db.insert("payoutRequests",{userId:target,amountRequested:gross,feeAmount:totalFees,netAmount:net,payoutMethod:args.payoutMethod,payoutDestination:args.payoutDestination,status:"pending",requestedDate:now});
+    await ctx.db.patch(account._id,{pendingPayouts:account.pendingPayouts+gross,totalFeesDeducted:account.totalFeesDeducted+totalFees,lastUpdated:now});
+    await ctx.db.insert("transactions",{userId:target,type:"payout",amount:net,payoutRequestId:payoutId,status:"pending",createdAt:now});
+    await ctx.db.insert("agentActivityLog",{agentName:principal.name,action:"admin_payout_requested",category:"treasury",description:`Administrative payout requested for user ${target}; super-admin fraud review is still required before completion.`,creditCost:0,timestamp:now});
+    return {status:"success",payoutId,summary:{availableBalance:`${gross.toFixed(2)}`,youReceive:`${net.toFixed(2)}`,ourFee:`${totalFees.toFixed(2)}`,method:args.payoutMethod,destination:args.payoutDestination}};
+  },
+});
+
 // Mutation: Create a deposit (user migrates funds from external platform)
 export const createDeposit = mutation({
   args: {
@@ -303,14 +367,12 @@ export const requestPayout = mutation({
 // Mutation: Complete a payout (admin confirms payment sent)
 export const completePayout = mutation({
   args: {
+    sessionToken: v.string(),
     payoutId: v.id("payoutRequests"),
     transactionId: v.optional(v.string()),
-    adminPin: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    if (args.adminPin) {
-      await requireSuperAdmin(ctx, args.adminPin);
-    }
+    await requireSuperAdminSession(ctx, args.sessionToken);
     checkRateLimit("payout_complete", 5, 300000);
     const payout = await ctx.db.get(args.payoutId);
     if (!payout) throw new Error("Payout request not found");
@@ -354,13 +416,14 @@ export const completePayout = mutation({
 // Mutation: Update fee configuration (admin only)
 export const updateFeeConfig = mutation({
   args: {
+    sessionToken: v.string(),
     platformFeePercent: v.number(),
     processingFeePercent: v.number(),
     processingFeeFlat: v.number(),
     updatedBy: v.string(),
-    adminPin: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireSuperAdminSession(ctx, args.sessionToken);
     // Deactivate existing configs
     const existing = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).collect();
     for (const config of existing) {

@@ -2,57 +2,48 @@
  * Interplanetary Fund — Copyright © 2026 Michelle Rogers. All Rights Reserved.
  * PROPRIETARY AND CONFIDENTIAL. Do not copy, distribute, or modify without
  * express written permission. See LICENSE file for full terms.
+ *
+ * Legacy/bootstrap admin credential helpers are internal-only. Interactive
+ * administration uses server-issued sessions from adminUsers.ts.
  */
 
-import { query, mutation } from "./_generated/server";
-import { checkRateLimit } from "./security";
+import { internalQuery, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// Admin PIN — stored server-side only, never exposed to client
-// Default PIN: 0426 (change via updateAdminPin mutation)
-const DEFAULT_ADMIN_PIN = "0426";
+const ADMIN_PIN_KEY = "admin_pin";
 
-// Query: Verify admin PIN
-export const verifyAdminPin = query({
+// Internal bootstrap verification only. Never expose a PIN-validity oracle to clients.
+export const verifyAdminPin = internalQuery({
   args: { pin: v.string() },
   handler: async (ctx, { pin }) => {
-    // Check if a custom PIN is stored in the database
-    const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
-    return { valid: pin === adminPin };
+    const setting = await ctx.db
+      .query("adminSettings")
+      .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
+      .first();
+    return { valid: Boolean(setting?.value) && pin === setting?.value };
   },
 });
 
-// Mutation: Update admin PIN (requires current PIN)
-export const updateAdminPin = mutation({
-  args: { currentPin: v.string(), newPin: v.string() },
-  handler: async (ctx, { currentPin, newPin }) => {
-    const settings = await ctx.db.query("feeConfig").first();
-    const adminPin = settings?.adminPin ?? DEFAULT_ADMIN_PIN;
-
-    if (currentPin !== adminPin) {
-      return { success: false, error: "Current PIN is incorrect" };
+// Internal bootstrap maintenance only. Interactive PIN changes use
+// adminUsers.updateOwnPin with a valid admin session.
+export const updateAdminPin = internalMutation({
+  args: { newPin: v.string() },
+  handler: async (ctx, { newPin }) => {
+    if (!/^\d{4,}$/.test(newPin)) throw new Error("Admin PIN must contain at least 4 digits.");
+    const setting = await ctx.db
+      .query("adminSettings")
+      .withIndex("byKey", (q: any) => q.eq("key", ADMIN_PIN_KEY))
+      .first();
+    const now = new Date().toISOString();
+    if (setting) {
+      await ctx.db.patch(setting._id, { value: newPin, updatedAt: now });
+      return { success: true, settingId: setting._id };
     }
-
-    if (newPin.length < 4) {
-      return { success: false, error: "PIN must be at least 4 digits" };
-    }
-
-    if (settings) {
-      await ctx.db.patch(settings._id, { adminPin: newPin, updatedAt: new Date().toISOString(), updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system" });
-    } else {
-      // If no feeConfig record exists, create one with just the PIN
-      await ctx.db.insert("feeConfig", {
-        active: true,
-        platformFeePercent: 5,
-        processingFeePercent: 2.9,
-        processingFeeFlat: 0.30,
-        adminPin: newPin,
-        updatedAt: new Date().toISOString(),
-        updatedBy: (await ctx.auth.getUserIdentity())?.subject ?? "system",
-      });
-    }
-
-    return { success: true };
+    const settingId = await ctx.db.insert("adminSettings", {
+      key: ADMIN_PIN_KEY,
+      value: newPin,
+      updatedAt: now,
+    });
+    return { success: true, settingId };
   },
 });

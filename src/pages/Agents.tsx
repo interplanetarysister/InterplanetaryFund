@@ -18,7 +18,8 @@ const ROLE_COLORS: Record<string, string> = {
 };
 
 export default function Agents() {
-  const agents = useQuery(api.agents.getAgents, {});
+  const sessionToken = typeof window !== "undefined" ? sessionStorage.getItem("if_admin_session") || "" : "";
+  const agents = useQuery(api.agents.getAdminAgents, sessionToken ? { sessionToken } : "skip");
   const automationStatus = useQuery(api.agentAutomation.getAutomationStatus, {});
   const toggleAutomation = useMutation(api.agentAutomation.toggleAgentAutomation);
 
@@ -148,7 +149,7 @@ export default function Agents() {
                   </div>
                   <button
                     onClick={async () => {
-                      await toggleAutomation({ agentName: a.name, enabled: !isEnabled });
+                      await toggleAutomation({ sessionToken, agentName: a.name, enabled: !isEnabled });
                     }}
                     className={`px-4 py-1.5 rounded-full text-[10px] font-semibold transition-colors ${
                       isEnabled

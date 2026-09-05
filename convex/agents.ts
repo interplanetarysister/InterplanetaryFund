@@ -4,36 +4,52 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
+import { requireAdminSession } from "./adminUsers";
 import { v } from "convex/values";
 
 // =====================================================
 // AGENT MANAGEMENT (Credit-Free — direct database CRUD)
 // =====================================================
 
-// Query: List all agents
+// Public least-privilege roster. Sensitive agent policy/memory/tool fields stay server-side.
 export const getAgents = query({
   args: { status: v.optional(v.string()) },
   handler: async (ctx, { status }) => {
-    let q = ctx.db.query("agents");
-    if (status) {
-      return await q.filter((qq) => qq.eq("status", status)).collect();
-    }
-    return await q.collect();
+    let agents = await ctx.db.query("agents").collect();
+    if (status) agents = agents.filter((a: any) => a.status === status);
+    return agents.map((a: any) => ({
+      name: a.name,
+      role: a.role,
+      status: a.status,
+      trustScore: a.trustScore,
+      tasksCompleted: a.tasksCompleted,
+    }));
   },
 });
 
-// Query: Get single agent by role
+// Full agent records are admin-management data and require a valid server session.
+export const getAdminAgents = query({
+  args: { sessionToken: v.string(), status: v.optional(v.string()) },
+  handler: async (ctx, { sessionToken, status }) => {
+    await requireAdminSession(ctx, sessionToken, "users");
+    let agents = await ctx.db.query("agents").collect();
+    if (status) agents = agents.filter((a: any) => a.status === status);
+    return agents;
+  },
+});
+
 export const getAgentByRole = query({
-  args: { role: v.string() },
-  handler: async (ctx, { role }) => {
+  args: { sessionToken: v.string(), role: v.string() },
+  handler: async (ctx, { sessionToken, role }) => {
+    await requireAdminSession(ctx, sessionToken, "users");
     return await ctx.db.query("agents")
       .filter((q) => q.eq("role", role))
       .first();
   },
 });
 
-// Query: Get agent stats summary
+// Public summary contains no memories, tool permissions, restrictions, or campaign assignments.
 export const getAgentStats = query({
   args: {},
   handler: async (ctx) => {
@@ -41,7 +57,9 @@ export const getAgentStats = query({
     return {
       total: agents.length,
       active: agents.filter((a) => a.status === "active").length,
-      averageTrust: agents.reduce((s, a) => s + a.trustScore, 0) / agents.length,
+      averageTrust: agents.length > 0
+        ? agents.reduce((s, a) => s + a.trustScore, 0) / agents.length
+        : 0,
       totalTasksCompleted: agents.reduce((s, a) => s + a.tasksCompleted, 0),
       totalSuccessfulOutcomes: agents.reduce((s, a) => s + a.successfulOutcomes, 0),
       totalFailedOutcomes: agents.reduce((s, a) => s + a.failedOutcomes, 0),
@@ -56,9 +74,9 @@ export const getAgentStats = query({
   },
 });
 
-// Mutation: Create a new agent
 export const createAgent = mutation({
   args: {
+    sessionToken: v.string(),
     name: v.string(),
     role: v.string(),
     purpose: v.string(),
@@ -83,8 +101,10 @@ export const createAgent = mutation({
     accentColor: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdminSession(ctx, args.sessionToken, "users");
+    const { sessionToken: _sessionToken, ...agentArgs } = args;
     const agentId = await ctx.db.insert("agents", {
-      ...args,
+      ...agentArgs,
       workingMemory: [],
       longTermMemory: [],
       tasksCompleted: 0,
@@ -97,14 +117,15 @@ export const createAgent = mutation({
   },
 });
 
-// Mutation: Update agent training (memory)
 export const updateAgentMemory = mutation({
   args: {
+    sessionToken: v.string(),
     agentId: v.id("agents"),
     workingMemory: v.array(v.string()),
     longTermMemory: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdminSession(ctx, args.sessionToken, "users");
     await ctx.db.patch(args.agentId, {
       workingMemory: args.workingMemory,
       longTermMemory: args.longTermMemory,
@@ -113,8 +134,8 @@ export const updateAgentMemory = mutation({
   },
 });
 
-// Mutation: Increment agent task counter
-export const recordTaskOutcome = mutation({
+// Agent runtime bookkeeping is internal-only; clients cannot forge task outcomes.
+export const recordTaskOutcome = internalMutation({
   args: {
     agentId: v.id("agents"),
     successful: v.boolean(),
@@ -133,13 +154,14 @@ export const recordTaskOutcome = mutation({
   },
 });
 
-// Mutation: Assign campaigns to an agent
 export const assignCampaigns = mutation({
   args: {
+    sessionToken: v.string(),
     agentId: v.id("agents"),
     campaignIds: v.array(v.string()),
   },
-  handler: async (ctx, { agentId, campaignIds }) => {
+  handler: async (ctx, { sessionToken, agentId, campaignIds }) => {
+    await requireAdminSession(ctx, sessionToken, "users");
     const agent = await ctx.db.get(agentId);
     if (!agent) throw new Error("Agent not found");
 
