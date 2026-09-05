@@ -8,10 +8,9 @@ import { TermsAcceptance } from "./components/TermsAcceptance";
 import PlatformAccountsSheet from "./components/PlatformAccountsSheet";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "../convex/_generated/api";
 
-// Lazy load pages
 const Explore = lazy(() => import("./pages/Explore"));
 const FacebookGroups = lazy(() => import("./pages/FacebookGroups"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -41,7 +40,6 @@ const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FinancialManagement = lazy(() => import("./pages/FinancialManagement"));
 
-// Loading fallback
 function PageLoader() {
   return (
     <div className="flex items-center justify-center py-20">
@@ -56,23 +54,40 @@ function PageLoader() {
 
 type View = "home" | "explore" | "facebook" | "globe" | "admin" | "login" | "dashboard" | "editor" | "detail" | "community" | "institutions" | "volunteer" | "help" | "thankYou" | "platforms" | "aiwizard" | "stations" | "saved" | "donations" | "leaderboard" | "categories" | "settings" | "donors" | "notificationsPage" | "compare" | "profile" | "forgotPassword" | "resetPassword" | "financial";
 
+type AdminIdentity = {
+  userId: string;
+  name: string;
+  email?: string;
+  role: string;
+  permissions: string[];
+};
+
+const ADMIN_SESSION_STORAGE_KEY = "if_admin_session";
+
 export default function App() {
   const [view, setView] = useState<View>("home");
   const [tapCount, setTapCount] = useState(0);
   const [showPinGate, setShowPinGate] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+  const [pinSubmitting, setPinSubmitting] = useState(false);
   const [authed, setAuthed] = useState(false);
-  const [adminUser, setAdminUser] = useState<{name: string; role: string; permissions: string[]} | null>(null);
+  const [adminUser, setAdminUser] = useState<AdminIdentity | null>(null);
+  const [adminSessionId, setAdminSessionId] = useState<string | null>(null);
 
-  // User auth state
+  const createAdminSession = useMutation(api.adminUsers.createAdminSession);
+  const revokeAdminSession = useMutation(api.adminUsers.revokeAdminSession);
+  const sessionCheck = useQuery(
+    api.adminUsers.validateAdminSession,
+    adminSessionId ? { sessionId: adminSessionId as any } : "skip"
+  );
+
   const [userId, setUserId] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [editCampaignId, setEditCampaignId] = useState<string | null>(null);
   const [viewCampaignId, setViewCampaignId] = useState<string | null>(null);
-  const [lastDonation, setLastDonation] = useState<{title: string; amount: number; donor: string} | null>(null);
+  const [lastDonation] = useState<{title: string; amount: number; donor: string} | null>(null);
 
-  // Restore user session from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("if_user");
     if (saved) {
@@ -82,12 +97,30 @@ export default function App() {
         setUserName(u.name);
       } catch {}
     }
+
+    const savedAdminSession = sessionStorage.getItem(ADMIN_SESSION_STORAGE_KEY);
+    if (savedAdminSession) setAdminSessionId(savedAdminSession);
   }, []);
 
-  const pinCheck = useQuery(
-    api.adminUsers.authenticateAdmin,
-    showPinGate && pinInput.length >= 4 ? { pin: pinInput } : "skip"
-  );
+  useEffect(() => {
+    if (!adminSessionId || sessionCheck === undefined) return;
+    if (sessionCheck.valid) {
+      setAuthed(true);
+      setAdminUser({
+        userId: sessionCheck.userId,
+        name: sessionCheck.name,
+        email: sessionCheck.email,
+        role: sessionCheck.role,
+        permissions: sessionCheck.permissions,
+      });
+    } else {
+      sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
+      setAdminSessionId(null);
+      setAuthed(false);
+      setAdminUser(null);
+      if (view === "admin") setView("home");
+    }
+  }, [adminSessionId, sessionCheck, view]);
 
   const navItems = useMemo<{ id: View; label: string; icon: string }[]>(
     () => [
@@ -114,62 +147,65 @@ export default function App() {
   const handleLogoTap = useCallback(() => {
     const newCount = tapCount + 1;
     if (newCount >= 5) {
-      if (authed) setView("admin");
+      if (authed && adminSessionId) setView("admin");
       else setShowPinGate(true);
       setTapCount(0);
     } else {
       setTapCount(newCount);
     }
-  }, [tapCount, authed]);
+  }, [tapCount, authed, adminSessionId]);
 
-  const handlePinSubmit = useCallback(() => {
-    if (pinCheck === undefined) return;
-    if (pinCheck?.valid === true) {
-      setAuthed(true);
-      setAdminUser({
-        name: pinCheck.name || "Admin",
-        role: pinCheck.role || "admin",
-        permissions: pinCheck.permissions || [],
-      });
-      setView("admin");
-      setShowPinGate(false);
-      setPinInput("");
-      setPinError(false);
-    } else {
+  const handlePinSubmit = useCallback(async () => {
+    if (pinInput.length < 4 || pinSubmitting) return;
+    setPinSubmitting(true);
+    try {
+      const result = await createAdminSession({ pin: pinInput });
+      if (result.valid && result.sessionId) {
+        const sessionId = String(result.sessionId);
+        sessionStorage.setItem(ADMIN_SESSION_STORAGE_KEY, sessionId);
+        setAdminSessionId(sessionId);
+        setAuthed(true);
+        setAdminUser({
+          userId: result.userId,
+          name: result.name,
+          email: result.email,
+          role: result.role,
+          permissions: result.permissions,
+        });
+        setView("admin");
+        setShowPinGate(false);
+        setPinInput("");
+        setPinError(false);
+      } else {
+        setPinError(true);
+        setPinInput("");
+      }
+    } catch {
       setPinError(true);
       setPinInput("");
+    } finally {
+      setPinSubmitting(false);
     }
-  }, [pinCheck]);
+  }, [createAdminSession, pinInput, pinSubmitting]);
 
-  useEffect(() => {
-    if (pinCheck?.valid === true && showPinGate) {
-      setAuthed(true);
-      setAdminUser({
-        name: pinCheck.name || "Admin",
-        role: pinCheck.role || "admin",
-        permissions: pinCheck.permissions || [],
-      });
-      setView("admin");
-      setShowPinGate(false);
-      setPinInput("");
-      setPinError(false);
-    }
-  }, [pinCheck, showPinGate]);
-
-  // Detect PayPal donation success from URL hash
   useEffect(() => {
     if (window.location.hash.includes("donation=success")) {
       setView("thankYou");
-      // Clean the URL
       window.history.replaceState(null, "", window.location.pathname);
     }
   }, []);
 
-  const exitAdmin = useCallback(() => {
+  const exitAdmin = useCallback(async () => {
+    const sessionId = adminSessionId;
+    sessionStorage.removeItem(ADMIN_SESSION_STORAGE_KEY);
     setView("explore");
     setAuthed(false);
     setAdminUser(null);
-  }, []);
+    setAdminSessionId(null);
+    if (sessionId) {
+      try { await revokeAdminSession({ sessionId: sessionId as any }); } catch {}
+    }
+  }, [adminSessionId, revokeAdminSession]);
 
   const closePinGate = useCallback(() => {
     setShowPinGate(false);
@@ -196,9 +232,7 @@ export default function App() {
     setView("editor");
   }, []);
 
-  const handleNavigate = useCallback((target: string) => {
-    setView(target as any);
-  }, []);
+  const handleNavigate = useCallback((target: string) => setView(target as any), []);
   const handleViewCampaign = useCallback((campaignId: string) => {
     setViewCampaignId(campaignId);
     setView("detail");
@@ -207,31 +241,22 @@ export default function App() {
   return (
     <TermsAcceptance>
     <div className="min-h-screen bg-ifdark flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-ifdark/95 backdrop-blur border-b border-ifborder">
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <button onClick={() => { handleLogoTap(); }} className="w-9 h-9 rounded-xl bg-ifaccent flex items-center justify-center text-ifwhite font-bold text-sm shadow-glow-purple hover:scale-105 transition-transform">IF</button>
+            <button onClick={handleLogoTap} className="w-9 h-9 rounded-xl bg-ifaccent flex items-center justify-center text-ifwhite font-bold text-sm shadow-glow-purple hover:scale-105 transition-transform">IF</button>
             <div>
               <button onClick={() => setView("home")} className="text-sm font-bold text-iftext hover:text-ifcyan transition-colors">Interplanetary Fund</button>
               <p className="text-[10px] text-ifmuted">
                 {view === "admin" ? `Cockpit — ${adminUser?.name || ""}` :
-                 view === "facebook" ? "Outreach Sectors" :
-                 view === "globe" ? "Global Campaign Locator" :
-                 view === "dashboard" ? "My Missions" :
-                 view === "editor" ? "Campaign Editor" :
-                 view === "institutions" ? "Grant Applications" :
-                 view === "volunteer" ? "Volunteer Opportunities" :
-                 view === "community" ? "Community Groups" :
-                 view === "detail" ? "Community Groups" :
-                 view === "help" ? "Help Center" :
-                 view === "thankYou" ? "Thank You" :
-                 view === "home" ? "Mission Control" :
-                 view === "aiwizard" ? "AI Campaign Wizard" :
-                 view === "stations" ? "Connected Stations" :
-                 view === "platforms" ? "Platform Accounts" :
-                 view === "login" ? "Pilot Sign In" :
-                 "Fuel a cause today"}
+                 view === "facebook" ? "Outreach Sectors" : view === "globe" ? "Global Campaign Locator" :
+                 view === "dashboard" ? "My Missions" : view === "editor" ? "Campaign Editor" :
+                 view === "institutions" ? "Grant Applications" : view === "volunteer" ? "Volunteer Opportunities" :
+                 view === "community" ? "Community Groups" : view === "detail" ? "Community Groups" :
+                 view === "help" ? "Help Center" : view === "thankYou" ? "Thank You" :
+                 view === "home" ? "Mission Control" : view === "aiwizard" ? "AI Campaign Wizard" :
+                 view === "stations" ? "Connected Stations" : view === "platforms" ? "Platform Accounts" :
+                 view === "login" ? "Pilot Sign In" : "Fuel a cause today"}
               </p>
             </div>
           </div>
@@ -249,105 +274,55 @@ export default function App() {
             <div className="flex items-center gap-2">
               {view !== "home" && (
                 <button onClick={() => setView("home")} className="flex items-center gap-1 text-[10px] text-ifmuted px-2 py-1 rounded-full border border-ifborder hover:text-ifcyan hover:border-ifcyan transition-colors">
-                  <span>{"\u{1F3E0}"}</span>
-                  <span>Home</span>
+                  <span>{"\u{1F3E0}"}</span><span>Home</span>
                 </button>
               )}
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" />
-                <span className="text-[10px] text-ifmuted">Live</span>
-              </div>
+              <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-ifgreen animate-pulse" /><span className="text-[10px] text-ifmuted">Live</span></div>
             </div>
           )}
         </div>
       </header>
 
-      {/* PIN Gate Modal */}
       {showPinGate && (
         <div className="fixed inset-0 z-50 bg-ifdark/95 backdrop-blur flex items-center justify-center">
           <div className="max-w-xs w-full px-6">
             <div className="text-center mb-6">
               <div className="w-14 h-14 rounded-2xl bg-ifaccent flex items-center justify-center text-ifwhite font-bold text-xl mx-auto mb-3 shadow-glow-purple">🔒</div>
               <h2 className="text-lg font-bold text-iftext">Cockpit Access</h2>
-              <p className="text-xs text-ifmuted mt-1">Enter your PIN to continue</p>
+              <p className="text-xs text-ifmuted mt-1">Enter your PIN to create a secure admin session</p>
             </div>
-            <input type="password" inputMode="numeric" maxLength={8} placeholder="••••" value={pinInput} onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, "")); setPinError(false); }} onKeyDown={(e) => e.key === "Enter" && handlePinSubmit()} className="input-field text-center text-2xl tracking-[0.5em] font-bold" autoFocus />
-            {pinError && <p className="text-xs text-ifred text-center mt-2">Incorrect PIN. Try again.</p>}
-            <button onClick={handlePinSubmit} disabled={pinInput.length < 4} className="btn-primary mt-4">Unlock</button>
+            <input type="password" inputMode="numeric" maxLength={8} placeholder="••••" value={pinInput} onChange={(e) => { setPinInput(e.target.value.replace(/\D/g, "")); setPinError(false); }} onKeyDown={(e) => e.key === "Enter" && void handlePinSubmit()} className="input-field text-center text-2xl tracking-[0.5em] font-bold" autoFocus />
+            {pinError && <p className="text-xs text-ifred text-center mt-2">Access denied. Check the PIN and try again.</p>}
+            <button onClick={() => void handlePinSubmit()} disabled={pinInput.length < 4 || pinSubmitting} className="btn-primary mt-4">{pinSubmitting ? "Verifying…" : "Unlock"}</button>
             <button onClick={closePinGate} className="w-full text-xs text-ifmuted text-center mt-3 py-2">Cancel</button>
           </div>
         </div>
       )}
 
-      {/* Content */}
       <main className={`max-w-md mx-auto px-4 py-4 pb-20 min-h-screen flex-1 ${view === "globe" ? "p-0 max-w-none" : ""}`}>
         <Suspense fallback={<PageLoader />}>
           {view === "home" && <ErrorBoundary><HomePage onNavigate={(v) => setView(v as View)} userId={userId} onViewCampaign={handleViewCampaign} /></ErrorBoundary>}
-          {view === "aiwizard" && userId && (
-            <ErrorBoundary>
-              <AICampaignWizard
-                userId={userId}
-                onComplete={(cid) => { setViewCampaignId(cid); setView("detail"); }}
-                onCancel={() => setView("dashboard")}
-              />
-            </ErrorBoundary>
-          )}
+          {view === "aiwizard" && userId && <ErrorBoundary><AICampaignWizard userId={userId} onComplete={(cid) => { setViewCampaignId(cid); setView("detail"); }} onCancel={() => setView("dashboard")} /></ErrorBoundary>}
           {view === "aiwizard" && !userId && <UserLogin onLogin={handleUserLogin} />}
-          {view === "stations" && userId && (
-            <ErrorBoundary>
-              <PlatformDashboard userId={userId} />
-            </ErrorBoundary>
-          )}
+          {view === "stations" && userId && <ErrorBoundary><PlatformDashboard userId={userId} /></ErrorBoundary>}
           {view === "stations" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "explore" && <ErrorBoundary><Explore onViewCampaign={handleViewCampaign} onNavigate={(v) => setView(v as View)} /></ErrorBoundary>}
           {view === "globe" && <ErrorBoundary><GlobePage /></ErrorBoundary>}
           {view === "facebook" && <ErrorBoundary><FacebookGroups /></ErrorBoundary>}
-          {view === "admin" && <ErrorBoundary><Admin adminUser={adminUser} /></ErrorBoundary>}
-          {view === "login" && (
-            <>
-              <UserLogin onLogin={handleUserLogin} />
-              <div className="text-center mt-2">
-                <button onClick={() => setView("forgotPassword")} className="text-xs text-ifcyan hover:underline">
-                  Forgot password?
-                </button>
-              </div>
-            </>
-          )}
-          {view === "dashboard" && userId && (
-            <UserDashboard
-              userId={userId}
-              userName={userName}
-              onLogout={handleUserLogout}
-              onEditCampaign={handleEditCampaign}
-              onNavigate={(v) => setView(v as View)}
-            />
-          )}
+          {view === "admin" && adminUser && adminSessionId && <ErrorBoundary><Admin adminUser={adminUser} adminSessionId={adminSessionId} /></ErrorBoundary>}
+          {view === "admin" && (!adminUser || !adminSessionId) && <PageLoader />}
+          {view === "login" && <><UserLogin onLogin={handleUserLogin} /><div className="text-center mt-2"><button onClick={() => setView("forgotPassword")} className="text-xs text-ifcyan hover:underline">Forgot password?</button></div></>}
+          {view === "dashboard" && userId && <UserDashboard userId={userId} userName={userName} onLogout={handleUserLogout} onEditCampaign={handleEditCampaign} onNavigate={(v) => setView(v as View)} />}
           {view === "dashboard" && !userId && <UserLogin onLogin={handleUserLogin} />}
-          {view === "editor" && userId && editCampaignId && (
-            <CampaignEditor
-              campaignId={editCampaignId}
-              userId={userId}
-              onBack={() => setView("dashboard")}
-            />
-          )}
-          {view === "editor" && userId && !editCampaignId && (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <p className="text-ifmuted text-sm">No campaign selected for editing.</p>
-              <button onClick={() => setView("dashboard")} className="text-ifcyan text-sm hover:underline">Go to Dashboard</button>
-            </div>
-          )}
+          {view === "editor" && userId && editCampaignId && <CampaignEditor campaignId={editCampaignId} userId={userId} onBack={() => setView("dashboard")} />}
+          {view === "editor" && userId && !editCampaignId && <div className="flex flex-col items-center justify-center py-20 gap-3"><p className="text-ifmuted text-sm">No campaign selected for editing.</p><button onClick={() => setView("dashboard")} className="text-ifcyan text-sm hover:underline">Go to Dashboard</button></div>}
           {view === "institutions" && <ErrorBoundary><InstitutionApply /></ErrorBoundary>}
           {view === "volunteer" && userId && <Volunteer userId={userId} userName={userName} />}
           {view === "volunteer" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "help" && <ErrorBoundary><Help /></ErrorBoundary>}
           {view === "thankYou" && <ErrorBoundary><ThankYou campaignTitle={lastDonation?.title} amount={lastDonation?.amount} donorName={lastDonation?.donor} onBackToExplore={() => setView("explore")} onViewCampaign={() => { if (viewCampaignId) setView("detail"); }} /></ErrorBoundary>}
-          {view === "platforms" && authed && <ErrorBoundary><PlatformAccountsSheet /></ErrorBoundary>}
-          {view === "platforms" && !authed && (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <p className="text-ifmuted text-sm">Admin access required.</p>
-              <button onClick={() => setView("login")} className="text-ifcyan text-sm hover:underline">Sign in as admin</button>
-            </div>
-          )}
+          {view === "platforms" && authed && adminSessionId && <ErrorBoundary><PlatformAccountsSheet /></ErrorBoundary>}
+          {view === "platforms" && (!authed || !adminSessionId) && <div className="flex flex-col items-center justify-center py-20 gap-3"><p className="text-ifmuted text-sm">Admin access required.</p><button onClick={() => setShowPinGate(true)} className="text-ifcyan text-sm hover:underline">Unlock admin session</button></div>}
           {view === "community" && userId && <Community userId={userId} />}
           {view === "community" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "donors" && <Donors onViewCampaign={handleViewCampaign} />}
@@ -355,12 +330,9 @@ export default function App() {
           {view === "notificationsPage" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "forgotPassword" && <ForgotPassword onBack={() => setView("login")} />}
           {view === "resetPassword" && <ResetPassword onComplete={() => setView("login")} />}
-
           {view === "profile" && userId && <Profile userId={userId} userName={userName} onNavigate={handleNavigate} onViewCampaign={handleViewCampaign} />}
           {view === "profile" && !userId && <UserLogin onLogin={handleUserLogin} />}
-
           {view === "compare" && <Compare onViewCampaign={handleViewCampaign} />}
-
           {view === "saved" && userId && <SavedCampaigns userId={userId} />}
           {view === "saved" && !userId && <UserLogin onLogin={handleUserLogin} />}
           {view === "donations" && <Donations userId={userId} />}
@@ -370,37 +342,16 @@ export default function App() {
           {view === "categories" && <Categories onSelectCategory={() => setView("explore")} />}
           {view === "settings" && userId && <Settings userId={userId} userName={userName} />}
           {view === "settings" && !userId && <UserLogin onLogin={handleUserLogin} />}
-          {view === "detail" && viewCampaignId && (
-            <ErrorBoundary>
-            <CampaignDetail
-              campaignId={viewCampaignId}
-              userId={userId}
-              onBack={() => setView("explore")}
-              onLogin={() => setView("login")}
-            />
-            </ErrorBoundary>
-          )}
+          {view === "detail" && viewCampaignId && <ErrorBoundary><CampaignDetail campaignId={viewCampaignId} userId={userId} onBack={() => setView("explore")} onLogin={() => setView("login")} /></ErrorBoundary>}
         </Suspense>
       </main>
 
-      {/* Bottom Navigation */}
       {view !== "admin" && !showPinGate && view !== "login" && view !== "detail" && view !== "aiwizard" && view !== "stations" && (
         <nav className="sticky bottom-0 z-40 bg-ifdark/95 backdrop-blur border-t border-ifborder">
           <div className="max-w-md mx-auto px-4 py-2 flex items-center justify-around">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === "dashboard" && !userId) {
-                    setView("login");
-                  } else {
-                    setView(item.id);
-                  }
-                }}
-                className={`nav-item ${view === item.id ? "nav-item-active" : "nav-item-inactive"}`}
-              >
-                <span className="text-lg">{item.icon}</span>
-                <span className="text-[10px] font-semibold">{item.label}</span>
+              <button key={item.id} onClick={() => { if (item.id === "dashboard" && !userId) setView("login"); else setView(item.id); }} className={`nav-item ${view === item.id ? "nav-item-active" : "nav-item-inactive"}`}>
+                <span className="text-lg">{item.icon}</span><span className="text-[10px] font-semibold">{item.label}</span>
               </button>
             ))}
           </div>
