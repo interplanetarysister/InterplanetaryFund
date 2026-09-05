@@ -1,3 +1,4 @@
+# Attempt 2: permanent verifier now matches the single-lane fenced topology.
 name: Apply PR 99 Transactional Fencing
 
 on:
@@ -86,9 +87,6 @@ jobs:
                           break
                   if not changed:
                       raise RuntimeError(f'Handler pattern missing for {name}')
-              # Revalidate wall-clock expiry before commit. If the lease row is
-              # changed by a successor, Convex transaction conflict/retry also
-              # forces the start assertion to re-evaluate and fail stale.
               final_return = block.rfind('\n    return ')
               if final_return < 0:
                   raise RuntimeError(f'Final return missing for {name}')
@@ -97,7 +95,6 @@ jobs:
                   block = block[:final_return] + end_guard + block[final_return:]
               files[path] = text[:start] + block + text[end:]
 
-          # Direct scheduled writers.
           fence('convex/autonomous.ts', 'checkSiteHealth')
           fence('convex/autonomous.ts', 'autoRepair')
           fence('convex/postContent.ts', 'autoGeneratePosts')
@@ -108,8 +105,6 @@ jobs:
           fence('convex/imageGen.ts', 'generateCampaignCoverUrls')
           fence('convex/fundConsolidation.ts', 'runAutoConsolidation')
 
-          # Agent writers, including unscheduled internal master entry points so
-          # they cannot bypass the serialized claim if invoked manually.
           for name in [
               'runAtlasAutomation', 'runPostProductionAutomation',
               'runDonorRelationsAutomation', 'runScoutAutomation',
@@ -117,8 +112,6 @@ jobs:
           ]:
               fence('convex/agentAutomation.ts', name)
 
-          # Nested Browserbase research must carry the same claim through every
-          # mutation that persists research results.
           fence(
               'convex/browserbase.ts', 'runAgentBrowserResearch',
               extra_arg=(
@@ -133,7 +126,6 @@ jobs:
           fence('convex/browserbase.ts', 'runAllAgentBrowserResearch')
           fence('convex/research.ts', 'runAgentResearch')
 
-          # Pass the token through nested internal calls.
           p = 'convex/research.ts'
           s = read(p)
           old = 'internal.browserbase.runAllAgentBrowserResearch, {}'
@@ -155,9 +147,6 @@ jobs:
               s = s.replace(old, 'internal.browserbase.runAllAgentBrowserResearch, { claimToken }', 1)
           files[p] = s
 
-          # Approved fee policy is 3% at withdrawal/consolidation, never a 5%
-          # fallback. This also prevents this scheduled lane from reintroducing
-          # the stale fee model while reconciling current main.
           p = 'convex/protocolAutoFix.ts'
           s = read(p)
           files[p] = s.replace('const platformFee = gross * 0.05;', 'const platformFee = gross * 0.03;')
