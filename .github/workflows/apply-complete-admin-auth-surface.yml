@@ -31,7 +31,7 @@ jobs:
         run: npm ci
 
       - name: Apply complete admin auth surface repair
-        run: node scripts/apply-complete-admin-auth-surface.mjs
+        run: node scripts/run-complete-admin-auth-surface.mjs
 
       - name: Verify complete admin auth surface
         run: node scripts/verify-complete-admin-auth-surface.mjs
