@@ -15,6 +15,7 @@ if (cronRegistrations.length !== 1) {
 for (const required of [
   "crons.hourly(",
   '"serialized-automation-lane"',
+  "{ minuteUTC: 0 }",
   "internal.automationCoordinator.runSerializedAutomation",
 ]) {
   if (!crons.includes(required)) throw new Error(`Serialized cron topology missing: ${required}`);
@@ -90,6 +91,27 @@ for (const required of [
 }
 if (coordinator.includes("await ctx.runMutation(internal.agentAutomation.runAllAgentAutomation")) {
   throw new Error("Coordinator must not invoke the legacy master writer");
+}
+
+// Preserve the legacy schedule contract while moving the writers behind one
+// fence: hourly site health; 2h master health check; 4h discovery/coordinator;
+// 6h repair/outreach/consolidation/browser research; 12h research/images;
+// exact UTC daily/weekly gates; and the original per-agent intervals.
+for (const required of [
+  "await runFencedMutation(\"site-health-monitor\"",
+  "isHourSlot(startedAt, 2)",
+  "isHourSlot(startedAt, 4)",
+  "isHourSlot(startedAt, 6)",
+  "isHourSlot(startedAt, 12)",
+  "utcDay === 6 && utcHour === 9",
+  "utcHour === 13",
+  "utcHour === 15",
+  '"Atlas": 4 * 60 * 60 * 1000',
+  '"Post Production Agent": 6 * 60 * 60 * 1000',
+  '"Donor Relations Agent": 6 * 60 * 60 * 1000',
+  '"Scout Agent": 8 * 60 * 60 * 1000',
+]) {
+  if (!coordinator.includes(required)) throw new Error(`Cadence contract missing: ${required}`);
 }
 
 const targets = [
