@@ -5,6 +5,17 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        }
+      ]
+    }
+  ],
   "env": {
     "VITE_CONVEX_URL": "https://rosy-butterfly-2.convex.cloud"
   }
