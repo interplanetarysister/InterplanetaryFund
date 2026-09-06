@@ -4,10 +4,12 @@
  * express written permission. See LICENSE file for full terms.
  */
 
-import { query, mutation, internalMutation } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-// PRIMITIVE PROCESS CORRECTION — defaults for ALL future campaigns
+// Defaults for future campaigns. Outreach defaults ON for a newly created
+// campaign unless explicitly supplied, but an existing false preference is
+// always preserved.
 export const createCampaign = mutation({
   args: {
     ifCampaignId: v.string(),
@@ -36,8 +38,13 @@ export const createCampaign = mutation({
       .first();
     if (existing) {
       await ctx.db.patch(existing._id, {
-        title: args.title, goalAmount: args.goalAmount, summary: args.summary, category: args.category,
-        outreachEnabled: true, paymentActive: true, status: args.status || "active",
+        title: args.title,
+        goalAmount: args.goalAmount,
+        summary: args.summary,
+        category: args.category,
+        outreachEnabled: args.outreachEnabled ?? existing.outreachEnabled,
+        paymentActive: args.paymentActive ?? existing.paymentActive,
+        status: args.status || existing.status || "active",
         raisedAmount: args.raisedAmount ?? existing.raisedAmount ?? 0,
         donorCount: args.donorCount ?? existing.donorCount ?? 0,
         aiTone: args.aiTone || existing.aiTone || "emotional",
@@ -51,20 +58,32 @@ export const createCampaign = mutation({
         coverImageUrl: args.coverImageUrl || existing.coverImageUrl,
         lastSynced: new Date().toISOString(),
       });
-      return { status: "updated", campaignId: existing._id, action: "enforced_defaults_on_existing" };
+      return { status: "updated", campaignId: existing._id, action: "defaults_preserved_existing_preferences" };
     }
+
     const campaignId = await ctx.db.insert("monitoredCampaigns", {
-      ifCampaignId: args.ifCampaignId, title: args.title, goalAmount: args.goalAmount,
-      summary: args.summary, category: args.category,
-      outreachEnabled: true, paymentActive: true, status: args.status || "active",
-      raisedAmount: args.raisedAmount ?? 0, donorCount: args.donorCount ?? 0,
-      aiTone: args.aiTone || "emotional", aiIdealDonors: args.aiIdealDonors || "",
-      aiInterestedOrgs: args.aiInterestedOrgs || "", aiPlatforms: args.aiPlatforms || "Facebook, Instagram, Email",
-      aiPriority: args.aiPriority || "emotional", storyPresent: args.storyPresent ?? false,
-      endDate: args.endDate || "", coverImagePresent: args.coverImagePresent ?? false,
-      coverImageUrl: args.coverImageUrl, lastSynced: new Date().toISOString(),
+      ifCampaignId: args.ifCampaignId,
+      title: args.title,
+      goalAmount: args.goalAmount,
+      summary: args.summary,
+      category: args.category,
+      outreachEnabled: args.outreachEnabled ?? true,
+      paymentActive: args.paymentActive ?? true,
+      status: args.status || "active",
+      raisedAmount: args.raisedAmount ?? 0,
+      donorCount: args.donorCount ?? 0,
+      aiTone: args.aiTone || "emotional",
+      aiIdealDonors: args.aiIdealDonors || "",
+      aiInterestedOrgs: args.aiInterestedOrgs || "",
+      aiPlatforms: args.aiPlatforms || "Facebook, Instagram, Email",
+      aiPriority: args.aiPriority || "emotional",
+      storyPresent: args.storyPresent ?? false,
+      endDate: args.endDate || "",
+      coverImagePresent: args.coverImagePresent ?? false,
+      coverImageUrl: args.coverImageUrl,
+      lastSynced: new Date().toISOString(),
     });
-    return { status: "created", campaignId, action: "enforced_defaults_on_new" };
+    return { status: "created", campaignId, action: "defaults_applied_new" };
   },
 });
 
@@ -75,8 +94,8 @@ export const enforceAllCampaignDefaults = mutation({
     const results = [];
     for (const campaign of campaigns) {
       const updates: Record<string, any> = {};
-      if (!campaign.outreachEnabled) updates.outreachEnabled = true;
-      if (!campaign.paymentActive) updates.paymentActive = true;
+      // outreachEnabled is intentionally not auto-modified; false is valid.
+      if (!campaign.paymentActive && campaign.status === "active") updates.paymentActive = true;
       if (!campaign.status || campaign.status === "") updates.status = "active";
       if (campaign.donorCount === undefined || campaign.donorCount === null) updates.donorCount = 0;
       if (campaign.raisedAmount === undefined || campaign.raisedAmount === null) updates.raisedAmount = 0;
@@ -94,8 +113,12 @@ export const enforceAllCampaignDefaults = mutation({
 export const getDefaults = query({
   args: {},
   handler: async () => ({
-    outreachEnabled: true, paymentActive: true, status: "active",
-    aiTone: "emotional", aiPriority: "emotional", aiPlatforms: "Facebook, Instagram, Email",
+    outreachEnabled: true,
+    paymentActive: true,
+    status: "active",
+    aiTone: "emotional",
+    aiPriority: "emotional",
+    aiPlatforms: "Facebook, Instagram, Email",
     feeStructure: { platformFeePercent: 5, processingFeePercent: 2.9, processingFeeFlat: 0.30 },
   }),
 });

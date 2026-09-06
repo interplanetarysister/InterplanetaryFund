@@ -47,6 +47,8 @@ import type * as institutions from "../institutions.js";
 import type * as interactions from "../interactions.js";
 import type * as midnightAccountReport from "../midnightAccountReport.js";
 import type * as outreach from "../outreach.js";
+import type * as outreachBrowserPublisher from "../outreachBrowserPublisher.js";
+import type * as outreachControl from "../outreachControl.js";
 import type * as paymentProviders from "../paymentProviders.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
 import type * as paypalWebhook from "../paypalWebhook.js";
@@ -76,11 +78,7 @@ import type * as userManagement from "../userManagement.js";
 import type * as volunteer from "../volunteer.js";
 import type * as withdrawalMethods from "../withdrawalMethods.js";
 
-import type {
-  ApiFromModules,
-  FilterApi,
-  FunctionReference,
-} from "convex/server";
+import type { ApiFromModules, FilterApi, FunctionReference } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
   accountTracker: typeof accountTracker;
@@ -122,6 +120,8 @@ declare const fullApi: ApiFromModules<{
   interactions: typeof interactions;
   midnightAccountReport: typeof midnightAccountReport;
   outreach: typeof outreach;
+  outreachBrowserPublisher: typeof outreachBrowserPublisher;
+  outreachControl: typeof outreachControl;
   paymentProviders: typeof paymentProviders;
   paypalCheckout: typeof paypalCheckout;
   paypalWebhook: typeof paypalWebhook;
@@ -152,30 +152,6 @@ declare const fullApi: ApiFromModules<{
   withdrawalMethods: typeof withdrawalMethods;
 }>;
 
-/**
- * A utility for referencing Convex functions in your app's public API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
-export declare const api: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "public">
->;
-
-/**
- * A utility for referencing Convex functions in your app's internal API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = internal.myModule.myFunction;
- * ```
- */
-export declare const internal: FilterApi<
-  typeof fullApi,
-  FunctionReference<any, "internal">
->;
-
+export declare const api: FilterApi<typeof fullApi, FunctionReference<any, "public">>;
+export declare const internal: FilterApi<typeof fullApi, FunctionReference<any, "internal">>;
 export declare const components: {};

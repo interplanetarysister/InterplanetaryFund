@@ -3,9 +3,10 @@
  * Copyright © 2026 Michelle Rogers. All Rights Reserved.
  *
  * Public HTTP endpoints for external webhooks:
- * - /paypalWebhook — PayPal IPN listener for donation confirmation
- * - /paypalReturn — Return URL after PayPal donation completes
- * - /stripeWebhook — Stripe checkout.session.completed handler
+ * - /paypalWebhook — PayPal IPN donation confirmation
+ * - /paypalReturn — PayPal return URL
+ * - /stripeWebhook — Stripe donation + subscription events
+ * - /subscriptionWebhook — provider-neutral signed subscription state sync
  */
 
 import { httpRouter } from "convex/server";
@@ -14,15 +15,24 @@ import { httpAction } from "./_generated/server";
 
 const PAYPAL_VERIFY_URL = "https://ipnpb.paypal.com/cgi-bin/webscr";
 
-// =====================================================
-// PAYPAL IPN WEBHOOK — PayPal POSTs here on payment events
-// =====================================================
+function constantTimeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return result === 0;
+}
+
+function normalizeSubscriptionStatus(status: string) {
+  if (status === "active") return "active";
+  if (status === "canceled") return "canceled";
+  if (status === "unpaid" || status === "past_due" || status === "incomplete" || status === "incomplete_expired") return "inactive";
+  return "inactive";
+}
+
 export const payPalIPN = httpAction(async (ctx, request) => {
   try {
     const body = await request.text();
     const params = new URLSearchParams(body);
-
-    // Verify the IPN message with PayPal
     const verifyBody = "cmd=_notify-validate&" + body;
     const verifyResponse = await fetch(PAYPAL_VERIFY_URL, {
       method: "POST",
@@ -30,40 +40,21 @@ export const payPalIPN = httpAction(async (ctx, request) => {
       body: verifyBody,
     });
     const verifyResult = await verifyResponse.text();
+    if (verifyResult !== "VERIFIED") return new Response("Invalid IPN", { status: 400 });
 
-    if (verifyResult !== "VERIFIED") {
-      console.error("PayPal IPN verification failed:", verifyResult);
-      return new Response("Invalid IPN", { status: 400 });
-    }
-
-    // Parse the IPN fields
-    const txnType = params.get("txn_type") || "";
-    const paymentStatus = params.get("payment_status") || "";
-    const mcGross = parseFloat(params.get("mc_gross") || "0");
-    const mcCurrency = params.get("mc_currency") || "USD";
-    const payerEmail = params.get("payer_email") || "";
-    const payerName = params.get("first_name") || "";
-    const receiverEmail = params.get("receiver_email") || "";
-    const txnId = params.get("txn_id") || "";
-    const itemName = params.get("item_name") || "";
-    const custom = params.get("custom") || "";
-    const note = params.get("note") || "";
-
-    // Call the internal mutation to process the donation
     await ctx.runMutation(internal.paypalWebhook.handlePayPalIPN, {
-      txnType,
-      paymentStatus,
-      mcGross,
-      mcCurrency,
-      payerEmail,
-      payerName: payerName.trim(),
-      receiverEmail,
-      txnId,
-      itemName,
-      custom,
-      note,
+      txnType: params.get("txn_type") || "",
+      paymentStatus: params.get("payment_status") || "",
+      mcGross: parseFloat(params.get("mc_gross") || "0"),
+      mcCurrency: params.get("mc_currency") || "USD",
+      payerEmail: params.get("payer_email") || "",
+      payerName: (params.get("first_name") || "").trim(),
+      receiverEmail: params.get("receiver_email") || "",
+      txnId: params.get("txn_id") || "",
+      itemName: params.get("item_name") || "",
+      custom: params.get("custom") || "",
+      note: params.get("note") || "",
     });
-
     return new Response("OK", { status: 200 });
   } catch (error: any) {
     console.error("PayPal IPN error:", error.message);
@@ -71,85 +62,73 @@ export const payPalIPN = httpAction(async (ctx, request) => {
   }
 });
 
-// =====================================================
-// PAYPAL RETURN URL — User lands here after donating
-// =====================================================
-export const payPalReturn = httpAction(async (ctx, request) => {
+export const payPalReturn = httpAction(async (_ctx, request) => {
   const url = new URL(request.url);
   const donationId = url.searchParams.get("donationId") || "";
   const tx = url.searchParams.get("tx") || "";
-
-  // Redirect to the site with success params
   const redirectUrl = new URL("https://interplanetary-fund.vercel.app");
   redirectUrl.hash = `#donation=success&donationId=${donationId}&tx=${tx}`;
   return Response.redirect(redirectUrl.toString(), 302);
 });
 
-// =====================================================
-// STRIPE WEBHOOK — Stripe sends checkout.session.completed here
-// =====================================================
 export const stripeWebhook = httpAction(async (ctx, request) => {
   try {
     const stripeSignature = request.headers.get("stripe-signature") || "";
     const rawBody = await request.text();
-
-    // In test mode, if no webhook secret is configured, parse the event directly
-    // In production, verify the signature
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
-
     let event: any;
 
     if (webhookSecret && stripeSignature) {
-      // Verify webhook signature using Stripe SDK approach (manual)
-      // We'll use Stripe's API to construct the event
       const stripe = await import("stripe");
-      const stripeClient = new stripe.default(webhookSecret ? (process.env.STRIPE_SECRET_KEY as string) : "", {
-        apiVersion: "2024-06-20",
-      });
-
+      const stripeClient = new stripe.default(process.env.STRIPE_SECRET_KEY as string, { apiVersion: "2024-06-20" });
       try {
-        event = stripeClient.webhooks.constructEvent(
-          rawBody,
-          stripeSignature,
-          webhookSecret
-        );
+        event = stripeClient.webhooks.constructEvent(rawBody, stripeSignature, webhookSecret);
       } catch (err: any) {
         console.error("Stripe webhook signature verification failed:", err.message);
-        return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+        return new Response("Invalid Stripe signature", { status: 400 });
       }
-    } else {
-      // Test mode without signature verification — parse directly
+    } else if (process.env.ALLOW_UNVERIFIED_STRIPE_WEBHOOKS === "true") {
+      // Explicit local/test escape hatch only. Production should never set this.
       event = JSON.parse(rawBody);
+    } else {
+      return new Response("Stripe webhook verification is not configured", { status: 503 });
     }
 
-    // Only handle checkout.session.completed
-    if (event.type !== "checkout.session.completed") {
+    if (String(event.type).startsWith("customer.subscription.")) {
+      const subscription = event.data?.object || {};
+      const metadata = subscription.metadata || {};
+      const managed = metadata.interplanetaryFundSubscription === "true" || metadata.plan === "campaign_manager" || metadata.outreachEligible !== undefined;
+      const userId = metadata.interplanetaryFundUserId || metadata.userId || "";
+      if (!managed || !userId) return new Response("OK - unrelated subscription", { status: 200 });
+
+      const expiresAt = subscription.current_period_end
+        ? new Date(Number(subscription.current_period_end) * 1000).toISOString()
+        : undefined;
+      const deleted = event.type === "customer.subscription.deleted";
+      await ctx.runMutation(internal.outreachControl.syncSubscriptionFromProvider, {
+        eventId: String(event.id),
+        userId: String(userId),
+        status: deleted ? "canceled" : normalizeSubscriptionStatus(String(subscription.status || "inactive")),
+        qualifiesForOutreach: metadata.outreachEligible !== "false" && (metadata.plan === "campaign_manager" || metadata.outreachEligible === "true" || metadata.interplanetaryFundSubscription === "true"),
+        expiresAt,
+        source: "stripe",
+      });
       return new Response("OK", { status: 200 });
     }
 
+    if (event.type !== "checkout.session.completed") return new Response("OK", { status: 200 });
     const session = event.data.object;
-
-    // Extract metadata
-    const donationId = session.metadata?.donationId;
-    const campaignId = session.metadata?.campaignId;
-    const campaignTitle = session.metadata?.campaignTitle;
-    const donorName = session.metadata?.donorName;
-    const amountTotal = session.amount_total || 0;
-    const paymentIntentId = session.payment_intent || "";
-    const customerEmail = session.customer_details?.email || "";
-
     await ctx.runMutation(internal.stripeWebhook.handleStripeEvent, {
       eventType: event.type,
       sessionId: session.id,
-      paymentIntentId,
-      amountTotal,
-      donationId,
-      campaignId,
-      campaignTitle,
-      donorName,
-      customerEmail,
+      paymentIntentId: session.payment_intent || "",
+      amountTotal: session.amount_total || 0,
+      donationId: session.metadata?.donationId,
+      campaignId: session.metadata?.campaignId,
+      campaignTitle: session.metadata?.campaignTitle,
+      donorName: session.metadata?.donorName,
+      customerEmail: session.customer_details?.email || "",
     });
-
     return new Response("OK", { status: 200 });
   } catch (error: any) {
     console.error("Stripe webhook error:", error.message);
@@ -157,24 +136,39 @@ export const stripeWebhook = httpAction(async (ctx, request) => {
   }
 });
 
+// Provider-neutral billing bridge for an authorized subscription service.
+// This endpoint cannot be used unless SUBSCRIPTION_WEBHOOK_SECRET is configured.
+export const subscriptionWebhook = httpAction(async (ctx, request) => {
+  try {
+    const expected = process.env.SUBSCRIPTION_WEBHOOK_SECRET || "";
+    if (!expected) return new Response("Subscription webhook not configured", { status: 503 });
+    const supplied = request.headers.get("x-if-subscription-secret") || "";
+    if (!supplied || !constantTimeEqual(supplied, expected)) return new Response("Unauthorized", { status: 401 });
+
+    const body: any = await request.json();
+    const allowed = ["active", "inactive", "expired", "canceled"];
+    if (!body?.eventId || !body?.userId || !body?.source || !allowed.includes(body?.status)) {
+      return new Response("Invalid subscription event", { status: 400 });
+    }
+    await ctx.runMutation(internal.outreachControl.syncSubscriptionFromProvider, {
+      eventId: String(body.eventId),
+      userId: String(body.userId),
+      status: String(body.status),
+      qualifiesForOutreach: body.qualifiesForOutreach === true,
+      expiresAt: body.expiresAt ? String(body.expiresAt) : undefined,
+      source: String(body.source),
+    });
+    return new Response("OK", { status: 200 });
+  } catch (error: any) {
+    console.error("Subscription webhook error:", error.message);
+    return new Response("Error", { status: 500 });
+  }
+});
+
 const http = httpRouter();
-
-http.route({
-  path: "/paypalWebhook",
-  method: "POST",
-  handler: payPalIPN,
-});
-
-http.route({
-  path: "/paypalReturn",
-  method: "GET",
-  handler: payPalReturn,
-});
-
-http.route({
-  path: "/stripeWebhook",
-  method: "POST",
-  handler: stripeWebhook,
-});
+http.route({ path: "/paypalWebhook", method: "POST", handler: payPalIPN });
+http.route({ path: "/paypalReturn", method: "GET", handler: payPalReturn });
+http.route({ path: "/stripeWebhook", method: "POST", handler: stripeWebhook });
+http.route({ path: "/subscriptionWebhook", method: "POST", handler: subscriptionWebhook });
 
 export default http;

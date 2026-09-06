@@ -21,6 +21,10 @@ crons.weekly("weekly-training-session", { dayOfWeek: "saturday", hourUTC: 9, min
 // === POST GENERATION & OUTREACH ===
 // Daily Auto-Post Generation — 8am Pacific (15:00 UTC)
 crons.daily("daily-post-generation", { hourUTC: 15, minuteUTC: 0 }, internal.postContent.autoGeneratePosts, {});
+// Canonical Outreach Dispatcher — every hour. The dispatcher itself enforces
+// admin toggles, emergency stop, quiet hours, subscription eligibility,
+// platform allowlists, and fail-closed provider verification.
+crons.interval("canonical-outreach-dispatch", { minutes: 60 }, internal.outreachControl.runDispatchCycle, {});
 // Proactive Group Discovery — Every 4 hours
 crons.interval("proactive-group-discovery", { minutes: 240 }, internal.facebook.discoverGroupsProactively, {});
 // Outreach Strategy Improvement — Every 6 hours
