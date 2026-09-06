@@ -11,6 +11,7 @@ const protocol = read("convex/protocol.ts");
 const protocolAutoFix = read("convex/protocolAutoFix.ts");
 const defaults = read("convex/campaignDefaults.ts");
 const campaigns = read("convex/campaigns.ts");
+const antiSpam = read("convex/antiSpam.ts");
 
 function assert(condition, message) {
   if (!condition) {
@@ -39,6 +40,14 @@ assert(outreach.includes("retryLimit"), "retry policy must be backend-controlled
 assert(outreach.includes("ensurePlatformPromotionPosts"), "platform outreach must include Interplanetary Fund promotion");
 assert(outreach.includes("syncSubscriptionFromProvider"), "provider subscription events must feed subscriber eligibility");
 
+assert(outreach.includes("FB_RESERVATION_PREFIX"), "Facebook targets must use server-side reservations");
+assert(outreach.includes("FB_MAX_PER_DAY = 3"), "Facebook daily campaign limit must be explicit");
+assert(outreach.includes("FB_COOLDOWN_MS"), "Facebook group cooldown must be enforced before publishing");
+assert(outreach.includes("spamBlocklist"), "Facebook target selection must honor the blocklist");
+assert(outreach.includes("selectAndReserveFacebookTarget"), "Facebook target selection and reservation must be atomic in Convex");
+assert(outreach.includes("clearFacebookReservation"), "Facebook reservation must be released after completion");
+assert(outreach.includes("facebook_duplicate_content"), "Facebook duplicate content must fail before browser submission");
+
 assert(browser.includes("BROWSERBASE_SOCIAL_CONTEXT_ID"), "Browserbase publisher must use persisted authenticated contexts");
 assert(browser.includes("persist: true"), "Browserbase session state must persist across runs");
 assert(browser.includes("facebook_submit_unverified"), "Facebook browser submission must fail closed without permalink evidence");
@@ -61,5 +70,7 @@ assert(defaults.includes("args.outreachEnabled ?? existing.outreachEnabled"), "e
 assert(!defaults.includes("if (!campaign.outreachEnabled) updates.outreachEnabled = true"), "default maintenance must not re-enable outreach");
 assert(campaigns.includes("args.outreachEnabled ?? existing?.outreachEnabled ?? true"), "single campaign sync must preserve existing opt-out");
 assert(campaigns.includes("campaign.outreachEnabled ?? existing?.outreachEnabled ?? true"), "bulk campaign sync must preserve existing opt-out");
+
+assert(antiSpam.includes("requireAdminSession"), "spam blocklist mutations must require an authenticated admin session");
 
 if (!process.exitCode) console.log("Outreach architecture invariants passed.");
