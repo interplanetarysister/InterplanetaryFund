@@ -58,10 +58,15 @@ jobs:
       - name: Build web application
         run: npm run build
 
-      - name: Start anonymous local Convex backend for runtime checks
+      - name: Start isolated anonymous local Convex backend for runtime checks
         shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ""
+          CONVEX_DEPLOYMENT: ""
+          CONVEX_AGENT_MODE: anonymous
         run: |
           set -euo pipefail
+          unset CONVEX_DEPLOY_KEY CONVEX_DEPLOYMENT
           export CONVEX_AGENT_MODE=anonymous
           nohup npx convex dev > /tmp/convex-dev.log 2>&1 &
           echo $! > /tmp/convex-dev.pid
@@ -80,8 +85,14 @@ jobs:
 
       - name: Verify concurrent provisioning and single-winner lease
         shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ""
+          CONVEX_DEPLOYMENT: ""
+          CONVEX_AGENT_MODE: anonymous
         run: |
           set -euo pipefail
+          unset CONVEX_DEPLOY_KEY CONVEX_DEPLOYMENT
+          export CONVEX_AGENT_MODE=anonymous
           npx convex run automationProvisioning:provisionAutomationLaneLock '{}' > /tmp/provision-a.txt 2>&1 & p1=$!
           npx convex run automationProvisioning:provisionAutomationLaneLock '{}' > /tmp/provision-b.txt 2>&1 & p2=$!
           wait $p1
@@ -106,8 +117,14 @@ jobs:
 
       - name: Verify stale-owner fencing and duplicate overlap suppression
         shell: bash
+        env:
+          CONVEX_DEPLOY_KEY: ""
+          CONVEX_DEPLOYMENT: ""
+          CONVEX_AGENT_MODE: anonymous
         run: |
           set -euo pipefail
+          unset CONVEX_DEPLOY_KEY CONVEX_DEPLOYMENT
+          export CONVEX_AGENT_MODE=anonymous
           npx convex run automationCoordinator:claimAutomationLane '{"token":"stale-owner","nowMs":0}' > /tmp/stale-claim.txt
           grep -qx 'true' /tmp/stale-claim.txt
           set +e
