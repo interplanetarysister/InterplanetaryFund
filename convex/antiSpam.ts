@@ -6,6 +6,7 @@
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireAdminSession } from "./adminUsers";
 
 // =====================================================
 // ANTI-SPAM GUARDRAILS
@@ -27,7 +28,6 @@ export const checkGroupCooldown = query({
   },
   handler: async (ctx, { groupId }) => {
     const now = Date.now();
-    const cooldownMs = COOLDOWN_HOURS * 60 * 60 * 1000;
 
     // Find the most recent post to this group
     const allPosts = await ctx.db.query("facebookGroupPosts").collect();
@@ -218,17 +218,21 @@ export const prePostCheck = query({
 
 // ---- BLOCKLIST MANAGEMENT ----
 
-// Groups or users that have asked to stop or been flagged
+// Groups or users that have asked to stop or been flagged. Blocklist writes are
+// security-sensitive and must originate from an authenticated admin session.
 export const addToBlocklist = mutation({
   args: {
+    sessionToken: v.string(),
     identifier: v.string(),      // group ID, user ID, or URL
     identifierType: v.string(),  // "group", "user", "url"
     reason: v.string(),          // why blocked
     platform: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdminSession(ctx, args.sessionToken, "content");
+    const { sessionToken: _sessionToken, ...entry } = args;
     return await ctx.db.insert("spamBlocklist", {
-      ...args,
+      ...entry,
       blockedAt: new Date().toISOString(),
     });
   },
