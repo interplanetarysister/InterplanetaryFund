@@ -47,6 +47,7 @@ import type * as institutions from "../institutions.js";
 import type * as interactions from "../interactions.js";
 import type * as midnightAccountReport from "../midnightAccountReport.js";
 import type * as outreach from "../outreach.js";
+import type * as outreachControl from "../outreachControl.js";
 import type * as paymentProviders from "../paymentProviders.js";
 import type * as paypalCheckout from "../paypalCheckout.js";
 import type * as paypalWebhook from "../paypalWebhook.js";
@@ -122,6 +123,7 @@ declare const fullApi: ApiFromModules<{
   interactions: typeof interactions;
   midnightAccountReport: typeof midnightAccountReport;
   outreach: typeof outreach;
+  outreachControl: typeof outreachControl;
   paymentProviders: typeof paymentProviders;
   paypalCheckout: typeof paypalCheckout;
   paypalWebhook: typeof paypalWebhook;
