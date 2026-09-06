@@ -23,13 +23,14 @@ import { v } from "convex/values";
 // CONNECTED ACCOUNTS
 // =====================================================
 
-// Get all connected accounts for a user
+// Get all connected accounts for the authenticated user.
 export const getConnectedAccounts = query({
   args: { userId: v.string() },
-  handler: async (ctx, { userId }) => {
+  handler: async (ctx) => {
+    const identity = await requireAuth(ctx);
     const accounts = await ctx.db
       .query("connectedAccounts")
-      .withIndex("byUserId", (q) => q.eq("userId", userId))
+      .withIndex("byUserId", (q) => q.eq("userId", identity.subject))
       .collect();
 
     return accounts.map((a) => ({
@@ -48,7 +49,7 @@ export const getConnectedAccounts = query({
   },
 });
 
-// Connect a new external account
+// Connect a new external account for the authenticated user.
 export const connectAccount = mutation({
   args: {
     userId: v.string(),
@@ -63,12 +64,14 @@ export const connectAccount = mutation({
     metadata: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
     checkRateLimit("connect_account", 5, 300000);
 
     // Check if this account is already connected
     const existing = await ctx.db
       .query("connectedAccounts")
-      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("provider"), args.provider))
       .filter((q) => q.eq(q.field("providerAccountId"), args.providerAccountId))
       .first();
@@ -90,7 +93,7 @@ export const connectAccount = mutation({
         revokedReason: undefined,
       });
       await logFinancialAction(ctx, {
-        userId: args.userId,
+        userId,
         action: "connect_account",
         initiatedBy: "user",
         provider: args.provider,
@@ -103,7 +106,7 @@ export const connectAccount = mutation({
     }
 
     const accountId = await ctx.db.insert("connectedAccounts", {
-      userId: args.userId,
+      userId,
       provider: args.provider,
       providerAccountId: args.providerAccountId,
       providerDisplayName: args.providerDisplayName,
@@ -119,7 +122,7 @@ export const connectAccount = mutation({
     });
 
     await logFinancialAction(ctx, {
-      userId: args.userId,
+      userId,
       action: "connect_account",
       initiatedBy: "user",
       provider: args.provider,
@@ -133,7 +136,7 @@ export const connectAccount = mutation({
   },
 });
 
-// Revoke a connected account
+// Revoke a connected account owned by the authenticated user.
 export const revokeAccount = mutation({
   args: {
     userId: v.string(),
@@ -141,11 +144,12 @@ export const revokeAccount = mutation({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
     const account: any = await ctx.db.get(args.connectedAccountId as any);
     if (!account) throw new Error("Connected account not found");
 
-    // Verify ownership
-    if (account.userId !== args.userId) {
+    if (account.userId !== userId) {
       throw new Error("You can only revoke your own connected accounts.");
     }
 
@@ -157,7 +161,6 @@ export const revokeAccount = mutation({
       refreshToken: undefined,
     });
 
-    // Revoke all authorizations for this account
     const authorizations = await ctx.db
       .query("accountAuthorizations")
       .withIndex("byConnectedAccount", (q) => q.eq("connectedAccountId", args.connectedAccountId))
@@ -172,10 +175,9 @@ export const revokeAccount = mutation({
       });
     }
 
-    // Disable any automation that was using this account
     const campaigns = await ctx.db
       .query("userCampaigns")
-      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
+      .withIndex("byUserId", (q) => q.eq("userId", userId))
       .collect();
 
     for (const campaign of campaigns) {
@@ -187,7 +189,7 @@ export const revokeAccount = mutation({
     }
 
     await logFinancialAction(ctx, {
-      userId: args.userId,
+      userId,
       action: "revoke_account",
       initiatedBy: "user",
       provider: account.provider,
@@ -205,12 +207,16 @@ export const revokeAccount = mutation({
   },
 });
 
-// Verify a connected account is still active
+// Verify a connected account only for its authenticated owner.
 export const verifyAccount = query({
   args: { connectedAccountId: v.string() },
   handler: async (ctx, { connectedAccountId }) => {
+    const identity = await requireAuth(ctx);
     const account: any = await ctx.db.get(connectedAccountId as any);
     if (!account) return { valid: false, reason: "Account not found" };
+    if (account.userId !== identity.subject) {
+      throw new Error("You can only verify your own connected accounts.");
+    }
 
     if (account.connectionStatus !== "active") {
       return { valid: false, reason: `Account is ${account.connectionStatus}` };
@@ -231,17 +237,23 @@ export const verifyAccount = query({
 // ACCOUNT AUTHORIZATIONS (per-campaign)
 // =====================================================
 
-// Get all authorizations for a campaign
+// Get authorizations only for a campaign owned by the authenticated user.
 export const getCampaignAuthorizations = query({
   args: { campaignId: v.string() },
   handler: async (ctx, { campaignId }) => {
+    const identity = await requireAuth(ctx);
+    const campaign = await ctx.db.get(campaignId as any);
+    if (!campaign) return [];
+    if (campaign.userId !== identity.subject) {
+      throw new Error("You can only view authorizations for your own campaigns.");
+    }
+
     const authorizations = await ctx.db
       .query("accountAuthorizations")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", campaignId))
       .filter((q) => q.eq(q.field("status"), "active"))
       .collect();
 
-    // Enrich with connected account info
     const enriched = [];
     for (const auth of authorizations) {
       const account: any = await ctx.db.get(auth.connectedAccountId as any);
@@ -265,7 +277,7 @@ export const getCampaignAuthorizations = query({
   },
 });
 
-// Authorize a connected account for a specific campaign
+// Authorize a connected account for a campaign owned by the authenticated user.
 export const authorizeAccount = mutation({
   args: {
     userId: v.string(),
@@ -276,7 +288,9 @@ export const authorizeAccount = mutation({
     agreementVersion: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Verify the user owns the campaign
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
+
     const campaign = await ctx.db
       .query("userCampaigns")
       .filter((q) => q.eq(q.field("_id"), args.campaignId as any))
@@ -286,14 +300,13 @@ export const authorizeAccount = mutation({
       throw new Error("Campaign not found");
     }
 
-    if (campaign.userId !== args.userId) {
+    if (campaign.userId !== userId) {
       throw new Error("You can only authorize accounts for your own campaigns.");
     }
 
-    // Verify the connected account belongs to this user
     const account: any = await ctx.db.get(args.connectedAccountId as any);
     if (!account) throw new Error("Connected account not found");
-    if (account.userId !== args.userId) {
+    if (account.userId !== userId) {
       throw new Error("This connected account does not belong to you.");
     }
 
@@ -301,7 +314,6 @@ export const authorizeAccount = mutation({
       throw new Error(`Connected account is ${account.connectionStatus}. Cannot authorize.`);
     }
 
-    // Check if authorization already exists
     const existing = await ctx.db
       .query("accountAuthorizations")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
@@ -310,7 +322,6 @@ export const authorizeAccount = mutation({
       .first();
 
     if (existing) {
-      // Update permissions
       await ctx.db.patch(existing._id, {
         permissions: args.permissions,
         authorizationScope: args.authorizationScope,
@@ -320,7 +331,7 @@ export const authorizeAccount = mutation({
     }
 
     const authId = await ctx.db.insert("accountAuthorizations", {
-      userId: args.userId,
+      userId,
       campaignId: args.campaignId,
       connectedAccountId: args.connectedAccountId,
       provider: account.provider,
@@ -331,7 +342,6 @@ export const authorizeAccount = mutation({
       agreementVersion: args.agreementVersion,
     });
 
-    // Update campaign's connected account IDs
     const currentIds = campaign.connectedAccountIds || [];
     if (!currentIds.includes(args.connectedAccountId)) {
       await ctx.db.patch(campaign._id, {
@@ -340,7 +350,7 @@ export const authorizeAccount = mutation({
     }
 
     await logFinancialAction(ctx, {
-      userId: args.userId,
+      userId,
       campaignId: args.campaignId,
       action: "authorize_account",
       initiatedBy: "user",
@@ -356,7 +366,7 @@ export const authorizeAccount = mutation({
   },
 });
 
-// Revoke authorization for a specific campaign
+// Revoke authorization owned by the authenticated user.
 export const revokeAuthorization = mutation({
   args: {
     userId: v.string(),
@@ -364,10 +374,12 @@ export const revokeAuthorization = mutation({
     reason: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
     const auth: any = await ctx.db.get(args.authorizationId as any);
     if (!auth) throw new Error("Authorization not found");
 
-    if (auth.userId !== args.userId) {
+    if (auth.userId !== userId) {
       throw new Error("You can only revoke your own authorizations.");
     }
 
@@ -377,14 +389,12 @@ export const revokeAuthorization = mutation({
       revokedReason: args.reason || "User revoked",
     });
 
-    // Disable automation if this authorization was used for it
     const campaign = await ctx.db
       .query("userCampaigns")
       .filter((q) => q.eq(q.field("_id"), auth.campaignId as any))
       .first();
 
     if (campaign && campaign.automationEnabled) {
-      // Check if there are any other active authorizations for this campaign
       const remaining = await ctx.db
         .query("accountAuthorizations")
         .withIndex("byCampaignId", (q) => q.eq("campaignId", auth.campaignId))
@@ -397,7 +407,7 @@ export const revokeAuthorization = mutation({
     }
 
     await logFinancialAction(ctx, {
-      userId: args.userId,
+      userId,
       campaignId: auth.campaignId,
       action: "revoke_authorization",
       initiatedBy: "user",
@@ -412,7 +422,7 @@ export const revokeAuthorization = mutation({
   },
 });
 
-// Check if a user has authorization for a specific action on a campaign
+// Check authorization for the authenticated user only.
 export const checkAuthorization = query({
   args: {
     userId: v.string(),
@@ -420,20 +430,20 @@ export const checkAuthorization = query({
     requiredPermission: v.string(),
   },
   handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const userId = identity.subject;
     const authorizations = await ctx.db
       .query("accountAuthorizations")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", args.campaignId))
       .filter((q) => q.eq(q.field("status"), "active"))
       .collect();
 
-    // Filter to authorizations for this user
-    const userAuths = authorizations.filter((a) => a.userId === args.userId);
+    const userAuths = authorizations.filter((a) => a.userId === userId);
 
     for (const auth of userAuths) {
       if (auth.permissions.includes(args.requiredPermission) || auth.permissions.includes("*")) {
-        // Verify the connected account is still active
         const account: any = await ctx.db.get(auth.connectedAccountId as any);
-        if (account && account.connectionStatus === "active") {
+        if (account && account.connectionStatus === "active" && account.userId === userId) {
           return {
             authorized: true,
             authorizationId: auth._id,
