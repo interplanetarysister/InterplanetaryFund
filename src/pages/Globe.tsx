@@ -33,7 +33,9 @@ export default function GlobePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
+  const autoRotateRef = useRef(true);
   const [viewMode, setViewMode] = useState<"day" | "night">("day");
 
   useEffect(() => {
@@ -103,7 +105,7 @@ export default function GlobePage() {
         controls.addEventListener("end", () => {
           if (interactionTimeout) clearTimeout(interactionTimeout);
           interactionTimeout = setTimeout(() => {
-            if (globeRef.current && mounted && autoRotate) {
+            if (globeRef.current && mounted && autoRotateRef.current) {
               globeRef.current.controls().autoRotate = true;
             }
           }, 5000);
@@ -115,7 +117,10 @@ export default function GlobePage() {
         setLoading(false);
       } catch (err) {
         console.error("Globe init failed:", err);
-        setLoading(false);
+        if (mounted) {
+          setError("The Earth view could not load. Check your connection and try again.");
+          setLoading(false);
+        }
       }
     }
 
@@ -140,6 +145,7 @@ export default function GlobePage() {
   const toggleRotate = () => {
     if (globeRef.current) {
       const newVal = !autoRotate;
+      autoRotateRef.current = newVal;
       setAutoRotate(newVal);
       globeRef.current.controls().autoRotate = newVal;
     }
@@ -182,8 +188,23 @@ export default function GlobePage() {
           </div>
         )}
 
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-ifdark p-6 text-center">
+            <div className="flex max-w-sm flex-col items-center gap-3">
+              <p className="text-sm text-iftext">{error}</p>
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="rounded-full border border-ifcyan px-4 py-2 text-xs text-ifcyan"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Controls */}
-        {!loading && (
+        {!loading && !error && (
           <>
             {/* Auto-rotate toggle */}
             <button
