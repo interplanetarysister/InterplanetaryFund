@@ -111,6 +111,10 @@ Shared requirements:
 - ambiguous browser submissions enter verification state and are not blindly retried
 - web and Capacitor app use the same Convex-backed controls
 
+Runtime activation note:
+- Browserbase Facebook/Instagram contexts are credentials derived from authorized logged-in sessions and are never committed to source control.
+- If those contexts are not present in the production runtime, the corresponding browser-only publisher remains intentionally disabled/fail-closed until an authorized account session is connected.
+
 ---
 
 ## ENFORCEMENT MECHANISMS
