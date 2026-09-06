@@ -186,7 +186,7 @@ async function selectAndReserveFacebookTarget(ctx: any, campaignId: string, cont
   const postedToday = campaignPosts.filter((post: any) => post.postStatus === "posted" && post.postedAt?.startsWith(today));
 
   const allSettings = await ctx.db.query("adminSettings").collect();
-  const activeReservations = allSettings.flatMap((row: any) => {
+  const activeReservations: Array<{ row: any; reservation: FacebookReservation }> = allSettings.flatMap((row: any) => {
     if (!row.key.startsWith(FB_RESERVATION_PREFIX)) return [];
     try {
       const reservation = JSON.parse(row.value) as FacebookReservation;
