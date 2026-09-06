@@ -28,7 +28,11 @@ assert(!legacyBlock.includes('"campaign_manager"'), "outreach toggle must not gr
 assert(!/subscriptionTier\s*:\s*enabled/.test(legacyBlock), "outreach toggle must not derive subscription tier from enabled state");
 
 assert(outreach.includes("profile?.aiCrossPostingEnabled && subscriptionIsActive(subscription)"), "subscriber dispatch must require user permission and active subscription");
-assert(outreach.includes("userCampaign.outreachEnabled === false"), "campaign-level outreach opt-out must gate dispatch");
+assert(outreach.includes('kind: "monitored"'), "dispatcher must resolve monitored campaigns, not only native user campaigns");
+assert(outreach.includes('campaign.kind !== "platform" && (campaign.status !== "active" || !campaign.outreachEnabled)'), "all non-platform campaigns must be active and outreach-enabled before dispatch");
+assert(outreach.includes("ensureCampaignActivityPosts"), "outreach must generate campaign activity/milestone work");
+assert(outreach.includes("campaign_update:"), "recent campaign updates must be eligible for outreach");
+assert(outreach.includes("milestone_"), "campaign funding milestones must be eligible for outreach");
 assert(outreach.includes("if (args.ok && args.externalId)"), "posted status must require external evidence");
 assert(outreach.includes('status: "verification_pending"'), "ambiguous browser submissions must not be blindly retried");
 assert(outreach.includes("retryLimit"), "retry policy must be backend-controlled");
