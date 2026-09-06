@@ -1,0 +1,29 @@
+name: User Campaigns Identity Boundary
+
+on:
+  pull_request:
+    paths:
+      - "convex/userCampaigns.ts"
+      - "scripts/verify-user-campaigns-identity-boundaries.mjs"
+      - ".github/workflows/user-campaigns-identity-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify userCampaigns identity boundaries
+        run: node scripts/verify-user-campaigns-identity-boundaries.mjs
