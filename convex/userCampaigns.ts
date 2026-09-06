@@ -89,7 +89,6 @@ export const getCampaign = query({
       isFeatured: campaign.isFeatured,
       isVerified: campaign.isVerified,
       cashappTag: campaign.cashappTag,
-      ownerUserId: campaign.userId,
       outreachEnabled: campaign.outreachEnabled,
       aiFaq: campaign.aiFaq,
       aiSocialCaptions: campaign.aiSocialCaptions,
@@ -609,7 +608,7 @@ export const getRecommendations = query({
 
       const donations = await ctx.db
         .query("donations")
-        .filter((q) => q.eq("userId", userId))
+        .filter((q) => q.eq(q.field("userId"), userId))
         .collect();
       donations.forEach((d: any) => {
         interactedCampaigns.add(d.campaignId);
@@ -663,7 +662,7 @@ export const searchCampaigns = query({
       const matchesQuery = !q ||
         c.title?.toLowerCase().includes(q) ||
         c.summary?.toLowerCase().includes(q) ||
- c.description?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q) ||
         c.category?.toLowerCase().includes(q) ||
         c.organizerName?.toLowerCase().includes(q);
       const matchesCategory = !category || category === "All" || c.category === category;
