@@ -1,0 +1,1 @@
+Do not merge PR #99 directly. Its implementation is a reference lineage only. This branch is the current-main reconciliation and must carry forward only compatible changes with current exact-head validation.
