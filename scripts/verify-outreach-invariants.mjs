@@ -7,6 +7,10 @@ const browser = read("convex/outreachBrowserPublisher.ts");
 const ui = read("src/components/UserManagement.tsx");
 const http = read("convex/http.ts");
 const crons = read("convex/crons.ts");
+const protocol = read("convex/protocol.ts");
+const protocolAutoFix = read("convex/protocolAutoFix.ts");
+const defaults = read("convex/campaignDefaults.ts");
+const campaigns = read("convex/campaigns.ts");
 
 function assert(condition, message) {
   if (!condition) {
@@ -24,6 +28,7 @@ assert(!legacyBlock.includes('"campaign_manager"'), "outreach toggle must not gr
 assert(!/subscriptionTier\s*:\s*enabled/.test(legacyBlock), "outreach toggle must not derive subscription tier from enabled state");
 
 assert(outreach.includes("profile?.aiCrossPostingEnabled && subscriptionIsActive(subscription)"), "subscriber dispatch must require user permission and active subscription");
+assert(outreach.includes("userCampaign.outreachEnabled === false"), "campaign-level outreach opt-out must gate dispatch");
 assert(outreach.includes("if (args.ok && args.externalId)"), "posted status must require external evidence");
 assert(outreach.includes('status: "verification_pending"'), "ambiguous browser submissions must not be blindly retried");
 assert(outreach.includes("retryLimit"), "retry policy must be backend-controlled");
@@ -43,7 +48,14 @@ assert(ui.includes("Verify Browserbase"), "shared admin UI must expose Browserba
 assert(http.includes("SUBSCRIPTION_WEBHOOK_SECRET"), "provider-neutral subscription webhook must require a configured secret");
 assert(http.includes("constantTimeEqual"), "subscription webhook secret comparison must avoid ordinary direct equality");
 assert(http.includes("customer.subscription."), "Stripe subscription lifecycle events must be handled");
-
 assert(crons.includes("canonical-outreach-dispatch"), "canonical outreach dispatcher must be scheduled");
+
+assert(!protocol.includes("Outreach disabled — should be auto-fixed to true"), "protocol audit must not treat outreach opt-out as a violation");
+assert(!protocolAutoFix.includes('campaignFixes.push("P-1: Enabled outreach")'), "daily protocol auto-fix must not re-enable opted-out campaigns");
+assert(!protocolAutoFix.includes("updates.outreachEnabled = true"), "migration must not re-enable opted-out campaigns");
+assert(defaults.includes("args.outreachEnabled ?? existing.outreachEnabled"), "existing campaign defaults must preserve outreach preference");
+assert(!defaults.includes("if (!campaign.outreachEnabled) updates.outreachEnabled = true"), "default maintenance must not re-enable outreach");
+assert(campaigns.includes("args.outreachEnabled ?? existing?.outreachEnabled ?? true"), "single campaign sync must preserve existing opt-out");
+assert(campaigns.includes("campaign.outreachEnabled ?? existing?.outreachEnabled ?? true"), "bulk campaign sync must preserve existing opt-out");
 
 if (!process.exitCode) console.log("Outreach architecture invariants passed.");
