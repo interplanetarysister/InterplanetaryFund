@@ -10,122 +10,145 @@
 
 ## PROTOCOL STATEMENT
 
-Every campaign in the Interplanetary Fund must comply with these standards from the moment of creation. There is no campaign that exists outside this protocol. This applies retroactively to existing campaigns, immediately to current campaigns, and automatically to all future campaigns.
+Every campaign in the Interplanetary Fund must comply with these standards from the moment of creation. This applies to existing, current, and future campaigns. Automation may repair missing or invalid operational data, but it must not override an explicit campaign/user outreach preference or other consent state.
 
 ---
 
 ## PROTOCOL STANDARDS
 
 ### P-1: OUTREACH PREFERENCE STANDARD
-- New campaigns default to `outreach_enabled = true` unless an authorized creator explicitly chooses otherwise.
-- An explicit `outreach_enabled = false` is a valid campaign opt-out and MUST be preserved by synchronization, migrations, protocol audits, auto-fix jobs, agents, and administrators unless the authorized campaign owner changes it.
-- No background process may silently re-enable outreach after an opt-out.
-- Subscriber outreach additionally requires an active qualifying subscription and the user's separate outreach permission; outreach controls MUST NOT grant, revoke, or infer paid subscription state.
-- **Enforcement:** Canonical outreach dispatcher plus exact-head outreach invariant checks.
+- Every campaign MUST have an explicit `outreachEnabled` boolean preference.
+- New campaigns may default to `true` unless the creator explicitly selects otherwise.
+- `false` is a valid opt-out and MUST be preserved by protocol enforcement, migrations, synchronization jobs, agents, and admin automation.
+- A global outreach-agent toggle does not override a campaign-level opt-out.
+- Subscriber outreach additionally requires an active qualifying subscription and user-level subscriber-outreach permission.
+- **Enforcement:** Backend dispatch checks and CI invariants; daily auto-fix may not turn outreach back on.
 
 ### P-2: AI PROFILE STANDARD
-Every campaign's `ai_profile` MUST contain:
+Every campaign's AI profile SHOULD contain:
 - `tone` — defined and non-empty
 - `ideal_donors` — defined and non-empty
 - `interested_orgs` — defined and non-empty
 - `platforms` — at least one platform specified
-- `priority` — defined (emotional, professional, or other valid value)
-- **Enforcement:** Flagged in protocol audit (credit-free backend function).
+- `priority` — defined
+- **Enforcement:** Flagged in protocol audit; missing safe defaults may be filled automatically.
 
 ### P-3: STORY STANDARD
 Every campaign MUST have:
-- `story` — non-empty, AI-optimized
-- At least one entry in `story_versions`
-- Each story version MUST have `seo: true` and `accessibility: true`
+- `story` — non-empty, optimized for clarity and accessibility
 - `summary` — non-empty, concise description for SEO/meta
-- **Enforcement:** Flagged in protocol audit (credit-free backend function).
+- **Enforcement:** Flagged in protocol audit.
 
 ### P-4: PAYMENT READINESS STANDARD
-Every ACTIVE campaign MUST have a functional payment path:
-- `cashapp_tag` or Stripe connection or other payment integration
-- No active campaign may exist without the ability to receive donations
-- **Enforcement:** Flagged in protocol audit. Builder AI responsible for payment integration.
+Every ACTIVE campaign MUST have a functional payment path.
+- No active campaign may be represented as ready to accept donations without a usable payment path.
+- **Enforcement:** Flagged in protocol audit.
 
 ### P-5: DATA COMPLETENESS STANDARD
 Every campaign MUST have:
 - `title` — non-empty
 - `summary` — non-empty
-- `story` — non-empty
+- `story` — non-empty where required by campaign type
 - `category` — defined
-- `goal_amount` — greater than 0
-- `cover_image_url` — present
-- `end_date` — defined for active campaigns
-- `status` — defined (active, draft, or archived)
-- **Enforcement:** Flagged in protocol audit (credit-free backend function).
+- `goalAmount` — greater than 0
+- `coverImageUrl` — present where required
+- `endDate` — defined for active campaigns where applicable
+- `status` — defined
+- **Enforcement:** Flagged in protocol audit; safe missing defaults may be filled automatically.
 
 ### P-6: AGENT ASSIGNMENT STANDARD
-Every campaign SHOULD be assigned to agents for management:
-- Fundraising Agent — outreach and revenue optimization
-- Story Agent — story generation and optimization
-- Donor Relations Agent — donor engagement and retention
-- Protocol Agent — compliance monitoring
-- Analytics Agent — revenue tracking and reporting
-- **Enforcement:** Tracked in the Agent entity and updated by weekly training backend functions.
+Every active campaign SHOULD be available to the appropriate campaign-management agents:
+- Fundraising / outreach
+- Story/content
+- Donor relations
+- Protocol/compliance
+- Analytics
+- Treasury where financial actions are authorized
+- Platform synchronization where a platform connection exists
+
+Agent assignment does not itself authorize an external side effect. External actions remain subject to the applicable user/campaign authorization and platform credentials.
 
 ### P-7: EXTERNAL PLATFORM SYNC STANDARD
-Any campaign that exists on an external crowdfunding platform SHOULD be connected to the Interplanetary Fund for live sync:
-- External platform connection recorded (platform_name, campaign_url, sync_method)
-- Raised amount, goal amount, and donor count synced from external platform
-- Last sync timestamp tracked
-- Sync status tracked (success, error, pending)
-- Unified dashboard shows all connected accounts at once
-- **Enforcement:** Platform Sync Agent monitors connections.
+Any campaign that exists on an external crowdfunding platform SHOULD be connected to Interplanetary Fund when the campaign owner has authorized that connection:
+- platform/account connection recorded
+- raised amount, goal amount, and donor count synchronized when supported
+- last sync timestamp and health status tracked
+- failures surfaced rather than silently treated as success
+- campaign outreach preference preserved during synchronization
 
 ### P-8: FUND MIGRATION & HOLDING ACCOUNT STANDARD
-Any funds migrated from external platforms into the Interplanetary Fund MUST be tracked through the holding-account and campaign-ledger systems:
-- Available balance displayed as GROSS amount before withdrawal-time platform fees.
-- Fee source and net recipient amount must be transparent before withdrawal.
-- Platform and processor fees remain separate authorities and must follow the currently approved fee configuration.
-- All payouts tracked with status (pending, processing, completed, failed).
-- **Enforcement:** Treasury/financial-audit backend functions.
+Any funds migrated from external platforms into Interplanetary Fund MUST be tracked through the canonical financial system and audit trail. Financial calculations and current fee policy are controlled by the treasury/fee configuration and payment implementation; this protocol document does not override the current fee configuration.
 
 ### P-9: OUTREACH SAFETY & EXTERNAL-PROOF STANDARD
 All automated external outreach MUST:
 - respect emergency stop, global agent controls, campaign opt-out, subscription/user permission gates where applicable, platform allowlists, quiet hours, retry limits, blocklists, cooldowns, and daily limits;
 - avoid duplicate or near-duplicate Facebook group posts;
-- reserve a Facebook destination atomically before browser submission so concurrent dispatches cannot target the same group;
-- require durable external evidence (provider ID/permalink) before marking a post `posted`;
+- reserve Facebook destinations atomically before browser submission so concurrent dispatches cannot target the same group;
+- require durable external evidence such as a provider ID or permalink before a post is marked `posted`;
 - hold ambiguous browser submissions in `verification_pending` instead of blindly retrying;
 - use authenticated persistent Browserbase contexts for browser-only social accounts and fail closed if those contexts are unavailable;
+- require authenticated admin authorization for spam-blocklist writes;
 - log dispatch decisions, failures, external evidence, subscription changes, and admin control changes.
+
+---
+
+## OUTREACH AGENT CONTROL STANDARD
+
+Interplanetary Fund has two distinct outreach modes:
+
+1. **Platform Outreach Agent** — controlled globally by admin. It may promote active, outreach-enabled campaigns, campaign activity/milestones, and Interplanetary Fund itself through authorized platform-owned channels.
+2. **Subscriber Outreach Agent** — controlled separately by admin. It may perform additional outreach for a user's outreach-enabled campaign only when the backend verifies an active qualifying subscription and the user-level subscriber-outreach permission is enabled.
+
+Shared requirements:
+- global emergency stop
+- platform allowlist
+- quiet hours and dispatch limits
+- anti-spam/cooldown enforcement
+- backend authorization and OBO checks where applicable
+- direct API preferred when available and reliable
+- Browserbase persistent authenticated contexts for browser-only channels
+- external permalink/ID or equivalent provider evidence before a post is marked `posted`
+- ambiguous browser submissions enter verification state and are not blindly retried
+- web and Capacitor app use the same Convex-backed controls
 
 ---
 
 ## ENFORCEMENT MECHANISMS
 
 ### 1. Daily Protocol Enforcement
-- Runs as a Convex backend job.
-- Audits campaign data without overriding explicit outreach opt-outs.
+- `convex/protocolAutoFix.ts`
+- Repairs safe data issues but MUST preserve `outreachEnabled=false`.
 
 ### 2. Canonical Outreach Dispatcher
-- Runs hourly.
-- Applies all outreach gates before scheduling external work.
-- Platform Outreach and Subscriber Outreach are independently controllable.
+- `convex/outreachControl.ts`
+- Scheduled hourly from `convex/crons.ts`.
+- Re-checks global controls, emergency stop, quiet hours, campaign opt-out, subscription state, user permission, and platform eligibility at execution time.
 
-### 3. Subscription Authority
-- Subscription activity is maintained by authorized billing/provider events or an explicit super-admin billing correction.
-- Outreach toggles never create subscription entitlement.
+### 3. Saturday Agent Training
+- `convex/protocol.ts` weekly training and reporting.
+- Outreach opt-out is not a protocol violation.
 
-### 4. Browserbase Social Publishing
-- Facebook/Instagram browser publishing requires configured Browserbase credentials plus an authenticated persistent context.
-- No authenticated context means no external post is claimed.
+### 4. Treasury Management
+- Canonical treasury/payment code and fee configuration govern financial operations.
 
-### 5. Exact-Head Validation
-- Node 24 typecheck, production web build, admin-auth boundary checks, and outreach architecture invariants must pass on the exact pull-request head before merge.
+### 5. CI Invariants
+- `scripts/verify-outreach-invariants.mjs`
+- Exact-head validation prevents reintroduction of outreach/subscription coupling, forced opt-in, false publish success, missing Browserbase fail-closed behavior, and unauthenticated blocklist writes.
+
+---
+
+## AGENT ROSTER
+
+The canonical agent roster is stored in Convex and may change over time. Agent state, permissions, automation toggles, memory, activity, and schedules must be read from the current backend rather than hard-coded historical counts in this document.
 
 ---
 
 ## AMENDMENT PROCESS
-This protocol may be amended by Michelle Rogers (Owner) or the current Chief of Staff with Michelle's approval. All amendments are logged with date and rationale.
+This protocol may be amended by Michelle Rogers (Owner) or by an authorized project agent acting within Michelle's approved project direction. Amendments must be recorded in source control with rationale.
 
 ### Amendment Log
 - 2026-08-01: Added P-7 (External Platform Sync) and P-8 (Fund Migration & Holding Account).
-- 2026-08-01: Updated enforcement to credit-free backend functions.
+- 2026-08-01: Updated recurring protocol work toward credit-free backend functions.
 - 2026-08-07: Authority transferred from Lyra to Solene.
-- 2026-09-06: Amended P-1 so explicit campaign outreach opt-outs are valid and cannot be silently reversed.
-- 2026-09-06: Added P-9 canonical outreach safety, Browserbase external-proof, anti-spam, and subscription-authority requirements.
+- 2026-09-06: Amended P-1. Outreach now defaults ON for new campaigns but explicit opt-out is valid and may not be overridden by protocol enforcement, synchronization, migration, or outreach agents. Added separate Platform Outreach and Subscriber Outreach control requirements.
+- 2026-09-06: Added P-9 for canonical outreach safety, atomic Facebook reservations, external proof, Browserbase fail-closed behavior, and authenticated spam-blocklist writes.
