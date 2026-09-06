@@ -1,0 +1,31 @@
+name: Consolidation History Authorization
+
+on:
+  pull_request:
+    paths:
+      - "convex/fundConsolidation.ts"
+      - "scripts/verify-consolidation-history-auth.mjs"
+      - ".github/workflows/consolidation-history-auth.yml"
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact pull request head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Verify consolidation history authorization boundary
+        run: node scripts/verify-consolidation-history-auth.mjs
