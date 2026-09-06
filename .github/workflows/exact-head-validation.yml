@@ -38,6 +38,9 @@ jobs:
             node scripts/verify-complete-admin-auth-surface.mjs
           fi
 
+      - name: Verify outreach architecture invariants
+        run: node scripts/verify-outreach-invariants.mjs
+
       - name: Typecheck
         run: npx tsc --noEmit
 
