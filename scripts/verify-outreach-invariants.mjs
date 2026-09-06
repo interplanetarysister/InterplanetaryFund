@@ -48,8 +48,13 @@ assert(outreach.includes("selectAndReserveFacebookTarget"), "Facebook target sel
 assert(outreach.includes("clearFacebookReservation"), "Facebook reservation must be released after completion");
 assert(outreach.includes("facebook_duplicate_content"), "Facebook duplicate content must fail before browser submission");
 
+assert(browser.includes('"use node"'), "Browserbase publisher must run in the Convex Node runtime");
 assert(browser.includes("BROWSERBASE_SOCIAL_CONTEXT_ID"), "Browserbase publisher must use persisted authenticated contexts");
 assert(browser.includes("persist: true"), "Browserbase session state must persist across runs");
+assert(browser.includes("Target.attachToTarget"), "Browserbase publisher must attach to a CDP page target");
+assert(browser.includes("Runtime.evaluate"), "Browserbase publisher must drive Browserbase through standard CDP");
+assert(browser.includes("Input.dispatchMouseEvent"), "browser posting clicks must use browser input events");
+assert(!browser.includes('from \"playwright-core\"'), "Convex Browserbase publisher must not bundle playwright-core");
 assert(browser.includes("facebook_submit_unverified"), "Facebook browser submission must fail closed without permalink evidence");
 assert(browser.includes("instagram_permalink_unverified"), "Instagram browser submission must fail closed without permalink evidence");
 

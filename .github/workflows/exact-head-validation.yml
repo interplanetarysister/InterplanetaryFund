@@ -16,6 +16,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
     steps:
       - name: Checkout exact pull request head
         uses: actions/checkout@v6
@@ -43,6 +45,12 @@ jobs:
       # Browserbase fail-closed publishing, anti-spam reservations, and admin auth.
       - name: Verify outreach architecture invariants
         run: node scripts/verify-outreach-invariants.mjs
+
+      # Convex bundles server modules differently from Vite/tsc. Run codegen here
+      # so unsupported Node dependencies cannot pass PR checks and then fail only
+      # during the production Convex deploy.
+      - name: Verify Convex bundling and generated API
+        run: npx convex codegen
 
       - name: Typecheck
         run: npx tsc --noEmit
