@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interplanetary Fund — Web & App Page Title Registry</title>
+  <style>body{font-family:system-ui,sans-serif;max-width:1200px;margin:40px auto;padding:0 20px;line-height:1.45}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#f3f3f3}code{white-space:nowrap}.note{padding:12px;background:#f7f7f7;border-left:4px solid #777}</style>
+</head>
+<body>
+<h1>Interplanetary Fund — Web & App Page Title Registry</h1>
+<p>This is the canonical documentation map for page/component titles across the current SPA app surface. It keeps the user-facing page name, app view identifier, navigation label where one exists, and source component together.</p>
+<div class="note"><strong>Rule:</strong> The visible page title is the canonical human-readable name. App navigation labels may be shorter aliases. The application currently uses SPA views rather than one physical HTML file per React page; these records document the matching HTML title names without replacing the React pages.</div>
+<table>
+<thead><tr><th>Page title</th><th>App view</th><th>Tab/nav label</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Home</td><td><code>home</code></td><td>Home</td><td><code>src/pages/Home.tsx</code></td></tr>
+<tr><td>Discover</td><td><code>explore</code></td><td>Discover</td><td><code>src/pages/Explore.tsx</code></td></tr>
+<tr><td>Earth</td><td><code>globe</code></td><td>Earth</td><td><code>src/pages/Globe.tsx</code></td></tr>
+<tr><td>Outreach Sectors</td><td><code>facebook</code></td><td>Sectors</td><td><code>src/pages/FacebookGroups.tsx</code></td></tr>
+<tr><td>My Missions</td><td><code>dashboard</code></td><td>My Missions</td><td><code>src/pages/UserDashboard.tsx</code></td></tr>
+<tr><td>Community</td><td><code>community</code></td><td>Community</td><td><code>src/pages/Community.tsx</code></td></tr>
+<tr><td>Help Center</td><td><code>help</code></td><td>Help</td><td><code>src/pages/Help.tsx</code></td></tr>
+<tr><td>Leaders</td><td><code>leaderboard</code></td><td>Leaders</td><td><code>src/pages/Leaderboard.tsx</code></td></tr>
+<tr><td>Compare</td><td><code>compare</code></td><td>Compare</td><td><code>src/pages/Compare.tsx</code></td></tr>
+<tr><td>Donors</td><td><code>donors</code></td><td>Donors</td><td><code>src/pages/Donors.tsx</code></td></tr>
+<tr><td>Donations</td><td><code>donations</code></td><td>Donations</td><td><code>src/pages/Donations.tsx</code></td></tr>
+<tr><td>Finance</td><td><code>financial</code></td><td>Finance</td><td><code>src/pages/FinancialManagement.tsx</code></td></tr>
+<tr><td>Saved</td><td><code>saved</code></td><td>Saved</td><td><code>src/pages/SavedCampaigns.tsx</code></td></tr>
+<tr><td>Categories</td><td><code>categories</code></td><td>Categories</td><td><code>src/pages/Categories.tsx</code></td></tr>
+<tr><td>Settings</td><td><code>settings</code></td><td>Settings</td><td><code>src/pages/Settings.tsx</code></td></tr>
+<tr><td>Profile</td><td><code>profile</code></td><td>Profile</td><td><code>src/pages/Profile.tsx</code></td></tr>
+<tr><td>Admin Cockpit</td><td><code>admin</code></td><td>—</td><td><code>src/pages/Admin.tsx</code></td></tr>
+<tr><td>AI Campaign Wizard</td><td><code>aiwizard</code></td><td>—</td><td><code>src/pages/AICampaignWizard.tsx</code></td></tr>
+<tr><td>Campaign Editor</td><td><code>editor</code></td><td>—</td><td><code>src/pages/CampaignEditor.tsx</code></td></tr>
+<tr><td>Campaign Detail</td><td><code>detail</code></td><td>—</td><td><code>src/pages/CampaignDetail.tsx</code></td></tr>
+<tr><td>Grant Applications</td><td><code>institutions</code></td><td>—</td><td><code>src/pages/InstitutionApply.tsx</code></td></tr>
+<tr><td>Volunteer Opportunities</td><td><code>volunteer</code></td><td>—</td><td><code>src/pages/Volunteer.tsx</code></td></tr>
+<tr><td>Thank You</td><td><code>thankYou</code></td><td>—</td><td><code>src/pages/ThankYou.tsx</code></td></tr>
+<tr><td>Connected Stations</td><td><code>stations</code></td><td>—</td><td><code>src/pages/PlatformDashboard.tsx</code></td></tr>
+<tr><td>Platform Accounts</td><td><code>platforms</code></td><td>—</td><td><code>src/pages/Platforms.tsx</code></td></tr>
+<tr><td>Pilot Sign In</td><td><code>login</code></td><td>—</td><td><code>src/pages/UserLogin.tsx</code></td></tr>
+<tr><td>Forgot Password</td><td><code>forgotPassword</code></td><td>—</td><td><code>src/pages/ForgotPassword.tsx</code></td></tr>
+<tr><td>Reset Password</td><td><code>resetPassword</code></td><td>—</td><td><code>src/pages/ResetPassword.tsx</code></td></tr>
+<tr><td>Campaigns</td><td>component page</td><td>—</td><td><code>src/pages/Campaigns.tsx</code></td></tr>
+<tr><td>Agents</td><td>component page</td><td>—</td><td><code>src/pages/Agents.tsx</code></td></tr>
+<tr><td>Reports</td><td>component page</td><td>—</td><td><code>src/pages/Reports.tsx</code></td></tr>
+<tr><td>Treasury</td><td>component page</td><td>—</td><td><code>src/pages/Treasury.tsx</code></td></tr>
+<tr><td>Notifications</td><td><code>notificationsPage</code></td><td>—</td><td><code>src/pages/Notifications.tsx</code></td></tr>
+</tbody>
+</table>
+<h2>Existing static HTML</h2>
+<ul><li><code>public/404.html</code> — 404 Not Found</li><li><code>public/privacy.html</code> — Privacy</li><li><code>public/terms.html</code> — Terms</li><li><code>fundforge/index.html</code> — legacy FundForge entry point; retained as historical/legacy material, not a second canonical app surface.</li></ul>
+<h2>Source of truth</h2>
+<p>The SPA view identifiers and primary navigation labels are defined in <code>src/App.tsx</code>. This registry documents those names and the page components found under <code>src/pages/</code>. Any future page should be added here before becoming a user-facing tab/page.</p>
+</body>
+</html>
