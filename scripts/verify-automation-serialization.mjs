@@ -6,17 +6,19 @@ const crons = read("convex/crons.ts");
 const coordinator = read("convex/automationCoordinator.ts");
 const lease = read("convex/automationLease.ts");
 
-// There must be exactly one scheduled write entry point. All formerly
-// independent scheduled writers are dispatched from the fenced coordinator.
+// Contested shared writers must have exactly one scheduled entry point. The
+// canonical outreach dispatcher remains a separate isolated authorization lane.
 const cronRegistrations = [...crons.matchAll(/crons\.(daily|weekly|interval|hourly)\s*\(/g)];
-if (cronRegistrations.length !== 1) {
-  throw new Error(`Expected exactly one cron registration; found ${cronRegistrations.length}`);
+if (cronRegistrations.length !== 2) {
+  throw new Error(`Expected serialized lane + isolated outreach dispatcher; found ${cronRegistrations.length} cron registrations`);
 }
 for (const required of [
   "crons.hourly(",
   '"serialized-automation-lane"',
   "{ minuteUTC: 0 }",
   "internal.automationCoordinator.runSerializedAutomation",
+  '"canonical-outreach-dispatch"',
+  "internal.outreachControl.runDispatchCycle",
 ]) {
   if (!crons.includes(required)) throw new Error(`Serialized cron topology missing: ${required}`);
 }
@@ -93,10 +95,10 @@ if (coordinator.includes("await ctx.runMutation(internal.agentAutomation.runAllA
   throw new Error("Coordinator must not invoke the legacy master writer");
 }
 
-// Preserve the legacy schedule contract while moving the writers behind one
-// fence: hourly site health; 2h master health check; 4h discovery/coordinator;
-// 6h repair/outreach/consolidation/browser research; 12h research/images;
-// exact UTC daily/weekly gates; and the original per-agent intervals.
+// Preserve the legacy schedule contract while moving the contested writers
+// behind one fence: hourly site health; 2h master health check; 4h discovery/
+// coordinator; 6h repair/outreach-strategy/consolidation/browser research; 12h
+// research/images; exact UTC daily/weekly gates; and original per-agent intervals.
 for (const required of [
   "await runFencedMutation(\"site-health-monitor\"",
   "isHourSlot(startedAt, 2)",
