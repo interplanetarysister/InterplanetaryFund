@@ -1,6 +1,15 @@
 name: Build Android APK
 
 on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'index.html'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
+      - '.github/workflows/build-apk.yml'
   push:
     branches: [main]
     paths:
@@ -8,11 +17,13 @@ on:
       - 'public/**'
       - 'index.html'
       - 'package.json'
+      - 'package-lock.json'
+      - 'capacitor.config.ts'
       - '.github/workflows/build-apk.yml'
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -20,12 +31,18 @@ env:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
+      - name: Checkout exact source
+        uses: actions/checkout@v6
         with:
-          node-version: 20
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
           cache: npm
 
       - name: Setup Java 17
@@ -50,7 +67,7 @@ jobs:
         env:
           VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
 
-      - name: Create Capacitor config
+      - name: Create release-safe Capacitor config
         run: |
           cat > capacitor.config.json << 'CONF'
           {
@@ -61,7 +78,7 @@ jobs:
               "androidScheme": "https"
             },
             "android": {
-              "allowMixedContent": true
+              "allowMixedContent": false
             }
           }
           CONF
@@ -83,32 +100,47 @@ jobs:
       - name: Find and rename APK
         run: |
           APK_PATH=$(find android -name "*.apk" -type f | head -1)
-          if [ -n "$APK_PATH" ]; then
-            cp "$APK_PATH" "interplanetary-fund.apk"
-            ls -la interplanetary-fund.apk
-            echo "APK found at: $APK_PATH"
-          else
+          if [ -z "$APK_PATH" ]; then
             echo "No APK was built"
             exit 1
           fi
+          cp "$APK_PATH" "interplanetary-fund.apk"
+          test -s interplanetary-fund.apk
+          ls -la interplanetary-fund.apk
+          echo "APK found at: $APK_PATH"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v6
         with:
-          name: interplanetary-fund-apk
+          name: interplanetary-fund-apk-${{ github.sha }}
           path: interplanetary-fund.apk
           if-no-files-found: error
+          retention-days: 14
 
-      - name: Create or update release
+  publish-apk-release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-apk
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download validated APK artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: interplanetary-fund-apk-${{ github.sha }}
+
+      - name: Verify downloaded APK
+        run: test -s interplanetary-fund.apk
+
+      - name: Publish immutable APK release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: latest-apk
-          name: "Interplanetary Fund APK (Latest)"
+          tag_name: apk-${{ github.run_number }}-${{ github.sha }}
+          name: "Interplanetary Fund APK #${{ github.run_number }}"
           body: |
-            Auto-built APK from latest main branch.
+            APK built from main at ${{ github.sha }} after the same workflow's exact-source validation.
 
-            Download and install on your Android device.
-            You may need to enable "Install from unknown sources" in your settings.
+            This is the installable Android test build. Store publication signing remains separate and must use protected release credentials.
           files: interplanetary-fund.apk
           prerelease: false
         env:
