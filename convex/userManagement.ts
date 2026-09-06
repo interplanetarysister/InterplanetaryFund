@@ -9,6 +9,12 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { requireAdminSession, requireSuperAdminSession } from "./adminUsers";
 
+const SUBSCRIPTION_PREFIX = "subscription:";
+
+function parseSubscription(value?: string) {
+  if (!value) return null;
+  try { return JSON.parse(value); } catch { return null; }
+}
 
 export const getUserList = query({
   args: { sessionToken: v.string() },
@@ -16,22 +22,38 @@ export const getUserList = query({
     await requireAdminSession(ctx, sessionToken, "campaigns");
     const accounts = await ctx.db.query("holdingAccounts").collect();
     const profiles = await ctx.db.query("userProfiles").collect();
-    const profileMap = new Map(profiles.map((p) => [p.userId, p]));
     const platforms = await ctx.db.query("externalPlatforms").collect();
-    const campaigns = await ctx.db.query("monitoredCampaigns").collect();
+    const monitoredCampaigns = await ctx.db.query("monitoredCampaigns").collect();
+    const userCampaigns = await ctx.db.query("userCampaigns").collect();
+    const settings = await ctx.db.query("adminSettings").collect();
 
-    return accounts.map((account) => {
-      const profile = profileMap.get(account.userId);
-      const userPlatforms = platforms.filter((p) => p.campaignId === account.userId);
-      const userCampaigns = campaigns.filter((c) => c.ifCampaignId.includes(account.userId));
+    const accountMap = new Map(accounts.map((a) => [a.userId, a]));
+    const profileMap = new Map(profiles.map((p) => [p.userId, p]));
+    const subscriptionMap = new Map(
+      settings
+        .filter((s) => s.key.startsWith(SUBSCRIPTION_PREFIX))
+        .map((s) => [s.key.slice(SUBSCRIPTION_PREFIX.length), parseSubscription(s.value)])
+    );
+    const userIds = new Set<string>([
+      ...accounts.map((a) => a.userId),
+      ...profiles.map((p) => p.userId),
+    ]);
+
+    return [...userIds].map((userId) => {
+      const account = accountMap.get(userId);
+      const profile = profileMap.get(userId);
+      const userPlatforms = platforms.filter((p) => p.campaignId === userId);
+      const ownedCampaigns = userCampaigns.filter((c) => c.userId === userId);
+      const legacyCampaigns = monitoredCampaigns.filter((c) => c.ifCampaignId.includes(userId));
       return {
-        userId: account.userId,
-        totalBalance: account.totalBalance,
-        pendingPayouts: account.pendingPayouts,
-        frozen: account.frozen ?? false,
+        userId,
+        totalBalance: account?.totalBalance ?? 0,
+        pendingPayouts: account?.pendingPayouts ?? 0,
+        frozen: account?.frozen ?? false,
         name: profile?.name ?? "Unknown",
         email: profile?.email ?? "",
         subscriptionTier: profile?.subscriptionTier ?? "standard",
+        subscription: subscriptionMap.get(userId) ?? null,
         aiCrossPostingEnabled: profile?.aiCrossPostingEnabled ?? false,
         standardCrossPostingEnabled: profile?.standardCrossPostingEnabled ?? false,
         adminAccessStatus: profile?.adminAccessStatus ?? "none",
@@ -43,8 +65,8 @@ export const getUserList = query({
           externalUrl: p.externalUrl,
         })),
         platformCount: userPlatforms.length,
-        campaignCount: userCampaigns.length,
-        createdAt: profile?.createdAt ?? account._creationTime?.toString() ?? "",
+        campaignCount: ownedCampaigns.length + legacyCampaigns.length,
+        createdAt: profile?.createdAt ?? account?._creationTime?.toString() ?? "",
       };
     });
   },
@@ -57,40 +79,48 @@ export const getUserDetails = query({
     const account = await ctx.db.query("holdingAccounts").filter((q: any) => q.eq(q.field("userId"), userId)).first();
     const profile = await ctx.db.query("userProfiles").filter((q: any) => q.eq(q.field("userId"), userId)).first();
     const platforms = await ctx.db.query("externalPlatforms").withIndex("byCampaignId", (q: any) => q.eq("campaignId", userId)).collect();
-    const campaigns = await ctx.db.query("monitoredCampaigns").filter((q: any) => q.includes(q.field("ifCampaignId"), userId)).collect();
+    const monitored = await ctx.db.query("monitoredCampaigns").filter((q: any) => q.includes(q.field("ifCampaignId"), userId)).collect();
+    const owned = await ctx.db.query("userCampaigns").withIndex("byUserId", (q: any) => q.eq("userId", userId)).collect();
     const payouts = await ctx.db.query("payoutRequests").withIndex("byUserId", (q: any) => q.eq("userId", userId)).collect();
-    return { userId, account, profile, platforms, campaigns, payouts };
+    return { userId, account, profile, platforms, campaigns: [...owned, ...monitored], payouts };
   },
 });
 
+// Legacy field retained for compatibility. It is now ONLY a user-level
+// permission for subscriber outreach. It must never grant/revoke a paid tier.
 export const toggleAiCrossPosting = mutation({
   args: { sessionToken: v.string(), userId: v.string(), enabled: v.boolean() },
   handler: async (ctx, { sessionToken, userId, enabled }) => {
-    await requireSuperAdminSession(ctx, sessionToken);
+    const principal = await requireSuperAdminSession(ctx, sessionToken);
     const profile = await ctx.db.query("userProfiles").filter((q: any) => q.eq(q.field("userId"), userId)).first();
     const now = new Date().toISOString();
     if (profile) {
-      await ctx.db.patch(profile._id, {
-        aiCrossPostingEnabled: enabled,
-        subscriptionTier: enabled ? "campaign_manager" : "standard",
-        updatedAt: now,
-      });
+      await ctx.db.patch(profile._id, { aiCrossPostingEnabled: enabled, updatedAt: now });
     } else {
       await ctx.db.insert("userProfiles", {
-        userId, name: "Unknown", email: "",
-        subscriptionTier: enabled ? "campaign_manager" : "standard",
+        userId, name: "Unknown", email: "", subscriptionTier: "standard",
         aiCrossPostingEnabled: enabled, standardCrossPostingEnabled: false,
         adminAccessStatus: "none", createdAt: now, updatedAt: now,
       });
     }
+    await ctx.db.insert("agentActivityLog", {
+      agentName: "Subscriber Outreach Agent",
+      action: enabled ? "user_outreach_enabled" : "user_outreach_disabled",
+      category: "communications",
+      description: `Subscriber outreach permission ${enabled ? "enabled" : "disabled"} for ${userId}`,
+      metadata: JSON.stringify({ userId, actorUserId: principal.userId }),
+      creditCost: 0,
+      timestamp: now,
+    });
     return { success: true, aiCrossPosting: enabled };
   },
 });
 
+// Legacy field retained as a separate per-user platform-outreach permission.
 export const toggleStandardCrossPosting = mutation({
   args: { sessionToken: v.string(), userId: v.string(), enabled: v.boolean() },
   handler: async (ctx, { sessionToken, userId, enabled }) => {
-    await requireAdminSession(ctx, sessionToken, "content");
+    const principal = await requireAdminSession(ctx, sessionToken, "content");
     const profile = await ctx.db.query("userProfiles").filter((q: any) => q.eq(q.field("userId"), userId)).first();
     const now = new Date().toISOString();
     if (profile) {
@@ -102,6 +132,15 @@ export const toggleStandardCrossPosting = mutation({
         adminAccessStatus: "none", createdAt: now, updatedAt: now,
       });
     }
+    await ctx.db.insert("agentActivityLog", {
+      agentName: "Platform Outreach Agent",
+      action: enabled ? "user_platform_outreach_enabled" : "user_platform_outreach_disabled",
+      category: "communications",
+      description: `Platform outreach permission ${enabled ? "enabled" : "disabled"} for ${userId}`,
+      metadata: JSON.stringify({ userId, actorUserId: principal.userId }),
+      creditCost: 0,
+      timestamp: now,
+    });
     return { success: true, standardCrossPosting: enabled };
   },
 });
@@ -240,7 +279,7 @@ export const getFacebookGroupCoverage = query({
       byCategory[cat].total++;
       if (g.joinStatus === "joined") byCategory[cat].joined++;
       if (g.joinStatus === "discovered") byCategory[cat].discovered++;
-      if (g.joinStatus === "pending") byCategory[cat].pending++;
+      if (g.joinStatus === "join_requested" || g.joinStatus === "pending") byCategory[cat].pending++;
       if (g.joinStatus === "rejected") byCategory[cat].rejected++;
       if (g.canPost) byCategory[cat].canPost++;
     }
@@ -276,10 +315,10 @@ export const getFacebookAgentStatus = query({
       connectedAt: fbConnection?.connectedAt,
       totalGroupsDiscovered: allGroups.length,
       totalGroupsJoined: allGroups.filter((g) => g.joinStatus === "joined").length,
-      totalGroupsPending: allGroups.filter((g) => g.joinStatus === "pending").length,
+      totalGroupsPending: allGroups.filter((g) => g.joinStatus === "join_requested" || g.joinStatus === "pending").length,
       totalGroupsRejected: allGroups.filter((g) => g.joinStatus === "rejected").length,
       totalPostsCreated: allPosts.length,
-      totalPostsPublished: allPosts.filter((p) => p.postStatus === "published").length,
+      totalPostsPublished: allPosts.filter((p) => p.postStatus === "posted" || p.postStatus === "published").length,
       totalPostsFailed: allPosts.filter((p) => p.postStatus === "failed").length,
       agent: agent ? { name: agent.name, role: agent.role, status: agent.status, lastAutomationRun: agent.lastAutomationRun } : null,
     };
