@@ -1,0 +1,28 @@
+name: Action Runtime Inventory
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - "scripts/verify-action-runtime-inventory.mjs"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: action-runtime-inventory-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Run Node-era inventory
+        run: node scripts/verify-action-runtime-inventory.mjs
