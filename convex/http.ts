@@ -66,7 +66,7 @@ export const payPalReturn = httpAction(async (_ctx, request) => {
   const url = new URL(request.url);
   const donationId = url.searchParams.get("donationId") || "";
   const tx = url.searchParams.get("tx") || "";
-  const redirectUrl = new URL("https://interplanetary-fund.vercel.app");
+  const redirectUrl = new URL("https://interplanetary-fund-2bip.vercel.app");
   redirectUrl.hash = `#donation=success&donationId=${donationId}&tx=${tx}`;
   return Response.redirect(redirectUrl.toString(), 302);
 });
@@ -88,7 +88,6 @@ export const stripeWebhook = httpAction(async (ctx, request) => {
         return new Response("Invalid Stripe signature", { status: 400 });
       }
     } else if (process.env.ALLOW_UNVERIFIED_STRIPE_WEBHOOKS === "true") {
-      // Explicit local/test escape hatch only. Production should never set this.
       event = JSON.parse(rawBody);
     } else {
       return new Response("Stripe webhook verification is not configured", { status: 503 });
@@ -136,8 +135,6 @@ export const stripeWebhook = httpAction(async (ctx, request) => {
   }
 });
 
-// Provider-neutral billing bridge for an authorized subscription service.
-// This endpoint cannot be used unless SUBSCRIPTION_WEBHOOK_SECRET is configured.
 export const subscriptionWebhook = httpAction(async (ctx, request) => {
   try {
     const expected = process.env.SUBSCRIPTION_WEBHOOK_SECRET || "";
