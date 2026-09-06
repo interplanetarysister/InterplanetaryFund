@@ -19,8 +19,13 @@ const CONTROL_KEY = "outreach.control.v1";
 const EMERGENCY_STOP_KEY = "outreach.emergency_stop";
 const SUBSCRIPTION_PREFIX = "subscription:";
 const SUBSCRIPTION_EVENT_PREFIX = "subscription_event:";
+const FB_RESERVATION_PREFIX = "outreach.fb_reservation:";
 const PLATFORM_CAMPAIGN_ID = "__interplanetary_fund_platform__";
 const SOCIAL_PLATFORMS = ["facebook", "instagram", "bluesky"] as const;
+const FB_COOLDOWN_MS = 48 * 60 * 60 * 1000;
+const FB_RESERVATION_MS = 10 * 60 * 1000;
+const FB_MAX_PER_DAY = 3;
+const DUPLICATE_THRESHOLD = 0.8;
 
 const DEFAULT_CONTROL = {
   platformOutreachEnabled: false,
@@ -54,6 +59,12 @@ type CampaignResolution = {
   raisedAmount: number;
   coverImageUrl?: string;
 };
+type FacebookReservation = {
+  postId: string;
+  campaignId: string;
+  content: string;
+  expiresAt: number;
+};
 
 function parseJson<T>(value: string | undefined, fallback: T): T {
   if (!value) return fallback;
@@ -70,6 +81,14 @@ function parseAttempt(error?: string) {
   if (!error) return 0;
   const match = /^attempt:(\d+)\|/.exec(error);
   return match ? Number(match[1]) : 0;
+}
+
+function similarity(a: string, b: string) {
+  const aWords = new Set(a.toLowerCase().replace(/\s+/g, " ").trim().split(" ").filter(Boolean));
+  const bWords = new Set(b.toLowerCase().replace(/\s+/g, " ").trim().split(" ").filter(Boolean));
+  let common = 0;
+  for (const word of aWords) if (bWords.has(word)) common++;
+  return common / Math.max(aWords.size, bWords.size, 1);
 }
 
 async function getSetting(ctx: any, key: string) {
@@ -144,6 +163,74 @@ async function resolveCampaign(ctx: any, campaignId: string): Promise<CampaignRe
     kind: "monitored", id: monitored.ifCampaignId, title: String(monitored.title || "Campaign"),
     status: String(monitored.status || "draft"), outreachEnabled: monitored.outreachEnabled === true,
     goalAmount: Number(monitored.goalAmount || 0), raisedAmount: Number(monitored.raisedAmount || 0), coverImageUrl: monitored.coverImageUrl,
+  };
+}
+
+async function clearFacebookReservation(ctx: any, groupDocId?: string, postId?: string) {
+  if (!groupDocId) return;
+  const row = await getSetting(ctx, `${FB_RESERVATION_PREFIX}${groupDocId}`);
+  if (!row) return;
+  if (postId) {
+    try {
+      const reservation = JSON.parse(row.value) as FacebookReservation;
+      if (reservation.postId !== postId) return;
+    } catch { /* invalid reservation can be cleared */ }
+  }
+  await ctx.db.delete(row._id);
+}
+
+async function selectAndReserveFacebookTarget(ctx: any, campaignId: string, content: string, postId: string) {
+  const now = Date.now();
+  const today = new Date().toISOString().split("T")[0];
+  const campaignPosts = await ctx.db.query("facebookGroupPosts").withIndex("byCampaignId", (q: any) => q.eq("campaignId", campaignId)).collect();
+  const postedToday = campaignPosts.filter((post: any) => post.postStatus === "posted" && post.postedAt?.startsWith(today));
+
+  const allSettings = await ctx.db.query("adminSettings").collect();
+  const activeReservations = allSettings.flatMap((row: any) => {
+    if (!row.key.startsWith(FB_RESERVATION_PREFIX)) return [];
+    try {
+      const reservation = JSON.parse(row.value) as FacebookReservation;
+      return reservation.expiresAt > now ? [{ row, reservation }] : [];
+    } catch { return []; }
+  });
+  const campaignReservations = activeReservations.filter(({ reservation }) => reservation.campaignId === campaignId);
+  if (postedToday.length + campaignReservations.length >= FB_MAX_PER_DAY) {
+    return { ok: false, reason: "facebook_daily_limit", defer: true };
+  }
+
+  const recent = campaignPosts.filter((post: any) => post.postStatus === "posted").sort((a: any, b: any) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
+  if (recent.some((post: any) => similarity(content, post.postContent) >= DUPLICATE_THRESHOLD) ||
+      campaignReservations.some(({ reservation }) => similarity(content, reservation.content) >= DUPLICATE_THRESHOLD)) {
+    return { ok: false, reason: "facebook_duplicate_content", defer: false };
+  }
+
+  const blocklist = await ctx.db.query("spamBlocklist").collect();
+  const blocked = new Set(blocklist.filter((entry: any) => entry.platform.toLowerCase() === "facebook").map((entry: any) => entry.identifier));
+  const reservedGroups = new Set(activeReservations.map(({ row }) => row.key.slice(FB_RESERVATION_PREFIX.length)));
+  const groups = await ctx.db.query("facebookGroups").withIndex("byJoinStatus", (q: any) => q.eq("joinStatus", "joined")).collect();
+  const eligible = groups.filter((group: any) => {
+    if (!group.canPost) return false;
+    if (campaignId !== PLATFORM_CAMPAIGN_ID && group.campaignId !== campaignId) return false;
+    if (blocked.has(group.groupFacebookId) || blocked.has(group.groupUrl) || blocked.has(String(group._id))) return false;
+    if (reservedGroups.has(String(group._id))) return false;
+    if (group.lastPostedAt && now - Date.parse(group.lastPostedAt) < FB_COOLDOWN_MS) return false;
+    return true;
+  }).sort((a: any, b: any) => b.relevanceScore - a.relevanceScore);
+  const group: any = eligible[0];
+  if (!group) return { ok: false, reason: "facebook_no_eligible_group", defer: true };
+
+  await upsertSetting(ctx, `${FB_RESERVATION_PREFIX}${String(group._id)}`, JSON.stringify({
+    postId,
+    campaignId,
+    content,
+    expiresAt: now + FB_RESERVATION_MS,
+  } satisfies FacebookReservation));
+  return {
+    ok: true,
+    groupDocId: String(group._id),
+    groupFacebookId: group.groupFacebookId,
+    groupName: group.groupName,
+    targetUrl: group.groupUrl,
   };
 }
 
@@ -342,20 +429,6 @@ async function ensureCampaignActivityPosts(ctx: any, control: ControlState, exis
   return created;
 }
 
-async function selectFacebookTarget(ctx: any, campaignId: string) {
-  const allGroups = await ctx.db.query("facebookGroups").withIndex("byJoinStatus", (q: any) => q.eq("joinStatus", "joined")).collect();
-  const now = Date.now();
-  const eligible = allGroups.filter((group: any) => {
-    if (!group.canPost) return false;
-    if (campaignId !== PLATFORM_CAMPAIGN_ID && group.campaignId !== campaignId) return false;
-    if (group.lastPostedAt && now - Date.parse(group.lastPostedAt) < 48 * 60 * 60 * 1000) return false;
-    return true;
-  }).sort((a: any, b: any) => b.relevanceScore - a.relevanceScore);
-  const group: any = eligible[0];
-  if (!group) return null;
-  return { groupDocId: String(group._id), groupFacebookId: group.groupFacebookId, groupName: group.groupName, targetUrl: group.groupUrl };
-}
-
 export const runDispatchCycle = internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -450,8 +523,8 @@ export const preparePublish = internalMutation({
     if (!control.allowedPlatforms.includes(platform)) return { ok: false, defer: true, reason: "platform_not_allowed" };
     let facebookTarget: any = null;
     if (platform === "facebook") {
-      facebookTarget = await selectFacebookTarget(ctx, post.campaignId);
-      if (!facebookTarget) return { ok: false, defer: false, retryable: true, reason: "facebook_no_eligible_group" };
+      facebookTarget = await selectAndReserveFacebookTarget(ctx, post.campaignId, post.content, args.postId);
+      if (!facebookTarget.ok) return { ok: false, defer: Boolean(facebookTarget.defer), retryable: false, reason: facebookTarget.reason };
     }
     return {
       ok: true, platform, content: post.content, imageUrl: post.imageUrl, campaignId: post.campaignId,
@@ -497,6 +570,7 @@ export const finishPublish = internalMutation({
     } else {
       await ctx.db.patch(args.postId as any, { status: "failed", error: `attempt:${nextAttempt}|${args.error || "publish_failed_without_external_evidence"}` });
     }
+    await clearFacebookReservation(ctx, args.targetGroupDocId, args.postId);
     await ctx.db.insert("agentActivityLog", {
       agentName: args.mode === "subscriber" ? "Subscriber Outreach Agent" : "Platform Outreach Agent",
       action: outcome === "verified" ? "external_post_verified" : outcome === "retry_queued" ? "external_post_retry_queued" : outcome === "verification_pending" ? "external_post_verification_pending" : "external_post_failed",
