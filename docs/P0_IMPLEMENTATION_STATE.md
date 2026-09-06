@@ -1,0 +1,1 @@
+Branch state marker: current-main base preserved; lease/coordinator/provisioning added; writer-fencing batch is the next atomic code commit; overlapping protocol/cron/workflow/generated API files require current-main-aware reconciliation.

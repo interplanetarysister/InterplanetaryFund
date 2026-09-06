@@ -1,0 +1,1 @@
+Next atomic code commit: carry forward non-conflicting fenced writer implementations from the validated PR #99 head by blob identity, then reconcile current-main overlaps separately.

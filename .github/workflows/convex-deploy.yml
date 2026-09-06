@@ -1,8 +1,8 @@
 # Interplanetary Fund — Production Convex Deployment
 #
-# Production deployment is intentionally isolated from the 30-minute
-# observability agent. Only backend-relevant changes trigger this workflow.
-# A single concurrency gate prevents parallel production Convex deployments.
+# Production deployment is intentionally isolated from the observability agent.
+# Only backend-relevant changes trigger this workflow. A single concurrency gate
+# prevents parallel production Convex deployments.
 
 name: Convex Production Deploy
 
@@ -16,7 +16,6 @@ on:
       - 'package-lock.json'
   workflow_dispatch:
 
-# Never run two production Convex deployments at once.
 concurrency:
   group: convex-production-deploy
   cancel-in-progress: false
@@ -32,10 +31,13 @@ jobs:
       CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
     steps:
-      - name: Checkout
+      - name: Checkout exact main commit
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
-      - name: Setup Node
+      - name: Setup Node 24
         uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -46,3 +48,15 @@ jobs:
 
       - name: Deploy Convex production
         run: npx convex deploy
+
+      - name: Provision serialized automation singleton
+        run: npx convex run automationProvisioning:provisionAutomationLaneLock '{}'
+
+      - name: Verify serialized automation singleton
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx convex run automationProvisioning:getAutomationLaneLockStatus '{}' > /tmp/automation-lock-status.txt
+          cat /tmp/automation-lock-status.txt
+          grep -q '"initialized": true' /tmp/automation-lock-status.txt
+          grep -q '"recordCount": 1' /tmp/automation-lock-status.txt

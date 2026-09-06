@@ -16,6 +16,7 @@ import { internalMutation, query, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { requireAdminSession } from "./adminUsers";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // AGENT TOGGLE — Enable/Disable individual agent automation
@@ -126,8 +127,9 @@ async function getAllActiveCampaigns(ctx: any) {
 // =====================================================
 
 export const runAtlasAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), "Atlas"))
       .first();
@@ -190,6 +192,7 @@ export const runAtlasAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { agent: "Atlas", actions, tasks, timestamp: now };
   },
 });
@@ -201,8 +204,9 @@ export const runAtlasAutomation = internalMutation({
 // =====================================================
 
 export const runPostProductionAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), "Post Production Agent"))
       .first();
@@ -265,6 +269,7 @@ export const runPostProductionAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { agent: "Post Production Agent", actions, tasks, timestamp: now };
   },
 });
@@ -276,8 +281,9 @@ export const runPostProductionAutomation = internalMutation({
 // =====================================================
 
 export const runDonorRelationsAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), "Donor Relations Agent"))
       .first();
@@ -341,6 +347,7 @@ export const runDonorRelationsAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { agent: "Donor Relations Agent", actions, tasks, timestamp: now };
   },
 });
@@ -352,8 +359,9 @@ export const runDonorRelationsAutomation = internalMutation({
 // =====================================================
 
 export const runScoutAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), "Scout Agent"))
       .first();
@@ -412,6 +420,7 @@ export const runScoutAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { agent: "Scout Agent", actions, tasks, timestamp: now };
   },
 });
@@ -423,8 +432,9 @@ export const runScoutAutomation = internalMutation({
 // =====================================================
 
 export const runCoordinatorAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agent = await ctx.db.query("agents")
       .filter((q) => q.eq(q.field("name"), "Platform Coordinator Agent"))
       .first();
@@ -494,6 +504,7 @@ export const runCoordinatorAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { agent: "Platform Coordinator Agent", actions, tasks, alerts, timestamp: now };
   },
 });
@@ -504,8 +515,9 @@ export const runCoordinatorAutomation = internalMutation({
 // =====================================================
 
 export const runAllAgentAutomation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const agents = await ctx.db.query("agents").collect();
     const now = new Date().toISOString();
     const results: any[] = [];
@@ -522,7 +534,7 @@ export const runAllAgentAutomation = internalMutation({
 
     // Trigger Browserbase research for all agents with auto-research enabled
     try {
-      const researchResult = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, {});
+      const researchResult = await ctx.runMutation(internal.browserbase.runAllAgentBrowserResearch, { claimToken });
       results.push({ agent: "Browserbase Research", status: "research_completed", ...researchResult });
     } catch (err) {
       results.push({ agent: "Browserbase Research", status: "research_failed", error: String(err) });
@@ -537,6 +549,7 @@ export const runAllAgentAutomation = internalMutation({
       timestamp: now,
     });
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { status: "success", results, timestamp: now };
   },
 });

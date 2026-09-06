@@ -19,6 +19,7 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // CONFIGURATION
@@ -382,8 +383,9 @@ export const endSession = mutation({
  * Run automated research for a specific agent using Browserbase Fetch API.
  */
 export const runAgentBrowserResearch = internalMutation({
-  args: { agentRole: v.string() },
-  handler: async (ctx, { agentRole }) => {
+  args: { agentRole: v.string(), claimToken: v.string() },
+  handler: async (ctx, { agentRole, claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const profile = AGENT_BROWSER_PROFILES[agentRole as keyof typeof AGENT_BROWSER_PROFILES];
 
     if (!profile) {
@@ -438,6 +440,7 @@ export const runAgentBrowserResearch = internalMutation({
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       success: true,
       agent: profile.name,
@@ -455,17 +458,19 @@ export const runAgentBrowserResearch = internalMutation({
  * Run automated research for ALL agents.
  */
 export const runAllAgentBrowserResearch = internalMutation({
-  args: {},
-  handler: async (ctx): Promise<any> => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }): Promise<any> => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const allResults = [];
 
     for (const [role, profile] of Object.entries(AGENT_BROWSER_PROFILES)) {
       if (profile.autoResearch) {
-        const result = await ctx.runMutation(internal.browserbase.runAgentBrowserResearch, { agentRole: role });
+        const result = await ctx.runMutation(internal.browserbase.runAgentBrowserResearch, { agentRole: role, claimToken });
         allResults.push({ role, ...result });
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       success: true,
       agentsProcessed: allResults.length,

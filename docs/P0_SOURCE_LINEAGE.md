@@ -1,0 +1,1 @@
+Source lineage: canonical current main -> solstice/p0-current-main-financial-security. Previous validated implementation reference: PR #99 head 14a679be581099ffd2bb0e5ab63908993c35096b. Reconcile functionality, do not overwrite newer main-only behavior.

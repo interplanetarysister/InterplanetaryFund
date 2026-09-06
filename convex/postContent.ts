@@ -13,6 +13,7 @@
 
 import { mutation, query, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 const BUSINESS_EMAIL = "interplanetarysister@gmail.com";
 
@@ -77,8 +78,9 @@ function getDayOfYear(): number {
 // =====================================================
 
 export const autoGeneratePosts = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const monitoredCampaigns = await ctx.db.query("monitoredCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "active"))
       .collect();
@@ -167,6 +169,7 @@ export const autoGeneratePosts = internalMutation({
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       campaignsProcessed: activeCampaigns.length,
