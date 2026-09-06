@@ -38,6 +38,9 @@ jobs:
             node scripts/verify-complete-admin-auth-surface.mjs
           fi
 
+      # Prevent regression of the canonical outreach safety architecture:
+      # independent controls, opt-out preservation, subscription authority,
+      # Browserbase fail-closed publishing, anti-spam reservations, and admin auth.
       - name: Verify outreach architecture invariants
         run: node scripts/verify-outreach-invariants.mjs
 
