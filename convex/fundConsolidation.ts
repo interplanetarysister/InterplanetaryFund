@@ -29,6 +29,7 @@
 import { query, mutation, internalMutation } from "./_generated/server";
 import { logFinancialAction } from "./financialAudit";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // QUERIES
@@ -286,7 +287,7 @@ export const consolidateFunds = mutation({
         if (donation.status === "completed") {
           // Calculate fees
           const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-          const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+          const platformFeePct = feeConfig?.platformFeePercent ?? 3;
           const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
           const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -376,7 +377,7 @@ export const consolidateFunds = mutation({
 
           // Calculate fees
           const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-          const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+          const platformFeePct = feeConfig?.platformFeePercent ?? 3;
           const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
           const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -565,7 +566,7 @@ export const autoConsolidate = internalMutation({
 
         // Import to ledger
         const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-        const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+        const platformFeePct = feeConfig?.platformFeePercent ?? 3;
         const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
         const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -638,8 +639,9 @@ export const autoConsolidate = internalMutation({
 
 // Cron-friendly wrapper: iterate all campaigns with automation enabled
 export const runAutoConsolidation = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     // Find all campaigns with automation enabled
     const campaigns = await ctx.db
       .query("userCampaigns")
@@ -683,7 +685,7 @@ export const runAutoConsolidation = internalMutation({
           .collect();
 
         const feeConfig = await ctx.db.query("feeConfig").filter((q) => q.eq(q.field("active"), true)).first();
-        const platformFeePct = feeConfig?.platformFeePercent ?? 5;
+        const platformFeePct = feeConfig?.platformFeePercent ?? 3;
         const processingFeePct = feeConfig?.processingFeePercent ?? 2.9;
         const processingFeeFlat = feeConfig?.processingFeeFlat ?? 0.30;
 
@@ -749,6 +751,7 @@ export const runAutoConsolidation = internalMutation({
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return { processed: results.length, results };
   },
 });
