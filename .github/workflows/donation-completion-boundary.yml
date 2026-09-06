@@ -1,0 +1,30 @@
+name: Donation Completion Boundary Security
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "convex/userCampaigns.ts"
+      - "scripts/verify-donation-completion-boundary.mjs"
+      - ".github/workflows/donation-completion-boundary.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  donation-completion-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact pull request head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Verify public donation completion boundary
+        run: node scripts/verify-donation-completion-boundary.mjs
