@@ -33,12 +33,16 @@ export default function GlobePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
+  const autoRotateRef = useRef(true);
   const [viewMode, setViewMode] = useState<"day" | "night">("day");
 
   useEffect(() => {
     let mounted = true;
     let globeInstance: any = null;
+    let interactionTimeout: ReturnType<typeof setTimeout> | null = null;
+    let controls: any = null;
 
     async function initGlobe() {
       try {
@@ -59,6 +63,11 @@ export default function GlobePage() {
           .showGlobe(true)
           .showGraticules(false)
           .showAtmosphere(true);
+
+        if (!mounted) {
+          world._destructor?.();
+          return;
+        }
 
         globeInstance = world;
         globeRef.current = world;
@@ -84,8 +93,8 @@ export default function GlobePage() {
         scene.add(rimLight);
 
         // Configure controls for smooth mobile interaction
-        const controls = world.controls();
-        controls.autoRotate = true;
+        controls = world.controls();
+        controls.autoRotate = autoRotateRef.current;
         controls.autoRotateSpeed = 0.3;
         controls.enableZoom = true;
         controls.enableDamping = true;
@@ -95,27 +104,32 @@ export default function GlobePage() {
         controls.maxDistance = 600;
 
         // Pause auto-rotate on interaction, resume after 5 seconds
-        let interactionTimeout: any = null;
-        controls.addEventListener("start", () => {
+        const handleInteractionStart = () => {
           controls.autoRotate = false;
           if (interactionTimeout) clearTimeout(interactionTimeout);
-        });
-        controls.addEventListener("end", () => {
+        };
+        const handleInteractionEnd = () => {
           if (interactionTimeout) clearTimeout(interactionTimeout);
           interactionTimeout = setTimeout(() => {
-            if (globeRef.current && mounted && autoRotate) {
-              globeRef.current.controls().autoRotate = true;
+            if (globeRef.current === world && mounted && autoRotateRef.current) {
+              world.controls().autoRotate = true;
             }
           }, 5000);
-        });
+        };
+        controls.addEventListener("start", handleInteractionStart);
+        controls.addEventListener("end", handleInteractionEnd);
 
         // Set initial camera position — slightly tilted to show continents
         world.pointOfView({ lat: 20, lng: 0, altitude: 2.5 }, 0);
 
+        setError(null);
         setLoading(false);
       } catch (err) {
         console.error("Globe init failed:", err);
-        setLoading(false);
+        if (mounted) {
+          setError("The Earth view could not load. Check your connection and try again.");
+          setLoading(false);
+        }
       }
     }
 
@@ -134,12 +148,20 @@ export default function GlobePage() {
     return () => {
       mounted = false;
       window.removeEventListener("resize", handleResize);
+      if (interactionTimeout) clearTimeout(interactionTimeout);
+      if (controls) {
+        controls.removeEventListener("start", handleInteractionStart);
+        controls.removeEventListener("end", handleInteractionEnd);
+      }
+      if (globeRef.current === globeInstance) globeRef.current = null;
+      globeInstance?._destructor?.();
     };
   }, []);
 
   const toggleRotate = () => {
     if (globeRef.current) {
       const newVal = !autoRotate;
+      autoRotateRef.current = newVal;
       setAutoRotate(newVal);
       globeRef.current.controls().autoRotate = newVal;
     }
@@ -170,7 +192,7 @@ export default function GlobePage() {
         <div ref={containerRef} className="w-full h-full" />
 
         {loading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-ifdark">
+          <div className="absolute inset-0 flex items-center justify-center bg-ifdark" role="status" aria-live="polite">
             <div className="flex flex-col items-center gap-3">
               <div className="flex gap-2">
                 <span className="w-2 h-2 rounded-full bg-ifcyan animate-pulse-glow" />
@@ -182,21 +204,39 @@ export default function GlobePage() {
           </div>
         )}
 
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-ifdark p-6 text-center" role="alert" aria-live="assertive">
+            <div className="flex max-w-sm flex-col items-center gap-3">
+              <p className="text-sm text-iftext">{error}</p>
+              <button
+                type="button"
+                autoFocus
+                onClick={() => window.location.reload()}
+                className="rounded-full border border-ifcyan px-4 py-2 text-xs text-ifcyan focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ifcyan focus-visible:ring-offset-2 focus-visible:ring-offset-ifdark"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Controls */}
-        {!loading && (
+        {!loading && !error && (
           <>
             {/* Auto-rotate toggle */}
             <button
+              type="button"
               onClick={toggleRotate}
-              className="absolute bottom-4 right-4 z-10 bg-ifcard/80 backdrop-blur border border-ifborder rounded-full px-4 py-2 text-xs text-iftext"
+              className="absolute bottom-4 right-4 z-10 bg-ifcard/80 backdrop-blur border border-ifborder rounded-full px-4 py-2 text-xs text-iftext focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ifcyan focus-visible:ring-offset-2 focus-visible:ring-offset-ifdark"
             >
               {autoRotate ? "❙❙ Pause" : "▶ Spin"}
             </button>
 
             {/* Day/Night toggle */}
             <button
+              type="button"
               onClick={toggleView}
-              className="absolute bottom-4 left-4 z-10 bg-ifcard/80 backdrop-blur border border-ifborder rounded-full px-4 py-2 text-xs text-iftext"
+              className="absolute bottom-4 left-4 z-10 bg-ifcard/80 backdrop-blur border border-ifborder rounded-full px-4 py-2 text-xs text-iftext focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ifcyan focus-visible:ring-offset-2 focus-visible:ring-offset-ifdark"
             >
               {viewMode === "day" ? "🌙 Night" : "☀ Day"}
             </button>
