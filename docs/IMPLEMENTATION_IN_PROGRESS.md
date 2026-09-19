@@ -1,0 +1,1 @@
+Current-main reconciliation lane for serialized Convex automation fencing. This branch preserves canonical main changes while carrying forward the validated P0 lease/fencing implementation. Draft until exact-head CI and Development validation pass.

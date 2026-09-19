@@ -1,0 +1,1 @@
+Publishable means: current-main source preserved, serialized writer lane wired, child write mutations fenced with claim-token ownership checks, current outreach dispatcher preserved, approved 3% withdrawal platform-fee contract preserved, Node 24 exact-head checks passing, and Development runtime overlap/fencing evidence recorded.

@@ -1,0 +1,1 @@
+Do not replace overlapping current-main files wholesale from PR #99. Merge only the validated fencing changes into the newer canonical versions.

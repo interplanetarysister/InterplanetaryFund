@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { AUTOMATION_LOCK_KEY } from "./automationLease";
 
 // === AGENT ACTIVITY LOGGING ===
 
@@ -145,7 +146,9 @@ export const isFlagEnabled = query({
   },
 });
 
-// Mutation: Create or update a feature flag
+// Mutation: Create or update a feature flag.
+// The serialized automation lease is a reserved system coordination record and
+// can only be written by internal automation provisioning/coordinator mutations.
 export const setFeatureFlag = mutation({
   args: {
     name: v.string(),
@@ -154,6 +157,10 @@ export const setFeatureFlag = mutation({
     rolloutPercent: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    if (args.name === AUTOMATION_LOCK_KEY) {
+      throw new Error("reserved_system_feature_flag");
+    }
+
     const existing = await ctx.db
       .query("featureFlags")
       .withIndex("byName", (q) => q.eq("name", args.name))

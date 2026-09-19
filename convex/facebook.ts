@@ -6,6 +6,7 @@
 
 import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
+import { assertAutomationLaneOwnership } from "./automationLease";
 
 // =====================================================
 // FACEBOOK GROUP OUTREACH SYSTEM
@@ -726,8 +727,9 @@ export const submitGroupQuestionnaire = mutation({
 // Runs even when no active campaigns exist
 
 export const discoverGroupsProactively = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     const allGroups = await ctx.db.query("facebookGroups").collect();
 
     if (allGroups.length >= 200) {
@@ -752,6 +754,7 @@ export const discoverGroupsProactively = internalMutation({
       joinRequestsSent++;
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       totalGroups: allGroups.length,
@@ -768,8 +771,9 @@ export const discoverGroupsProactively = internalMutation({
 // ---- IDLE STRATEGY IMPROVEMENT ----
 // When no active campaigns need work, generate improved donation-evoking copy templates
 export const improveOutreachStrategy = internalMutation({
-  args: {},
-  handler: async (ctx) => {
+  args: { claimToken: v.string() },
+  handler: async (ctx, { claimToken }) => {
+    await assertAutomationLaneOwnership(ctx, claimToken);
     // Check if any active campaigns need outreach
     const activeCampaigns = await ctx.db.query("monitoredCampaigns")
       .withIndex("byStatus", (q) => q.eq("status", "active"))
@@ -826,6 +830,7 @@ export const improveOutreachStrategy = internalMutation({
       }
     }
 
+    await assertAutomationLaneOwnership(ctx, claimToken);
     return {
       status: "success",
       message: "No active campaigns. Improved donation copywriting templates stored for future campaigns.",

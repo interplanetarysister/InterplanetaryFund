@@ -1,0 +1,1 @@
+Active implementation is now applying the previously validated non-conflicting P0 writer-fencing files onto this exact-current-main branch, followed by manual reconciliation of overlapping current-main files.
