@@ -5,7 +5,7 @@
  */
 
 import { query, mutation } from "./_generated/server";
-import { checkRateLimit, validateWithdrawal } from "./security";
+import { checkRateLimit, validateWithdrawal, requireAuth } from "./security";
 import { v } from "convex/values";
 
 // =====================================================
@@ -14,7 +14,6 @@ import { v } from "convex/values";
 // CashApp, or direct bank transfer (ACH).
 // =====================================================
 
-// Each 3rd party platform's supported non-Stripe withdrawal methods
 export const PLATFORM_WITHDRAWAL_METHODS = {
   buyMeACoffee: {
     platform: "Buy Me a Coffee",
@@ -59,16 +58,12 @@ export const PLATFORM_WITHDRAWAL_METHODS = {
   spotfund: {
     platform: "Spotfund",
     stripeRequired: false,
-    methods: [
-      { method: "bank_transfer", destination: "ACH", notes: "Direct bank transfer" },
-    ],
+    methods: [{ method: "bank_transfer", destination: "ACH", notes: "Direct bank transfer" }],
   },
   fundRazr: {
     platform: "FundRazr",
     stripeRequired: false,
-    methods: [
-      { method: "paypal", destination: "interplanetarysister@gmail.com", notes: "PayPal payout — FundRazr supports PayPal natively" },
-    ],
+    methods: [{ method: "paypal", destination: "interplanetarysister@gmail.com", notes: "PayPal payout — FundRazr supports PayPal natively" }],
   },
   giveSendGo: {
     platform: "GiveSendGo",
@@ -82,29 +77,21 @@ export const PLATFORM_WITHDRAWAL_METHODS = {
   kickstarter: {
     platform: "Kickstarter",
     stripeRequired: false,
-    methods: [
-      { method: "bank_transfer", destination: "ACH", notes: "Direct to bank account — Kickstarter handles their own Stripe internally, funds land in YOUR bank. No Stripe account of yours needed." },
-    ],
+    methods: [{ method: "bank_transfer", destination: "ACH", notes: "Direct to bank account — Kickstarter handles their own Stripe internally, funds land in YOUR bank. No Stripe account of yours needed." }],
   },
   bluesky: {
     platform: "Bluesky",
     stripeRequired: false,
-    methods: [
-      { method: "na", destination: "na", notes: "Bluesky has no built-in payment — use IF PayPal donate links only" },
-    ],
+    methods: [{ method: "na", destination: "na", notes: "Bluesky has no built-in payment — use IF PayPal donate links only" }],
   },
 } as const;
 
-// Query: Get all non-Stripe withdrawal methods for a platform
 export const getWithdrawalMethods = query({
   args: { platformKey: v.string() },
   handler: async (_ctx, args) => {
     const platformData = (PLATFORM_WITHDRAWAL_METHODS as Record<string, any>)[args.platformKey];
     if (!platformData) {
-      return {
-        found: false,
-        message: `Unknown platform: ${args.platformKey}. Supported: ${Object.keys(PLATFORM_WITHDRAWAL_METHODS).join(", ")}`,
-      };
+      return { found: false, message: `Unknown platform: ${args.platformKey}. Supported: ${Object.keys(PLATFORM_WITHDRAWAL_METHODS).join(", ")}` };
     }
     return {
       found: true,
@@ -116,23 +103,17 @@ export const getWithdrawalMethods = query({
   },
 });
 
-// Query: List ALL platforms and their non-Stripe withdrawal options
 export const listAllWithdrawalMethods = query({
   args: {},
-  handler: async () => {
-    return {
-      stripeUsed: false,
-      stripePolicy: "No Stripe anywhere. All 3rd party platform withdrawals use PayPal, bank transfer, or check.",
-      platforms: Object.entries(PLATFORM_WITHDRAWAL_METHODS).map(([key, data]: [string, any]) => ({
-        key,
-        platform: data.platform,
-        methods: data.methods,
-      })),
-    };
-  },
+  handler: async () => ({
+    stripeUsed: false,
+    stripePolicy: "No Stripe anywhere. All 3rd party platform withdrawals use PayPal, bank transfer, or check.",
+    platforms: Object.entries(PLATFORM_WITHDRAWAL_METHODS).map(([key, data]: [string, any]) => ({ key, platform: data.platform, methods: data.methods })),
+  }),
 });
 
-// Mutation: Record a non-Stripe withdrawal from a 3rd party platform
+// Record a withdrawal/payout event. This must never manufacture a donation
+// or increment campaign donation totals: withdrawals are separate financial events.
 export const recordNonStripeWithdrawal = mutation({
   args: {
     platformKey: v.string(),
@@ -142,83 +123,67 @@ export const recordNonStripeWithdrawal = mutation({
     withdrawalMethod: v.string(),
     withdrawalDestination: v.string(),
     withdrawnBy: v.string(),
+    idempotencyKey: v.string(),
   },
   handler: async (ctx, args) => {
-    checkRateLimit("non_stripe_withdrawal", 3, 300000);
-    if (!validateWithdrawal(args.grossAmount, 100000)) {
+    const identity = await requireAuth(ctx);
+    if (!identity.subject) throw new Error("Authenticated identity is missing a subject.");
+
+    checkRateLimit(`non_stripe_withdrawal:${identity.subject}`, 3, 300000);
+
+    const campaign = await ctx.db
+      .query("userCampaigns")
+      .filter((q) => q.eq(q.field("_id"), args.campaignId as any))
+      .first();
+    if (!campaign) throw new Error("Campaign not found.");
+    if (campaign.userId !== identity.subject) {
+      throw new Error("You do not have permission to withdraw from this campaign.");
+    }
+
+    if (!validateWithdrawal(args.grossAmount, 50000)) {
       throw new Error("Invalid withdrawal amount.");
     }
     const platformData = (PLATFORM_WITHDRAWAL_METHODS as Record<string, any>)[args.platformKey];
-    if (!platformData) {
-      throw new Error(`Unknown platform: ${args.platformKey}`);
-    }
+    if (!platformData) throw new Error(`Unknown platform: ${args.platformKey}`);
 
-    const validMethod = platformData.methods.find(
-      (m: any) => m.method === args.withdrawalMethod
-    );
+    const validMethod = platformData.methods.find((m: any) => m.method === args.withdrawalMethod);
     if (!validMethod) {
-      throw new Error(
-        `Invalid withdrawal method "${args.withdrawalMethod}" for ${platformData.platform}. ` +
-        `Supported methods: ${platformData.methods.map((m: any) => m.method).join(", ")}`
-      );
+      throw new Error(`Invalid withdrawal method "${args.withdrawalMethod}" for ${platformData.platform}. Supported methods: ${platformData.methods.map((m: any) => m.method).join(", ")}`);
     }
 
-    // Calculate fees
+    const existing = await ctx.db
+      .query("payoutRequests")
+      .withIndex("byIdempotency", (q) => q.eq("idempotencyKey", args.idempotencyKey))
+      .first();
+    if (existing) {
+      if (existing.userId !== identity.subject || existing.campaignId !== args.campaignId) {
+        throw new Error("Idempotency key is already associated with another withdrawal.");
+      }
+      return { status: "duplicate", payoutId: existing._id };
+    }
+
     const platformFee = args.grossAmount * 0.05;
     const processingFee = args.grossAmount * 0.029 + 0.30;
     const totalFees = platformFee + processingFee;
     const netAmount = args.grossAmount - totalFees;
+    if (netAmount <= 0) throw new Error("Withdrawal amount is insufficient after fees.");
 
-    // Create donation record
-    const donationId = await ctx.db.insert("donations", {
-      campaignId: args.campaignId,
-      campaignTitle: args.campaignTitle,
-      amount: args.grossAmount,
-      donorName: `Withdrawn from ${platformData.platform}`,
-      message: `Non-Stripe withdrawal via ${args.withdrawalMethod} to ${args.withdrawalDestination}`,
-      paymentMethod: "non_stripe_withdrawal",
-      status: "completed",
-      createdAt: new Date().toISOString(),
-    });
-
-    // Update campaign totals
-    const campaign = await ctx.db
-      .query("monitoredCampaigns")
-      .filter((q) => q.eq("ifCampaignId", args.campaignId))
-      .first();
-
-    if (campaign) {
-      await ctx.db.patch(campaign._id, {
-        raisedAmount: (campaign.raisedAmount || 0) + args.grossAmount,
-        donorCount: (campaign.donorCount || 0) + 1,
-        lastSynced: new Date().toISOString(),
-      });
-    }
-
-    // Create transaction record
-    await ctx.db.insert("transactions", {
-      userId: args.campaignId,
-      type: "non_stripe_withdrawal",
-      amount: args.grossAmount,
-      status: "completed",
-      createdAt: new Date().toISOString(),
-    });
-
-    // Create payout request for net amount (to campaign owner)
     const payoutId = await ctx.db.insert("payoutRequests", {
-      userId: args.campaignId,
+      userId: identity.subject,
+      campaignId: args.campaignId,
+      campaignTitle: campaign.title,
       amountRequested: args.grossAmount,
       feeAmount: totalFees,
-      netAmount: netAmount,
-      payoutMethod: "pending",
-      payoutDestination: "pending",
-      status: "pending_user_selection",
+      netAmount,
+      payoutMethod: args.withdrawalMethod,
+      payoutDestination: args.withdrawalDestination,
+      status: "pending_verification",
       requestedDate: new Date().toISOString(),
+      idempotencyKey: args.idempotencyKey,
     });
 
     return {
       status: "success",
-      donationId,
       payoutId,
       summary: {
         platform: platformData.platform,
@@ -230,28 +195,19 @@ export const recordNonStripeWithdrawal = mutation({
         processingFee: `$${processingFee.toFixed(2)}`,
         totalFees: `$${totalFees.toFixed(2)}`,
         netToCampaignOwner: `$${netAmount.toFixed(2)}`,
-        payoutStatus: "pending_user_selection",
+        payoutStatus: "pending_verification",
       },
     };
   },
 });
 
-// Query: Audit to verify no Stripe is used anywhere in the withdrawal chain
 export const auditStripeUsage = query({
   args: {},
   handler: async (ctx) => {
     const allPayouts = await ctx.db.query("payoutRequests").collect();
-    const stripePayouts = allPayouts.filter(
-      (p) =>
-        p.payoutMethod?.toLowerCase().includes("stripe") ||
-        p.payoutDestination?.toLowerCase().includes("stripe")
-    );
-
+    const stripePayouts = allPayouts.filter((p) => p.payoutMethod?.toLowerCase().includes("stripe") || p.payoutDestination?.toLowerCase().includes("stripe"));
     const allTransactions = await ctx.db.query("transactions").collect();
-    const stripeTransactions = allTransactions.filter(
-      (t) => t.type?.toLowerCase().includes("stripe")
-    );
-
+    const stripeTransactions = allTransactions.filter((t) => t.type?.toLowerCase().includes("stripe"));
     return {
       stripeUsed: stripePayouts.length > 0 || stripeTransactions.length > 0,
       auditDate: new Date().toISOString(),
