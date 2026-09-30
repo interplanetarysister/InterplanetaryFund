@@ -28,6 +28,7 @@
 
 import { query, mutation, internalMutation } from "./_generated/server";
 import { logFinancialAction } from "./financialAudit";
+import { requireAuth } from "./security";
 import { v } from "convex/values";
 
 // =====================================================
@@ -38,6 +39,16 @@ import { v } from "convex/values";
 export const getLastConsolidation = query({
   args: { campaignId: v.string() },
   handler: async (ctx, { campaignId }) => {
+    const identity = await requireAuth(ctx);
+    const campaign = await ctx.db
+      .query("userCampaigns")
+      .filter((q) => q.eq(q.field("_id"), campaignId as any))
+      .first();
+
+    if (!campaign || campaign.userId !== identity.subject) {
+      throw new Error("Campaign not found or access denied");
+    }
+
     const runs = await ctx.db
       .query("consolidationRuns")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", campaignId))
@@ -71,6 +82,16 @@ export const getLastConsolidation = query({
 export const getConsolidationHistory = query({
   args: { campaignId: v.string() },
   handler: async (ctx, { campaignId }) => {
+    const identity = await requireAuth(ctx);
+    const campaign = await ctx.db
+      .query("userCampaigns")
+      .filter((q) => q.eq(q.field("_id"), campaignId as any))
+      .first();
+
+    if (!campaign || campaign.userId !== identity.subject) {
+      throw new Error("Campaign not found or access denied");
+    }
+
     const runs = await ctx.db
       .query("consolidationRuns")
       .withIndex("byCampaignId", (q) => q.eq("campaignId", campaignId))
