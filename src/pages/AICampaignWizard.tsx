@@ -29,9 +29,11 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState<any>(null);
+  const [regenerated, setRegenerated] = useState<any>(null);
   const [editing, setEditing] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [regeneratingContent, setRegeneratingContent] = useState(false);
   const [published, setPublished] = useState<string | null>(null);
   const [view, setView] = useState<"wizard" | "preview" | "published">("wizard");
 
@@ -43,39 +45,63 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
   const isLast = stepIdx === STEPS.length - 1;
   const canProceed = answers[current.key] !== undefined && answers[current.key] !== "";
 
+  const buildGenerationInput = () => ({
+    what: answers.what || "",
+    why: answers.why || "",
+    beneficiary: answers.beneficiary || "",
+    goal: parseFloat(answers.goal) || 0,
+    timeline: answers.timeline || "",
+    category: answers.category || "Community",
+  });
+
+  const toEditableCampaign = (result: any) => ({
+    title: result.title,
+    summary: result.summary,
+    story: result.story,
+    category: answers.category || "Community",
+    goalAmount: parseFloat(answers.goal) || 0,
+    coverImageUrl: result.imageUrl,
+    imagePrompt: result.imagePrompt,
+    faq: result.faq,
+    socialCaptions: result.socialCaptions,
+    pressRelease: result.pressRelease,
+    donorThankYou: result.donorThankYou,
+    seoContent: result.seoContent,
+    tags: result.tags,
+  });
+
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      const result = await generate({
-        what: answers.what || "",
-        why: answers.why || "",
-        beneficiary: answers.beneficiary || "",
-        goal: parseFloat(answers.goal) || 0,
-        timeline: answers.timeline || "",
-        category: answers.category || "Community",
-      });
+      const result = await generate(buildGenerationInput());
       setGenerated(result);
-      setEditing({
-        title: result.title,
-        summary: result.summary,
-        story: result.story,
-        category: answers.category || "Community",
-        goalAmount: parseFloat(answers.goal) || 0,
-        coverImageUrl: result.imageUrl,
-        imagePrompt: result.imagePrompt,
-        faq: result.faq,
-        socialCaptions: result.socialCaptions,
-        pressRelease: result.pressRelease,
-        donorThankYou: result.donorThankYou,
-        seoContent: result.seoContent,
-        tags: result.tags,
-      });
+      setRegenerated(null);
+      setEditing(toEditableCampaign(result));
       setView("preview");
     } catch (e) {
       alert("Generation failed. Please try again.");
     } finally {
       setGenerating(false);
     }
+  };
+
+  const handleRegenerateContent = async () => {
+    setRegeneratingContent(true);
+    try {
+      const result = await generate(buildGenerationInput());
+      setRegenerated(result);
+    } catch (e) {
+      alert("Campaign regeneration failed. Your current edits were preserved.");
+    } finally {
+      setRegeneratingContent(false);
+    }
+  };
+
+  const applyRegeneratedContent = () => {
+    if (!regenerated) return;
+    setGenerated(regenerated);
+    setEditing(toEditableCampaign(regenerated));
+    setRegenerated(null);
   };
 
   const handleRegenerateImage = async () => {
@@ -183,6 +209,49 @@ export default function AICampaignWizard({ userId, onComplete, onCancel }: {
               {generatingImage ? "Generating..." : "↻ Regenerate image"}
             </button>
           </div>
+        </div>
+
+        {/* Campaign Content Regeneration */}
+        <div className="card space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold text-iftext">Campaign content</h3>
+              <p className="text-[10px] text-ifmuted mt-0.5">Generate another version from your original answers without changing your current edits.</p>
+            </div>
+            <button
+              onClick={handleRegenerateContent}
+              disabled={regeneratingContent}
+              className="shrink-0 px-3 py-2 rounded-lg border border-ifcyan text-ifcyan text-[10px] font-semibold"
+            >
+              {regeneratingContent ? "Generating..." : "↻ Regenerate"}
+            </button>
+          </div>
+          {regenerated && (
+            <div className="rounded-lg border border-ifborder bg-ifdark p-3 space-y-2">
+              <div>
+                <p className="text-[10px] text-ifmuted">New title</p>
+                <p className="text-xs font-semibold text-iftext">{regenerated.title}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-ifmuted">New summary</p>
+                <p className="text-[11px] text-ifmuted">{regenerated.summary}</p>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={applyRegeneratedContent}
+                  className="flex-1 px-3 py-2 rounded-lg bg-ifaccent text-white text-[10px] font-semibold"
+                >
+                  Apply new version
+                </button>
+                <button
+                  onClick={() => setRegenerated(null)}
+                  className="px-3 py-2 rounded-lg border border-ifborder text-ifmuted text-[10px]"
+                >
+                  Keep current
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Editable Title */}
