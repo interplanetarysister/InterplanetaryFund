@@ -1,59 +1,30 @@
-name: Exact Head Validation
+# Archived legacy repository: workflows only run when an owner explicitly dispatches.
+# No scheduled checks, no builds, no external publishing and no deployments.
+# All real app code, actions, and user authorization belong to interplanetary-fund2.
+name: "IFund Live — Web Android parity review"
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-concurrency:
-  group: exact-head-validation-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+  live-service-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - name: Checkout exact pull request head
-        uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          persist-credentials: false
-
-      - name: Setup Node 24
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Verify admin authentication and integration boundary
+      - name: Verify live IFund (read-only)
+        shell: bash
         run: |
-          if [ -f scripts/verify-complete-admin-auth-surface.mjs ]; then
-            node scripts/verify-complete-admin-auth-surface.mjs
-          fi
-
-      # Prevent regression of the canonical outreach safety architecture:
-      # independent controls, opt-out preservation, subscription authority,
-      # Browserbase fail-closed publishing, anti-spam reservations, and admin auth.
-      - name: Verify outreach architecture invariants
-        run: node scripts/verify-outreach-invariants.mjs
-
-      # Convex bundles server modules differently from Vite/tsc. Run codegen here
-      # so unsupported Node dependencies cannot pass PR checks and then fail only
-      # during the production Convex deploy.
-      - name: Verify Convex bundling and generated API
-        run: npx convex codegen
-
-      - name: Typecheck
-        run: npx tsc --noEmit
-
-      - name: Build web application
-        run: npm run build
+          set -euo pipefail
+          echo "This is an on-demand IFund production diagnostic. Source and user actions are owned by interplanetary-fund2."
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/ -o /tmp/ifund-home.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund-home.html
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.base44.app/ -o /tmp/ifund-base44.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund-base44.html
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/api/health -o /tmp/ifund-health.json
+          node -e "JSON.parse(require('fs').readFileSync('/tmp/ifund-health.json','utf8'))"
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/ifund-android-release.json -o /tmp/ifund-apk-manifest.json
+          node -e "const r=JSON.parse(require('fs').readFileSync('/tmp/ifund-apk-manifest.json','utf8')); if(!r.status)process.exit(1); console.log('Android availability:',r.status)"
+          echo "Completed read-only IFund live-service checks. No user content, payment or deployment was changed."
