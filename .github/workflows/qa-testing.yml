@@ -15,25 +15,10 @@
 
 name: QA Testing
 
+# Automatic Actions triggers paused on 2026-10-13 at user's request.
+# Manual workflow_dispatch remains available; no job or implementation changes.
 on:
-  schedule:
-    # Every 6 hours — 00:00, 06:00, 12:00, 18:00 UTC
-    - cron: '0 */6 * * *'
   workflow_dispatch:
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'convex/**'
-      - 'tests/**'
-      - 'playwright.config.ts'
-      - '.github/workflows/qa-testing.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'convex/**'
-      - 'tests/**'
-      - 'playwright.config.ts'
 
 permissions:
   contents: read
