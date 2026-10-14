@@ -9,12 +9,11 @@
 
 name: Enhanced Autonomous Agent
 
+# Automatic Actions triggers paused on 2026-10-13 at user's request.
+# Manual workflow_dispatch remains available; no job or implementation changes.
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
 
-# Never allow two monitoring cycles to execute at the same time.
 concurrency:
   group: if-enhanced-agent
   cancel-in-progress: true
