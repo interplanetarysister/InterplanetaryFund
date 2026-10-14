@@ -1,22 +1,8 @@
-# Interplanetary Fund — Automated QA Testing
-# Runs Playwright browser tests against production site on schedule.
-# Credit-free — all testing happens in GitHub Actions runners.
-#
-# Schedule: Every 6 hours (4x daily)
-# Tests: Site health, auth flows, AI Campaign Wizard, donations,
-#   campaign comparison, notifications, all 21 page loads,
-#   Convex backend data integrity
-#
-# On failure: Creates a GitHub issue with the test report.
-#
-# Security: repository contents are read-only; QA evidence is retained as an Actions artifact.
-#
-# Copyright © 2026 Michelle Rogers. All Rights Reserved.
-
+# Interplanetary Fund — read-only live frontend QA.
+# PAUSED: manual workflow_dispatch only. No schedules, push or PR triggers.
+# Never register users, send donations, login, post content, or alter live data.
 name: QA Testing
 
-# Automatic Actions triggers paused on 2026-10-13 at user's request.
-# Manual workflow_dispatch remains available; no job or implementation changes.
 on:
   workflow_dispatch:
 
@@ -24,143 +10,44 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  live-frontend-qa:
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
-    outputs:
-      status: ${{ steps.parse.outputs.status }}
-      summary: ${{ steps.parse.outputs.summary }}
-
     env:
-      SITE_URL: https://interplanetary-fund.vercel.app
-      VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
-
+      LIVE_SITE_URL: https://interplanetaryfund.com/
+      LIVE_BASE44_URL: https://interplanetaryfund.base44.app/
+      CI: 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22'
           cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
+      - name: Install browser test dependencies without package lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Install Chromium browser
         run: npx playwright install --with-deps chromium
-
-      - name: Run QA tests
-        id: tests
-        run: npx playwright test
-        continue-on-error: true
-
-      - name: Parse test results
-        id: parse
-        if: always()
+      - name: Verify published frontend in HTTP and browser
+        shell: bash
         run: |
-          node -e "
-          const fs = require('fs');
-          const crypto = require('crypto');
-          let passed = 0, failed = 0, flaky = 0;
-          try {
-            const report = JSON.parse(fs.readFileSync('qa-report.json', 'utf-8'));
-            for (const suite of report.suites || []) {
-              for (const spec of suite.specs || []) {
-                for (const test of spec.tests || []) {
-                  for (const result of test.results || []) {
-                    if (result.status === 'passed') passed++;
-                    else if (result.status === 'failed') failed++;
-                    else if (result.status === 'flaky') flaky++;
-                  }
-                }
-              }
-            }
-          } catch(e) {
-            console.log('Could not parse report:', e.message);
-          }
-          const total = passed + failed + flaky;
-          const status = failed > 0 ? 'FAILED' : 'PASSED';
-          const summary = \`\${status}: \${passed} passed, \${failed} failed, \${flaky} flaky (of \${total} total)\`;
-          console.log(summary);
-          fs.writeFileSync('qa-summary.txt', summary);
-          fs.writeFileSync('qa-status.txt', status);
-          const statusText = fs.readFileSync('qa-status.txt', 'utf-8').trim();
-          const summaryText = fs.readFileSync('qa-summary.txt', 'utf-8').trim();
-          const delimiter = 'QA_SUMMARY_' + crypto.randomUUID();
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'status=' + statusText + '\n');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'summary<<' + delimiter + '\n' + summaryText + '\n' + delimiter + '\n');
-          "
-
-      - name: Upload test report
+          set +e
+          node scripts/live-frontend-audit.mjs
+          HTTP_RESULT=$?
+          npx playwright test tests/e2e/live-frontend-readonly.spec.ts
+          BROWSER_RESULT=$?
+          if [ "$HTTP_RESULT" -ne 0 ] || [ "$BROWSER_RESULT" -ne 0 ]; then
+            exit 1
+          fi
+      - name: Upload live frontend QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa-report-${{ github.run_id }}
+          name: live-frontend-qa
           path: |
+            live-frontend-audit.json
             qa-report.json
-            qa-summary.txt
             test-results/
-          retention-days: 30
-
-  report:
-    if: always() && github.event_name != 'pull_request'
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    steps:
-      - name: Create/update issue on failure
-        if: needs.test.outputs.status == 'FAILED'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SUMMARY: ${{ needs.test.outputs.summary }}
-        run: |
-          DATE=$(date -u '+%Y-%m-%d %H:%M UTC')
-          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-
-          EXISTING=$(gh issue list --label "qa-failure" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
-
-          BODY="## QA Test Failure Report
-
-          **Run:** ${RUN_URL}
-          **Date:** ${DATE}
-          **Summary:** ${SUMMARY}
-
-          ### Failed Tests
-
-          See the full test report artifact for details.
-
-          ### Recovery
-
-          This issue will auto-close when the next QA run passes.
-          "
-
-          if [ -n "$EXISTING" ]; then
-            gh issue comment "$EXISTING" --body "## Update — ${DATE}
-
-          ${SUMMARY}
-          Run: ${RUN_URL}"
-          else
-            gh issue create \
-              --title "QA Test Failure — ${DATE}" \
-              --body "$BODY" \
-              --label "qa-failure,automated" \
-              || gh issue create \
-                --title "QA Test Failure — ${DATE}" \
-                --body "$BODY" \
-                --label "qa-failure"
-          fi
-
-      - name: Auto-close issues on success
-        if: needs.test.outputs.status == 'PASSED'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ISSUES=$(gh issue list --label "qa-failure" --state open --json number --jq '.[].number' 2>/dev/null || echo "")
-          for issue in $ISSUES; do
-            gh issue comment "$issue" --body "All QA tests passing as of $(date -u '+%Y-%m-%d %H:%M UTC'). Auto-closing."
-            gh issue close "$issue"
-          done
+          if-no-files-found: ignore
+          retention-days: 7
