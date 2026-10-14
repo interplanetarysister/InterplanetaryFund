@@ -1,38 +1,26 @@
-name: Deploy to GitHub Pages
+# Archived legacy repository: workflows only run when an owner explicitly dispatches.
+# No scheduled checks, no builds, no external publishing and no deployments.
+# All real app code, actions, and user authorization belong to interplanetary-fund2.
+name: "IFund Live — Live website readiness"
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
-  build-and-deploy:
-    runs-on: ubuntu-latest
+  live-service-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - name: Generate Convex types
-        run: npx convex codegen
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-      - name: Build with Pages base path
-        run: npm run build
-        env:
-          VITE_BASE_PATH: "/InterplanetaryFund/"
-      - name: Add .nojekyll
-        run: touch dist/.nojekyll
-      - name: Copy 404.html for SPA routing
-        run: cp dist/index.html dist/404.html
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-      - uses: actions/deploy-pages@v4
+      - name: Verify live IFund (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "This is an on-demand IFund production diagnostic. Source and user actions are owned by interplanetary-fund2."
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/ -o /tmp/ifund-home.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund-home.html
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.base44.app/ -o /tmp/ifund-base44.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund-base44.html
+          echo "Completed read-only IFund live-service checks. No user content, payment or deployment was changed."
