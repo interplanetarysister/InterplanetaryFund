@@ -1,54 +1,35 @@
-# Interplanetary Fund — Enhanced Autonomous Agent
-# Runs every 30 minutes on GitHub Actions.
-#
-# This workflow is OBSERVABILITY ONLY. It must never deploy Convex or push
-# commits to main. Production Convex deployment is isolated in
-# convex-deploy.yml with its own concurrency gate.
-#
-# Copyright © 2026 Michelle Rogers. All Rights Reserved.
-
+# Interplanetary Fund — live frontend audit.
+# PAUSED: only the owner can run this manually through workflow_dispatch.
+# No schedules, push hooks, deployments, backend writes, or financial actions.
 name: Enhanced Autonomous Agent
 
-# Automatic Actions triggers paused on 2026-10-13 at user's request.
-# Manual workflow_dispatch remains available; no job or implementation changes.
 on:
   workflow_dispatch:
-
-concurrency:
-  group: if-enhanced-agent
-  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  agent:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    env:
-      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-
+  live-frontend-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v4
         with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run enhanced monitoring cycle
-        run: node scripts/enhanced-agent.mjs
-        continue-on-error: true
-
-      - name: Upload agent report
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit published IFund website and Base44 frontend (read-only)
+        env:
+          LIVE_SITE_URL: https://interplanetaryfund.com/
+          LIVE_BASE44_URL: https://interplanetaryfund.base44.app/
+        run: node scripts/live-frontend-audit.mjs
+      - name: Save site audit evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: agent-report-${{ github.run_id }}
-          path: agent-report.json
+          name: live-frontend-audit
+          path: live-frontend-audit.json
           if-no-files-found: ignore
           retention-days: 7
