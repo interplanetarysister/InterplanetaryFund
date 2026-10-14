@@ -1,48 +1,26 @@
-# Interplanetary Fund — Production Convex Deployment
-#
-# Production deployment is intentionally isolated from the 30-minute
-# observability agent. Only backend-relevant changes trigger this workflow.
-# A single concurrency gate prevents parallel production Convex deployments.
-
-name: Convex Production Deploy
+# Archived legacy repository: workflows only run when an owner explicitly dispatches.
+# No scheduled checks, no builds, no external publishing and no deployments.
+# All real app code, actions, and user authorization belong to interplanetary-fund2.
+name: "IFund Live — Backend health review"
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'convex/**'
-      - 'package.json'
-      - 'package-lock.json'
   workflow_dispatch:
-
-# Never run two production Convex deployments at once.
-concurrency:
-  group: convex-production-deploy
-  cancel-in-progress: false
 
 permissions:
   contents: read
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    env:
-      CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
-
+  live-service-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Deploy Convex production
-        run: npx convex deploy
+      - name: Verify live IFund (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "This is an on-demand IFund production diagnostic. Source and user actions are owned by interplanetary-fund2."
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/ -o /tmp/ifund-home.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund-home.html
+          curl --fail --silent --show-error --location --max-time 20 https://interplanetaryfund.com/api/health -o /tmp/ifund-health.json
+          node -e "JSON.parse(require('fs').readFileSync('/tmp/ifund-health.json','utf8'))"
+          echo "Completed read-only IFund live-service checks. No user content, payment or deployment was changed."
