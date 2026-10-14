@@ -1,123 +1,15 @@
-name: Build Android APK
-
+name: Live IFund Android download status (manual)
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'index.html'
-      - 'package.json'
-      - '.github/workflows/build-apk.yml'
   workflow_dispatch:
-
 permissions:
-  contents: write
-
+  contents: read
 jobs:
-  build-apk:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Setup Java 17
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          packages: 'platforms;android-34 build-tools;34.0.0'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Capacitor
+      - name: Check live website and APK availability information
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npm install -g @capacitor/cli
-
-      - name: Build web app
-        run: npm run build
-        env:
-          VITE_CONVEX_URL: https://rosy-butterfly-2.convex.cloud
-
-      - name: Create Capacitor config
-        run: |
-          cat > capacitor.config.json << 'CONF'
-          {
-            "appId": "com.interplanetaryfund.app",
-            "appName": "Interplanetary Fund",
-            "webDir": "dist",
-            "server": {
-              "androidScheme": "https"
-            },
-            "android": {
-              "allowMixedContent": true
-            }
-          }
-          CONF
-          rm -f capacitor.config.ts
-
-      - name: Add Android platform
-        run: npx cap add android
-
-      - name: Copy web assets
-        run: npx cap copy
-
-      - name: Generate signing key
-        run: |
-          keytool -genkey -v -keystore android.keystore -alias android \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass interplanetary -keypass interplanetary \
-            -dname "CN=Interplanetary Fund, O=Interplanetary Fund, L=Earth, ST=Earth, C=US"
-
-      - name: Build debug APK
-        working-directory: android
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --no-daemon -x lint 2>&1
-          find . -name "*.apk" -type f
-
-      - name: Find and rename APK
-        run: |
-          APK_PATH=$(find android -name "*.apk" -type f | head -1)
-          if [ -n "$APK_PATH" ]; then
-            cp "$APK_PATH" "interplanetary-fund.apk"
-            ls -la interplanetary-fund.apk
-            echo "APK found at: $APK_PATH"
-          else
-            echo "No APK was built"
-            exit 1
-          fi
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: interplanetary-fund-apk
-          path: interplanetary-fund.apk
-          if-no-files-found: error
-
-      # GitHub immutable releases cannot have an existing asset replaced.
-      # Publish a unique release per successful build instead of mutating latest-apk.
-      - name: Publish APK release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: apk-${{ github.run_number }}-${{ github.sha }}
-          name: "Interplanetary Fund APK #${{ github.run_number }}"
-          body: |
-            Auto-built APK from main at ${{ github.sha }}.
-
-            Download and install on your Android device.
-            You may need to enable "Install from unknown sources" in your settings.
-          files: interplanetary-fund.apk
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          curl -fsSL --max-time 20 https://interplanetaryfund.com/ -o /tmp/ifund.html
+          grep -Eiq '<html|<!doctype' /tmp/ifund.html
+          echo "Real APK builds occur exclusively in interplanetary-fund2 on explicit request."
