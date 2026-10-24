@@ -1,0 +1,203 @@
+{
+  "name": "Campaign",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "story": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "medical",
+        "emergency",
+        "education",
+        "community",
+        "animals",
+        "business",
+        "memorial",
+        "disaster_relief",
+        "creative",
+        "other"
+      ],
+      "default": "other"
+    },
+    "goal_amount": {
+      "type": "number",
+      "minimum": 1
+    },
+    "raised_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "donor_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "location": {
+      "type": "string",
+      "description": "The city where this campaign is based, so it can appear on the global activity globe."
+    },
+    "location_lat": {
+      "type": "number",
+      "description": "Geocoded latitude of the campaign location."
+    },
+    "location_lng": {
+      "type": "number",
+      "description": "Geocoded longitude of the campaign location."
+    },
+    "cashapp_tag": {
+      "type": "string",
+      "description": "The creator's Cash App $Cashtag, so supporters can give with Cash App."
+    },
+    "ai_profile": {
+      "type": "object",
+      "description": "The campaign's permanent AI profile \u2014 answers from the AI Instructions step, used by every AI feature to represent and promote the campaign consistently and truthfully.",
+      "properties": {
+        "primary_goal": {
+          "type": "string"
+        },
+        "who_helping": {
+          "type": "string"
+        },
+        "ideal_donors": {
+          "type": "string"
+        },
+        "tone": {
+          "type": "string"
+        },
+        "never_change": {
+          "type": "string"
+        },
+        "always_emphasize": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interested_orgs": {
+          "type": "string"
+        },
+        "avoid_words": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string"
+        },
+        "long_term_outcome": {
+          "type": "string"
+        }
+      }
+    },
+    "story_versions": {
+      "type": "array",
+      "description": "Saved AI-generated story versions for version history and regeneration.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "audience": {
+            "type": "string"
+          },
+          "seo": {
+            "type": "boolean"
+          },
+          "accessibility": {
+            "type": "boolean"
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "outreach_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the AI Outreach Agent is activated and authorized to work autonomously on this campaign. Default on per Michelle's Campaign Protocol."
+    },
+    "outreach_paused": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the AI Outreach Agent holds automated work for this campaign until resumed."
+    }
+  },
+  "required": [
+    "title",
+    "goal_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": {
+            "$ne": "draft"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
