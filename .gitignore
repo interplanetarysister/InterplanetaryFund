@@ -1,24 +1,9 @@
 node_modules/
-.env
-.env.local
-*.log
-.DS_Store
 dist/
-.env.convex
-.env.production
-.netlify/
-.env.deploy
-.env.deploy
-agent-report.json
-
-# Playwright
-test-results/
-playwright-report/
-blob-report/
-.playwright/
-qa-summary.txt
-qa-status.txt
-
-# QA test report artifacts (committed manually by workflow to qa-results/)
-qa-report.json
-docs/platform_accounts.csv
+.env
+.env.*
+!.env.example
+.wrangler/
+*.local
+.DS_Store
+coverage/
