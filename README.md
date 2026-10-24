@@ -1,54 +1,22 @@
 # Interplanetary Fund
 
-**Purpose: Frontend**
+> **What if?** — Independent application rebuild on Supabase + Cloudflare, with Wix as the domain manager.
 
-Authoritative user-facing React + Vite application for the single Interplanetary Fund product.
+**Migration branch**: `migration/base44-exit-supabase-cloudflare-wix`. This is **not yet a production-complete Base44 replacement**. Do not switch DNS or unpublish the existing application based solely on this branch.
 
-## Product Build Contract
+## Local development
 
-Interplanetary Fund is **one cohesive product implemented across coordinated repositories**. Repositories are implementation boundaries, not separate products.
+1. Use Node 22+. Install with `npm install` (or `npm ci` once a committed lockfile is generated).
+2. Copy `.env.example` to `.env.local` and add only the *publishable* Supabase key. Never commit a service-role key.
+3. Review and apply `supabase/schema.sql` to staging first, then test RLS and publishing.
+4. Run `npm run dev`, `npm test`, and `npm run build`.
+5. Once deployment settings and usage are approved, `npm run deploy` publishes the Cloudflare Worker plus built static assets. Configure the Wix domain to route to Cloudflare only after migration gates pass.
 
-### Repository purposes
+## Architecture
 
-| Repository | Purpose | Authority |
-|---|---|---|
-| `interplanetarysister/InterplanetaryFund` | **Frontend** | User-facing React/Vite application |
-| `interplanetarysister/interplanetary-fund-backend` | **Backend** | Backend, admin, agents, security, treasury, operations |
-| `interplanetarysister/interplanetary-fund` | **Migration** | Historical/reference source until every unique capability is reconciled |
+- `src/`: React browser app. Authentication and row-level access via Supabase, no Base44 client.
+- `supabase/schema.sql`: isolated `ifund_*` tables with RLS. Existing admin-mail tables are untouched.
+- `worker/`: Cloudflare Worker route handlers; `wrangler.jsonc`: SPA static assets.
+- `docs/MIGRATION.md`: truth-based cutover checklist and remaining migrations.
 
-### Build-agent rule
-
-Every build agent, workflow, Copilot/Codex task, and human implementation must treat the three repositories as **one product**. Before changing code, identify the repository purpose and determine whether the capability is frontend-only, backend/operations-only, or cross-repository.
-
-For cross-repository work, implement and verify the complete capability across all affected repositories. Do not create competing production sources of truth.
-
-Live campaigns, users, donations, permissions, agent state, administrative state, and other business entities must retain one canonical live identity in the authoritative backend. The frontend consumes that canonical state; it must not create a competing production database.
-
-### This repository owns
-
-- User-facing React/Vite application
-- Campaign discovery and user workflows
-- Campaign creation/editing interfaces
-- Donor and campaign experiences
-- User navigation, settings, profile, community, and help surfaces
-- Frontend integration with the canonical backend
-- User-facing responsive/mobile experience
-
-### This repository does not independently own
-
-Backend business truth, admin monitoring, agent runtime, treasury authority, security enforcement, scheduled backend jobs, or operational infrastructure. Those belong to `interplanetary-fund-backend`.
-
-## Build Commands
-
-```bash
-npm install
-npm run dev
-npm run build
-npm run preview
-```
-
-## Release Rule
-
-A frontend change is production-complete only after affected backend contracts, permissions, environment configuration, and end-to-end flows have been verified. A successful Git push alone is not a complete product release.
-
-See `PRODUCT_SYSTEM_CONTRACT.md` for the authoritative cross-repository contract.
+Current preview does **not** process payments, withdraw funds, grant admin privilege, or claim platforms are connected. These must be implemented and verified before live cutover.

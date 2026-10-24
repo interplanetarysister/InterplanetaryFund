@@ -1,0 +1,179 @@
+{
+  "name": "PlatformConnection",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "gofundme",
+        "kickstarter",
+        "indiegogo",
+        "fundrazr",
+        "givesendgo",
+        "spotfund",
+        "kofi",
+        "buymeacoffee",
+        "patreon",
+        "custom",
+        "facebook",
+        "instagram",
+        "threads",
+        "x",
+        "linkedin",
+        "tiktok",
+        "pinterest",
+        "reddit",
+        "youtube",
+        "discord",
+        "bluesky",
+        "mastodon"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "crowdfunding",
+        "social"
+      ],
+      "default": "crowdfunding"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Friendly label, e.g. the account handle or external campaign title."
+    },
+    "external_url": {
+      "type": "string",
+      "description": "The connected campaign page or social profile URL."
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "The Interplanetary Fund campaign this connection reports into."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "error",
+        "disconnected"
+      ],
+      "default": "connected"
+    },
+    "automation_mode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "ask",
+        "draft",
+        "manual"
+      ],
+      "default": "manual",
+      "description": "AI publishing authorization for this destination: publish automatically, ask before every post, generate drafts only, or manual posting only."
+    },
+    "credentials": {
+      "type": "object",
+      "description": "Per-platform integration credentials, visible only to the connection owner under RLS. Enables live sync/publishing where the platform supports it.",
+      "properties": {
+        "kofi_verification_token": {
+          "type": "string",
+          "description": "Ko-fi webhook verification token \u2014 enables live donation sync."
+        },
+        "bluesky_handle": {
+          "type": "string"
+        },
+        "bluesky_app_password": {
+          "type": "string",
+          "description": "Bluesky app password \u2014 enables direct publishing."
+        },
+        "mastodon_instance": {
+          "type": "string",
+          "description": "e.g. mastodon.social"
+        },
+        "mastodon_access_token": {
+          "type": "string",
+          "description": "Mastodon access token \u2014 enables direct publishing."
+        }
+      }
+    },
+    "external_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Funds raised on the external platform (synced via API when available, otherwise owner-reported)."
+    },
+    "external_donor_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": "string",
+      "description": "Most recent sync or publish error, for connection health reporting."
+    },
+    "history": {
+      "type": "array",
+      "description": "Connection activity log: connects, syncs, permission changes, errors.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "event": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "platform",
+    "kind"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

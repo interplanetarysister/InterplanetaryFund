@@ -1,0 +1,100 @@
+{
+  "name": "Withdrawal",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string",
+      "description": "The campaign owner who requested the payout; the only user (besides admins) allowed to see and act on this withdrawal."
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "gross_amount": {
+      "type": "number",
+      "description": "Total cleared funds withdrawn, before the platform fee."
+    },
+    "platform_fee": {
+      "type": "number",
+      "description": "8% platform fee deducted from the gross amount."
+    },
+    "net_amount": {
+      "type": "number",
+      "description": "Amount actually sent to the user's PayPal account."
+    },
+    "paypal_email": {
+      "type": "string",
+      "description": "The PayPal account the payout was sent to."
+    },
+    "covered_donation_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Donation records consumed by this withdrawal, to prevent double-withdrawal."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "under_review",
+        "paid",
+        "failed"
+      ],
+      "default": "pending"
+    },
+    "payout_batch_id": {
+      "type": "string",
+      "description": "PayPal payout batch id returned once the payout is submitted."
+    },
+    "review_note": {
+      "type": "string",
+      "description": "Why a withdrawal was held for admin review, or why it failed."
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "campaign_id",
+    "gross_amount",
+    "net_amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

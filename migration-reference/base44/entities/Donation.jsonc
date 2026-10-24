@@ -1,0 +1,93 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "donor_name": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurring_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "cancelled"
+      ]
+    },
+    "donor_user_id": {
+      "type": "string"
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "paypal",
+        "cashapp",
+        "stripe",
+        "other"
+      ],
+      "default": "paypal",
+      "description": "How the supporter sent their gift."
+    },
+    "is_institutional": {
+      "type": "boolean",
+      "default": false,
+      "description": "True for grant or foundation awards, which require admin clearing before they can be withdrawn."
+    },
+    "cleared": {
+      "type": "boolean",
+      "default": false,
+      "description": "For institutional donations: admin confirmation that the award funds were received and may now be withdrawn."
+    },
+    "withdrawal_id": {
+      "type": "string",
+      "description": "Set to the Withdrawal id once these funds have been cashed out. Null means the funds are still available to withdraw."
+    }
+  },
+  "required": [
+    "campaign_id",
+    "amount"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.donor_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
