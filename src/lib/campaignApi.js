@@ -14,7 +14,9 @@ export async function saveCampaignThroughWorker(
   if (authError || !data?.session?.access_token) {
     throw new Error("Please sign in again before saving.");
   }
-  const endpoint = id ? "/api/campaigns/" + encodeURIComponent(id) : "/api/campaigns";
+  const endpoint = id
+    ? "/api/campaigns/" + encodeURIComponent(id)
+    : "/api/campaigns";
   const result = await fetcher(endpoint, {
     method: id ? "PATCH" : "POST",
     credentials: "same-origin",

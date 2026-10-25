@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
-import { saveCampaignThroughWorker, workerCampaignApiEnabled } from "../lib/campaignApi";
+import {
+  saveCampaignThroughWorker,
+  workerCampaignApiEnabled,
+} from "../lib/campaignApi";
 import { validateCampaign, canSaveCampaign } from "../lib/validation";
 import { Message } from "../components/UI";
 const empty = {
@@ -89,7 +92,9 @@ function Editor({ user }) {
     }
     if (!db) {
       setError(true);
-      setMessage("Account services are not configured. Your changes remain in the editor.");
+      setMessage(
+        "Account services are not configured. Your changes remain in the editor.",
+      );
       return;
     }
     setBusy(true);
@@ -115,7 +120,9 @@ function Editor({ user }) {
               .update(payload)
               .eq("id", id)
               .eq("owner_id", user.id)
-          : db.from("ifund_campaigns").insert({ ...payload, owner_id: user.id });
+          : db
+              .from("ifund_campaigns")
+              .insert({ ...payload, owner_id: user.id });
         const { data, error: saveError } = await query.select("id").single();
         if (saveError) throw saveError;
         if (!data?.id) throw new Error("No saved campaign was returned.");
@@ -127,7 +134,8 @@ function Editor({ user }) {
       setError(true);
       setMessage(
         "Could not save: " +
-          (saveError?.message || "Please try again. Your changes remain in the editor."),
+          (saveError?.message ||
+            "Please try again. Your changes remain in the editor."),
       );
     } finally {
       setBusy(false);
