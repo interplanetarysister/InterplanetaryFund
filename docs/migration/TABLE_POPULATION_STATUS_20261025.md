@@ -1,33 +1,51 @@
-# IFund Supabase Table Editor — verified population state (2026-10-25)
+# IFund Supabase table population — verified 2026-10-25
 
-**Project to populate:** `InterplanetaryFund` / `ssibsfmtodgximseeqsv`.
-**Existing separate source staging:** `Ifund` / `tzehxfikoslihnclhxuz`.
-This file documents actual connected-database reads and writes, not estimates or a claim of completed source migration. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
+Authoritative plan: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
+This is a record of applied connected-Supabase operations. It does not claim the live application has feature parity or that financial transactions were verified.
 
-## What is already populated in the new Supabase project
+## Projects and current routing
+- **Designated replacement database:** `InterplanetaryFund`, `ssibsfmtodgximseeqsv`.
+- **Existing old Supabase migration source:** `Ifund`, `tzehxfikoslihnclhxuz`.
+- **Current live Cloudflare Pages build** still points to the older `tzehxfikoslihnclhxuz` project. It has **not** been silently changed. The new project has **0 auth.users**; its public campaign/posts tables remain **empty** until account ownership can be established.
 
-- `public.ifund_profiles`, `public.ifund_campaigns`, `public.ifund_posts`, `public.ifund_connections`: **schema created, RLS enabled, 0 rows**. The new project's `auth.users` has **0 users**. Real campaigns cannot be linked to unprovisioned identities; do not generate fake users or publish legacy drafts.
-- `ifund_transfer.campaign_snapshots`: **27 rows** from the old private `campaign_shadow`. Key/id and recorded-manifest comparison passed. Post-transfer payload digest check **18/27 PASS; 9/27 FAIL** (JSON serialization), so these remain **unverified, private, non-financial-authoritative**. One individual reserialization trial passed; the complete fix did not.
-- `ifund_transfer.content_snapshots`: **0 rows**. User-content cross-project inserts were stopped by connector safety checks. Do not claim imported content.
-- `ifund_transfer.source_inventory`: **20 verified metadata records** across prior Supabase tables and entity types, created via count-only query, recording **785 source staging rows**. This is accurate metadata, **not a transfer of those 785 records**. The 20 breakdown entries:
-  - `campaign_shadow` Campaign 27 (27 staged)
-  - `content_shadow` Recommendation 100; Notification 94; FeatureFlag 24; AgentConversationRun 13; Agent 10; SocialPost 10; HelpArticle 6; Community 2; DiscussionPost 2; FoundingWaitlist 2; PublicProfile 2; SupportTicket 1
-  - `source_records` PlatformConnection 32; CampaignUpdate 10
-  - `owner_identity_map` 10; `import_batches` 4; `agent_activity_shadow` 397; `agent_delegation_shadow` 26; `cutover_control` 13
-- All `ifund_transfer` tables have RLS enabled; anonymous and authenticated browser roles have **no SELECT privilege**. Never expose that schema through the Supabase Data API.
-- Applied migrations to new project: `ifund_phase1_application_runtime_schema`, `restrict_rls_auto_enable_event_trigger_api`, `ifund_private_source_shadow_transfer`, `ifund_private_source_inventory`. Existing public helper `rls_auto_enable()` is no longer invocable by `anon` or `authenticated`; security-advisor scan found zero findings after this restriction.
+## Installed tables and access verification
+- **79** private `ifund_stage` tables (one per nonfinancial/non-credential Base44 entity).
+- **12** private `ifund_finance` tables (financial entity contracts; no transactions or balances imported).
+- **4** private `ifund_secrets` tables (credential-related entity contracts; no credentials imported).
+- **3** private `ifund_transfer` tables (`campaign_snapshots`, `content_snapshots`, `source_inventory`).
+- **4** existing initial `public.ifund_*` app tables (all zero rows at audit).
+- **All 102 tables have RLS enabled.** Each of the 95 typed private entities has an explicit `deny_clients_*` RLS policy. The 3 private transfer tables also have explicit deny policies, and all 98 private tables return **zero anon/authenticated SELECT grants**. These are provisional private staging contracts, **not** finished business authorization or public production RLS parity.
+- Security advisor scan after policies: **zero findings**. Previously public-executable `public.rls_auto_enable()` event-trigger helper access is revoked from `anon` and `authenticated`.
 
-## Required import integrity gates
+## Population counts confirmed
+| Table / dataset | Rows | Interpretation |
+| --- | ---: | --- |
+| `ifund_transfer.campaign_snapshots` | 27 | Private payload preservation, not financial authority |
+| `ifund_stage.campaign` | 27 | Typed nonfinancial campaign mapping, owner UIDs NULL |
+| `ifund_transfer.source_inventory` | 20 | Observed category counts for **785** source-side staged records; these are **metadata only**, not copied payloads |
+| `ifund_transfer.content_snapshots` | 0 | Cross-project private payload transfer was blocked; do not claim migration |
+| `public.ifund_campaigns` | 0 | No owner mappings into target auth.users; do not invent identities |
+| `public.ifund_posts` | 0 | No verified end-user identity migration |
 
-1. Correct the nine JSON byte-digest mismatches and prove every transferred row equals source **by digest, id, and count**. Never replace original financial snapshots by an unverified total.
-2. Move the **266 content_shadow records** and **42 source_records** only over a secure owner-authorized transfer route that preserves byte representation. Stage these in private tables and scrub/secure any stored connection credentials. No user-facing access until per-account permissions are verified.
-3. `owner_identity_map` rows refer to a different Supabase project and do **not** automatically authorize users in the new project; require fresh verified auth linking before assigning campaigns. Zero target `auth.users` rows currently block public `ifund_campaigns` inserts due to FK.
-4. Reconcile complete Base44 exports: 95 entity definitions are **schema**, not evidence that 95 source datasets were exported. Source ZIP verified 1,232 GitHub reference files only; no complete original database/media export.
-5. PayPal donations, support additions, withdrawal balances, processor fees, and ledger events are financial records: **no verified source-to-provider reconciliation**, so never import or activate financial totals on guesses.
-6. The public Cloudflare Pages deployment currently uses **the old project**; do not switch to the new project without data parity and authentication proof. Pages source is still a partial preview.
+### Campaign integrity proof
+- Original source/target campaign snapshot ID and recorded digest manifests match **27/27**.
+- A raw `jsonb::text` digest compared against the imported records initially matched **18/27**. The nine differences arose from decimal-number serialization between connectors.
+- **Independent stronger comparison:** a recursive per-node JSON structural digest that preserves field paths, scalar types, arrays and objects while normalizing numeric trailing zero scales (using `trim_scale(numeric)`) was computed **independently within each source and destination database**. The two sorted lists matched **27/27**. No raw payloads were exported for this comparison.
+- The resulting `ifund_stage.campaign` contains **17 active source-status snapshots and 10 drafts**. These are **private historical statuses**, **not publicly activated**.
+- Field-level typed mapping reconciled IDs, title, summary, story, category, goal, status and cover image at **27/27** each. All 27 have NULL destination owner UIDs, NULL raised_amount and NULL donor_count to prevent fabricated financial truth.
+- The original raw JSON text checksums still differ for 9; this is a serialization caveat, **not an assertion of raw byte identical archives**. The raw snapshots remain private; don't rewrite their recorded source digests to conceal differences.
 
-## Next independently reviewable action
+### Source-side remaining data
+Old `ifund_migration.content_shadow` has **266** records including Recommendation 100, Notification 94, FeatureFlag 24, AgentConversationRun 13, Agent 10, SocialPost 10, HelpArticle 6, and smaller types; they have **not yet been copied to new target**.
+Old `ifund_migration.source_records` holds **42** records (PlatformConnection 32, CampaignUpdate 10); they have **not been copied**.
+Additional staging metadata: owner_identity_map 10, import_batches 4, agent_activity_shadow 397, agent_delegation_shadow 26, cutover_control 13, recorded in `source_inventory`. The 785 aggregate is across heterogeneous **old staging** datasets; it does not guarantee complete Base44 production data.
 
-Use an authenticated owner-controlled, secret-safe PostgreSQL-to-PostgreSQL transfer with **no sensitive rows in GitHub, logs, tools, or chat**. Source/target DB credentials must be injected as runtime secrets (not stored in this repo). Transfer in idempotent batches, hash source `jsonb::text` with SHA-256, hash target canonical `jsonb::text`, abort on any mismatch, and record verified counts per entity. Identity/finance activation is a separate explicit gate.
+## Required next gates
+1. Owner-controlled secure byte-preserving `scripts/migration/transfer_supabase_snapshots.py` with the two project DB URLs supplied solely at runtime, not as chat messages or committed secrets. That script is committed, **not executed/tested against linked accounts**.
+2. Securely transfer remaining staged content and audit/identity records only to correctly protected private tables. Respect owner scopes, credential references and consent; user data is never available in public staging.
+3. Verify Base44 source completeness for all 95 entities and associated media. The source ZIP contains **code**, not live table rows.
+4. Create/prove destination Supabase Auth accounts with verified owner linking. Then map campaigns to `auth.users` and expose only fully authorized public rows under production RLS.
+5. Reconcile donations, fees, ledger holds and withdrawals against PayPal/provider evidence **before** allowing payment operations; preserve gift-first accounting policy.
+6. Complete the 184 backend ports, UI parity, payment webhooks, provider OAuth, workflows and production testing; **do not unpublish Base44** based only on DNS/schema readiness.
 
-Email service migration is intentionally outside this scope.
+Email work was explicitly set aside.
