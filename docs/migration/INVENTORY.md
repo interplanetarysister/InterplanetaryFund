@@ -43,7 +43,7 @@ Source of truth: [issue #137](https://github.com/interplanetarysister/Interplane
 - Direct frontend API bridge: [src/api/base44Client.js](https://github.com/interplanetarysister/interplanetary-fund2/blob/main/src/api/base44Client.js) uses @base44/sdk and rewrites the server URL for alternate hosts. Replaced by src/lib/supabase.js only for the *preview subset*.
 - Source frontend Base44 CRUD, auth, hosted functions, Core services, connectors, and agent chat direct callsites have line-based inventory coverage. Target adapter mapping and dynamic/indirect calls are still open; do not claim Base44 parity.
 - Source `base44/functions/setupPayPalSubscriptionWebhook/entry.ts` hardcodes a Base44 callback URL. Financial handlers require provider-dashboard verification (see BLOCKERS).
-- `ifund_ops` private schema and 25 applied Supabase migrations already exist. This preview SQL only sketches 3 public tables; **do not apply until the full schema/RLS plan is reviewed**.
+- `ifund_ops` private schema and 25 applied Supabase migrations already exist. This preview SQL only sketches 4 public tables; **do not apply until the full schema/RLS plan is reviewed**.
 ## Prioritized inventory gaps
 1. Cross-reference every `base44.*` frontend call (file, line, function, auth scope) to target adapter or edge function.
 2. Capture each backend function’s real callers, trusted/anonymous context, request/response types and side effects; static name/regex extraction does not prove semantics.
