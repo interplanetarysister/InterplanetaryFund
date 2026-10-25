@@ -36,3 +36,6 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Added `worker/ownerLinkRules.js`: server-side-only exact normalized email, one-candidate checks and explicit consent requirements; `tests/phase3-owner-link.test.js` covers unverified, ambiguous, missing, already-linked and stale-consent scenarios.
 - Added **inactive** `supabase/migrations/pending/phase3_owner_link_proposal.sql`: private candidate table, one-time hashed consent challenge, linked UID uniqueness, service-role-only atomic claim and audit; not applied to any database.
 - **NOT READY TO ACTIVATE:** no provider OAuth apps/credentials changed, email-code template configured, actual Base44 user rows imported, owner links established, or service-side validation endpoint deployed. No browser can invoke the inactive SQL.
+
+## Phase 3 actual CI proof — 2026-10-25 UTC
+[GitHub Actions run 40157561064](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157561064) — **SUCCESS** on free standard public runner: npm-generated lockfile, `npm ci`, Prettier, **19/19 unit tests**, and `npm run build` (Vite 6.4.3; 2.35 seconds). These tests cover pure owner-link eligibility/consent and prior schema/editor invariants. **No live OAuth, identity claim, OTP delivery, provider credentials or database SQL was tested or changed.** Phase 3 remains incomplete.
