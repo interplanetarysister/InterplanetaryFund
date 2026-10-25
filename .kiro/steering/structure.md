@@ -26,3 +26,11 @@ Do not invent absent files or treat planned folders as deployed code. Inspect st
 
 ## Migration discipline
 Each of the seven phases gets a reviewable PR into the integration branch, never directly into main; add steering work to the existing Phase 1 PR. Do not merge without review gates. Keep branch and PR descriptions truthful about local-only, sandbox, integration, and live verification.
+
+## Live workspace references
+These one-level folder listings track actual checked-in paths. A missing path indicates unfinished scaffold, not permission to invent a deployed resource.
+
+#[[file:AGENTS.md]]
+#[[folder:src]]
+#[[folder:supabase]]
+#[[folder:.kiro/steering]]
