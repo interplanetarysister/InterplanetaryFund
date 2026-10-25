@@ -21,6 +21,15 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - Private legacy transfer details and the **27/27 semantic structural comparison** are recorded in [TABLE_POPULATION_STATUS_20261025.md](TABLE_POPULATION_STATUS_20261025.md); nine raw serialized digests remain different and no source-byte-identical claim is made.
 - The earlier `tzehxfikoslihnclhxuz` Supabase project is a **different** project; never conflate source shadow records with production-readiness of the new project.
 
+## Confirmed legacy Worker routing
+
+A follow-up read of the **currently deployed** Cloudflare Worker `interplanetary-fund2` and zone routes found:
+
+- Fourteen hostname/path patterns for apex or `www.interplanetaryfund.com` currently bind to `interplanetary-fund2`. Patterns include `/api/mcp*`, `/api/v1/migration/auth/session`, `/api/v1/migration/campaigns`, `/api/health*`, agent and OAuth discovery paths.
+- The Worker **contains** `DEFAULT_BASE44_ORIGIN = "https://interplanetaryfund.base44.app"` and a `proxyBase44Mcp` routine that constructs and fetches upstream requests. Thus a Base44-independent runtime **cannot be claimed** from Cloudflare DNS or Pages setup alone.
+- The Worker readiness implementation explicitly names `base44_mcp_proxy`, `base44_auth_authority`, and `base44_campaign_authority` as missing independent capabilities. This is an operational dependency, not just a dead import in an archived source file.
+- **Do not delete the Worker or routes yet.** Replace one route at a time with verified Supabase/Cloudflare behavior and prove auth/ownership, audit and payment controls before disabling any still-active legacy fallback. Keep the existing live paths from breaking while the replacement remains incomplete.
+
 ## Blocking cutover gates
 
 1. Independently prove user sign-in and verified owner-to-`auth.users` mapping, plus cross-account RLS denial.
