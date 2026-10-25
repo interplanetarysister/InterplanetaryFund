@@ -3,7 +3,7 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — 95 source-entity typed staging definitions, RLS and service isolation: **IN PROGRESS**; 95 private staging tables and 95 fail-closed client policies drafted in pending/; exact Base44 owner/admin read/write parity, source-to-UUID mapping, and staging execution remain UNVERIFIED and APPROVAL-GATED. Existing 4-table illustrative preview SQL remains a separate unapplied Phase 1 proposal.
-- [ ] Phase 3 — Supabase Auth identity mapping + role gates: **not started**.
+- [ ] Phase 3 — Supabase Auth Google/Facebook/email OTP and verified owner linking: **IN PROGRESS**; password signup removed in Phase 1; server-only match rules, consent design and inactive SQL staged; actual provider apps, OTP delivery template, verified ID mapping, and runtime link remain approval-gated.
 - [ ] Phase 4 — function and integration parity (184 function entrypoints): **not started**.
 - [ ] Phase 5 — full frontend port: **not started**; scaffold only and editor load guard.
 - [ ] Phase 6 — live data and media export/import reconciliation: **blocked** by missing authorized test export and row counts.
@@ -31,3 +31,8 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 
 ## Phase 2 real npm CI proof — 2026-10-25 UTC
 [GitHub Actions run 40157280148](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157280148), free public `ubuntu-latest`: **SUCCESS**. Genuine npm lockfile regeneration step PASS; `npm ci` PASS (152 packages); `npm test` PASS (**13 tests**, zero failed); `npm run build` PASS (Vite production build in **1.54s**); Prettier format/check PASS. These are code/static schema verification tests, **not** database-executed RLS tests. Phase 2 cannot be marked complete until exact Base44 RLS parity and owner-approved SQL staging checks pass.
+
+## Phase 3 progress
+- Added `worker/ownerLinkRules.js`: server-side-only exact normalized email, one-candidate checks and explicit consent requirements; `tests/phase3-owner-link.test.js` covers unverified, ambiguous, missing, already-linked and stale-consent scenarios.
+- Added **inactive** `supabase/migrations/pending/phase3_owner_link_proposal.sql`: private candidate table, one-time hashed consent challenge, linked UID uniqueness, service-role-only atomic claim and audit; not applied to any database.
+- **NOT READY TO ACTIVATE:** no provider OAuth apps/credentials changed, email-code template configured, actual Base44 user rows imported, owner links established, or service-side validation endpoint deployed. No browser can invoke the inactive SQL.
