@@ -8,3 +8,10 @@ export function validateCampaign(campaign, publish = false) {
   return missing;
 }
 export function publicStatus(status) { return status === 'active' ? 'Published' : 'Draft'; }
+
+// Existing campaigns require a successful read of the exact same ID. Prevents
+// overwriting an existing record with initial defaults during loading/errors.
+export function canSaveCampaign({ id, loadedId, loadState, busy }) {
+  if (busy) return false;
+  return !id || (loadState === 'ready' && loadedId === id);
+}
