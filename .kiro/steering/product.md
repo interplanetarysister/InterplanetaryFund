@@ -17,3 +17,9 @@ Interplanetary Fund (IFund) is an AI-assisted crowdfunding platform for creating
 
 ## Authority
 GitHub issue #137 and the current branch `AGENTS.md` are authoritative for migration scope, safeguards, and the seven-phase release gate. Existing repository code and verified tests outrank assumptions in this summary. Do not treat this document as a request to deploy or enable payments.
+
+## Live workspace references
+These references are resolved by Kiro from the active repository branch, not copied snapshots. Verify their content before making product claims.
+
+#[[file:AGENTS.md]]
+#[[file:docs/migration/STATUS.md]]
