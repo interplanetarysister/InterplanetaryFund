@@ -10,7 +10,7 @@ create table if not exists public.ifund_profiles (
 );
 create table if not exists public.ifund_campaigns (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null references auth.users(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete restrict,
   title text not null default '',
   summary text not null default '',
   story text not null default '',
@@ -24,13 +24,13 @@ create table if not exists public.ifund_campaigns (
 );
 create table if not exists public.ifund_posts (
   id uuid primary key default gen_random_uuid(),
-  author_id uuid not null references auth.users(id) on delete cascade,
+  author_id uuid not null references auth.users(id) on delete restrict,
   body text not null check (length(trim(body)) between 1 and 2000),
   created_at timestamptz not null default now()
 );
 create table if not exists public.ifund_connections (
   id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null references auth.users(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete restrict,
   provider text not null,
   status text not null default 'disconnected' check (status in ('disconnected','pending','connected','error')),
   verified_at timestamptz,
