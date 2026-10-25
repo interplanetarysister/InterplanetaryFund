@@ -19,11 +19,14 @@ export function migrationReady(env) {
 }
 
 function providerHeaders(env, jwt) {
-  return {
+  // Modern sb_publishable_ keys are API identifiers, NOT bearer JWTs.
+  // Anonymous reads use only apikey. User-scoped reads forward the verified JWT.
+  const headers = {
     apikey: env.SUPABASE_PUBLISHABLE_KEY,
-    Authorization: 'Bearer ' + (jwt || env.SUPABASE_PUBLISHABLE_KEY),
     Accept: 'application/json',
   };
+  if (jwt) headers.Authorization = 'Bearer ' + jwt;
+  return headers;
 }
 
 /** Verify the supplied bearer with Supabase Auth; never trust unsigned JWT claims. */
