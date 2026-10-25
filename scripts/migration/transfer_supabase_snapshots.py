@@ -91,12 +91,21 @@ def assert_source_record_safe(row):
     obj = json.loads(payload)
     if not isinstance(obj, dict):
         raise RuntimeError("Unexpected source record payload")
-    if any(
-        part in str(k).lower()
-        for k in obj.keys()
-        for part in ("password", "secret", "credential", "access_token",
-                     "refresh_token", "private_key", "api_key")
-    ):
+    forbidden = ("password", "secret", "credential", "access_token",
+                 "refresh_token", "private_key", "api_key")
+
+    def contains_credential_field(node):
+        if isinstance(node, dict):
+            return any(
+                any(word in str(key).lower() for word in forbidden)
+                or contains_credential_field(value)
+                for key, value in node.items()
+            )
+        if isinstance(node, list):
+            return any(contains_credential_field(value) for value in node)
+        return False
+
+    if contains_credential_field(obj):
         raise RuntimeError("Source record contains sensitive credential fields")
 
 
