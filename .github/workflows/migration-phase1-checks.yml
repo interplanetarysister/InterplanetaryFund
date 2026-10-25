@@ -1,0 +1,37 @@
+name: Migration phase checks
+on:
+  pull_request:
+    branches:
+      - migration/supabase-cloudflare
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The checkout default for pull_request is the proposed merge commit.
+      # Credentials are not kept in git config during dependency installation.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies from real npm registry
+        run: npm ci --no-audit --no-fund
+      - name: Verify npm lock resolution is reproducible
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git diff --exit-code -- package-lock.json package.json
+      - name: Unit tests
+        run: npm test
+      - name: Verify private transfer Python syntax
+        run: python3 -m py_compile scripts/migration/transfer_supabase_snapshots.py tests/test_private_transfer.py
+      - name: Verify private transfer security tests (offline)
+        run: python3 -m unittest discover -s tests -p 'test_private_transfer.py' -v
+      - name: Vite production build
+        run: npm run build
+      - name: Prettier check
+        run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"

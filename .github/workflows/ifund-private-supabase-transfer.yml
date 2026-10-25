@@ -1,0 +1,67 @@
+# Import remains disabled unless manually dispatched from the reviewed main branch.
+# The two PostgreSQL connection strings are GitHub Environment secrets, not repo files.
+name: IFund private Supabase transfer
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Transfer mode (always dry-run first)"
+        type: choice
+        required: true
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+      destination_project:
+        description: "Type target project ID to confirm"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-private-supabase-transfer
+  cancel-in-progress: false
+
+jobs:
+  transfer:
+    if: >-
+      github.repository == 'interplanetarysister/InterplanetaryFund' &&
+      github.ref == 'refs/heads/main' &&
+      inputs.destination_project == 'ssibsfmtodgximseeqsv'
+    runs-on: ubuntu-latest
+    environment: ifund-private-import
+    timeout-minutes: 15
+    env:
+      IFUND_SOURCE_DATABASE_URL: ${{ secrets.IFUND_SOURCE_DATABASE_URL }}
+      IFUND_TARGET_DATABASE_URL: ${{ secrets.IFUND_TARGET_DATABASE_URL }}
+    steps:
+      - name: Checkout reviewed source only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Confirm both database URLs are configured
+        shell: bash
+        run: |
+          if [[ -z "${IFUND_SOURCE_DATABASE_URL:-}" || -z "${IFUND_TARGET_DATABASE_URL:-}" ]]; then
+            echo "Encrypted source and target environment secrets are required."
+            exit 1
+          fi
+
+      - name: Install PostgreSQL driver without application dependencies
+        run: python3 -m pip install --disable-pip-version-check --quiet 'psycopg[binary]>=3.2,<4'
+
+      - name: Run offline importer integrity tests
+        run: python3 -m unittest discover -s tests -p 'test_private_transfer.py'
+
+      - name: Import private snapshots (no public activation)
+        shell: bash
+        run: |
+          if [[ "${{ inputs.mode }}" == "apply" ]]; then
+            python3 scripts/migration/transfer_supabase_snapshots.py --apply
+          else
+            python3 scripts/migration/transfer_supabase_snapshots.py
+          fi
