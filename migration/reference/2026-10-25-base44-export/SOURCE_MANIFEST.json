@@ -258,7 +258,7 @@
     },
     {
       "source_path": "README.md",
-      "stored_path": "migration/reference/2026-10-25-base44-export/README.md",
+      "stored_path": "migration/reference/2026-10-25-base44-export/README.source.md",
       "bytes": 2769,
       "sha256": "3f49ffcc5cc0d4ba8b96e9ca10a956df6b26d2208c62ae0024fa9cd2519aec84"
     },
