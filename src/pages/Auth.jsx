@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db } from '../lib/supabase';
-import { Message } from '../components/UI';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { db } from "../lib/supabase";
+import { Message } from "../components/UI";
 
 const SIGN_IN_PROVIDERS = [
-  { id: 'google', label: 'Continue with Google' },
-  { id: 'facebook', label: 'Continue with Facebook' },
+  { id: "google", label: "Continue with Google" },
+  { id: "facebook", label: "Continue with Facebook" },
 ];
 
 /**
@@ -15,12 +15,12 @@ const SIGN_IN_PROVIDERS = [
  */
 export default function Auth({ user }) {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
   const [codeRequested, setCodeRequested] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   if (user) {
     return (
@@ -37,15 +37,15 @@ export default function Auth({ user }) {
   async function signInWithProvider(provider) {
     if (!db || busy) return;
     setBusy(true);
-    setError('');
+    setError("");
     try {
       const { error: authError } = await db.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + '/login' },
+        options: { redirectTo: window.location.origin + "/login" },
       });
       if (authError) throw authError;
     } catch (authError) {
-      setError(authError?.message || 'Social sign-in is unavailable.');
+      setError(authError?.message || "Social sign-in is unavailable.");
     } finally {
       setBusy(false);
     }
@@ -55,8 +55,8 @@ export default function Auth({ user }) {
     event.preventDefault();
     if (!db || busy) return;
     setBusy(true);
-    setError('');
-    setMessage('');
+    setError("");
+    setMessage("");
     try {
       const { error: authError } = await db.auth.signInWithOtp({
         email: email.trim(),
@@ -64,9 +64,9 @@ export default function Auth({ user }) {
       });
       if (authError) throw authError;
       setCodeRequested(true);
-      setMessage('Check your inbox for your sign-in code.');
+      setMessage("Check your inbox for your sign-in code.");
     } catch (authError) {
-      setError(authError?.message || 'Unable to request a sign-in code.');
+      setError(authError?.message || "Unable to request a sign-in code.");
     } finally {
       setBusy(false);
     }
@@ -76,17 +76,17 @@ export default function Auth({ user }) {
     event.preventDefault();
     if (!db || busy) return;
     setBusy(true);
-    setError('');
+    setError("");
     try {
       const { error: authError } = await db.auth.verifyOtp({
         email: email.trim(),
         token: code.trim(),
-        type: 'email',
+        type: "email",
       });
       if (authError) throw authError;
-      navigate('/mine');
+      navigate("/mine");
     } catch (authError) {
-      setError(authError?.message || 'That code could not be verified.');
+      setError(authError?.message || "That code could not be verified.");
     } finally {
       setBusy(false);
     }
@@ -95,7 +95,10 @@ export default function Auth({ user }) {
   return (
     <main className="editor">
       <h1>Sign in to Interplanetary Fund</h1>
-      <p>Use your connected identity or a one-time email code. Passwords are not required.</p>
+      <p>
+        Use your connected identity or a one-time email code. Passwords are not
+        required.
+      </p>
       <div className="form">
         {SIGN_IN_PROVIDERS.map((provider) => (
           <button
@@ -118,7 +121,7 @@ export default function Auth({ user }) {
               onChange={(event) => {
                 setEmail(event.target.value);
                 setCodeRequested(false);
-                setCode('');
+                setCode("");
               }}
             />
           </label>
@@ -135,11 +138,11 @@ export default function Auth({ user }) {
             </label>
           )}
           <button type="submit" disabled={!db || busy}>
-            {codeRequested ? 'Verify code' : 'Email me a sign-in code'}
+            {codeRequested ? "Verify code" : "Email me a sign-in code"}
           </button>
         </form>
         <Message error={Boolean(error)}>
-          {error || message || (!db ? 'Supabase is not yet configured.' : '')}
+          {error || message || (!db ? "Supabase is not yet configured." : "")}
         </Message>
       </div>
     </main>

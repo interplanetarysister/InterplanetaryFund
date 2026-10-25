@@ -21,7 +21,8 @@ const SCENES = {
   animals: "a beloved animal in a calm, caring setting",
   business: "a small business owner at work, proud and hopeful",
   memorial: "a gentle, reverent still life honoring a loved one",
-  disaster_relief: "volunteers delivering supplies to a recovering neighborhood",
+  disaster_relief:
+    "volunteers delivering supplies to a recovering neighborhood",
   creative: "an artist mid-project, surrounded by their work",
   other: "a person at a meaningful turning point in their life",
 };

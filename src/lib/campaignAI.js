@@ -45,8 +45,10 @@ export function buildCampaignContext(campaign, aiProfile = {}) {
   if (campaign.summary) lines.push(`Summary: ${campaign.summary}`);
   if (campaign.story) lines.push(`Current story: ${campaign.story}`);
   if (campaign.goal_amount) lines.push(`Goal amount: $${campaign.goal_amount}`);
-  if (campaign.raised_amount != null) lines.push(`Raised so far: $${campaign.raised_amount || 0}`);
-  if (campaign.donor_count != null) lines.push(`Donor count: ${campaign.donor_count || 0}`);
+  if (campaign.raised_amount != null)
+    lines.push(`Raised so far: $${campaign.raised_amount || 0}`);
+  if (campaign.donor_count != null)
+    lines.push(`Donor count: ${campaign.donor_count || 0}`);
   if (campaign.end_date) lines.push(`End date: ${campaign.end_date}`);
   if (campaign.cover_image_url) lines.push(`Has cover image: yes`);
 
@@ -55,13 +57,21 @@ export function buildCampaignContext(campaign, aiProfile = {}) {
   if (p.who_helping) lines.push(`Who this helps: ${p.who_helping}`);
   if (p.ideal_donors) lines.push(`Ideal donors: ${p.ideal_donors}`);
   if (p.tone) lines.push(`Preferred tone: ${p.tone}`);
-  if (p.priority) lines.push(`Priority approach: ${PRIORITY_LABELS[p.priority] || p.priority}`);
+  if (p.priority)
+    lines.push(
+      `Priority approach: ${PRIORITY_LABELS[p.priority] || p.priority}`,
+    );
   if (p.always_emphasize) lines.push(`Always emphasize: ${p.always_emphasize}`);
   if (p.never_change) lines.push(`Never change: ${p.never_change}`);
   if (p.avoid_words) lines.push(`Words/topics to avoid: ${p.avoid_words}`);
-  if (p.interested_orgs) lines.push(`Interested organizations/communities/industries: ${p.interested_orgs}`);
-  if (p.platforms && p.platforms.length) lines.push(`Sharing platforms: ${p.platforms.join(", ")}`);
-  if (p.long_term_outcome) lines.push(`Long-term outcome: ${p.long_term_outcome}`);
+  if (p.interested_orgs)
+    lines.push(
+      `Interested organizations/communities/industries: ${p.interested_orgs}`,
+    );
+  if (p.platforms && p.platforms.length)
+    lines.push(`Sharing platforms: ${p.platforms.join(", ")}`);
+  if (p.long_term_outcome)
+    lines.push(`Long-term outcome: ${p.long_term_outcome}`);
 
   return lines.length ? lines.join("\n") : "No campaign context available yet.";
 }
