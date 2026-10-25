@@ -52,3 +52,37 @@ Source of truth: [issue #137](https://github.com/interplanetarysister/Interplane
 5. No test data export has been run. Source code count is not a live row count.
 ## Security
 Do not put old credential-vault values, tokens, donor PII, or raw function outputs in inventory documents. Never substitute inferred connectivity for verified provider state.
+
+## Verified Supabase migration-history snapshot (read-only; 2026-10-24)
+Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migration entries**, in order. This check did not execute or apply SQL:
+
+1. `20261019143600_create_isolated_business_mail_foundation`
+2. `20261019145629_business_mail_secure_ingress_and_private_text`
+3. `20261019145646_member_mail_backend_rpc_for_trusted_edge`
+4. `20261019164158_admin_inbound_email_private_foundation`
+5. `20261019164218_admin_email_recipient_validation_correction`
+6. `20261019164253_admin_email_upsert_conflict_index`
+7. `20261019164540_ifund_admin_mail_access_control`
+8. `20261019165248_ifund_admin_mail_access_audit`
+9. `20261019201418_fundraising_mail_subdomain_text_only_grace_storage`
+10. `20261019201605_fundraising_outreach_agent_permissions_foundation`
+11. `20261020044731_ifund_mail_atomic_read_audit`
+12. `20261021064337_create_private_ifund_campaign_shadow`
+13. `20261021223621_extend_private_campaign_shadow_nonfinancial_parity`
+14. `20261023012122_ifund_private_workflow_queue_initial`
+15. `20261023012527_ifund_workflow_atomic_claim_and_completion`
+16. `20261023013549_ifund_workflow_lease_fencing`
+17. `20261023013721_ifund_workflow_guarded_enqueue`
+18. `20261023013815_ifund_core_private_migration_staging`
+19. `20261023053831_ifund_private_agent_delegation_activity_shadow`
+20. `20261023073825_ifund_agent_shadow_verified_identity_and_campaign_gate`
+21. `20261023084110_ifund_owner_candidate_email_matches_unverified`
+22. `20261023103745_ifund_owner_proof_service_only_atomic_rpc`
+23. `20261023184125_ifund_active_campaign_preview_service_only_20261023`
+24. `20261023225544_ifund_owner_scoped_private_campaign_preview_rpc`
+25. `20261024232855_ifund_content_shadow`
+
+**Important: RPCs, not migration names.** `ifund_migration_owner_commit` and `ifund_migration_owner_lookup` are named SQL functions defined in source `host/migration/owner-proof-rpcs.sql` on branch `migration/owner-proof-gate-20261023`. The applied-migration history contains `20261023103745_ifund_owner_proof_service_only_atomic_rpc`, but the listing **does not independently establish** that each function exists with exactly the branch's current definition. Validate via an owner-approved read-only metadata check before using. Do not change or drop these RPCs or any of the listed migrations.
+
+## Source parity reference (UNVERIFIED export)
+[content-parity-manifest.mjs](https://github.com/interplanetarysister/interplanetary-fund2/blob/migration/owner-proof-gate-20261023/host/migration/content-parity-manifest.mjs) records a **2026-10-24 source-manifest snapshot**, not a live Base44 export: User **10**, Campaign **27**, PlatformConnection **32**, Recommendation **836**, Donation **0**, Withdrawal **0**. No export with independent per-entity row counts or checksums was run for this migration; these are provisional historical reference counts, including zero-donation/withdrawal figures. The same manifest reports STAGED Recommendation **100** versus SOURCE **836**, showing it is not an import-completion certificate. All these figures require revalidation immediately before data migration and provider-ledger reconciliation.
