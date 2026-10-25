@@ -64,14 +64,17 @@ export function classifyPayPalEvent(event) {
 }
 
 export function missingPayPalWebhookConfig(env) {
-  return [
+  const missing = [
     "PAYPAL_MODE",
     "PAYPAL_CLIENT_ID",
     "PAYPAL_CLIENT_SECRET",
     "PAYPAL_WEBHOOK_ID",
     "SUPABASE_URL",
-    "SUPABASE_SERVICE_ROLE_KEY",
   ].filter((k) => !env || !env[k]);
+  if (!env?.SUPABASE_SECRET_KEY && !env?.SUPABASE_SERVICE_ROLE_KEY) {
+    missing.push("SUPABASE_SECRET_KEY");
+  }
+  return missing;
 }
 
 async function getAccessToken(env, fetchImpl) {
@@ -116,15 +119,21 @@ export async function verifyPayPalWebhook(headers, event, env, fetchImpl = fetch
 // Service-role write through a SECURITY DEFINER RPC that is executable only by
 // service_role. Idempotent on PayPal event ID.
 export async function recordPlatformSupportPayment(record, rawEvent, env, fetchImpl = fetch) {
+  const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!key || key.startsWith("sb_publishable_")) {
+    throw new Error("A server-side Supabase secret key is required");
+  }
+  const headers = { apikey: key, "Content-Type": "application/json" };
+  // New sb_secret_* API keys are not JWTs and must not be sent as Bearer tokens.
+  // The legacy service_role JWT still uses the Authorization header.
+  if (!key.startsWith("sb_secret_")) {
+    headers.Authorization = `Bearer ${key}`;
+  }
   const res = await fetchImpl(
     `${env.SUPABASE_URL}/rest/v1/rpc/ifund_record_platform_support_payment`,
     {
       method: "POST",
-      headers: {
-        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers,
       body: JSON.stringify({ p: record, raw: rawEvent }),
     },
   );
