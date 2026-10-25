@@ -44,3 +44,16 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Added `worker/reads.js` with **unmounted** fail-closed read prototypes for `getCommunityFeed` and `getCampaignDraft`, plus an independent public campaign listing. These require explicit `MIGRATION_API_PREVIEW=enabled`, server verification of Supabase JWT before private reads, client JWT-scoped RLS, fixed field selections and bounds.
 - Added synthetic tests for disabled routes, anonymous denial, remote JWT verification, no upstream details in errors and restricted drafts.
 - Function port registry: `docs/migration/FUNCTION_PORT_STATUS.json` (184 functions, two partial prototypes). Payment and ownership grants remain explicitly unported. No API/Worker route has been mounted or deployed.
+
+## Phase 4 independent Cloudflare API implementation — 2026-10-25
+
+**Committed and CI-verified source code only, NOT deployed.** Mounted independent route dispatch in `worker/index.js` for health, read-only community feed, public campaign listing/detail, authenticated owner campaign listing/draft lookup, and JWT-scoped campaign creation/editing. Enabled only with exact server variable `MIGRATION_API_PREVIEW=enabled`, HTTPS Supabase URL and publishable key; otherwise campaign/feed endpoints return 503.
+
+- `POST /api/campaigns`: create a draft (or publish only with complete valid story, summary, title and goal). Owner UUID is derived from the Supabase Auth `/auth/v1/user` response, not the request body.
+- `PATCH /api/campaigns/:uuid`: edit under **both** exact `id` and authenticated `owner_id` filters, with the **user JWT** passed through to PostgREST RLS. Unknown/unauthorized records return a generic result; disallowed financial fields, owner overrides, unsafe cover URLs and oversized bodies are rejected.
+- `GET /api/campaigns/mine`, `GET /api/campaigns/:uuid`, `GET /api/campaigns/public`, `GET /api/campaigns/:uuid/draft`, `GET /api/community/feed`: bounded field projections; private routes verify the bearer through Supabase Auth.
+- No service-role access, no provider payment endpoint, no Base44 upstream, no auto-connected provider routes in the new Worker. The existing **deployed legacy Worker is unchanged** and must not be replaced until verified production route parity.
+- New tests in `tests/phase4-campaign-api.test.js` cover anonymous denial, owner filters, incomplete publishing, status and financial validation, unverified responses, unsupported routes, missing preview flag, and upstream error redaction.
+- [GitHub Actions run 40224670021](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40224670021) **passed** on the new worker + tests commit: CI run includes Node tests, Vite production build, dependency lock and formatting checks.
+
+**Still blocked:** No live Supabase Auth account/owner linkage, no verified RLS cross-user runtime, no migrated published rows in the new `public.ifund_campaigns` table, no functional UI use of these Worker endpoints, no production Worker route binding. These endpoints are independent API groundwork, **not full ports** of the related Base44 business functions. The 184-function inventory and partial-port statuses are unchanged. Provider webhooks/settlement, user account migration, media, workflows and page parity still require separate review.
