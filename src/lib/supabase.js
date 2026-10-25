@@ -9,6 +9,8 @@ export const db = configured
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: true,
+        // Browser OAuth uses authorization code + PKCE, not a client secret.
+        flowType: "pkce",
       },
     })
   : null;
