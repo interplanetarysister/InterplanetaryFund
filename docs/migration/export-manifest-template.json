@@ -1,0 +1,290 @@
+{
+  "description": "Empty per-entity export manifest template. Historical source-manifest figures are NOT verified exports. Never commit a populated manifest or user records.",
+  "entities": {
+    "ActivityEvent": {
+      "file": "ActivityEvent.jsonl"
+    },
+    "AdminActionMessage": {
+      "file": "AdminActionMessage.jsonl"
+    },
+    "AdminApiConnectionIntake": {
+      "file": "AdminApiConnectionIntake.jsonl"
+    },
+    "AdminApproval": {
+      "file": "AdminApproval.jsonl"
+    },
+    "AdminCredentialReference": {
+      "file": "AdminCredentialReference.jsonl"
+    },
+    "AdminCredentialVault": {
+      "file": "AdminCredentialVault.jsonl"
+    },
+    "Agent": {
+      "file": "Agent.jsonl"
+    },
+    "AgentActivity": {
+      "file": "AgentActivity.jsonl"
+    },
+    "AgentContentDraft": {
+      "file": "AgentContentDraft.jsonl"
+    },
+    "AgentConversationRun": {
+      "file": "AgentConversationRun.jsonl"
+    },
+    "AgentDelegation": {
+      "file": "AgentDelegation.jsonl"
+    },
+    "AuditLog": {
+      "file": "AuditLog.jsonl"
+    },
+    "AuthorizationGrant": {
+      "file": "AuthorizationGrant.jsonl"
+    },
+    "BlogEntry": {
+      "file": "BlogEntry.jsonl"
+    },
+    "Campaign": {
+      "file": "Campaign.jsonl"
+    },
+    "CampaignTranslation": {
+      "file": "CampaignTranslation.jsonl"
+    },
+    "CampaignUpdate": {
+      "file": "CampaignUpdate.jsonl"
+    },
+    "Community": {
+      "file": "Community.jsonl"
+    },
+    "CommunityMember": {
+      "file": "CommunityMember.jsonl"
+    },
+    "ConnectedPayoutAccount": {
+      "file": "ConnectedPayoutAccount.jsonl"
+    },
+    "DeviceAuthorization": {
+      "file": "DeviceAuthorization.jsonl"
+    },
+    "DiscussionPost": {
+      "file": "DiscussionPost.jsonl"
+    },
+    "DiscussionReply": {
+      "file": "DiscussionReply.jsonl"
+    },
+    "DistributedPost": {
+      "file": "DistributedPost.jsonl"
+    },
+    "Donation": {
+      "file": "Donation.jsonl"
+    },
+    "ExecutiveReport": {
+      "file": "ExecutiveReport.jsonl"
+    },
+    "ExternalAgentApiKey": {
+      "file": "ExternalAgentApiKey.jsonl"
+    },
+    "ExternalCampaignImport": {
+      "file": "ExternalCampaignImport.jsonl"
+    },
+    "ExternalCampaignImportOperation": {
+      "file": "ExternalCampaignImportOperation.jsonl"
+    },
+    "ExternalCampaignPublication": {
+      "file": "ExternalCampaignPublication.jsonl"
+    },
+    "ExternalCollectionAuthorization": {
+      "file": "ExternalCollectionAuthorization.jsonl"
+    },
+    "ExternalConversation": {
+      "file": "ExternalConversation.jsonl"
+    },
+    "ExternalConversationMessage": {
+      "file": "ExternalConversationMessage.jsonl"
+    },
+    "ExternalFundMigrationRecord": {
+      "file": "ExternalFundMigrationRecord.jsonl"
+    },
+    "ExternalFundObservation": {
+      "file": "ExternalFundObservation.jsonl"
+    },
+    "ExternalPlatformRecord": {
+      "file": "ExternalPlatformRecord.jsonl"
+    },
+    "ExternalSyncClaim": {
+      "file": "ExternalSyncClaim.jsonl"
+    },
+    "ExternalSyncEvent": {
+      "file": "ExternalSyncEvent.jsonl"
+    },
+    "FeatureFlag": {
+      "file": "FeatureFlag.jsonl"
+    },
+    "FinancialOperation": {
+      "file": "FinancialOperation.jsonl"
+    },
+    "FollowedCampaign": {
+      "file": "FollowedCampaign.jsonl"
+    },
+    "FoundingWaitlist": {
+      "file": "FoundingWaitlist.jsonl"
+    },
+    "Friendship": {
+      "file": "Friendship.jsonl"
+    },
+    "FundraisingProviderCapability": {
+      "file": "FundraisingProviderCapability.jsonl"
+    },
+    "GitHubSyncCheckpoint": {
+      "file": "GitHubSyncCheckpoint.jsonl"
+    },
+    "GrantApplication": {
+      "file": "GrantApplication.jsonl"
+    },
+    "HelpArticle": {
+      "file": "HelpArticle.jsonl"
+    },
+    "HelpDraft": {
+      "file": "HelpDraft.jsonl"
+    },
+    "HelpFeedback": {
+      "file": "HelpFeedback.jsonl"
+    },
+    "HoldingLedgerEntry": {
+      "file": "HoldingLedgerEntry.jsonl"
+    },
+    "InboxItem": {
+      "file": "InboxItem.jsonl"
+    },
+    "Institution": {
+      "file": "Institution.jsonl"
+    },
+    "InstitutionOpportunity": {
+      "file": "InstitutionOpportunity.jsonl"
+    },
+    "IntegrationChangeRequest": {
+      "file": "IntegrationChangeRequest.jsonl"
+    },
+    "KnowledgeArticle": {
+      "file": "KnowledgeArticle.jsonl"
+    },
+    "LegalAcceptance": {
+      "file": "LegalAcceptance.jsonl"
+    },
+    "Message": {
+      "file": "Message.jsonl"
+    },
+    "MissionBrief": {
+      "file": "MissionBrief.jsonl"
+    },
+    "MonitoredCampaign": {
+      "file": "MonitoredCampaign.jsonl"
+    },
+    "NonprofitSubscriptionApproval": {
+      "file": "NonprofitSubscriptionApproval.jsonl"
+    },
+    "Notification": {
+      "file": "Notification.jsonl"
+    },
+    "OfficialPublication": {
+      "file": "OfficialPublication.jsonl"
+    },
+    "Opportunity": {
+      "file": "Opportunity.jsonl"
+    },
+    "PayPalBillingWebhook": {
+      "file": "PayPalBillingWebhook.jsonl"
+    },
+    "PayPalSubscriptionIntent": {
+      "file": "PayPalSubscriptionIntent.jsonl"
+    },
+    "PlatformAccessRegistry": {
+      "file": "PlatformAccessRegistry.jsonl"
+    },
+    "PlatformConnection": {
+      "file": "PlatformConnection.jsonl"
+    },
+    "PlatformConnectionRecipe": {
+      "file": "PlatformConnectionRecipe.jsonl"
+    },
+    "PlatformEvent": {
+      "file": "PlatformEvent.jsonl"
+    },
+    "PlatformIncident": {
+      "file": "PlatformIncident.jsonl"
+    },
+    "PlatformOwnedAccount": {
+      "file": "PlatformOwnedAccount.jsonl"
+    },
+    "PostInterest": {
+      "file": "PostInterest.jsonl"
+    },
+    "ProtocolReport": {
+      "file": "ProtocolReport.jsonl"
+    },
+    "PublicProfile": {
+      "file": "PublicProfile.jsonl"
+    },
+    "PushDevice": {
+      "file": "PushDevice.jsonl"
+    },
+    "RateLimitBucket": {
+      "file": "RateLimitBucket.jsonl"
+    },
+    "Recommendation": {
+      "file": "Recommendation.jsonl"
+    },
+    "ScheduledAutoPostPermit": {
+      "file": "ScheduledAutoPostPermit.jsonl"
+    },
+    "SocialPost": {
+      "file": "SocialPost.jsonl"
+    },
+    "StripeReversalHold": {
+      "file": "StripeReversalHold.jsonl"
+    },
+    "SubscriptionPlanMapping": {
+      "file": "SubscriptionPlanMapping.jsonl"
+    },
+    "SupportTicket": {
+      "file": "SupportTicket.jsonl"
+    },
+    "SustainabilityAudit": {
+      "file": "SustainabilityAudit.jsonl"
+    },
+    "SyncRun": {
+      "file": "SyncRun.jsonl"
+    },
+    "TreasurySnapshot": {
+      "file": "TreasurySnapshot.jsonl"
+    },
+    "User": {
+      "file": "User.jsonl"
+    },
+    "UserBlog": {
+      "file": "UserBlog.jsonl"
+    },
+    "UserCredentialVault": {
+      "file": "UserCredentialVault.jsonl"
+    },
+    "VerificationMail": {
+      "file": "VerificationMail.jsonl"
+    },
+    "VerificationMailbox": {
+      "file": "VerificationMailbox.jsonl"
+    },
+    "VolunteerOpportunity": {
+      "file": "VolunteerOpportunity.jsonl"
+    },
+    "VolunteerSignup": {
+      "file": "VolunteerSignup.jsonl"
+    },
+    "WebhookEvent": {
+      "file": "WebhookEvent.jsonl"
+    },
+    "Withdrawal": {
+      "file": "Withdrawal.jsonl"
+    },
+    "WritingResearchBrief": {
+      "file": "WritingResearchBrief.jsonl"
+    }
+  }
+}
