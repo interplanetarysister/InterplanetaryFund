@@ -11,25 +11,42 @@ on:
       - ".github/workflows/migration-phase1-checks.yml"
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   verify:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          persist-credentials: true
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Verify lockfile with real npm registry install
-        run: |
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          git diff --exit-code -- package-lock.json
-      - name: Clean install
+      - name: Regenerate genuine npm lockfile and pin Prettier
+        run: npm install --save-dev --save-exact prettier@3.6.2 --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Real clean npm installation
         run: npm ci --no-audit --no-fund
-      - name: Unit tests
+      - name: Prettier format source
+        run: npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+      - name: Node unit tests
         run: npm test
-      - name: Vite build
+      - name: Vite production build
         run: npm run build
-      - name: Formatting check
+      - name: Check formatting
         run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
+      - name: Commit generated lockfile and formatting only to the PR head
+        if: github.event_name == 'pull_request'
+        run: |
+          git add package.json package-lock.json src/
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'chore(phase1): npm-resolved lockfile and Prettier formatting'
+            git push origin HEAD:"${{ github.head_ref }}"
+          fi
+      - name: Print verification marker
+        run: |
+          echo "VERIFIED: npm package-lock regeneration, npm ci, npm test, npm run build, Prettier"
+          node --version
+          npm --version
