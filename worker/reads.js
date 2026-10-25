@@ -73,6 +73,26 @@ export async function routeReadRequest(request, env, fetcher = fetch) {
       );
     }
 
+    if (path === '/api/campaigns/mine') {
+      const member = await authenticatedUser(request, env, fetcher);
+      if (!member) return response(401, { error: 'Sign in to view your campaigns.' });
+      const params = new URLSearchParams({
+        select: 'id,title,summary,category,goal_amount,cover_image_url,status,created_at,updated_at',
+        owner_id: 'eq.' + member.uid,
+        order: 'created_at.desc',
+        limit: '50',
+      });
+      return await readOnly(env, 'ifund_campaigns?' + params.toString(), member.jwt, fetcher);
+    }
+    const publicMatch = /^\/api\/campaigns\/([a-f0-9-]+)$/i.exec(path);
+    if (publicMatch) {
+      if (!uuid.test(publicMatch[1])) return response(400, { error: 'Invalid campaign ID.' });
+      const params = new URLSearchParams({
+        select: 'id,title,summary,story,category,goal_amount,cover_image_url,created_at,updated_at',
+        id: 'eq.' + publicMatch[1], status: 'eq.active', limit: '1',
+      });
+      return await readOnly(env, 'ifund_campaigns?' + params.toString(), null, fetcher);
+    }
     const match = /^\/api\/campaigns\/([a-f0-9-]+)\/draft$/i.exec(path);
     if (match) {
       if (!uuid.test(match[1])) return response(400, { error: 'Invalid campaign ID.' });
