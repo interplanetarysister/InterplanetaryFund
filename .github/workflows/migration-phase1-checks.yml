@@ -27,6 +27,10 @@ jobs:
           git diff --exit-code -- package-lock.json package.json
       - name: Unit tests
         run: npm test
+      - name: Verify private transfer Python syntax
+        run: python3 -m py_compile scripts/migration/transfer_supabase_snapshots.py tests/test_private_transfer.py
+      - name: Verify private transfer security tests (offline)
+        run: python3 -m unittest discover -s tests -p 'test_private_transfer.py' -v
       - name: Vite production build
         run: npm run build
       - name: Prettier check
