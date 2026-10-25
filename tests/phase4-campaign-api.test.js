@@ -164,3 +164,17 @@ test('public detail route only requests active campaigns with selected fields', 
     env, () => { throw Error('no fetch'); });
   assert.equal(bad.status, 400);
 });
+
+test('modern publishable keys are not treated as anonymous bearer JWTs', async () => {
+  const publicEnv = { ...env, SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_public_test_only' };
+  const calls = [];
+  const res = await routeReadRequest(new Request(origin + '/api/campaigns/public'),
+    publicEnv, async (target, options) => {
+      calls.push(options.headers);
+      return Response.json([]);
+    });
+  assert.equal(res.status, 200);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].apikey, publicEnv.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(calls[0].Authorization, undefined);
+});
