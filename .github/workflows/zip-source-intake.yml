@@ -1,0 +1,143 @@
+name: One-time IFund ZIP source intake
+
+on:
+  push:
+    branches:
+      - migration/zip-source-intake-20261025
+    paths:
+      - .github/workflows/zip-source-intake.yml
+
+permissions:
+  contents: write
+
+jobs:
+  intake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out migration intake branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Check out pinned read-only source
+        uses: actions/checkout@v4
+        with:
+          repository: interplanetarysister/interplanetary-fund2
+          ref: 4a7300707800015834e22a21e386a26875a16e5e
+          path: .migration-import-source
+          persist-credentials: false
+
+      - name: Verify and place source under an inactive migration reference directory
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          from collections import Counter
+          import subprocess, hashlib, re, shutil, json
+          src=Path(".migration-import-source")
+          dest=Path("migration/reference/2026-10-25-base44-export")
+          dest.mkdir(parents=True,exist_ok=True)
+          files=[p.decode() for p in subprocess.check_output(["git","-C",str(src),"ls-files","-z"]).split(b"\0") if p]
+          paths=[p for p in files if not p.startswith(".github/")]
+          assert len(files)==1247, f"Source tree changed: {len(files)} files"
+          assert len(paths)==1238, f"ZIP/source count mismatch: {len(paths)}"
+          assert sum(p.startswith("base44/entities/") and p.endswith(".jsonc") for p in paths)==95
+          assert len({p.split("/")[2] for p in paths if p.startswith("base44/functions/") and len(p.split("/"))>=4})==184
+          assert sum(p.startswith("src/pages/") for p in paths)==57
+          checks={
+            "src/pages/Home.jsx":"c4f763361a6fea4589f8d36a1b8879a30c247388",
+            "base44/entities/Campaign.jsonc":"67d7950e4400cddac880e1a0b0fd967510b9e7c4",
+            "host/migration/source-inventory.json":"90fa10374c4e34d1b6a27f53d71106fdd311f1f9",
+            "package.json":"b79cd34b783714103484902f50a578d8d5780f6f",
+          }
+          for name,expected in checks.items():
+            actual=subprocess.check_output(["git","hash-object",str(src/name)],text=True).strip()
+            assert actual==expected,f"ZIP/source hash mismatch at {name}"
+          sigs=[
+            rb"sb_secret_[A-Za-z0-9_-]{6,}",
+            rb"sk_(?:live|test)_[A-Za-z0-9_-]{12,}",
+            rb"gh(?:p|o|u|s|r)_[A-Za-z0-9_]{20,}",
+            rb"github_pat_[A-Za-z0-9_]{12,}",
+            rb"AIza[0-9A-Za-z_-]{32,}",
+            rb"xox[baprs]-[A-Za-z0-9-]{12,}",
+            rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----",
+            rb"(?i)(?:secret|token|password|api_key|client_secret)\s*[:=]\s*['\x22][A-Za-z0-9_-]{20,}",
+          ]
+          rules=[re.compile(p) for p in sigs]
+          instructions={"AGENTS.md","BUILD_AGENT_RULES.md","CLAUDE.md"}
+          skipped=[]
+          imported=[]
+          for rel in paths:
+            b=(src/rel).read_bytes()
+            reason=None
+            if rel in {"google-services.json","android/app/google-services.json"}:reason="Firebase client configuration omitted"
+            elif rel.startswith(".env") and rel!=".env.example":reason="environment configuration omitted"
+            elif any(p.search(b) for p in rules):reason="potential embedded credential or secret-like token"
+            if reason:
+              skipped.append({"path":rel,"reason":reason})
+              continue
+            mapped=rel+".reference.txt" if rel in instructions else rel
+            out=dest/mapped
+            out.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copyfile(src/rel,out)
+            imported.append({"source_path":rel,"stored_path":str(out),"bytes":len(b),"sha256":hashlib.sha256(b).hexdigest()})
+          manifest={
+            "origin_archive_name":"interplanetaryfund (2).zip",
+            "origin_archive_sha256":"e14131d5660d450bdea4bd5169beb6825698c88f294aacc4f4a804242dedd8cd",
+            "matched_source_repo":"interplanetarysister/interplanetary-fund2",
+            "source_commit":"4a7300707800015834e22a21e386a26875a16e5e",
+            "archive_total_files":1238,
+            "source_fingerprints_verified":list(checks),
+            "scope":"INACTIVE REFERENCE ONLY; not compiled or deployed",
+            "imported_files":len(imported),
+            "skipped_files":len(skipped),
+            "skipped":skipped,
+            "files":imported,
+          }
+          (dest/"SOURCE_MANIFEST.json").write_text(json.dumps(manifest,indent=2)+"\n")
+          (dest/"README.md").write_text(
+            "# Source ZIP reference for Supabase + Cloudflare migration\n\n"
+            "**Inactive reference; not production runtime code.** This directory retains vetted "
+            "source material corresponding to the uploaded Base44 ZIP. "
+            "Do not execute Base44 SDK imports, workers, payment functions, or old configuration here. "
+            "Port needed behavior to Supabase/Cloudflare in separate reviewed phase PRs under issue #137. "
+            "Legacy agent instruction files were renamed to .reference.txt to prevent overriding the root AGENTS.md. "
+            "Credential-bearing files were withheld; see SOURCE_MANIFEST.json. "
+            "No actual user or financial database-row export was included.\n")
+          report=Path("docs/migration/ZIP_SOURCE_INTAKE.md")
+          report.parent.mkdir(parents=True,exist_ok=True)
+          report.write_text(
+            "# Uploaded ZIP source intake — 2026-10-25\n\n"
+            "Source: \`interplanetaryfund (2).zip\`, SHA-256 "
+            "\`e14131d5660d450bdea4bd5169beb6825698c88f294aacc4f4a804242dedd8cd\`.\n\n"
+            "A pinned version of the read-only GitHub source matched the ZIP structure "
+            "(1,238 tracked files after excluding nine GitHub-only workflow files), "
+            "as well as four sampled Git blob fingerprints. "
+            "The uploaded ZIP itself was not accessible to this workflow, so this is "
+            "not a byte-for-byte verification of every file against the ZIP.\n\n"
+            f"- Imported as inactive migration reference: **{len(imported)} files**.\n"
+            f"- Withheld pending credential review: **{len(skipped)} files**.\n"
+            "- Entities: 95 definitions; backend function directories: 184; frontend pages: 57.\n"
+            "- Existing Supabase/Cloudflare implementation has not been replaced.\n"
+            "- Source configurations and code still depend on Base44 and must be ported separately.\n"
+            "- No production database rows or complete ledger/user exports are included.\n\n"
+            "See \`migration/reference/2026-10-25-base44-export/SOURCE_MANIFEST.json\` "
+            "for exact file checksums, exclusions, and paths. "
+            "Do not deploy this archive or merge into \`main\` without migration review.\n")
+          print(json.dumps({"imported":len(imported),"withheld":len(skipped),"source_files":len(paths),"sampled_hashes_verified":len(checks)},indent=2))
+          PY
+
+      - name: Commit reference source and retire one-time workflow
+        shell: bash
+        run: |
+          rm -rf .migration-import-source
+          git rm -f --ignore-unmatch .github/workflows/zip-source-intake.yml
+          git add -f -A migration/reference/2026-10-25-base44-export
+          git add docs/migration/ZIP_SOURCE_INTAKE.md
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff --cached --stat
+          git commit -m "Import vetted ZIP-matched source as non-runtime migration reference"
+          git push origin HEAD:refs/heads/migration/zip-source-intake-20261025
