@@ -17,6 +17,19 @@ create table if not exists public.ifund_campaigns (
     (length(btrim(title)) > 0 and length(btrim(summary)) > 0 and length(btrim(story)) > 0 and goal_amount > 0)
   )
 );
+-- Keep modification timestamps accurate for audit/debugging.
+create or replace function public.ifund_campaign_touch_updated_at()
+returns trigger language plpgsql security invoker set search_path = '' as $
+begin
+  new.updated_at = now();
+  return new;
+end;
+$;
+revoke all on function public.ifund_campaign_touch_updated_at() from public, anon, authenticated;
+drop trigger if exists ifund_campaign_touch_updated_at on public.ifund_campaigns;
+create trigger ifund_campaign_touch_updated_at before update on public.ifund_campaigns
+for each row execute function public.ifund_campaign_touch_updated_at();
+
 create index if not exists ifund_campaigns_owner_created_idx on public.ifund_campaigns(owner_id,created_at desc);
 create index if not exists ifund_campaigns_public_created_idx on public.ifund_campaigns(created_at desc) where status = 'active';
 alter table public.ifund_campaigns enable row level security;
@@ -26,7 +39,7 @@ grant select, insert, update, delete on public.ifund_campaigns to authenticated;
 create policy "campaign_public_or_owner_read" on public.ifund_campaigns for select to anon, authenticated
 using (status = 'active' or (select auth.uid()) = owner_id);
 create policy "campaign_owner_insert" on public.ifund_campaigns for insert to authenticated
-with check ((select auth.uid()) = owner_id);
+with check ((select auth.uid()) = owner_id and (select auth.uid()) is not null);
 create policy "campaign_owner_update" on public.ifund_campaigns for update to authenticated
 using ((select auth.uid()) = owner_id)
 with check ((select auth.uid()) = owner_id);
@@ -46,7 +59,7 @@ grant select on public.ifund_posts to anon, authenticated;
 grant insert, delete on public.ifund_posts to authenticated;
 create policy "posts_read" on public.ifund_posts for select to anon, authenticated using (true);
 create policy "posts_author_insert" on public.ifund_posts for insert to authenticated
-with check ((select auth.uid()) = author_id);
+with check ((select auth.uid()) = author_id and (select auth.uid()) is not null);
 create policy "posts_author_delete" on public.ifund_posts for delete to authenticated
 using ((select auth.uid()) = author_id);
 
