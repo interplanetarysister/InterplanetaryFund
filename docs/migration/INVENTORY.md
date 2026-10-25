@@ -104,3 +104,8 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 - `docs/migration/FUNCTION_PORT_STATUS.json` is the authoritative list of **184** source function entrypoints with per-port statuses (two `partial_preview_unmounted`, 182 `not_ported`). It is not a parity certificate.
 - Staged `worker/reads.js` prototypes community feed and a user-owned campaign draft read with JWT verification and RLS-scoped forwarding, plus public active campaigns read. Not reachable through `worker/index.js`, not deployed, not connected to a live Supabase schema. The source behavior also involves rate limits and a wider data contract; complete function parity remains open.
 - No PayPal/Stripe handlers, payouts, agent runtime, OAuth connector, automatic publishing, external API tokens, or secret values were moved in this PR.
+
+## Phase 5 frontend parity ledger
+- `docs/migration/FRONTEND_PAGE_STATUS.json` tracks exactly 57 Base44 source page files: **3 static ports needing review** (About, Terms, Privacy), **10 preview counterparts not parity-complete**, and **44 not ported**. No live frontend comparison run.
+- React pages and historical legal-policy source are copied into active scaffold without Base44 imports. Legal acceptance tracking, current policy approval, and provider-backed Help/Contact flows require independent backend ports.
+- Payment and OAuth pages remain disabled/not integrated, and no main production frontend route or Wix marketing site was changed.
