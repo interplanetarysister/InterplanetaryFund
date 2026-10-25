@@ -130,6 +130,7 @@ function App() {
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/support" element={<Support />} />
           <Route
             path="*"
             element={
