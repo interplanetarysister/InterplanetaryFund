@@ -5,7 +5,7 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - [ ] Phase 2 — 95 source-entity typed staging definitions, RLS and service isolation: **IN PROGRESS**; 95 private staging tables and 95 fail-closed client policies drafted in pending/; exact Base44 owner/admin read/write parity, source-to-UUID mapping, and staging execution remain UNVERIFIED and APPROVAL-GATED. Existing 4-table illustrative preview SQL remains a separate unapplied Phase 1 proposal.
 - [ ] Phase 3 — Supabase Auth Google/Facebook/email OTP and verified owner linking: **IN PROGRESS**; password signup removed in Phase 1; server-only match rules, consent design and inactive SQL staged; actual provider apps, OTP delivery template, verified ID mapping, and runtime link remain approval-gated.
 - [ ] Phase 4 — function and integration parity (184 entrypoints): **IN PROGRESS**. Source-function status registry lists 184; 2 server-side read-only handlers are partially prototyped but unmounted and unverified against live data; 182 remain not ported, plus provider/agent/workflow parity. No Worker routes/deployment changed.
-- [ ] Phase 5 — full frontend port: **not started**; scaffold only and editor load guard.
+- [ ] Phase 5 — full frontend port: **IN PROGRESS**; three static pages transplanted (About, Terms, Privacy), 10 other source pages have only partial preview counterparts, **44 source pages remain not ported**; original legal copy requires review and acceptance flow.
 - [ ] Phase 6 — live data and media export/import reconciliation: **blocked** by missing authorized test export and row counts.
 - [ ] Phase 7 — Pages/Workers cutover runbook, DNS preservation, staging QA: **not started**. No deployment or DNS changes.
 
@@ -44,3 +44,9 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Added `worker/reads.js` with **unmounted** fail-closed read prototypes for `getCommunityFeed` and `getCampaignDraft`, plus an independent public campaign listing. These require explicit `MIGRATION_API_PREVIEW=enabled`, server verification of Supabase JWT before private reads, client JWT-scoped RLS, fixed field selections and bounds.
 - Added synthetic tests for disabled routes, anonymous denial, remote JWT verification, no upstream details in errors and restricted drafts.
 - Function port registry: `docs/migration/FUNCTION_PORT_STATUS.json` (184 functions, two partial prototypes). Payment and ownership grants remain explicitly unported. No API/Worker route has been mounted or deployed.
+
+## Phase 5 code-only work
+- Transplanted source `src/lib/legalPolicy.js` without any Base44 SDK dependency, preserving historical terms version while explicitly requiring owner/legal review before publication.
+- Added independent About, Terms and Privacy React routes. Contact, support, payments, institutions and all remaining source pages are not claimed complete.
+- Added a 57-page source-to-target status manifest with no runtime-parity claims, plus structural tests. No live website routes, deployments or DNS changes.
+- Phase 4 [run 40157942499](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157942499) passed **25 Node tests** and Vite build before this branch. Phase 5's own CI must be read independently.
