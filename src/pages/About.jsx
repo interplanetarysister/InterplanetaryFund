@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 export default function About() {
   return (
@@ -9,8 +9,8 @@ export default function About() {
         <h2>What we do</h2>
         <p>
           Interplanetary Fund brings fundraising into one place: campaigns,
-          updates, connections, and optional assistance with writing and outreach.
-          People remain in control of what helpers are allowed to do.
+          updates, connections, and optional assistance with writing and
+          outreach. People remain in control of what helpers are allowed to do.
         </p>
       </section>
       <section>
