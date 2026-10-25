@@ -12,6 +12,9 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
@@ -130,6 +133,9 @@ function App() {
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route
             path="*"
             element={
