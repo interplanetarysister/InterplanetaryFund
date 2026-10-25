@@ -4,7 +4,7 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — 95 source-entity typed staging definitions, RLS and service isolation: **IN PROGRESS**; 95 private staging tables and 95 fail-closed client policies drafted in pending/; exact Base44 owner/admin read/write parity, source-to-UUID mapping, and staging execution remain UNVERIFIED and APPROVAL-GATED. Existing 4-table illustrative preview SQL remains a separate unapplied Phase 1 proposal.
 - [ ] Phase 3 — Supabase Auth Google/Facebook/email OTP and verified owner linking: **IN PROGRESS**; password signup removed in Phase 1; server-only match rules, consent design and inactive SQL staged; actual provider apps, OTP delivery template, verified ID mapping, and runtime link remain approval-gated.
-- [ ] Phase 4 — function and integration parity (184 function entrypoints): **not started**.
+- [ ] Phase 4 — function and integration parity (184 entrypoints): **IN PROGRESS**. Source-function status registry lists 184; 2 server-side read-only handlers are partially prototyped but unmounted and unverified against live data; 182 remain not ported, plus provider/agent/workflow parity. No Worker routes/deployment changed.
 - [ ] Phase 5 — full frontend port: **not started**; scaffold only and editor load guard.
 - [ ] Phase 6 — live data and media export/import reconciliation: **blocked** by missing authorized test export and row counts.
 - [ ] Phase 7 — Pages/Workers cutover runbook, DNS preservation, staging QA: **not started**. No deployment or DNS changes.
@@ -39,3 +39,8 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 
 ## Phase 3 actual CI proof — 2026-10-25 UTC
 [GitHub Actions run 40157561064](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157561064) — **SUCCESS** on free standard public runner: npm-generated lockfile, `npm ci`, Prettier, **19/19 unit tests**, and `npm run build` (Vite 6.4.3; 2.35 seconds). These tests cover pure owner-link eligibility/consent and prior schema/editor invariants. **No live OAuth, identity claim, OTP delivery, provider credentials or database SQL was tested or changed.** Phase 3 remains incomplete.
+
+## Phase 4 code-only activity
+- Added `worker/reads.js` with **unmounted** fail-closed read prototypes for `getCommunityFeed` and `getCampaignDraft`, plus an independent public campaign listing. These require explicit `MIGRATION_API_PREVIEW=enabled`, server verification of Supabase JWT before private reads, client JWT-scoped RLS, fixed field selections and bounds.
+- Added synthetic tests for disabled routes, anonymous denial, remote JWT verification, no upstream details in errors and restricted drafts.
+- Function port registry: `docs/migration/FUNCTION_PORT_STATUS.json` (184 functions, two partial prototypes). Payment and ownership grants remain explicitly unported. No API/Worker route has been mounted or deployed.
