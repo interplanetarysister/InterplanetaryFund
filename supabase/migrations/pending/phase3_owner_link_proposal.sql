@@ -31,12 +31,7 @@ CREATE TABLE IF NOT EXISTS ifund_identity.link_challenges (
   explicit_user_consent_at timestamptz,
   issued_at timestamptz NOT NULL DEFAULT now(),
   expires_at timestamptz NOT NULL,
-  consumed_at timestamptz,
-  CONSTRAINT ifund_challenge_otp_proof CHECK (
-    proof_kind <> 'legacy_email_otp' OR
-    code_to_legacy_email_verified_at IS NULL OR
-    code_to_legacy_email_verified_at <= now()
-  )
+  consumed_at timestamptz
 );
 -- NOTE: do not store raw OTPs, bearer tokens, provider secrets, or user-entered IDs.
 CREATE INDEX IF NOT EXISTS ifund_identity_open_challenge_idx
