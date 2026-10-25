@@ -12,6 +12,7 @@ import {
   missingPayPalWebhookConfig,
   paypalApiBase,
   handlePayPalWebhook,
+  recordPlatformSupportPayment,
 } from "../worker/paypalWebhook.js";
 
 const capture = (overrides = {}) => ({
@@ -78,6 +79,44 @@ test("config and mode helpers", () => {
   assert.equal(paypalApiBase("live"), "https://api-m.paypal.com");
   assert.equal(paypalApiBase("sandbox"), "https://api-m.sandbox.paypal.com");
   assert.equal(missingPayPalWebhookConfig({}).length, 6);
+});
+
+test("new Supabase secret key satisfies configuration without legacy JWT", () => {
+  const config = {
+    PAYPAL_MODE: "sandbox",
+    PAYPAL_CLIENT_ID: "id",
+    PAYPAL_CLIENT_SECRET: "secret",
+    PAYPAL_WEBHOOK_ID: "webhook",
+    SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_SECRET_KEY: "sb_secret_example",
+  };
+  assert.deepEqual(missingPayPalWebhookConfig(config), []);
+});
+
+test("payment RPC uses modern apikey only and legacy JWT bearer when necessary", async () => {
+  const calls = [];
+  const fakeFetch = async (url, options) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify("recorded"), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+  const env = { SUPABASE_URL: "https://example.supabase.co", SUPABASE_SECRET_KEY: "sb_secret_test" };
+  assert.equal(await recordPlatformSupportPayment({ event_id: "evt1" }, {}, env, fakeFetch), "recorded");
+  assert.equal(calls[0].options.headers.apikey, "sb_secret_test");
+  assert.equal(calls[0].options.headers.Authorization, undefined);
+  assert.match(calls[0].url, /\/rest\/v1\/rpc\/ifund_record_platform_support_payment$/);
+
+  assert.equal(await recordPlatformSupportPayment({}, {}, {
+    SUPABASE_URL: env.SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: "legacy.jwt.value",
+  }, fakeFetch), "recorded");
+  assert.equal(calls[1].options.headers.apikey, "legacy.jwt.value");
+  assert.equal(calls[1].options.headers.Authorization, "Bearer legacy.jwt.value");
+  await assert.rejects(recordPlatformSupportPayment({}, {}, {
+    SUPABASE_URL: env.SUPABASE_URL, SUPABASE_SECRET_KEY: "sb_publishable_bad",
+  }, fakeFetch), /server-side Supabase secret key/);
+  assert.equal(calls.length, 2);
 });
 
 test("webhook returns 503 when unconfigured and 400 on bad signature", async () => {
