@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Message } from "../components/UI";
@@ -6,6 +6,8 @@ function Community({ user }) {
   const [body, setBody] = useState("");
   const [message, setMessage] = useState("");
   const [posts, setPosts] = useState([]);
+  const [posting, setPosting] = useState(false);
+  const postingRef = useRef(false);
   const load = () =>
     db
       ?.from("ifund_posts")
@@ -21,14 +23,22 @@ function Community({ user }) {
   }, []);
   async function post(e) {
     e.preventDefault();
-    if (!user) return;
-    const { error } = await db
-      .from("ifund_posts")
-      .insert({ author_id: user.id, body: body.trim() });
-    if (error) setMessage(error.message);
-    else {
+    if (!user || !db || postingRef.current || !body.trim()) return;
+    postingRef.current = true;
+    setPosting(true);
+    setMessage("");
+    try {
+      const { error } = await db
+        .from("ifund_posts")
+        .insert({ author_id: user.id, body: body.trim() });
+      if (error) throw error;
       setBody("");
-      load();
+      await load();
+    } catch (error) {
+      setMessage(error?.message || "Couldn't post the update.");
+    } finally {
+      postingRef.current = false;
+      setPosting(false);
     }
   }
   return (
@@ -45,8 +55,8 @@ function Community({ user }) {
               onChange={(e) => setBody(e.target.value)}
             />
           </label>
-          <button type="submit" disabled={!body.trim()}>
-            Post update
+          <button type="submit" disabled={posting || !body.trim()}>
+            {posting ? "Posting…" : "Post update"}
           </button>
         </form>
       ) : (
