@@ -24,10 +24,17 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 ## Owner steps (not done by this PR)
 1. Review the pending SQL, then apply it to staging.
 2. In PayPal (sandbox first), create a REST app and a webhook pointing to `https://<worker-host>/api/paypal/webhook`, subscribed to the capture events listed above.
-3. Set the Worker secrets with `wrangler secret put`: `PAYPAL_MODE` (`sandbox` or `live`), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`. Never commit them.
+3. On the **separate, reviewed target Worker** (not the current Base44 proxy), stage `PAYPAL_MODE` (`sandbox` first), `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `SUPABASE_URL`, and preferably `SUPABASE_SECRET_KEY` (`sb_secret_...`). The handler also supports legacy `SUPABASE_SERVICE_ROLE_KEY` JWTs. Use `wrangler versions secret put` for a non-deployed version; `wrangler secret put` **deploys immediately**. Never commit the values or place them in `VITE_*`.
 4. Make a sandbox payment and check that one row appears in `ifund_finance.platform_support_payment`.
 5. Go live only after the DNS cutover. The Base44 path stays untouched until then (see BLOCKERS B11).
 
 ## Open questions
 - Is the live REST app registered to the same business account that receives the hosted link (`cuddlemeplatonically@gmail.com`)? This is UNKNOWN. Webhooks only fire for the app's own account.
 - Does PayPal send `PAYMENT.CAPTURE.*` for hosted payment-link (`ncp`) checkouts? Expected yes, but UNVERIFIED until the sandbox test in step 4. If it doesn't, port `listUntrackedPayPalReceipts` as a scheduled Worker that uses the Transaction Search API.
+
+## Credential inventory check — 2026-10-25
+- The authenticated Base44 CLI name listing contains the three PayPal names (`PAYPAL_MODE`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`), but **not** `PAYPAL_WEBHOOK_ID`; the latter needs its own verified registration. No secret values were obtained or copied.
+- Read-only Cloudflare checks showed no secret bindings on current `interplanetary-fund2` and `ifund-oauth` Workers. That says nothing about future target Worker credentials or other environments.
+- The owner-designated new Supabase project is `ssibsfmtodgximseeqsv` (PR #148), but the published Pages deployment has not been verified to use it; keep production untouched until data and auth parity.
+- The Worker has been updated in this PR to use `apikey` only for modern `sb_secret_...` keys, while preserving legacy JWT support. Unit tests check both header paths. This is a **source-code change only**, not evidence of configured secrets or a working payment.
+- Verify the PayPal REST-app merchant account matches the account receiving the hosted link. Capture notifications for hosted payment links are **unverified** and must be tested in sandbox before enabling live payments.
