@@ -22,3 +22,9 @@ AWS is part of the owner's chosen hackathon implementation. Use it only for a co
 - Financial operations and callbacks are server-authoritative; keep service role tokens off the client. Do not activate production webhooks or live payments without explicit owner authorization.
 - AI must be central and demonstrable for the hackathon. Preserve privacy and cost controls for LLM/generation integrations.
 - Keep all sensitive configuration in provider secret stores; `.env.example` only contains placeholders. Never place credentials in git, steering files, logs, issues, or PR bodies.
+
+## Live workspace references
+Treat the checked-in package manifest and safe environment-variable example as the current implementation contract; neither proves external services are deployed.
+
+#[[file:package.json]]
+#[[file:.env.example]]
