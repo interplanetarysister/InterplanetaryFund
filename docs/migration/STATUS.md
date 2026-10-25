@@ -6,7 +6,7 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - [ ] Phase 3 — Supabase Auth Google/Facebook/email OTP and verified owner linking: **IN PROGRESS**; password signup removed in Phase 1; server-only match rules, consent design and inactive SQL staged; actual provider apps, OTP delivery template, verified ID mapping, and runtime link remain approval-gated.
 - [ ] Phase 4 — function and integration parity (184 entrypoints): **IN PROGRESS**. Source-function status registry lists 184; 2 server-side read-only handlers are partially prototyped but unmounted and unverified against live data; 182 remain not ported, plus provider/agent/workflow parity. No Worker routes/deployment changed.
 - [ ] Phase 5 — full frontend port: **IN PROGRESS**; three static pages transplanted (About, Terms, Privacy), 10 other source pages have only partial preview counterparts, **44 source pages remain not ported**; original legal copy requires review and acceptance flow.
-- [ ] Phase 6 — live data and media export/import reconciliation: **blocked** by missing authorized test export and row counts.
+- [ ] Phase 6 — data/media export/import: **IN PROGRESS** (offline safety tooling). Source exports, counts, hashes, media transfers and actual idempotent Supabase import remain blocked until explicit owner authorization; no real export/import was run.
 - [ ] Phase 7 — Pages/Workers cutover runbook, DNS preservation, staging QA: **not started**. No deployment or DNS changes.
 
 Verified: branch derived from README-only current main; #136 is obsolete; read-only inventory from interplanetary-fund2; 25 applied Supabase migration history entries. **Tests:** local `npm test` against the copied `validation.js` and test file passed **9/9 Node tests** (campaign validation and editor loaded-ID save gate), Node v22.16.0. **Not verified:** end-to-end browser app, Vite bundle, dependencies installed through npm, schema against staging, OAuth, RLS, payments. Npm registry access failed with EAI_AGAIN. A **dependency-metadata assembled** lockfile is now committed (210 entries, includes Tailwind/PostCSS, no Base44 packages; root pins and dependency path metadata checked), but `npm ci` and `npm run build` remain UNVERIFIED. See B7. No production schema/data/provider mutations.
@@ -50,3 +50,9 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Added independent About, Terms and Privacy React routes. Contact, support, payments, institutions and all remaining source pages are not claimed complete.
 - Added a 57-page source-to-target status manifest with no runtime-parity claims, plus structural tests. No live website routes, deployments or DNS changes.
 - Phase 4 [run 40157942499](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157942499) passed **25 Node tests** and Vite build before this branch. Phase 5's own CI must be read independently.
+
+## Phase 6 offline verification (no external action)
+- `scripts/migration/verify-export.mjs`: streams private local JSONL, checks stable source IDs, duplicates, per-entity row counts and SHA-256; refuses path traversal. It does not contact Base44, Supabase or a provider.
+- `scripts/migration/media-audit.mjs`: checks already-downloaded synthetic/local file hashes and classifies URLs without downloading media.
+- 95-entity empty `docs/migration/export-manifest-template.json` committed; no real rows, IDs, emails, images or tokens are included.
+- Synthetic fixtures tested; all real donor, ledger and payout counts UNKNOWN. Historical 0 Donation/Withdrawal are NOT independently verified and do NOT negate provider reconciliation.
