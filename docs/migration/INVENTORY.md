@@ -99,3 +99,8 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 - `worker/ownerLinkRules.js`: pure server-side eligibility and consent gates, unit tested; not a connected provider endpoint.
 - `supabase/migrations/pending/phase3_owner_link_proposal.sql`: private `ifund_identity.owner_matches`, `link_challenges`, `link_consent_audit`; service-only `claim_verified_owner` function with atomic nonce consumption, source owner match, confirmed destination auth email, and consent proof. This proposal is **not applied**, and production behavior is **not verified**. It does not replace/alter the existing source `ifund_migration_owner_commit` or `ifund_migration_owner_lookup` RPC definitions.
 - Legacy sign-in proof is **not** required by the new proposal; provider verified email or approved OTP sent to original Base44 email is the fallback. Do not copy any real owner emails or legacy identifiers into Git.
+
+## Phase 4 function-port ledger
+- `docs/migration/FUNCTION_PORT_STATUS.json` is the authoritative list of **184** source function entrypoints with per-port statuses (two `partial_preview_unmounted`, 182 `not_ported`). It is not a parity certificate.
+- Staged `worker/reads.js` prototypes community feed and a user-owned campaign draft read with JWT verification and RLS-scoped forwarding, plus public active campaigns read. Not reachable through `worker/index.js`, not deployed, not connected to a live Supabase schema. The source behavior also involves rate limits and a wider data contract; complete function parity remains open.
+- No PayPal/Stripe handlers, payouts, agent runtime, OAuth connector, automatic publishing, external API tokens, or secret values were moved in this PR.
