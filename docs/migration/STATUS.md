@@ -2,7 +2,7 @@
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
-- [ ] Phase 2 — migrate 95 entities and full RLS: **not started**; 4-table illustrative staging SQL only.
+- [ ] Phase 2 — 95 source-entity typed staging definitions, RLS and service isolation: **IN PROGRESS**; 95 private staging tables and 95 fail-closed client policies drafted in pending/; exact Base44 owner/admin read/write parity, source-to-UUID mapping, and staging execution remain UNVERIFIED and APPROVAL-GATED. Existing 4-table illustrative preview SQL remains a separate unapplied Phase 1 proposal.
 - [ ] Phase 3 — Supabase Auth identity mapping + role gates: **not started**.
 - [ ] Phase 4 — function and integration parity (184 function entrypoints): **not started**.
 - [ ] Phase 5 — full frontend port: **not started**; scaffold only and editor load guard.
@@ -21,3 +21,10 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - `npx --no-install prettier --check "src/**/*.{js,jsx,css}"`: **PASS**.
 
 **Scope and caveats:** this validates an actual npm dependency install, Node tests and frontend bundle for the tested head, not Supabase runtime login, cross-account RLS, schema execution, provider OAuth, media/financial parity, or deployment. Separate CodeRabbit latest-head review findings and owner approval gates remain. No production service was changed.
+
+## Phase 2 static verification
+- The Phase 2 branch adds 95 table drafts across 79 content, 12 financial and 4 credential-reference entities; all 95 enable RLS and deny unverified clients.
+- Six initial legacy-ID foreign keys are staged after table definitions; remaining relationships need data validation before activation.
+- Original private agent conversation SQL preserved in pending/ unchanged after a provenance header from source commit `6f7fd599`.
+- **Not applied** to any Supabase environment; database tests/actual RLS outcome are unverified. No data imported or converted.
+- CI to execute `npm ci`, `npm test` (includes Phase 2 schema invariants), `npm run build`, and CodeRabbit review on its PR.
