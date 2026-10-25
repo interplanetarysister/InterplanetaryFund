@@ -1,0 +1,77 @@
+{
+  "name": "IntegrationChangeRequest",
+  "type": "object",
+  "description": "Owner-approved nonsecret changes to IFund provider routing. Never store tokens, passwords or session state.",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "transport": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "applying",
+        "applied",
+        "rejected",
+        "expired"
+      ]
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string"
+    },
+    "applied_at": {
+      "type": "string"
+    },
+    "expected_recipe_version": {
+      "type": "number"
+    },
+    "result_summary": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "platform",
+    "operation",
+    "transport",
+    "status",
+    "expires_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "IFund Reporter Daily Diary",
+  "description": "Publishes one carefully scoped factual issue per day in the official IFund Reporter public blog, linked from the Community Stories & blogs tab. No external social posting or paid actions.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 17 * * *",
+      "timezone": "America/Los_Angeles",
+      "one_time_date": null,
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "ifund_reporter_daily_diary",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "publish_reporter_story": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runReporterDiary",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Publish IFund reporter diary",
+            "description": "Create a single source-constrained public newsletter issue and show it in Community Stories"
+          }
+        }
+      }
+    ]
+  }
+}

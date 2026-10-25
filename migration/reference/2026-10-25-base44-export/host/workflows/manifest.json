@@ -1,0 +1,404 @@
+{
+  "schema_version": 1,
+  "execution": "disabled",
+  "source": "Base44 definitions; current enabled/running state not verified",
+  "workflows": [
+    {
+      "name": "AI Outreach Agent",
+      "file": "AI Outreach Agent.jsonc",
+      "sha256": "3b0a808449690aab22ef3c38a179245480048095c85cb271c26cdf2d8adcba0d",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 */6 * * *",
+      "timezone": "UTC",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "runOutreachAgent",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Admin Action Conversation Router",
+      "file": "Admin Action Conversation Router.jsonc",
+      "sha256": "052a155f66510f394a35490704db3e2c09b8e7bb34a84c559313857ce18c37d0",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "*/15 * * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "processAdminActionInbox",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Campaign Protocol",
+      "file": "Campaign Protocol.jsonc",
+      "sha256": "d4ced4ff6f16df2b78dbd286fbfbc2668d05128ca45dc82f23470813b7c43151",
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Campaign",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "enforceCampaignProtocol",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Campaign Sync on Create",
+      "file": "Campaign Sync on Create.jsonc",
+      "sha256": "bd24cf81f6ce767f35b78754ba969827d7d971edb8f3bb0b38d1179b76c898e4",
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Campaign",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "syncConnections",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Campaign Sync on Update",
+      "file": "Campaign Sync on Update.jsonc",
+      "sha256": "28c9eb7ee3f5f77714dff29ddf9d4510bf322788c94aaac42bfd09ef9f93af46",
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "CampaignUpdate",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "syncConnections",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Connection Sync Engine",
+      "file": "Connection Sync Engine.jsonc",
+      "sha256": "e37d2bb91a3df60427e7d05fbc14aacc878c1da5b7cc2ccef19310d9ae93c462",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 * * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "syncConnections",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "External Feed Mirroring",
+      "file": "External Feed Mirroring.jsonc",
+      "sha256": "e2db560f8d07827cf9ce5cee40a701985b2edf2c03594c6e0b70a1d6390ac818",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 * * * *",
+      "timezone": "UTC",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "mirrorExternalPosts",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Feature Discovery on Completion",
+      "file": "Feature Discovery on Completion.jsonc",
+      "sha256": "1a7d6553012d930752f571be47b6a4d8ab088395a1eb2a84484787dbb0798023",
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Campaign",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "discoverFeatures",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Grant Application Review",
+      "file": "Grant Application Review.jsonc",
+      "sha256": "1fe70165189307b5bdbd150085eb94ec4a60e5eb0022c2c7dadffb18ee7f77bd",
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "GrantApplication",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "analyzeGrantApplication",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "IFund Official Social Editor",
+      "file": "IFund Official Social Editor.jsonc",
+      "sha256": "d0bc7ecc351762f8f712f359a7fd6fadf4dac7e4109c7bc9a19925352a7d4ff8",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 */4 * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "runOfficialSocialPromotion",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "IFund Reporter Daily Diary",
+      "file": "IFund Reporter Daily Diary.jsonc",
+      "sha256": "37c969fda09936c5b56d0611acbbf711dbe56701b7d4a6e2e117f402df889c7a",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "30 17 * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "runReporterDiary",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Integration Health Check",
+      "file": "Integration Health Check.jsonc",
+      "sha256": "3ab1dec8f0541053aa289fca89af377ab7e6af36616b3075690be690af978ade",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "30 */6 * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "validateIntegrationHealth",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "PayPal Holding Settlement Reconciliation",
+      "file": "PayPal Holding Settlement Reconciliation.jsonc",
+      "sha256": "4b316fd436db203e599e28ef19f22f69532a7f5fd6d254635397b61c8e426f41",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 * * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "discoverPayPalHoldingSettlements",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Platform Account Steward",
+      "file": "Platform Account Steward.jsonc",
+      "sha256": "5e52b82e6b5d742698be8f85edef58f73cf58f5bc5a0ad39e66956482b0c708d",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "30 15 * * *",
+      "timezone": "America/Los_Angeles",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "maintainPlatformOwnedAccounts",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Social Media Autopilot",
+      "file": "Social Media Autopilot.jsonc",
+      "sha256": "9c9d104bdc6de60623e7386167e4bcf6df331d4570bf3a2315f8b0c8b9a15db8",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 14 * * *",
+      "timezone": "UTC",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "runSocialAutopilot",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Volunteer Welcome Follow-up",
+      "file": "Volunteer Welcome Follow-up.jsonc",
+      "sha256": "29d63512363938a2838b4211c55d7de86ffd6b55bc2311aac0141014d2a69e3d",
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "VolunteerSignup",
+      "cron_expression": null,
+      "timezone": null,
+      "schedule_mode": null,
+      "one_time_date": null,
+      "ends_type": null,
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "welcomeVolunteer",
+          "wait": null
+        },
+        {
+          "call": null,
+          "function_name": null,
+          "wait": null
+        },
+        {
+          "call": "invoke_backend_function",
+          "function_name": "volunteerFollowUp",
+          "wait": null
+        }
+      ]
+    },
+    {
+      "name": "Weekly Writing Psychology & Social Trends Training",
+      "file": "Weekly Writing Psychology & Social Trends Training.jsonc",
+      "sha256": "76536741dfea982480d41770a4289d320afe6ee7fcacb872300cdb10dd6a5a87",
+      "trigger_type": "scheduled",
+      "events": [],
+      "entity_name": null,
+      "cron_expression": "0 16 * * *",
+      "timezone": "UTC",
+      "schedule_mode": "recurring",
+      "one_time_date": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null,
+      "steps": [
+        {
+          "call": "invoke_backend_function",
+          "function_name": "refreshWritingResearch",
+          "wait": null
+        }
+      ]
+    }
+  ]
+}

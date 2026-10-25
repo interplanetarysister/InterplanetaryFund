@@ -1,0 +1,95 @@
+{
+  "name": "AuthorizationGrant",
+  "type": "object",
+  "properties": {
+    "agent_name": {
+      "type": "string",
+      "description": "The agent or service identity granted the right to act."
+    },
+    "user_id": {
+      "type": "string",
+      "description": "The grantor \u2014 the user authorizing the agent to act on their behalf (OBO)."
+    },
+    "platform": {
+      "type": "string",
+      "description": "The platform or capability this grant covers (e.g. email, social_publish)."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Plain-language reason for the delegation."
+    },
+    "scope": {
+      "type": "string",
+      "description": "Granted action scope, e.g. 'read_mail_thread', 'publish_draft'."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked",
+        "expired"
+      ],
+      "default": "active"
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional expiry; null means no expiry."
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_reason": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "agent_name",
+    "user_id",
+    "platform",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Owner-approved on-behalf-of grants describing the agent, platform, scope, status, and revocation of delegated actions."
+}

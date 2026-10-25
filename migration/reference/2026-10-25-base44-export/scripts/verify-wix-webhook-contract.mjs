@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const handler=fs.readFileSync('base44/functions/wixWebhook/entry.ts','utf8');
+const entity=fs.readFileSync('base44/entities/ExternalSyncEvent.jsonc','utf8');
+const shared=fs.readFileSync('base44/functions/getSharedConnectorStatus/entry.ts','utf8');
+assert.match(handler,/WIX_WEBHOOK_PUBLIC_KEY/);
+assert.match(handler,/header\?\.alg !== 'RS256'/);
+assert.match(handler,/crypto\.subtle\.verify/);
+assert.match(handler,/Webhook verification failed/);
+assert.match(handler,/typeof outer\?\.data === 'string'/);
+assert.match(handler,/event_id: externalId/);
+assert.match(handler,/duplicate: true/);
+assert.match(handler,/ExternalSyncEvent/);
+assert.match(handler,/Financial events never create/);
+assert.match(entity,/"event_id"/);
+assert.match(entity,/"processed"/);
+assert.match(shared,/receive platform-managed webhooks/);
+console.log('Wix signed webhook ingestion contract passed.');

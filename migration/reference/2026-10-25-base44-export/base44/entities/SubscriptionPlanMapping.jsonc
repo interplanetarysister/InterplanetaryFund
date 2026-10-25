@@ -1,0 +1,67 @@
+{
+  "name": "SubscriptionPlanMapping",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string"
+    },
+    "interval": {
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "amount_cents": {
+      "type": "number"
+    },
+    "catalog_version": {
+      "type": "string"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "product_id": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "provider",
+    "tier",
+    "interval",
+    "catalog_version",
+    "account_ref"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Maps IFund subscription tiers to external billing plan identifiers and benefit rules."
+}

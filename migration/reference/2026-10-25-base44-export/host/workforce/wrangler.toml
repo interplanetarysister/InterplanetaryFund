@@ -1,0 +1,8 @@
+name = "ifund-workforce"
+main = "worker.js"
+compatibility_date = "2026-09-29"
+workers_dev = true
+# No production domain route. Do not enable tools until identity, memory,
+# permissions, idempotency, and execution adapters pass live verification.
+[vars]
+IFUND_WORKFORCE_EXECUTION = "disabled"

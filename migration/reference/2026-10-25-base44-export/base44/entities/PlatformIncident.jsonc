@@ -1,0 +1,167 @@
+{
+  "name": "PlatformIncident",
+  "type": "object",
+  "description": "Platform-wide frontend incident groups with sanitized evidence, an administrator-approved repair plan, and tracked builder execution.",
+  "properties": {
+    "fingerprint": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "route_pattern": {
+      "type": "string"
+    },
+    "error_kind": {
+      "type": "string"
+    },
+    "error_summary": {
+      "type": "string"
+    },
+    "affected_routes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "occurrences": {
+      "type": "number",
+      "default": 1
+    },
+    "first_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_seen_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "needs_review",
+        "plan_ready",
+        "rejected",
+        "approved_queued",
+        "builder_dispatched",
+        "implementation_pending",
+        "verified_fixed"
+      ],
+      "default": "needs_review"
+    },
+    "analysis": {
+      "type": "string"
+    },
+    "systemic_scope": {
+      "type": "string"
+    },
+    "repair_plan": {
+      "type": "string"
+    },
+    "verification_plan": {
+      "type": "string"
+    },
+    "rollback_plan": {
+      "type": "string"
+    },
+    "approval_note": {
+      "type": "string"
+    },
+    "approved_by_user_id": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "builder_task_id": {
+      "type": "string"
+    },
+    "builder_conversation_id": {
+      "type": "string"
+    },
+    "dispatch_error": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verification_evidence": {
+      "type": "string"
+    },
+    "builder_execution_state": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "blocked_config",
+        "blocked_credits",
+        "submitting",
+        "submitted",
+        "review_required",
+        "failed",
+        "failed_uncertain",
+        "release_submitting",
+        "released_unverified",
+        "release_failed",
+        "verified"
+      ],
+      "default": "queued"
+    },
+    "builder_request_ref": {
+      "type": "string"
+    },
+    "builder_provider_phase": {
+      "type": "string"
+    },
+    "builder_last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "builder_release_approval_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "builder_release_approval_by": {
+      "type": "string"
+    },
+    "builder_review_evidence": {
+      "type": "string",
+      "description": "Super-admin reference to builder diff, revision/commit and regression checks before site release."
+    },
+    "builder_attempts": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "fingerprint",
+    "source",
+    "route_pattern",
+    "error_kind",
+    "occurrences",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

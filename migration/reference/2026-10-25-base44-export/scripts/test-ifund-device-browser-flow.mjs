@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+
+const client = fs.readFileSync(new URL('../src/components/devices/DevicePairingSelfTest.jsx',import.meta.url),'utf8');
+const manager = fs.readFileSync(new URL('../src/pages/ConnectedDevices.jsx',import.meta.url),'utf8');
+const backend = fs.readFileSync(new URL('../base44/functions/deviceAuthorization/entry.ts',import.meta.url),'utf8');
+const shared = fs.readFileSync(new URL('../base44/shared/deviceAuthorization.ts',import.meta.url),'utf8');
+const result = ts.transpileModule(client,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022},reportDiagnostics:true});
+assert.equal((result.diagnostics||[]).length,0,'Browser pairing UI must compile');
+assert.match(client,/mode:"start"/);
+assert.match(client,/mode:"poll"/);
+assert.match(client,/mode:"resource",action:"identity"/);
+assert.match(client,/mode:"list"/);
+assert.match(client,/mode:"revoke"/);
+assert.match(client,/scopes:\["identity:read"\]/);
+assert.match(client,/target="_blank" rel="noopener noreferrer"/);
+assert.match(client,/cache: "no-store"/);
+assert.match(client,/credentials: "include"/);
+assert.doesNotMatch(client.replace(/\/\/[^\n]*/g, ""),/localStorage|sessionStorage|indexedDB|console\.(log|warn)/,
+  'Device secrets should not be retained in browser storage or logs');
+assert.match(client,/secretRef.current = ""/);
+assert.match(manager,/<DevicePairingSelfTest onChanged=\{reload\}/);
+assert.match(backend,/row\.state !== 'approved'/);
+assert.match(backend,/past\(row,'grant_expires_at'\)/);
+assert.match(backend,/owner\.account_deletion_pending/);
+assert.match(shared,/requireStrictDeviceLimit/);
+assert.match(client,/setVerifying\(true\)[\s\S]*?mode:"resource"[\s\S]*?mode:"revoke"/);
+assert.doesNotMatch(client,/setStatus\("checking"\)/,'Updating polling status while polling would cancel the cleanup effect');
+console.log('PASS: browser-driven device authorization starts, polls, proves identity, revokes test grants and keeps secrets ephemeral.');

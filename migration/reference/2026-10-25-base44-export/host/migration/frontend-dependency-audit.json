@@ -1,0 +1,6922 @@
+{
+  "generated_at": "2026-10-23T01:58:12.639Z",
+  "scope": "Static source call-site inventory only. Dynamic invocation, server-side use, production traffic and external integrations NOT proven.",
+  "scanned_source_files": 363,
+  "match_count": 1038,
+  "referenced_entity_count": 46,
+  "referenced_function_count": 124,
+  "referenced_entities": [
+    {
+      "name": "Notification",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Campaign",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "FollowedCampaign",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "InboxItem",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Donation",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "AdminApproval",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "AdminActionMessage",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "PlatformOwnedAccount",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "DistributedPost",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "AgentActivity",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "ExecutiveReport",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "ExternalCampaignImport",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Message",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "DiscussionPost",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "DiscussionReply",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "VolunteerOpportunity",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "VolunteerSignup",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "UserCredentialVault",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "SyncRun",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "CampaignUpdate",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "TreasurySnapshot",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "GrantApplication",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "InstitutionOpportunity",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Opportunity",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Recommendation",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "ExternalFundMigrationRecord",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "FeatureFlag",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Withdrawal",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "KnowledgeArticle",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Community",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Institution",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "PlatformEvent",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "User",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "SocialPost",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "FoundingWaitlist",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "AuditLog",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "CommunityMember",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "Agent",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "HelpArticle",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "HelpDraft",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "HelpFeedback",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "PlatformAccessRegistry",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "MissionBrief",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "MonitoredCampaign",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "ProtocolReport",
+      "found_in_entity_catalog": true
+    },
+    {
+      "name": "SustainabilityAudit",
+      "found_in_entity_catalog": true
+    }
+  ],
+  "referenced_functions": [
+    {
+      "name": "recordLegalAcceptance",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "listConnections",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "deleteAccount",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncExternalFunds",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "acknowledgeConnectionIssue",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "publishPost",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "adminApiConnectionIntake",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "managePlatformAccess",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageOwnerConnectionConfiguration",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "listUntrackedPayPalReceipts",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "capturePayPalOrder",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "reconcileDirectPayPalCampaignDonation",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "ownerAgentChatActions",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "trackAgentConversation",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageAgentContentDraft",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageAgentWork",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "routeAgentTask",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageApprovedBuilderExecution",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageAdminBuilderWork",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "managePlatformIncidents",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "translateCampaign",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "updateCampaignSettings",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "deleteCampaign",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getPaymentCapabilities",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "recordDonation",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "saveCampaign",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "toggleCampaignFollow",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "updateFollowPreferences",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncImportedCampaign",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "reviewAgentActivity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "postCampaignUpdate",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "sendCommunication",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getCommunityFeed",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createCommunity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createDiscussionPost",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "postDiscussionReply",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createVolunteerOpportunity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "volunteerSignup",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "setUnifiedOboConsent",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "adminOAuthProviderReadiness",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getAppUserConnector",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "setConnectionAiToggle",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "saveConnectionCredentials",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "disconnectPlatformConnection",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "verifyPlatformConnection",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncWixCampaigns",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncWixContent",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncWixBusinessData",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncWixAnalytics",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "deviceAuthorization",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageDistributedPost",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "listFundraisingProviderCapabilities",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createDistributedPost",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "generateDistributionContent",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "broadcastPosts",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "justGivingStagingPilot",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageRecurringDonation",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "updateInboxItem",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "markNotificationRead",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageVerificationMailbox",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "listInstitutionApplications",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "decideGrantApplication",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "applyInstitutionOpportunity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createInstitution",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "publishInstitutionOpportunity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "generateIntelligence",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "updateMissionItemStatus",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "recordExternalFundMigration",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "requestWithdrawal",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getPayPalConfig",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createPayPalOrder",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageFeatureFlag",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "adminCampaignControl",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createKnowledgeArticle",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getLiveProviderStatus",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getStripeIntegrationAudit",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "repairStripeWebhookEvents",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "adminUpdateUserRole",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "logPlatformEvent",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageFriends",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "managePublicProfile",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "generateSocialContent",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageBlog",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageOfficialPublications",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "generateCampaignCover",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createSocialPost",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "managePostInterest",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "prepareCollectAndWithdraw",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "authorizeCollectAndWithdraw",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "executeCollectAndWithdraw",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "registerPushDevice",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "renderInterplanetaryPhoto",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "recordAgentInteraction",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getFeatureAvailability",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getFundraisingMode",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageOAuthClients",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "manageExternalAgentKeys",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getCampaignDonations",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "communityMembership",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "resolveConnectionStatus",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "finalizeAppUserOAuthConnection",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getSharedConnectorStatus",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "requestManagedConnectionAction",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "sendPublicContactMessage",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getCampaignDraft",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "importExternalCampaign",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "geocodeCity",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "recordCampaignCreated",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getOwnerDonorDirectory",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getOwnerFinancialLedger",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "joinFoundingWaitlist",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createSupportTicket",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "validateIntegrationHealth",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getMyGiving",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getPayPalSubscriptionOptions",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "confirmPayPalSubscription",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "createPayPalSubscriptionCheckout",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "startPremiumTrial",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "cancelPayPalSubscription",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "verifyOwnerPayPalBasicPlan",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "setupPayPalSubscriptionWebhook",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "activateSubscriptionCheckout",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "syncPayPalSubscriptionCatalog",
+      "found_in_function_catalog": true
+    },
+    {
+      "name": "getCampaignWithdrawalBalance",
+      "found_in_function_catalog": true
+    }
+  ],
+  "matches": [
+    {
+      "file": "src/App.jsx",
+      "line": 99,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/App.jsx",
+      "line": 99,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/api/base44Client.js",
+      "line": 1,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 24,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 11,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/components/NotificationBell.jsx",
+      "line": 24,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/components/QuickActions.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/QuickActions.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/TermsAcceptance.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/TermsAcceptance.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/TermsAcceptance.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/TermsAcceptance.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "recordLegalAcceptance"
+    },
+    {
+      "file": "src/components/TermsAcceptance.jsx",
+      "line": 51,
+      "type": "base44_functions",
+      "target": "recordLegalAcceptance"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 43,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 46,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 50,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 77,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 80,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 48,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 77,
+      "type": "base44_functions",
+      "target": "deleteAccount"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 45,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 46,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 47,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 49,
+      "type": "base44_entities",
+      "target": "InboxItem"
+    },
+    {
+      "file": "src/components/account/AccountManagement.jsx",
+      "line": 50,
+      "type": "base44_entities",
+      "target": "Donation"
+    },
+    {
+      "file": "src/components/account/CountMyMoney.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/CountMyMoney.jsx",
+      "line": 38,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/account/CountMyMoney.jsx",
+      "line": 38,
+      "type": "base44_functions",
+      "target": "syncExternalFunds"
+    },
+    {
+      "file": "src/components/admin/ActionQueuePanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/ActionQueuePanel.jsx",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/ActionQueuePanel.jsx",
+      "line": 14,
+      "type": "base44_functions",
+      "target": "acknowledgeConnectionIssue"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 8,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 8,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 9,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 9,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 12,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_functions",
+      "target": "publishPost"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 8,
+      "type": "base44_entities",
+      "target": "AdminApproval"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 8,
+      "type": "base44_entities",
+      "target": "AdminActionMessage"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 9,
+      "type": "base44_entities",
+      "target": "AdminActionMessage"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "PlatformOwnedAccount"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "PlatformOwnedAccount"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "DistributedPost"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "DistributedPost"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "AdminApproval"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 11,
+      "type": "base44_entities",
+      "target": "AdminApproval"
+    },
+    {
+      "file": "src/components/admin/AdminApprovalQueue.jsx",
+      "line": 12,
+      "type": "base44_entities",
+      "target": "AdminApproval"
+    },
+    {
+      "file": "src/components/admin/AdminConnectionAssistant.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminConnectionAssistant.jsx",
+      "line": 7,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/AdminConnectionAssistant.jsx",
+      "line": 7,
+      "type": "base44_functions",
+      "target": "adminApiConnectionIntake"
+    },
+    {
+      "file": "src/components/admin/IntegrationDetailPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/IntegrationDetailPanel.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/IntegrationDetailPanel.jsx",
+      "line": 30,
+      "type": "base44_functions",
+      "target": "managePlatformAccess"
+    },
+    {
+      "file": "src/components/admin/OwnerConnectorRoutePanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/OwnerConnectorRoutePanel.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/OwnerConnectorRoutePanel.jsx",
+      "line": 16,
+      "type": "base44_functions",
+      "target": "manageOwnerConnectionConfiguration"
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 70,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 76,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 30,
+      "type": "base44_functions",
+      "target": "listUntrackedPayPalReceipts"
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 70,
+      "type": "base44_functions",
+      "target": "capturePayPalOrder"
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 76,
+      "type": "base44_functions",
+      "target": "reconcileDirectPayPalCampaignDonation"
+    },
+    {
+      "file": "src/components/admin/PayPalReceiptRecoveryPanel.jsx",
+      "line": 31,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 23,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 125,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 130,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 147,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 173,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 190,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 217,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 236,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 245,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 247,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 254,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 23,
+      "type": "base44_functions",
+      "target": "ownerAgentChatActions"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 147,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 190,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 217,
+      "type": "base44_functions",
+      "target": "ownerAgentChatActions"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 236,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 247,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentChat.jsx",
+      "line": 254,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentContentReview.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentContentReview.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentContentReview.jsx",
+      "line": 60,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentContentReview.jsx",
+      "line": 34,
+      "type": "base44_functions",
+      "target": "manageAgentContentDraft"
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 98,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 99,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 100,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 101,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 117,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 98,
+      "type": "base44_functions",
+      "target": "manageAgentWork"
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 99,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 100,
+      "type": "base44_functions",
+      "target": "manageAgentContentDraft"
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 117,
+      "type": "base44_functions",
+      "target": "routeAgentTask"
+    },
+    {
+      "file": "src/components/agents/AgentMonitor.jsx",
+      "line": 101,
+      "type": "base44_entities",
+      "target": "AgentActivity"
+    },
+    {
+      "file": "src/components/agents/BuilderExecutionControls.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/BuilderExecutionControls.jsx",
+      "line": 19,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/BuilderExecutionControls.jsx",
+      "line": 19,
+      "type": "base44_functions",
+      "target": "manageApprovedBuilderExecution"
+    },
+    {
+      "file": "src/components/agents/ChatGPTBuilderHandoff.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/ChatGPTBuilderHandoff.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/ChatGPTBuilderHandoff.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/ChatGPTBuilderHandoff.jsx",
+      "line": 31,
+      "type": "base44_functions",
+      "target": "manageAdminBuilderWork"
+    },
+    {
+      "file": "src/components/agents/ChatGPTBuilderHandoff.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "manageAdminBuilderWork"
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 26,
+      "type": "base44_functions",
+      "target": "managePlatformIncidents"
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 27,
+      "type": "base44_functions",
+      "target": "manageApprovedBuilderExecution"
+    },
+    {
+      "file": "src/components/agents/PlatformFixReviewPanel.jsx",
+      "line": 40,
+      "type": "base44_functions",
+      "target": "managePlatformIncidents"
+    },
+    {
+      "file": "src/components/analytics/ReportsPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/analytics/ReportsPanel.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/analytics/ReportsPanel.jsx",
+      "line": 78,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/analytics/ReportsPanel.jsx",
+      "line": 36,
+      "type": "base44_entities",
+      "target": "ExecutiveReport"
+    },
+    {
+      "file": "src/components/analytics/ReportsPanel.jsx",
+      "line": 78,
+      "type": "base44_entities",
+      "target": "ExecutiveReport"
+    },
+    {
+      "file": "src/components/auth/SocialButtons.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/auth/SocialButtons.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/auth/SocialButtons.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/auth/SocialButtons.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/brand/BrandHero.jsx",
+      "line": 9,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/brand/BrandHero.jsx",
+      "line": 9,
+      "type": "direct_base44_url",
+      "target": null
+    },
+    {
+      "file": "src/components/brand/BrandLogo.jsx",
+      "line": 15,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/brand/BrandLogo.jsx",
+      "line": 15,
+      "type": "direct_base44_url",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 58,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 74,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 93,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 35,
+      "type": "base44_functions",
+      "target": "translateCampaign"
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 58,
+      "type": "base44_functions",
+      "target": "translateCampaign"
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 74,
+      "type": "base44_functions",
+      "target": "translateCampaign"
+    },
+    {
+      "file": "src/components/campaigns/CampaignTranslation.jsx",
+      "line": 93,
+      "type": "base44_functions",
+      "target": "translateCampaign"
+    },
+    {
+      "file": "src/components/campaigns/CashAppSettings.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CashAppSettings.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CashAppSettings.jsx",
+      "line": 16,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/campaigns/CrossPlatformTotals.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CrossPlatformTotals.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CryptoCampaignSettings.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CryptoCampaignSettings.jsx",
+      "line": 15,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/CryptoCampaignSettings.jsx",
+      "line": 15,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/campaigns/DeleteCampaignButton.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/DeleteCampaignButton.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/DeleteCampaignButton.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "deleteCampaign"
+    },
+    {
+      "file": "src/components/campaigns/DonateDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/DonateDialog.jsx",
+      "line": 53,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/DonateDialog.jsx",
+      "line": 69,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/DonateDialog.jsx",
+      "line": 53,
+      "type": "base44_functions",
+      "target": "getPaymentCapabilities"
+    },
+    {
+      "file": "src/components/campaigns/DonateDialog.jsx",
+      "line": 69,
+      "type": "base44_functions",
+      "target": "recordDonation"
+    },
+    {
+      "file": "src/components/campaigns/EditAIInstructionsDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/EditAIInstructionsDialog.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/EditAIInstructionsDialog.jsx",
+      "line": 18,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/campaigns/EditCampaignDetailsDialog.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/EditCampaignDetailsDialog.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/EditCampaignDetailsDialog.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "saveCampaign"
+    },
+    {
+      "file": "src/components/campaigns/FeaturedCarousel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FeaturedCarousel.jsx",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FeaturedCarousel.jsx",
+      "line": 14,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 24,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 66,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "toggleCampaignFollow"
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 66,
+      "type": "base44_functions",
+      "target": "toggleCampaignFollow"
+    },
+    {
+      "file": "src/components/campaigns/FollowButton.jsx",
+      "line": 24,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/components/campaigns/FollowPrefsDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowPrefsDialog.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/FollowPrefsDialog.jsx",
+      "line": 32,
+      "type": "base44_functions",
+      "target": "updateFollowPreferences"
+    },
+    {
+      "file": "src/components/campaigns/ImportedCampaignSync.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/ImportedCampaignSync.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/ImportedCampaignSync.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/ImportedCampaignSync.jsx",
+      "line": 18,
+      "type": "base44_functions",
+      "target": "syncImportedCampaign"
+    },
+    {
+      "file": "src/components/campaigns/ImportedCampaignSync.jsx",
+      "line": 11,
+      "type": "base44_entities",
+      "target": "ExternalCampaignImport"
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 68,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 83,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 51,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 68,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 83,
+      "type": "base44_functions",
+      "target": "reviewAgentActivity"
+    },
+    {
+      "file": "src/components/campaigns/OutreachAgentPanel.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "AgentActivity"
+    },
+    {
+      "file": "src/components/campaigns/SuccessStories.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/SuccessStories.jsx",
+      "line": 12,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/SuccessStories.jsx",
+      "line": 12,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/campaigns/UpdatesSection.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/UpdatesSection.jsx",
+      "line": 78,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/campaigns/UpdatesSection.jsx",
+      "line": 78,
+      "type": "base44_functions",
+      "target": "postCampaignUpdate"
+    },
+    {
+      "file": "src/components/coach/CoachMarks.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/coach/CoachMarks.jsx",
+      "line": 8,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/coach/CoachMarks.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/coach/CoachMarks.jsx",
+      "line": 81,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/CommPreferences.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/CommPreferences.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/CommPreferences.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 83,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 83,
+      "type": "base44_functions",
+      "target": "sendCommunication"
+    },
+    {
+      "file": "src/components/comms/ComposeMessage.jsx",
+      "line": 42,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/comms/MessageHistory.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/MessageHistory.jsx",
+      "line": 22,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/MessageHistory.jsx",
+      "line": 23,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/comms/MessageHistory.jsx",
+      "line": 23,
+      "type": "base44_entities",
+      "target": "Message"
+    },
+    {
+      "file": "src/components/community/ActivityFeed.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/ActivityFeed.jsx",
+      "line": 22,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/ActivityFeed.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/ActivityFeed.jsx",
+      "line": 22,
+      "type": "base44_functions",
+      "target": "getCommunityFeed"
+    },
+    {
+      "file": "src/components/community/ActivityFeed.jsx",
+      "line": 40,
+      "type": "base44_functions",
+      "target": "getCommunityFeed"
+    },
+    {
+      "file": "src/components/community/CreateCommunityDialog.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/CreateCommunityDialog.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/CreateCommunityDialog.jsx",
+      "line": 27,
+      "type": "base44_functions",
+      "target": "createCommunity"
+    },
+    {
+      "file": "src/components/community/DiscussionsTab.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/DiscussionsTab.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/DiscussionsTab.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/DiscussionsTab.jsx",
+      "line": 32,
+      "type": "base44_functions",
+      "target": "createDiscussionPost"
+    },
+    {
+      "file": "src/components/community/DiscussionsTab.jsx",
+      "line": 27,
+      "type": "base44_entities",
+      "target": "DiscussionPost"
+    },
+    {
+      "file": "src/components/community/PostCard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/PostCard.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/PostCard.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/PostCard.jsx",
+      "line": 34,
+      "type": "base44_functions",
+      "target": "postDiscussionReply"
+    },
+    {
+      "file": "src/components/community/PostCard.jsx",
+      "line": 27,
+      "type": "base44_entities",
+      "target": "DiscussionReply"
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 24,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 34,
+      "type": "base44_functions",
+      "target": "createVolunteerOpportunity"
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 45,
+      "type": "base44_functions",
+      "target": "volunteerSignup"
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 24,
+      "type": "base44_entities",
+      "target": "VolunteerOpportunity"
+    },
+    {
+      "file": "src/components/community/VolunteerTab.jsx",
+      "line": 25,
+      "type": "base44_entities",
+      "target": "VolunteerSignup"
+    },
+    {
+      "file": "src/components/connections/AIConsentCard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AIConsentCard.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AIConsentCard.jsx",
+      "line": 17,
+      "type": "base44_functions",
+      "target": "setUnifiedOboConsent"
+    },
+    {
+      "file": "src/components/connections/AdminOAuthProviderReadiness.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AdminOAuthProviderReadiness.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AdminOAuthProviderReadiness.jsx",
+      "line": 18,
+      "type": "base44_functions",
+      "target": "adminOAuthProviderReadiness"
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 67,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 88,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 102,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 35,
+      "type": "base44_functions",
+      "target": "manageAgentWork"
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 36,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 67,
+      "type": "base44_functions",
+      "target": "manageAgentWork"
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 88,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/connections/AgentWorkPanel.jsx",
+      "line": 102,
+      "type": "base44_functions",
+      "target": "manageAgentWork"
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 60,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 70,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 127,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 138,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 155,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 232,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 252,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 70,
+      "type": "base44_functions",
+      "target": "getAppUserConnector"
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 127,
+      "type": "base44_functions",
+      "target": "getAppUserConnector"
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 232,
+      "type": "base44_functions",
+      "target": "setConnectionAiToggle"
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 252,
+      "type": "base44_functions",
+      "target": "saveConnectionCredentials"
+    },
+    {
+      "file": "src/components/connections/ConnectDialog.jsx",
+      "line": 60,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 62,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 88,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "disconnectPlatformConnection"
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 62,
+      "type": "base44_functions",
+      "target": "setConnectionAiToggle"
+    },
+    {
+      "file": "src/components/connections/ConnectionCard.jsx",
+      "line": 88,
+      "type": "base44_functions",
+      "target": "verifyPlatformConnection"
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 38,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 54,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 55,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 75,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 39,
+      "type": "base44_entities",
+      "target": "UserCredentialVault"
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 54,
+      "type": "base44_entities",
+      "target": "UserCredentialVault"
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 55,
+      "type": "base44_entities",
+      "target": "UserCredentialVault"
+    },
+    {
+      "file": "src/components/connections/PasswordVaultPanel.jsx",
+      "line": 75,
+      "type": "base44_entities",
+      "target": "UserCredentialVault"
+    },
+    {
+      "file": "src/components/connections/PublishFromConnections.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PublishFromConnections.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PublishFromConnections.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/PublishFromConnections.jsx",
+      "line": 17,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/connections/SyncRunHistory.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/SyncRunHistory.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/connections/SyncRunHistory.jsx",
+      "line": 33,
+      "type": "base44_entities",
+      "target": "SyncRun"
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 17,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 20,
+      "type": "base44_entities",
+      "target": "CampaignUpdate"
+    },
+    {
+      "file": "src/components/dashboard/FollowFeed.jsx",
+      "line": 21,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 7,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 25,
+      "type": "base44_functions",
+      "target": "syncWixCampaigns"
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 26,
+      "type": "base44_functions",
+      "target": "syncWixContent"
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 27,
+      "type": "base44_functions",
+      "target": "syncWixBusinessData"
+    },
+    {
+      "file": "src/components/dashboard/MissionControl.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "syncWixAnalytics"
+    },
+    {
+      "file": "src/components/dashboard/TreasurySnapshotCard.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/TreasurySnapshotCard.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/dashboard/TreasurySnapshotCard.jsx",
+      "line": 25,
+      "type": "base44_entities",
+      "target": "TreasurySnapshot"
+    },
+    {
+      "file": "src/components/devices/DevicePairingSelfTest.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/devices/DevicePairingSelfTest.jsx",
+      "line": 117,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/devices/DevicePairingSelfTest.jsx",
+      "line": 122,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/devices/DevicePairingSelfTest.jsx",
+      "line": 117,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/components/devices/DevicePairingSelfTest.jsx",
+      "line": 122,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 19,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 28,
+      "type": "base44_entities",
+      "target": "Donation"
+    },
+    {
+      "file": "src/components/discover/RecommendedCampaigns.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 46,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 68,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 77,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 35,
+      "type": "base44_functions",
+      "target": "manageDistributedPost"
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 46,
+      "type": "base44_functions",
+      "target": "publishPost"
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 68,
+      "type": "base44_functions",
+      "target": "manageDistributedPost"
+    },
+    {
+      "file": "src/components/distribution/DistributedPostCard.jsx",
+      "line": 77,
+      "type": "base44_functions",
+      "target": "manageDistributedPost"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 58,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 76,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 85,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 86,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_functions",
+      "target": "listFundraisingProviderCapabilities"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 58,
+      "type": "base44_functions",
+      "target": "updateCampaignSettings"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 76,
+      "type": "base44_functions",
+      "target": "createDistributedPost"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 85,
+      "type": "base44_functions",
+      "target": "generateDistributionContent"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 86,
+      "type": "base44_functions",
+      "target": "broadcastPosts"
+    },
+    {
+      "file": "src/components/distribution/DistributionPanel.jsx",
+      "line": 45,
+      "type": "base44_entities",
+      "target": "DistributedPost"
+    },
+    {
+      "file": "src/components/distribution/JustGivingStagingPilot.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/JustGivingStagingPilot.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/JustGivingStagingPilot.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/distribution/JustGivingStagingPilot.jsx",
+      "line": 25,
+      "type": "base44_functions",
+      "target": "justGivingStagingPilot"
+    },
+    {
+      "file": "src/components/distribution/JustGivingStagingPilot.jsx",
+      "line": 34,
+      "type": "base44_functions",
+      "target": "justGivingStagingPilot"
+    },
+    {
+      "file": "src/components/giving/RecurringPlanCard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/giving/RecurringPlanCard.jsx",
+      "line": 23,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/giving/RecurringPlanCard.jsx",
+      "line": 23,
+      "type": "base44_functions",
+      "target": "manageRecurringDonation"
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 50,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 44,
+      "type": "base44_functions",
+      "target": "updateInboxItem"
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 49,
+      "type": "base44_functions",
+      "target": "updateInboxItem"
+    },
+    {
+      "file": "src/components/inbox/InboxItemCard.jsx",
+      "line": 50,
+      "type": "base44_functions",
+      "target": "markNotificationRead"
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 14,
+      "type": "base44_functions",
+      "target": "manageVerificationMailbox"
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 21,
+      "type": "base44_functions",
+      "target": "manageVerificationMailbox"
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 31,
+      "type": "base44_functions",
+      "target": "manageVerificationMailbox"
+    },
+    {
+      "file": "src/components/inbox/VerificationInboxPanel.jsx",
+      "line": 42,
+      "type": "base44_functions",
+      "target": "manageVerificationMailbox"
+    },
+    {
+      "file": "src/components/institutions/ApplicationsTab.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplicationsTab.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplicationsTab.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplicationsTab.jsx",
+      "line": 16,
+      "type": "base44_functions",
+      "target": "listInstitutionApplications"
+    },
+    {
+      "file": "src/components/institutions/ApplicationsTab.jsx",
+      "line": 29,
+      "type": "base44_functions",
+      "target": "decideGrantApplication"
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 41,
+      "type": "base44_functions",
+      "target": "applyInstitutionOpportunity"
+    },
+    {
+      "file": "src/components/institutions/ApplyDialog.jsx",
+      "line": 26,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/institutions/CreateInstitutionDialog.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/CreateInstitutionDialog.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/CreateInstitutionDialog.jsx",
+      "line": 33,
+      "type": "base44_functions",
+      "target": "createInstitution"
+    },
+    {
+      "file": "src/components/institutions/MyApplications.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/MyApplications.jsx",
+      "line": 12,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/MyApplications.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/MyApplications.jsx",
+      "line": 13,
+      "type": "base44_entities",
+      "target": "GrantApplication"
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 20,
+      "type": "base44_entities",
+      "target": "InstitutionOpportunity"
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 21,
+      "type": "base44_entities",
+      "target": "GrantApplication"
+    },
+    {
+      "file": "src/components/institutions/OpportunitiesTab.jsx",
+      "line": 35,
+      "type": "base44_entities",
+      "target": "InstitutionOpportunity"
+    },
+    {
+      "file": "src/components/institutions/PublishOpportunityForm.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/PublishOpportunityForm.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/institutions/PublishOpportunityForm.jsx",
+      "line": 20,
+      "type": "base44_functions",
+      "target": "publishInstitutionOpportunity"
+    },
+    {
+      "file": "src/components/media/MediaUpload.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 33,
+      "type": "base44_functions",
+      "target": "trackAgentConversation"
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 31,
+      "type": "base44_entities",
+      "target": "DistributedPost"
+    },
+    {
+      "file": "src/components/mission/AutomationPanel.jsx",
+      "line": 32,
+      "type": "base44_entities",
+      "target": "AgentActivity"
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 37,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 37,
+      "type": "base44_functions",
+      "target": "generateIntelligence"
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 48,
+      "type": "base44_functions",
+      "target": "updateMissionItemStatus"
+    },
+    {
+      "file": "src/components/mission/OpportunitiesPanel.jsx",
+      "line": 27,
+      "type": "base44_entities",
+      "target": "Opportunity"
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 30,
+      "type": "base44_functions",
+      "target": "updateMissionItemStatus"
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 13,
+      "type": "base44_entities",
+      "target": "Recommendation"
+    },
+    {
+      "file": "src/components/mission/RecommendationsPanel.jsx",
+      "line": 14,
+      "type": "base44_entities",
+      "target": "Recommendation"
+    },
+    {
+      "file": "src/components/onboarding/ConnectStep.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/onboarding/ConnectStep.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/onboarding/ConnectStep.jsx",
+      "line": 20,
+      "type": "base44_functions",
+      "target": "getPaymentCapabilities"
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 55,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 56,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 111,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 34,
+      "type": "base44_functions",
+      "target": "syncExternalFunds"
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 111,
+      "type": "base44_functions",
+      "target": "recordExternalFundMigration"
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 36,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 55,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/ops/FundMigrationDashboard.jsx",
+      "line": 56,
+      "type": "base44_entities",
+      "target": "ExternalFundMigrationRecord"
+    },
+    {
+      "file": "src/components/ops/PendingDonationReview.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/PendingDonationReview.jsx",
+      "line": 7,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/PendingDonationReview.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ops/PendingDonationReview.jsx",
+      "line": 13,
+      "type": "base44_functions",
+      "target": "requestWithdrawal"
+    },
+    {
+      "file": "src/components/ops/PendingDonationReview.jsx",
+      "line": 7,
+      "type": "base44_entities",
+      "target": "Donation"
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 115,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 130,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 48,
+      "type": "base44_functions",
+      "target": "getPayPalConfig"
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 115,
+      "type": "base44_functions",
+      "target": "createPayPalOrder"
+    },
+    {
+      "file": "src/components/payments/ApplePayButton.jsx",
+      "line": 130,
+      "type": "base44_functions",
+      "target": "capturePayPalOrder"
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 62,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 81,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 35,
+      "type": "base44_functions",
+      "target": "getPayPalConfig"
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 62,
+      "type": "base44_functions",
+      "target": "createPayPalOrder"
+    },
+    {
+      "file": "src/components/payments/GooglePayButton.jsx",
+      "line": 81,
+      "type": "base44_functions",
+      "target": "capturePayPalOrder"
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 57,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "getPayPalConfig"
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 42,
+      "type": "base44_functions",
+      "target": "createPayPalOrder"
+    },
+    {
+      "file": "src/components/payments/PayPalCheckoutButton.jsx",
+      "line": 57,
+      "type": "base44_functions",
+      "target": "capturePayPalOrder"
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 63,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 89,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 63,
+      "type": "base44_functions",
+      "target": "manageFeatureFlag"
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 89,
+      "type": "base44_functions",
+      "target": "manageFeatureFlag"
+    },
+    {
+      "file": "src/components/platform/FeatureFlagsPanel.jsx",
+      "line": 48,
+      "type": "base44_entities",
+      "target": "FeatureFlag"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 63,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 73,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 42,
+      "type": "base44_functions",
+      "target": "requestWithdrawal"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 52,
+      "type": "base44_functions",
+      "target": "requestWithdrawal"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 63,
+      "type": "base44_functions",
+      "target": "adminCampaignControl"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 73,
+      "type": "base44_functions",
+      "target": "adminCampaignControl"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 25,
+      "type": "base44_entities",
+      "target": "Withdrawal"
+    },
+    {
+      "file": "src/components/platform/FraudControlPanel.jsx",
+      "line": 26,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/platform/KnowledgePanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/KnowledgePanel.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/KnowledgePanel.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/KnowledgePanel.jsx",
+      "line": 59,
+      "type": "base44_functions",
+      "target": "createKnowledgeArticle"
+    },
+    {
+      "file": "src/components/platform/KnowledgePanel.jsx",
+      "line": 34,
+      "type": "base44_entities",
+      "target": "KnowledgeArticle"
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 37,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 64,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 37,
+      "type": "base44_functions",
+      "target": "getLiveProviderStatus"
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 49,
+      "type": "base44_functions",
+      "target": "manageFeatureFlag"
+    },
+    {
+      "file": "src/components/platform/LiveProvidersPanel.jsx",
+      "line": 64,
+      "type": "base44_functions",
+      "target": "manageFeatureFlag"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 9,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 10,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 12,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 15,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 10,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 11,
+      "type": "base44_entities",
+      "target": "Donation"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 12,
+      "type": "base44_entities",
+      "target": "Message"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 13,
+      "type": "base44_entities",
+      "target": "Recommendation"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 14,
+      "type": "base44_entities",
+      "target": "Community"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 15,
+      "type": "base44_entities",
+      "target": "Institution"
+    },
+    {
+      "file": "src/components/platform/ServiceHealthPanel.jsx",
+      "line": 16,
+      "type": "base44_entities",
+      "target": "ExecutiveReport"
+    },
+    {
+      "file": "src/components/platform/StripeIntegrationPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/StripeIntegrationPanel.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/StripeIntegrationPanel.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/StripeIntegrationPanel.jsx",
+      "line": 17,
+      "type": "base44_functions",
+      "target": "getStripeIntegrationAudit"
+    },
+    {
+      "file": "src/components/platform/StripeIntegrationPanel.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "repairStripeWebhookEvents"
+    },
+    {
+      "file": "src/components/platform/TimelinePanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/TimelinePanel.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/TimelinePanel.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "PlatformEvent"
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "adminUpdateUserRole"
+    },
+    {
+      "file": "src/components/platform/UserManagementPanel.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "User"
+    },
+    {
+      "file": "src/components/platform/logPlatformEvent.js",
+      "line": 1,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/logPlatformEvent.js",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/platform/logPlatformEvent.js",
+      "line": 4,
+      "type": "base44_functions",
+      "target": "logPlatformEvent"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 50,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 21,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 31,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 33,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 44,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 49,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/FriendsPanel.jsx",
+      "line": 50,
+      "type": "base44_functions",
+      "target": "manageFriends"
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 22,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 16,
+      "type": "base44_functions",
+      "target": "managePublicProfile"
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 39,
+      "type": "base44_functions",
+      "target": "managePublicProfile"
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 17,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 18,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/components/profile/PublicProfileEditor.jsx",
+      "line": 22,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 31,
+      "type": "base44_functions",
+      "target": "generateSocialContent"
+    },
+    {
+      "file": "src/components/social/AdminContentPanel.jsx",
+      "line": 41,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 87,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 91,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 40,
+      "type": "base44_functions",
+      "target": "manageBlog"
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 41,
+      "type": "base44_functions",
+      "target": "manageOfficialPublications"
+    },
+    {
+      "file": "src/components/social/OfficialPublications.jsx",
+      "line": 91,
+      "type": "base44_functions",
+      "target": "manageOfficialPublications"
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 76,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 105,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 129,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 137,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 156,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 76,
+      "type": "base44_functions",
+      "target": "generateCampaignCover"
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 105,
+      "type": "base44_functions",
+      "target": "createSocialPost"
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 129,
+      "type": "base44_functions",
+      "target": "createDistributedPost"
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 137,
+      "type": "base44_functions",
+      "target": "publishPost"
+    },
+    {
+      "file": "src/components/social/PostComposer.jsx",
+      "line": 156,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 6,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 72,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 86,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 89,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 72,
+      "type": "base44_functions",
+      "target": "createSocialPost"
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 86,
+      "type": "base44_functions",
+      "target": "createDistributedPost"
+    },
+    {
+      "file": "src/components/social/ShareToProfileDialog.jsx",
+      "line": 89,
+      "type": "base44_functions",
+      "target": "publishPost"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 22,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 23,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 58,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 85,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 96,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 23,
+      "type": "base44_functions",
+      "target": "managePostInterest"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 85,
+      "type": "base44_functions",
+      "target": "managePostInterest"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 22,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 40,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 58,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/social/SocialFeed.jsx",
+      "line": 96,
+      "type": "base44_entities",
+      "target": "SocialPost"
+    },
+    {
+      "file": "src/components/ui/image.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/ui/image.jsx",
+      "line": 170,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 38,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 38,
+      "type": "base44_functions",
+      "target": "prepareCollectAndWithdraw"
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 47,
+      "type": "base44_functions",
+      "target": "authorizeCollectAndWithdraw"
+    },
+    {
+      "file": "src/components/withdrawals/CollectAndWithdrawDialog.jsx",
+      "line": 49,
+      "type": "base44_functions",
+      "target": "executeCollectAndWithdraw"
+    },
+    {
+      "file": "src/components/withdrawals/WithdrawalDialog.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/WithdrawalDialog.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/components/withdrawals/WithdrawalDialog.jsx",
+      "line": 28,
+      "type": "base44_functions",
+      "target": "requestWithdrawal"
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 113,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 119,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 137,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 173,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 175,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/AuthContext.jsx",
+      "line": 180,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/adminAgentGateway.js",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/adminAgentGateway.js",
+      "line": 16,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/androidFirebaseFeatures.js",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/androidFirebaseFeatures.js",
+      "line": 60,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/androidFirebaseFeatures.js",
+      "line": 81,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/androidFirebaseFeatures.js",
+      "line": 60,
+      "type": "base44_functions",
+      "target": "registerPushDevice"
+    },
+    {
+      "file": "src/lib/androidFirebaseFeatures.js",
+      "line": 81,
+      "type": "base44_functions",
+      "target": "registerPushDevice"
+    },
+    {
+      "file": "src/lib/app-params.js",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/app-params.js",
+      "line": 4,
+      "type": "direct_base44_url",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 86,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 111,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 121,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 121,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 134,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundImageBranding.js",
+      "line": 134,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundPhotoService.js",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/ifundPhotoService.js",
+      "line": 13,
+      "type": "base44_functions",
+      "target": "renderInterplanetaryPhoto"
+    },
+    {
+      "file": "src/lib/platformErrorReporter.js",
+      "line": 1,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/platformErrorReporter.js",
+      "line": 12,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/platformErrorReporter.js",
+      "line": 12,
+      "type": "base44_functions",
+      "target": "managePlatformIncidents"
+    },
+    {
+      "file": "src/lib/recordAgentInteraction.js",
+      "line": 1,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/recordAgentInteraction.js",
+      "line": 7,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/recordAgentInteraction.js",
+      "line": 7,
+      "type": "base44_functions",
+      "target": "recordAgentInteraction"
+    },
+    {
+      "file": "src/lib/secureLLM.js",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/secureLLM.js",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/secureLLM.js",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/secureLLM.js",
+      "line": 18,
+      "type": "base44_functions",
+      "target": "getFeatureAvailability"
+    },
+    {
+      "file": "src/lib/useFeatureEnabled.js",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/useFeatureEnabled.js",
+      "line": 14,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/useFeatureEnabled.js",
+      "line": 14,
+      "type": "base44_functions",
+      "target": "getFeatureAvailability"
+    },
+    {
+      "file": "src/lib/useFundraisingMode.js",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/useFundraisingMode.js",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/lib/useFundraisingMode.js",
+      "line": 13,
+      "type": "base44_functions",
+      "target": "getFundraisingMode"
+    },
+    {
+      "file": "src/pages/AIImageStudio.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AIImageStudio.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AIImageStudio.jsx",
+      "line": 29,
+      "type": "base44_functions",
+      "target": "generateCampaignCover"
+    },
+    {
+      "file": "src/pages/AdminAgentApi.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminAgentApi.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminAgentApi.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminAgentApi.jsx",
+      "line": 13,
+      "type": "base44_functions",
+      "target": "manageOAuthClients"
+    },
+    {
+      "file": "src/pages/AdminAgentApi.jsx",
+      "line": 21,
+      "type": "base44_functions",
+      "target": "manageExternalAgentKeys"
+    },
+    {
+      "file": "src/pages/AdminFoundingWaitlist.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminFoundingWaitlist.jsx",
+      "line": 7,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminFoundingWaitlist.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AdminFoundingWaitlist.jsx",
+      "line": 7,
+      "type": "base44_entities",
+      "target": "FoundingWaitlist"
+    },
+    {
+      "file": "src/pages/AdminFoundingWaitlist.jsx",
+      "line": 17,
+      "type": "base44_entities",
+      "target": "FoundingWaitlist"
+    },
+    {
+      "file": "src/pages/Agents.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Agents.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 43,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 50,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 53,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 61,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 67,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 61,
+      "type": "base44_functions",
+      "target": "getCampaignDonations"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 48,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 49,
+      "type": "base44_entities",
+      "target": "Community"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 50,
+      "type": "base44_entities",
+      "target": "Institution"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 51,
+      "type": "base44_entities",
+      "target": "VolunteerOpportunity"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 52,
+      "type": "base44_entities",
+      "target": "GrantApplication"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 53,
+      "type": "base44_entities",
+      "target": "InstitutionOpportunity"
+    },
+    {
+      "file": "src/pages/Analytics.jsx",
+      "line": 67,
+      "type": "base44_entities",
+      "target": "VolunteerSignup"
+    },
+    {
+      "file": "src/pages/AuditLogAdmin.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AuditLogAdmin.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/AuditLogAdmin.jsx",
+      "line": 17,
+      "type": "base44_entities",
+      "target": "AuditLog"
+    },
+    {
+      "file": "src/pages/BlogArticle.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/BlogArticle.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/BlogArticle.jsx",
+      "line": 11,
+      "type": "base44_functions",
+      "target": "manageBlog"
+    },
+    {
+      "file": "src/pages/Blogs.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Blogs.jsx",
+      "line": 11,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Blogs.jsx",
+      "line": 11,
+      "type": "base44_functions",
+      "target": "manageBlog"
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 53,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 60,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 69,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 53,
+      "type": "base44_functions",
+      "target": "getCampaignDonations"
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 51,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 52,
+      "type": "base44_entities",
+      "target": "CampaignUpdate"
+    },
+    {
+      "file": "src/pages/CampaignDetail.jsx",
+      "line": 60,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 37,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 36,
+      "type": "base44_entities",
+      "target": "Community"
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 37,
+      "type": "base44_entities",
+      "target": "CommunityMember"
+    },
+    {
+      "file": "src/pages/Community.jsx",
+      "line": 44,
+      "type": "base44_entities",
+      "target": "Community"
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 56,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 72,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 59,
+      "type": "base44_functions",
+      "target": "communityMembership"
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 72,
+      "type": "base44_functions",
+      "target": "communityMembership"
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 28,
+      "type": "base44_entities",
+      "target": "Community"
+    },
+    {
+      "file": "src/pages/CommunityDetail.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "CommunityMember"
+    },
+    {
+      "file": "src/pages/ConnectedDevices.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ConnectedDevices.jsx",
+      "line": 23,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ConnectedDevices.jsx",
+      "line": 37,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ConnectedDevices.jsx",
+      "line": 23,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/pages/ConnectedDevices.jsx",
+      "line": 37,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 107,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 118,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 140,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 154,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 155,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 156,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 157,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 176,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 187,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 197,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 216,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 224,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 282,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 430,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 439,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 532,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 546,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 552,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 107,
+      "type": "base44_functions",
+      "target": "syncExternalFunds"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 118,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 140,
+      "type": "base44_functions",
+      "target": "resolveConnectionStatus"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 154,
+      "type": "base44_functions",
+      "target": "syncWixCampaigns"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 155,
+      "type": "base44_functions",
+      "target": "syncWixContent"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 156,
+      "type": "base44_functions",
+      "target": "syncWixBusinessData"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 157,
+      "type": "base44_functions",
+      "target": "syncWixAnalytics"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 187,
+      "type": "base44_functions",
+      "target": "finalizeAppUserOAuthConnection"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 197,
+      "type": "base44_functions",
+      "target": "verifyPlatformConnection"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 216,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 224,
+      "type": "base44_functions",
+      "target": "getSharedConnectorStatus"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 282,
+      "type": "base44_functions",
+      "target": "requestManagedConnectionAction"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 430,
+      "type": "base44_functions",
+      "target": "resolveConnectionStatus"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 439,
+      "type": "base44_functions",
+      "target": "resolveConnectionStatus"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 532,
+      "type": "base44_functions",
+      "target": "verifyPlatformConnection"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 546,
+      "type": "base44_functions",
+      "target": "resolveConnectionStatus"
+    },
+    {
+      "file": "src/pages/Connections.jsx",
+      "line": 552,
+      "type": "base44_functions",
+      "target": "resolveConnectionStatus"
+    },
+    {
+      "file": "src/pages/Contact.jsx",
+      "line": 28,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Contact.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Contact.jsx",
+      "line": 29,
+      "type": "base44_functions",
+      "target": "sendPublicContactMessage"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 5,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 61,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 90,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 102,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 120,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 153,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 213,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 216,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 61,
+      "type": "base44_functions",
+      "target": "getCampaignDraft"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 90,
+      "type": "base44_functions",
+      "target": "importExternalCampaign"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 102,
+      "type": "base44_functions",
+      "target": "geocodeCity"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 120,
+      "type": "base44_functions",
+      "target": "generateCampaignCover"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 153,
+      "type": "base44_functions",
+      "target": "saveCampaign"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 213,
+      "type": "base44_functions",
+      "target": "saveCampaign"
+    },
+    {
+      "file": "src/pages/CreateCampaign.jsx",
+      "line": 216,
+      "type": "base44_functions",
+      "target": "recordCampaignCreated"
+    },
+    {
+      "file": "src/pages/Dashboard.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Dashboard.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Dashboard.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Dashboard.jsx",
+      "line": 33,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 39,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/pages/DeviceActivation.jsx",
+      "line": 52,
+      "type": "base44_functions",
+      "target": "deviceAuthorization"
+    },
+    {
+      "file": "src/pages/Discover.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Discover.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Discover.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Donors.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Donors.jsx",
+      "line": 19,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Donors.jsx",
+      "line": 19,
+      "type": "base44_functions",
+      "target": "getOwnerDonorDirectory"
+    },
+    {
+      "file": "src/pages/EmbedCampaign.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/EmbedCampaign.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/EmbedCampaign.jsx",
+      "line": 21,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 26,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 30,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 31,
+      "type": "base44_entities",
+      "target": "DistributedPost"
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 32,
+      "type": "base44_entities",
+      "target": "Agent"
+    },
+    {
+      "file": "src/pages/ExternalAccounts.jsx",
+      "line": 33,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/FinancialLedger.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FinancialLedger.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FinancialLedger.jsx",
+      "line": 30,
+      "type": "base44_functions",
+      "target": "getOwnerFinancialLedger"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 40,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 93,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 97,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 100,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 103,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 40,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 42,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 93,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 97,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 100,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/pages/FollowedCampaigns.jsx",
+      "line": 103,
+      "type": "base44_entities",
+      "target": "FollowedCampaign"
+    },
+    {
+      "file": "src/pages/ForgotPassword.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ForgotPassword.jsx",
+      "line": 19,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FoundingMembers.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FoundingMembers.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/FoundingMembers.jsx",
+      "line": 21,
+      "type": "base44_functions",
+      "target": "joinFoundingWaitlist"
+    },
+    {
+      "file": "src/pages/GlobalGlobe.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/GlobalGlobe.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/GlobalGlobe.jsx",
+      "line": 34,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 59,
+      "type": "base44_functions",
+      "target": "createSupportTicket"
+    },
+    {
+      "file": "src/pages/Help.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "HelpArticle"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 30,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 60,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 81,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 82,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 86,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 29,
+      "type": "base44_entities",
+      "target": "HelpDraft"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 30,
+      "type": "base44_entities",
+      "target": "HelpArticle"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 59,
+      "type": "base44_entities",
+      "target": "HelpDraft"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 60,
+      "type": "base44_entities",
+      "target": "HelpDraft"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 81,
+      "type": "base44_entities",
+      "target": "HelpArticle"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 82,
+      "type": "base44_entities",
+      "target": "HelpArticle"
+    },
+    {
+      "file": "src/pages/HelpAdmin.jsx",
+      "line": 86,
+      "type": "base44_entities",
+      "target": "HelpDraft"
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 39,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 50,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 27,
+      "type": "base44_entities",
+      "target": "HelpArticle"
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 39,
+      "type": "base44_entities",
+      "target": "HelpFeedback"
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 50,
+      "type": "base44_entities",
+      "target": "HelpFeedback"
+    },
+    {
+      "file": "src/pages/HelpArticle.jsx",
+      "line": 51,
+      "type": "base44_entities",
+      "target": "HelpFeedback"
+    },
+    {
+      "file": "src/pages/Home.jsx",
+      "line": 15,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Home.jsx",
+      "line": 15,
+      "type": "direct_base44_url",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 38,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 42,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 43,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 46,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 46,
+      "type": "base44_functions",
+      "target": "getCampaignDonations"
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 41,
+      "type": "base44_entities",
+      "target": "InboxItem"
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 42,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/pages/Inbox.jsx",
+      "line": 43,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/InstitutionDetail.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/InstitutionDetail.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/InstitutionDetail.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/InstitutionDetail.jsx",
+      "line": 25,
+      "type": "base44_entities",
+      "target": "Institution"
+    },
+    {
+      "file": "src/pages/Institutions.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Institutions.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Institutions.jsx",
+      "line": 27,
+      "type": "base44_entities",
+      "target": "Institution"
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 70,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 77,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 108,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 108,
+      "type": "base44_functions",
+      "target": "validateIntegrationHealth"
+    },
+    {
+      "file": "src/pages/IntegrationsAdmin.jsx",
+      "line": 77,
+      "type": "base44_entities",
+      "target": "PlatformAccessRegistry"
+    },
+    {
+      "file": "src/pages/Login.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Login.jsx",
+      "line": 41,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Login.jsx",
+      "line": 68,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Login.jsx",
+      "line": 41,
+      "type": "direct_base44_url",
+      "target": null
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 20,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 32,
+      "type": "base44_functions",
+      "target": "generateIntelligence"
+    },
+    {
+      "file": "src/pages/MissionControlPage.jsx",
+      "line": 21,
+      "type": "base44_entities",
+      "target": "MissionBrief"
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 17,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 18,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 17,
+      "type": "base44_functions",
+      "target": "manageBlog"
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 25,
+      "type": "base44_functions",
+      "target": "manageBlog"
+    },
+    {
+      "file": "src/pages/MyBlog.jsx",
+      "line": 18,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/MyGiving.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyGiving.jsx",
+      "line": 19,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/MyGiving.jsx",
+      "line": 19,
+      "type": "base44_functions",
+      "target": "getMyGiving"
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 31,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 104,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 115,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 31,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 104,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/pages/Notifications.jsx",
+      "line": 115,
+      "type": "base44_entities",
+      "target": "Notification"
+    },
+    {
+      "file": "src/pages/OAuthConsent.jsx",
+      "line": 48,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Onboarding.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Onboarding.jsx",
+      "line": 35,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Onboarding.jsx",
+      "line": 36,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Onboarding.jsx",
+      "line": 35,
+      "type": "base44_functions",
+      "target": "setUnifiedOboConsent"
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 33,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 43,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 46,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 43,
+      "type": "base44_entities",
+      "target": "Agent"
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 44,
+      "type": "base44_entities",
+      "target": "MonitoredCampaign"
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 45,
+      "type": "base44_entities",
+      "target": "TreasurySnapshot"
+    },
+    {
+      "file": "src/pages/OpsCenter.jsx",
+      "line": 46,
+      "type": "base44_entities",
+      "target": "ProtocolReport"
+    },
+    {
+      "file": "src/pages/Platform.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Platform.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Profile.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Profile.jsx",
+      "line": 27,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Profile.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Profile.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/PublicProfile.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/PublicProfile.jsx",
+      "line": 13,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/PublicProfile.jsx",
+      "line": 13,
+      "type": "base44_functions",
+      "target": "managePublicProfile"
+    },
+    {
+      "file": "src/pages/PublicationArticle.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/PublicationArticle.jsx",
+      "line": 21,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/PublicationArticle.jsx",
+      "line": 21,
+      "type": "base44_functions",
+      "target": "manageOfficialPublications"
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 34,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 47,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Register.jsx",
+      "line": 73,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ResetPassword.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/ResetPassword.jsx",
+      "line": 29,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 3,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 32,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 44,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 45,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 46,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 44,
+      "type": "base44_functions",
+      "target": "listConnections"
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 46,
+      "type": "base44_functions",
+      "target": "listFundraisingProviderCapabilities"
+    },
+    {
+      "file": "src/pages/Social.jsx",
+      "line": 45,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 24,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 25,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 43,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 69,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 82,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 95,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 114,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 118,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 120,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 140,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 142,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 144,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 24,
+      "type": "base44_functions",
+      "target": "getPayPalSubscriptionOptions"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 43,
+      "type": "base44_functions",
+      "target": "confirmPayPalSubscription"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 69,
+      "type": "base44_functions",
+      "target": "createPayPalSubscriptionCheckout"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 82,
+      "type": "base44_functions",
+      "target": "startPremiumTrial"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 95,
+      "type": "base44_functions",
+      "target": "cancelPayPalSubscription"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 114,
+      "type": "base44_functions",
+      "target": "verifyOwnerPayPalBasicPlan"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 118,
+      "type": "base44_functions",
+      "target": "setupPayPalSubscriptionWebhook"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 120,
+      "type": "base44_functions",
+      "target": "activateSubscriptionCheckout"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 140,
+      "type": "base44_functions",
+      "target": "syncPayPalSubscriptionCatalog"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 142,
+      "type": "base44_functions",
+      "target": "setupPayPalSubscriptionWebhook"
+    },
+    {
+      "file": "src/pages/Subscriptions.jsx",
+      "line": 144,
+      "type": "base44_functions",
+      "target": "activateSubscriptionCheckout"
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 4,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 51,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 76,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 111,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 51,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 52,
+      "type": "base44_entities",
+      "target": "SustainabilityAudit"
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 76,
+      "type": "base44_entities",
+      "target": "SustainabilityAudit"
+    },
+    {
+      "file": "src/pages/SustainabilityAdmin.jsx",
+      "line": 111,
+      "type": "base44_entities",
+      "target": "SustainabilityAudit"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 2,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 49,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 52,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 53,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 56,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 59,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 72,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 76,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 91,
+      "type": "base44_sdk",
+      "target": null
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 52,
+      "type": "base44_functions",
+      "target": "getFeatureAvailability"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 53,
+      "type": "base44_functions",
+      "target": "getPaymentCapabilities"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 59,
+      "type": "base44_functions",
+      "target": "getCampaignWithdrawalBalance"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 91,
+      "type": "base44_functions",
+      "target": "requestWithdrawal"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 56,
+      "type": "base44_entities",
+      "target": "Campaign"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 72,
+      "type": "base44_entities",
+      "target": "Withdrawal"
+    },
+    {
+      "file": "src/pages/Withdrawals.jsx",
+      "line": 76,
+      "type": "base44_entities",
+      "target": "Withdrawal"
+    }
+  ]
+}

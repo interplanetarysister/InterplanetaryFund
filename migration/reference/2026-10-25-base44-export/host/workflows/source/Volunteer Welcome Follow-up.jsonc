@@ -1,0 +1,62 @@
+{
+  "name": "Volunteer Welcome Follow-up",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "volunteer_welcome_followup",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "welcome": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "welcomeVolunteer",
+            "args": {
+              "signup_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "wait_period",
+          "x-base44": {
+            "title": "Send welcome",
+            "description": "Email + in-app welcome"
+          }
+        }
+      },
+      {
+        "wait_period": {
+          "wait": "P3D",
+          "then": "follow_up"
+        }
+      },
+      {
+        "follow_up": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "volunteerFollowUp",
+            "args": {
+              "signup_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Follow up",
+            "description": "Invite to complete profile"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Welcomes a new volunteer with an email and in-app note, waits 3 days, then sends a follow-up invite to complete their profile if they haven't yet.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "VolunteerSignup"
+    }
+  }
+}

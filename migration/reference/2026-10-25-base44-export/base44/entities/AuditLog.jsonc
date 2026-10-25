@@ -1,0 +1,64 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string",
+      "description": "What happened, e.g. 'account_deleted', 'account_deletion_failed'."
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "target_type": {
+      "type": "string",
+      "description": "Entity kind acted on, e.g. 'user', 'campaign'."
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "detail": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "in_progress"
+      ],
+      "default": "success"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Auditable records of actions and outcomes for security review and operational accountability."
+}

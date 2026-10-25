@@ -1,0 +1,38 @@
+{
+  "name": "Campaign Sync on Update",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "campaign_sync_on_update",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncConnections",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sync connections",
+            "description": "Distribute the new update"
+          }
+        }
+      }
+    ]
+  },
+  "description": "When a campaign update is published (ready to distribute), syncs connections to push the content out across connected platforms. Complements the hourly Connection Sync Engine.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "CampaignUpdate"
+    }
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "name": "SyncRun",
+  "type": "object",
+  "properties": {
+    "request_key": {
+      "type": "string",
+      "description": "Server-derived job, actor, and request UUID identity. Legacy rows may omit it."
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "external_funds",
+        "campaign_discovery",
+        "campaign_import",
+        "imported_campaign_refresh"
+      ],
+      "description": "Bounded explicit external-provider operation represented by this run."
+    },
+    "initiator_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "admin",
+        "agent",
+        "workflow",
+        "scheduled"
+      ],
+      "description": "What triggered the synchronization run."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Client-generated UUID for one explicit authenticated request. Legacy rows may omit it."
+    },
+    "request_fingerprint": {
+      "type": "string",
+      "description": "Server-derived scope fingerprint used to reject request-id reuse across targets."
+    },
+    "target_key": {
+      "type": "string",
+      "description": "Optional stable server-derived operation target. It serializes distinct request UUIDs aimed at the same side-effect target."
+    },
+    "initiator_id": {
+      "type": "string",
+      "description": "Id of the user, agent, or workflow that initiated the run."
+    },
+    "initiator_user_id": {
+      "type": "string",
+      "description": "The authenticated user who started the run, if any (null for scheduled/workflow runs)."
+    },
+    "obo_user_id": {
+      "type": "string",
+      "description": "On-Behalf-Of user the run was scoped to, when an agent/admin acted for a specific user."
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "user",
+        "campaign",
+        "all"
+      ]
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "attempt_number": {
+      "type": "number",
+      "description": "Monotonic stale-recovery attempt for this request key."
+    },
+    "active_claim_key": {
+      "type": "string",
+      "description": "Immutable claim allowed to finalize the current attempt."
+    },
+    "claim_checked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Latest conditional active-claim fence immediately before provider I/O or a durable side effect."
+    },
+    "result_payload": {
+      "type": "object",
+      "description": "Safe response payload retained so a completed request UUID can be replayed without provider I/O."
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": [
+        "success",
+        "partial",
+        "failed",
+        "unavailable",
+        "no_connections",
+        "in_progress"
+      ]
+    },
+    "provider_results": {
+      "type": "array",
+      "description": "Per-provider, per-campaign outcome. A failure here does not compromise other providers.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string"
+          },
+          "campaign_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "description": "imported | realtime_webhook | no_read_api | credentials_required | error"
+          },
+          "amount_discovered": {
+            "type": "number",
+            "default": 0
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO currency for amount_discovered, or UNSPECIFIED for legacy owner-reported records without currency provenance."
+          },
+          "transactions_imported": {
+            "type": "number",
+            "default": 0
+          },
+          "transaction_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "total_discovered": {
+      "type": "number",
+      "default": 0,
+      "description": "Backward-compatible USD-only discovered total. Other currencies are never converted or added here."
+    },
+    "discovered_totals": {
+      "type": "array",
+      "description": "Informational external totals grouped by currency without conversion.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total_imported": {
+      "type": "number",
+      "default": 0
+    },
+    "campaigns_covered": {
+      "type": "number",
+      "default": 0
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "initiator_type",
+    "scope",
+    "overall_status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.initiator_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "One explicit external fundraising sync request with authorization, scope, and result."
+}

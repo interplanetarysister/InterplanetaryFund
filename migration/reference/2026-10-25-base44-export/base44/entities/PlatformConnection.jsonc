@@ -1,0 +1,384 @@
+{
+  "type": "object",
+  "name": "PlatformConnection",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "enum": [
+        "gofundme",
+        "kickstarter",
+        "indiegogo",
+        "fundrazr",
+        "givesendgo",
+        "spotfund",
+        "kofi",
+        "buymeacoffee",
+        "patreon",
+        "justgiving",
+        "eventbrite",
+        "gumroad",
+        "custom",
+        "facebook",
+        "instagram",
+        "threads",
+        "x",
+        "linkedin",
+        "tiktok",
+        "pinterest",
+        "reddit",
+        "youtube",
+        "discord",
+        "bluesky",
+        "mastodon",
+        "gmail",
+        "googledrive",
+        "googlecalendar",
+        "google_contacts",
+        "google_photos",
+        "googlesheets",
+        "googledocs",
+        "googleforms",
+        "googletasks",
+        "slack",
+        "notion",
+        "outlook",
+        "microsoft_teams",
+        "one_drive",
+        "wordpress_com",
+        "dropbox",
+        "github",
+        "gitlab",
+        "buffer"
+      ],
+      "description": "Provider key for this specific authorized account. Buffer is a publishing/queue provider and must not be treated as a Facebook or Instagram messaging connection."
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "crowdfunding",
+        "social",
+        "app"
+      ],
+      "default": "crowdfunding"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Friendly label, e.g. the account handle or external campaign title."
+    },
+    "external_url": {
+      "type": "string",
+      "description": "The connected campaign page or social profile URL."
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "The Interplanetary Fund campaign this connection reports into."
+    },
+    "status": {
+      "type": "string",
+      "description": "Provider transport state. Configuration alone must not set connected; only successful provider verification may do so.",
+      "enum": [
+        "connected",
+        "error",
+        "disconnected"
+      ],
+      "default": "disconnected"
+    },
+    "verification_status": {
+      "type": "string",
+      "description": "Whether the provider has independently verified this connection. Missing values on legacy records are treated as unverified.",
+      "enum": [
+        "unverified",
+        "verified"
+      ],
+      "default": "unverified"
+    },
+    "capability_status": {
+      "type": "string",
+      "description": "Truth state for provider-reported capabilities. Unknown never behaves as granted.",
+      "enum": [
+        "confirmed",
+        "unknown",
+        "reauthorization_required"
+      ],
+      "default": "unknown"
+    },
+    "external_data_source": {
+      "type": "string",
+      "description": "Provenance for external totals. Owner-reported values remain informational and must never be presented as provider-verified or withdrawable.",
+      "enum": [
+        "owner_reported",
+        "provider_verified"
+      ],
+      "default": "owner_reported"
+    },
+    "fundraising_data_consent": {
+      "type": "object",
+      "description": "Provider-data access state. A direct Sync now click authorizes one bounded job, but an explicit refusal or revocation always blocks provider reads.",
+      "properties": {
+        "granted": {
+          "type": "boolean"
+        },
+        "granted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "revoked_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "provider_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "automation_mode": {
+      "type": "string",
+      "description": "AI publishing authorization for this destination: publish automatically, ask before every post, generate drafts only, or manual posting only.",
+      "enum": [
+        "auto",
+        "ask",
+        "draft",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "obo_consent": {
+      "type": "object",
+      "description": "Plain-language on-behalf-of authorization granted by the user for this connection. Provider capabilities remain authoritative; consent never creates a capability the provider does not support.",
+      "properties": {
+        "granted": {
+          "type": "boolean",
+          "default": false
+        },
+        "granted_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "permission_version": {
+          "type": "string"
+        },
+        "scope_version": {
+          "type": "string"
+        },
+        "scope_choice": {
+          "type": "string",
+          "enum": ["full", "posting", "read_only"]
+        },
+        "requested_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "granted_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "provider_capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "opted_out": {
+          "type": "boolean",
+          "default": false,
+          "description": "True only after this account's owner explicitly turns off agent access. A subsequent global IFund permission does not override this individual refusal."
+        },
+        "revoked_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of an explicit per-connection agent access refusal."
+        }
+      }
+    },
+    "agent_access": {
+      "type": "object",
+      "description": "Shared connection capability available to the user's agents. Role purpose and provider/user authorization still gate each action.",
+      "properties": {
+        "shared_with_agents": {
+          "type": "boolean",
+          "default": true
+        },
+        "automation_enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "credentials": {
+      "type": "object",
+      "description": "Per-platform integration credentials. Raw secret values are service/admin-only; owner-facing reads use the redacted listConnections function.",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      },
+      "properties": {
+        "kofi_verification_token": {
+          "type": "string",
+          "description": "Ko-fi webhook verification token \u2014 enables live donation sync."
+        },
+        "bluesky_handle": {
+          "type": "string"
+        },
+        "bluesky_app_password": {
+          "type": "string",
+          "description": "Bluesky app password \u2014 enables direct publishing."
+        },
+        "mastodon_instance": {
+          "type": "string",
+          "description": "e.g. mastodon.social"
+        },
+        "mastodon_access_token": {
+          "type": "string",
+          "description": "Mastodon access token \u2014 enables direct publishing."
+        },
+        "account_identifier": {
+          "type": "string",
+          "description": "Non-secret account email or username for owner-facing management."
+        },
+        "buymeacoffee_api_token": {
+          "type": "string",
+          "description": "AES-GCM ciphertext of a Buy Me a Coffee read-only developer access token; never a website password."
+        }
+      }
+    },
+    "external_total": {
+      "type": "number",
+      "description": "Funds observed on the external platform in external_currency. This is informational/external until an actual transfer into Interplanetary Fund is verified.",
+      "default": 0
+    },
+    "external_currency": {
+      "type": "string",
+      "description": "ISO currency for external_total. Never combine different currencies into one numeric total without a verified conversion."
+    },
+    "external_donor_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Most recent connection-health, publish, or provider interaction timestamp. This is not evidence that the external balance was observed."
+    },
+    "external_balance_observed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When external_total was last observed from its stated provenance. Only balance-changing owner input or provider-backed fundraising data may update this timestamp; health checks and publishing must not."
+    },
+    "last_error": {
+      "type": "string",
+      "description": "Most recent sync or publish error, for connection health reporting."
+    },
+    "history": {
+      "type": "array",
+      "description": "Connection activity log: connects, syncs, permission changes, errors.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "event": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "description": {
+      "type": "string"
+    },
+    "browser_access": {
+      "type": "object",
+      "description": "Protected authenticated-browser transport metadata. Never stores passwords, cookies, tokens, or session secrets in this entity.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "session_state": {
+          "type": "string",
+          "enum": [
+            "none",
+            "ready",
+            "reauth_required",
+            "error"
+          ],
+          "default": "none"
+        },
+        "session_ref": {
+          "type": "string",
+          "description": "Opaque server-side reference to a protected browser session; never a raw cookie or credential."
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "supported_actions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "platform",
+    "kind"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Per-user or authorized shared fundraising, social, and app connections. Connection success and granted capabilities require real provider verification; account authorization and secret references are managed separately."
+}

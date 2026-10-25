@@ -1,0 +1,10 @@
+{
+  "type": "github",
+  "scopes": [
+    "repo",
+    "workflow",
+    "read:org",
+    "read:user",
+    "user:email"
+  ]
+}

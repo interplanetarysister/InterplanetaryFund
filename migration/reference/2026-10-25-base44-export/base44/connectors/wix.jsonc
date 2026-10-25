@@ -1,0 +1,6 @@
+{
+  "type": "wix",
+  "scopes": [
+    "offline_access"
+  ]
+}

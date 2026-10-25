@@ -1,0 +1,41 @@
+{
+  "name": "Campaign Protocol",
+  "description": "Enforces Michelle's Campaign Protocol on every campaign: outreach on by default, active-status required-field validation, and AI profile completeness follow-up. Fires on campaign create and on updates to protocol-relevant fields (not on routine donation-total increments).",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Campaign",
+      "events": [
+        "create",
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "campaign_protocol",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "enforce": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "enforceCampaignProtocol",
+            "args": {
+              "campaign_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enforce Campaign Protocol",
+            "description": "Outreach default, active gate, AI profile check"
+          }
+        }
+      }
+    ]
+  }
+}

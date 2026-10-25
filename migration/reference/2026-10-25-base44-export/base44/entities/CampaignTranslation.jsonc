@@ -1,0 +1,21 @@
+{
+  "name": "CampaignTranslation",
+  "type": "object",
+  "description": "Server-managed, owner-reviewed translations of a campaign's public title, summary and story. Never stores or overrides financial records.",
+  "properties": {
+    "campaign_id": { "type": "string" },
+    "language_code": { "type": "string", "enum": ["en", "es", "zh-Hans", "tl", "vi", "ar", "fr", "ko", "pt", "hi"] },
+    "source_hash": { "type": "string" },
+    "title": { "type": "string" },
+    "summary": { "type": "string" },
+    "story": { "type": "string" },
+    "status": { "type": "string", "enum": ["draft", "published"], "default": "draft" }
+  },
+  "required": ["campaign_id", "language_code", "source_hash", "title", "status"],
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

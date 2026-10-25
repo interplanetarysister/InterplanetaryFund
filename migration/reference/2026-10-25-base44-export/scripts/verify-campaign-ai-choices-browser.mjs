@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { chromium } from 'playwright';
+const origin='http://127.0.0.1:4197';
+const server=spawn('./node_modules/.bin/vite',['preview','--host','127.0.0.1','--port','4197','--strictPort'],{cwd:process.cwd(),stdio:'ignore'});
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let browser;
+try {
+  let ready=false;for(let i=0;i<70;i++){try{if((await fetch(origin+'/')).ok){ready=true;break}}catch{}await sleep(160)}
+  assert.ok(ready);
+  browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+  const context=await browser.newContext({viewport:{width:390,height:844},colorScheme:'dark'});
+  await context.addInitScript(()=>{localStorage.setItem('base44_access_token','ifund_design_smoke_mock');localStorage.setItem('ifund-theme','light')});
+  const page=await context.newPage();
+  const errors=[];
+  const aiRequests=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/api/apps/public/prod/public-settings/by-id/**',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({id:'6a67a778342a8fe05ee79cba',public_settings:'public_without_login'})}));
+  await page.route('**/api/apps/**',async r=>{
+    const url=r.request().url();const body=(data)=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
+    if(url.includes('public-settings/by-id/'))return body({id:'6a67a778342a8fe05ee79cba',public_settings:'public_without_login'});
+    if(url.includes('/User/me'))return body({id:'test-only-account',username:'DesignTester',role:'user',subscription_tier:'free'});
+    if(url.includes('/Notification'))return body([]);
+    if(url.includes('getFeatureAvailability'))return body({available:{ai_campaign_assistant:true}});
+    if(url.includes('getFundraisingMode'))return body({public_campaign_fundraising:true});
+    if(url.includes('InvokeLLM')){aiRequests.push(url);
+      const values=aiRequests.length===1?['Project Sunrise','Community Builders','Hope in Action','Give Tomorrow','Make It Happen']:['Support this community','Help people build their project','Make useful work possible','Support a verifiable goal','Help finish a local project'];
+      return body({options:values});
+    }
+    if(url.includes('recordLegalAcceptance'))return body({accepted:true,terms_version:'2026-10-13-v3'});
+    return body({});
+  });
+  await page.goto(origin+'/create',{waitUntil:'domcontentloaded'});
+  await page.getByRole('list',{name:/Campaign setup/}).waitFor({timeout:15000});
+  await page.getByPlaceholder('A short goal, in your words…').fill('Build a neighborhood project');
+  await page.getByRole('button',{name:/Continue/}).click();
+  await page.getByPlaceholder('$5,000').fill('5000');
+  await page.getByRole('button',{name:/Continue/}).click();
+  const controls=page.getByRole('button',{name:/Show five AI options/});
+  await controls.first().waitFor({timeout:12000});
+  const lightColors=await page.locator('#campaign-title').evaluate(node=>({bg:getComputedStyle(node).backgroundColor,color:getComputedStyle(node).color}));
+  assert.equal(lightColors.bg,'rgb(255, 255, 255)','Campaign input uses light background when selected');
+  await page.getByRole('button',{name:'Switch to dark theme'}).click();
+  await page.waitForTimeout(320);
+  const darkColors=await page.locator('#campaign-title').evaluate(node=>({bg:getComputedStyle(node).backgroundColor,color:getComputedStyle(node).color}));
+  assert.notEqual(darkColors.bg,lightColors.bg,'Content background must change with theme');
+  assert.notEqual(darkColors.color,lightColors.color,'Content text must change with theme');
+  await page.getByRole('button',{name:'Switch to light theme'}).click();
+  await controls.first().click();
+  const group=page.getByRole('group',{name:'Five title options'});
+  await group.getByRole('button').first().waitFor({timeout:14000});
+  assert.equal(await group.getByRole('button').count(),5,'five titles');
+  await group.getByRole('button').nth(2).click();
+  assert.equal(await page.locator('#campaign-title').inputValue(),'Hope in Action');
+  await controls.last().click();
+  const summary=page.getByRole('group',{name:'Five summary options'});
+  await summary.getByRole('button').first().waitFor({timeout:14000});
+  assert.equal(await summary.getByRole('button').count(),5,'five summaries');
+  await summary.getByRole('button').first().click();
+  assert.equal(await page.locator('#campaign-summary').inputValue(),'Support this community');
+  assert.deepEqual(errors,[]);
+  console.log('PASS five title choices, five summary choices, one editable value for each');
+  await context.close();
+}finally{await browser?.close();server.kill();await sleep(200)}

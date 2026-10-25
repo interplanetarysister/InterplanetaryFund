@@ -1,0 +1,60 @@
+{
+  "name": "StripeReversalHold",
+  "type": "object",
+  "properties": {
+    "payment_intent_id": {
+      "type": "string"
+    },
+    "charge_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "amount_refunded_cents": {
+      "type": "number"
+    },
+    "disputed": {
+      "type": "boolean"
+    },
+    "provider_event_id": {
+      "type": "string"
+    },
+    "review_status": {
+      "type": "string"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "payment_intent_id",
+    "charge_id",
+    "reason",
+    "review_status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Protected amounts associated with possible Stripe reversal, dispute, or chargeback; not proof of confirmed loss."
+}

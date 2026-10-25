@@ -1,0 +1,221 @@
+{
+  "type": "object",
+  "name": "User",
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "The role of the user in the app",
+      "enum": [
+        "admin",
+        "user"
+      ]
+    },
+    "username": {
+      "type": "string",
+      "description": "The unique display handle the user chose at registration, shown across the Interplanetary Fund social feed and profile."
+    },
+    "banner_tier": {
+      "type": "string",
+      "description": "Reward banner tier earned by posting on the Interplanetary Fund social feed. Higher tiers unlock premium profile banners and top-feed placement.",
+      "enum": [
+        "none",
+        "bronze",
+        "silver",
+        "gold",
+        "platinum"
+      ],
+      "default": "none"
+    },
+    "social_score": {
+      "type": "number",
+      "description": "Accumulated reward points from social posting activity. Determines banner tier and top-placement eligibility.",
+      "default": 0
+    },
+    "onboarding_completed": {
+      "type": "boolean",
+      "description": "Whether the user has completed the intelligent onboarding flow.",
+      "default": false
+    },
+    "onboarding": {
+      "type": "object",
+      "description": "Saved onboarding selections (fundraising goal, platforms, automation preferences).",
+      "properties": {
+        "goal": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "automation": {
+          "type": "object"
+        }
+      }
+    },
+    "comm_prefs": {
+      "type": "object",
+      "description": "Notification delivery preferences for messages from organizers.",
+      "properties": {
+        "email_updates": {
+          "type": "boolean"
+        },
+        "in_app_updates": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ai_connection_consent": {
+      "type": "object",
+      "description": "Revocable owner authorization for AI-assisted platform connection setup. Does not grant provider permissions or payment authority.",
+      "properties": {
+        "granted": {
+          "type": "boolean",
+          "default": false
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "ai_publishing_consent": {
+      "type": "object",
+      "description": "Explicit, revocable authorization for AI-assisted external publishing. Automatic publishing must fail closed unless granted is true.",
+      "required": [
+        "granted",
+        "decided_at"
+      ],
+      "properties": {
+        "granted": {
+          "type": "boolean",
+          "default": false
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "subscription_tier": {
+      "type": "string",
+      "description": "Active AI subscription tier id (from the plans catalog). 'free' when none.",
+      "enum": [
+        "free",
+        "basic",
+        "outreach",
+        "professional",
+        "enterprise",
+        "nonprofit"
+      ],
+      "default": "free"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "none",
+        "active",
+        "trialing",
+        "past_due",
+        "canceled"
+      ],
+      "default": "none"
+    },
+    "subscription_interval": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual"
+      ]
+    },
+    "stripe_customer_id": {
+      "type": "string"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "Stripe subscription ID verified from Checkout, bound to this user for renewals and cancellation."
+    },
+    "paypal_subscription_id": {
+      "type": "string",
+      "description": "Provider verified PayPal billing subscription. Never populated from a browser-only success redirect."
+    },
+    "paypal_subscription_plan_id": {
+      "type": "string"
+    },
+    "subscription_provider": {
+      "type": "string",
+      "enum": [
+        "paypal",
+        "stripe",
+        "admin"
+      ]
+    },
+    "subscription_renews_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "trial_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "premium_trial_started_at": {
+      "type": "string",
+      "description": "Permanent record that the one-time card-free introductory trial was redeemed.",
+      "format": "date-time"
+    },
+    "premium_day_pass_expires_at": {
+      "type": "string",
+      "description": "Server-verified end of the 24-hour Stripe premium day pass.",
+      "format": "date-time"
+    },
+    "stripe_day_pass_checkout_id": {
+      "type": "string",
+      "description": "Most recently verified Stripe Checkout Session credited for a premium pass."
+    },
+    "stripe_day_pass_payment_intent": {
+      "type": "string",
+      "description": "PaymentIntent behind the current premium pass, for refund/dispute revocation."
+    },
+    "account_deletion_pending": {
+      "type": "boolean",
+      "description": "True once account deletion has been authorized and is in progress. The app revokes access for a pending account; data cleanup and final deletion/anonymization run idempotently so a retry after a mid-process failure resumes cleanly.",
+      "default": false
+    },
+    "account_status": {
+      "type": "string",
+      "description": "Lifecycle status of the account. 'disabled' blocks all sensitive actions server-side (assertActiveAccount). Pending deletion is tracked separately by account_deletion_pending; a deleted account is simply absent from the store.",
+      "enum": [
+        "active",
+        "disabled"
+      ],
+      "default": "active"
+    },
+    "ai_obo_consent": {
+      "type": "object",
+      "description": "Canonical, revocable IFund-wide authorization for AI agents to act on the user's behalf across connected platform features. Provider capabilities and connection health still limit what can actually be performed.",
+      "properties": {
+        "granted": {
+          "type": "boolean",
+          "default": false
+        },
+        "decided_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "permission_version": {
+          "type": "string"
+        }
+      }
+    },
+    "first_paid_subscription_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Earliest provider-verified first paid subscription; immutable across renewals for social posting priority."
+    }
+  },
+  "required": [
+    "role"
+  ],
+  "description": "Built-in IFund account profile and user preferences; authentication, user roles, and elevated privileges require server-authoritative authorization."
+}

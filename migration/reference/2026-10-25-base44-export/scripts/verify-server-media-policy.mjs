@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+const source=fs.readFileSync('base44/shared/serverImagePolicy.ts','utf8');
+const names=['requiresImageWatermark','validIfundMediaUrl'];
+const js=ts.transpileModule(source.replace(/^import sharp.*\n/m,'').replace(/export async function enforceImagePolicy[\s\S]*$/,'').trim()+ '\nexport { requiresImageWatermark, validIfundMediaUrl };',{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2022}}).outputText;
+const {requiresImageWatermark,validIfundMediaUrl}=await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64'));
+for(const user of [null,{}, {subscription_status:'inactive',subscription_tier:'basic'}, {subscription_status:'past_due',subscription_tier:'premium'}, {subscription_status:'active',subscription_tier:'free'}]) assert.equal(requiresImageWatermark(user),true);
+for(const tier of ['basic','premium','pro']) assert.equal(requiresImageWatermark({subscription_status:'active',subscription_tier:tier}),false);
+assert.equal(requiresImageWatermark({role:'admin'}),false);
+for(const url of ['http://media.base44.com/images/public/6a67a778342a8fe05ee79cba/a.png','https://example.com/a.png','https://media.base44.com/images/public/OTHER/a.png','https://media.base44.com.evil.tld/images/public/6a67a778342a8fe05ee79cba/a.png','javascript:alert(1)']) assert.equal(validIfundMediaUrl(url),'');
+assert.ok(validIfundMediaUrl('https://media.base44.com/images/public/6a67a778342a8fe05ee79cba/a.png'));
+for(const path of ['base44/functions/saveCampaign/entry.ts','base44/functions/createSocialPost/entry.ts']) assert.match(fs.readFileSync(path,'utf8'),/enforceImagePolicy/);
+console.log('PASS: server watermark entitlement and media-origin boundary, campaign and social persistence wiring');

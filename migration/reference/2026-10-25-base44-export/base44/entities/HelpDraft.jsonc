@@ -1,0 +1,79 @@
+{
+  "name": "HelpDraft",
+  "type": "object",
+  "description": "Administrator-only work-in-progress Help Center drafts; never readable by site visitors.",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "Getting Started",
+        "Campaigns",
+        "Donations",
+        "Connections & Publishing",
+        "Money & Withdrawals",
+        "Account & Security",
+        "Subscriptions",
+        "AI Assistance",
+        "Community",
+        "Legal & Policies"
+      ]
+    },
+    "question": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "article_id": {
+      "type": "string",
+      "description": "Existing published HelpArticle record ID, used for updating an article in place."
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "in_review"
+      ],
+      "default": "draft"
+    }
+  },
+  "required": [
+    "category",
+    "question",
+    "slug"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

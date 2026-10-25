@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {IFUND_RELEASE_ID} from '../src/lib/ifundRelease.js';
+const manifest=JSON.parse(readFileSync(new URL('../public/ifund-release.json',import.meta.url)));
+assert.equal(manifest.release_id,IFUND_RELEASE_ID);
+assert.equal(manifest.source,'Base44');
+const status=readFileSync(new URL('../src/components/admin/Base44ReleaseStatus.jsx',import.meta.url),'utf8');
+assert.match(status,/cache: "no-store"/);
+assert.match(status,/IFUND_RELEASE_ID/);
+assert.match(status,/published/);
+const page=readFileSync(new URL('../src/pages/IntegrationsAdmin.jsx',import.meta.url),'utf8');
+const detail=readFileSync(new URL('../src/components/admin/IntegrationDetailPanel.jsx',import.meta.url),'utf8');
+assert.match(page,/<Base44ReleaseStatus/);
+assert.doesNotMatch(page,/functions\.invoke\("syncGitHub"/);
+assert.doesNotMatch(detail,/functions\.invoke\("syncGitHub"/);
+console.log('PASS: Base44 published release manifest and running source agree; admin sync UI never invokes GitHub.');

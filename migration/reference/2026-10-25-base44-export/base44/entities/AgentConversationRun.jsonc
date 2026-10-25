@@ -1,0 +1,84 @@
+{
+  "name": "AgentConversationRun",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string",
+      "description": "Authenticated owner of this agent chat request"
+    },
+    "agent_name": {
+      "type": "string",
+      "description": "Requested Base44 specialist"
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "Owner-mode Base44 agent conversation reference"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "responding",
+        "waiting_user",
+        "responded",
+        "tool_failed",
+        "failed",
+        "delivery_unconfirmed"
+      ],
+      "default": "responding"
+    },
+    "request_summary": {
+      "type": "string",
+      "description": "Brief request category, no message bodies or secrets"
+    },
+    "result_summary": {
+      "type": "string",
+      "description": "Server-calculated conversation outcome; never asserts unverified external action"
+    },
+    "baseline_assistant_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Assistant message IDs existing before the user action"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "agent_name",
+    "conversation_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Safe execution tracking for agent chat requests and their verified results, distinct from user-facing message transcripts."
+}

@@ -1,0 +1,74 @@
+{
+  "name": "ExternalSyncEvent",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "event_id": {
+      "type": "string"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "instance_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "processed",
+        "ignored",
+        "failed"
+      ],
+      "default": "received"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "event_id",
+    "event_type",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Results of user-requested external fundraising sync, not authorization for scheduled polling."
+}
