@@ -109,3 +109,8 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 - `docs/migration/FRONTEND_PAGE_STATUS.json` tracks exactly 57 Base44 source page files: **3 static ports needing review** (About, Terms, Privacy), **10 preview counterparts not parity-complete**, and **44 not ported**. No live frontend comparison run.
 - React pages and historical legal-policy source are copied into active scaffold without Base44 imports. Legal acceptance tracking, current policy approval, and provider-backed Help/Contact flows require independent backend ports.
 - Payment and OAuth pages remain disabled/not integrated, and no main production frontend route or Wix marketing site was changed.
+
+## Phase 6 export/tooling inventory
+- `docs/migration/export-manifest-template.json` enumerates 95 entity names with anticipated local `<Name>.jsonl` paths, without source records. No counts or checksums are invented in the template.
+- `scripts/migration/verify-export.mjs` offline verifier checks counts, duplicate source IDs and SHA-256 for actual JSONL; `scripts/migration/media-audit.mjs` checks local media copy integrity. These do not perform Base44 extraction, Supabase inserts, external media download or financial reconciliation.
+- True Base44 export success, user mapping, field parity, ledger/provider reconciliation, media byte inventory, storage link rewriting and idempotent actual import are UNKNOWN. Owner approval before running exports or applying SQL is required.
