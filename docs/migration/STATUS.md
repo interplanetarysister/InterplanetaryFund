@@ -28,3 +28,6 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Original private agent conversation SQL preserved in pending/ unchanged after a provenance header from source commit `6f7fd599`.
 - **Not applied** to any Supabase environment; database tests/actual RLS outcome are unverified. No data imported or converted.
 - CI to execute `npm ci`, `npm test` (includes Phase 2 schema invariants), `npm run build`, and CodeRabbit review on its PR.
+
+## Phase 2 real npm CI proof — 2026-10-25 UTC
+[GitHub Actions run 40157280148](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157280148), free public `ubuntu-latest`: **SUCCESS**. Genuine npm lockfile regeneration step PASS; `npm ci` PASS (152 packages); `npm test` PASS (**13 tests**, zero failed); `npm run build` PASS (Vite production build in **1.54s**); Prettier format/check PASS. These are code/static schema verification tests, **not** database-executed RLS tests. Phase 2 cannot be marked complete until exact Base44 RLS parity and owner-approved SQL staging checks pass.
