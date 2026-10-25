@@ -93,3 +93,9 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 - Financial entity tables have no browser write access. Credential definitions are in private `ifund_secrets`; actual provider secrets must go through secure vault/rotated provider credentials, **not** plaintext import.
 - Six deferred legacy-ID referential constraints for campaigns and communities are included in a **pending-only** SQL file. Remaining legacy ID foreign-key and Base44 row-access parity require validation against exports and server-auth decisions.
 - Copy of `docs/migration/independent-agent-conversations.sql` from source commit `6f7fd599a3dad55f2ac4d79d9aa7d8a390b23f9` is in `supabase/migrations/pending/20261025_independent_agent_conversations.sql` and remains inactive. No source branch was cherry-picked or modified.
+
+## Phase 3 owner-link staged components
+- Auth UI: `src/pages/Auth.jsx` (from Phase 1) uses Supabase Google/Facebook OAuth and email OTP, never Instagram login or password signup. Runtime availability requires owner approval to configure providers and email template.
+- `worker/ownerLinkRules.js`: pure server-side eligibility and consent gates, unit tested; not a connected provider endpoint.
+- `supabase/migrations/pending/phase3_owner_link_proposal.sql`: private `ifund_identity.owner_matches`, `link_challenges`, `link_consent_audit`; service-only `claim_verified_owner` function with atomic nonce consumption, source owner match, confirmed destination auth email, and consent proof. This proposal is **not applied**, and production behavior is **not verified**. It does not replace/alter the existing source `ifund_migration_owner_commit` or `ifund_migration_owner_lookup` RPC definitions.
+- Legacy sign-in proof is **not** required by the new proposal; provider verified email or approved OTP sent to original Base44 email is the fallback. Do not copy any real owner emails or legacy identifiers into Git.
