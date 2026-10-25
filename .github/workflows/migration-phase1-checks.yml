@@ -1,0 +1,35 @@
+name: Migration phase checks
+on:
+  pull_request:
+    branches:
+      - migration/supabase-cloudflare
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/migration-phase1-checks.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify lockfile with real npm registry install
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git diff --exit-code -- package-lock.json
+      - name: Clean install
+        run: npm ci --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: Vite build
+        run: npm run build
+      - name: Formatting check
+        run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
