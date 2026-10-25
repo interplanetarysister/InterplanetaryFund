@@ -1,6 +1,6 @@
 /**
  * Server-only owner-link eligibility rules.
- * Call with data returned by a trusted Auth provider and a private migration DB,
+ * Call with data returned by trusted Auth providers and a private migration DB,
  * never browser-provided legacy IDs, display names, or email confirmation flags.
  */
 export function normalizeVerifiedEmail(value) {
@@ -10,9 +10,9 @@ export function normalizeVerifiedEmail(value) {
 }
 
 /**
+ * Email correspondence is a candidate discovery mechanism, NOT owner proof.
  * Return one eligible legacy record only for a confirmed provider identity.
- * Ambiguous or unconfirmed matches fail closed and require email-on-file proof.
- * Does NOT persist a link or override an explicit consent requirement.
+ * Does NOT persist a link or override the dual-session/consent requirements.
  */
 export function matchConfirmedLegacyOwner(providerIdentity, serverReadCandidates) {
   const email = normalizeVerifiedEmail(providerIdentity?.email);
@@ -36,12 +36,20 @@ export function matchConfirmedLegacyOwner(providerIdentity, serverReadCandidates
 }
 
 /**
- * The client may express consent but must never set source user ID or target UID.
- * The server validates fresh session, anti-CSRF challenge, TTL and consent before
- * entering the atomic database service-role claim transaction.
+ * All flags MUST be server-derived after verifying the actual live Base44 and
+ * Supabase bearer sessions for the SAME owner. Client-supplied booleans, IDs,
+ * emails, or consent digests cannot satisfy this gate. The database separately
+ * enforces fresh dual-session timestamps and an atomic audit receipt.
+ * This is an inactive source-only contract, NOT a deployed authentication route.
  */
-export function canBeginClaim({ confirmedUser, eligible, clickedConfirm, freshSession, validChallenge }) {
+export function canBeginClaim({
+  confirmedUser, eligible, clickedConfirm, freshSession, validChallenge,
+  sourceSessionVerified, destinationSessionVerified, consentVersion, consentSha256,
+} = {}) {
   return Boolean(confirmedUser?.id && confirmedUser.emailConfirmed === true &&
     eligible === true && clickedConfirm === true &&
-    freshSession === true && validChallenge === true);
+    freshSession === true && validChallenge === true &&
+    sourceSessionVerified === true && destinationSessionVerified === true &&
+    consentVersion === 'owner-link-v1' &&
+    typeof consentSha256 === 'string' && /^[a-f0-9]{64}$/.test(consentSha256));
 }
