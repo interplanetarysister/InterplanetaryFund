@@ -50,3 +50,11 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Added independent About, Terms and Privacy React routes. Contact, support, payments, institutions and all remaining source pages are not claimed complete.
 - Added a 57-page source-to-target status manifest with no runtime-parity claims, plus structural tests. No live website routes, deployments or DNS changes.
 - Phase 4 [run 40157942499](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40157942499) passed **25 Node tests** and Vite build before this branch. Phase 5's own CI must be read independently.
+
+## Phase 5 optional independent campaign transport — 2026-10-25
+
+- Added `src/lib/campaignApi.js` and `VITE_IFUND_CAMPAIGN_API=disabled` in `.env.example`. The Worker transport is **off by default**. When explicitly enabled after deployed route/Auth/RLS proof, it obtains the current Supabase session JWT and sends content writes to the same-origin Cloudflare Worker `POST /api/campaigns` or `PATCH /api/campaigns/:id`.
+- `CampaignEditor.jsx` keeps the current direct, owner-scoped Supabase query path while the flag is disabled. When the optional Worker path is enabled, successful writes require a returned record ID; failed network/API requests report an error without navigating away and release the busy state. New campaign creation also checks for missing Supabase configuration before attempting a write.
+- Unit tests in `tests/phase5-campaign-transport.test.js` cover session-required authenticated requests, method/URL selection, rejection of provider errors and unverifiable writes.
+- Existing Phase 4 Worker implementation is proposed in unmerged PR #141, not available in this branch's deployed app. **Do not enable the new frontend flag or change Cloudflare routes until PR #141 is integrated, cross-account RLS is exercised with real accounts, and owners/data/HTTP routes are independently verified.**
+- The one-time public-standard-runner formatter [#40225044057](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40225044057) succeeded and deleted itself. Actual full post-format CI status must be checked separately; no deployment, SQL, DNS, auth or payment settings changed.
