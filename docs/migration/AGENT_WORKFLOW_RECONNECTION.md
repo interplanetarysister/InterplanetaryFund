@@ -56,3 +56,23 @@ Connector definitions: Discord, Facebook Pages, GitHub, Google Workspace, Gumroa
 ## Blocker summary
 
 **Not yet reconnected**: all 10 agent executors, 17 workflow executors, scheduling, source entity event hooks, all 11 OAuth grants, provider callbacks, source data/auth migration and app-domain deployment. No Base44/Convex dependence was introduced. No credentials, financial transactions, live SQL, production DNS or paid model calls were touched.
+
+## Phase 4 Cloudflare durable runner and 184-function scope — October 26, 2026
+
+- **Implemented in draft PR #157 (not deployed):** an independent Cloudflare `WorkflowEntrypoint` (`worker/nativeAutomationWorker.js`); 17 historical scheduled/entity workflow contracts in the source registry; 184 historical functions in `worker/legacyFunctionCatalog.json`; timezone-aware cron evaluator honoring Pacific daylight saving time; deterministic Cloudflare instance IDs; staged native Workflow binding in `wrangler.automations.jsonc`; and bounded read-only independent Supabase readiness endpoint `GET /api/health/independent`.
+- Scheduled triggers are **deliberately not configured**, and `IFUND_AUTOMATIONS_ENABLED`, `IFUND_SCHEDULES_ENABLED` and release flag default off. No Workflow gets queued, no account is affected, and no paid model/provider call is made.
+- Added HMAC-SHA256 authenticated and timestamp-limited **internal-only** `POST /v1/internal/entity-events` contract with UUID event IDs and idempotent Cloudflare instance IDs. It rejects unsigned, stale and unknown entity events, and still rejects *validly signed events* until the exact handler and original entity transition policy have been independently ported and approved.
+- Cloudflare Workflows runner supports retriable step contracts and reserves the 3-day delay for volunteer follow-ups, **but no source handler is registered yet**. This is an executor framework, not a functional port of the 17 workflows.
+- `worker/automationSchedule.js` detects source cron patterns in UTC and America/Los_Angeles. The historical daily cron for the workflow named "Weekly Writing Psychology & Social Trends Training" is held until weekly semantics and deduplication can be verified. "Campaign Sync on Update" originally watches a `CampaignUpdate` create event; preserve that until mapped to the new schema.
+- The source agent count is 10, connector-type count 11, workflow count 17 and function count 184. **None may be declared live or working from a manifest alone.**
+- **Actual account inspection, read-only October 26:** Cloudflare listed legacy `interplanetary-fund2`, `ifund-oauth`, `ifund-email-ingress` scripts; all 16 site-specific API route patterns still pointed to the legacy `interplanetary-fund2` Worker; the Cloudflare Workflows list returned **zero** workflows. The three IFund scripts had zero cron schedules at inspection. These checks do not verify account/provider connection state.
+- `scripts/verify-worker-cutover.mjs` is fail-closed and must pass **after** individually verified handler ports, owner-approved retirements, provider grants, per-user consent, audit/outbox persistence, RLS testing, and activation approvals. It currently correctly fails cutover by design. Use `--summary` for non-passing development status.
+- Independent Worker design follows Cloudflare's WorkflowEntrypoint and `create({id,params})` API documentation ([Worker API](https://developers.cloudflare.com/workflows/build/workers-api/)), retrieved October 26, 2026. No live Cron, Worker deployment or Workflows instance was started.
+
+### Still required for live operations
+
+1. Port and end-to-end verify each necessary original function or explicitly retire it with owner approval; the original 184 function directories are **not** 184 replacement implementations.
+2. Port source agent tools/context/delegation, authorized model calls, approvals and audit trails; preserve user-scope. Do not copy privileged backend prompts to public browser bundles.
+3. Build and migrate the private workflow outbox, job history, scheduling cursor, retries and deduplication in the intended Supabase project. Verify source last-run and in-flight states before enabling triggers.
+4. Complete original entity event hooks, provider token refresh, social/OBO consent and platform rate limits; isolate payout, ledger and PayPal reconciliation until independently approved and tested.
+5. Deploy to a non-production Cloudflare Worker on a known free budget, with two-role negative tests and no Base44 proxy. Then separately review 59-page parity, web/Android use, the 7-phase release gates and cutover.
