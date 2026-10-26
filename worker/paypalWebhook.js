@@ -2,6 +2,10 @@
 // Replaces the Base44 receipt-scan path for the hosted platform-support link.
 // Pure helpers are exported for tests; network calls take an injectable fetch.
 
+// Only orders explicitly marked by IFund can be credited as platform support.
+// A hosted NCP payment link has not been proved to include this marker.
+export const PLATFORM_SUPPORT_MARKER = "ifund:platform-support:v1";
+
 export const PLATFORM_SUPPORT_EVENTS = new Set([
   "PAYMENT.CAPTURE.COMPLETED",
   "PAYMENT.CAPTURE.PENDING",
@@ -39,6 +43,12 @@ export function classifyPayPalEvent(event) {
   const r = event.resource || {};
   if (String(r.custom_id || "").includes("|")) return { kind: "ignored", reason: "campaign_checkout_order" };
   const isRefund = type === "PAYMENT.CAPTURE.REFUNDED";
+  // Never infer that an untagged capture is support for IFund. The business
+  // merchant may also receive unrelated campaign or subscription payments.
+  if (!isRefund && r.custom_id !== PLATFORM_SUPPORT_MARKER)
+    return { kind: "ignored", reason: "unattributed_capture" };
+  if (isRefund && r.custom_id && r.custom_id !== PLATFORM_SUPPORT_MARKER)
+    return { kind: "ignored", reason: "other_payment_refund" };
   const captureId = isRefund ? captureIdFromRefund(r) : r.id;
   if (!event.id) return { kind: "invalid", reason: "missing_event_id" };
   if (!captureId) return { kind: "invalid", reason: "missing_capture_id" };
@@ -92,7 +102,10 @@ async function getAccessToken(env, fetchImpl) {
 }
 
 // Ask PayPal to verify the transmission signature against our webhook ID.
-export async function verifyPayPalWebhook(headers, event, env, fetchImpl = fetch) {
+export async function verifyPayPalWebhook(headers, rawEvent, env, fetchImpl = fetch) {
+  // PayPal expects the original JSON event, not a parse/stringify round trip.
+  // The caller parses it for routing but forwards these exact bytes.
+  if (typeof rawEvent !== "string" || !rawEvent.trim().startsWith("{")) return false;
   const get = (n) => headers.get(n);
   const fields = {
     auth_algo: get("paypal-auth-algo"),
@@ -103,12 +116,14 @@ export async function verifyPayPalWebhook(headers, event, env, fetchImpl = fetch
   };
   if (Object.values(fields).some((v) => !v)) return false;
   const token = await getAccessToken(env, fetchImpl);
+  const envelope = JSON.stringify({ ...fields, webhook_id: env.PAYPAL_WEBHOOK_ID });
+  const verificationBody = envelope.slice(0, -1) + ',"webhook_event":' + rawEvent + "}";
   const res = await fetchImpl(
     `${paypalApiBase(env.PAYPAL_MODE)}/v1/notifications/verify-webhook-signature`,
     {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ ...fields, webhook_id: env.PAYPAL_WEBHOOK_ID, webhook_event: event }),
+      body: verificationBody,
     },
   );
   if (!res.ok) return false;
@@ -150,14 +165,17 @@ export async function handlePayPalWebhook(request, env, fetchImpl = fetch) {
   // 503 makes PayPal retry later instead of dropping the event.
   if (missing.length) return json({ error: "PayPal webhook is not configured" }, 503);
   let event;
+  let rawEvent;
   try {
-    event = JSON.parse(await request.text());
+    rawEvent = await request.text();
+    event = JSON.parse(rawEvent);
+    if (!event || Array.isArray(event) || typeof event !== "object") throw new Error("Invalid event");
   } catch {
     return json({ error: "Invalid JSON" }, 400);
   }
   let verified = false;
   try {
-    verified = await verifyPayPalWebhook(request.headers, event, env, fetchImpl);
+    verified = await verifyPayPalWebhook(request.headers, rawEvent, env, fetchImpl);
   } catch {
     return json({ error: "Verification unavailable" }, 503);
   }
