@@ -152,11 +152,21 @@ function Editor({ user }) {
       <div className="form">
         <label>
           Title
-          <input name="title" value={form.title || ""} onChange={change} disabled={editorDisabled} />
+          <input
+            name="title"
+            value={form.title || ""}
+            onChange={change}
+            disabled={editorDisabled}
+          />
         </label>
         <label>
           Category
-          <select name="category" value={form.category} onChange={change} disabled={editorDisabled}>
+          <select
+            name="category"
+            value={form.category}
+            onChange={change}
+            disabled={editorDisabled}
+          >
             <option value="community">Community</option>
             <option value="medical">Medical</option>
             <option value="emergency">Emergency</option>
