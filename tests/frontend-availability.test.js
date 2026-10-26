@@ -12,7 +12,7 @@ test("home feed resolves its pending state on missing configuration and network 
   assert.match(feed, /setPosts\(\[\]\)/);
   assert.match(feed, /\.catch\(\(\) => \{/);
   assert.ok(feed.includes("The community feed is temporarily unavailable"));
-  assert.match(feed, /!message \? \(/);
+  assert.match(feed, /!message\s*\?/);
 });
 
 test("discovery resolves pending state without reporting a false empty campaign list", () => {
