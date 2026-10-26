@@ -47,3 +47,13 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+## Phase 5 original-experience recovery — 2026-10-26 (review branch only)
+
+- **Regression accepted, NOT cutover accepted:** owner reports the live Pages scaffold displaced the intended full app. Existing historical CI/builds validate a small UI, not the original product.
+- Created `migration/phase5-original-shell-recovery-20261026` from current integration; original route/layout evidence captured in [ORIGINAL_APP_PARITY_RECOVERY.md](ORIGINAL_APP_PARITY_RECOVERY.md).
+- Ported source-inspired navigation hierarchy into `MigrationShell.jsx`, including narrow desktop sidebar, mobile accessible drawer and bottom nav, current page bar, local theme preference, and explicit Pending labels for disabled features. No unsupported route is represented as active.
+- Reused the existing unmerged Phase 5 legal/About page ports and read-only legal policy copy; added About, Terms, Privacy routes to recovery branch for review, **not legal acceptance or release**. Existing legal version remains unchanged.
+- Added unit regression checks that prevent sidebar links from being enabled on nonexistent routes and prevent guest access to private navigation. Build/browser checks and owner visual acceptance: **NOT VERIFIED until CI and real browser tests**.
+- **Not addressed:** full original visual fidelity/media asset, 58 named source routes, full 56 lazy-page composition, all source functions/agents, PayPal payout entitlement, user/data migration, authentic Auth/RLS flow, Cloudflare live Worker Base44 proxy, DNS cutover.
+- No production Supabase changes, Cloudflare deployments, DNS changes, payment mutations, Base44 edits, or provider spending were performed in this phase.
