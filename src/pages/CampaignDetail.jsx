@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
+import CampaignSharing from "../components/CampaignSharing";
 function Detail() {
   const { id } = useParams();
   const [state, setState] = useState({
@@ -81,6 +82,7 @@ function Detail() {
             </p>
           </div>
           <p className="story">{c.story}</p>
+        <CampaignSharing id={c.id} title={c.title} status={c.status} />
         </article>
       )}
       <Link to="/discover">Discover campaigns</Link>
