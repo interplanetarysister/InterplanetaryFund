@@ -89,3 +89,7 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 
 ## Owner-provided Base44 secret-name inventory — 2026-10-25
 See [SECRET_DESTINATIONS.md](SECRET_DESTINATIONS.md) for **all 20** owner-listed Base44 secret names, verified static caller examples, read-only Cloudflare Worker name checks, and safe migration destinations. This is **not** a secret-value export and does **not** establish that new backend secrets have been configured. Payment PR #145 needs a newly registered `PAYPAL_WEBHOOK_ID` and backend-only Supabase credentials. The destination's published runtime remains unverified.
+
+## Independent agent/workflow reconnection map — 2026-10-26
+
+[Agent and workflow reconnection contract](AGENT_WORKFLOW_RECONNECTION.md) now maps each of the original **10 agents, 17 workflows, and 11 provider connectors** to a fail-closed independent runtime registry in `worker/automationRegistry.js`, with a sanitized availability endpoint shared by browser and installed web app. All source handlers remain `ported:false` and there is no verified production executor. Preserve the existing inventory appendices for source definitions; this registry is staging metadata, **not connection or parity evidence**.
