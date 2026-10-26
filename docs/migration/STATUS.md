@@ -69,3 +69,10 @@ Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. 
 - **Connected release state:** Cloudflare zone `interplanetaryfund.com` is active with apex/www CNAMEs to `interplanetaryfund-migration.pages.dev`; production Pages deployments remain disabled, preview deployment queue entries are idle, and 16 existing domain Worker routes still reference the legacy `interplanetary-fund2` script. No cutover was performed.
 - The designated Supabase `ssibsfmtodgximseeqsv` public app tables (`ifund_profiles`, `ifund_campaigns`, `ifund_posts`, `ifund_connections`) still show zero rows and no Edge Functions. Private archived snapshots are not publishable user-owned campaigns.
 - **Blockers remain:** source-equivalent pages/assets, login and ownership migration, authenticated RLS integration, PayPal ledger/payout entitlements, full 184-function parity, original mobile/desktop screenshot acceptance and provider-verified funding. Keep the recovery branch and PR unmerged/unreleased until those gates pass.
+
+### Homepage/discovery recovery — 2026-10-26
+
+- Added safe fallback/error states for the public feed and discovery when Supabase is missing or a request fails, preventing indefinite loading and misleading claims that the platform has no campaigns.
+- Added `tests/frontend-availability.test.js` regression checks; interim CI passed tests and Vite build but failed Prettier before source reformatting.
+- Temporary standard public-runner formatting workflow [#40324152508](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40324152508) succeeded and self-deleted; latest formatted code is commit `1ade0d29b47da713c538a7f9f1708d630506d3a0`. Latest PR workflow on that bot commit returned `action_required` without jobs, so this documentation update requests a fresh normal review-branch CI run.
+- No deployment, DNS, auth/RLS, data/public campaigns or financial provider changes were made. The restored UI is still partial and not accepted for cutover.
