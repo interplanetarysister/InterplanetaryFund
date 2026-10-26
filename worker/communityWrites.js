@@ -1,3 +1,4 @@
+import { readJsonBody, BodyError } from './bodyLimit.js';
 import { authenticatedUser, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -58,16 +59,7 @@ export async function routeCommunityWrite(request, env, fetcher = fetch) {
     let url = env.SUPABASE_URL + '/rest/v1/ifund_posts?';
     let body;
     if (isCreate) {
-      const rawText = await request.text();
-      if (new TextEncoder().encode(rawText).byteLength > MAX_POST_BYTES) {
-        return response(413, { error: 'Request too large.' });
-      }
-      let payload;
-      try {
-        payload = JSON.parse(rawText);
-      } catch {
-        return response(400, { error: 'Invalid JSON.' });
-      }
+      const payload = await readJsonBody(request, MAX_POST_BYTES);
       const message = validatePost(payload);
       if (!message) return response(422, { error: 'Post must contain 1–2000 characters.' });
       body = JSON.stringify({ author_id: account.uid, body: message });
@@ -102,7 +94,8 @@ export async function routeCommunityWrite(request, env, fetcher = fetch) {
     return response(isCreate ? 201 : 200, isCreate
       ? { id: rows[0].id, body: rows[0].body, created_at: rows[0].created_at }
       : { id: rows[0].id, deleted: true });
-  } catch {
+  } catch (error) {
+    if (error instanceof BodyError) return response(error.status, { error: error.message });
     return response(503, { error: 'Community update unavailable.' });
   }
 }
