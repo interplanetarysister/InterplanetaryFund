@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
 import { Loading } from "./components/UI";
 import MigrationShell from "./components/MigrationShell";
@@ -14,6 +14,22 @@ import Community from "./pages/Community";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import RestoredPublic from "./pages/RestoredPublic";
+import RestoredMember from "./pages/RestoredMember";
+import { sourcePageRoutes, existingIndependentPagePaths } from "./lib/pageRoutes";
+function IndependentRoute({ page, user }) {
+  if (page.access !== "public" && !user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (page.access === "admin" && !["admin", "super_admin"].includes(user?.app_metadata?.role)) {
+    return <main><h1>Access restricted</h1><p>Administrative access requires a verified role.</p><Link to="/">Home</Link></main>;
+  }
+  if (page.kind === "redirect") return <Navigate to="/admin/integrations?view=ai" replace />;
+  return page.access === "public"
+    ? <RestoredPublic page={page} user={user} />
+    : <RestoredMember page={page} user={user} />;
+}
+
 function initialTheme() {
   try {
     const saved = window.localStorage.getItem("ifund-theme");
@@ -112,8 +128,15 @@ function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/login" element={<Auth user={user} />} />
-            <Route path="/connections" element={<Connections />} />
+            <Route path="/connections" element={user ? <Connections /> : <Navigate to="/login" replace />} />
             <Route path="/community" element={<Community user={user} />} />
+            {sourcePageRoutes
+              .filter((page) => !existingIndependentPagePaths.has(page.path))
+              .map((page) => (
+                <Route key={page.path} path={page.path}
+                  element={<IndependentRoute page={page} user={user} />}
+                />
+              ))}
             <Route
               path="*"
               element={
