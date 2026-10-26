@@ -136,3 +136,12 @@ export function reservedPayout({email,reservationId,giftCents,payoutsApproved}) 
     items:[{recipient_type:'EMAIL',receiver:email,amount:{currency:'USD',value:(x.netCents/100).toFixed(2)},
       sender_item_id:'IFUND_I_'+reservationId}],platform_fee_cents:x.feeCents};
 }
+
+// Auctions are a separate transaction class with a 10% hosting/withdrawal
+// charge. Do NOT also take the normal campaign-donation 3% fee.
+export function auctionPayoutMath(saleProceedsCents) {
+  cents(saleProceedsCents,0,100000000,'auction proceeds');
+  const hostingFeeCents=Math.round(saleProceedsCents*0.10);
+  return {saleProceedsCents,hostingFeeCents,
+    netCents:saleProceedsCents-hostingFeeCents,currency:'USD'};
+}
