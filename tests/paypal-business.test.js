@@ -83,9 +83,10 @@ test('withdrawal preparation is blocked without payout authorization',()=>{
   const x={email:'verified@example.com',reservationId:'reserved_0123456789',giftCents:2500,payoutsApproved:true};
   assert.throws(()=>reservedPayout({...x,payoutsApproved:false}));
   const p=reservedPayout(x);
-  assert.equal(p.items[0].amount.value,'24.25');
+  assert.equal(p.payload.items[0].amount.value,'24.25');
   assert.equal(p.platform_fee_cents,75);
-  assert.equal(p.sender_batch_header.sender_batch_id,'IFUND_W_reserved_0123456789');
+  assert.equal(p.payload.sender_batch_header.sender_batch_id,'IFUND_W_reserved_0123456789');
+  assert.equal(Object.hasOwn(p.payload,'platform_fee_cents'),false);
 });
 
 test('auction fee is its own 10% hosting class and not the 3% campaign fee',()=>{
