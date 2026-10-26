@@ -51,6 +51,7 @@ function Community({ user }) {
             <textarea
               required
               maxLength={2000}
+              disabled={posting}
               value={body}
               onChange={(e) => setBody(e.target.value)}
             />
