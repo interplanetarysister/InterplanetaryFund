@@ -544,3 +544,8 @@ html[data-theme="light"] .ifund-mobile-bottom { background: #f6f9ff; color: #253
   .ifund-mobile-drawer .ifund-primary-nav { overflow-y: auto; }
   .ifund-footer { padding-bottom: 6rem; }
 }
+
+.ifund-legal-links { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.8rem; }
+.ifund-legal-links a { text-decoration: underline; text-underline-offset: 3px; font-size: 0.8rem; }
+.ifund-primary-nav { order: initial; width: auto; overflow-x: hidden; }
+html[data-theme="light"] .ifund-legal-links a { color: #244472; }
