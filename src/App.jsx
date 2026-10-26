@@ -18,25 +18,39 @@ function initialTheme() {
   try {
     const saved = window.localStorage.getItem("ifund-theme");
     if (saved === "light" || saved === "dark") return saved;
-  } catch { /* Storage may be disabled. */ }
+  } catch {
+    /* Storage may be disabled. */
+  }
   return typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    window.matchMedia?.("(prefers-color-scheme: light)").matches
+    ? "light"
+    : "dark";
 }
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState(initialTheme);
   useEffect(() => {
-    if (!db) { setUser(null); return; }
-    db.auth.getUser().then(({ data }) => setUser(data?.user || null))
+    if (!db) {
+      setUser(null);
+      return;
+    }
+    db.auth
+      .getUser()
+      .then(({ data }) => setUser(data?.user || null))
       .catch(() => setUser(null));
-    const { data: { subscription } } = db.auth.onAuthStateChange((_event, session) =>
-      setUser(session?.user || null));
+    const {
+      data: { subscription },
+    } = db.auth.onAuthStateChange((_event, session) =>
+      setUser(session?.user || null),
+    );
     return () => subscription.unsubscribe();
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     document.documentElement.style.colorScheme = theme;
-    try { localStorage.setItem("ifund-theme", theme); } catch {}
+    try {
+      localStorage.setItem("ifund-theme", theme);
+    } catch {}
   }, [theme]);
   return (
     <div className="app">

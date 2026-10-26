@@ -380,9 +380,23 @@ html[data-theme="light"] .hero {
   margin: 0.1rem 0.2rem 1.1rem;
   font-family: Fraunces, Georgia, serif;
 }
-.ifund-logo svg { width: 38px; height: 38px; flex: none; }
-.ifund-logo strong { font-size: 1.1rem; line-height: 1.1; display: block; }
-.ifund-logo small { display: block; font: 500 0.78rem Inter,sans-serif; color: #91d7fa; }
+.ifund-logo svg {
+  width: 38px;
+  height: 38px;
+  flex: none;
+}
+.ifund-logo strong {
+  font-size: 1.1rem;
+  line-height: 1.1;
+  display: block;
+}
+.ifund-logo small {
+  display: block;
+  font:
+    500 0.78rem Inter,
+    sans-serif;
+  color: #91d7fa;
+}
 .ifund-primary-nav {
   display: flex;
   flex: 1;
@@ -394,9 +408,15 @@ html[data-theme="light"] .hero {
   padding: 0 0.15rem 1.5rem;
   scrollbar-width: thin;
 }
-.ifund-nav-section { display: grid; gap: 2px; min-width: 0; }
+.ifund-nav-section {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
 .ifund-nav-section-label {
-  font: 700 0.64rem Inter,sans-serif;
+  font:
+    700 0.64rem Inter,
+    sans-serif;
   letter-spacing: 0.13em;
   text-transform: uppercase;
   padding: 0.5rem 0.8rem 0.15rem;
@@ -409,12 +429,16 @@ html[data-theme="light"] .hero {
   gap: 0.65rem;
   align-items: center;
   border-radius: 10px;
-  font: 500 0.85rem Inter,sans-serif;
+  font:
+    500 0.85rem Inter,
+    sans-serif;
   padding: 0.5rem 0.7rem;
   color: #d2d9eb;
   white-space: nowrap;
 }
-.ifund-nav-entry svg { flex: 0 0 auto; }
+.ifund-nav-entry svg {
+  flex: 0 0 auto;
+}
 .ifund-nav-entry.active {
   background: #19b9e821;
   color: #8edbff;
@@ -425,8 +449,15 @@ html[data-theme="light"] .hero {
   background: #ffffff15;
   outline-offset: 2px;
 }
-.ifund-nav-entry.ifund-nav-pending { opacity: 0.65; cursor: not-allowed; }
-.ifund-nav-entry small { margin-left: auto; color: #b5bdd5; font-size: 0.6rem; }
+.ifund-nav-entry.ifund-nav-pending {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.ifund-nav-entry small {
+  margin-left: auto;
+  color: #b5bdd5;
+  font-size: 0.6rem;
+}
 .ifund-sidebar-bottom {
   display: flex;
   justify-content: space-between;
@@ -434,7 +465,10 @@ html[data-theme="light"] .hero {
   border-top: 1px solid #ffffff1d;
   padding: 0.5rem;
 }
-.ifund-sidebar-bottom a { font-size: 0.8rem; text-decoration: underline; }
+.ifund-sidebar-bottom a {
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
 .ifund-theme-toggle,
 .ifund-menu-button {
   min-width: 44px;
@@ -464,88 +498,241 @@ html[data-theme="light"] .hero {
   background: #151b32ef;
   border-bottom: 1px solid #ffffff1a;
 }
-.ifund-current-page { display: grid; margin-right: auto; min-width: 0; }
-.ifund-current-page small {
-  color: #aeb9d2; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em;
+.ifund-current-page {
+  display: grid;
+  margin-right: auto;
+  min-width: 0;
 }
-.ifund-current-page strong { font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ifund-topbar-actions { display: flex; align-items: center; gap: 0.5rem; }
+.ifund-current-page small {
+  color: #aeb9d2;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.ifund-current-page strong {
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ifund-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .ifund-topbar-link {
-  border: 1px solid #5d6b96; border-radius: 30px;
-  padding: 0.5rem 0.85rem; white-space: nowrap; font-size: 0.78rem;
+  border: 1px solid #5d6b96;
+  border-radius: 30px;
+  padding: 0.5rem 0.85rem;
+  white-space: nowrap;
+  font-size: 0.78rem;
 }
 .ifund-menu-button,
 .ifund-mobile-logo,
-.ifund-mobile-bottom { display: none; }
+.ifund-mobile-bottom {
+  display: none;
+}
 .ifund-runtime-notice {
-  display: flex; align-items: center; gap: 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
   padding: 0.55rem clamp(1rem, 3vw, 2rem);
-  font-size: 0.75rem; color: #e2d3a9; background: #3e342e;
+  font-size: 0.75rem;
+  color: #e2d3a9;
+  background: #3e342e;
 }
-.ifund-runtime-notice svg { flex: none; }
-.ifund-stage { flex: 1; width: 100%; min-width: 0; }
-.ifund-footer { margin-top: 2rem; }
-.ifund-modal-layer { display: none; }
+.ifund-runtime-notice svg {
+  flex: none;
+}
+.ifund-stage {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+}
+.ifund-footer {
+  margin-top: 2rem;
+}
+.ifund-modal-layer {
+  display: none;
+}
 html[data-theme="light"] .ifund-sidebar,
-html[data-theme="light"] .ifund-mobile-drawer { background: #eef3ff; border-color: #c8d3e7; }
-html[data-theme="light"] .ifund-sidebar .ifund-nav-entry { color: #30405f; }
-html[data-theme="light"] .ifund-nav-section-label { color: #52617b; }
-html[data-theme="light"] .ifund-nav-entry.active {
-  background: #d3edff; color: #164e8e;
+html[data-theme="light"] .ifund-mobile-drawer {
+  background: #eef3ff;
+  border-color: #c8d3e7;
 }
-html[data-theme="light"] .ifund-nav-entry small { color: #425675; }
-html[data-theme="light"] .ifund-sidebar-bottom { border-color: #c8d3e7; }
-html[data-theme="light"] .ifund-runtime-notice { color: #563d1d; background: #fff1d3; }
-html[data-theme="light"] .ifund-current-page small { color: #52617b; }
-html[data-theme="light"] .ifund-topbar-link { border-color: #99a9c6; }
-html[data-theme="light"] .ifund-stage { color: #1b2a46; }
+html[data-theme="light"] .ifund-sidebar .ifund-nav-entry {
+  color: #30405f;
+}
+html[data-theme="light"] .ifund-nav-section-label {
+  color: #52617b;
+}
+html[data-theme="light"] .ifund-nav-entry.active {
+  background: #d3edff;
+  color: #164e8e;
+}
+html[data-theme="light"] .ifund-nav-entry small {
+  color: #425675;
+}
+html[data-theme="light"] .ifund-sidebar-bottom {
+  border-color: #c8d3e7;
+}
+html[data-theme="light"] .ifund-runtime-notice {
+  color: #563d1d;
+  background: #fff1d3;
+}
+html[data-theme="light"] .ifund-current-page small {
+  color: #52617b;
+}
+html[data-theme="light"] .ifund-topbar-link {
+  border-color: #99a9c6;
+}
+html[data-theme="light"] .ifund-stage {
+  color: #1b2a46;
+}
 html[data-theme="light"] .ifund-theme-toggle,
-html[data-theme="light"] .ifund-menu-button { color: #23365d; border-color: #aab7d0; }
+html[data-theme="light"] .ifund-menu-button {
+  color: #23365d;
+  border-color: #aab7d0;
+}
 html[data-theme="light"] input,
 html[data-theme="light"] textarea,
-html[data-theme="light"] select { color: #1d2543; background: #fff; }
-html[data-theme="light"] .notice { color: #23415a; background: #d9efff; }
-html[data-theme="light"] .error { color: #702d3d; background: #ffe0e5; }
+html[data-theme="light"] select {
+  color: #1d2543;
+  background: #fff;
+}
+html[data-theme="light"] .notice {
+  color: #23415a;
+  background: #d9efff;
+}
+html[data-theme="light"] .error {
+  color: #702d3d;
+  background: #ffe0e5;
+}
 html[data-theme="light"] .lede,
-html[data-theme="light"] .story { color: #314767; }
-html[data-theme="light"] .ifund-mobile-bottom { background: #f6f9ff; color: #253b60; }
+html[data-theme="light"] .story {
+  color: #314767;
+}
+html[data-theme="light"] .ifund-mobile-bottom {
+  background: #f6f9ff;
+  color: #253b60;
+}
 @media (max-width: 850px) {
-  .ifund-sidebar-desktop { display: none; }
+  .ifund-sidebar-desktop {
+    display: none;
+  }
   .ifund-menu-button,
-  .ifund-mobile-logo { display: inline-flex; align-items: center; justify-content: center; }
-  .ifund-mobile-logo svg { width: 33px; height: 33px; }
-  .ifund-topbar { padding: 0.4rem 0.7rem; min-height: 60px; }
-  .ifund-topbar-link { display: none; }
-  .ifund-current-page strong { font-size: 0.9rem; }
-  .ifund-stage { padding-bottom: 3.6rem; }
+  .ifund-mobile-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ifund-mobile-logo svg {
+    width: 33px;
+    height: 33px;
+  }
+  .ifund-topbar {
+    padding: 0.4rem 0.7rem;
+    min-height: 60px;
+  }
+  .ifund-topbar-link {
+    display: none;
+  }
+  .ifund-current-page strong {
+    font-size: 0.9rem;
+  }
+  .ifund-stage {
+    padding-bottom: 3.6rem;
+  }
   .ifund-mobile-bottom {
-    display: flex; justify-content: space-around; align-items: stretch;
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-    min-height: 62px; padding-bottom: env(safe-area-inset-bottom);
-    border-top: 1px solid #5261866b; background: #10172df5;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 20;
+    min-height: 62px;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top: 1px solid #5261866b;
+    background: #10172df5;
   }
   .ifund-mobile-bottom a {
-    flex: 1; padding: 0.45rem 0.1rem;
-    display: grid; justify-items: center; gap: 0.1rem;
-    font: 600 0.65rem Inter,sans-serif;
+    flex: 1;
+    padding: 0.45rem 0.1rem;
+    display: grid;
+    justify-items: center;
+    gap: 0.1rem;
+    font:
+      600 0.65rem Inter,
+      sans-serif;
   }
-  .ifund-mobile-bottom a.active { color: #89dfff; }
-  .ifund-modal-layer { display: block; position: fixed; z-index: 100; inset: 0; }
-  .ifund-drawer-backdrop { display: block; position: absolute; inset: 0; width: 100%; border: 0; border-radius: 0; background: #080d1ca8; }
+  .ifund-mobile-bottom a.active {
+    color: #89dfff;
+  }
+  .ifund-modal-layer {
+    display: block;
+    position: fixed;
+    z-index: 100;
+    inset: 0;
+  }
+  .ifund-drawer-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    background: #080d1ca8;
+  }
   .ifund-mobile-drawer {
-    display: flex; flex-direction: column;
-    position: absolute; left: 0; top: 0; bottom: 0; width: min(82vw,290px);
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: min(82vw, 290px);
     padding: env(safe-area-inset-top) 0.6rem 0.5rem;
-    background: #10172d; color: #e9f0ff;
+    background: #10172d;
+    color: #e9f0ff;
     box-shadow: 5px 0 30px #0006;
   }
-  .ifund-drawer-heading { display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; }
-  .ifund-drawer-heading button { padding: 0.4rem; min-width: 44px; min-height: 44px; }
-  .ifund-mobile-drawer .ifund-primary-nav { overflow-y: auto; }
-  .ifund-footer { padding-bottom: 6rem; }
+  .ifund-drawer-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+  }
+  .ifund-drawer-heading button {
+    padding: 0.4rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .ifund-mobile-drawer .ifund-primary-nav {
+    overflow-y: auto;
+  }
+  .ifund-footer {
+    padding-bottom: 6rem;
+  }
 }
 
-.ifund-legal-links { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.8rem; }
-.ifund-legal-links a { text-decoration: underline; text-underline-offset: 3px; font-size: 0.8rem; }
-.ifund-primary-nav { order: initial; width: auto; overflow-x: hidden; }
-html[data-theme="light"] .ifund-legal-links a { color: #244472; }
+.ifund-legal-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+.ifund-legal-links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-size: 0.8rem;
+}
+.ifund-primary-nav {
+  order: initial;
+  width: auto;
+  overflow-x: hidden;
+}
+html[data-theme="light"] .ifund-legal-links a {
+  color: #244472;
+}
