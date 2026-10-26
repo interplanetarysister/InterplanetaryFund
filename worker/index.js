@@ -1,5 +1,6 @@
 import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
+import { routeCommunityWrite } from './communityWrites.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
@@ -17,6 +18,10 @@ export default {
     }
     if (request.method === 'GET' && /^\/api\/campaigns\/[^/]+$/.test(pathname)) {
       return routeReadRequest(request, env);
+    }
+    if (pathname === '/api/community/posts' ||
+        /^\/api\/community\/posts\/[^/]+$/.test(pathname)) {
+      return routeCommunityWrite(request, env);
     }
     if (pathname === '/api/campaigns' || /^\/api\/campaigns\/[^/]+$/.test(pathname)) {
       return routeCampaignWrite(request, env);
