@@ -58,14 +58,28 @@ const rows = `/login|Sign in|public|existing
 /admin/sustainability|Planet Impact|admin|admin
 /admin/help|Help Center editor|admin|admin
 /admin/founding-members|Founding members admin|admin|admin`;
-export const sourcePageRoutes = rows.trim().split("\n").map((line) => {
-  const [path, title, access, kind] = line.split("|");
-  return { path, title, access, kind };
-});
-export const sourceRoutePaths = new Set(sourcePageRoutes.map((page) => page.path));
+export const sourcePageRoutes = rows
+  .trim()
+  .split("\n")
+  .map((line) => {
+    const [path, title, access, kind] = line.split("|");
+    return { path, title, access, kind };
+  });
+export const sourceRoutePaths = new Set(
+  sourcePageRoutes.map((page) => page.path),
+);
 export const sourceRouteCount = sourcePageRoutes.length;
-export const findPage = (path) => sourcePageRoutes.find((page) => page.path === path);
+export const findPage = (path) =>
+  sourcePageRoutes.find((page) => page.path === path);
 export const existingIndependentPagePaths = new Set([
-  "/login", "/", "/about", "/terms", "/privacy", "/discover",
-  "/campaign/:id", "/community", "/create", "/connections",
+  "/login",
+  "/",
+  "/about",
+  "/terms",
+  "/privacy",
+  "/discover",
+  "/campaign/:id",
+  "/community",
+  "/create",
+  "/connections",
 ]);

@@ -16,18 +16,33 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import RestoredPublic from "./pages/RestoredPublic";
 import RestoredMember from "./pages/RestoredMember";
-import { sourcePageRoutes, existingIndependentPagePaths } from "./lib/pageRoutes";
+import {
+  sourcePageRoutes,
+  existingIndependentPagePaths,
+} from "./lib/pageRoutes";
 function IndependentRoute({ page, user }) {
   if (page.access !== "public" && !user) {
     return <Navigate to="/login" replace />;
   }
-  if (page.access === "admin" && !["admin", "super_admin"].includes(user?.app_metadata?.role)) {
-    return <main><h1>Access restricted</h1><p>Administrative access requires a verified role.</p><Link to="/">Home</Link></main>;
+  if (
+    page.access === "admin" &&
+    !["admin", "super_admin"].includes(user?.app_metadata?.role)
+  ) {
+    return (
+      <main>
+        <h1>Access restricted</h1>
+        <p>Administrative access requires a verified role.</p>
+        <Link to="/">Home</Link>
+      </main>
+    );
   }
-  if (page.kind === "redirect") return <Navigate to="/admin/integrations?view=ai" replace />;
-  return page.access === "public"
-    ? <RestoredPublic page={page} user={user} />
-    : <RestoredMember page={page} user={user} />;
+  if (page.kind === "redirect")
+    return <Navigate to="/admin/integrations?view=ai" replace />;
+  return page.access === "public" ? (
+    <RestoredPublic page={page} user={user} />
+  ) : (
+    <RestoredMember page={page} user={user} />
+  );
 }
 
 function initialTheme() {
@@ -128,12 +143,23 @@ function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/login" element={<Auth user={user} />} />
-            <Route path="/connections" element={user ? <Connections user={user} /> : <Navigate to="/login" replace />} />
+            <Route
+              path="/connections"
+              element={
+                user ? (
+                  <Connections user={user} />
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
             <Route path="/community" element={<Community user={user} />} />
             {sourcePageRoutes
               .filter((page) => !existingIndependentPagePaths.has(page.path))
               .map((page) => (
-                <Route key={page.path} path={page.path}
+                <Route
+                  key={page.path}
+                  path={page.path}
                   element={<IndependentRoute page={page} user={user} />}
                 />
               ))}

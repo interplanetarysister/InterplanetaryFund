@@ -748,7 +748,9 @@ html[data-theme="light"] .ifund-legal-links a {
   min-width: 0;
   overflow-wrap: anywhere;
 }
-.ifund-restored-card h2 { margin-top: 0; }
+.ifund-restored-card h2 {
+  margin-top: 0;
+}
 .ifund-page-heading {
   display: flex;
   justify-content: space-between;
@@ -761,7 +763,9 @@ html[data-theme="light"] .ifund-legal-links a {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
   gap: 1rem;
 }
-.ifund-page-grid .card { min-height: 10rem; }
+.ifund-page-grid .card {
+  min-height: 10rem;
+}
 .ifund-nav-entry small {
   font-size: 0.64rem;
   opacity: 0.72;
