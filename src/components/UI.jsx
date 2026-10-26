@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 export function Planet() {
   return (
     <img
-      src="/ifund-logo-small.jpg"
+      src="/ifund-logo-small.webp"
       width="42"
       height="42"
       alt=""
