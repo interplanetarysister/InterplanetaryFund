@@ -144,6 +144,11 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
           <strong>Interplanetary Fund</strong>
           <p>What if? · Build with care, give with purpose.</p>
           <small>Independent Supabase + Cloudflare recovery build. No payment processing enabled.</small>
+          <nav aria-label="Legal information" className="ifund-legal-links">
+            <Link to="/about">About</Link>
+            <Link to="/terms">Terms of Service</Link>
+            <Link to="/privacy">Privacy Policy</Link>
+          </nav>
         </footer>
         <nav className="ifund-mobile-bottom" aria-label="Quick navigation">
           <NavLink end to="/"><House size={19} />Home</NavLink>
