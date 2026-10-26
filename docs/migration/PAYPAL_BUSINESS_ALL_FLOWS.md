@@ -40,3 +40,7 @@ Cloudflare Pages \`interplanetaryfund-migration\` is active with apex/www; produ
 ## Code verification limitation
 
 A focused no-network JavaScript check of the new PayPal Business helper passed 11 of 11. This is not a payment integration test. The GitHub PR is staged and not deployed. Node CI, sandbox provider verification, merchant ownership, SQL/RLS, subscribed-user authorization, and Payouts eligibility still require direct proofs.
+
+## Independent webhook inbox (staged, not deployed)
+
+The `/api/paypal/unified-webhook` handler accepts signed PayPal REST events only after `IFUND_PAYPAL_INBOX_ENABLED=enabled`, independently verified merchant ID, matching registered PayPal webhook ID and a private Supabase service key. It stores all relevant verified capture, refund, subscription and payout events in the private `ifund_finance.paypal_webhook_inbox` table. Unknown or wrong-merchant payments remain unattributed, and **nothing in this inbox writes financial balances**. SQL definition: `supabase/migrations/pending/paypal_business_webhook_inbox_001.sql`. It has not been applied. Before registering PayPal webhooks, deploy the endpoint and test signature validation using the corresponding sandbox app and webhook registration; do not point a live webhook at an inactive staging route (PayPal will retry deliveries).
