@@ -1,3 +1,4 @@
+import { readJsonBody, BodyError } from './bodyLimit.js';
 import { authenticatedUser, migrationReady, response } from './reads.js';
 
 // Only campaign content may be written. Never accept ownership, balances,
@@ -88,12 +89,7 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
-    const rawText = await request.text();
-    if (new TextEncoder().encode(rawText).byteLength > MAX_BYTES)
-      return response(413, { error: 'Request too large.' });
-    let body;
-    try { body = JSON.parse(rawText); }
-    catch { return response(400, { error: 'Invalid JSON.' }); }
+    const body = await readJsonBody(request, MAX_BYTES);
     const campaign = validatePayload(body, create);
     if (!campaign)
       return response(422, { error: 'Invalid or incomplete campaign fields.' });
@@ -121,7 +117,8 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
     return response(create ? 201 : 200, {
       id: saved.id, status: saved.status, updated_at: saved.updated_at,
     });
-  } catch {
+  } catch (error) {
+    if (error instanceof BodyError) return response(error.status, { error: error.message });
     return response(503, { error: 'Campaign save unavailable.' });
   }
 }
