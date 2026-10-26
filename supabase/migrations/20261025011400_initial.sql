@@ -57,6 +57,16 @@ create policy ifund_posts_delete on public.ifund_posts for delete to authenticat
 create policy ifund_connections_owner_read on public.ifund_connections for select to authenticated using (owner_id = (select auth.uid()));
 -- Only a trusted backend may mark a provider as connected after live verification.
 -- No public insert/update policies for connections.
+-- Remove any broad table grants supplied by Supabase defaults or older preview
+-- schema revisions before applying the explicit least-privilege grants below.
+-- RLS is still required: GRANT restricts columns, RLS restricts rows.
+revoke all privileges on table
+  public.ifund_profiles,
+  public.ifund_campaigns,
+  public.ifund_posts,
+  public.ifund_connections
+  from public, anon, authenticated;
+
 grant usage on schema public to anon,authenticated;
 grant select on public.ifund_campaigns,public.ifund_posts to anon;
 -- Limit client-side writes to specific user-owned fields.
