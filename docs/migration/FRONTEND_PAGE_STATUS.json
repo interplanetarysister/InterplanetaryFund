@@ -1,0 +1,407 @@
+{
+  "source_repo": "interplanetarysister/interplanetary-fund2",
+  "source_ref": "main",
+  "total": 57,
+  "note": "Status describes source-to-preview coverage, not functional parity. Zero pages verified against Base44 live runtime.",
+  "pages": [
+    {
+      "source": "src/pages/AIImageStudio.jsx",
+      "name": "AIImageStudio",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/About.jsx",
+      "name": "About",
+      "target": "src/pages/About.jsx",
+      "status": "ported_static_needs_legal_review",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/AdminAgentApi.jsx",
+      "name": "AdminAgentApi",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/AdminFoundingWaitlist.jsx",
+      "name": "AdminFoundingWaitlist",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Agents.jsx",
+      "name": "Agents",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Analytics.jsx",
+      "name": "Analytics",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/AuditLogAdmin.jsx",
+      "name": "AuditLogAdmin",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/BlogArticle.jsx",
+      "name": "BlogArticle",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Blogs.jsx",
+      "name": "Blogs",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/CampaignDetail.jsx",
+      "name": "CampaignDetail",
+      "target": "src/pages/CampaignDetail.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Communications.jsx",
+      "name": "Communications",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Community.jsx",
+      "name": "Community",
+      "target": "src/pages/Community.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/CommunityDetail.jsx",
+      "name": "CommunityDetail",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Connect.jsx",
+      "name": "Connect",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/ConnectedDevices.jsx",
+      "name": "ConnectedDevices",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Connections.jsx",
+      "name": "Connections",
+      "target": "src/pages/Connections.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Contact.jsx",
+      "name": "Contact",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/CreateCampaign.jsx",
+      "name": "CreateCampaign",
+      "target": "src/pages/CampaignEditor.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Dashboard.jsx",
+      "name": "Dashboard",
+      "target": "src/pages/Feed.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/DeviceActivation.jsx",
+      "name": "DeviceActivation",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Discover.jsx",
+      "name": "Discover",
+      "target": "src/pages/Discover.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Donors.jsx",
+      "name": "Donors",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/EmbedCampaign.jsx",
+      "name": "EmbedCampaign",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/ExternalAccounts.jsx",
+      "name": "ExternalAccounts",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/FinancialLedger.jsx",
+      "name": "FinancialLedger",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/FollowedCampaigns.jsx",
+      "name": "FollowedCampaigns",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/ForgotPassword.jsx",
+      "name": "ForgotPassword",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/FoundingMembers.jsx",
+      "name": "FoundingMembers",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/GlobalGlobe.jsx",
+      "name": "GlobalGlobe",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Help.jsx",
+      "name": "Help",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/HelpAdmin.jsx",
+      "name": "HelpAdmin",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/HelpArticle.jsx",
+      "name": "HelpArticle",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Home.jsx",
+      "name": "Home",
+      "target": "src/pages/Feed.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Inbox.jsx",
+      "name": "Inbox",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/InstitutionDetail.jsx",
+      "name": "InstitutionDetail",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Institutions.jsx",
+      "name": "Institutions",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/IntegrationsAdmin.jsx",
+      "name": "IntegrationsAdmin",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Login.jsx",
+      "name": "Login",
+      "target": "src/pages/Auth.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/MissionControlPage.jsx",
+      "name": "MissionControlPage",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/MyBlog.jsx",
+      "name": "MyBlog",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/MyGiving.jsx",
+      "name": "MyGiving",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Notifications.jsx",
+      "name": "Notifications",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/OAuthConsent.jsx",
+      "name": "OAuthConsent",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Onboarding.jsx",
+      "name": "Onboarding",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/OpsCenter.jsx",
+      "name": "OpsCenter",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Platform.jsx",
+      "name": "Platform",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Privacy.jsx",
+      "name": "Privacy",
+      "target": "src/pages/Privacy.jsx",
+      "status": "ported_static_needs_legal_review",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Profile.jsx",
+      "name": "Profile",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/PublicProfile.jsx",
+      "name": "PublicProfile",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/PublicationArticle.jsx",
+      "name": "PublicationArticle",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Register.jsx",
+      "name": "Register",
+      "target": "src/pages/Auth.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/ResetPassword.jsx",
+      "name": "ResetPassword",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Social.jsx",
+      "name": "Social",
+      "target": "src/pages/Community.jsx",
+      "status": "partial_preview",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Subscriptions.jsx",
+      "name": "Subscriptions",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/SustainabilityAdmin.jsx",
+      "name": "SustainabilityAdmin",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Terms.jsx",
+      "name": "Terms",
+      "target": "src/pages/Terms.jsx",
+      "status": "ported_static_needs_legal_review",
+      "verified_behavior": false
+    },
+    {
+      "source": "src/pages/Withdrawals.jsx",
+      "name": "Withdrawals",
+      "target": null,
+      "status": "not_ported",
+      "verified_behavior": false
+    }
+  ]
+}

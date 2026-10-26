@@ -1,0 +1,1296 @@
+{
+  "source_repo": "interplanetarysister/interplanetary-fund2",
+  "source_ref": "main",
+  "entrypoint_count": 184,
+  "note": "Two read handlers have partial inactive preview prototypes; zero production-complete ports. All remaining ports require parity/security verification.",
+  "functions": [
+    {
+      "name": "acknowledgeConnectionIssue",
+      "source": "base44/functions/acknowledgeConnectionIssue/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "activateSubscriptionCheckout",
+      "source": "base44/functions/activateSubscriptionCheckout/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "adminApiConnectionIntake",
+      "source": "base44/functions/adminApiConnectionIntake/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "adminCampaignControl",
+      "source": "base44/functions/adminCampaignControl/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "adminOAuthProviderReadiness",
+      "source": "base44/functions/adminOAuthProviderReadiness/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "adminUpdateUserRole",
+      "source": "base44/functions/adminUpdateUserRole/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "analyzeGrantApplication",
+      "source": "base44/functions/analyzeGrantApplication/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "applyAgentContentDraft",
+      "source": "base44/functions/applyAgentContentDraft/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "applyInstitutionOpportunity",
+      "source": "base44/functions/applyInstitutionOpportunity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "auditAdminAgentGateway",
+      "source": "base44/functions/auditAdminAgentGateway/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "authorizeCollectAndWithdraw",
+      "source": "base44/functions/authorizeCollectAndWithdraw/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "authorizeConnectionAi",
+      "source": "base44/functions/authorizeConnectionAi/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "broadcastPosts",
+      "source": "base44/functions/broadcastPosts/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "cancelPayPalSubscription",
+      "source": "base44/functions/cancelPayPalSubscription/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "capturePayPalOrder",
+      "source": "base44/functions/capturePayPalOrder/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "checkUsernameAvailability",
+      "source": "base44/functions/checkUsernameAvailability/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "communityMembership",
+      "source": "base44/functions/communityMembership/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "completeOAuthConnection",
+      "source": "base44/functions/completeOAuthConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "confirmPayPalSubscription",
+      "source": "base44/functions/confirmPayPalSubscription/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createCommunity",
+      "source": "base44/functions/createCommunity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createDiscussionPost",
+      "source": "base44/functions/createDiscussionPost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createDistributedPost",
+      "source": "base44/functions/createDistributedPost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createDonationCheckout",
+      "source": "base44/functions/createDonationCheckout/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createInstitution",
+      "source": "base44/functions/createInstitution/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createKnowledgeArticle",
+      "source": "base44/functions/createKnowledgeArticle/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createPayPalOrder",
+      "source": "base44/functions/createPayPalOrder/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createPayPalSubscriptionCheckout",
+      "source": "base44/functions/createPayPalSubscriptionCheckout/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createPremiumDayPassCheckout",
+      "source": "base44/functions/createPremiumDayPassCheckout/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createSocialPost",
+      "source": "base44/functions/createSocialPost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createSubscriptionCheckout",
+      "source": "base44/functions/createSubscriptionCheckout/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createSupportTicket",
+      "source": "base44/functions/createSupportTicket/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "createVolunteerOpportunity",
+      "source": "base44/functions/createVolunteerOpportunity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "decideGrantApplication",
+      "source": "base44/functions/decideGrantApplication/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "deleteAccount",
+      "source": "base44/functions/deleteAccount/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "deleteCampaign",
+      "source": "base44/functions/deleteCampaign/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "deviceAuthorization",
+      "source": "base44/functions/deviceAuthorization/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "disconnectPlatformConnection",
+      "source": "base44/functions/disconnectPlatformConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "discoverConnectionMethods",
+      "source": "base44/functions/discoverConnectionMethods/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "discoverExternalCampaignSnapshot",
+      "source": "base44/functions/discoverExternalCampaignSnapshot/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "discoverFeatures",
+      "source": "base44/functions/discoverFeatures/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "discoverPayPalHoldingSettlements",
+      "source": "base44/functions/discoverPayPalHoldingSettlements/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "draftSharePost",
+      "source": "base44/functions/draftSharePost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "enforceCampaignProtocol",
+      "source": "base44/functions/enforceCampaignProtocol/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "executeAdminAgentRequest",
+      "source": "base44/functions/executeAdminAgentRequest/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "executeCollectAndWithdraw",
+      "source": "base44/functions/executeCollectAndWithdraw/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "externalAgentCampaigns",
+      "source": "base44/functions/externalAgentCampaigns/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "externalAgentContentWrite",
+      "source": "base44/functions/externalAgentContentWrite/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "finalizeAppUserOAuthConnection",
+      "source": "base44/functions/finalizeAppUserOAuthConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "generateCampaignCover",
+      "source": "base44/functions/generateCampaignCover/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "generateDistributionContent",
+      "source": "base44/functions/generateDistributionContent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "generateIntelligence",
+      "source": "base44/functions/generateIntelligence/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "generateSocialContent",
+      "source": "base44/functions/generateSocialContent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "geocodeCity",
+      "source": "base44/functions/geocodeCity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getAgentAccountContext",
+      "source": "base44/functions/getAgentAccountContext/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getAgentMailContext",
+      "source": "base44/functions/getAgentMailContext/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getAppUserConnector",
+      "source": "base44/functions/getAppUserConnector/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getBufferReadiness",
+      "source": "base44/functions/getBufferReadiness/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getCampaignDonations",
+      "source": "base44/functions/getCampaignDonations/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getCampaignDraft",
+      "source": "base44/functions/getCampaignDraft/entry.ts",
+      "status": "partial_preview_unmounted",
+      "target": "worker/reads.js",
+      "verified_runtime": false
+    },
+    {
+      "name": "getCampaignWithdrawalBalance",
+      "source": "base44/functions/getCampaignWithdrawalBalance/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getCommunityFeed",
+      "source": "base44/functions/getCommunityFeed/entry.ts",
+      "status": "partial_preview_unmounted",
+      "target": "worker/reads.js",
+      "verified_runtime": false
+    },
+    {
+      "name": "getConnectedPayoutAccount",
+      "source": "base44/functions/getConnectedPayoutAccount/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getCryptoDonationReadiness",
+      "source": "base44/functions/getCryptoDonationReadiness/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getFeatureAvailability",
+      "source": "base44/functions/getFeatureAvailability/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getFundraisingMode",
+      "source": "base44/functions/getFundraisingMode/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getLiveProviderStatus",
+      "source": "base44/functions/getLiveProviderStatus/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getMyGiving",
+      "source": "base44/functions/getMyGiving/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getOwnerDonorDirectory",
+      "source": "base44/functions/getOwnerDonorDirectory/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getOwnerFinancialLedger",
+      "source": "base44/functions/getOwnerFinancialLedger/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getPayPalConfig",
+      "source": "base44/functions/getPayPalConfig/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getPayPalPayoutReadiness",
+      "source": "base44/functions/getPayPalPayoutReadiness/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getPayPalSubscriptionOptions",
+      "source": "base44/functions/getPayPalSubscriptionOptions/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getPaymentCapabilities",
+      "source": "base44/functions/getPaymentCapabilities/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getSharedConnectorStatus",
+      "source": "base44/functions/getSharedConnectorStatus/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getStripeIntegrationAudit",
+      "source": "base44/functions/getStripeIntegrationAudit/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getStripeReadiness",
+      "source": "base44/functions/getStripeReadiness/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getStripeSubscriptionOptions",
+      "source": "base44/functions/getStripeSubscriptionOptions/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getUnifiedInbox",
+      "source": "base44/functions/getUnifiedInbox/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getVerifiedIFundIntegrationContext",
+      "source": "base44/functions/getVerifiedIFundIntegrationContext/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "getWritingResearchBrief",
+      "source": "base44/functions/getWritingResearchBrief/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "importExternalCampaign",
+      "source": "base44/functions/importExternalCampaign/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "joinFoundingWaitlist",
+      "source": "base44/functions/joinFoundingWaitlist/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "justGivingStagingPilot",
+      "source": "base44/functions/justGivingStagingPilot/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "kofiWebhook",
+      "source": "base44/functions/kofiWebhook/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "listConnections",
+      "source": "base44/functions/listConnections/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "listFundraisingProviderCapabilities",
+      "source": "base44/functions/listFundraisingProviderCapabilities/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "listInstitutionApplications",
+      "source": "base44/functions/listInstitutionApplications/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "listUntrackedPayPalReceipts",
+      "source": "base44/functions/listUntrackedPayPalReceipts/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "logPlatformEvent",
+      "source": "base44/functions/logPlatformEvent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "maintainPlatformOwnedAccounts",
+      "source": "base44/functions/maintainPlatformOwnedAccounts/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageAdminBuilderWork",
+      "source": "base44/functions/manageAdminBuilderWork/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageAgentContentDraft",
+      "source": "base44/functions/manageAgentContentDraft/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageAgentWork",
+      "source": "base44/functions/manageAgentWork/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageApprovedBuilderExecution",
+      "source": "base44/functions/manageApprovedBuilderExecution/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageBlog",
+      "source": "base44/functions/manageBlog/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageConnectedPayoutAccount",
+      "source": "base44/functions/manageConnectedPayoutAccount/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageDistributedPost",
+      "source": "base44/functions/manageDistributedPost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageExternalAgentKeys",
+      "source": "base44/functions/manageExternalAgentKeys/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageFeatureFlag",
+      "source": "base44/functions/manageFeatureFlag/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageFriends",
+      "source": "base44/functions/manageFriends/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageOAuthClients",
+      "source": "base44/functions/manageOAuthClients/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageOfficialPublications",
+      "source": "base44/functions/manageOfficialPublications/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageOwnerConnectionConfiguration",
+      "source": "base44/functions/manageOwnerConnectionConfiguration/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "managePlatformAccess",
+      "source": "base44/functions/managePlatformAccess/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "managePlatformIncidents",
+      "source": "base44/functions/managePlatformIncidents/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "managePostInterest",
+      "source": "base44/functions/managePostInterest/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "managePublicProfile",
+      "source": "base44/functions/managePublicProfile/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageRecurringDonation",
+      "source": "base44/functions/manageRecurringDonation/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "manageVerificationMailbox",
+      "source": "base44/functions/manageVerificationMailbox/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "markNotificationRead",
+      "source": "base44/functions/markNotificationRead/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "matchExternalPayPalSettlement",
+      "source": "base44/functions/matchExternalPayPalSettlement/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "mirrorExternalPosts",
+      "source": "base44/functions/mirrorExternalPosts/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "ownerAgentChatActions",
+      "source": "base44/functions/ownerAgentChatActions/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "payPalSubscriptionWebhook",
+      "source": "base44/functions/payPalSubscriptionWebhook/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "postCampaignUpdate",
+      "source": "base44/functions/postCampaignUpdate/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "postDiscussionReply",
+      "source": "base44/functions/postDiscussionReply/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "prepareCollectAndWithdraw",
+      "source": "base44/functions/prepareCollectAndWithdraw/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "processAdminActionInbox",
+      "source": "base44/functions/processAdminActionInbox/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "publishInstitutionOpportunity",
+      "source": "base44/functions/publishInstitutionOpportunity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "publishLinkedCampaignToConnection",
+      "source": "base44/functions/publishLinkedCampaignToConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "publishPost",
+      "source": "base44/functions/publishPost/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "receiveCloudflareEmail",
+      "source": "base44/functions/receiveCloudflareEmail/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "reconcileDirectPayPalCampaignDonation",
+      "source": "base44/functions/reconcileDirectPayPalCampaignDonation/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "reconcileExternalPayPalSettlement",
+      "source": "base44/functions/reconcileExternalPayPalSettlement/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "recordAgentInteraction",
+      "source": "base44/functions/recordAgentInteraction/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "recordCampaignCreated",
+      "source": "base44/functions/recordCampaignCreated/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "recordDonation",
+      "source": "base44/functions/recordDonation/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "recordExternalFundMigration",
+      "source": "base44/functions/recordExternalFundMigration/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "recordLegalAcceptance",
+      "source": "base44/functions/recordLegalAcceptance/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "refreshWritingResearch",
+      "source": "base44/functions/refreshWritingResearch/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "registerPushDevice",
+      "source": "base44/functions/registerPushDevice/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "renderInterplanetaryPhoto",
+      "source": "base44/functions/renderInterplanetaryPhoto/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "repairStripeWebhookEvents",
+      "source": "base44/functions/repairStripeWebhookEvents/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "requestManagedConnectionAction",
+      "source": "base44/functions/requestManagedConnectionAction/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "requestWithdrawal",
+      "source": "base44/functions/requestWithdrawal/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "resolveConnectionStatus",
+      "source": "base44/functions/resolveConnectionStatus/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "resolvePlatformConnectionRecipe",
+      "source": "base44/functions/resolvePlatformConnectionRecipe/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "reviewAgentActivity",
+      "source": "base44/functions/reviewAgentActivity/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "revokeConnectionAiConsent",
+      "source": "base44/functions/revokeConnectionAiConsent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "routeAgentTask",
+      "source": "base44/functions/routeAgentTask/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "runBrowserConnection",
+      "source": "base44/functions/runBrowserConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "runOfficialSocialPromotion",
+      "source": "base44/functions/runOfficialSocialPromotion/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "runOutreachAgent",
+      "source": "base44/functions/runOutreachAgent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "runReporterDiary",
+      "source": "base44/functions/runReporterDiary/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "runSocialAutopilot",
+      "source": "base44/functions/runSocialAutopilot/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "saveCampaign",
+      "source": "base44/functions/saveCampaign/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "saveConnectionCredentials",
+      "source": "base44/functions/saveConnectionCredentials/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "sendCommunication",
+      "source": "base44/functions/sendCommunication/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "sendPublicContactMessage",
+      "source": "base44/functions/sendPublicContactMessage/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "setConnectionAiToggle",
+      "source": "base44/functions/setConnectionAiToggle/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "setUnifiedOboConsent",
+      "source": "base44/functions/setUnifiedOboConsent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "setUsername",
+      "source": "base44/functions/setUsername/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "setupPayPalSubscriptionWebhook",
+      "source": "base44/functions/setupPayPalSubscriptionWebhook/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "startPremiumTrial",
+      "source": "base44/functions/startPremiumTrial/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "startStripeConnectOnboarding",
+      "source": "base44/functions/startStripeConnectOnboarding/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "stripeWebhook",
+      "source": "base44/functions/stripeWebhook/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncConnections",
+      "source": "base44/functions/syncConnections/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncExternalFunds",
+      "source": "base44/functions/syncExternalFunds/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncFromConvex",
+      "source": "base44/functions/syncFromConvex/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncGitHub",
+      "source": "base44/functions/syncGitHub/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncImportedCampaign",
+      "source": "base44/functions/syncImportedCampaign/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncPayPalSubscriptionCatalog",
+      "source": "base44/functions/syncPayPalSubscriptionCatalog/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncStripeSubscriptionCatalog",
+      "source": "base44/functions/syncStripeSubscriptionCatalog/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncWixAnalytics",
+      "source": "base44/functions/syncWixAnalytics/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncWixBusinessData",
+      "source": "base44/functions/syncWixBusinessData/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncWixCampaigns",
+      "source": "base44/functions/syncWixCampaigns/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "syncWixContent",
+      "source": "base44/functions/syncWixContent/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "toggleCampaignFollow",
+      "source": "base44/functions/toggleCampaignFollow/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "trackAgentConversation",
+      "source": "base44/functions/trackAgentConversation/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "translateCampaign",
+      "source": "base44/functions/translateCampaign/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "updateCampaignSettings",
+      "source": "base44/functions/updateCampaignSettings/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "updateFollowPreferences",
+      "source": "base44/functions/updateFollowPreferences/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "updateInboxItem",
+      "source": "base44/functions/updateInboxItem/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "updateMissionItemStatus",
+      "source": "base44/functions/updateMissionItemStatus/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "validateIntegrationHealth",
+      "source": "base44/functions/validateIntegrationHealth/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "verifyAdminGateway",
+      "source": "base44/functions/verifyAdminGateway/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "verifyAgentPlatformAccess",
+      "source": "base44/functions/verifyAgentPlatformAccess/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "verifyAppUserConnector",
+      "source": "base44/functions/verifyAppUserConnector/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "verifyOwnerPayPalBasicPlan",
+      "source": "base44/functions/verifyOwnerPayPalBasicPlan/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "verifyPlatformConnection",
+      "source": "base44/functions/verifyPlatformConnection/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "volunteerFollowUp",
+      "source": "base44/functions/volunteerFollowUp/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "volunteerSignup",
+      "source": "base44/functions/volunteerSignup/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "welcomeVolunteer",
+      "source": "base44/functions/welcomeVolunteer/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    },
+    {
+      "name": "wixWebhook",
+      "source": "base44/functions/wixWebhook/entry.ts",
+      "status": "not_ported",
+      "target": null,
+      "verified_runtime": false
+    }
+  ]
+}
