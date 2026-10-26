@@ -85,7 +85,16 @@ BEGIN
     WHERE t.paypal_capture_id = v_capture
       AND (p->>'currency' IS NULL OR t.currency = p->>'currency');
     IF NOT FOUND THEN
-      RETURN 'unmatched_refund';
+      -- Roll back the event claim so PayPal will retry. Otherwise an early
+      -- refund would become permanently idempotent before its capture arrives.
+      RAISE EXCEPTION 'unmatched platform-support refund; reconciliation required';
+    END IF;
+  ELSIF v_type = 'PAYMENT.CAPTURE.REVERSED' THEN
+    UPDATE ifund_finance.platform_support_payment AS t
+    SET status = 'REVERSED', updated_at = now()
+    WHERE t.paypal_capture_id = v_capture;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'unmatched platform-support reversal; reconciliation required';
     END IF;
   ELSE
     INSERT INTO ifund_finance.platform_support_payment AS t (
@@ -102,7 +111,9 @@ BEGIN
     )
     ON CONFLICT (paypal_capture_id) DO UPDATE SET
       status = CASE
-        WHEN t.status IN ('REFUNDED', 'PARTIALLY_REFUNDED', 'REVERSED') AND excluded.status IN ('COMPLETED', 'PENDING')
+        WHEN t.status IN ('REFUNDED', 'PARTIALLY_REFUNDED', 'REVERSED') AND excluded.status IN ('COMPLETED', 'PENDING', 'DENIED')
+          THEN t.status
+        WHEN t.status = 'COMPLETED' AND excluded.status IN ('PENDING', 'DENIED')
           THEN t.status
         ELSE excluded.status
       END,
