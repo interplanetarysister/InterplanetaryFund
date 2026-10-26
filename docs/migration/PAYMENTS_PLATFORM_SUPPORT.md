@@ -16,10 +16,11 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 | (none) | `supabase/migrations/pending/payments_platform_support_001.sql` | `ifund_finance.platform_support_payment` and `ifund_finance.platform_support_webhook_event`. Both follow the Phase 2 mapping: RLS is on, clients are denied, and only `service_role` can write. The SQL is **not applied**. |
 
 ### How the webhook decides what to record
-- It records `PAYMENT.CAPTURE.{COMPLETED, PENDING, DENIED, REVERSED, REFUNDED}`.
+- Only captures explicitly tagged `ifund:platform-support:v1` may enter the platform-support ledger. **Untagged PayPal captures must never be treated as IFund support payments.**
+- It handles `PAYMENT.CAPTURE.{COMPLETED, PENDING, DENIED, REVERSED, REFUNDED}` after signature verification and attribution checks.
 - It ignores captures whose `custom_id` contains `|`. Those are legacy campaign checkout orders.
 - It ignores `PAYMENT.SALE.*`, which is subscription billing.
-- The same PayPal event ID is never recorded twice. Refunds add up, and a late COMPLETED event never overwrites a refund or reversal.
+- The same PayPal event ID is never recorded twice. Refunds only update already-attributed support captures; unmatched refunds are audited but do not create payments. A late COMPLETED event cannot overwrite a refund or reversal.
 
 ## Owner steps (not done by this PR)
 1. Review the pending SQL, then apply it to staging.
@@ -38,3 +39,6 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - The owner-designated new Supabase project is `ssibsfmtodgximseeqsv` (PR #148), but the published Pages deployment has not been verified to use it; keep production untouched until data and auth parity.
 - The Worker has been updated in this PR to use `apikey` only for modern `sb_secret_...` keys, while preserving legacy JWT support. Unit tests check both header paths. This is a **source-code change only**, not evidence of configured secrets or a working payment.
 - Verify the PayPal REST-app merchant account matches the account receiving the hosted link. Capture notifications for hosted payment links are **unverified** and must be tested in sandbox before enabling live payments.
+
+## Attribution safety correction — 2026-10-26
+The existing hosted PayPal NCP link is **not a verified source of `custom_id` attribution**. Keep the link as an external payment link, but do not claim that NCP payments will automatically appear in the support ledger. A future first-party PayPal Orders flow must explicitly set `ifund:platform-support:v1` as its `custom_id`, or a reviewed provider-receipt reconciliation path must establish that a specific NCP capture belongs to the IFund support button. Webhook signature verification alone proves delivery by PayPal, **not** which purpose the payment served.
