@@ -9,6 +9,8 @@ import {
 } from "../src/lib/paypalLink.js";
 import {
   classifyPayPalEvent,
+  PLATFORM_SUPPORT_MARKER,
+  verifyPayPalWebhook,
   missingPayPalWebhookConfig,
   paypalApiBase,
   handlePayPalWebhook,
@@ -20,6 +22,7 @@ const capture = (overrides = {}) => ({
   event_type: "PAYMENT.CAPTURE.COMPLETED",
   resource: {
     id: "CAP123",
+    custom_id: PLATFORM_SUPPORT_MARKER,
     status: "COMPLETED",
     amount: { currency_code: "USD", value: "25.00" },
     seller_receivable_breakdown: {
@@ -51,6 +54,15 @@ test("classifies a completed platform-support capture", () => {
   assert.equal(r.record.gross_amount, 25);
   assert.equal(r.record.net_amount, 23.64);
   assert.equal(r.record.status, "COMPLETED");
+});
+
+test("unattributed PayPal captures cannot masquerade as platform support", () => {
+  const c = capture();
+  delete c.resource.custom_id;
+  assert.deepEqual(classifyPayPalEvent(c), { kind: "ignored", reason: "unattributed_capture" });
+  const other = capture();
+  other.resource.custom_id = "unrelated-checkout";
+  assert.equal(classifyPayPalEvent(other).kind, "ignored");
 });
 
 test("ignores campaign checkout captures and unrelated events", () => {
@@ -129,6 +141,31 @@ test("webhook returns 503 when unconfigured and 400 on bad signature", async () 
   // Missing PayPal transmission headers: rejected before any network call.
   const res = await handlePayPalWebhook(req(), env, () => { throw new Error("no network"); });
   assert.equal(res.status, 400);
+});
+
+test("signature verification forwards original event JSON bytes", async () => {
+  const raw = '{ "id":"WH-1", "resource": { "custom_id":"ifund:platform-support:v1" } }';
+  const env = { PAYPAL_MODE: "sandbox", PAYPAL_CLIENT_ID: "id", PAYPAL_CLIENT_SECRET: "secret", PAYPAL_WEBHOOK_ID: "WHID" };
+  const headers = new Headers({
+    "paypal-auth-algo": "SHA256withRSA", "paypal-cert-url": "https://api.sandbox.paypal.com/cert",
+    "paypal-transmission-id": "T-1", "paypal-transmission-sig": "sig",
+    "paypal-transmission-time": "2026-10-25T20:00:00Z"
+  });
+  const calls = [];
+  const fakeFetch = async (url, opt) => {
+    calls.push({ url, opt });
+    return new Response(JSON.stringify(calls.length === 1
+      ? { access_token: "token" } : { verification_status: "SUCCESS" }), { status: 200 });
+  };
+  assert.equal(await verifyPayPalWebhook(headers, raw, env, fakeFetch), true);
+  assert.ok(calls[1].opt.body.includes('"webhook_event":' + raw));
+});
+
+test("unmatched refunds cannot insert support payment rows", () => {
+  const sql = readFileSync("supabase/migrations/pending/payments_platform_support_001.sql", "utf8");
+  assert.match(sql, /UPDATE ifund_finance.platform_support_payment AS t/);
+  assert.match(sql, /RETURN 'unmatched_refund'/);
+  assert.doesNotMatch(sql, /VALUES \(v_capture, 'REFUNDED'/);
 });
 
 test("pending SQL keeps the ifund_finance fail-closed mapping", () => {
