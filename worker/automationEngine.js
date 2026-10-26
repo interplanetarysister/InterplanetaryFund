@@ -1,3 +1,4 @@
+import { validWorkflowAudit, writeWorkflowAudit } from "./automationAudit.js";
 import { WORKFLOWS, workflowExecutable } from "./automationRegistry.js";
 import { scheduledWorkflowsAt, stableWorkflowInstanceId } from "./automationSchedule.js";
 const byId=new Map(WORKFLOWS.map(w=>[w.id,w]));
@@ -34,8 +35,19 @@ export async function runAutomationContract(payload, step, env) {
   const adapters = Object.freeze({});
   if (workflow.handlers.some(name => typeof adapters[name] !== "function"))
     return {status:"blocked",executed:false,reason:"handler_not_registered"};
+  const auditBase = {
+    runId: payload?.runId,
+    workflowId: workflow.id,
+    trigger: payload?.trigger,
+  };
+  if (!validWorkflowAudit({ ...auditBase, status: "running" }))
+    return { status: "blocked", executed: false, reason: "invalid_run_identity" };
+  await step.do("audit-workflow-start", async () =>
+    writeWorkflowAudit(env.IFUND_AUDIT_DB, { ...auditBase, status: "running" }),
+  );
   const outcomes = [];
-  for (let i = 0; i < workflow.handlers.length; i++) {
+  try {
+    for (let i = 0; i < workflow.handlers.length; i++) {
     if (workflow.id === "Volunteer Welcome Follow-up" && i === 1)
       await step.sleep("three-day-volunteer-follow-up", "3 days");
     const name = workflow.handlers[i];
@@ -46,7 +58,16 @@ export async function runAutomationContract(payload, step, env) {
     if (!result?.verified) throw new Error("Workflow action was not durably verified.");
     outcomes.push({handler:name,verified:true});
   }
-  return {status:"verified",executed:true,steps:outcomes};
+    await step.do("audit-workflow-success", async () =>
+      writeWorkflowAudit(env.IFUND_AUDIT_DB, { ...auditBase, status: "succeeded" }),
+    );
+    return { status: "verified", executed: true, steps: outcomes };
+  } catch (error) {
+    await step.do("audit-workflow-failure", async () =>
+      writeWorkflowAudit(env.IFUND_AUDIT_DB, { ...auditBase, status: "failed" }),
+    );
+    throw error;
+  }
 }
 export async function dispatchScheduled(event,env,ctx) {
   if (!releaseApproved(env) || !env?.IFUND_WORKFLOW ||
@@ -59,7 +80,7 @@ export async function dispatchScheduled(event,env,ctx) {
     try {
       await env.IFUND_WORKFLOW.create({
         id,
-        params:{workflowId:item.id,trigger:"scheduled",scheduledTime:event.scheduledTime},
+        params:{workflowId:item.id,trigger:"scheduled",scheduledTime:event.scheduledTime,runId:id},
       });
       queued++;
     } catch(error) {

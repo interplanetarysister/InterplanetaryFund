@@ -79,7 +79,7 @@ export async function routeEntityEventRequest(request,env) {
     try {
       await env.IFUND_WORKFLOW.create({id,params:{
         workflowId:wf.id,trigger:"entity",eventId:input.eventId,
-        entity:input.entity,eventType:input.eventType,recordId:input.recordId
+        entity:input.entity,eventType:input.eventType,recordId:input.recordId,runId:id
       }});
       result.push({name:wf.id,queued:true});
     }catch(error){
