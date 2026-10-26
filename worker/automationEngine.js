@@ -10,7 +10,7 @@ function checks(env) {
     internalCallerVerified:env?.IFUND_INTERNAL_CALLER_VERIFIED === "true",
     ownerScopeVerified:env?.IFUND_OWNER_SCOPE_VERIFIED === "true",
     durableQueueReady:!!env?.IFUND_WORKFLOW,
-    auditReady:env?.IFUND_AUDIT_READY === "true",
+    auditReady: env?.IFUND_AUDIT_READY === "true" && !!env.IFUND_AUDIT_DB,
     consentVerified:env?.IFUND_CONSENT_VERIFIED === "true",
     budgetApproved:env?.IFUND_BUDGET_APPROVED === "true",
     providerWebhookVerified:env?.IFUND_PAYPAL_WEBHOOK_VERIFIED === "true",
