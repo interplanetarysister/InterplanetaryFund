@@ -881,3 +881,26 @@ html[data-theme="light"] .ifund-founding-form-card .ifund-consent-row a{color:#1
 .ifund-share-campaign details{border-top:1px solid #7593bf55;padding-top:1rem}
 .ifund-share-campaign summary{cursor:pointer;font-weight:600}
 .ifund-share-campaign details>*{margin:.6rem 0}
+
+
+/* Original-guided campaign journey: Details / Basics / Story / Launch */
+.ifund-campaign-wizard{width:min(100%,890px);margin:0 auto}
+.ifund-wizard-progress{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;margin:1.4rem 0}
+.ifund-wizard-progress button{min-width:0;display:flex;align-items:center;justify-content:center;gap:.45rem;padding:.68rem .35rem;border-radius:12px;text-align:center;font-size:.8rem;border:1px solid #5f84b366;background:#182843aa}
+.ifund-wizard-progress button span{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:26px;height:26px;border-radius:50%;border:1px solid currentColor;font-weight:700}
+.ifund-wizard-progress button.ifund-wizard-active{background:linear-gradient(105deg,#169cc6,#5255c5);border-color:#78d9ff;color:#fff}
+.ifund-wizard-panel{padding:clamp(.8rem,2vw,1.5rem);border-radius:16px;border:1px solid #627cbb55;background:#09162c44}
+.ifund-wizard-panel section{display:grid;gap:.9rem}
+.ifund-wizard-panel h2{margin:0;font-family:Fraunces,Georgia,serif;font-size:1.7rem}
+.ifund-wizard-panel label{display:grid;gap:.45rem}
+.ifund-wizard-panel input,.ifund-wizard-panel textarea,.ifund-wizard-panel select{width:100%;min-width:0;max-width:100%}
+.ifund-wizard-panel .ifund-ai-inline{border:1px dashed #72abe988;border-radius:12px;padding:.9rem;background:#3764ab11}
+.ifund-wizard-panel .ifund-ai-inline p{font-size:.86rem;margin:.5rem 0}
+.ifund-wizard-panel .ifund-ai-inline button{font-size:.86rem}
+.ifund-wizard-controls{display:flex;gap:.7rem;justify-content:flex-end;flex-wrap:wrap;border-top:1px solid #618fc355;margin-top:1.5rem;padding-top:1.1rem}
+.ifund-review-card{overflow-wrap:anywhere}
+.ifund-cover-preview{max-width:380px}
+.ifund-cover-preview img{display:block;width:100%;max-height:235px;object-fit:cover;border-radius:12px}
+html[data-theme="light"] .ifund-wizard-panel{color:#253e68;background:#f4f9ff;border-color:#adc7ec}
+html[data-theme="light"] .ifund-wizard-progress button:not(.ifund-wizard-active){color:#27466d;background:#eaf2fe;border-color:#b5cee9}
+@media(max-width:650px){.ifund-wizard-progress{gap:.3rem}.ifund-wizard-progress button{flex-direction:column;font-size:.64rem;padding:.6rem .1rem;min-height:70px}.ifund-wizard-controls{justify-content:space-between}.ifund-wizard-controls button{flex-grow:1}}
