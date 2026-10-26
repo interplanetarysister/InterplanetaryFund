@@ -305,7 +305,7 @@ html[data-theme="light"] .card {
 html[data-theme="light"] .card p {
   color: #405170;
 }
-html[data-theme="light"] .ifund-primary-.ifund-primary-nav a {
+html[data-theme="light"] .ifund-primary-nav a {
   color: #2d4164;
 }
 html[data-theme="light"] .platform-strip {
@@ -318,7 +318,7 @@ html[data-theme="light"] .form select {
   background: #fff;
   color: #1d2543;
 }
-html[data-theme="light"] .ifund-.ifund-footer {
+html[data-theme="light"] .ifund-footer {
   background: #ecf1fb;
   color: #253354;
 }
