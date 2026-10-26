@@ -828,3 +828,27 @@ html[data-theme="light"] .ifund-story-surface .ifund-editorial-eyebrow{color:#12
 html[data-theme="light"] .ifund-platform-tile{color:#24436e;border-color:#a6c1df;background:#f5f9ff}
 html[data-theme="light"] .ifund-story-toggle{color:#263c63;border-color:#9eb6d4}
 @media(max-width:700px){.ifund-public-hero{min-height:0;border-radius:18px}.ifund-public-hero::before{right:-35%;top:10%;opacity:.57}.ifund-public-hero::after{right:-39%;top:23%;opacity:.45}.ifund-hero-content{padding:3.6rem 1.1rem 3rem}.ifund-community-grid{grid-template-columns:1fr}.ifund-platform-row{grid-template-columns:repeat(5,minmax(0,1fr))}.ifund-platform-tile{padding:.6rem .1rem}.ifund-story-surface{padding:2rem .5rem}}
+
+
+/* Original mobile dock and compact header controls, both theme variants */
+.ifund-back-button,.ifund-notifications-link{display:none}
+.ifund-mobile-bottom span{font-size:.66rem;max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ifund-mobile-bottom a{color:#cbd7ef;text-decoration:none}
+.ifund-mobile-bottom a.active{color:#8be4ff}
+.ifund-mobile-bottom a:focus-visible,.ifund-topbar button:focus-visible,.ifund-topbar a:focus-visible,.ifund-story-toggle:focus-visible{outline:3px solid #72dfff;outline-offset:3px}
+html[data-theme="light"] .ifund-mobile-bottom a{color:#3e587a}
+html[data-theme="light"] .ifund-mobile-bottom a.active{color:#1360b6}
+@media(max-width:850px){
+  .ifund-topbar{display:flex;flex-wrap:nowrap;gap:.2rem;padding:.38rem .5rem;min-height:58px}
+  .ifund-topbar-actions{flex-shrink:0;gap:.25rem}
+  .ifund-current-page{flex:1;min-width:0;overflow:hidden}
+  .ifund-current-page strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ifund-back-button{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:39px;min-height:42px;background:transparent;border:0;padding:.25rem;color:inherit}
+  .ifund-notifications-link{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:39px;min-height:42px;border-radius:10px}
+  .ifund-menu-button{flex:none;min-width:39px;min-height:42px}
+  .ifund-mobile-logo{flex:none;width:34px}
+  .ifund-mobile-logo img{max-width:33px;max-height:33px}
+  .ifund-mobile-bottom a{min-width:0;min-height:58px}
+  .ifund-mobile-bottom a span{max-width:100%}
+}
+@media(max-width:365px){.ifund-topbar{gap:0}.ifund-current-page small{display:none}.ifund-topbar-actions{gap:0}.ifund-theme-toggle{padding:.35rem;min-width:37px}.ifund-notifications-link,.ifund-back-button{min-width:35px}}
