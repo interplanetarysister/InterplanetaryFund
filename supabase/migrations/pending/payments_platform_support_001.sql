@@ -71,16 +71,22 @@ BEGIN
   END IF;
 
   IF v_type = 'PAYMENT.CAPTURE.REFUNDED' THEN
-    INSERT INTO ifund_finance.platform_support_payment AS t (paypal_capture_id, status, currency, refunded_amount)
-    VALUES (v_capture, 'REFUNDED', p->>'currency', coalesce((p->>'refunded_amount')::numeric, 0))
-    ON CONFLICT (paypal_capture_id) DO UPDATE SET
-      refunded_amount = t.refunded_amount + excluded.refunded_amount,
-      status = CASE
-        WHEN t.gross_amount IS NOT NULL AND t.refunded_amount + excluded.refunded_amount < t.gross_amount
+    -- A refund notification alone does not prove the original payment was
+    -- platform support. Never create a financial row for an unknown capture.
+    UPDATE ifund_finance.platform_support_payment AS t
+    SET refunded_amount = t.refunded_amount + coalesce((p->>'refunded_amount')::numeric, 0),
+        status = CASE
+          WHEN t.gross_amount IS NOT NULL
+            AND t.refunded_amount + coalesce((p->>'refunded_amount')::numeric, 0) < t.gross_amount
           THEN 'PARTIALLY_REFUNDED'
-        ELSE 'REFUNDED'
-      END,
-      updated_at = now();
+          ELSE 'REFUNDED'
+        END,
+        updated_at = now()
+    WHERE t.paypal_capture_id = v_capture
+      AND (p->>'currency' IS NULL OR t.currency = p->>'currency');
+    IF NOT FOUND THEN
+      RETURN 'unmatched_refund';
+    END IF;
   ELSE
     INSERT INTO ifund_finance.platform_support_payment AS t (
       paypal_capture_id, paypal_order_id, status, currency, gross_amount, paypal_fee, net_amount, provider_created_at
