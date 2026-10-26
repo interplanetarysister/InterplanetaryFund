@@ -1,0 +1,6 @@
+{
+  "type": "wordpress_com",
+  "scopes": [
+    "global"
+  ]
+}

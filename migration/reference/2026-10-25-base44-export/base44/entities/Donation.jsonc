@@ -1,0 +1,129 @@
+{
+  "name": "Donation",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number",
+      "description": "The donation amount the supporter entered. Where the processor permits, the processing fee is charged ON TOP (see processing_fee); the total charged to the donor is amount + processing_fee. The recipient's gift is amount minus platform_contribution."
+    },
+    "platform_contribution": {
+      "type": "number",
+      "default": 0,
+      "description": "Portion of the donation the donor directed to the platform as an optional 10% contribution. Excluded from the recipient's gift and from withdrawals; retained by the platform."
+    },
+    "processing_fee": {
+      "type": "number",
+      "default": 0,
+      "description": "The payment processor's fee charged on top of the donation where supported. Retained by the processor, never by Interplanetary Fund."
+    },
+    "donor_name": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "default": false
+    },
+    "recurring_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "paused",
+        "cancelled"
+      ]
+    },
+    "donor_user_id": {
+      "type": "string"
+    },
+    "canonical_operation_id": {
+      "type": "string",
+      "description": "Server-authoritative financial operation id used to repair and deduplicate the application mirror."
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "External payment reference retained for provider lookup and backward compatibility."
+    },
+    "idempotency_key": {
+      "type": "string",
+      "description": "Client-supplied stable intent key for manual-confirmation donations; server-side financial state remains authoritative."
+    },
+    "payment_method": {
+      "type": "string",
+      "enum": [
+        "paypal",
+        "googlepay",
+        "applepay",
+        "cashapp",
+        "stripe",
+        "stripe_crypto",
+        "other"
+      ],
+      "default": "paypal"
+    },
+    "payment_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only when payment was confirmed by an authorized server/provider path. Pending manual reports must not increase confirmed totals or withdrawable value."
+    },
+    "is_institutional": {
+      "type": "boolean",
+      "default": false
+    },
+    "cleared": {
+      "type": "boolean",
+      "default": false
+    },
+    "withdrawal_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "provider_transaction_id": {
+      "type": "string",
+      "description": "Canonical provider transaction/capture reference. Do not place non-Stripe provider ids in stripe_session_id."
+    }
+  },
+  "required": [
+    "campaign_id",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.donor_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Donation records reconciled with a provider or designated as unverified; only confirmed payment affects financial totals."
+}

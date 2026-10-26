@@ -1,0 +1,47 @@
+{
+  "name": "HelpFeedback",
+  "type": "object",
+  "description": "Private per-user feedback on published help articles. Never publicly list users' feedback.",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "article_id": {
+      "type": "string"
+    },
+    "helpful": {
+      "type": "boolean"
+    },
+    "comment": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "article_id",
+    "helpful"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

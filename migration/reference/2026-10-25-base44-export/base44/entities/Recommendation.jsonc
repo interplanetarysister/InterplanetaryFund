@@ -1,0 +1,130 @@
+{
+  "name": "Recommendation",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "description": "Set when created by the AI Outreach Agent (service role) so the campaign owner can read and act on it."
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "reasoning": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "expected_impact": {
+      "type": "string"
+    },
+    "estimated_effort": {
+      "type": "string"
+    },
+    "agent": {
+      "type": "string",
+      "enum": [
+        "strategy",
+        "growth",
+        "communications",
+        "story",
+        "finance",
+        "outreach"
+      ],
+      "default": "strategy"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "accepted",
+        "dismissed"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Agent or system recommendations for campaign or account improvements and review outcomes."
+}

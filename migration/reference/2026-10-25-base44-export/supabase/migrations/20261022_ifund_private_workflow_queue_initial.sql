@@ -1,0 +1,8 @@
+-- Applied to project tzehxfikoslihnclhxuz as migration ifund_private_workflow_queue_initial.
+-- This source reference is NOT a second migration to apply automatically.
+-- See Supabase migration history for authoritative SQL and avoid duplicate runs.
+-- Private schema: ifund_ops
+-- Tables: workflow_jobs, workflow_control, workflow_execution_log.
+-- All three have RLS enabled; anon/authenticated/public privileges revoked.
+-- All jobs default paused; controls require verified source, executor and
+-- idempotency before enabling a workflow. No scheduled executions activated.

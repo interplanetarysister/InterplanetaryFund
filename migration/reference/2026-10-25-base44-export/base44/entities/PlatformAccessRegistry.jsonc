@@ -1,0 +1,151 @@
+{
+  "name": "PlatformAccessRegistry",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "Stable platform key, e.g. 'stripe', 'paypal', 'github'. Acts as the registry's unique lookup key."
+    },
+    "purpose": {
+      "type": "string",
+      "description": "What this integration is for, in plain language."
+    },
+    "integration_kind": {
+      "type": "string",
+      "enum": [
+        "payment",
+        "auth",
+        "social",
+        "deployment",
+        "webhook",
+        "api",
+        "external_platform"
+      ],
+      "default": "api"
+    },
+    "account_identifier": {
+      "type": "string",
+      "description": "Non-secret identifier: client-id prefix, account email, handle, connector name, or endpoint host. Never a secret value."
+    },
+    "auth_type": {
+      "type": "string",
+      "enum": [
+        "oauth",
+        "api_key",
+        "webhook_secret",
+        "env_config",
+        "per_connection",
+        "none"
+      ]
+    },
+    "secret_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Names of the protected secrets / environment references this integration uses. Names only \u2014 never values."
+    },
+    "environment": {
+      "type": "string",
+      "enum": [
+        "production",
+        "development",
+        "sandbox"
+      ],
+      "default": "production"
+    },
+    "optional": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, this integration is optional/unused \u2014 missing secrets do not make the platform unhealthy. Set for integrations that enhance capability but are not required for platform operation."
+    },
+    "authorized_agents": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Agent names/roles permitted to use this integration. Empty = service-role functions only (least privilege)."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "REAUTH_REQUIRED",
+        "EXPIRES_SOON",
+        "DISCONNECTED",
+        "REVOKED",
+        "MISCONFIGURED"
+      ],
+      "default": "ACTIVE"
+    },
+    "last_verified": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_successful_verification": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "admin_owner": {
+      "type": "string",
+      "description": "Admin user id or email responsible for this integration."
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Other platforms, entities, or functions this integration depends on."
+    },
+    "reauth_instructions": {
+      "type": "string",
+      "description": "Steps to reauthorize or revoke this integration."
+    },
+    "auth_failures": {
+      "type": "number",
+      "default": 0
+    },
+    "last_failure": {
+      "type": "string",
+      "description": "Most recent authentication/health failure detail. Never contains secret values."
+    },
+    "cleanup_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Detected cleanup issues: hardcoded_endpoint, decentralized_credentials, dev_creds_in_prod, bypasses_central_access, duplicate, unused."
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "purpose",
+    "auth_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Central non-secret inventory of integration access, protected secret references, and verified health."
+}

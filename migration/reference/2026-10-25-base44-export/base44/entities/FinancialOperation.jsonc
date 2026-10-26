@@ -1,0 +1,121 @@
+{
+  "name": "FinancialOperation",
+  "type": "object",
+  "properties": {
+    "operation_key": {
+      "type": "string",
+      "description": "Stable idempotency key."
+    },
+    "operation_type": {
+      "type": "string",
+      "enum": [
+        "donation",
+        "withdrawal_reservation",
+        "withdrawal_completion",
+        "withdrawal_cancellation",
+        "external_observation",
+        "campaign_baseline"
+      ]
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "applied",
+        "reserved",
+        "completed",
+        "cancelled",
+        "failed"
+      ]
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_owner_user_id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "provider_transaction_id": {
+      "type": "string"
+    },
+    "allocation_fingerprint": {
+      "type": "string",
+      "description": "SHA-256 fingerprint of immutable donation campaign, provider, transaction, and allocation fields. Used with operation_key for atomic idempotency and conflict detection."
+    },
+    "payment_channel": {
+      "type": "string",
+      "description": "Server-verified checkout or verification channel retained for truthful recovery."
+    },
+    "gross_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "platform_contribution": {
+      "type": "number",
+      "default": 0
+    },
+    "processing_fee": {
+      "type": "number",
+      "default": 0
+    },
+    "platform_fee": {
+      "type": "number",
+      "default": 0
+    },
+    "net_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "withdrawal_id": {
+      "type": "string"
+    },
+    "payout_method": {
+      "type": "string"
+    },
+    "payout_destination_ref": {
+      "type": "string",
+      "description": "Non-secret payout destination reference only."
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation_key",
+    "operation_type",
+    "state"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Server-authoritative financial operation records for payment reconciliation and deduplication."
+}

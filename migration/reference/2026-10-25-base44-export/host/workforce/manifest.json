@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "mode": "staged-only",
+  "source": "Base44 main",
+  "activation": "disabled",
+  "agent_count": 10,
+  "entries": [
+    {
+      "source": ".agents/skills/chief_of_staff.md",
+      "destination": "host/workforce/source/.agents/skills/chief_of_staff.md",
+      "sha256": "5f2d587b40efbff62bbea33b80354aa1a0eef1f9641c372eecfbb5bc8fbc50f6",
+      "bytes": 8779
+    },
+    {
+      "source": ".agents/skills/communications_agent.md",
+      "destination": "host/workforce/source/.agents/skills/communications_agent.md",
+      "sha256": "0c48a812d84e14283b2b0103e5d3d4f5a550b88a0a4175b9f96452aedf6bdf9f",
+      "bytes": 9001
+    },
+    {
+      "source": ".agents/skills/finance_agent.md",
+      "destination": "host/workforce/source/.agents/skills/finance_agent.md",
+      "sha256": "01486a071facc334ccad166c6b567e22a88fc8625b7c89f597dfb31b82079307",
+      "bytes": 8870
+    },
+    {
+      "source": ".agents/skills/growth_agent.md",
+      "destination": "host/workforce/source/.agents/skills/growth_agent.md",
+      "sha256": "06c057268a094da3059b28bab4e78d7884f6d5122d5a583f4349e9e72c85bcc3",
+      "bytes": 8436
+    },
+    {
+      "source": ".agents/skills/ifund-admin-builder/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-admin-builder/SKILL.md",
+      "sha256": "bc369bdac5f45257fa9d3345529ba70885c164cf3a25bba2008545f627e2df3b",
+      "bytes": 3907
+    },
+    {
+      "source": ".agents/skills/ifund-chief-of-staff/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-chief-of-staff/SKILL.md",
+      "sha256": "7d89a9291352dc3c24bbb7df26e1154fcc0941677521548b93e8f103bce0eb40",
+      "bytes": 1925
+    },
+    {
+      "source": ".agents/skills/ifund-chief-of-staff/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-chief-of-staff/references/agent-guide.md",
+      "sha256": "5f2d587b40efbff62bbea33b80354aa1a0eef1f9641c372eecfbb5bc8fbc50f6",
+      "bytes": 8779
+    },
+    {
+      "source": ".agents/skills/ifund-communications/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-communications/SKILL.md",
+      "sha256": "4dd5d1c68bfd79a9236fa185ec6b70c9844e3f371f051003688a619e1ffe4992",
+      "bytes": 1864
+    },
+    {
+      "source": ".agents/skills/ifund-communications/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-communications/references/agent-guide.md",
+      "sha256": "0c48a812d84e14283b2b0103e5d3d4f5a550b88a0a4175b9f96452aedf6bdf9f",
+      "bytes": 9001
+    },
+    {
+      "source": ".agents/skills/ifund-content-writes/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-content-writes/SKILL.md",
+      "sha256": "014cc966880094aa98402b85b5c9931bf5ade629a530ba6c316d4c57d27385b1",
+      "bytes": 5349
+    },
+    {
+      "source": ".agents/skills/ifund-finance/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-finance/SKILL.md",
+      "sha256": "d5c5698572b05b7eda52d5a4017de3b76c2a92135125caede37345eac1d3da76",
+      "bytes": 1970
+    },
+    {
+      "source": ".agents/skills/ifund-finance/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-finance/references/agent-guide.md",
+      "sha256": "01486a071facc334ccad166c6b567e22a88fc8625b7c89f597dfb31b82079307",
+      "bytes": 8870
+    },
+    {
+      "source": ".agents/skills/ifund-growth/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-growth/SKILL.md",
+      "sha256": "a20c8e25ec5fac04a2021a61639ed962b843edf3f6ead0bc5acb4dbb9bc8bf6c",
+      "bytes": 1869
+    },
+    {
+      "source": ".agents/skills/ifund-growth/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-growth/references/agent-guide.md",
+      "sha256": "06c057268a094da3059b28bab4e78d7884f6d5122d5a583f4349e9e72c85bcc3",
+      "bytes": 8436
+    },
+    {
+      "source": ".agents/skills/ifund-outreach/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-outreach/SKILL.md",
+      "sha256": "2073c81317d957eea4118c50c16dd62e7925521a7596133b203b5bf86b2ae7cb",
+      "bytes": 1973
+    },
+    {
+      "source": ".agents/skills/ifund-outreach/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-outreach/references/agent-guide.md",
+      "sha256": "bed9d57127604ee7116adc6128ad2972b976724d6a89dc3098356d5b8c58f07b",
+      "bytes": 10063
+    },
+    {
+      "source": ".agents/skills/ifund-story/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-story/SKILL.md",
+      "sha256": "ec128776b5767d3e1753788dddec8435ae2f1196f3b5c38909f2f709fa6276ab",
+      "bytes": 1841
+    },
+    {
+      "source": ".agents/skills/ifund-story/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-story/references/agent-guide.md",
+      "sha256": "968243a39e4c3d9c4cd77428427193125429d64ff62a198b04ed3a1e3421d499",
+      "bytes": 8691
+    },
+    {
+      "source": ".agents/skills/ifund-strategy/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-strategy/SKILL.md",
+      "sha256": "edb813cf1dfe457c147b78d68b6d266253d0481b1b4cf75942d0f96035987ab6",
+      "bytes": 1846
+    },
+    {
+      "source": ".agents/skills/ifund-strategy/references/agent-guide.md",
+      "destination": "host/workforce/source/.agents/skills/ifund-strategy/references/agent-guide.md",
+      "sha256": "9144a59f92083afb936ffd2252d5096ed7ba6f5ab2880c2cdab37cca37cc923f",
+      "bytes": 7699
+    },
+    {
+      "source": ".agents/skills/outreach_agent.md",
+      "destination": "host/workforce/source/.agents/skills/outreach_agent.md",
+      "sha256": "bed9d57127604ee7116adc6128ad2972b976724d6a89dc3098356d5b8c58f07b",
+      "bytes": 10063
+    },
+    {
+      "source": ".agents/skills/story_agent.md",
+      "destination": "host/workforce/source/.agents/skills/story_agent.md",
+      "sha256": "968243a39e4c3d9c4cd77428427193125429d64ff62a198b04ed3a1e3421d499",
+      "bytes": 8691
+    },
+    {
+      "source": ".agents/skills/strategy_agent.md",
+      "destination": "host/workforce/source/.agents/skills/strategy_agent.md",
+      "sha256": "9144a59f92083afb936ffd2252d5096ed7ba6f5ab2880c2cdab37cca37cc923f",
+      "bytes": 7699
+    },
+    {
+      "source": ".agents/skills/wix-base44-connector/SKILL.md",
+      "destination": "host/workforce/source/.agents/skills/wix-base44-connector/SKILL.md",
+      "sha256": "547f7fc91f9e1715555023d68a2df303a21ae64ca3df88e3c8bfd3f5d475097f",
+      "bytes": 27332
+    },
+    {
+      "source": ".agents/skills/wix-base44-connector/references/CAPABILITY_MAP.md",
+      "destination": "host/workforce/source/.agents/skills/wix-base44-connector/references/CAPABILITY_MAP.md",
+      "sha256": "aaab32c174c12630b68182d859ef8e49a39f765b3ebed10a493c5df44ac0cdd2",
+      "bytes": 9198
+    },
+    {
+      "source": ".agents/skills/wix-base44-connector/utils.cjs",
+      "destination": "host/workforce/source/.agents/skills/wix-base44-connector/utils.cjs",
+      "sha256": "cb9328ef1988e5dfe334dfc95aee1f01a57b4e35ab69daec361f9e80f63ea17b",
+      "bytes": 27162
+    },
+    {
+      "source": "base44/agents/admin_builder_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/admin_builder_agent.jsonc",
+      "sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
+      "bytes": 4206
+    },
+    {
+      "source": "base44/agents/chief_of_staff.jsonc",
+      "destination": "host/workforce/source/base44/agents/chief_of_staff.jsonc",
+      "sha256": "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313",
+      "bytes": 22047
+    },
+    {
+      "source": "base44/agents/communications_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/communications_agent.jsonc",
+      "sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
+      "bytes": 13756
+    },
+    {
+      "source": "base44/agents/connection_discovery_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/connection_discovery_agent.jsonc",
+      "sha256": "91bf743522f36e43d8bbb33758459a29be9451f2eb290a16fe9a75aaa2ad572d",
+      "bytes": 15223
+    },
+    {
+      "source": "base44/agents/finance_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/finance_agent.jsonc",
+      "sha256": "a298ff7136566786af2d78d80dff6e8f6561af0982bac0adee2fd5dea9d66c43",
+      "bytes": 12554
+    },
+    {
+      "source": "base44/agents/growth_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/growth_agent.jsonc",
+      "sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
+      "bytes": 15126
+    },
+    {
+      "source": "base44/agents/managed_connection_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/managed_connection_agent.jsonc",
+      "sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
+      "bytes": 13718
+    },
+    {
+      "source": "base44/agents/outreach_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/outreach_agent.jsonc",
+      "sha256": "f6c60968fcf1771ea2ad64265469364cb82de33fabbbdb6c5665e8c8162b1caa",
+      "bytes": 24644
+    },
+    {
+      "source": "base44/agents/story_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/story_agent.jsonc",
+      "sha256": "1436b2557ba1b88dc9c7c7dffc3e4e2312d033af2b45aed8f974df5ab67e6f10",
+      "bytes": 15972
+    },
+    {
+      "source": "base44/agents/strategy_agent.jsonc",
+      "destination": "host/workforce/source/base44/agents/strategy_agent.jsonc",
+      "sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
+      "bytes": 13957
+    }
+  ],
+  "unverified": [
+    "Live remote managed skill IDs and content",
+    "Live per-agent memory records and consent",
+    "Backend tool execution parity",
+    "Scheduled jobs and credentials",
+    "Cloudflare Worker runtime and production routing"
+  ]
+}

@@ -1,0 +1,15 @@
+name = "ifund-email-ingress"
+main = "worker.js"
+compatibility_date = "2026-10-15"
+workers_dev = false
+
+# All valid addresses at @interplanetaryfund.com are eligible for intake.
+# Nine aliases have priority; all non-verification root-domain mail is organizational.
+# Worker signing keys and endpoint settings remain encrypted secrets.
+
+# Email Routing rules are managed on the Cloudflare domain AFTER
+# secure secrets and recipient permissions are verified.
+# Never place production secrets in this file.
+
+[vars]
+IFUND_ADMIN_EMAIL_RECEIVER_URL = "https://tzehxfikoslihnclhxuz.supabase.co/functions/v1/ifund-admin-mail-ingest"

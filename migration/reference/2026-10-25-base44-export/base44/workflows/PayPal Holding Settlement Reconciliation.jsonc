@@ -1,0 +1,47 @@
+{
+  "description": "Hourly custody reconciliation: discovers settled receipts in the Interplanetary Fund business PayPal holding account and conservatively matches each receipt to exactly one provider-verified exterior fund observation. Ambiguous or unmatched receipts remain unallocated for admin review.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "paypal_holding_settlement_reconciliation",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "discover_and_reconcile": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "discoverPayPalHoldingSettlements",
+            "args": {
+              "lookback_hours": 24
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Reconcile PayPal holding receipts",
+            "description": "Verify recent PayPal receipts and allocate only unique exterior-fund matches"
+          }
+        }
+      }
+    ]
+  },
+  "name": "PayPal Holding Settlement Reconciliation"
+}

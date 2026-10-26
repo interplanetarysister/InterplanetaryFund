@@ -1,0 +1,45 @@
+{
+  "name": "Weekly Writing Psychology & Social Trends Training",
+  "description": "Retrieves and synthesizes public donor psychology and current social trends once per week; daily schedule retries only if no successful weekly research exists. Weekly deduplication prevents repeated metered AI calls.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 16 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "weekly_writing_psychology_training",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "study_sources": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "refreshWritingResearch",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Review donation psychology and social trends",
+            "description": "Research real studies and current culture; update sourced writing guidance"
+          }
+        }
+      }
+    ]
+  }
+}

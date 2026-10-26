@@ -1,0 +1,8 @@
+name = "ifund-workflows"
+main = "worker.js"
+compatibility_date = "2026-09-29"
+workers_dev = true
+# No cron triggers until durable job state, tool adapters, and cutover parity
+# have been independently verified. Prevent double execution with Base44.
+[vars]
+IFUND_WORKFLOW_EXECUTION = "disabled"

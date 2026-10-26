@@ -1,0 +1,87 @@
+{
+  "name": "ExternalFundObservation",
+  "type": "object",
+  "properties": {
+    "operation_key": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string"
+    },
+    "provider_transaction_id": {
+      "type": "string"
+    },
+    "external_connection_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "beneficiary_user_id": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "settlement_state": {
+      "type": "string",
+      "enum": [
+        "external",
+        "pending_match",
+        "settled",
+        "ambiguous",
+        "reversed"
+      ],
+      "default": "external"
+    },
+    "holding_ledger_entry_id": {
+      "type": "string"
+    },
+    "receiving_paypal_transaction_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation_key",
+    "provider",
+    "provider_transaction_id",
+    "external_connection_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "amount",
+    "currency"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "External platform fundraising totals with source and verification status; not IFund-held withdrawable funds."
+}

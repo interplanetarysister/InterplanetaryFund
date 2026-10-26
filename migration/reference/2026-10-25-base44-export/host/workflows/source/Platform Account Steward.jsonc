@@ -1,0 +1,45 @@
+{
+  "name": "Platform Account Steward",
+  "description": "Outreach checks official Interplanetary Fund accounts every day, queues missing-account/setup work for admin approval, and prepares the weekly official update when due.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 15 * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "platform_account_steward",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "maintain_accounts": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "maintainPlatformOwnedAccounts",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Maintain official accounts",
+            "description": "Check account health, setup needs, and weekly posts"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "name": "PushDevice",
+  "type": "object",
+  "description": "Private, consented device delivery addresses for IFund notifications. Not a user-authentication credential.",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string",
+      "description": "Sensitive Firebase Cloud Messaging registration token; never return to public clients."
+    },
+    "platform": {
+      "type": "string",
+      "enum": [
+        "android"
+      ]
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "token",
+    "platform",
+    "enabled"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

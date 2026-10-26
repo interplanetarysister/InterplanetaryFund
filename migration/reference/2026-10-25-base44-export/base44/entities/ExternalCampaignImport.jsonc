@@ -1,0 +1,126 @@
+{
+  "name": "ExternalCampaignImport",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "operation_key": {
+      "type": "string",
+      "description": "Stable server-derived recovery identity shared with the imported IFund campaign and SyncRun."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Latest explicit authenticated request that converged this operation."
+    },
+    "recovery_token": {
+      "type": "string",
+      "description": "Deprecated legacy field. New records do not copy the private operation secret; existing values are admin-only and grant no authority.",
+      "rls": {
+        "create": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "delete": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "platform": {
+      "type": "string"
+    },
+    "external_campaign_id": {
+      "type": "string"
+    },
+    "external_url": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "sync_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Legacy compatibility flag only. It never authorizes unattended sync; refresh requires a new explicit authenticated request."
+    },
+    "source_updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_imported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "field_provenance": {
+      "type": "object"
+    },
+    "locally_locked_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "imported",
+        "syncing",
+        "needs_attention",
+        "disconnected"
+      ],
+      "default": "imported"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "connection_id",
+    "platform",
+    "campaign_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Imported/linked external campaign reference with provenance and validation state."
+}

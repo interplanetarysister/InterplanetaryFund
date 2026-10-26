@@ -1,0 +1,17 @@
+name = "interplanetary-fund-admin-gateway"
+main = "worker.js"
+compatibility_date = "2026-09-27"
+
+# Public/non-secret runtime values may be configured here or in Cloudflare.
+# Keep all credentials in Cloudflare's encrypted secret store.
+#
+# Required secrets:
+#   IFUND_ADMIN_AGENT_KEY
+#   IFUND_SESSION_SECRET
+#   IFUND_SERVICE_TOKEN
+#
+# Required runtime values:
+#   IFUND_ALLOWED_ORIGINS
+#   IFUND_ADMIN_VERIFY_URL
+#   IFUND_AGENT_EXECUTE_URL
+#   IFUND_AUDIT_URL

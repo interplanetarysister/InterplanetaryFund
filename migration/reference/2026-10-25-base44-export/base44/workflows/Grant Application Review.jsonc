@@ -1,0 +1,40 @@
+{
+  "name": "Grant Application Review",
+  "description": "When a new grant application is submitted, the Strategy Agent analyzes it and recommends a decision, then notifies the institution owner to review and decide. AI recommends; a human awards (per the platform's AI-recommends-not-executes principle).",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "GrantApplication",
+      "events": [
+        "create"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"submitted\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "grant_application_review",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "analyze": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "analyzeGrantApplication",
+            "args": {
+              "application_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Analyze application",
+            "description": "Strategy Agent recommends a decision"
+          }
+        }
+      }
+    ]
+  }
+}

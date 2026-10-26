@@ -1,0 +1,88 @@
+{
+  "name": "OfficialPublication",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "report",
+        "status_report",
+        "presentation",
+        "research",
+        "announcement"
+      ]
+    },
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "pdf_url": {
+      "type": "string"
+    },
+    "file_label": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "published",
+        "unpublished"
+      ],
+      "default": "unpublished"
+    },
+    "final_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "kind",
+    "title",
+    "summary",
+    "status",
+    "final_approved"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": "published"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Reviewed IFund news, platform updates, or editorial stories intended for distribution."
+}

@@ -1,0 +1,102 @@
+{
+  "name": "FollowedCampaign",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The follower \u2014 the only user (besides admins) who can see or manage this follow."
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "notification_prefs": {
+      "type": "object",
+      "description": "Per-campaign notification opt-ins. A preference is on by default; set to false to mute that event type.",
+      "properties": {
+        "updates": {
+          "type": "boolean",
+          "default": true
+        },
+        "media": {
+          "type": "boolean",
+          "default": true
+        },
+        "milestones": {
+          "type": "boolean",
+          "default": true
+        },
+        "goal_reached": {
+          "type": "boolean",
+          "default": true
+        },
+        "nearing_completion": {
+          "type": "boolean",
+          "default": true
+        },
+        "comments": {
+          "type": "boolean",
+          "default": false
+        },
+        "volunteer": {
+          "type": "boolean",
+          "default": true
+        },
+        "events": {
+          "type": "boolean",
+          "default": true
+        },
+        "emergencies": {
+          "type": "boolean",
+          "default": true
+        },
+        "completed": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "pinned": {
+      "type": "boolean",
+      "default": false
+    },
+    "archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_viewed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "campaign_id"
+  ],
+  "rls": {
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  },
+  "description": "User-to-campaign follow relationships used for updates and personalized activity."
+}

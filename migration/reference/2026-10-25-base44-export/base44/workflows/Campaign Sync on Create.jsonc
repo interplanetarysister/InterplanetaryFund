@@ -1,0 +1,38 @@
+{
+  "name": "Campaign Sync on Create",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "campaign_sync_on_create",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncConnections",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sync connections",
+            "description": "Initialize distribution"
+          }
+        }
+      }
+    ]
+  },
+  "description": "When a new campaign is created, syncs connections to initialize cross-platform distribution. The hourly Connection Sync Engine continues to handle health checks and retries.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Campaign"
+    }
+  }
+}

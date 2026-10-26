@@ -1,0 +1,435 @@
+// The Universal Connections catalog — every fundraising and social destination
+// Interplanetary Fund can link to.
+//
+// Each entry carries:
+//   id           — stable platform key used in PlatformConnection records
+//   name         — display name
+//   kind         — "crowdfunding" | "social"
+//   color        — brand accent for the plugin card background/icon
+//   icon         — emoji or short symbol shown on the card
+//   tagline      — one line: what connecting gives you
+//   setupKind    — "link"    → paste a URL + optional totals (no credentials)
+//                  "token"   → paste one secret (webhook token, app password…)
+//                  "oauth"   → provider OAuth flow (button, no manual paste)
+//                  "multi"   → two or more credential fields
+//   steps        — ordered array of step descriptors used by the connect wizard
+//   api          — legacy one-liner kept for backward compatibility
+
+export const CROWDFUNDING_PLATFORMS = [
+  {
+    id: "justgiving",
+    name: "JustGiving",
+    kind: "crowdfunding",
+    color: "#ee2b63",
+    icon: "💗",
+    tagline: "Link an existing eligible charity fundraising page. External page creation still happens through JustGiving.",
+    setupKind: "link",
+    steps: [
+      { id: "url", label: "Paste your JustGiving fundraising page URL", hint: "Create or open the page on JustGiving first. Linking a page does not grant IFund permission to create or edit it." },
+      { id: "totals", label: "Enter current totals", hint: "Owner-entered totals are informational until a provider-backed check is available." },
+      { id: "link", label: "Pair your IFund campaign", hint: "Choose the IFund campaign this page belongs to." },
+    ],
+    api: "Existing-page link only. A separate developer-approved API integration is required for automatic page creation.",
+  },
+  {
+    id: "gofundme",
+    name: "GoFundMe",
+    kind: "crowdfunding",
+    color: "#00b964",
+    icon: "💚",
+    tagline: "Link your GoFundMe and track totals alongside your IF campaign.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your GoFundMe URL",        hint: "Open your GoFundMe campaign and copy the link from the address bar." },
+      { id: "totals", label: "Enter your current totals",      hint: "Enter the amount shown on your fundraiser. We’ll keep it updated when we can." },
+      { id: "link",   label: "Link to a campaign (optional)",  hint: "Pick which Interplanetary Fund campaign these figures should roll up into." },
+    ],
+    api: "Link your fundraiser and keep its total here.",
+  },
+  {
+    id: "kickstarter",
+    name: "Kickstarter",
+    kind: "crowdfunding",
+    color: "#05ce78",
+    icon: "🚀",
+    tagline: "Connect your Kickstarter project and track backer totals here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your Kickstarter project URL", hint: "Copy the link from your Kickstarter project page." },
+      { id: "totals", label: "Enter your current totals",          hint: "Enter the amount shown on your project. Press Sync now whenever you want IFund to refresh supported data." },
+      { id: "link",   label: "Link to a campaign (optional)",      hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link your project and keep its progress here.",
+  },
+  {
+    id: "indiegogo",
+    name: "Indiegogo",
+    kind: "crowdfunding",
+    color: "#eb1478",
+    icon: "🎯",
+    tagline: "Link your Indiegogo campaign and keep its progress here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your Indiegogo campaign URL", hint: "Copy the URL from your Indiegogo campaign page." },
+      { id: "totals", label: "Enter your current totals",         hint: "Enter the amount shown on your campaign. Press Sync now whenever you want IFund to refresh supported data." },
+      { id: "link",   label: "Link to a campaign (optional)",     hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link your campaign now. We’ll use the best available way to keep it updated.",
+  },
+  {
+    id: "fundrazr",
+    name: "FundRazr",
+    kind: "crowdfunding",
+    color: "#0066cc",
+    icon: "💙",
+    tagline: "Track your FundRazr campaign totals alongside your IF dashboard.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your FundRazr campaign URL", hint: "Copy the URL from your FundRazr campaign." },
+      { id: "totals", label: "Enter your current totals",        hint: "Enter the amount shown on your campaign. Press Sync now whenever you want IFund to refresh supported data." },
+      { id: "link",   label: "Link to a campaign (optional)",    hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link your campaign now. We’ll use the best available way to keep it updated.",
+  },
+  {
+    id: "givesendgo",
+    name: "GiveSendGo",
+    kind: "crowdfunding",
+    color: "#3b82f6",
+    icon: "🙏",
+    tagline: "Link your GiveSendGo campaign and keep your total in one place.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your GiveSendGo URL", hint: "Copy the link from your GiveSendGo campaign page." },
+      { id: "totals", label: "Enter your current totals", hint: "Enter the amount shown on your fundraiser." },
+      { id: "link",   label: "Link to a campaign (optional)", hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link your fundraiser and keep its total here.",
+  },
+  {
+    id: "kofi",
+    name: "Ko-fi",
+    kind: "crowdfunding",
+    color: "#ff5e5b",
+    icon: "☕",
+    tagline: "Connect Ko-fi so confirmed payment webhook events can appear here in real time.",
+    setupKind: "token",
+    steps: [
+      { id: "token",  label: "Enter your Ko-fi connection code", hint: "In Ko-fi settings, copy the connection code shown for outside apps." },
+      { id: "webhook",label: "Finish Ko-fi setup",          hint: null }, // hint injected dynamically with the actual URL
+      { id: "link",   label: "Link to a campaign (optional)",       hint: "Ko-fi donations will count toward this campaign's total." },
+    ],
+    api: "Follow the short setup steps for real-time confirmed payment webhook events. This does not enable background balance polling.",
+  },
+  {
+    id: "buymeacoffee",
+    name: "Buy Me a Coffee",
+    kind: "crowdfunding",
+    color: "#ffdd00",
+    icon: "☕",
+    tagline: "Connect Buy Me a Coffee and refresh supported information when you choose.",
+    setupKind: "token",
+    steps: [
+      { id: "token",  label: "Enter your connection code", hint: "Find the connection code in your Buy Me a Coffee settings." },
+      { id: "link",   label: "Link to a campaign (optional)", hint: "Donations will roll up into this campaign." },
+    ],
+    api: "Connect your account, then use Sync now for an on-demand refresh where supported.",
+  },
+  {
+    id: "patreon",
+    name: "Patreon",
+    kind: "crowdfunding",
+    color: "#ff424d",
+    icon: "🎨",
+    tagline: "Link your Patreon and keep your supporter totals together.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your Patreon URL", hint: "Copy the link from your Patreon creator page." },
+      { id: "totals", label: "Enter your current totals", hint: "Enter the amount shown on your Patreon. Press Sync now whenever you want IFund to refresh supported data." },
+      { id: "link",   label: "Link to a campaign (optional)", hint: "Pledge totals will roll up into this campaign." },
+    ],
+    api: "Link your Patreon and keep its total here.",
+  },
+  {
+    id: "spotfund",
+    name: "Spotfund",
+    kind: "crowdfunding",
+    color: "#8b5cf6",
+    icon: "🌟",
+    tagline: "Link your Spotfund campaign and track its progress here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",    label: "Paste your Spotfund campaign URL", hint: "Copy the URL from your Spotfund campaign." },
+      { id: "totals", label: "Enter your current totals",        hint: "Enter the amount shown on your fundraiser." },
+      { id: "link",   label: "Link to a campaign (optional)",    hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link your fundraiser and keep its total here.",
+  },
+  {
+    id: "eventbrite",
+    name: "Eventbrite",
+    kind: "crowdfunding",
+    color: "#f05537",
+    icon: "🎟️",
+    tagline: "Connect Eventbrite to bring fundraising-event activity into your campaign workspace.",
+    setupKind: "oauth",
+    integrationType: "eventbrite",
+    steps: [
+      { id: "oauth", label: "Sign in with Eventbrite", hint: "Eventbrite will ask you to approve the connection. Interplanetary Fund never receives your password." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Choose which Interplanetary Fund campaign this event activity belongs with." },
+    ],
+    api: "Connect Eventbrite through its supported account authorization.",
+  },
+  {
+    id: "gumroad",
+    name: "Gumroad",
+    kind: "crowdfunding",
+    color: "#ff90e8",
+    icon: "📦",
+    tagline: "Connect Gumroad to keep your sales and supporter totals together.",
+    setupKind: "oauth",
+    integrationType: "gumroad",
+    steps: [
+      { id: "oauth", label: "Sign in with Gumroad", hint: "Gumroad will ask you to sign in and approve the connection. We never see your password." },
+      { id: "link",  label: "Link to a campaign (optional)", hint: "Sales totals will roll up into this campaign." },
+    ],
+    api: "Connect Gumroad through its supported account authorization.",
+  },
+  {
+    id: "custom",
+    name: "Custom Campaign URL",
+    kind: "crowdfunding",
+    color: "#64748b",
+    icon: "🔗",
+    tagline: "Link any external campaign page and track its totals here.",
+    setupKind: "link",
+    steps: [
+      { id: "name",   label: "Name this connection",      hint: "e.g. 'Our fundraiser on Example Site'" },
+      { id: "url",    label: "Paste the campaign URL",    hint: "Any external fundraising page." },
+      { id: "totals", label: "Enter your current totals", hint: "Enter the amount shown on the fundraiser." },
+      { id: "link",   label: "Link to a campaign (optional)", hint: "Connect these figures to one of your IF campaigns." },
+    ],
+    api: "Link any external campaign page and track its totals here.",
+  },
+];
+
+export const SOCIAL_PLATFORMS = [
+  {
+    id: "wordpress_com",
+    name: "WordPress.com",
+    kind: "social",
+    color: "#21759b",
+    icon: "📝",
+    tagline: "Connect WordPress.com for campaign stories and blog-ready publishing.",
+    setupKind: "oauth",
+    integrationType: "wordpress_com",
+    steps: [
+      { id: "oauth", label: "Authorize your WordPress.com account", hint: "Sign in on WordPress.com and grant only the post and media permissions you approve." },
+      { id: "auto", label: "Review publishing controls", hint: "Direct publication is disabled until IFund verifies a specific site and provider-backed publishing adapter." },
+    ],
+    api: "Prepare WordPress.com blog posts and manage connection permissions. Direct posting remains unavailable until verified.",
+  },
+  {
+    id: "bluesky",
+    name: "Bluesky",
+    kind: "social",
+    color: "#0085ff",
+    icon: "🦋",
+    tagline: "Connect Bluesky to share campaign updates.",
+    setupKind: "multi",
+    steps: [
+      { id: "handle",   label: "Enter your Bluesky handle", hint: "e.g. you.bsky.social" },
+      { id: "password", label: "Get a Bluesky connection password", hint: "In Bluesky settings, create an App Password for Interplanetary Fund. Never use your main password." },
+      { id: "auto",     label: "Choose how much help you want",   hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect Bluesky to share updates from Interplanetary Fund.",
+  },
+  {
+    id: "mastodon",
+    name: "Mastodon",
+    kind: "social",
+    color: "#6364ff",
+    icon: "🐘",
+    tagline: "Connect Mastodon for campaign profile tracking and draft-ready sharing. Direct posting is not available yet in this runtime.",
+    setupKind: "multi",
+    steps: [
+      { id: "instance", label: "Enter your Mastodon site",    hint: "For example: mastodon.social" },
+      { id: "token",    label: "Get a Mastodon connection code",  hint: "In your Mastodon settings, create a connection for Interplanetary Fund and copy the code it gives you." },
+      { id: "auto",     label: "Choose how much help you want",         hint: "IFund can prepare drafts and keep the connection ready. Direct Mastodon posting stays off until the runtime can verify the instance safely." },
+    ],
+    api: "Connect Mastodon for profile tracking and prepared drafts; direct publishing is currently disabled.",
+  },
+  {
+    id: "facebook",
+    name: "Facebook",
+    kind: "social",
+    color: "#1877f2",
+    icon: "👍",
+    tagline: "Connect a Facebook Page to publish campaign updates after Page permission is verified.",
+    setupKind: "oauth",
+    integrationType: "facebook_pages",
+    steps: [
+      { id: "oauth", label: "Connect Facebook Pages", hint: "Authorize a Page you manage and approve publishing permission. Facebook login alone does not grant IFund Page posting access." },
+      { id: "auto",  label: "Choose how much help you want", hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect your account to share updates where available.",
+  },
+  {
+    id: "instagram",
+    name: "Instagram",
+    kind: "social",
+    color: "#e1306c",
+    icon: "📸",
+    tagline: "Sign in with Instagram to share campaign updates and stories.",
+    setupKind: "oauth",
+    steps: [
+      { id: "oauth", label: "Sign in with Instagram", hint: "Instagram will ask you to sign in and approve the connection. We never see your password." },
+      { id: "auto",  label: "Choose how much help you want", hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect your account to share updates where available.",
+  },
+  {
+    id: "threads",
+    name: "Threads",
+    kind: "social",
+    color: "#101010",
+    icon: "🧵",
+    tagline: "Link your Threads profile and track your campaign updates here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",  label: "Paste your Threads profile URL", hint: "Copy the link from your Threads profile page." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Connect this profile to one of your IF campaigns." },
+    ],
+    api: "Link your Threads profile here.",
+  },
+  {
+    id: "x",
+    name: "X (Twitter)",
+    kind: "social",
+    color: "#000000",
+    icon: "𝕏",
+    tagline: "Link your X profile and track your campaign updates here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",  label: "Paste your X profile URL", hint: "Copy the link from your X (Twitter) profile page." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Connect this profile to one of your IF campaigns." },
+    ],
+    api: "Link your X profile here.",
+  },
+  {
+    id: "linkedin",
+    name: "LinkedIn",
+    kind: "social",
+    color: "#0a66c2",
+    icon: "💼",
+    tagline: "Share campaign updates on LinkedIn to reach professional networks.",
+    setupKind: "oauth",
+    steps: [
+      { id: "oauth", label: "Sign in with LinkedIn", hint: "LinkedIn will ask you to sign in and approve the connection. We never see your password." },
+      { id: "auto",  label: "Choose how much help you want", hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect your account to share updates where available.",
+  },
+  {
+    id: "tiktok",
+    name: "TikTok",
+    kind: "social",
+    color: "#010101",
+    icon: "🎵",
+    tagline: "Sign in with TikTok to post campaign content to your audience.",
+    setupKind: "oauth",
+    steps: [
+      { id: "oauth", label: "Sign in with TikTok", hint: "TikTok will ask you to sign in and approve the connection. We never see your password." },
+      { id: "auto",  label: "Choose how much help you want", hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect your account to share updates where available.",
+  },
+  {
+    id: "pinterest",
+    name: "Pinterest",
+    kind: "social",
+    color: "#e60023",
+    icon: "📌",
+    tagline: "Link your Pinterest profile and track your campaign updates here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",  label: "Paste your Pinterest profile URL", hint: "Copy the link from your Pinterest profile page." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Connect this profile to one of your IF campaigns." },
+    ],
+    api: "Link your Pinterest profile here.",
+  },
+  {
+    id: "reddit",
+    name: "Reddit",
+    kind: "social",
+    color: "#ff4500",
+    icon: "👽",
+    tagline: "Link your Reddit profile and track your campaign posts here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",  label: "Paste your Reddit profile URL", hint: "Copy the link from your Reddit profile page." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Connect this profile to one of your IF campaigns." },
+    ],
+    api: "Link your Reddit profile here.",
+  },
+  {
+    id: "youtube",
+    name: "YouTube",
+    kind: "social",
+    color: "#ff0000",
+    icon: "▶️",
+    tagline: "Link your YouTube channel and track your campaign videos here.",
+    setupKind: "link",
+    steps: [
+      { id: "url",  label: "Paste your YouTube channel URL", hint: "Copy the link from your YouTube channel page." },
+      { id: "link", label: "Link to a campaign (optional)", hint: "Connect this channel to one of your IF campaigns." },
+    ],
+    api: "Link your YouTube channel here.",
+  },
+  {
+    id: "discord",
+    name: "Discord",
+    kind: "social",
+    color: "#5865f2",
+    icon: "🎮",
+    tagline: "Sign in with Discord to announce campaign updates in your server.",
+    setupKind: "oauth",
+    steps: [
+      { id: "oauth", label: "Sign in with Discord", hint: "Discord will ask you to sign in and approve the connection. We never see your password." },
+      { id: "auto",  label: "Choose how much help you want", hint: "Choose whether Interplanetary Fund may share for you, ask first, make drafts, or do nothing." },
+    ],
+    api: "Connect your account to share updates where available.",
+  },
+];
+
+
+export const APP_PLATFORMS = [
+  { id: "gmail", name: "Gmail", kind: "app", icon: "✉️", tagline: "Connect Gmail to work with your email.", setupKind: "oauth", integrationType: "gmail" },
+  { id: "googledrive", name: "Google Drive", kind: "app", icon: "📁", tagline: "Connect Google Drive to work with your files.", setupKind: "oauth", integrationType: "googledrive" },
+  { id: "googlecalendar", name: "Google Calendar", kind: "app", icon: "📅", tagline: "Connect Google Calendar to work with events.", setupKind: "oauth", integrationType: "googlecalendar" },
+  { id: "google_contacts", name: "Google Contacts", kind: "app", icon: "👥", tagline: "Connect Google Contacts.", setupKind: "oauth", integrationType: "google_contacts" },
+  { id: "google_photos", name: "Google Photos", kind: "app", icon: "🖼️", tagline: "Connect Google Photos.", setupKind: "oauth", integrationType: "google_photos" },
+  { id: "googlesheets", name: "Google Sheets", kind: "app", icon: "📊", tagline: "Connect Google Sheets.", setupKind: "oauth", integrationType: "googlesheets" },
+  { id: "googledocs", name: "Google Docs", kind: "app", icon: "📄", tagline: "Connect Google Docs.", setupKind: "oauth", integrationType: "googledocs" },
+  { id: "googleforms", name: "Google Forms", kind: "app", icon: "📝", tagline: "Connect Google Forms.", setupKind: "oauth", integrationType: "googleforms" },
+  { id: "googletasks", name: "Google Tasks", kind: "app", icon: "☑️", tagline: "Connect Google Tasks.", setupKind: "oauth", integrationType: "googletasks" },
+  { id: "slack", name: "Slack", kind: "app", icon: "💬", tagline: "Connect Slack.", setupKind: "oauth", integrationType: "slack" },
+  { id: "notion", name: "Notion", kind: "app", icon: "N", tagline: "Connect Notion.", setupKind: "oauth", integrationType: "notion" },
+  { id: "outlook", name: "Outlook", kind: "app", icon: "📧", tagline: "Connect Outlook and Microsoft 365 mail.", setupKind: "oauth", integrationType: "outlook" },
+  { id: "microsoft_teams", name: "Microsoft Teams", kind: "app", icon: "👤", tagline: "Connect Microsoft Teams.", setupKind: "oauth", integrationType: "microsoft_teams" },
+  { id: "one_drive", name: "OneDrive", kind: "app", icon: "☁️", tagline: "Connect OneDrive.", setupKind: "oauth", integrationType: "one_drive" },
+  { id: "dropbox", name: "Dropbox", kind: "app", icon: "📦", tagline: "Connect Dropbox.", setupKind: "oauth", integrationType: "dropbox" },
+  { id: "github", name: "GitHub", kind: "app", icon: "⌘", tagline: "Connect GitHub.", setupKind: "oauth", integrationType: "github" },
+  { id: "gitlab", name: "GitLab", kind: "app", icon: "🦊", tagline: "Connect GitLab.", setupKind: "oauth", integrationType: "gitlab" },
+];
+
+export const ALL_PLATFORMS = [...CROWDFUNDING_PLATFORMS, ...SOCIAL_PLATFORMS, ...APP_PLATFORMS];
+export const platformName = (id) => ALL_PLATFORMS.find((p) => p.id === id)?.name || id;
+export const platformById = (id) => ALL_PLATFORMS.find((p) => p.id === id) || null;
+
+export const AUTOMATION_MODES = [
+  { value: "auto",   label: "Publish automatically",  desc: "AI publishes approved content without asking." },
+  { value: "ask",    label: "Ask before every post",  desc: "AI prepares content and waits for your approval." },
+  { value: "draft",  label: "Generate drafts only",   desc: "AI writes drafts; you publish them yourself." },
+  { value: "manual", label: "Manual posting only",    desc: "AI never touches this destination." },
+];

@@ -1,0 +1,60 @@
+{
+  "name": "AdminApiConnectionIntake",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "endpoint_url": {
+      "type": "string"
+    },
+    "auth_type": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "last_test_status": {
+      "type": "string"
+    },
+    "last_tested_at": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "provider",
+    "kind",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

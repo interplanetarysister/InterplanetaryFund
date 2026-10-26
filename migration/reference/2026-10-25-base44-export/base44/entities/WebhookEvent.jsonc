@@ -1,0 +1,81 @@
+{
+  "name": "WebhookEvent",
+  "type": "object",
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "Provider, e.g. 'kofi', 'stripe'."
+    },
+    "event_key": {
+      "type": "string",
+      "description": "Deterministic provider event identity. This row tracks application-side recovery; canonical financial idempotency lives in Base44 FinancialOperation."
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "claimed",
+        "financial_applied",
+        "side_effects_complete",
+        "nonfinancial_complete",
+        "failed"
+      ],
+      "default": "claimed",
+      "description": "Durable recovery state. Financial webhooks must not be considered complete until canonical money is applied and application mirrors/side effects are reconciled."
+    },
+    "canonical_operation_id": {
+      "type": "string"
+    },
+    "attempt_count": {
+      "type": "number",
+      "default": 1
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "financial_applied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "side_effects_completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "source",
+    "event_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Provider webhook processing receipts and idempotency state for safe retries, authenticity checks, and reconciliation."
+}

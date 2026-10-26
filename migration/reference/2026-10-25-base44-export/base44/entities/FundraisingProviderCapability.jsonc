@@ -1,0 +1,289 @@
+{
+  "name": "FundraisingProviderCapability",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "Stable provider key matching PlatformConnection.platform (e.g. 'gofundme', 'kofi')."
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Canonical human-readable provider name."
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Alternative names, former names, or common misspellings for lookup matching."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "crowdfunding",
+        "social",
+        "creator_support",
+        "donation",
+        "event",
+        "custom"
+      ],
+      "default": "crowdfunding"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "documentation_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "campaign_import": {
+      "type": "boolean",
+      "default": false
+    },
+    "campaign_sync": {
+      "type": "boolean",
+      "default": false
+    },
+    "balance_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "payout_model": {
+      "type": "string",
+      "enum": [
+        "direct_to_connected_account",
+        "api_transfer",
+        "automatic_payout",
+        "authorized_interactive",
+        "user_action_required",
+        "observe_only"
+      ],
+      "default": "observe_only"
+    },
+    "payout_destination_configurable": {
+      "type": "boolean",
+      "default": false
+    },
+    "api_transfer": {
+      "type": "boolean",
+      "default": false
+    },
+    "authenticated_browser": {
+      "type": "boolean",
+      "default": false
+    },
+    "connection_strategy": {
+      "type": "string",
+      "enum": [
+        "oauth",
+        "api_key",
+        "browser",
+        "webhook",
+        "manual",
+        "observe_only"
+      ],
+      "default": "manual"
+    },
+    "account_creation_capability": {
+      "type": "boolean",
+      "default": false
+    },
+    "delegated_account_creation": {
+      "type": "boolean",
+      "default": false
+    },
+    "ownership_model": {
+      "type": "string"
+    },
+    "publishing_capabilities": {
+      "type": "boolean",
+      "default": false
+    },
+    "campaign_create_documented": {
+      "type": "boolean",
+      "default": false
+    },
+    "campaign_create_verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "campaign_create_tested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "social_publishing": {
+      "type": "boolean",
+      "default": false
+    },
+    "direct_publish_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only after IFund successfully exercises the provider's direct publishing action with an authorized IFund/platform-owned test account or equivalent provider test environment."
+    },
+    "manual_share_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only after IFund verifies a user-facing manual share/copy-paste handoff actually works for this provider."
+    },
+    "publish_tested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "publish_test_account_reference": {
+      "type": "string",
+      "description": "Non-secret reference to the IFund/platform-owned account or provider test environment used to verify publishing. Never store credentials here."
+    },
+    "manual_share_method": {
+      "type": "string",
+      "description": "Tested manual fallback such as copy_paste, provider_share_url, bio_link, or none."
+    },
+    "messaging_capability": {
+      "type": "boolean",
+      "default": false
+    },
+    "webhook_support": {
+      "type": "boolean",
+      "default": false
+    },
+    "poll_support": {
+      "type": "boolean",
+      "default": false
+    },
+    "withdrawal_initiation": {
+      "type": "boolean",
+      "default": false
+    },
+    "session_persistence": {
+      "type": "boolean",
+      "default": false
+    },
+    "verification_requirements": {
+      "type": "string"
+    },
+    "restrictions": {
+      "type": "string"
+    },
+    "requires_transaction_authorization": {
+      "type": "boolean",
+      "default": true
+    },
+    "supported_transports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supported_currencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "supported_countries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "capability_status": {
+      "type": "string",
+      "enum": [
+        "verified",
+        "partial",
+        "research_required",
+        "unsupported"
+      ],
+      "default": "research_required"
+    },
+    "implementation_status": {
+      "type": "string",
+      "enum": [
+        "not_started",
+        "in_progress",
+        "implemented",
+        "blocked"
+      ],
+      "default": "not_started"
+    },
+    "test_status": {
+      "type": "string",
+      "enum": [
+        "untested",
+        "passing",
+        "failing"
+      ],
+      "default": "untested"
+    },
+    "adapter_reference": {
+      "type": "string"
+    },
+    "health_state": {
+      "type": "string",
+      "enum": [
+        "healthy",
+        "degraded",
+        "down",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+    "supported_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unsupported_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "manual_required_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_url": {
+      "type": "string"
+    },
+    "evidence_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_researched_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "display_name",
+    "payout_model"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Provider capability research and verification registry. Distinguishes documented, tested, supported, unsupported, and manual capabilities without assuming permissions."
+}

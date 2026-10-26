@@ -1,0 +1,49 @@
+{
+  "name": "VerificationMailbox",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_activation",
+        "active",
+        "disabled"
+      ],
+      "default": "pending_activation"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "last_received_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "address"
+  ],
+  "rls": {
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  },
+  "description": "Owner-only external verification email alias; no admin override. Never treat pending addresses as deliverable."
+}

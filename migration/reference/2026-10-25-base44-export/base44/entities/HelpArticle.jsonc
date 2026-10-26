@@ -1,0 +1,76 @@
+{
+  "name": "HelpArticle",
+  "type": "object",
+  "description": "Public, published IFund Help Center articles only. Unpublished material belongs in the admin-only HelpDraft entity.",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "Getting Started",
+        "Creating Campaigns",
+        "Donating",
+        "Payouts",
+        "Account & Security",
+        "Campaigns",
+        "Donations",
+        "Connections & Publishing",
+        "Money & Withdrawals",
+        "Subscriptions",
+        "AI Assistance",
+        "Community",
+        "Legal & Policies"
+      ]
+    },
+    "question": {
+      "type": "string"
+    },
+    "answer": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Stable URL slug; use only lowercase letters, digits, and hyphens."
+    },
+    "description": {
+      "type": "string"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "helpful_yes": {
+      "type": "number",
+      "default": 0
+    },
+    "helpful_no": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "category",
+    "question",
+    "answer",
+    "slug"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

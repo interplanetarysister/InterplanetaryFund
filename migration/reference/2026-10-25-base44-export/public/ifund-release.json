@@ -1,0 +1,10 @@
+{
+  "release_id": "ifund-20261016-accessible-navigation-connections-v6",
+  "source": "Base44",
+  "payment_recovery": "verified_paypal_order_or_donation_receipt",
+  "campaign_embed": "frame_free",
+  "requires_live_provider_verification": true,
+  "frontend_presentation": "ifund_studio_web_and_installable_pwa",
+  "ui_refresh": "accessible_sidebar_persistent_light_theme_branded_connections_icon_stages",
+  "release_gates": "esm_graph_assets_links_responsive_navigation_visual_contracts"
+}

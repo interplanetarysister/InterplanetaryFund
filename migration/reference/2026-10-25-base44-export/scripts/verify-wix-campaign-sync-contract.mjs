@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const sync = fs.readFileSync('base44/functions/syncWixCampaigns/entry.ts', 'utf8');
+assert.match(sync, /IFundCampaigns/);
+assert.match(sync, /wix-data\/v2\/items\/save/);
+assert.match(sync, /created_by_id: user\.id/);
+assert.match(sync, /getConnection\('wix'\)/);
+assert.match(sync, /if \(!conn\?\.accessToken\)/);
+assert.match(sync, /ifundCampaignId/);
+assert.match(sync, /raisedAmount/);
+assert.match(sync, /donorCount/);
+console.log('Wix campaign synchronization contract passed.');

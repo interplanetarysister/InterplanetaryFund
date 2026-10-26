@@ -1,0 +1,83 @@
+{
+  "type": "object",
+  "name": "SustainabilityAudit",
+  "description": "Admin-only evidence log for IFund resource measurements and climate claims. A browser transfer-size observation is not a carbon footprint.",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": [
+        "browser_sample",
+        "hosting",
+        "efficiency",
+        "environmental_impact"
+      ],
+      "default": "browser_sample"
+    },
+    "summary": {
+      "type": "string",
+      "maxLength": 220
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Optional direct evidence URL; never add credentials."
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "No PII or payment information."
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "documented",
+        "independently_verified"
+      ],
+      "default": "unverified"
+    },
+    "transfer_bytes_observed": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Only the browser's reported, measurable transfer sizes; missing/opaque resources omitted."
+    },
+    "resource_count_observed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "resources_missing_transfer_data": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "kind",
+    "summary",
+    "observed_at"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "RateLimitBucket",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Stable actor+action key, e.g. 'sendCommunication:<userId>'."
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "count": {
+      "type": "number",
+      "default": 0
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Usage counters and reset windows used to prevent excessive calls to external providers and internal services."
+}

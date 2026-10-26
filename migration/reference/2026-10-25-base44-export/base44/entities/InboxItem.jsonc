@@ -1,0 +1,149 @@
+{
+  "name": "InboxItem",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "The recipient \u2014 the only user (besides admins) who can see this item."
+    },
+    "platform": {
+      "type": "string",
+      "description": "Source platform id (interplanetary, kofi, facebook, \u2026)."
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "canonical_operation_id": {
+      "type": "string",
+      "description": "Canonical Base44 financial/external-observation id used to repair webhook side effects without duplicating this inbox row."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "comment",
+        "message",
+        "donation",
+        "mention",
+        "reply",
+        "question",
+        "system"
+      ],
+      "default": "system"
+    },
+    "author": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "link": {
+      "type": "string",
+      "description": "Deep link to the original conversation when centralized replies aren't supported."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "done"
+      ],
+      "default": "open"
+    },
+    "ai_draft": {
+      "type": "string",
+      "description": "AI-generated draft response awaiting the owner's review."
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "Optional reference to an owner-scoped ExternalConversation; empty for non-conversational notifications."
+    },
+    "external_message_id": {
+      "type": "string",
+      "description": "Optional provider message/event ID for deduplication; scope to provider and connected account."
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "PlatformConnection reference used to verify the account and capabilities for this event."
+    },
+    "reply_support": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "native_verified",
+        "external_link",
+        "unsupported"
+      ],
+      "default": "unknown",
+      "description": "Verified way to reply. Unknown must not enable a Send button; external_link opens the provider only."
+    },
+    "recipient_address": {
+      "type": "string",
+      "description": "Original mailbox address under interplanetaryfund.com for received email."
+    },
+    "mailbox_priority": {
+      "type": "string",
+      "enum": [
+        "priority",
+        "normal"
+      ],
+      "description": "Routing priority: the nine official inbox aliases are priority."
+    }
+  },
+  "required": [
+    "user_id",
+    "platform"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Owner-scoped unified inbox summary rows for IFund notifications, donor questions, comments, and authorized external social events. References an ExternalConversation when one exists; it does not establish that an external platform permits reading or replying."
+}

@@ -1,0 +1,71 @@
+{
+  "name": "ExternalPlatformRecord",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "record_type": {
+      "type": "string",
+      "enum": [
+        "contact",
+        "lead",
+        "order",
+        "marketing",
+        "analytics",
+        "content"
+      ]
+    },
+    "external_id": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "provider",
+    "record_type",
+    "external_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Referenced external fundraising or social platform records used for integration bookkeeping and provenance."
+}

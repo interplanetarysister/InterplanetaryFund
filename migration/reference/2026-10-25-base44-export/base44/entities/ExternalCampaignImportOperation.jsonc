@@ -1,0 +1,90 @@
+{
+  "name": "ExternalCampaignImportOperation",
+  "type": "object",
+  "properties": {
+    "target_key": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "request_fingerprint": {
+      "type": "string"
+    },
+    "active_claim_key": {
+      "type": "string"
+    },
+    "recovery_token": {
+      "type": "string",
+      "description": "Server-generated unguessable capability kept in admin-only operation state."
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "import_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "snapshot": {
+      "type": "object"
+    },
+    "imported_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "claimed",
+        "discovered",
+        "campaign_created",
+        "completed"
+      ],
+      "default": "claimed"
+    }
+  },
+  "required": [
+    "target_key",
+    "owner_user_id",
+    "connection_id",
+    "request_fingerprint",
+    "active_claim_key",
+    "recovery_token",
+    "request_id",
+    "state"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Private server-only recovery and fencing state for one explicit external campaign import."
+}

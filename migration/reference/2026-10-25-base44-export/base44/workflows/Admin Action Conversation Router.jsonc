@@ -1,0 +1,45 @@
+{
+  "name": "Admin Action Conversation Router",
+  "description": "Routes admin requests for more information back to the requesting agent and returns a grounded response to the same admin action thread.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/15 * * * *",
+      "one_time_date": null,
+      "timezone": "America/Los_Angeles",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "admin_action_conversation_router",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "route_questions": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "processAdminActionInbox",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Route admin questions",
+            "description": "Return verified agent information to the same admin action thread"
+          }
+        }
+      }
+    ]
+  }
+}
