@@ -23,8 +23,8 @@ Tasks only the owner (M) can do. Part of the migration plan in #137. Agents: add
 ### 2. Account-level GitHub secrets
 Personal GitHub accounts have no account-wide Actions secrets; organizations do.
 - [ ] Create a free GitHub organization (e.g. `interplanetary-fund`).
-- [ ] Transfer `InterplanetaryFund` and `interplanetary-fund2` into it.
-- [ ] Reconnect Base44, Supabase, Cloudflare (and remove Vercel/Macroscope) to the new repo location.
+- [ ] Do not transfer, push to, or modify the read-only source `interplanetarysister/interplanetary-fund2`; this project must remain untouched during migration. If an organization is voluntarily adopted later, plan the target-repo transfer independently with rollback and connector review.
+- [ ] Only if a future target-repo transfer is explicitly approved, reconnect the necessary supported integrations. Do not disconnect working providers during cutover preparation.
 - [ ] Store shared secrets as **organization secrets** with selected-repo access.
 
 ### 3. Secret destination checklist
