@@ -57,3 +57,12 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - [GitHub Actions run 40224670021](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40224670021) **passed** on the new worker + tests commit: CI run includes Node tests, Vite production build, dependency lock and formatting checks.
 
 **Still blocked:** No live Supabase Auth account/owner linkage, no verified RLS cross-user runtime, no migrated published rows in the new `public.ifund_campaigns` table, no functional UI use of these Worker endpoints, no production Worker route binding. These endpoints are independent API groundwork, **not full ports** of the related Base44 business functions. The 184-function inventory and partial-port statuses are unchanged. Provider webhooks/settlement, user account migration, media, workflows and page parity still require separate review.
+
+
+## Phase 4 community post API — 2026-10-25
+
+- Implemented `worker/communityWrites.js`, mounted under `/api/community/posts` and `/api/community/posts/:uuid`. POST creates a user-owned, 1–2000-character community update; DELETE removes **only** a signed-in user's exact post. Existing GET `/api/community/feed` remains the bounded anonymous read route.
+- Both new methods are disabled unless `MIGRATION_API_PREVIEW=enabled` and the independent HTTPS Supabase endpoint + **publishable** key are configured. Auth JWT is verified through Supabase Auth and used for PostgREST row-level-security writes. Body may contain only `body`; author ID is derived server-side. No service key, arbitrary user role, legacy Base44 proxy, or finance/payment handler is used.
+- Validated target Supabase public post RLS policies: anonymous SELECT; authenticated user-author INSERT and DELETE. Security advisor returned **0 lints**. **Live target Auth users = 0**, so real cross-user/browser testing still requires user migration and verified sign-in.
+- Added `tests/phase4-community-writes.test.js` covering signed-in provenance, zero unauthorized writes, owner-scoped deletion, oversized/invalid data, disallowed fields, provider failures and missing response IDs. [GitHub Actions run #40254901241](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40254901241) succeeded after the final test update (full tests/build/check).
+- Still not production: no Cloudflare Worker deployed or rerouted, no front-end flag enabled and no Base44 route disabled. Phase 4 complete source-port parity remains pending.
