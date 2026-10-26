@@ -66,3 +66,10 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - `src/pages/Community.jsx` can use the new POST endpoint when the flag is explicitly enabled after route/Auth/RLS parity tests. Until then the existing direct owner-scoped Supabase insertion remains in use. The page also offers confirmation-gated "Delete my post" actions only for records whose author ID matches the current user, using the corresponding owner-restricted direct Supabase query or optional Worker DELETE endpoint.
 - Added `tests/phase5-community-api.test.js` for Bearer forwarding, strict input, verified API response, exact delete ID, and no-success-on-error. All changes are code-only: no real user posts added/deleted, no provider/donation functionality affected and no Cloudflare routes changed.
 - A temporary standard-public-runner formatting workflow passed ([run #40254816032](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40254816032)), formatted `src` and removed itself. Recheck post-format PR CI separately. The Worker code lives on unmerged PR #141; the frontend flag **must stay disabled** until its backend, target database account ownership and cross-account RLS are live-tested.
+
+
+## Phase 5 editor review correction — October 25, 2026
+
+- The campaign editor now prevents edits while an existing owner campaign is loading **and while any save is pending**. This prevents locally typed content from being overwritten by a late response or successful navigation.
+- The optional authenticated Cloudflare transports for campaign writes and community posts remain off by default. Direct RLS-scoped Supabase previews are not enabled for production use.
+- Standard public GitHub runner [formatting job #40260761933](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40260761933) succeeded and removed itself; CI needs a fresh owner-authored commit after its bot formatting push. No Cloudflare deployment, Stripe/PayPal action, DNS change, live SQL or user data mutation.
