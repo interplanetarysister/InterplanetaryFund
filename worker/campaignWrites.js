@@ -55,7 +55,8 @@ function validatePayload(raw, isCreate) {
   if (isCreate) data.status ??= 'draft';
   // A publish transition always supplies a complete, validated payload.
   if (data.status === 'active' &&
-    (!data.title || !data.summary || !data.story ||
+    (!data.title || !data.summary || !data.story || !data.category ||
+      !data.cover_image_url || !data.cover_image_url.startsWith('https://') ||
       !data.goal_amount || data.goal_amount <= 0)) return null;
   return data;
 }
