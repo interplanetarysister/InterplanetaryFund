@@ -17,7 +17,7 @@ const headers = { authorization: 'Bearer signed.test.jwt', 'content-type': 'appl
 const valid = {
   title: 'Beach cleanup', summary: 'Community cleanup',
   story: 'Remove trash safely', category: 'community',
-  goal_amount: 500, status: 'active',
+  goal_amount: 500, cover_image_url: 'https://assets.example.org/cover.jpg', status: 'active',
 };
 function request(data, path = '/api/campaigns', method = 'POST', h = headers) {
   return new Request(origin + path, { method, headers: h, body: JSON.stringify(data) });
@@ -77,6 +77,26 @@ test('publish validates complete content, while valid publish succeeds', async (
   assert.equal(calls.length, 1);
   const good = await routeCampaignWrite(request(valid), env, remote([]));
   assert.equal(good.status, 201);
+});
+test('independent campaign protocol blocks publishing without original required cover and category', async () => {
+  const invalid=[
+    {...valid,cover_image_url:''},
+    {...valid,cover_image_url:'http://assets.example.org/cover.jpg'},
+    {...valid,category:''},
+    {...valid,story:''},
+  ];
+  for(const item of invalid) {
+    let writes=0;
+    const r=await routeCampaignWrite(request(item),env,async target=>{
+      if(String(target).endsWith('/auth/v1/user'))return Response.json({id:uid});
+      writes++;throw Error('No invalid active write must occur');
+    });
+    assert.equal(r.status,422);
+    assert.equal(writes,0);
+  }
+  const draft=await routeCampaignWrite(request({title:'Incomplete draft',cover_image_url:''}),
+    env,remote([]));
+  assert.equal(draft.status,201);
 });
 test('writes reject owner override, financial fields, unsafe links and invalid money', async () => {
   const invalid = [

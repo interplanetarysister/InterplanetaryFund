@@ -32,3 +32,7 @@ All entries below require `MIGRATION_API_PREVIEW=enabled`, a valid HTTPS `SUPABA
 4. Confirm Cloudflare Worker route dispatch and Pages same-origin API binding in an isolated, nonproduction route.
 5. Leave `VITE_IFUND_CAMPAIGN_API`, `VITE_IFUND_COMMUNITY_API` and `MIGRATION_API_PREVIEW` **disabled** until prerequisites pass.
 6. Restore or independently port the remaining **184 entrypoints** (or explicitly retire each) in independent PRs, with financial/webhook/provider routes verified against actual provider sandboxes before any live cutover.
+
+
+## Source campaign protocol preservation (code-only)
+The source `enforceCampaignProtocol` requires **title, category, a cover image, positive goal and story** before publishing. The independent Worker rejects incomplete active campaign payloads, while allowing partial drafts. Source outreach opt-out must be preserved, not blindly forced on. The current target schema's database-level `ifund_publish_complete` CHECK omits the cover requirement, so a separate reviewed DB constraint is required to prevent direct PostgREST writes bypassing the Worker; see `docs/migration/sql/ifund_publish_protocol_review.sql`. This SQL has **not been applied** to the target project. Completion and verified active history cannot be inferred from an HTTP 200 alone.

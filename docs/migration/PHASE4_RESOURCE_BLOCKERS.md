@@ -1,0 +1,5 @@
+# Phase 4 resource isolation and release blockers
+
+## Phase 4 read-only health, campaign protocol and private audit journal blockers — 2026-10-26
+
+New admin integration health route is code-only and gated behind identity/role verification; no provider secret has been installed. Cloudflare API token check is the only concrete optional provider verification; other services remain explicitly unverified. The separate `IFUND_AUDIT_DB` D1 journal and migration script are coded but there is **no dedicated D1 database** provisioned and **no production binding**. The account connection cannot read billing details, so no deployment or new metered resources were activated. Production project `ssibsfmtodgximseeqsv` has owner-only profile policies, so anonymous username availability cannot be asserted by a browser lookup. The currently applied `ifund_publish_complete` constraint lacks original cover-image checks; an unapplied SQL change is staged for review. These block workflow execution, verified publication parity and production cutover.

@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ifund-independent-automations",
+  "main": "./worker/nativeAutomationWorker.js",
+  "compatibility_date": "2026-10-26",
+  "observability": {
+    "enabled": true
+  },
+  "vars": {
+    "IFUND_AUTOMATIONS_ENABLED": "disabled",
+    "IFUND_SCHEDULES_ENABLED": "disabled",
+    "IFUND_AUTOMATION_RELEASE_APPROVED": "false"
+  },
+  "workflows": [
+    {
+      "binding": "IFUND_WORKFLOW",
+      "name": "ifund-independent-workflows",
+      "class_name": "IfundDurableWorkflow"
+    }
+  ]
+}
