@@ -1,0 +1,20 @@
+{
+  "name": "Interplanetary Fund",
+  "short_name": "IFund",
+  "description": "The Universal Fundraising Operating System. What if?",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b1225",
+  "theme_color": "#101b34",
+  "icons": [
+    {
+      "src": "/interplanetary-planet.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "prefer_related_applications": false
+}

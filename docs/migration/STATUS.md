@@ -47,3 +47,54 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+## Phase 5 original-experience recovery — 2026-10-26 (review branch only)
+
+- **Regression accepted, NOT cutover accepted:** owner reports the live Pages scaffold displaced the intended full app. Existing historical CI/builds validate a small UI, not the original product.
+- Created `migration/phase5-original-shell-recovery-20261026` from current integration; original route/layout evidence captured in [ORIGINAL_APP_PARITY_RECOVERY.md](ORIGINAL_APP_PARITY_RECOVERY.md).
+- Ported source-inspired navigation hierarchy into `MigrationShell.jsx`, including narrow desktop sidebar, mobile accessible drawer and bottom nav, current page bar, local theme preference, and explicit Pending labels for disabled features. No unsupported route is represented as active.
+- Reused the existing unmerged Phase 5 legal/About page ports and read-only legal policy copy; added About, Terms, Privacy routes to recovery branch for review, **not legal acceptance or release**. Existing legal version remains unchanged.
+- Added unit regression checks that prevent sidebar links from being enabled on nonexistent routes and prevent guest access to private navigation. Build/browser checks and owner visual acceptance: **NOT VERIFIED until CI and real browser tests**.
+- **Not addressed:** full original visual fidelity/media asset, 58 named source routes, full 56 lazy-page composition, all source functions/agents, PayPal payout entitlement, user/data migration, authentic Auth/RLS flow, Cloudflare live Worker Base44 proxy, DNS cutover.
+- No production Supabase changes, Cloudflare deployments, DNS changes, payment mutations, Base44 edits, or provider spending were performed in this phase.
+
+### CI evidence — draft PR #155 (2026-10-26)
+
+[GitHub Actions run 40316710940](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40316710940): Node dependency install and lockfile consistency **PASS**; `npm test` **75/75 PASS**; `npm run build` **PASS** (Vite 6.4.3, 1,654 modules transformed). Overall workflow **FAIL** at Prettier `--check` for `src/App.jsx`, `src/components/MigrationShell.jsx`, `src/lib/migrationNavigation.js` and `src/styles.css`. Styling gate remains unresolved; browser/end-to-end and original visual acceptance remain UNVERIFIED. This is a review-only branch, not a production release.
+
+## Phase 5 source-format recovery — 2026-10-26
+
+- **Formatter repair applied (review branch only):** temporary, branch-scoped standard public-repository GitHub Actions workflow [#40323598466](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323598466) succeeded, reformatted only `src/App.jsx`, `src/components/MigrationShell.jsx`, `src/lib/migrationNavigation.js` and `src/styles.css`, committed `081b0f8c7585fc12dc968b8cc426afd83b6973e5`, and self-deleted. It did not deploy, change DNS/database/payment data, or spend paid builder credits.
+- **Not a CI greenlight:** the previous-head workflow [#40323605464](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323605464) failed its pre-format Prettier check while npm dependency resolution, 75 tests and the Vite build passed. The formatter's latest-head PR workflow [#40323634725](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323634725) is `action_required` with no verification jobs executed. This commit requests a fresh standard PR check; validate its actual conclusion before considering review completion.
+- **Connected release state:** Cloudflare zone `interplanetaryfund.com` is active with apex/www CNAMEs to `interplanetaryfund-migration.pages.dev`; production Pages deployments remain disabled, preview deployment queue entries are idle, and 16 existing domain Worker routes still reference the legacy `interplanetary-fund2` script. No cutover was performed.
+- The designated Supabase `ssibsfmtodgximseeqsv` public app tables (`ifund_profiles`, `ifund_campaigns`, `ifund_posts`, `ifund_connections`) still show zero rows and no Edge Functions. Private archived snapshots are not publishable user-owned campaigns.
+- **Blockers remain:** source-equivalent pages/assets, login and ownership migration, authenticated RLS integration, PayPal ledger/payout entitlements, full 184-function parity, original mobile/desktop screenshot acceptance and provider-verified funding. Keep the recovery branch and PR unmerged/unreleased until those gates pass.
+
+### Homepage/discovery recovery — 2026-10-26
+
+- Added safe fallback/error states for the public feed and discovery when Supabase is missing or a request fails, preventing indefinite loading and misleading claims that the platform has no campaigns.
+- Added `tests/frontend-availability.test.js` regression checks; interim CI passed tests and Vite build but failed Prettier before source reformatting.
+- Temporary standard public-runner formatting workflow [#40324152508](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40324152508) succeeded and self-deleted; latest formatted code is commit `1ade0d29b47da713c538a7f9f1708d630506d3a0`. Latest PR workflow on that bot commit returned `action_required` without jobs, so this documentation update requests a fresh normal review-branch CI run.
+- No deployment, DNS, auth/RLS, data/public campaigns or financial provider changes were made. The restored UI is still partial and not accepted for cutover.
+
+## Phase 5: all original URLs independently mounted — 2026-10-26
+
+- Branch `migration/phase5-all-page-routes-20261026`, draft [PR #156](https://github.com/interplanetarysister/InterplanetaryFund/pull/156), stacked on original-shell [PR #155](https://github.com/interplanetarysister/InterplanetaryFund/pull/155); exact [58-route matrix](PHASE5_ALL_PAGES.md) records what is and is not operational.
+- 58/58 original source route patterns registered with member/admin role visibility; 10 previously implemented independent page patterns retained; 11 additional routes with narrow, independent account/record/help functionality; 37 limited-content routes render accessible, distinct source-context screens without falsely claiming a working source service.
+- Improved independent `Connections` record reads (verified status only), `MyCampaigns` error handling, campaign detail error handling, member dashboard and profile editor with verified owner-scoped reads/writes.
+- One-time [all-pages formatting and validation #40342120399](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40342120399) **PASS**: 81 Node tests; Vite build; Prettier check; self-removal of temporary workflow. Formatted commit `66e6d25c5be9d82d4277b4dc9938b3c74fce3e5f` had `action_required` (no CI jobs on bot commit); this docs-only follow-up requests latest-head standard PR checks.
+- **Not production ready:** Most source page features still require original component/full backend ports; 184 original functions, 95 entities, media, legacy identity/ownership and RLS, PayPal authority and Payouts, AI agents, subscriptions, provider handshakes, and desktop/mobile screenshot parity are outstanding. No production Pages deployment, DNS/payment/Supabase mutation, private-data publication or Base44 source edit was made.
+
+## Original frontend recovery follow-up — 2026-10-26
+
+- [Draft PR #156](https://github.com/interplanetarysister/InterplanetaryFund/pull/156) now includes original-source homepage copy with all nine expandable Our Story sections and the full About narrative; restored founding signup UI, four-tab bottom navigation/back button/notifications link, nine independently hosted social SVGs and an original independently hosted planet SVG, the four-stage guided campaign form, and client-side campaign share/embed tools.
+- Reconstructed atmospheric planetary hero with CSS from the original layout; **this is not pixel-verified** and original binary hero/JPG assets have not been securely copied. The 57 original page compositions and 37 previously limited route features are not represented as complete.
+- Independent Auth and founding enrollment remain default disabled pending backend/identity review. No active funds, PayPal capture, payouts, on-behalf agent actions, or payment provider credentials were activated.
+- Latest complete code [verification #40346682867](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40346682867) **passed 88/88 tests, npm lock install, Vite build, Prettier**, and self-deleted its temporary formatter after committing formatted source `284b510efc14630a3534e8264a31b5adfaea847a`. A bot-commit check without jobs returned `action_required`; this documentation commit requests normal latest-head PR CI.
+- Any release still requires original mobile+desktop browser comparison, migrated real data, sessions and role-scoped RLS tests, functioning independent signup/agent/media/payment services, and evidence for every issue #137 cutover gate.
+
+### Verified original-logo asset recovery — 2026-10-26
+
+- Recovered `public/ifund-logo.jpg` from the owner's original exported ZIP in the connected file library. Generated a lightweight 96×96 WebP derivative for IFund's small navigation and favicon, transferred it to GitHub without Base44 CDN dependence, and **verified exact Git blob SHA `4258c5409b39e248c4396219d24de29ca686a4bb`** against the local source-derived file before updating the repository.
+- Independent navigation and favicon use `public/ifund-logo-small.webp`. The legacy source's full 1024×1024 JPG and remote hero bitmap have not been transferred; the CSS atmospheric hero remains a source-informed approximation.
+- Replacement failed-length unverified JPG was deleted. No production deployment or provider change was made.

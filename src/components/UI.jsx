@@ -1,25 +1,14 @@
 import { Link } from "react-router-dom";
+// Independent lightweight derivative of the original official 1024px JPG logo.
 export function Planet() {
   return (
-    <svg width="42" height="42" viewBox="0 0 60 60" aria-hidden="true">
-      <defs>
-        <linearGradient id="orb" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#41ddff" />
-          <stop offset="1" stopColor="#9a64f2" />
-        </linearGradient>
-      </defs>
-      <circle cx="30" cy="30" r="17" fill="url(#orb)" />
-      <ellipse
-        cx="30"
-        cy="30"
-        rx="28"
-        ry="9"
-        fill="none"
-        stroke="#e5deff"
-        strokeWidth="4"
-        transform="rotate(-24 30 30)"
-      />
-    </svg>
+    <img
+      src="/ifund-logo-small.webp"
+      width="42"
+      height="42"
+      alt=""
+      aria-hidden="true"
+    />
   );
 }
 
