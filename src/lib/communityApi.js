@@ -49,7 +49,9 @@ export async function createCommunityPost(db, body, fetcher = fetch) {
 export async function deleteCommunityPost(db, postId, fetcher = fetch) {
   if (
     typeof postId !== "string" ||
-    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(postId)
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      postId,
+    )
   ) {
     throw new Error("Invalid post ID.");
   }
@@ -60,7 +62,10 @@ export async function deleteCommunityPost(db, postId, fetcher = fetch) {
     null,
     fetcher,
   );
-  if (removed.id.toLowerCase() !== postId.toLowerCase() || removed.deleted !== true) {
+  if (
+    removed.id.toLowerCase() !== postId.toLowerCase() ||
+    removed.deleted !== true
+  ) {
     throw new Error("Community deletion could not be verified.");
   }
   return removed;
