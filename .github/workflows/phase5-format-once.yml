@@ -1,0 +1,35 @@
+name: One-time Phase 5 formatting repair
+on:
+  push:
+    branches:
+      - migration/phase5-original-shell-recovery-20261026
+    paths:
+      - .github/workflows/phase5-format-once.yml
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.repository == 'interplanetarysister/InterplanetaryFund'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: migration/phase5-original-shell-recovery-20261026
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned project dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format only files reported by failed CI
+        run: npx --no-install prettier --write src/App.jsx src/components/MigrationShell.jsx src/lib/migrationNavigation.js src/styles.css
+      - name: Self-remove one-time workflow and push review-branch changes
+        run: |
+          git config user.name "ifund-format-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/phase5-format-once.yml
+          git add src/App.jsx src/components/MigrationShell.jsx src/lib/migrationNavigation.js src/styles.css
+          git add -u .github/workflows/phase5-format-once.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "style(phase5): repair Prettier gate for original shell recovery"
+          git push origin HEAD:migration/phase5-original-shell-recovery-20261026
