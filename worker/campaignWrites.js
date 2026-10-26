@@ -71,38 +71,45 @@ function apiHeaders(env, jwt) {
 
 /** Write as verified user through Supabase RLS; never use service_role. */
 export async function routeCampaignWrite(request, env, fetcher = fetch) {
-  if (!['POST', 'PATCH'].includes(request.method))
+  if (!['POST', 'PATCH', 'DELETE'].includes(request.method))
     return response(405, { error: 'Method not allowed.' });
   if (!migrationReady(env))
     return response(503, { error: 'Independent migration API not enabled.' });
   const pathname = new URL(request.url).pathname;
   const create = pathname === '/api/campaigns' && request.method === 'POST';
   const updateMatch = /^\/api\/campaigns\/([^/]+)$/.exec(pathname);
-  if (!create && !(request.method === 'PATCH' && updateMatch))
+  if (!create && !(['PATCH', 'DELETE'].includes(request.method) && updateMatch))
     return response(404, { error: 'Not found.' });
   if (updateMatch && !UUID.test(updateMatch[1]))
     return response(400, { error: 'Invalid campaign ID.' });
-  if (!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || ''))
+  if (request.method !== 'DELETE' && !/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || ''))
     return response(415, { error: 'JSON request body required.' });
-  if (Number(request.headers.get('content-length')) > MAX_BYTES)
+  if (request.method !== 'DELETE' && Number(request.headers.get('content-length')) > MAX_BYTES)
     return response(413, { error: 'Request too large.' });
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
-    const body = await readJsonBody(request, MAX_BYTES);
-    const campaign = validatePayload(body, create);
-    if (!campaign)
-      return response(422, { error: 'Invalid or incomplete campaign fields.' });
-    if (create) campaign.owner_id = account.uid;
+    const deleting = request.method === 'DELETE';
+    let campaign;
+    if (!deleting) {
+      const body = await readJsonBody(request, MAX_BYTES);
+      campaign = validatePayload(body, create);
+      if (!campaign)
+        return response(422, { error: 'Invalid or incomplete campaign fields.' });
+      if (create) campaign.owner_id = account.uid;
+    }
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
+      // Deletion is restricted to empty/draft records; published campaigns
+      // can have donors and must enter a separate audited archive workflow.
+      if (deleting) query.set('status', 'eq.draft');
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
-      method: create ? 'POST' : 'PATCH',
+      method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',
       headers: apiHeaders(env, account.jwt),
-      body: JSON.stringify(campaign),
+      ...(deleting ? {} : { body: JSON.stringify(campaign) }),
     });
     if (!upstream.ok) return response(503, { error: 'Campaign save unavailable.' });
     const rows = await upstream.json();
@@ -112,8 +119,10 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
       return response(404, { error: 'Campaign not found or not editable.' });
     const saved = rows[0];
     if (rows.length !== 1 || saved?.owner_id !== account.uid ||
-        (updateMatch && saved.id?.toLowerCase() !== updateMatch[1].toLowerCase()))
+        (updateMatch && saved.id?.toLowerCase() !== updateMatch[1].toLowerCase()) ||
+        (deleting && saved.status !== 'draft'))
       return response(503, { error: 'Campaign save could not be verified.' });
+    if (deleting) return response(200, { id: saved.id, deleted: true });
     return response(create ? 201 : 200, {
       id: saved.id, status: saved.status, updated_at: saved.updated_at,
     });
