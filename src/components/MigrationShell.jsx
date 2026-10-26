@@ -191,7 +191,16 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
           >
             <Menu size={22} />
           </button>
-          <button type="button" className="ifund-back-button" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")} aria-label="Go back"><ArrowLeft size={20} /></button>
+          <button
+            type="button"
+            className="ifund-back-button"
+            onClick={() =>
+              window.history.length > 1 ? navigate(-1) : navigate("/")
+            }
+            aria-label="Go back"
+          >
+            <ArrowLeft size={20} />
+          </button>
           <Link
             to="/"
             className="ifund-mobile-logo"
@@ -210,13 +219,22 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
             >
               {signedIn ? "New campaign" : "Sign in"}
             </Link>
-            {signedIn && <Link to="/notifications" className="ifund-notifications-link" aria-label="Notifications"><Bell size={19} /></Link>}
+            {signedIn && (
+              <Link
+                to="/notifications"
+                className="ifund-notifications-link"
+                aria-label="Notifications"
+              >
+                <Bell size={19} />
+              </Link>
+            )}
             {themeButton}
           </div>
         </header>
         <div className="ifund-runtime-notice" role="status">
           <ShieldAlert size={15} aria-hidden="true" />
-          Recovery build: some pages have limited features. Payments are disabled.
+          Recovery build: some pages have limited features. Payments are
+          disabled.
         </div>
         <div className="ifund-stage" id="ifund-content">
           {children}
@@ -235,10 +253,28 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
           </nav>
         </footer>
         <nav className="ifund-mobile-bottom" aria-label="Bottom navigation">
-          <NavLink to={signedIn ? "/agents" : "/login?returnTo=%2Fagents"} aria-label="AI Team"><Bot size={20} /><span>AI Team</span></NavLink>
-          <NavLink to={signedIn ? "/profile" : "/login?returnTo=%2Fprofile"} aria-label="Profile"><UserRound size={20} /><span>Profile</span></NavLink>
-          <NavLink to="/social" aria-label="IFund Social"><Radio size={20} /><span>IFund Social</span></NavLink>
-          <NavLink to="/community" aria-label="Forums"><Users size={20} /><span>Forums</span></NavLink>
+          <NavLink
+            to={signedIn ? "/agents" : "/login?returnTo=%2Fagents"}
+            aria-label="AI Team"
+          >
+            <Bot size={20} />
+            <span>AI Team</span>
+          </NavLink>
+          <NavLink
+            to={signedIn ? "/profile" : "/login?returnTo=%2Fprofile"}
+            aria-label="Profile"
+          >
+            <UserRound size={20} />
+            <span>Profile</span>
+          </NavLink>
+          <NavLink to="/social" aria-label="IFund Social">
+            <Radio size={20} />
+            <span>IFund Social</span>
+          </NavLink>
+          <NavLink to="/community" aria-label="Forums">
+            <Users size={20} />
+            <span>Forums</span>
+          </NavLink>
         </nav>
       </div>
       {open && (

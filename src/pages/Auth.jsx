@@ -17,13 +17,16 @@ export default function Auth({ user }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const requestedReturn = params.get("returnTo");
-  const returnTo = requestedReturn?.startsWith("/") &&
+  const returnTo =
+    requestedReturn?.startsWith("/") &&
     !requestedReturn.startsWith("//") &&
     !requestedReturn.includes("..") &&
     !requestedReturn.includes(String.fromCharCode(92)) &&
     !requestedReturn.startsWith("/login")
-      ? requestedReturn : "/dashboard";
-  const signInEnabled = import.meta.env.VITE_IFUND_AUTH_SIGNIN_ENABLED === "true";
+      ? requestedReturn
+      : "/dashboard";
+  const signInEnabled =
+    import.meta.env.VITE_IFUND_AUTH_SIGNIN_ENABLED === "true";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeRequested, setCodeRequested] = useState(false);
@@ -50,7 +53,12 @@ export default function Auth({ user }) {
     try {
       const { error: authError } = await db.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + "/login?returnTo=" + encodeURIComponent(returnTo) },
+        options: {
+          redirectTo:
+            window.location.origin +
+            "/login?returnTo=" +
+            encodeURIComponent(returnTo),
+        },
       });
       if (authError) throw authError;
     } catch (authError) {
@@ -106,63 +114,76 @@ export default function Auth({ user }) {
       <header className="ifund-auth-brand">
         <Planet />
         <p className="ifund-editorial-eyebrow">One universe of possibility</p>
-        <h1>Welcome to <span>Interplanetary Fund</span></h1>
-        <p>Organize campaigns, connect your platforms, and grow what matters.</p>
+        <h1>
+          Welcome to <span>Interplanetary Fund</span>
+        </h1>
+        <p>
+          Organize campaigns, connect your platforms, and grow what matters.
+        </p>
       </header>
       <section className="ifund-auth-form">
-      <h2>Sign in to Interplanetary Fund</h2>
-      <p>
-        Use your connected identity or a one-time email code. Passwords are not
-        required.
-      </p>
-      {!signInEnabled && <p role="status" className="ifund-route-notice">Independent sign-in is paused until existing account ownership, OAuth credentials and email-code delivery are verified. No account has been migrated by this page.</p>}
-      <div className="form">
-        {SIGN_IN_PROVIDERS.map((provider) => (
-          <button
-            key={provider.id}
-            type="button"
-            disabled={!db || busy || !signInEnabled}
-            onClick={() => signInWithProvider(provider.id)}
-          >
-            {provider.label}
-          </button>
-        ))}
-        <form onSubmit={codeRequested ? verifyCode : requestCode}>
-          <label>
-            Email address
-            <input
-              required
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(event) => {
-                setEmail(event.target.value);
-                setCodeRequested(false);
-                setCode("");
-              }}
-            />
-          </label>
-          {codeRequested && (
+        <h2>Sign in to Interplanetary Fund</h2>
+        <p>
+          Use your connected identity or a one-time email code. Passwords are
+          not required.
+        </p>
+        {!signInEnabled && (
+          <p role="status" className="ifund-route-notice">
+            Independent sign-in is paused until existing account ownership,
+            OAuth credentials and email-code delivery are verified. No account
+            has been migrated by this page.
+          </p>
+        )}
+        <div className="form">
+          {SIGN_IN_PROVIDERS.map((provider) => (
+            <button
+              key={provider.id}
+              type="button"
+              disabled={!db || busy || !signInEnabled}
+              onClick={() => signInWithProvider(provider.id)}
+            >
+              {provider.label}
+            </button>
+          ))}
+          <form onSubmit={codeRequested ? verifyCode : requestCode}>
             <label>
-              One-time code
+              Email address
               <input
                 required
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  setCodeRequested(false);
+                  setCode("");
+                }}
               />
             </label>
-          )}
-          <button type="submit" disabled={!db || busy || !signInEnabled}>
-            {codeRequested ? "Verify code" : "Email me a sign-in code"}
-          </button>
-        </form>
-        <Message error={Boolean(error)}>
-          {error || message || (!db ? "Supabase is not yet configured." : "")}
-        </Message>
-      </div>
-      <p><Link to="/forgot-password">Recover account</Link> · <Link to="/register">Create an account</Link></p>
+            {codeRequested && (
+              <label>
+                One-time code
+                <input
+                  required
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                />
+              </label>
+            )}
+            <button type="submit" disabled={!db || busy || !signInEnabled}>
+              {codeRequested ? "Verify code" : "Email me a sign-in code"}
+            </button>
+          </form>
+          <Message error={Boolean(error)}>
+            {error || message || (!db ? "Supabase is not yet configured." : "")}
+          </Message>
+        </div>
+        <p>
+          <Link to="/forgot-password">Recover account</Link> ·{" "}
+          <Link to="/register">Create an account</Link>
+        </p>
       </section>
     </main>
   );

@@ -82,7 +82,7 @@ function Detail() {
             </p>
           </div>
           <p className="story">{c.story}</p>
-        <CampaignSharing id={c.id} title={c.title} status={c.status} />
+          <CampaignSharing id={c.id} title={c.title} status={c.status} />
         </article>
       )}
       <Link to="/discover">Discover campaigns</Link>
