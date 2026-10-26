@@ -37,3 +37,17 @@ For entity workflows, only a trusted independent server-side outbox may sign `ti
 - Sign-in and real data behavior verified on both web and Android, then release gate script passes and owner authorizes cutover.
 
 **This architecture is staged code, not 17 running workflows or a migrated production service.**
+
+## Further code implementation — October 26, 2026
+
+- `worker/adminIntegrationHealth.js` now implements an authenticated **read-only** admin/super-admin provider-health endpoint. It validates bearer identity against the current Supabase Auth user endpoint, checks trusted `app_metadata.role` rather than user-editable metadata, optionally verifies a Cloudflare token using the provider's token verification API, and never reports PayPal/OAuth/social as connected without separate provider evidence. The service defaults off unless `IFUND_ADMIN_HEALTH_ENABLED=enabled` and the independent preview API environment is configured.
+- `src/pages/Automations.jsx` exposes on-demand integration verification only in the administrator UI. The backend independently enforces the role. It receives only sanitized status strings—no credentials, account IDs or internal tool prompts.
+- `worker/campaignWrites.js` enforces the **original Campaign Protocol minimum** for publishing an active campaign (positive goal, title, category, cover URL, story, summary), but preserves incomplete draft saving. The destination's live SQL constraint does not yet enforce the original cover requirement, so `docs/migration/sql/ifund_publish_protocol_review.sql` records an unapplied, review-only constraint to prevent direct database API bypass.
+- `worker/automationAudit.js` adds an **independent private D1 audit-journal interface** using prepared, bound SQL statements and terminal-state protection. A D1 migration is included in `d1/migrations/0001_ifund_workflow_audit.sql`. The workflow runner now mandates an `IFUND_AUDIT_DB` binding before any verified workflow can run and journals start/success/failure through durable steps. Idempotent Cloudflare instance IDs are carried in both signed entity events and scheduled instances.
+- **No D1 journal database has been created or bound**: read-only connected Cloudflare inspection found D1 databases `ifund-oauth` and `onlycryptids-media-scout`, neither an appropriate journal. Do not reuse their private data or create a new paid-capable resource without verified cost and isolation.
+- Cloudflare Workers account reports usage model `standard`; Billing Read permission is unavailable through the current connection (403), so remaining no-cost capacity cannot be proven. Deployment, D1 provisioning, Cron activation and consumer traffic have **not** been performed.
+- These changes add independent infrastructure and tests, **not** migrated real agency/workflow functionality. The core original 184 source functions remain unmapped to verified independent executors, all 17 workflows still have `ported:false`, and the new target Supabase RLS/public data remains unpopulated.
+
+### Verification and critical gaps
+
+Node tests and Vite build check protocol, status, audit logic and basic frontend; they **do not compile or remotely execute** the `cloudflare:workers` native Worker entrypoint, install D1 migrations, validate real OAuth/PayPal evidence, or prove end-to-end events across app and web. A dedicated isolated Worker dry-run/deployment test, real private D1 binding, account/role setup, signed event source and migration of original function handlers are still mandatory. No production traffic switch has been made.
