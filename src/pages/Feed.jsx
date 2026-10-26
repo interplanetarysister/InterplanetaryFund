@@ -8,7 +8,15 @@ function Feed() {
   const [posts, setPosts] = useState(null);
   const [message, setMessage] = useState("");
   useEffect(() => {
-    if (!db) return;
+    if (!db) {
+      setCampaigns([]);
+      setPosts([]);
+      setMessage(
+        "Campaigns and posts are unavailable until the independent data service is configured.",
+      );
+      return;
+    }
+    let active = true;
     Promise.all([
       db
         .from("ifund_campaigns")
@@ -21,11 +29,24 @@ function Feed() {
         .select("*")
         .order("created_at", { ascending: false })
         .limit(20),
-    ]).then(([a, b]) => {
-      setCampaigns(a.data || []);
-      setPosts(b.data || []);
-      setMessage(a.error?.message || b.error?.message || "");
-    });
+    ])
+      .then(([a, b]) => {
+        if (!active) return;
+        setCampaigns(a.data || []);
+        setPosts(b.data || []);
+        setMessage(a.error?.message || b.error?.message || "");
+      })
+      .catch(() => {
+        if (!active) return;
+        setCampaigns([]);
+        setPosts([]);
+        setMessage(
+          "The community feed is temporarily unavailable. Please retry later.",
+        );
+      });
+    return () => {
+      active = false;
+    };
   }, []);
   return (
     <div className="stack">
@@ -56,9 +77,9 @@ function Feed() {
                 <p>{p.body}</p>
               </article>
             ))
-          ) : (
+          ) : !message ? (
             <p>No posts yet. Community updates will appear here.</p>
-          )}
+          ) : null}
         </section>
         <section>
           <h2>Campaigns</h2>
@@ -66,9 +87,9 @@ function Feed() {
             <Loading />
           ) : campaigns.length ? (
             campaigns.slice(0, 8).map((c) => <CampaignCard key={c.id} c={c} />)
-          ) : (
+          ) : !message ? (
             <p>There are no published campaigns yet.</p>
-          )}
+          ) : null}
         </section>
       </div>
       <Message error>{message}</Message>

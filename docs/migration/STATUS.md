@@ -47,3 +47,32 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+## Phase 5 original-experience recovery — 2026-10-26 (review branch only)
+
+- **Regression accepted, NOT cutover accepted:** owner reports the live Pages scaffold displaced the intended full app. Existing historical CI/builds validate a small UI, not the original product.
+- Created `migration/phase5-original-shell-recovery-20261026` from current integration; original route/layout evidence captured in [ORIGINAL_APP_PARITY_RECOVERY.md](ORIGINAL_APP_PARITY_RECOVERY.md).
+- Ported source-inspired navigation hierarchy into `MigrationShell.jsx`, including narrow desktop sidebar, mobile accessible drawer and bottom nav, current page bar, local theme preference, and explicit Pending labels for disabled features. No unsupported route is represented as active.
+- Reused the existing unmerged Phase 5 legal/About page ports and read-only legal policy copy; added About, Terms, Privacy routes to recovery branch for review, **not legal acceptance or release**. Existing legal version remains unchanged.
+- Added unit regression checks that prevent sidebar links from being enabled on nonexistent routes and prevent guest access to private navigation. Build/browser checks and owner visual acceptance: **NOT VERIFIED until CI and real browser tests**.
+- **Not addressed:** full original visual fidelity/media asset, 58 named source routes, full 56 lazy-page composition, all source functions/agents, PayPal payout entitlement, user/data migration, authentic Auth/RLS flow, Cloudflare live Worker Base44 proxy, DNS cutover.
+- No production Supabase changes, Cloudflare deployments, DNS changes, payment mutations, Base44 edits, or provider spending were performed in this phase.
+
+### CI evidence — draft PR #155 (2026-10-26)
+
+[GitHub Actions run 40316710940](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40316710940): Node dependency install and lockfile consistency **PASS**; `npm test` **75/75 PASS**; `npm run build` **PASS** (Vite 6.4.3, 1,654 modules transformed). Overall workflow **FAIL** at Prettier `--check` for `src/App.jsx`, `src/components/MigrationShell.jsx`, `src/lib/migrationNavigation.js` and `src/styles.css`. Styling gate remains unresolved; browser/end-to-end and original visual acceptance remain UNVERIFIED. This is a review-only branch, not a production release.
+
+## Phase 5 source-format recovery — 2026-10-26
+
+- **Formatter repair applied (review branch only):** temporary, branch-scoped standard public-repository GitHub Actions workflow [#40323598466](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323598466) succeeded, reformatted only `src/App.jsx`, `src/components/MigrationShell.jsx`, `src/lib/migrationNavigation.js` and `src/styles.css`, committed `081b0f8c7585fc12dc968b8cc426afd83b6973e5`, and self-deleted. It did not deploy, change DNS/database/payment data, or spend paid builder credits.
+- **Not a CI greenlight:** the previous-head workflow [#40323605464](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323605464) failed its pre-format Prettier check while npm dependency resolution, 75 tests and the Vite build passed. The formatter's latest-head PR workflow [#40323634725](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40323634725) is `action_required` with no verification jobs executed. This commit requests a fresh standard PR check; validate its actual conclusion before considering review completion.
+- **Connected release state:** Cloudflare zone `interplanetaryfund.com` is active with apex/www CNAMEs to `interplanetaryfund-migration.pages.dev`; production Pages deployments remain disabled, preview deployment queue entries are idle, and 16 existing domain Worker routes still reference the legacy `interplanetary-fund2` script. No cutover was performed.
+- The designated Supabase `ssibsfmtodgximseeqsv` public app tables (`ifund_profiles`, `ifund_campaigns`, `ifund_posts`, `ifund_connections`) still show zero rows and no Edge Functions. Private archived snapshots are not publishable user-owned campaigns.
+- **Blockers remain:** source-equivalent pages/assets, login and ownership migration, authenticated RLS integration, PayPal ledger/payout entitlements, full 184-function parity, original mobile/desktop screenshot acceptance and provider-verified funding. Keep the recovery branch and PR unmerged/unreleased until those gates pass.
+
+### Homepage/discovery recovery — 2026-10-26
+
+- Added safe fallback/error states for the public feed and discovery when Supabase is missing or a request fails, preventing indefinite loading and misleading claims that the platform has no campaigns.
+- Added `tests/frontend-availability.test.js` regression checks; interim CI passed tests and Vite build but failed Prettier before source reformatting.
+- Temporary standard public-runner formatting workflow [#40324152508](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40324152508) succeeded and self-deleted; latest formatted code is commit `1ade0d29b47da713c538a7f9f1708d630506d3a0`. Latest PR workflow on that bot commit returned `action_required` without jobs, so this documentation update requests a fresh normal review-branch CI run.
+- No deployment, DNS, auth/RLS, data/public campaigns or financial provider changes were made. The restored UI is still partial and not accepted for cutover.
