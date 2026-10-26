@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Preserve organization review settings while enabling migration-branch PRs.
+inheritance: true
+reviews:
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    base_branches:
+      - "migration/.*"
