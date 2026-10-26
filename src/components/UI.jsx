@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
 // Official independent SVG asset from the original IFund repository.
 export function Planet() {
-  return <img src="/interplanetary-planet.svg" width="42" height="42" alt="" aria-hidden="true" />;
+  return (
+    <img
+      src="/interplanetary-planet.svg"
+      width="42"
+      height="42"
+      alt=""
+      aria-hidden="true"
+    />
+  );
 }
 
 export function Message({ children, error }) {
