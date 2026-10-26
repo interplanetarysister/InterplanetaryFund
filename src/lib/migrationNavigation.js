@@ -1,3 +1,4 @@
+import { sourceRoutePaths } from "./pageRoutes";
 // Original route labels and section order are derived from the read-only
 // interplanetary-fund2/src/components/Layout.jsx (2026-10-26).
 // An unavailable destination remains visible but cannot navigate to a stub.
@@ -83,15 +84,8 @@ export function navigationFor({ signedIn = false, role = null } = {}) {
     ? [...memberNavigation, adminNavigation]
     : memberNavigation;
 }
-export const readyRoutes = new Set([
-  "/",
-  "/discover",
-  "/community",
-  "/connections",
-  "/create",
-  "/mine",
-  "/login",
-]);
+// UI availability only: real operations still require verified independent APIs.
+export const readyRoutes = new Set([...sourceRoutePaths, "/mine"]);
 export function isNavigationReady(item) {
-  return item.ready === true && readyRoutes.has(item.path);
+  return readyRoutes.has(item.path);
 }

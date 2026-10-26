@@ -19,6 +19,7 @@ import {
 import { Planet } from "./UI";
 import { SLOGAN } from "../lib/brand";
 import { navigationFor, isNavigationReady } from "../lib/migrationNavigation";
+import { existingIndependentPagePaths } from "../lib/pageRoutes";
 
 const icons = {
   "/": House,
@@ -114,6 +115,9 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
               >
                 <Icon size={17} aria-hidden="true" />
                 <span>{item.label}</span>
+                {!existingIndependentPagePaths.has(item.path) && item.path !== "/mine" && (
+                  <small title="Accessible page, backend migration not yet verified">Limited</small>
+                )}
               </NavLink>
             ) : (
               <span

@@ -736,3 +736,43 @@ html[data-theme="light"] .ifund-mobile-bottom {
 html[data-theme="light"] .ifund-legal-links a {
   color: #244472;
 }
+
+.ifund-route-notice {
+  border: 1px solid #7ca9d666;
+  border-radius: 0.85rem;
+  background: #1c325444;
+  padding: 0.9rem 1.1rem;
+  line-height: 1.65;
+}
+.ifund-restored-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ifund-restored-card h2 { margin-top: 0; }
+.ifund-page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.ifund-page-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 1rem;
+}
+.ifund-page-grid .card { min-height: 10rem; }
+.ifund-nav-entry small {
+  font-size: 0.64rem;
+  opacity: 0.72;
+  margin-left: auto;
+}
+html[data-theme="light"] .ifund-route-notice {
+  color: #20436b;
+  background: #edf5fd;
+  border-color: #b7d0eb;
+}
+.ifund-restored-card input {
+  display: block;
+  width: min(100%, 35rem);
+}
