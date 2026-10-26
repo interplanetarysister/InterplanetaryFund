@@ -1,0 +1,1367 @@
+{
+  "source": "interplanetarysister/interplanetary-fund2/host/migration/source-inventory.json",
+  "source_count": 184,
+  "verified_port_count": 0,
+  "functions": [
+    {
+      "name": "acknowledgeConnectionIssue",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "activateSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "adminApiConnectionIntake",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "adminCampaignControl",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "adminOAuthProviderReadiness",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "adminUpdateUserRole",
+      "domains": [
+        "identity"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "analyzeGrantApplication",
+      "domains": [
+        "campaign"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "applyAgentContentDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "applyInstitutionOpportunity",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "auditAdminAgentGateway",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "authorizeCollectAndWithdraw",
+      "domains": [
+        "finance",
+        "identity"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "authorizeConnectionAi",
+      "domains": [
+        "identity",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "broadcastPosts",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "cancelPayPalSubscription",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "capturePayPalOrder",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "checkUsernameAvailability",
+      "domains": [
+        "identity",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "communityMembership",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "completeOAuthConnection",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "confirmPayPalSubscription",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createCommunity",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createDiscussionPost",
+      "domains": [
+        "integrations",
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createDistributedPost",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createDonationCheckout",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createInstitution",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createKnowledgeArticle",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createPayPalOrder",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createPayPalSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createPremiumDayPassCheckout",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createSocialPost",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createSupportTicket",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "createVolunteerOpportunity",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "decideGrantApplication",
+      "domains": [
+        "campaign"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "deleteAccount",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "deleteCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "deviceAuthorization",
+      "domains": [
+        "identity"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "disconnectPlatformConnection",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "discoverConnectionMethods",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "discoverExternalCampaignSnapshot",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "discoverFeatures",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "discoverPayPalHoldingSettlements",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "draftSharePost",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "enforceCampaignProtocol",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "executeAdminAgentRequest",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "executeCollectAndWithdraw",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "externalAgentCampaigns",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "externalAgentContentWrite",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "finalizeAppUserOAuthConnection",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "generateCampaignCover",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "generateDistributionContent",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "generateIntelligence",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "generateSocialContent",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "geocodeCity",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getAgentAccountContext",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getAgentMailContext",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getAppUserConnector",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getBufferReadiness",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getCampaignDonations",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getCampaignDraft",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getCampaignWithdrawalBalance",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getCommunityFeed",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getConnectedPayoutAccount",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getCryptoDonationReadiness",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getFeatureAvailability",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getFundraisingMode",
+      "domains": [
+        "finance",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getLiveProviderStatus",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getMyGiving",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getOwnerDonorDirectory",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getOwnerFinancialLedger",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getPayPalConfig",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getPayPalPayoutReadiness",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getPayPalSubscriptionOptions",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getPaymentCapabilities",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getSharedConnectorStatus",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getStripeIntegrationAudit",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getStripeReadiness",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getStripeSubscriptionOptions",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getUnifiedInbox",
+      "domains": [
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getVerifiedIFundIntegrationContext",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "getWritingResearchBrief",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "importExternalCampaign",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "joinFoundingWaitlist",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "justGivingStagingPilot",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "kofiWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "listConnections",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "listFundraisingProviderCapabilities",
+      "domains": [
+        "finance",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "listInstitutionApplications",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "listUntrackedPayPalReceipts",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "logPlatformEvent",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "maintainPlatformOwnedAccounts",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageAdminBuilderWork",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageAgentContentDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageAgentWork",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageApprovedBuilderExecution",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageBlog",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageConnectedPayoutAccount",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageDistributedPost",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageExternalAgentKeys",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageFeatureFlag",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageFriends",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageOAuthClients",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageOfficialPublications",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageOwnerConnectionConfiguration",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "managePlatformAccess",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "managePlatformIncidents",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "managePostInterest",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "managePublicProfile",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageRecurringDonation",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "manageVerificationMailbox",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "markNotificationRead",
+      "domains": [
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "matchExternalPayPalSettlement",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "mirrorExternalPosts",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "ownerAgentChatActions",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "payPalSubscriptionWebhook",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "postCampaignUpdate",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "postDiscussionReply",
+      "domains": [
+        "integrations",
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "prepareCollectAndWithdraw",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "processAdminActionInbox",
+      "domains": [
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "publishInstitutionOpportunity",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "publishLinkedCampaignToConnection",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "publishPost",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "receiveCloudflareEmail",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "reconcileDirectPayPalCampaignDonation",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "reconcileExternalPayPalSettlement",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "recordAgentInteraction",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "recordCampaignCreated",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "recordDonation",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "recordExternalFundMigration",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "recordLegalAcceptance",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "refreshWritingResearch",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "registerPushDevice",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "renderInterplanetaryPhoto",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "repairStripeWebhookEvents",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "requestManagedConnectionAction",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "requestWithdrawal",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "resolveConnectionStatus",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "resolvePlatformConnectionRecipe",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "reviewAgentActivity",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "revokeConnectionAiConsent",
+      "domains": [
+        "identity",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "routeAgentTask",
+      "domains": [
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "runBrowserConnection",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "runOfficialSocialPromotion",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "runOutreachAgent",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "runReporterDiary",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "runSocialAutopilot",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "saveCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "saveConnectionCredentials",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "sendCommunication",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "sendPublicContactMessage",
+      "domains": [
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "setConnectionAiToggle",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "setUnifiedOboConsent",
+      "domains": [
+        "identity"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "setUsername",
+      "domains": [
+        "identity"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "setupPayPalSubscriptionWebhook",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "startPremiumTrial",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "startStripeConnectOnboarding",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "stripeWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncConnections",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncExternalFunds",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncFromConvex",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncGitHub",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncImportedCampaign",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncPayPalSubscriptionCatalog",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncStripeSubscriptionCatalog",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncWixAnalytics",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncWixBusinessData",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncWixCampaigns",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "syncWixContent",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "toggleCampaignFollow",
+      "domains": [
+        "campaign",
+        "agents-ai",
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "trackAgentConversation",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "translateCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "updateCampaignSettings",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "updateFollowPreferences",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "updateInboxItem",
+      "domains": [
+        "communications"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "updateMissionItemStatus",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "validateIntegrationHealth",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "verifyAdminGateway",
+      "domains": [
+        "other"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "verifyAgentPlatformAccess",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "verifyAppUserConnector",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "verifyOwnerPayPalBasicPlan",
+      "domains": [
+        "finance"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "verifyPlatformConnection",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "volunteerFollowUp",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "volunteerSignup",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "welcomeVolunteer",
+      "domains": [
+        "community"
+      ],
+      "port_state": "unverified"
+    },
+    {
+      "name": "wixWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "port_state": "unverified"
+    }
+  ]
+}
