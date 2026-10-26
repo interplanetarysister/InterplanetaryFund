@@ -20,7 +20,7 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 - It handles `PAYMENT.CAPTURE.{COMPLETED, PENDING, DENIED, REVERSED, REFUNDED}` after signature verification and attribution checks.
 - It ignores captures whose `custom_id` contains `|`. Those are legacy campaign checkout orders.
 - It ignores `PAYMENT.SALE.*`, which is subscription billing.
-- The same PayPal event ID is never recorded twice. Refunds only update already-attributed support captures; unmatched refunds are audited but do not create payments. A late COMPLETED event cannot overwrite a refund or reversal.
+- The same PayPal event ID is never recorded twice. Refunds only update already-attributed support captures; unmatched refunds/reversals roll back and request provider retry; they cannot create support payments. A late COMPLETED event cannot overwrite a refund or reversal.
 
 ## Owner steps (not done by this PR)
 1. Review the pending SQL, then apply it to staging.
@@ -42,3 +42,5 @@ Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFu
 
 ## Attribution safety correction — 2026-10-26
 The existing hosted PayPal NCP link is **not a verified source of `custom_id` attribution**. Keep the link as an external payment link, but do not claim that NCP payments will automatically appear in the support ledger. A future first-party PayPal Orders flow must explicitly set `ifund:platform-support:v1` as its `custom_id`, or a reviewed provider-receipt reconciliation path must establish that a specific NCP capture belongs to the IFund support button. Webhook signature verification alone proves delivery by PayPal, **not** which purpose the payment served.
+
+Provider retry windows are finite: unresolved event order requires manual comparison to PayPal's official transaction history, not silent acknowledgment. This is especially important while hosted NCP payments remain unattributed.
