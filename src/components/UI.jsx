@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-// Official independent SVG asset from the original IFund repository.
+// Independent lightweight derivative of the original official 1024px JPG logo.
 export function Planet() {
   return (
     <img
-      src="/interplanetary-planet.svg"
+      src="/ifund-logo-small.jpg"
       width="42"
       height="42"
       alt=""
