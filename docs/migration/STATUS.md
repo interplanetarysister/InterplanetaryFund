@@ -57,3 +57,7 @@ Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. 
 - Added unit regression checks that prevent sidebar links from being enabled on nonexistent routes and prevent guest access to private navigation. Build/browser checks and owner visual acceptance: **NOT VERIFIED until CI and real browser tests**.
 - **Not addressed:** full original visual fidelity/media asset, 58 named source routes, full 56 lazy-page composition, all source functions/agents, PayPal payout entitlement, user/data migration, authentic Auth/RLS flow, Cloudflare live Worker Base44 proxy, DNS cutover.
 - No production Supabase changes, Cloudflare deployments, DNS changes, payment mutations, Base44 edits, or provider spending were performed in this phase.
+
+### CI evidence — draft PR #155 (2026-10-26)
+
+[GitHub Actions run 40316710940](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40316710940): Node dependency install and lockfile consistency **PASS**; `npm test` **75/75 PASS**; `npm run build` **PASS** (Vite 6.4.3, 1,654 modules transformed). Overall workflow **FAIL** at Prettier `--check` for `src/App.jsx`, `src/components/MigrationShell.jsx`, `src/lib/migrationNavigation.js` and `src/styles.css`. Styling gate remains unresolved; browser/end-to-end and original visual acceptance remain UNVERIFIED. This is a review-only branch, not a production release.
