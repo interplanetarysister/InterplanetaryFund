@@ -42,7 +42,11 @@ export function classifyPayPalNotification(event) {
     return {type:'unattributed',reason:'capture_has_no_verified_purpose'};
   }
   if(BILLING_EVENTS.has(kind)) {
-    const subscriptionId=String(r.billing_agreement_id||r.id||'');
+    // For PAYMENT.SALE.*, resource.id is the SALE ID, NOT subscription ID.
+    // Only PayPal's billing_agreement_id can identify that subscription;
+    // billing events instead carry the subscription as resource.id.
+    const subscriptionId=kind.startsWith('PAYMENT.SALE.')
+      ? (r.billing_agreement_id||null) : (r.id||null);
     return {type:'subscription_reconciliation',event_type:kind,subscription_id:subscriptionId};
   }
   if(PAYOUT_EVENTS.has(kind))return {type:'payout_reconciliation',event_type:kind,
