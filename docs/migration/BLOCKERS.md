@@ -86,3 +86,16 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 **UNKNOWN/blocks payment cutover:** Where the PayPal REST app actually sends notifications, whether its merchant matches the hosted-link receiver, how to obtain a valid `PAYPAL_WEBHOOK_ID`, and whether PayPal hosted checkout emits the expected events. The proposed [platform-support webhook PR #145](https://github.com/interplanetarysister/InterplanetaryFund/pull/145) needs `PAYPAL_MODE`, `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, `PAYPAL_WEBHOOK_ID`, `SUPABASE_URL` and modern `SUPABASE_SECRET_KEY` (or a legacy service_role JWT). New Supabase secret keys are **not** bearer JWTs; PR #145 has a staged code fix and tests for this. No credential values were imported, no key was rotated, no new Worker configured or deployed, and no real payment was attempted.
 
 **Critical project separation:** Both Supabase projects are active. The owner has designated the newer `ssibsfmtodgximseeqsv` target in PR #148, but the older published Pages deployment has not been safely switched. Do not point production payment Workers at the newer project until schemas, users, ledger correctness, tests and source-parity requirements pass.
+
+
+## B13 — Code merged, independent production cutover still blocked (2026-10-25)
+
+**Verified after PRs #138, #149, #150 and #151 were merged:**
+- Destination Supabase `ssibsfmtodgximseeqsv`: `auth.users = 0`; `public.ifund_campaigns = 0`; `public.ifund_posts = 0`. No signed-in two-user RLS smoke test can be truthfully claimed yet.
+- Cloudflare: 16 production Worker route patterns on apex/www point to `interplanetary-fund2` instead of the independent Worker in #150. The legacy Worker retains Base44-dependent behavior from the prior runtime audit.
+- Pages: `interplanetaryfund-migration` production deployments disabled, production branch `migration/phase7-offline-cutover-gate`; merging the integration branch does not change the published application.
+- Frontend feature flags and Worker migration preview mode remain disabled by default. The deployed PayPal webhook/ledger, payout account approval, bank/donor ownership, and provider settlement are unverified.
+
+**Actions blocking safe Base44 shutdown:** Securely migrate verified Supabase users and campaign ownership with explicit consent, reconcile source content/media and donations, audit RLS and browser column grants with actual two-account negative tests, review/merge remaining source phases and PayPal/finance/webhooks, deploy independent Worker and Pages to a nonproduction route, prove Base44-free HTTP response parity and rollback, then separately authorize production cutover. Data import must not be faked by relabeling the private legacy snapshot tables.
+
+**Merge queue:** #139–#143 currently have conflicts after #138 landed and unresolved review findings. Resolve their conflicts and review findings one at a time rather than force-merging old stacked changes; #141/#142 contain API/UI implementations already extracted cleanly to merged #150/#151. #144/#146/#147/#148 are draft/review-gated; #145 platform-support payments alone are not campaign donations and withdrawals. Obsolete #136 must never be merged.
