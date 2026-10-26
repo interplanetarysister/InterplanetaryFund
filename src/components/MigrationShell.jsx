@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Compass,
@@ -15,6 +15,10 @@ import {
   Link2,
   UserRound,
   ShieldAlert,
+  ArrowLeft,
+  Bell,
+  Bot,
+  Radio,
 } from "lucide-react";
 import { Planet } from "./UI";
 import { SLOGAN } from "../lib/brand";
@@ -44,6 +48,7 @@ const labels = {
 export default function MigrationShell({ user, theme, setTheme, children }) {
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const closeRef = useRef(null);
   const menuRef = useRef(null);
   const menuButtonRef = useRef(null);
@@ -186,6 +191,7 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
           >
             <Menu size={22} />
           </button>
+          <button type="button" className="ifund-back-button" onClick={() => window.history.length > 1 ? navigate(-1) : navigate("/")} aria-label="Go back"><ArrowLeft size={20} /></button>
           <Link
             to="/"
             className="ifund-mobile-logo"
@@ -204,13 +210,13 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
             >
               {signedIn ? "New campaign" : "Sign in"}
             </Link>
+            {signedIn && <Link to="/notifications" className="ifund-notifications-link" aria-label="Notifications"><Bell size={19} /></Link>}
             {themeButton}
           </div>
         </header>
         <div className="ifund-runtime-notice" role="status">
           <ShieldAlert size={15} aria-hidden="true" />
-          Migration recovery build: original features marked Pending are not
-          active. Payments are disabled.
+          Recovery build: some pages have limited features. Payments are disabled.
         </div>
         <div className="ifund-stage" id="ifund-content">
           {children}
@@ -228,23 +234,11 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
             <Link to="/privacy">Privacy Policy</Link>
           </nav>
         </footer>
-        <nav className="ifund-mobile-bottom" aria-label="Quick navigation">
-          <NavLink end to="/">
-            <House size={19} />
-            Home
-          </NavLink>
-          <NavLink to="/discover">
-            <Compass size={19} />
-            Discover
-          </NavLink>
-          <NavLink to="/community">
-            <Users size={19} />
-            Community
-          </NavLink>
-          <NavLink to={signedIn ? "/create" : "/login"}>
-            {signedIn ? <PlusCircle size={19} /> : <UserRound size={19} />}
-            {signedIn ? "Create" : "Sign in"}
-          </NavLink>
+        <nav className="ifund-mobile-bottom" aria-label="Bottom navigation">
+          <NavLink to={signedIn ? "/agents" : "/login?returnTo=%2Fagents"} aria-label="AI Team"><Bot size={20} /><span>AI Team</span></NavLink>
+          <NavLink to={signedIn ? "/profile" : "/login?returnTo=%2Fprofile"} aria-label="Profile"><UserRound size={20} /><span>Profile</span></NavLink>
+          <NavLink to="/social" aria-label="IFund Social"><Radio size={20} /><span>IFund Social</span></NavLink>
+          <NavLink to="/community" aria-label="Forums"><Users size={20} /><span>Forums</span></NavLink>
         </nav>
       </div>
       {open && (
