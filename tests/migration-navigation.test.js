@@ -39,7 +39,7 @@ test("only implemented routes can be rendered as links", () => {
 test("guest-ready destinations match the independent scaffold", () => {
   assert.deepEqual(
     publicNavigation.filter(isNavigationReady).map(i => i.path),
-    ["/", "/discover", "/community", "/social", "/globe", "/blogs", "/help"]
+    ["/", "/discover", "/community", "/social", "/globe", "/blogs", "/help", "/download"]
   );
   const current = memberNavigation.flatMap(s => s.items).filter(isNavigationReady).map(i => i.path);
   for (const path of ["/discover", "/create", "/mine", "/community", "/login", "/connections"])
