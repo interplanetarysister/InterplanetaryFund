@@ -4,11 +4,15 @@ import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
 import { routeAutomationReadiness } from './automationStatus.js';
 import { routeIndependentHealth } from './independentHealth.js';
+import { routeAdminIntegrationHealth } from './adminIntegrationHealth.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/admin/integrations/health') {
+      return routeAdminIntegrationHealth(request, env);
+    }
     if (pathname === '/api/health/independent') {
       return routeIndependentHealth(request,env);
     }
