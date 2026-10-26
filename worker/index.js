@@ -1,5 +1,6 @@
 import { handlePayPalWebhook } from "./paypalWebhook.js";
 import { paypalReadiness } from "./paypalRouting.js";
+import { handleUnifiedPayPalWebhook } from "./paypalInbox.js";
 
 export default {
   async fetch(request, env) {
@@ -13,6 +14,8 @@ export default {
       return Response.json(paypalReadiness(env), {
         headers: { "Cache-Control": "no-store" },
       });
+    if (url.pathname === "/api/paypal/unified-webhook")
+      return handleUnifiedPayPalWebhook(request, env);
     if (url.pathname === "/api/paypal/webhook") {
       // This staged support handler is NOT the unified campaign or subscription
       // ledger. It must stay disabled until merchant + receipt parity is proven.
