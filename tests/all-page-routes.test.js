@@ -3,13 +3,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { sourcePageRoutes, sourceRoutePaths, sourceRouteCount, existingIndependentPagePaths } from "../src/lib/pageRoutes.js";
 
-test("all 58 IFund source pages are inventoried without duplicates", () => {
-  assert.equal(sourceRouteCount, 58);
-  assert.equal(sourceRoutePaths.size, 58);
+test("all 59 IFund source pages are inventoried without duplicates", () => {
+  assert.equal(sourceRouteCount, 59);
+  assert.equal(sourceRoutePaths.size, 59);
   for (const name of ["/register", "/forgot-password", "/reset-password", "/globe",
     "/embed/campaign/:id", "/oauth/consent", "/activate", "/u/:id",
     "/community/:id", "/help/:slug", "/dashboard", "/giving", "/ledger",
-    "/withdrawals", "/ops", "/admin/organization-mail", "/admin/founding-members"]) {
+    "/withdrawals", "/ops", "/admin/organization-mail", "/admin/founding-members", "/download"]) {
     assert.ok(sourceRoutePaths.has(name), name);
   }
 });

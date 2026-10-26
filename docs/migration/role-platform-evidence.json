@@ -5,7 +5,15 @@
     "ref": "main",
     "app_file": "src/App.jsx",
     "blob_sha": "2c7926c47f5469c834d5d0f044181bd7255d8b84",
-    "source_page_components": 57
+    "source_page_components": 57,
+    "historical_max_routes": 59,
+    "source_page_components_max_across_branches": 58,
+    "additional_route": {
+      "path": "/download",
+      "source_branch": "maintenance/ifund-install-brand-ci",
+      "original_component": "src/pages/DownloadApp.jsx",
+      "proven_live": false
+    }
   },
   "target": {
     "repository": "interplanetarysister/InterplanetaryFund",
@@ -17,7 +25,8 @@
     "mounted": "Route exists; does not prove behavior or visual parity",
     "UI_partial": "Narrow independent UI, not complete source functionality",
     "limited": "Only a limited route-specific shell; no source-equivalent functionality",
-    "release_verified": "Requires review and evidence for all expected roles, visual states, behavioral scenarios, and both platforms"
+    "release_verified": "Requires review and evidence for all expected roles, visual states, behavioral scenarios, and both platforms",
+    "historical_max": "59 coded routes across original GitHub branches; main contained 58; deployment of /download unverified"
   },
   "required_screens": [
     "desktop_light",
@@ -585,6 +594,44 @@
         "source_assets": null,
         "reviewer_approval": null
       }
+    },
+    {
+      "path": "/download",
+      "title": "Download IFund",
+      "source_component": "DownloadApp",
+      "source_access": "public",
+      "allowed_roles": [
+        "visitor",
+        "member",
+        "admin",
+        "super_admin"
+      ],
+      "blocked_roles": [],
+      "initial_frontend_state": "UI_partial",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_branch": "maintenance/ifund-install-brand-ci"
     },
     {
       "path": "/discover",

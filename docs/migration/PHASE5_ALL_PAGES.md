@@ -107,3 +107,7 @@ No Base44 SDK is imported into newly added page modules, no source repository wa
 - Recovered `public/ifund-logo.jpg` from the owner's original exported ZIP in the connected file library. Generated a lightweight 96×96 WebP derivative for IFund's small navigation and favicon, transferred it to GitHub without Base44 CDN dependence, and **verified exact Git blob SHA `4258c5409b39e248c4396219d24de29ca686a4bb`** against the local source-derived file before updating the repository.
 - Independent navigation and favicon use `public/ifund-logo-small.webp`. The legacy source's full 1024×1024 JPG and remote hero bitmap have not been transferred; the CSS atmospheric hero remains a source-informed approximation.
 - Replacement failed-length unverified JPG was deleted. No production deployment or provider change was made.
+
+## Historical 59th route: Download IFund
+
+A source maintenance branch `maintenance/ifund-install-brand-ci` added `/download` and `DownloadApp.jsx` ([original PR #533](https://github.com/interplanetarysister/interplanetary-fund2/pull/533)). Source main had 58 paths, while the maximum across inspected branches is 59; live deployment of the extra route is not verified. The migrated `/download` page now handles actual browser-provided web app installation prompts, documented manual installation, and an independent web manifest. Android APK distribution remains blocked until a signed public release is verified.

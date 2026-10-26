@@ -2,9 +2,9 @@
 
 Source: [read-only original `src/App.jsx`](https://github.com/interplanetarysister/interplanetary-fund2/blob/main/src/App.jsx); repository reference at current source content SHA `2c7926c47f5469c834d5d0f044181bd7255d8b84`. Destination: [draft PR #156](https://github.com/interplanetarysister/InterplanetaryFund/pull/156). Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 
-**Original maximum observed defined routes: 58** (25 ordinary visitor/public URLs; 21 member URLs; 11 admin URLs; 1 separately protected organizational-mail URL). There are 57 source page JSX modules, but `/connect` is a redirect and organizational mail is routed through an independent component. **This count is a source inventory, not verified historical production availability.**
+**Historical maximum coded routes: 59** (26 ordinary public URLs including the extra `/download` page; 21 member URLs; 11 admin URLs; 1 separately protected organizational-mail URL). The original main branch had 58 routes/57 page modules; an unmerged maintenance branch added the `/download` route and another module. Its live deployment is unverified. but `/connect` is a redirect and organizational mail is routed through an independent component. **This count is a source inventory, not verified historical production availability.**
 
-The existing migration currently mounts all 58 original patterns. This is not functional parity: 10 mounted independent UI patterns, 11 with narrow independent functionality, and 37 limited source-context screens. All routes still have `release_status: not_verified` until actual end-to-end evidence is recorded. No screen should be recorded as complete just because it renders or compiles.
+The existing migration currently mounts all 59 known historical patterns. This is not functional parity: 10 mounted independent UI patterns, 12 with narrow independent functionality (including `/download`), and 37 limited source-context screens. All routes still have `release_status: not_verified` until actual end-to-end evidence is recorded. No screen should be recorded as complete just because it renders or compiles.
 
 | Source route | Reference component | Allowed roles | Current stage | Release |
 | --- | --- | --- | --- | --- |
@@ -77,3 +77,5 @@ The existing migration currently mounts all 58 original patterns. This is not fu
 - Once evidence is collected, set each route `release_status` to `verified`, populate the proof fields in `docs/migration/role-platform-evidence.json`, and run `node scripts/verify-production-parity.mjs`. Any missing entry blocks cutover; `--summary` reports status without failure.
 
 Visual differences may be documented only after owner approval. **Do not deploy to interplanetaryfund.com, merge to main or unpublish Base44 while this gate reports failures.**
+
+Historical extra source: [original maintenance PR #533](https://github.com/interplanetarysister/interplanetary-fund2/pull/533). It is not evidence this route was ever deployed. The migration offers browser install and a site manifest, not an unverified Android APK.

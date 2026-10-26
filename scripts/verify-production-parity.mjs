@@ -3,8 +3,8 @@ const file = new URL("../docs/migration/role-platform-evidence.json", import.met
 const data = JSON.parse(readFileSync(file, "utf8"));
 const requiredRoleNames = ["visitor","member","admin","super_admin"];
 const errors = [];
-if (data.pages.length !== 58 || new Set(data.pages.map((p)=>p.path)).size !== 58) {
-  errors.push("Expected 58 distinct original IFund routes.");
+if (data.pages.length !== 59 || new Set(data.pages.map((p)=>p.path)).size !== 59) {
+  errors.push("Expected 59 distinct original IFund routes.");
 }
 for (const page of data.pages) {
   if (page.release_status !== "verified") {
@@ -22,7 +22,7 @@ for (const page of data.pages) {
   }
 }
 const verified = data.pages.filter(x=>x.release_status==="verified").length;
-console.log("IFund parity: " + verified + "/58 verified, " + errors.length + " missing checks.");
+console.log("IFund parity: " + verified + "/59 verified, " + errors.length + " missing checks.");
 if (process.argv.includes("--summary")) {
   console.log(data.pages.filter(x=>x.release_status!=="verified").map(x=>x.path).join("\n"));
 } else if (errors.length) {
