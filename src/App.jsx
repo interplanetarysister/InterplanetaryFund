@@ -12,6 +12,7 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
+import Automations from "./pages/Automations";
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
@@ -50,6 +51,7 @@ function App() {
           <NavLink to="/discover">Explore</NavLink>
           <NavLink to="/community">Community</NavLink>
           <NavLink to="/connections">Connections</NavLink>
+          <NavLink to="/automations">Automations</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
         </nav>
         <div className="actions top-actions">
@@ -129,6 +131,7 @@ function App() {
           />
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
+          <Route path="/automations" element={<Automations />} />
           <Route path="/community" element={<Community user={user} />} />
           <Route
             path="*"
