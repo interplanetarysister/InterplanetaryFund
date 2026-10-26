@@ -43,11 +43,12 @@ export function classifyPayPalEvent(event) {
   const r = event.resource || {};
   if (String(r.custom_id || "").includes("|")) return { kind: "ignored", reason: "campaign_checkout_order" };
   const isRefund = type === "PAYMENT.CAPTURE.REFUNDED";
+  const isReversal = type === "PAYMENT.CAPTURE.REVERSED";
   // Never infer that an untagged capture is support for IFund. The business
   // merchant may also receive unrelated campaign or subscription payments.
-  if (!isRefund && r.custom_id !== PLATFORM_SUPPORT_MARKER)
+  if (!isRefund && !isReversal && r.custom_id !== PLATFORM_SUPPORT_MARKER)
     return { kind: "ignored", reason: "unattributed_capture" };
-  if (isRefund && r.custom_id && r.custom_id !== PLATFORM_SUPPORT_MARKER)
+  if ((isRefund || isReversal) && r.custom_id && r.custom_id !== PLATFORM_SUPPORT_MARKER)
     return { kind: "ignored", reason: "other_payment_refund" };
   const captureId = isRefund ? captureIdFromRefund(r) : r.id;
   if (!event.id) return { kind: "invalid", reason: "missing_event_id" };
