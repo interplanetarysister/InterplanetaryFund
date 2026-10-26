@@ -1,4 +1,4 @@
-import { sourceRoutePaths } from "./pageRoutes";
+import { sourceRoutePaths } from "./pageRoutes.js";
 // Original route labels and section order are derived from the read-only
 // interplanetary-fund2/src/components/Layout.jsx (2026-10-26).
 // An unavailable destination remains visible but cannot navigate to a stub.
