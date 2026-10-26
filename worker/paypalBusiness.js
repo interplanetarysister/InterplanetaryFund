@@ -132,9 +132,14 @@ export function reservedPayout({email,reservationId,giftCents,payoutsApproved}) 
     !/^[A-Za-z0-9_-]{16,75}$/.test(reservationId||''))throw Error('Verified reservation and recipient required');
   const x=withdrawalMath(giftCents);
   if(x.netCents<100)throw Error('Payout too small');
-  return {sender_batch_header:{sender_batch_id:'IFUND_W_'+reservationId,email_subject:'Interplanetary Fund payout'},
-    items:[{recipient_type:'EMAIL',receiver:email,amount:{currency:'USD',value:(x.netCents/100).toFixed(2)},
-      sender_item_id:'IFUND_I_'+reservationId}],platform_fee_cents:x.feeCents};
+  return {
+    payload: {
+      sender_batch_header:{sender_batch_id:'IFUND_W_'+reservationId,email_subject:'Interplanetary Fund payout'},
+      items:[{recipient_type:'EMAIL',receiver:email,amount:{currency:'USD',value:(x.netCents/100).toFixed(2)},
+        sender_item_id:'IFUND_I_'+reservationId}]
+    },
+    platform_fee_cents:x.feeCents
+  };
 }
 
 // Auctions are a separate transaction class with a 10% hosting/withdrawal
