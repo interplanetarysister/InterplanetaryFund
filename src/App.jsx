@@ -96,7 +96,7 @@ function App() {
           <Loading />
         ) : (
           <Routes>
-            <Route path="/" element={<Feed />} />
+            <Route path="/" element={<Feed user={user} />} />
             <Route path="/discover" element={<Discover />} />
             <Route path="/campaign/:id" element={<Detail />} />
             <Route
