@@ -146,7 +146,9 @@ test('oversized post, upstream failures and unverified responses never claim suc
     env, mock(calls),
   );
   assert.equal(large.status, 413);
-  assert.equal(calls.length, 0);
+  // The authenticated user was checked; no PostgREST write was attempted.
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].url.endsWith('/auth/v1/user'));
   const errored = await routeCommunityWrite(
     makeRequest('POST', '/api/community/posts', { body: 'Hello' }),
     env, mock([], { error: true }),
