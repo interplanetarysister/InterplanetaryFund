@@ -1,4 +1,4 @@
-name: One-time expanded frontend validation
+name: One-time expanded frontend validation (recheck)
 on:
   push:
     branches:
