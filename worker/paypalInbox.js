@@ -38,7 +38,9 @@ const fail=(message,status)=>Response.json({error:message},{
 });
 export async function handleUnifiedPayPalWebhook(request,env,fetchImpl=fetch) {
   if(request.method!=='POST')return fail('Method not allowed',405);
-  if(env?.IFUND_PAYPAL_INBOX_ENABLED!=='enabled')
+  if(env?.IFUND_PAYPAL_INBOX_ENABLED!=='enabled' ||
+     env.IFUND_PAYPAL_MERCHANT_VERIFIED!=='enabled' ||
+     !/^[2-9A-HJ-NP-Z]{13}$/.test(String(env.PAYPAL_VERIFIED_MERCHANT_ID||'')))
     return fail('PayPal intake unavailable',503);
   if(!env.PAYPAL_WEBHOOK_ID||!env.PAYPAL_CLIENT_ID||!env.PAYPAL_CLIENT_SECRET||
      !['sandbox','live'].includes(env.PAYPAL_MODE))
