@@ -1,0 +1,31 @@
+name: Format IFund phase5 editor safeguards
+on:
+  push:
+    branches:
+      - migration/phase5-frontend-parity
+permissions:
+  contents: write
+jobs:
+  format:
+    if: github.repository == 'interplanetarysister/InterplanetaryFund'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: migration/phase5-frontend-parity
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci --no-audit --no-fund
+      - run: npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+      - name: Remove one-shot formatter and commit fixes
+        shell: bash
+        run: |
+          git rm .github/workflows/ifund-editor-one-time-format.yml
+          git add src
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "style: format editor safeguards and remove temporary workflow"
+          git push origin HEAD:migration/phase5-frontend-parity
