@@ -1,0 +1,23 @@
+# Only an example. Populate with secrets via a secure operator-controlled environment.
+# Never commit real values or put PayPal secrets under VITE_*.
+PAYPAL_MODE=sandbox
+PAYPAL_MERCHANT_EMAIL=cuddlemeplatonically@gmail.com
+# Must come from PayPal's VERIFIED, matching Business merchant account:
+PAYPAL_VERIFIED_MERCHANT_ID=
+PAYPAL_CLIENT_ID=
+PAYPAL_CLIENT_SECRET=
+PAYPAL_WEBHOOK_ID=
+# Source candidate plan, NOT evidence of merchant ownership or billing availability:
+PAYPAL_BASIC_MONTHLY_PLAN_ID=P-6YD2273006199630KNLDXBLA
+SUPABASE_URL=https://ssibsfmtodgximseeqsv.supabase.co
+SUPABASE_SECRET_KEY=
+# Safety flags start disabled; only enable after audited provider + database proof.
+IFUND_PAYMENT_PARITY_VERIFIED=disabled
+IFUND_PAYPAL_MERCHANT_VERIFIED=disabled
+IFUND_PAYPAL_CAMPAIGNS_ENABLED=disabled
+IFUND_PAYPAL_SUPPORT_ENABLED=disabled
+IFUND_PAYPAL_SUBSCRIPTIONS_ENABLED=disabled
+IFUND_PAYPAL_PLANS_VERIFIED=disabled
+IFUND_PAYPAL_PAYOUTS_ENABLED=disabled
+IFUND_PAYPAL_PAYOUTS_APPROVED=disabled
+IFUND_PAYPAL_LEDGER_VERIFIED=disabled
