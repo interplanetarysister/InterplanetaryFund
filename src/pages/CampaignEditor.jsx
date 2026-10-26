@@ -69,7 +69,7 @@ function Editor({ user }) {
     };
   }, [id, accountId]);
   // Avoid replacing user-entered data with a late response for an existing record.
-  const editorDisabled = Boolean(id && loadState !== "ready");
+  const editorDisabled = Boolean(busy || (id && loadState !== "ready"));
   const change = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   async function save(status) {
