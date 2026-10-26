@@ -92,3 +92,9 @@ Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. 
 - Independent Auth and founding enrollment remain default disabled pending backend/identity review. No active funds, PayPal capture, payouts, on-behalf agent actions, or payment provider credentials were activated.
 - Latest complete code [verification #40346682867](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40346682867) **passed 88/88 tests, npm lock install, Vite build, Prettier**, and self-deleted its temporary formatter after committing formatted source `284b510efc14630a3534e8264a31b5adfaea847a`. A bot-commit check without jobs returned `action_required`; this documentation commit requests normal latest-head PR CI.
 - Any release still requires original mobile+desktop browser comparison, migrated real data, sessions and role-scoped RLS tests, functioning independent signup/agent/media/payment services, and evidence for every issue #137 cutover gate.
+
+### Verified original-logo asset recovery — 2026-10-26
+
+- Recovered `public/ifund-logo.jpg` from the owner's original exported ZIP in the connected file library. Generated a lightweight 96×96 WebP derivative for IFund's small navigation and favicon, transferred it to GitHub without Base44 CDN dependence, and **verified exact Git blob SHA `4258c5409b39e248c4396219d24de29ca686a4bb`** against the local source-derived file before updating the repository.
+- Independent navigation and favicon use `public/ifund-logo-small.webp`. The legacy source's full 1024×1024 JPG and remote hero bitmap have not been transferred; the CSS atmospheric hero remains a source-informed approximation.
+- Replacement failed-length unverified JPG was deleted. No production deployment or provider change was made.

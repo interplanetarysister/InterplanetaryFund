@@ -101,3 +101,9 @@ No Base44 SDK is imported into newly added page modules, no source repository wa
 - Campaign detail now includes public campaign link, native share, Facebook/X share and copyable iframe markup for active campaigns only. It does not authorize donations.
 - Independent sign-in screen branded and default disabled via `VITE_IFUND_AUTH_SIGNIN_ENABLED` until provider configuration/identity linking; `shouldCreateUser:false` avoids implicit orphan account creation. Return-to redirects are restricted to same-origin app paths.
 - These are **frontend-only** changes pending desktop/mobile screenshot comparison, live Auth/RLS data, and media/payment/provider verification. No production deployment.
+
+### Verified original-logo asset recovery — 2026-10-26
+
+- Recovered `public/ifund-logo.jpg` from the owner's original exported ZIP in the connected file library. Generated a lightweight 96×96 WebP derivative for IFund's small navigation and favicon, transferred it to GitHub without Base44 CDN dependence, and **verified exact Git blob SHA `4258c5409b39e248c4396219d24de29ca686a4bb`** against the local source-derived file before updating the repository.
+- Independent navigation and favicon use `public/ifund-logo-small.webp`. The legacy source's full 1024×1024 JPG and remote hero bitmap have not been transferred; the CSS atmospheric hero remains a source-informed approximation.
+- Replacement failed-length unverified JPG was deleted. No production deployment or provider change was made.

@@ -98,3 +98,9 @@ See [SECRET_DESTINATIONS.md](SECRET_DESTINATIONS.md) for **all 20** owner-listed
 - `FoundingMembers.jsx` expects a server RPC `ifund_join_founding_waitlist` with rate limits, consent logging and referral issuance; flag `VITE_IFUND_FOUNDING_ENROLLMENT_ENABLED` defaults off.
 - `Auth.jsx` expects approved configured OAuth/OTP, ownership linking and explicit enabling via `VITE_IFUND_AUTH_SIGNIN_ENABLED` (defaults off); OTP `shouldCreateUser=false` avoids inadvertent unlinked account creation.
 - `CampaignSharing.jsx` shares only public active campaigns and generates client-side native/copy/embed links, no payments.
+
+### Verified original-logo asset recovery — 2026-10-26
+
+- Recovered `public/ifund-logo.jpg` from the owner's original exported ZIP in the connected file library. Generated a lightweight 96×96 WebP derivative for IFund's small navigation and favicon, transferred it to GitHub without Base44 CDN dependence, and **verified exact Git blob SHA `4258c5409b39e248c4396219d24de29ca686a4bb`** against the local source-derived file before updating the repository.
+- Independent navigation and favicon use `public/ifund-logo-small.webp`. The legacy source's full 1024×1024 JPG and remote hero bitmap have not been transferred; the CSS atmospheric hero remains a source-informed approximation.
+- Replacement failed-length unverified JPG was deleted. No production deployment or provider change was made.
