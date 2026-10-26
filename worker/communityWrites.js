@@ -91,7 +91,8 @@ export async function routeCommunityWrite(request, env, fetcher = fetch) {
       return response(503, { error: 'Community update could not be verified.' });
     }
     if (rows.length === 0 && isDelete) return response(404, { error: 'Post not found.' });
-    if (rows.length !== 1 || rows[0]?.author_id !== account.uid ||
+    if (rows.length !== 1 || !UUID.test(rows[0]?.id || '') ||
+        rows[0]?.author_id !== account.uid ||
         (isDelete && rows[0].id?.toLowerCase() !== target[1].toLowerCase())) {
       return response(503, { error: 'Community update could not be verified.' });
     }
