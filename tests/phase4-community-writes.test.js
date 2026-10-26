@@ -161,3 +161,12 @@ test('oversized post, upstream failures and unverified responses never claim suc
   );
   assert.equal(mismatch.status, 503);
 });
+
+test('a write without a database-generated UUID cannot be confirmed', async () => {
+  const r = await routeCommunityWrite(
+    makeRequest('POST', '/api/community/posts', { body: 'Hello' }),
+    env,
+    mock([], { rows: [{ author_id: uid, body: 'Hello' }] }),
+  );
+  assert.equal(r.status, 503);
+});
