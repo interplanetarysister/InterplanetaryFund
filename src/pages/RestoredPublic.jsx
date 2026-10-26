@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
+import FoundingMembers from "./FoundingMembers";
 
 const helpTopics = [
   {
@@ -365,17 +366,7 @@ export default function RestoredPublic({ page, user }) {
         </main>
       );
     case "founding":
-      return (
-        <main className="stack">
-          <h1>Founding members</h1>
-          <p>What if you were here from the beginning?</p>
-          <Notice>
-            Early-access enrollment is paused until verified signup storage and
-            consent logging have been migrated.
-          </Notice>
-          <Link to="/about">About Interplanetary Fund</Link>
-        </main>
-      );
+      return <FoundingMembers />;
     case "restricted":
       return (
         <main className="stack">
