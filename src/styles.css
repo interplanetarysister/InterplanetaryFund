@@ -852,3 +852,22 @@ html[data-theme="light"] .ifund-mobile-bottom a.active{color:#1360b6}
   .ifund-mobile-bottom a span{max-width:100%}
 }
 @media(max-width:365px){.ifund-topbar{gap:0}.ifund-current-page small{display:none}.ifund-topbar-actions{gap:0}.ifund-theme-toggle{padding:.35rem;min-width:37px}.ifund-notifications-link,.ifund-back-button{min-width:35px}}
+
+
+/* Independent founding-members recovery with consent-first, fail-closed UX */
+.ifund-founding-page{max-width:660px;margin:auto;padding:clamp(1rem,4vw,3rem) 1rem}
+.ifund-founding-header{text-align:center;margin:1.2rem auto 2rem}
+.ifund-founding-header h1{font-family:Fraunces,Georgia,serif;font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;margin:1rem auto}
+.ifund-founding-header>p:last-child{line-height:1.7}
+.ifund-founding-form-card{border-radius:24px;padding:clamp(1.2rem,4vw,2.4rem);border:1px solid #6a93d966;background:linear-gradient(140deg,#273d6660,#101d3e85);box-shadow:0 20px 45px #0002}
+.ifund-founding-form-card .form{display:grid;gap:1rem}
+.ifund-founding-form-card .form>label{display:grid;gap:.45rem}
+.ifund-founding-form-card input:not([type="checkbox"]),.ifund-founding-form-card select{min-width:0;width:100%;border-radius:12px;min-height:44px}
+.ifund-founding-form-card .ifund-consent-row{display:flex!important;align-items:flex-start;gap:.7rem;line-height:1.5;font-size:.9rem}
+.ifund-founding-form-card .ifund-consent-row input{flex:none;margin-top:.25rem}
+.ifund-founding-form-card .ifund-consent-row a{text-decoration:underline;color:#8ee1ff}
+.ifund-founding-form-card .ifund-honeypot{position:absolute;left:-9999px}
+.ifund-share-row{display:flex;align-items:flex-end;gap:.6rem;flex-wrap:wrap}
+.ifund-share-row label{flex:1;min-width:220px}
+html[data-theme="light"] .ifund-founding-form-card{background:#f5f8fd;border-color:#b6ccec;box-shadow:0 12px 30px #12335515}
+html[data-theme="light"] .ifund-founding-form-card .ifund-consent-row a{color:#185ab2}
