@@ -89,3 +89,12 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 
 ## Owner-provided Base44 secret-name inventory — 2026-10-25
 See [SECRET_DESTINATIONS.md](SECRET_DESTINATIONS.md) for **all 20** owner-listed Base44 secret names, verified static caller examples, read-only Cloudflare Worker name checks, and safe migration destinations. This is **not** a secret-value export and does **not** establish that new backend secrets have been configured. Payment PR #145 needs a newly registered `PAYPAL_WEBHOOK_ID` and backend-only Supabase credentials. The destination's published runtime remains unverified.
+
+## Original frontend asset and functional-screen follow-up — 2026-10-26
+
+- Original text: copied `Home.jsx` introductory `OPENING` plus nine `STORY` segments exactly as read-only source copy (no Base44 SDK), original four About topics, founder CTA, and public/member conditional action.
+- Original source SVGs copied: `public/interplanetary-planet.svg` and `public/platform-logos/{facebook,instagram,youtube,tiktok,reddit,x,linkedin,pinterest,gofundme}.svg`. Unlike referenced remote hero and binary JPG images, these are directly hosted by the independent build.
+- Four-stage `CampaignEditor.jsx` preserves existing `saveCampaignThroughWorker` or owner-scoped Supabase fallback code. Story Forge/AI choices and uploads remain disabled pending independent services.
+- `FoundingMembers.jsx` expects a server RPC `ifund_join_founding_waitlist` with rate limits, consent logging and referral issuance; flag `VITE_IFUND_FOUNDING_ENROLLMENT_ENABLED` defaults off.
+- `Auth.jsx` expects approved configured OAuth/OTP, ownership linking and explicit enabling via `VITE_IFUND_AUTH_SIGNIN_ENABLED` (defaults off); OTP `shouldCreateUser=false` avoids inadvertent unlinked account creation.
+- `CampaignSharing.jsx` shares only public active campaigns and generates client-side native/copy/embed links, no payments.
