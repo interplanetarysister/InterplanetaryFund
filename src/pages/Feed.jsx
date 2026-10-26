@@ -11,7 +11,9 @@ function Feed() {
     if (!db) {
       setCampaigns([]);
       setPosts([]);
-      setMessage("Campaigns and posts are unavailable until the independent data service is configured.");
+      setMessage(
+        "Campaigns and posts are unavailable until the independent data service is configured.",
+      );
       return;
     }
     let active = true;
@@ -38,7 +40,9 @@ function Feed() {
         if (!active) return;
         setCampaigns([]);
         setPosts([]);
-        setMessage("The community feed is temporarily unavailable. Please retry later.");
+        setMessage(
+          "The community feed is temporarily unavailable. Please retry later.",
+        );
       });
     return () => {
       active = false;

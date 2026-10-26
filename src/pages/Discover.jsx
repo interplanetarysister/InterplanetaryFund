@@ -7,7 +7,9 @@ function Discover() {
   useEffect(() => {
     if (!db) {
       setList([]);
-      setError("Campaign discovery is unavailable until the independent data service is configured.");
+      setError(
+        "Campaign discovery is unavailable until the independent data service is configured.",
+      );
       return;
     }
     let active = true;
