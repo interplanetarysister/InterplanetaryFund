@@ -1,0 +1,43 @@
+name: One-time all-pages source validation
+on:
+  push:
+    branches:
+      - migration/phase5-all-page-routes-20261026
+    paths:
+      - .github/workflows/phase5-all-pages-format-once.yml
+permissions:
+  contents: write
+jobs:
+  format-and-test:
+    if: github.repository == 'interplanetarysister/InterplanetaryFund'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: migration/phase5-all-page-routes-20261026
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install project dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Format independent frontend
+        run: npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+      - name: Test 58 page coverage and other behavior
+        run: npm test
+      - name: Build Vite production bundle
+        run: npm run build
+      - name: Enforce formatter and whitespace checks
+        run: |
+          npx --no-install prettier --check "src/**/*.{js,jsx,css}"
+          git diff --check
+      - name: Remove this temporary workflow and commit formatted files
+        run: |
+          git config user.name "ifund-format-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          rm .github/workflows/phase5-all-pages-format-once.yml
+          git add src
+          git add -u .github/workflows/phase5-all-pages-format-once.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "style(phase5): format and verify complete source route UI"
+          git push origin HEAD:migration/phase5-all-page-routes-20261026
