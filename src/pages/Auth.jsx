@@ -20,6 +20,7 @@ export default function Auth({ user }) {
   const returnTo = requestedReturn?.startsWith("/") &&
     !requestedReturn.startsWith("//") &&
     !requestedReturn.includes("..") &&
+    !requestedReturn.includes(String.fromCharCode(92)) &&
     !requestedReturn.startsWith("/login")
       ? requestedReturn : "/dashboard";
   const signInEnabled = import.meta.env.VITE_IFUND_AUTH_SIGNIN_ENABLED === "true";

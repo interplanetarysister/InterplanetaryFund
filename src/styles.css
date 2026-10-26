@@ -904,3 +904,21 @@ html[data-theme="light"] .ifund-founding-form-card .ifund-consent-row a{color:#1
 html[data-theme="light"] .ifund-wizard-panel{color:#253e68;background:#f4f9ff;border-color:#adc7ec}
 html[data-theme="light"] .ifund-wizard-progress button:not(.ifund-wizard-active){color:#27466d;background:#eaf2fe;border-color:#b5cee9}
 @media(max-width:650px){.ifund-wizard-progress{gap:.3rem}.ifund-wizard-progress button{flex-direction:column;font-size:.64rem;padding:.6rem .1rem;min-height:70px}.ifund-wizard-controls{justify-content:space-between}.ifund-wizard-controls button{flex-grow:1}}
+
+
+/* Branded sign-in and ownership-recovery UI */
+.ifund-auth-page{max-width:820px;margin:clamp(1rem,4vw,3rem) auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);overflow:hidden;border:1px solid #5878b766;border-radius:24px;background:linear-gradient(138deg,#091730,#131b41);box-shadow:0 25px 55px #0002}
+.ifund-auth-brand{min-width:0;padding:3rem 1.6rem;display:flex;align-items:center;justify-content:center;text-align:center;flex-direction:column;background:radial-gradient(circle at 25% 12%,#0b719d77,transparent 48%),radial-gradient(circle at 80% 75%,#642fd97a,transparent 53%),#080f26;color:#eef7ff}
+.ifund-auth-brand img{width:72px;height:72px;object-fit:contain;margin-bottom:1.3rem}
+.ifund-auth-brand h1{font-family:Fraunces,Georgia,serif;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.15;margin:1rem 0;color:#fff}
+.ifund-auth-brand h1 span{color:#8bdffb}
+.ifund-auth-form{padding:clamp(1.2rem,3vw,2.3rem)}
+.ifund-auth-form h2{font-family:Fraunces,Georgia,serif;margin:0 0 .75rem;font-size:1.6rem}
+.ifund-auth-form>.form{margin:1.2rem 0;display:grid;gap:.8rem}
+.ifund-auth-form form{display:grid;gap:1rem}
+.ifund-auth-form form label{display:grid;gap:.35rem}
+.ifund-auth-form form input{width:100%;min-width:0;min-height:44px}
+.ifund-auth-form>p:last-child a{text-decoration:underline}
+html[data-theme="light"] .ifund-auth-page{background:#f6faff;border-color:#abc3e5}
+html[data-theme="light"] .ifund-auth-form{color:#263e69}
+@media(max-width:650px){.ifund-auth-page{grid-template-columns:1fr}.ifund-auth-brand{padding:2rem 1rem}.ifund-auth-brand img{width:45px;height:45px;margin:.3rem}}

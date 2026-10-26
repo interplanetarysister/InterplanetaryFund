@@ -90,3 +90,14 @@ Original canonical source: `interplanetarysister/interplanetary-fund2/src/App.js
 5. Verify canonical Cloudflare Pages+Workers service deployment is independent of Base44 before live cutover; maintain DNS/mail and rollback procedures.
 
 No Base44 SDK is imported into newly added page modules, no source repository was changed, and no database/payment/provider mutations are necessary for this code-only phase.
+
+## Additional original frontend recovery (2026-10-26)
+
+- Source narrative restored from read-only original `Home.jsx`: exact core hero text, all nine expandable story sections, full About text, founding members call to action, guest/member CTAs.
+- Mobile header back arrow, notifications deep-link and original `AI Team | Profile | IFund Social | Forums` dock; signed-out private tabs route to sign-in. Responsive/light-dark card styling.
+- Original local static SVG brand icon and nine platform logo SVGs copied from source; no Base44-hosted runtime image dependency added. The original binary JPG logo and remote historical nebula bitmap have **not** been copied (GitHub text connector does not transfer binary); CSS planetary graphic is a visual approximation, not pixel-identical.
+- Founding membership fields and consent/referral handling ported. Its `ifund_join_founding_waitlist` RPC is a **required missing backend contract**: the form is disabled until `VITE_IFUND_FOUNDING_ENROLLMENT_ENABLED=true` and a verified server RPC with abuse limits/consent logging exists.
+- Campaign editor now has four navigable stages (Your Details, Basics, Your Story, Launch) but retains existing draft and publish logic. Missing AI five-choice, Story Forge, upload/watermark services display disabled controls honestly.
+- Campaign detail now includes public campaign link, native share, Facebook/X share and copyable iframe markup for active campaigns only. It does not authorize donations.
+- Independent sign-in screen branded and default disabled via `VITE_IFUND_AUTH_SIGNIN_ENABLED` until provider configuration/identity linking; `shouldCreateUser:false` avoids implicit orphan account creation. Return-to redirects are restricted to same-origin app paths.
+- These are **frontend-only** changes pending desktop/mobile screenshot comparison, live Auth/RLS data, and media/payment/provider verification. No production deployment.
