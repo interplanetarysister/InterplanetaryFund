@@ -1,3 +1,4 @@
+import { readJsonBody, BodyError } from './bodyLimit.js';
 import { authenticatedUser, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -22,6 +23,10 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
     return response(503, { error: 'Independent migration API not enabled.' });
   }
 
+  if (request.method === 'PUT' &&
+      !/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || '')) {
+    return response(415, { error: 'JSON request body required.' });
+  }
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to view your account.' });
@@ -51,13 +56,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
         if (Number(request.headers.get('content-length')) > 2048) {
           return response(413, { error: 'Request too large.' });
         }
-        const raw = await request.text();
-        if (new TextEncoder().encode(raw).byteLength > 2048) {
-          return response(413, { error: 'Request too large.' });
-        }
-        let input;
-        try { input = JSON.parse(raw); }
-        catch { return response(400, { error: 'Invalid JSON.' }); }
+        const input = await readJsonBody(request, 2048);
         if (!input || Array.isArray(input) || typeof input !== 'object') {
           return response(422, { error: 'Invalid profile.' });
         }
@@ -119,7 +118,8 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
       return response(503, { error: 'Account update could not be verified.' });
     }
     return response(200, rows[0] || null);
-  } catch {
+  } catch (error) {
+    if (error instanceof BodyError) return response(error.status, { error: error.message });
     return response(503, { error: 'Account data unavailable.' });
   }
 }
