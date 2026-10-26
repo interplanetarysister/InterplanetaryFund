@@ -58,3 +58,11 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - Unit tests in `tests/phase5-campaign-transport.test.js` cover session-required authenticated requests, method/URL selection, rejection of provider errors and unverifiable writes.
 - Existing Phase 4 Worker implementation is proposed in unmerged PR #141, not available in this branch's deployed app. **Do not enable the new frontend flag or change Cloudflare routes until PR #141 is integrated, cross-account RLS is exercised with real accounts, and owners/data/HTTP routes are independently verified.**
 - The one-time public-standard-runner formatter [#40225044057](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40225044057) succeeded and deleted itself. Actual full post-format CI status must be checked separately; no deployment, SQL, DNS, auth or payment settings changed.
+
+
+## Phase 5 independent community post UI — 2026-10-25
+
+- Added optional `src/lib/communityApi.js` transport (Bearer token from the signed-in Supabase session; no privileged key in browser). `VITE_IFUND_COMMUNITY_API=disabled` is the **default** and is documented in `.env.example`.
+- `src/pages/Community.jsx` can use the new POST endpoint when the flag is explicitly enabled after route/Auth/RLS parity tests. Until then the existing direct owner-scoped Supabase insertion remains in use. The page also offers confirmation-gated "Delete my post" actions only for records whose author ID matches the current user, using the corresponding owner-restricted direct Supabase query or optional Worker DELETE endpoint.
+- Added `tests/phase5-community-api.test.js` for Bearer forwarding, strict input, verified API response, exact delete ID, and no-success-on-error. All changes are code-only: no real user posts added/deleted, no provider/donation functionality affected and no Cloudflare routes changed.
+- A temporary standard-public-runner formatting workflow passed ([run #40254816032](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40254816032)), formatted `src` and removed itself. Recheck post-format PR CI separately. The Worker code lives on unmerged PR #141; the frontend flag **must stay disabled** until its backend, target database account ownership and cross-account RLS are live-tested.
