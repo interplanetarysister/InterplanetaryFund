@@ -79,7 +79,9 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
   const create = pathname === '/api/campaigns' && request.method === 'POST';
   const updateMatch = /^\/api\/campaigns\/([^/]+)$/.exec(pathname);
   if (!create && !(['PATCH', 'DELETE'].includes(request.method) && updateMatch))
-    return response(404, { error: 'Not found.' });
+    return response(pathname === '/api/campaigns' ? 405 : 404, {
+      error: pathname === '/api/campaigns' ? 'Method not allowed.' : 'Not found.',
+    });
   if (updateMatch && !UUID.test(updateMatch[1]))
     return response(400, { error: 'Invalid campaign ID.' });
   if (request.method !== 'DELETE' && !/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || ''))
