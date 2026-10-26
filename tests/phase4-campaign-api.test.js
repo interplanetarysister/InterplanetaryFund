@@ -178,3 +178,43 @@ test('modern publishable keys are not treated as anonymous bearer JWTs', async (
   assert.equal(calls[0].apikey, publicEnv.SUPABASE_PUBLISHABLE_KEY);
   assert.equal(calls[0].Authorization, undefined);
 });
+
+
+test('DELETE only removes the signed-in owner draft, never a published campaign', async () => {
+  const calls = [];
+  const id = campaignId;
+  const req = new Request(origin + '/api/campaigns/' + id, {
+    method: 'DELETE',
+    headers: { authorization: 'Bearer signed.test.jwt' },
+  });
+  const r = await routeCampaignWrite(req, env, async (url, opts) => {
+    calls.push({ url: String(url), opts });
+    return String(url).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid })
+      : Response.json([{ id, owner_id: uid, status: 'draft' }]);
+  });
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), { id, deleted: true });
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].opts.method, 'DELETE');
+  assert.equal(calls[1].opts.body, undefined);
+  assert.ok(calls[1].url.includes('id=eq.'));
+  assert.ok(calls[1].url.includes('owner_id=eq.'));
+  assert.ok(calls[1].url.includes('status=eq.draft'));
+  const published = await routeCampaignWrite(
+    new Request(origin + '/api/campaigns/' + id, {
+      method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
+    }), env, async (url) => String(url).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid })
+      : Response.json([{ id, owner_id: uid, status: 'active' }]),
+  );
+  assert.equal(published.status, 503);
+});
+test('DELETE without a matched draft is not falsely reported as successful', async () => {
+  const req = new Request(origin + '/api/campaigns/' + campaignId, {
+    method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
+  });
+  const r = await routeCampaignWrite(req, env, async (url) =>
+    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid }) : Response.json([]));
+  assert.equal(r.status, 404);
+});
