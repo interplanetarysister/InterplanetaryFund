@@ -13,13 +13,17 @@ export default function Automations() {
       .then(async (result) => {
         if (!result.ok) throw new Error("unavailable");
         const payload = await result.json();
-        if (payload?.state !== "not_connected" || payload?.execution_enabled !== false) {
+        if (
+          payload?.state !== "not_connected" ||
+          payload?.execution_enabled !== false
+        ) {
           throw new Error("unverified");
         }
         setState({ loading: false, report: payload });
       })
       .catch((error) => {
-        if (error.name !== "AbortError") setState({ loading: false, report: null });
+        if (error.name !== "AbortError")
+          setState({ loading: false, report: null });
       });
     return () => abort.abort();
   }, []);
@@ -34,7 +38,8 @@ export default function Automations() {
         <p role="status">Checking independent automation services…</p>
       ) : !state.report ? (
         <p role="status">
-          Automation status cannot be verified. Automated actions are not available.
+          Automation status cannot be verified. Automated actions are not
+          available.
         </p>
       ) : (
         <section aria-label="Automation migration status">
