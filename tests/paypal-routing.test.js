@@ -24,6 +24,11 @@ test('refund, reversal, subscription and payouts are separated for reconciliatio
   assert.equal(classifyPayPalNotification(mk('PAYMENT.CAPTURE.REFUNDED')).type,'capture_reconciliation');
   assert.equal(classifyPayPalNotification(mk('PAYMENT.CAPTURE.REVERSED')).type,'capture_reconciliation');
   assert.equal(classifyPayPalNotification(mk('PAYMENT.SALE.COMPLETED')).type,'subscription_reconciliation');
+  assert.equal(classifyPayPalNotification(mk('PAYMENT.SALE.COMPLETED')).subscription_id,null,
+    'A sale ID must never grant subscription access');
+  assert.equal(classifyPayPalNotification({id:'WH3',event_type:'PAYMENT.SALE.COMPLETED',
+    resource:{id:'SALE123',billing_agreement_id:'I-SUBSCRIBER123'}}).subscription_id,
+    'I-SUBSCRIBER123');
   assert.equal(classifyPayPalNotification(mk('BILLING.SUBSCRIPTION.ACTIVATED')).type,'subscription_reconciliation');
   assert.equal(classifyPayPalNotification(mk('PAYMENT.PAYOUTS-ITEM.FAILED')).type,'payout_reconciliation');
 });
