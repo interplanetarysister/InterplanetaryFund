@@ -250,6 +250,7 @@ export default function MigrationShell({ user, theme, setTheme, children }) {
             <Link to="/about">About</Link>
             <Link to="/terms">Terms of Service</Link>
             <Link to="/privacy">Privacy Policy</Link>
+            <Link to="/download">Download IFund</Link>
           </nav>
         </footer>
         <nav className="ifund-mobile-bottom" aria-label="Bottom navigation">

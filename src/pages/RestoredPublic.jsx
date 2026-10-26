@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
 import FoundingMembers from "./FoundingMembers";
+import DownloadApp from "./DownloadApp";
 
 const helpTopics = [
   {
@@ -367,6 +368,8 @@ export default function RestoredPublic({ page, user }) {
       );
     case "founding":
       return <FoundingMembers />;
+    case "download":
+      return <DownloadApp />;
     case "restricted":
       return (
         <main className="stack">

@@ -11,6 +11,7 @@ export const publicNavigation = [
   item("Global Globe", "/globe"),
   item("Stories & Blogs", "/blogs"),
   item("Help Center", "/help"),
+  item("Download App", "/download", true),
 ];
 export const memberNavigation = [
   {

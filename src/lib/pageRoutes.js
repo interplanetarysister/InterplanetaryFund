@@ -1,4 +1,4 @@
-// Derived from the 58 source routes in read-only interplanetary-fund2/src/App.jsx.
+// Derived from 58 main-branch routes plus the /download maintenance-branch route in read-only interplanetary-fund2/src/App.jsx.
 // A routed screen alone never establishes functional backend parity.
 const rows = `/login|Sign in|public|existing
 /register|Create an account|public|registration
@@ -8,6 +8,7 @@ const rows = `/login|Sign in|public|existing
 /embed/campaign/:id|Embedded campaign|public|embed
 /oauth/consent|Authorize integration|public|restricted
 /activate|Activate device|public|restricted
+/download|Download IFund|public|download
 /|Home|public|existing
 /about|About|public|existing
 /founding-members|Founding members|public|founding

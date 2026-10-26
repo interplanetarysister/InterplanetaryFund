@@ -1578,3 +1578,18 @@ html[data-theme="light"] .ifund-auth-form {
     margin: 0.3rem;
   }
 }
+
+/* Original public Download IFund feature, independent of Base44 */
+.ifund-download-page{max-width:760px;width:100%;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
+.ifund-download-hero{text-align:center;margin:1.2rem auto 2rem}
+.ifund-download-hero img{width:70px;height:70px;object-fit:contain}
+.ifund-download-hero h1{font-family:Fraunces,Georgia,serif;font-size:clamp(2rem,5vw,3rem);margin:1rem auto}
+.ifund-download-hero p{max-width:520px;margin:auto}
+.ifund-download-feature{text-align:center;display:flex;align-items:center;flex-direction:column;gap:1rem;margin-bottom:1rem}
+.ifund-download-feature>svg{color:#75e0fa}
+.ifund-download-feature h2{margin:0}
+.ifund-download-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+.ifund-download-grid .card{min-width:0}
+.ifund-download-grid svg{color:#70d6ed}
+.ifund-download-back{display:inline-flex;align-items:center;gap:.5rem;margin:1.5rem auto}
+@media(max-width:620px){.ifund-download-grid{grid-template-columns:1fr}}
