@@ -4,7 +4,7 @@ import {
   IFUND_MERCHANT_EMAIL, IFUND_BASIC_MONTHLY_PLAN_CANDIDATE, IFUND_CATALOG,
   subscriptionQuote, verifySubscriptionPlan, paypalUrl, requireMerchant,
   checkOwnerBasicPlan, giftQuote, donationOrder, verifyCampaignCapture,
-  subscriptionOrder, withdrawalMath, reservedPayout
+  subscriptionOrder, withdrawalMath, reservedPayout, auctionPayoutMath
 } from '../worker/paypalBusiness.js';
 const merchant='cuddlemeplatonically@gmail.com';
 const id='123e4567-e89b-12d3-a456-426614174000';
@@ -86,4 +86,11 @@ test('withdrawal preparation is blocked without payout authorization',()=>{
   assert.equal(p.items[0].amount.value,'24.25');
   assert.equal(p.platform_fee_cents,75);
   assert.equal(p.sender_batch_header.sender_batch_id,'IFUND_W_reserved_0123456789');
+});
+
+test('auction fee is its own 10% hosting class and not the 3% campaign fee',()=>{
+  assert.deepEqual(auctionPayoutMath(10000),{
+    saleProceedsCents:10000,hostingFeeCents:1000,netCents:9000,currency:'USD'
+  });
+  assert.notEqual(auctionPayoutMath(10000).hostingFeeCents,withdrawalMath(10000).feeCents);
 });
