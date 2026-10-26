@@ -9,7 +9,7 @@ test("guided campaign editor preserves draft, validation, and owner identity", (
     "Story Forge","Save draft","Publish campaign", "canSaveCampaign"]) {
     assert.ok(editor.includes(value), value);
   }
-  assert.match(editor, /disabled[^>]*>Forge my story/);
+  assert.match(editor, /disabled\s*>\s*Forge my story/);
 });
 test("identity recovery defaults off, never creates unverified legacy members", () => {
   const auth = src("Auth.jsx");
