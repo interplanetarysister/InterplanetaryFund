@@ -27,3 +27,15 @@ test('campaigns and posts survive attempted deletion of the owning auth user', (
   assert.match(schema,/owner_id uuid not null references auth\.users\(id\) on delete restrict/);
   assert.match(schema,/author_id uuid not null references auth\.users\(id\) on delete restrict/);
 });
+
+test('scoped column grants first revoke broad default table grants', () => {
+  assert.match(schema, /revoke all privileges on table/);
+  for (const table of ['ifund_profiles', 'ifund_campaigns', 'ifund_posts', 'ifund_connections']) {
+    assert.match(schema, new RegExp('public\\.' + table));
+  }
+  assert.match(schema, /from public, anon, authenticated/);
+  assert.ok(
+    schema.indexOf('revoke all privileges on table') <
+      schema.indexOf('grant insert(author_id,body) on public.ifund_posts'),
+  );
+});
