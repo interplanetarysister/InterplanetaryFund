@@ -68,6 +68,8 @@ function Editor({ user }) {
       cancelled = true;
     };
   }, [id, accountId]);
+  // Avoid replacing user-entered data with a late response for an existing record.
+  const editorDisabled = Boolean(id && loadState !== "ready");
   const change = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   async function save(status) {
@@ -125,11 +127,11 @@ function Editor({ user }) {
       <div className="form">
         <label>
           Title
-          <input name="title" value={form.title || ""} onChange={change} />
+          <input name="title" value={form.title || ""} onChange={change} disabled={editorDisabled} />
         </label>
         <label>
           Category
-          <select name="category" value={form.category} onChange={change}>
+          <select name="category" value={form.category} onChange={change} disabled={editorDisabled}>
             <option value="community">Community</option>
             <option value="medical">Medical</option>
             <option value="emergency">Emergency</option>
@@ -144,6 +146,7 @@ function Editor({ user }) {
           Summary
           <textarea
             name="summary"
+            disabled={editorDisabled}
             rows="3"
             value={form.summary || ""}
             onChange={change}
@@ -153,6 +156,7 @@ function Editor({ user }) {
           Story
           <textarea
             name="story"
+            disabled={editorDisabled}
             rows="8"
             value={form.story || ""}
             onChange={change}
@@ -162,6 +166,7 @@ function Editor({ user }) {
           Funding goal (USD)
           <input
             name="goal_amount"
+            disabled={editorDisabled}
             inputMode="decimal"
             type="number"
             min="0"
@@ -174,6 +179,7 @@ function Editor({ user }) {
           <input
             type="url"
             name="cover_image_url"
+            disabled={editorDisabled}
             value={form.cover_image_url || ""}
             onChange={change}
           />
