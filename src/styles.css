@@ -871,3 +871,13 @@ html[data-theme="light"] .ifund-mobile-bottom a.active{color:#1360b6}
 .ifund-share-row label{flex:1;min-width:220px}
 html[data-theme="light"] .ifund-founding-form-card{background:#f5f8fd;border-color:#b6ccec;box-shadow:0 12px 30px #12335515}
 html[data-theme="light"] .ifund-founding-form-card .ifund-consent-row a{color:#185ab2}
+
+.ifund-share-campaign{display:grid;gap:.75rem;margin-top:1.5rem}
+.ifund-share-campaign h2{margin:0}
+.ifund-share-campaign label{display:grid;gap:.4rem}
+.ifund-share-campaign input,.ifund-share-campaign textarea{width:100%;min-width:0;max-width:100%;font-size:.88rem}
+.ifund-share-actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.ifund-share-actions a{display:inline-flex;align-items:center;justify-content:center;padding:.65rem 1rem;min-height:42px;border:1px solid #7297bf66;border-radius:11px;text-decoration:none}
+.ifund-share-campaign details{border-top:1px solid #7593bf55;padding-top:1rem}
+.ifund-share-campaign summary{cursor:pointer;font-weight:600}
+.ifund-share-campaign details>*{margin:.6rem 0}

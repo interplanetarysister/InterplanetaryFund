@@ -97,6 +97,7 @@ function App() {
         ) : (
           <Routes>
             <Route path="/" element={<Feed user={user} />} />
+            <Route path="/Home" element={<Navigate to="/" replace />} />
             <Route path="/discover" element={<Discover />} />
             <Route path="/campaign/:id" element={<Detail />} />
             <Route
