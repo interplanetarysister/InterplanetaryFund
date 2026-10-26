@@ -21,8 +21,11 @@ jobs:
           node-version: "22"
       - name: Install project dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Format independent frontend
-        run: npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+      - name: Format independent frontend to a stable revision
+        run: |
+          npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+          npx --no-install prettier --write "src/**/*.{js,jsx,css}"
+          npx --no-install prettier --write "src/**/*.{js,jsx,css}"
       - name: Test 58 page coverage and other behavior
         run: npm test
       - name: Build Vite production bundle
