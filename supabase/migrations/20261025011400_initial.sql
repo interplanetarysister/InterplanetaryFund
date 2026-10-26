@@ -59,9 +59,19 @@ create policy ifund_connections_owner_read on public.ifund_connections for selec
 -- No public insert/update policies for connections.
 grant usage on schema public to anon,authenticated;
 grant select on public.ifund_campaigns,public.ifund_posts to anon;
-grant select,insert,update,delete on public.ifund_campaigns to authenticated;
-grant select,insert,delete on public.ifund_posts to authenticated;
-grant select,insert,update on public.ifund_profiles to authenticated;
+-- Limit client-side writes to specific user-owned fields.
+-- Timestamps, generated IDs, provider verification, roles, and ledger fields
+-- are database/server-owned; exposed browsers cannot supply them.
+grant select,delete on public.ifund_campaigns to authenticated;
+grant insert(owner_id,title,summary,story,category,goal_amount,cover_image_url,status)
+  on public.ifund_campaigns to authenticated;
+grant update(title,summary,story,category,goal_amount,cover_image_url,status)
+  on public.ifund_campaigns to authenticated;
+grant select,delete on public.ifund_posts to authenticated;
+grant insert(author_id,body) on public.ifund_posts to authenticated;
+grant select on public.ifund_profiles to authenticated;
+grant insert(id,handle,display_name) on public.ifund_profiles to authenticated;
+grant update(handle,display_name) on public.ifund_profiles to authenticated;
 grant select on public.ifund_connections to authenticated;
 
 -- Timestamp maintenance; no live SQL was executed.
