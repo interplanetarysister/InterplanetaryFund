@@ -1,6 +1,7 @@
 import { WorkflowEntrypoint } from "cloudflare:workers";
 import { WORKFLOWS, AGENTS, CONNECTOR_IDS } from "./automationRegistry.js";
 import { dispatchScheduled, runAutomationContract } from "./automationEngine.js";
+import { routeEntityEventRequest } from "./automationEvents.js";
 
 const json=(value,status=200)=>new Response(JSON.stringify(value),{
   status,headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"},
@@ -14,8 +15,10 @@ export class IfundDurableWorkflow extends WorkflowEntrypoint {
   }
 }
 export default {
-  async fetch(request) {
+  async fetch(request,env) {
     const path=new URL(request.url).pathname;
+    if (path==="/v1/internal/entity-events")
+      return routeEntityEventRequest(request,env);
     if (request.method==="GET"&&path==="/health")
       return json({service:"ifund-independent-automations",state:"staged",
         active:false,source_workflows:WORKFLOWS.length,source_agents:AGENTS.length,

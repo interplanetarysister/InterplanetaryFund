@@ -28,12 +28,25 @@ export async function runAutomationContract(payload, step, env) {
   // unported; neither feature flags nor self-declared consent can change this.
   if (!workflow || !automationCanRun(workflow.id,env))
     return {status:"blocked",executed:false};
-  // No adapter is registered until its source function has a reviewed,
-  // verified, identity-scoped independent implementation. A missing adapter
-  // always fails closed; never proxy to the Base44 source.
-  return await step.do("check-verified-handler",async()=>({
-    status:"blocked",executed:false,reason:"handler_not_registered",
-  }));
+  // Each source function must be explicitly mapped to a verified, identity-
+  // scoped independent adapter before any effects can start. Validate the whole
+  // chain first to avoid running half a workflow.
+  const adapters = Object.freeze({});
+  if (workflow.handlers.some(name => typeof adapters[name] !== "function"))
+    return {status:"blocked",executed:false,reason:"handler_not_registered"};
+  const outcomes = [];
+  for (let i = 0; i < workflow.handlers.length; i++) {
+    if (workflow.id === "Volunteer Welcome Follow-up" && i === 1)
+      await step.sleep("three-day-volunteer-follow-up", "3 days");
+    const name = workflow.handlers[i];
+    const result = await step.do("execute-"+i+"-"+name, {
+      retries:{limit:3,delay:"1 minute",backoff:"exponential"},
+      timeout:"2 minutes"
+    }, async()=>adapters[name]({event:payload,env}));
+    if (!result?.verified) throw new Error("Workflow action was not durably verified.");
+    outcomes.push({handler:name,verified:true});
+  }
+  return {status:"verified",executed:true,steps:outcomes};
 }
 export async function dispatchScheduled(event,env,ctx) {
   if (!releaseApproved(env) || !env?.IFUND_WORKFLOW ||
