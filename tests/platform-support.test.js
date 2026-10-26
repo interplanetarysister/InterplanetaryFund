@@ -72,6 +72,12 @@ test("ignores campaign checkout captures and unrelated events", () => {
   assert.equal(classifyPayPalEvent(capture({ event_type: "PAYMENT.SALE.COMPLETED" })).kind, "ignored");
 });
 
+test("reversal events can be matched against existing support captures", () => {
+  const event = capture({ event_type: "PAYMENT.CAPTURE.REVERSED" });
+  delete event.resource.custom_id;
+  assert.equal(classifyPayPalEvent(event).kind, "platform_support");
+});
+
 test("refund events map back to the original capture", () => {
   const r = classifyPayPalEvent({
     id: "WH-2",
@@ -164,7 +170,8 @@ test("signature verification forwards original event JSON bytes", async () => {
 test("unmatched refunds cannot insert support payment rows", () => {
   const sql = readFileSync("supabase/migrations/pending/payments_platform_support_001.sql", "utf8");
   assert.match(sql, /UPDATE ifund_finance.platform_support_payment AS t/);
-  assert.match(sql, /RETURN 'unmatched_refund'/);
+  assert.match(sql, /RAISE EXCEPTION 'unmatched platform-support refund/);
+  assert.match(sql, /RAISE EXCEPTION 'unmatched platform-support reversal/);
   assert.doesNotMatch(sql, /VALUES \(v_capture, 'REFUNDED'/);
 });
 
