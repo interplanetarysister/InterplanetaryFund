@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
+import {
+  saveCampaignThroughWorker,
+  workerCampaignApiEnabled,
+} from "../lib/campaignApi";
 import { validateCampaign, canSaveCampaign } from "../lib/validation";
 import { Message } from "../components/UI";
 const empty = {
@@ -68,7 +72,6 @@ function Editor({ user }) {
       cancelled = true;
     };
   }, [id, accountId]);
-  // Avoid replacing user-entered data with a late response for an existing record.
   const editorDisabled = Boolean(busy || (id && loadState !== "ready"));
   const change = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -88,6 +91,13 @@ function Editor({ user }) {
       setMessage("Required to publish: " + missing.join(", "));
       return;
     }
+    if (!db) {
+      setError(true);
+      setMessage(
+        "Account services are not configured. Your changes remain in the editor.",
+      );
+      return;
+    }
     setBusy(true);
     setError(false);
     setMessage("");
@@ -100,22 +110,37 @@ function Editor({ user }) {
       cover_image_url: form.cover_image_url,
       status,
     };
-    const query = id
-      ? db
-          .from("ifund_campaigns")
-          .update(payload)
-          .eq("id", id)
-          .eq("owner_id", user.id)
-      : db.from("ifund_campaigns").insert({ ...payload, owner_id: user.id });
-    const { data, error: e } = await query.select("id").single();
-    setBusy(false);
-    if (e) {
+    try {
+      let savedId;
+      if (workerCampaignApiEnabled) {
+        savedId = await saveCampaignThroughWorker(db, payload, id);
+      } else {
+        const query = id
+          ? db
+              .from("ifund_campaigns")
+              .update(payload)
+              .eq("id", id)
+              .eq("owner_id", user.id)
+          : db
+              .from("ifund_campaigns")
+              .insert({ ...payload, owner_id: user.id });
+        const { data, error: saveError } = await query.select("id").single();
+        if (saveError) throw saveError;
+        if (!data?.id) throw new Error("No saved campaign was returned.");
+        savedId = data.id;
+      }
+      setMessage(status === "active" ? "Campaign published." : "Draft saved.");
+      navigate("/edit/" + savedId, { replace: true });
+    } catch (saveError) {
       setError(true);
-      setMessage("Could not save: " + e.message);
-      return;
+      setMessage(
+        "Could not save: " +
+          (saveError?.message ||
+            "Please try again. Your changes remain in the editor."),
+      );
+    } finally {
+      setBusy(false);
     }
-    setMessage(status === "active" ? "Campaign published." : "Draft saved.");
-    navigate("/edit/" + data.id, { replace: true });
   }
   return (
     <main className="editor">
