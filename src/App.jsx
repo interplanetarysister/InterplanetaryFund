@@ -128,7 +128,7 @@ function App() {
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/login" element={<Auth user={user} />} />
-            <Route path="/connections" element={user ? <Connections /> : <Navigate to="/login" replace />} />
+            <Route path="/connections" element={user ? <Connections user={user} /> : <Navigate to="/login" replace />} />
             <Route path="/community" element={<Community user={user} />} />
             {sourcePageRoutes
               .filter((page) => !existingIndependentPagePaths.has(page.path))
