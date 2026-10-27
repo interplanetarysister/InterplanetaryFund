@@ -3,7 +3,7 @@
 -- Target: ssibsfmtodgximseeqsv. No job records to transfer at audit time.
 -- NO source deletion, token transfer, external jobs, or automatic enablement.
 create schema if not exists ifund_ops;
-revoke all on schema ifund_ops from public, anon, authenticated;
+revoke all on schema ifund_ops from public, anon, authenticated, service_role;
 
 create table if not exists ifund_ops.workflow_control (
   workflow_key text primary key,
@@ -42,8 +42,8 @@ create table if not exists ifund_ops.workflow_execution_log (
 alter table ifund_ops.workflow_jobs enable row level security;
 alter table ifund_ops.workflow_control enable row level security;
 alter table ifund_ops.workflow_execution_log enable row level security;
-revoke all on all tables in schema ifund_ops from public, anon, authenticated;
-revoke all on all sequences in schema ifund_ops from public, anon, authenticated;
+revoke all on all tables in schema ifund_ops from public, anon, authenticated, service_role;
+revoke all on all sequences in schema ifund_ops from public, anon, authenticated, service_role;
 
 create or replace function ifund_ops.enqueue_workflow_job(
   p_workflow_key text,p_source_event_id text,
