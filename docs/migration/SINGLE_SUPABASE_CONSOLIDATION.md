@@ -6,14 +6,14 @@ mail, agents, workflows, and API integrations.
 
 ## Destination and older dependency
 
-- **Retain:** \`InterplanetaryFund\` — \`ssibsfmtodgximseeqsv\`.
-- **Retire after verified switchover:** \`Ifund\` — \`tzehxfikoslihnclhxuz\`.
+- **Retain:** `InterplanetaryFund` — `ssibsfmtodgximseeqsv`.
+- **Retire after verified switchover:** `Ifund` — `tzehxfikoslihnclhxuz`.
 - **DO NOT DELETE SOURCE YET.** It still has three deployed mail Edge Functions,
   business and outreach mail schemas, private migration tables and project-specific
   Auth users. Existing Cloudflare Worker points at this older project.
 - Destination owns 79 entity-stage, 12 finance, 4 secrets, 4 transfer and 4 public
   app tables. Its public tables had 0 rows and it had 0 deployed Edge Functions
-  during this audit. Its \`ifund_transfer\` schemas already stage 27 campaigns,
+  during this audit. Its `ifund_transfer` schemas already stage 27 campaigns,
   266 content records and 475 source snapshots. None is permission to publish
   financial data or automatically claim donor/account ownership.
 - The older project has 27 campaign shadows, 397 activity shadows, 26 agent
@@ -23,23 +23,23 @@ mail, agents, workflows, and API integrations.
 - Authentication is NOT interchangeable between the projects. The older project
   showed four Auth users and zero sessions; the destination showed one Auth
   user and one session. These are aggregate counts, not proof of user identity.
-- Cloudflare Pages production uses the destination for \`VITE_SUPABASE_URL\`
-  but the older project for \`SUPABASE_URL\` and \`SUPABASE_JWKS_URL\`.
-  The deployed \`interplanetary-fund2\` Worker still points at the older project.
+- Cloudflare Pages production uses the destination for `VITE_SUPABASE_URL`
+  but the older project for `SUPABASE_URL` and `SUPABASE_JWKS_URL`.
+  The deployed `interplanetary-fund2` Worker still points at the older project.
   **This must be repaired atomically after the destination backend is ready.**
 
 ## Completed in this consolidation slice
 
-The private \`ifund_ops\` workflow queue schema has been **created on the destination**
-using \`supabase/migrations/20261027_single_project_workflow_foundation.sql\`,
+The private `ifund_ops` workflow queue schema has been **created on the destination**
+using `supabase/migrations/20261027_single_project_workflow_foundation.sql`,
 including 3 empty tables, RLS, constraints, indexes and 3 source-matched
 non-SECURITY-DEFINER PostgreSQL routines. Its enabled controls remain absent;
 default for a new control row is disabled, no worker was started, and schema
-USAGE for \`anon\`, \`authenticated\`, and \`service_role\` is denied.
+USAGE for `anon`, `authenticated`, and `service_role` is denied.
 This is schema portability, **not** an active workflow implementation.
 
-\`npm run check:deployment\` validates all provided Supabase project references.
-Cloudflare Pages invokes it as a \`prebuild\` check on the branch containing
+`npm run check:deployment` validates all provided Supabase project references.
+Cloudflare Pages invokes it as a `prebuild` check on the branch containing
 this gate; ordinary local builds do not need deployment credentials.
 The check intentionally fails the current mixed-project configuration and does
 not print API keys. It does not itself change live Cloudflare environment vars.
