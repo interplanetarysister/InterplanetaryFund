@@ -67,3 +67,9 @@ not print API keys. It does not itself change live Cloudflare environment vars.
 
 No DNS, payments, passwords, secrets, production Pages deployment, or old-project
 records were changed by this consolidation slice. Issue #137 remains the gate.
+
+## Focused verification
+
+- **Database target:** SQL migration applied successfully to `ssibsfmtodgximseeqsv`; target query confirms 3 functions, 0 queued jobs, 0 control records, 0 log records, and no `ifund_ops` schema usage for `anon`, `authenticated`, or `service_role`; anonymous enqueue execution also denied.
+- **Gate logic:** standalone Node 22.16 smoke-test reproduction passed **7/7** cases, including production's observed mixed-project fail-closed behavior, safe target configuration, secret suppression and URL rejection. The committed repository test file and complete Vite build have **not** yet run in CI for this branch. No protected Actions minutes used.
+- **Release:** no deployment configuration was changed. When attached to a Pages production branch, the `prebuild` gate will deliberately stop a deployment with the old/new mixed Supabase endpoints until backend routing is safely consolidated.
