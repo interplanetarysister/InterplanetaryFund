@@ -38,6 +38,8 @@ default for a new control row is disabled, no worker was started, and schema
 USAGE for `anon`, `authenticated`, and `service_role` is denied.
 This is schema portability, **not** an active workflow implementation.
 
+The original empty `business_mail` (4 tables) and `outreach_mail` (5 tables) schema structures are also **created on the destination** via `supabase/migrations/20261027_single_project_mail_foundation.sql`. All 9 tables have RLS enabled and no public, authenticated, or service-role schema access. Zero source mail/outreach records existed during the inventory. This migration did **not** port the privileged mail RPC, Edge Functions, credentials, Auth links, provider routes, mail contents, or SMTP/send capability; inbound/outbound production traffic remains on the older project.
+
 `npm run check:deployment` validates all provided Supabase project references.
 Cloudflare Pages invokes it as a `prebuild` check on the branch containing
 this gate; ordinary local builds do not need deployment credentials.
@@ -70,6 +72,6 @@ records were changed by this consolidation slice. Issue #137 remains the gate.
 
 ## Focused verification
 
-- **Database target:** SQL migration applied successfully to `ssibsfmtodgximseeqsv`; target query confirms 3 functions, 0 queued jobs, 0 control records, 0 log records, and no `ifund_ops` schema usage for `anon`, `authenticated`, or `service_role`; anonymous enqueue execution also denied.
+- **Database target:** Both private SQL migrations applied successfully; DB catalog query verified 3/3 queue, 4/4 business-mail and 5/5 outreach-mail tables have RLS enabled. SQL migration applied successfully to `ssibsfmtodgximseeqsv`; target query confirms 3 functions, 0 queued jobs, 0 control records, 0 log records, and no `ifund_ops` schema usage for `anon`, `authenticated`, or `service_role`; anonymous enqueue execution also denied.
 - **Gate logic:** standalone Node 22.16 smoke-test reproduction passed **7/7** cases, including production's observed mixed-project fail-closed behavior, safe target configuration, secret suppression and URL rejection. The committed repository test file and complete Vite build have **not** yet run in CI for this branch. No protected Actions minutes used.
 - **Release:** no deployment configuration was changed. When attached to a Pages production branch, the `prebuild` gate will deliberately stop a deployment with the old/new mixed Supabase endpoints until backend routing is safely consolidated.
