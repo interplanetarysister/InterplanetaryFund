@@ -1,0 +1,833 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@import "./styles-ifund-studio.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --primary: 217 91% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 214 40% 96%;
+    --secondary-foreground: 222 40% 16%;
+    --muted: 214 40% 96%;
+    --muted-foreground: 217 16% 47%;
+    --accent: 214 40% 96%;
+    --accent-foreground: 222 40% 16%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 55%;
+    --chart-1: 217 91% 55%;
+    --chart-2: 189 94% 48%;
+    --chart-3: 262 83% 63%;
+    --chart-4: 199 89% 48%;
+    --chart-5: 226 71% 40%;
+    --radius: 0.875rem;
+    --font-heading: 'Manrope', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Fraunces', ui-serif, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --sidebar-background: 229 45% 7%;
+    --sidebar-foreground: 214 40% 90%;
+    --sidebar-primary: 189 94% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 229 40% 14%;
+    --sidebar-accent-foreground: 214 40% 96%;
+    --sidebar-border: 229 35% 18%;
+    --sidebar-ring: 189 94% 48%;
+  }
+
+  .dark {
+    --background: 229 45% 7%;
+    --foreground: 210 40% 98%;
+    --card: 215 28% 14%;
+    --card-foreground: 210 40% 98%;
+    --popover: 215 28% 14%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 215 28% 20%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 215 28% 20%;
+    --muted-foreground: 213 27% 76%;
+    --accent: 215 28% 20%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 215 28% 24%;
+    --input: 215 28% 24%;
+    --ring: 199 89% 48%;
+    --chart-1: 199 89% 48%;
+    --chart-2: 187 85% 43%;
+    --chart-3: 174 60% 51%;
+    --chart-4: 210 80% 56%;
+    --chart-5: 215 25% 65%;
+    --sidebar-background: 215 28% 10%;
+    --sidebar-foreground: 210 40% 90%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 28% 18%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 215 28% 20%;
+    --sidebar-ring: 199 89% 48%;
+  }
+
+  /* ── DARK-MODE TEXT VISIBILITY ──────────────────────────────────────────
+     Pages use hardcoded dark text classes (text-stone-900, text-slate-950,
+     etc.) that were written for light mode. When the theme switches to dark,
+     --background turns dark but these classes stay dark → invisible text.
+     Map every hardcoded dark/medium text class to a theme-aware token so
+     headings, labels, body text, and muted text stay readable in dark mode
+     across every page, section, and component. */
+  .dark [class~="text-stone-900"],
+  .dark [class~="text-slate-950"],
+  .dark [class~="text-slate-900"],
+  .dark [class~="text-stone-950"],
+  .dark [class~="text-gray-900"],
+  .dark [class~="text-zinc-900"],
+  .dark [class~="text-neutral-900"],
+  .dark [class~="text-stone-800"],
+  .dark [class~="text-slate-800"],
+  .dark [class~="text-gray-800"],
+  .dark [class~="text-zinc-800"],
+  .dark [class~="text-neutral-800"] {
+    color: hsl(var(--foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  }
+
+  .dark [class~="text-stone-700"],
+  .dark [class~="text-slate-700"],
+  .dark [class~="text-gray-700"],
+  .dark [class~="text-zinc-700"],
+  .dark [class~="text-neutral-700"],
+  .dark [class~="text-stone-600"],
+  .dark [class~="text-slate-600"],
+  .dark [class~="text-gray-600"],
+  .dark [class~="text-zinc-600"],
+  .dark [class~="text-neutral-600"],
+  .dark [class~="text-stone-500"],
+  .dark [class~="text-slate-500"],
+  .dark [class~="text-gray-500"],
+  .dark [class~="text-zinc-500"],
+  .dark [class~="text-neutral-500"],
+  .dark [class~="text-stone-400"],
+  .dark [class~="text-slate-400"],
+  .dark [class~="text-gray-400"],
+  .dark [class~="text-zinc-400"],
+  .dark [class~="text-neutral-400"] {
+    color: hsl(var(--muted-foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--muted-foreground)) !important;
+  }
+
+  /* DARK-MODE SURFACE VISIBILITY: hardcoded light backgrounds (bg-white,
+     bg-stone-100, etc.) stay light in dark mode, creating jarring white
+     cards and causing light-text-on-light-background invisibility. Map
+     them to theme-aware card/muted tokens so surfaces and text stay
+     readable. */
+  .dark [class~="bg-white"],
+  .dark [class~="bg-stone-50"],
+  .dark [class~="bg-slate-50"],
+  .dark [class~="bg-gray-50"],
+  .dark [class~="bg-zinc-50"],
+  .dark [class~="bg-neutral-50"],
+  .dark [class~="bg-stone-100"],
+  .dark [class~="bg-slate-100"],
+  .dark [class~="bg-gray-100"],
+  .dark [class~="bg-zinc-100"],
+  .dark [class~="bg-neutral-100"],
+  /* Soft status / setup surfaces must darken with their text. A pale
+     lavender/cyan/yellow surface under globally lightened labels caused
+     unreadable campaign and connection forms in the Android quick-access app. */
+  .dark [class~="bg-violet-50"],
+  .dark [class~="bg-cyan-50"],
+  .dark [class~="bg-sky-50"],
+  .dark [class~="bg-blue-50"],
+  .dark [class~="bg-indigo-50"],
+  .dark [class~="bg-amber-50"],
+  .dark [class~="bg-yellow-50"],
+  .dark [class~="bg-emerald-50"],
+  .dark [class~="bg-green-50"],
+  .dark [class~="bg-red-50"],
+  .dark [class~="bg-rose-50"],
+  .dark [class~="bg-orange-50"],
+  .dark [class~="bg-pink-50"] {
+    background-color: hsl(var(--card)) !important;
+  }
+
+  /* Preserve semantic warning/help colors while giving them a legible
+     light-on-dark foreground. Form content uses the ordinary foreground. */
+  .dark [class~="text-amber-950"],
+  .dark [class~="text-amber-900"],
+  .dark [class~="text-amber-800"],
+  .dark [class~="text-amber-700"] { color: #fde68a !important; -webkit-text-fill-color: #fde68a !important; }
+  .dark [class~="text-sky-950"],
+  .dark [class~="text-sky-900"],
+  .dark [class~="text-cyan-800"] { color: #a5f3fc !important; -webkit-text-fill-color: #a5f3fc !important; }
+  .dark [class~="text-violet-900"],
+  .dark [class~="text-violet-800"] { color: #ddd6fe !important; -webkit-text-fill-color: #ddd6fe !important; }
+  .dark [class~="text-red-800"],
+  .dark [class~="text-red-700"] { color: #fca5a5 !important; -webkit-text-fill-color: #fca5a5 !important; }
+  .dark [class~="text-emerald-900"],
+  .dark [class~="text-emerald-800"] { color: #a7f3d0 !important; -webkit-text-fill-color: #a7f3d0 !important; }
+
+  .dark [class~="bg-stone-200"],
+  .dark [class~="bg-slate-200"],
+  .dark [class~="bg-gray-200"],
+  .dark [class~="bg-zinc-200"],
+  .dark [class~="bg-neutral-200"] {
+    background-color: hsl(var(--muted)) !important;
+  }
+
+  /* DARK-MODE BORDER VISIBILITY: hardcoded light borders disappear on dark
+     surfaces. Map them to the theme border token. */
+  .dark [class~="border-stone-200"],
+  .dark [class~="border-slate-200"],
+  .dark [class~="border-gray-200"],
+  .dark [class~="border-zinc-200"],
+  .dark [class~="border-neutral-200"],
+  .dark [class~="border-stone-300"],
+  .dark [class~="border-slate-300"],
+  .dark [class~="border-gray-300"],
+  .dark [class~="border-zinc-300"],
+  .dark [class~="border-neutral-300"],
+  .dark [class~="border-stone-400"],
+  .dark [class~="border-slate-400"],
+  .dark [class~="border-gray-400"],
+  .dark [class~="border-zinc-400"],
+  .dark [class~="border-neutral-400"] {
+    border-color: hsl(var(--border)) !important;
+  }
+
+  /* DARK-MODE DIVIDER VISIBILITY: divide-* utilities create borders between
+     list items. Map light dividers to the theme border token. */
+  .dark .divide-stone-100 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-stone-200 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+  .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: hsl(var(--border)) !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    touch-action: pan-y;
+  }
+
+  #root {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body;
+  }
+
+  img,
+  video,
+  canvas,
+  svg {
+    max-width: 100%;
+  }
+
+  /* Platform-wide responsive invariant: flex/grid children may shrink to the
+     viewport, while readable text wraps by words rather than by characters. */
+  main,
+  main > *,
+  section,
+  article,
+  form,
+  [role="dialog"] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  main .flex > *,
+  main .grid > * {
+    min-width: 0;
+  }
+
+  h1, h2, h3, h4, h5, h6,
+  p, li, label, button, a, span {
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+
+  @media (max-width: 767px) {
+    body { font-size: 16px; }
+    main table { font-size: 0.875rem; }
+    main [class*="max-w-"] { max-width: 100%; }
+    input, textarea, select { font-size: 16px; }
+  }
+
+  p,
+  li,
+  blockquote {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  td,
+  th {
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  /* Keep entered text, placeholders, carets, and browser autofill readable on
+     every surface, including forms that do not use the shared Input/Textarea. */
+  input,
+  textarea,
+  select {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--background));
+    caret-color: #22d3ee;
+    -webkit-text-fill-color: hsl(var(--foreground));
+  }
+
+  input:focus,
+  input:active,
+  textarea:focus,
+  textarea:active,
+  select:focus,
+  select:active {
+    color: hsl(var(--foreground));
+    -webkit-text-fill-color: hsl(var(--foreground));
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground));
+    opacity: 1;
+  }
+
+  /* Disabled and read-only fields still contain information a human may need
+     to read. Keep them visibly non-editable without fading their contents into
+     illegibility. */
+  input:disabled,
+  textarea:disabled,
+  select:disabled,
+  input[readonly],
+  textarea[readonly] {
+    color: hsl(var(--foreground));
+    -webkit-text-fill-color: hsl(var(--foreground));
+    opacity: .78;
+  }
+
+  select option {
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
+  }
+
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    caret-color: #22d3ee;
+    transition: background-color 9999s ease-out 0s;
+  }
+
+  /* Dialogs are rendered through a portal, so they do not inherit page-level
+     color context. Lock editable text to the dialog surface tokens in every
+     interaction state; this prevents Android/WebKit composition, selection,
+     autofill, or focus from turning typed text into an invisible color. */
+  [role="dialog"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  [role="dialog"] textarea,
+  [role="dialog"] select {
+    color: hsl(var(--foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    caret-color: #22d3ee !important;
+    opacity: 1;
+  }
+
+  [role="dialog"] input:focus,
+  [role="dialog"] input:active,
+  [role="dialog"] textarea:focus,
+  [role="dialog"] textarea:active,
+  [role="dialog"] select:focus {
+    color: hsl(var(--foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  }
+
+  [role="dialog"] input::selection,
+  [role="dialog"] textarea::selection {
+    background: rgb(34 211 238 / .28);
+    color: hsl(var(--foreground));
+    -webkit-text-fill-color: hsl(var(--foreground));
+  }
+
+  [role="dialog"] input:-webkit-autofill,
+  [role="dialog"] input:-webkit-autofill:hover,
+  [role="dialog"] input:-webkit-autofill:focus,
+  [role="dialog"] textarea:-webkit-autofill,
+  [role="dialog"] textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    caret-color: #22d3ee !important;
+  }
+
+  /* SINGLE-TOUCH SCROLL: one finger scrolls every part of the platform — web,
+     installed app, every viewport. No page-level rule requires a second finger
+     or a horizontal pan. PullToRefresh sets its own overscroll inline on its
+     container, so it keeps working. */
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+    touch-action: pan-y;
+  }
+
+  #root,
+  [data-page-scroll] {
+    overscroll-behavior-x: none;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Every scrollable region scrolls with a single touch and never chains
+     scroll to its parent — the page scroll is always the fallback. */
+  [class*="overflow-y-auto"],
+  [class*="overflow-auto"],
+  [class*="overflow-y-scroll"],
+  [class*="overflow-scroll"],
+  [data-page-scroll],
+  nav[class*="overflow"],
+  [role="menu"],
+  [role="listbox"],
+  [role="log"] {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  /* A single vertical finger is the canonical page gesture on web and the
+     installed app. Nested scroll surfaces may scroll vertically too, but no
+     page-level rule may require a second finger or horizontal pan. */
+  main, main > div, [data-page-scroll] {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Android WebView: keep taps instant and never let a tap-highlight box
+     appear mid-scroll. touch-action: manipulation removes the 300ms delay
+     while leaving normal vertical panning intact. */
+  button, a, [role="button"], [role="tab"], [role="menuitem"], [role="option"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="menuitem"]:not([aria-disabled="true"]), [role="option"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  /* Buttons must remain legible even when page-specific utility classes drift.
+     Keep semantic variants authoritative for text/background contrast. */
+  button[class~="bg-primary"], [role="button"][class~="bg-primary"] {
+    color: hsl(var(--primary-foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--primary-foreground)) !important;
+  }
+  button[class~="border-input"][class~="bg-transparent"],
+  [role="button"][class~="border-input"][class~="bg-transparent"] {
+    color: hsl(var(--foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--foreground)) !important;
+  }
+  button[class~="bg-secondary"], [role="button"][class~="bg-secondary"] {
+    color: hsl(var(--secondary-foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--secondary-foreground)) !important;
+  }
+  button[class~="bg-destructive"], [role="button"][class~="bg-destructive"] {
+    color: hsl(var(--destructive-foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--destructive-foreground)) !important;
+  }
+
+  /* Colored controls must use the foreground that actually contrasts with
+     their background. Bright 400/500 tones need a dark foreground; blindly
+     forcing white made several buttons fail normal-text contrast. */
+  button[class~="bg-cyan-400"], [role="button"][class~="bg-cyan-400"],
+  button[class~="bg-cyan-500"], [role="button"][class~="bg-cyan-500"],
+  button[class~="bg-blue-500"], [role="button"][class~="bg-blue-500"],
+  button[class~="bg-violet-500"], [role="button"][class~="bg-violet-500"],
+  button[class~="bg-emerald-500"], [role="button"][class~="bg-emerald-500"],
+  button[class~="bg-emerald-600"], [role="button"][class~="bg-emerald-600"],
+  button[class~="bg-red-500"], [role="button"][class~="bg-red-500"],
+  button[class~="bg-amber-500"], [role="button"][class~="bg-amber-500"],
+  button[class~="bg-green-500"], [role="button"][class~="bg-green-500"],
+  button[class~="bg-green-600"], [role="button"][class~="bg-green-600"] {
+    color: #020617 !important;
+    -webkit-text-fill-color: #020617 !important;
+  }
+
+  button[class~="bg-blue-600"], [role="button"][class~="bg-blue-600"],
+  button[class~="bg-violet-600"], [role="button"][class~="bg-violet-600"],
+  button[class~="bg-red-600"], [role="button"][class~="bg-red-600"] {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  /* Brand gradients are darkened slightly behind their labels so one readable
+     foreground works across the whole gradient instead of crossing from a
+     light endpoint into a dark endpoint. */
+  button[class*="bg-gradient-to"], [role="button"][class*="bg-gradient-to"],
+  a[class*="bg-gradient-to"] {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    background-blend-mode: multiply;
+    background-color: rgb(15 23 42 / .28);
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    opacity: .72;
+  }
+
+  button:focus-visible, [role="button"]:focus-visible, [role="menuitem"]:focus-visible, [role="option"]:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  [data-radix-popper-content-wrapper] {
+    max-width: 100vw !important;
+  }
+
+  [role="menu"], [role="listbox"] {
+    max-height: min(70vh, 32rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  /* Android WebView readiness: suppress the long-press text-selection menu and
+     magnification highlight on tap targets and UI chrome (buttons, links, nav
+     tabs, icons, headings), while keeping body content — campaign stories,
+     descriptions, and notification text — copyable. */
+  button,
+  a,
+  nav,
+  [role="tab"],
+  svg,
+  h1, h2, h3, h4, h5, h6 {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  p, li, blockquote {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Interplanetary Fund visual language: deep space surfaces, soft glows,
+   glassmorphism, and premium transitions. */
+@layer components {
+  .deep-space {
+    color: hsl(var(--sidebar-foreground));
+    background-image: radial-gradient(120% 100% at 15% 0%, hsl(262 83% 24% / 0.55) 0%, transparent 55%),
+      radial-gradient(90% 80% at 95% 10%, hsl(189 94% 40% / 0.35) 0%, transparent 55%),
+      linear-gradient(160deg, hsl(229 45% 7%) 0%, hsl(232 47% 5%) 100%);
+  }
+
+  .glass-panel {
+    @apply border border-white/10 bg-white/5 backdrop-blur-xl;
+  }
+
+  .brand-gradient-text {
+    @apply bg-gradient-to-r from-cyan-300 via-blue-400 to-violet-400 bg-clip-text text-transparent;
+  }
+
+  .glow-primary {
+    box-shadow: 0 0 24px hsl(217 91% 55% / 0.35);
+  }
+
+  /* Campaign creation is intentionally game-like rather than document-like.
+     These scoped rules also make contrast deterministic so generic form styles
+     cannot silently turn the fields back into low-contrast legal-form UI. */
+  .campaign-quest .quest-label {
+    @apply text-cyan-50 font-semibold;
+  }
+
+  .campaign-quest .quest-input,
+  .campaign-quest input.quest-input,
+  .campaign-quest textarea.quest-input {
+    @apply min-h-12 rounded-2xl border-cyan-300/30 bg-slate-950/70 text-cyan-50 shadow-inner placeholder:text-slate-400;
+    color: #ecfeff !important;
+    -webkit-text-fill-color: #ecfeff !important;
+    caret-color: #67e8f9 !important;
+    box-shadow: inset 0 0 18px hsl(217 91% 12% / .55), 0 0 0 1px hsl(189 94% 48% / .05);
+  }
+
+  .campaign-quest .quest-input::placeholder,
+  .campaign-quest input.quest-input::placeholder,
+  .campaign-quest textarea.quest-input::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+  }
+
+  .campaign-quest .quest-input:hover {
+    @apply border-cyan-300/55;
+  }
+
+  .campaign-quest .quest-input:focus,
+  .campaign-quest .quest-input:focus-visible {
+    @apply border-cyan-300 ring-2 ring-cyan-300/25;
+  }
+
+  .campaign-quest .quest-button {
+    @apply min-h-12 rounded-2xl border-cyan-300/30 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20 hover:text-white;
+  }
+
+  .campaign-quest .quest-icon {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center text-cyan-100 border border-cyan-300/30 bg-gradient-to-br from-cyan-400/25 to-violet-500/25;
+    box-shadow: 0 0 20px hsl(189 94% 48% / .18);
+  }
+
+  .campaign-quest input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) brightness(1.5);
+    opacity: .85;
+  }
+}
+
+/* Platform-wide UX contract. Campaign creation established the visual language;
+   every routed page now inherits the same softer geometry, spacing, controls,
+   and subtle interstellar depth instead of each page inventing its own UI. */
+.ifund-experience {
+  min-height: 100dvh;
+  background-image:
+    radial-gradient(70rem 34rem at 100% -10%, rgb(99 102 241 / .08), transparent 62%),
+    radial-gradient(54rem 28rem at -10% 30%, rgb(34 211 238 / .06), transparent 60%);
+}
+.ifund-experience :where(input, textarea, select, [role="combobox"]) {
+  border-radius: 1rem;
+  min-height: 2.75rem;
+}
+.ifund-experience :where(button, [role="button"]) {
+  border-radius: .9rem;
+}
+.ifund-experience :where(.rounded-lg) { border-radius: .9rem; }
+.ifund-experience :where(.rounded-xl) { border-radius: 1rem; }
+.ifund-experience :where(.rounded-2xl) { border-radius: 1.25rem; }
+.ifund-experience :where([class~="bg-white"]) {
+  box-shadow: 0 10px 30px rgb(15 23 42 / .045);
+}
+.ifund-experience :where(h1, h2, h3) {
+  text-wrap: balance;
+}
+.connections-hub [class~="bg-white"] {
+  border-color: rgb(165 180 252 / .28);
+  box-shadow: 0 12px 32px rgb(49 46 129 / .08);
+}
+@media (max-width: 640px) {
+  .ifund-experience :where(.px-6) { padding-left: 1rem; padding-right: 1rem; }
+  .ifund-experience :where(.py-10) { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+}
+
+@layer utilities {
+  /* Device safe areas — status bar, Dynamic Island, home indicator, rounded corners. */
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+  .mt-safe { margin-top: env(safe-area-inset-top); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+  .min-h-dvh { min-height: 100vh; min-height: 100dvh; }
+  .h-dvh { height: 100vh; height: 100dvh; }
+
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+  @keyframes brand-fade-up {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fade-up {
+    animation: brand-fade-up 0.5s ease-out both;
+  }
+}
+
+/* Mobile/readability hardening shared by the web build and installed app.
+   Keep controls visible, prevent accidental character-by-character columns,
+   and reserve space for fixed mobile navigation. */
+@layer base {
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    opacity: .72;
+  }
+
+  button:disabled:not([class~="bg-primary"]):not([class~="bg-destructive"]):not([class~="bg-secondary"]):not([class*="bg-gradient"]),
+  [role="button"][aria-disabled="true"]:not([class~="bg-primary"]):not([class~="bg-destructive"]):not([class~="bg-secondary"]):not([class*="bg-gradient"]) {
+    color: hsl(var(--muted-foreground)) !important;
+    -webkit-text-fill-color: hsl(var(--muted-foreground)) !important;
+    background-color: hsl(var(--muted)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+
+  button svg,
+  [role="button"] svg {
+    color: currentColor;
+  }
+
+  table th,
+  table td {
+    word-break: normal !important;
+    overflow-wrap: break-word;
+  }
+
+  @media (max-width: 1023px) {
+    main table {
+      table-layout: auto;
+    }
+  }
+}
+
+@layer components {
+  .ifund-mobile-card {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+
+  .ifund-mobile-card :where(p, span, div, li) {
+    word-break: normal;
+    overflow-wrap: break-word;
+  }
+}
+
+@media (max-width: 767px) {
+  .ifund-experience {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  }
+
+  .ifund-experience :where([class~="bg-white"]) {
+    max-width: 100%;
+  }
+}
+
+/* Minimum legible text sizes in the live mobile website and rebuilt Android app.
+   The older design uses text-xs (~12px) for instructions, errors and status. */
+@media (max-width: 767px) {
+  .ifund-experience [class~="text-xs"],
+  [role="dialog"] [class~="text-xs"] {
+    font-size: 0.9375rem !important;
+    line-height: 1.5 !important;
+  }
+  .ifund-experience [class~="text-sm"],
+  [role="dialog"] [class~="text-sm"] {
+    font-size: 1rem !important;
+    line-height: 1.55 !important;
+  }
+  .ifund-experience :where(p, li, label, input, textarea, select, button),
+  [role="dialog"] :where(p, li, label, input, textarea, select, button) {
+    letter-spacing: normal;
+  }
+  .ifund-experience :where(p, li, label),
+  [role="dialog"] :where(p, li, label) {
+    font-weight: 500;
+  }
+  .ifund-experience :where(p[class~="text-stone-400"], p[class~="text-slate-400"],
+    p[class~="text-gray-400"], span[class~="text-stone-400"], span[class~="text-slate-400"]) {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+}
+
+
+/* Light theme must reach the campaign content, not only navigation chrome.
+   Keep dark-mode styling intact and leave hosted PayPal SDK frames untouched. */
+html:not(.dark) .ifund-experience .deep-space {
+  color: hsl(var(--foreground));
+  background-image: radial-gradient(70rem 30rem at 10% 0%, rgb(137 110 255 / .11), transparent 60%),
+    radial-gradient(55rem 30rem at 90% 22%, rgb(6 182 212 / .09), transparent 65%),
+    linear-gradient(155deg, #f7f8ff, #edf5ff);
+}
+html:not(.dark) .campaign-quest .glass-panel {
+  background: rgb(255 255 255 / .94);
+  border-color: hsl(var(--border));
+  box-shadow: 0 14px 42px rgb(32 52 87 / .10);
+}
+html:not(.dark) .campaign-quest .quest-label {
+  color: #23324e !important;
+  -webkit-text-fill-color: #23324e !important;
+}
+html:not(.dark) .campaign-quest .quest-input,
+html:not(.dark) .campaign-quest input.quest-input,
+html:not(.dark) .campaign-quest textarea.quest-input {
+  background: #fff !important;
+  color: #13223b !important;
+  -webkit-text-fill-color: #13223b !important;
+  caret-color: #225cba !important;
+  border-color: #b4c8e4 !important;
+  box-shadow: inset 0 1px 2px rgb(38 58 92 / .07);
+}
+html:not(.dark) .campaign-quest .quest-input::placeholder,
+html:not(.dark) .campaign-quest input.quest-input::placeholder,
+html:not(.dark) .campaign-quest textarea.quest-input::placeholder {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+html:not(.dark) .campaign-quest .quest-button {
+  color: #21446f !important;
+  background: #edf7ff !important;
+  border-color: #b4d5ef !important;
+}
+html:not(.dark) .campaign-quest .quest-button:hover { background: #dbf0ff !important; }
+html:not(.dark) .campaign-quest .quest-icon {
+  background: linear-gradient(135deg, #e3faff, #efeaff);
+  color: #225cba;
+  border-color: #b9d7f5;
+}
+html:not(.dark) .campaign-quest :where([class~="text-white"], [class~="text-cyan-50"], [class~="text-slate-100"], [class~="text-slate-200"], [class~="text-violet-100"]):not(button):not(a):not([role="button"]) {
+  color: #24344f !important;
+  -webkit-text-fill-color: #24344f !important;
+}
+html:not(.dark) .campaign-quest :where([class~="text-slate-300"], [class~="text-slate-400"], [class~="text-slate-500"]) {
+  color: #52647e !important;
+  -webkit-text-fill-color: #52647e !important;
+}
+html:not(.dark) .campaign-quest :where([class~="text-cyan-300"], [class~="text-cyan-200"], [class~="text-violet-300"]) {
+  color: #3658a3 !important;
+  -webkit-text-fill-color: #3658a3 !important;
+}
+html:not(.dark) .campaign-quest :where([class~="bg-slate-950/45"], [class~="bg-slate-950/55"], [class~="bg-slate-950/35"], [class~="bg-slate-950/70"]) {
+  background-color: #f1f6ff !important;
+  border-color: #c9d9ee !important;
+}
+html:not(.dark) .campaign-quest input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
