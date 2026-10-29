@@ -63,7 +63,7 @@ export default function Discover() {
         <div>
           <h1 className="font-display text-3xl sm:text-4xl text-foreground mb-2">Discover campaigns</h1>
           <p className="text-stone-500">
-            What if your support changed everything for someone today? These causes need help right now.
+            Explore active campaigns as they become available. Donations are not yet enabled on this independent platform.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">{helpLink}<PageTips pageId="discover" /></div>
@@ -97,7 +97,7 @@ export default function Discover() {
 
       {filtered.length === 0 ? (
         <p className="text-stone-400 text-sm py-16 text-center">
-          No active campaigns in this category yet — what if yours was the first?
+          No active campaigns match your current selection.
         </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
