@@ -64,9 +64,12 @@ function clientBucket(request) {
   return 'ip:' + ip;
 }
 async function member(request, env, fetcher) {
-  return authenticatedUser(request, {
-    ...env,
-  }, fetcher);
+  const account = await authenticatedUser(request, env, fetcher);
+  if (!account) return null;
+  const params = new URLSearchParams({ select: 'id', id: 'eq.' + account.uid, limit: '1' });
+  const profiles = await db(env, 'ifund_profiles?' + params.toString(), {}, fetcher);
+  if (!Array.isArray(profiles) || profiles.length !== 1 || profiles[0]?.id !== account.uid) return null;
+  return account;
 }
 async function getBy(env, column, value, fetcher) {
   const params = new URLSearchParams({ select: SELECT, [column]: 'eq.' + value, limit: '1' });
