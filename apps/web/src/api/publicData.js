@@ -74,7 +74,10 @@ export async function searchActiveCampaigns({ category = "all", search = "", lim
   let query = supabase().from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
     .eq("status", "active");
-  if (category !== "all") query = query.eq("category", category);
+  if (category !== "all") {
+    if (!/^[a-z_]{1,40}$/.test(category)) throw new Error("Invalid campaign category.");
+    query = query.eq("category", category);
+  }
   const term = String(search).trim().slice(0, 100).replace(/[^a-zA-Z0-9 -]/g, " ").trim();
   if (term) query = query.or(`title.ilike.%${term}%,summary.ilike.%${term}%`);
   const { data, error } = await query
