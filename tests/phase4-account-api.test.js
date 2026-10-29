@@ -59,7 +59,7 @@ test('PUT profile derives uid and uses RLS-scoped upsert without an admin role',
 });
 test('profile write rejects identity overrides and reserved privileged fields',async()=>{
   const attempts=[{handle:'person',id:other},{display_name:'OK',role:'admin'},
-    {handle:'x'},{handle:'no space'},{handle:'b'.repeat(33)},{display_name:'x'.repeat(81)},
+    {handle:'x'},{handle:'no space'},{handle:'b'.repeat(33)},{display_name:'x'.repeat(101)},
     {handle:null},{created_at:'yesterday'},{},['not a profile']];
   for(const attempt of attempts){
     const calls=[];const r=await routeAccountRequest(request('/api/account/profile','PUT',attempt),env,remote(calls));
@@ -102,4 +102,15 @@ test('provider failures are sanitized and cannot expose upstream details',async(
     return new Response('provider diagnostic SECRET',{status:500});
   });
   assert.equal(r.status,503);assert.doesNotMatch(await r.text(),/SECRET/);
+});
+
+
+test('member can clear optional handle without impersonation', async()=>{
+  const calls=[];
+  const result=await routeAccountRequest(request('/api/account/profile','PUT',{handle:null}),env,
+    remote(calls,[{id:uid,handle:null,display_name:'Member'}]));
+  assert.equal(result.status,200);
+  const sent=JSON.parse(calls[1].opts.body);
+  assert.equal(sent.id,uid);
+  assert.equal(sent.handle,null);
 });
