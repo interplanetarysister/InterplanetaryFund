@@ -1526,8 +1526,8 @@
       "title": "Ops Center",
       "source_component": "OpsCenter",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/OpsCenter.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1588,8 +1588,8 @@
       "title": "Command Center",
       "source_component": "Analytics",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Analytics.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
