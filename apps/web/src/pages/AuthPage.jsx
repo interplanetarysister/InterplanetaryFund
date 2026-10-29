@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { authClient } from "@/api/auth";
+import { safeReturnTo } from "@/lib/safeReturnTo";
 
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const afterLogin = safeReturnTo(searchParams.get("returnTo"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -25,12 +28,12 @@ export default function AuthPage({ mode = "login" }) {
       } else if (isRegister) {
         const { data, error: err } = await auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin + "/dashboard" } });
         if (err) throw err;
-        if (data.session) navigate("/dashboard", { replace: true });
+        if (data.session) navigate(afterLogin, { replace: true });
         else setMessage("Check your email to confirm your account before signing in.");
       } else {
         const { error: err } = await auth.signInWithPassword({ email, password });
         if (err) throw err;
-        navigate("/dashboard", { replace: true });
+        navigate(afterLogin, { replace: true });
       }
     } catch (err) {
       setError(err?.message || "Authentication could not be completed.");
