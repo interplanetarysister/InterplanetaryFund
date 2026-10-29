@@ -24,3 +24,16 @@ test("device authorization rate-limit storage is atomic-keyed and nonnegative",(
  assert.match(sql,/bucket_hash text primary key/);
  assert.match(sql,/request_count integer not null check \(request_count >= 0\)/);
 });
+
+
+test("device authorization RPC is atomic, fail-closed and server-role only", () => {
+ const sql=read("supabase/migrations/pending/20261029_ifund_device_authorization.sql");
+ const table=sql.indexOf("create table public.ifund_device_rate_limits");
+ const rpc=sql.indexOf("create or replace function public.ifund_device_rate_limit");
+ assert.ok(table >= 0 && rpc > table, "rate-limit table must exist before the RPC is defined");
+ assert.match(sql,/on conflict \\(bucket_hash\\) do update set/);
+ assert.match(sql,/exception when others then return false/);
+ assert.match(sql,/revoke all on function public\\.ifund_device_rate_limit\\(text, integer, integer\\) from public, anon, authenticated/i);
+ assert.match(sql,/grant execute on function public\\.ifund_device_rate_limit\\(text, integer, integer\\) to service_role/i);
+ assert.match(sql,/set search_path = public, pg_temp/);
+});
