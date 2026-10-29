@@ -70,3 +70,21 @@ See [BUILD_PREPARATION_2026-10-29.md](BUILD_PREPARATION_2026-10-29.md) and `cont
 - Independent read-only canonical Supabase table metadata still shows 27 private staged campaigns and zero public campaigns, donations, and financial ledger rows, with two public profiles; these are row-count observations, not a source/data reconciliation.
 - Production readiness now additionally refuses mismatched/missing `VITE_SUPABASE_URL`, `SUPABASE_URL`, or `SUPABASE_JWKS_URL`, incomplete schema roundtrips, and outstanding Android identity/signing evidence.
 - Source-only contract checks and seven isolated Node tests of owner campaign operations and sharing logic were executed locally and passed **after correcting a typo in the temporary test-copy UUID regex**. These were copies of the branch helpers; this is not an app-wide `npm test`, browser integration run, Vite build, Android build, or proof of production readiness.
+
+
+## October 29 follow-up: dormant Cloudflare-native workflow scaffold
+
+Recovered and source-committed from the previous phase4 migration branch:
+`worker/nativeAutomationWorker.js`, `worker/automationEngine.js`,
+`worker/automationEvents.js`, `worker/automationSchedule.js`,
+`worker/automationAudit.js`, `wrangler.automations.jsonc`, and an
+unapplied private D1 audit migration. Ported the corresponding four safety tests.
+The real Cloudflare `WorkflowEntrypoint` and `step.do/sleep` API shape was
+checked against current Cloudflare documentation (2026-10-29).
+All schedules and execution remain **disabled** in config; `workflowExecutable`
+rejects all 17 source contracts with `ported:false` and the engine has an
+empty independent adapter registry. No outside network, message, scheduled
+social post, donation or withdrawal was executed.
+An isolated in-memory SQLite check of the D1 schema confirmed trigger/state
+constraints and that a succeeded audit record cannot be overwritten by later
+failure. This is not a real Cloudflare D1 integration test.
