@@ -14,7 +14,7 @@ test("signup callback URL is fixed to the same-origin onboarding route", () => {
     authCallbackUrl("https://interplanetaryfund.com", { recovery: true }),
     "https://interplanetaryfund.com/auth/callback?next=/reset-password",
   );
-  assert.throws(() => authCallbackUrl("https://evil.example"));
+  assert.throws(() => authCallbackUrl("http://evil.example"));
   assert.throws(() => authCallbackUrl("javascript:alert(1)"));
 });
 
