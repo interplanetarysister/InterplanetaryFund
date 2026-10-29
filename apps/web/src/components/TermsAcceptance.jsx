@@ -15,30 +15,33 @@ const PUBLIC_LEGAL_ROUTES=new Set([
 export default function TermsAcceptance({children}){
  const {pathname}=useLocation();
  const {user,phase}=useVerifiedUser();
- const [status,setStatus]=useState("checking");
+ const [status,setStatus]=useState({phase:"checking",owner:null});
  const [agreed,setAgreed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const exempt=PUBLIC_LEGAL_ROUTES.has(pathname)||
    pathname.startsWith("/help/")||pathname.startsWith("/embed/");
  const check=useCallback(async()=>{
-  setStatus("checking");setError("");
+  setStatus({phase:"checking",owner:user?.id||null});setError("");
   try{
    const result=await legalAcceptanceStatus(authClient());
    if(result.terms_version!==TERMS_VERSION)throw Error("Legal version mismatch");
-   setStatus(result.accepted?"accepted":"pending");
+   setStatus({phase:result.accepted?"accepted":"pending",owner:user?.id||null});
   }catch{
-   setStatus("error");
+   setStatus({phase:"error",owner:user?.id||null});
    setError("We could not verify your agreement. Please retry.");
   }
  },[]);
  useEffect(()=>{
   let mounted=true;
-  if(!user){setStatus("checking");setAgreed(false);return()=>{mounted=false};}
+  if(!user){setStatus({phase:"checking",owner:null});setAgreed(false);return()=>{mounted=false};}
   if(exempt)return()=>{mounted=false};
+  setStatus({phase:"checking",owner:user.id});
+  setAgreed(false);
+  setError("");
   legalAcceptanceStatus(authClient())
-    .then(result=>{if(mounted)setStatus(result.accepted?"accepted":"pending")})
-    .catch(()=>{if(mounted){setError("We could not verify your agreement. Please retry.");setStatus("error");}});
+    .then(result=>{if(mounted)setStatus({phase:result.accepted?"accepted":"pending",owner:user.id})})
+    .catch(()=>{if(mounted){setError("We could not verify your agreement. Please retry.");setStatus({phase:"error",owner:user.id});}});
   return()=>{mounted=false};
  },[user?.id,exempt]);
 
@@ -48,7 +51,7 @@ export default function TermsAcceptance({children}){
   try{
    const result=await acceptLegalAgreement(authClient(),{explicit_consent:true});
    if(result.accepted!==true||result.terms_version!==TERMS_VERSION)throw Error("Agreement not verified");
-   setStatus("accepted");
+   setStatus({phase:"accepted",owner:user?.id||null});
   }catch{
    setError("Agreement could not be saved. Please try again.");
   }finally{setBusy(false);}
@@ -56,14 +59,15 @@ export default function TermsAcceptance({children}){
  if(exempt || phase==="ready"&&!user)return children;
  if(phase==="error")return <div role="alert" className="p-8">Account verification is unavailable. No protected content was loaded.</div>;
  if(phase==="loading")return <div role="status" className="p-8">Checking your account…</div>;
- if(status==="accepted")return children;
+ if(status.phase==="accepted"&&status.owner===user?.id)return children;
+ const currentStatus=status.owner===user?.id?status.phase:"checking";
  return <div className="fixed inset-0 z-[60] deep-space flex items-center justify-center p-4 overflow-y-auto">
   <section role="dialog" aria-modal="true" aria-labelledby="ifund-terms-title"
     className="glass-panel w-full max-w-lg max-w-full overflow-x-hidden rounded-3xl p-5 sm:p-8 shadow-2xl my-auto space-y-5 text-white">
    <BrandLogo size="sm" className="justify-center"/>
    <h1 id="ifund-terms-title" className="font-display text-2xl text-center text-white">IFund user agreement</h1>
-   {status==="checking"?<p role="status" className="text-sm text-slate-200">Checking your agreement…</p>:
-    status==="error"?<button type="button" onClick={check}
+   {currentStatus==="checking"?<p role="status" className="text-sm text-slate-200">Checking your agreement…</p>:
+    currentStatus==="error"?<button type="button" onClick={check}
       className="min-h-11 rounded-lg bg-blue-600 px-4 text-white">Retry agreement check</button>:
     <>
      <p className="text-sm leading-relaxed text-slate-200">
