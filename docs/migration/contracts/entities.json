@@ -15,7 +15,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 12,
+      "staging_named_fields_matched": 12,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AdminActionMessage",
@@ -31,7 +35,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/admin/AdminApprovalQueue.jsx:9"
-      ]
+      ],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AdminApiConnectionIntake",
@@ -45,7 +53,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AdminApproval",
@@ -63,7 +75,11 @@
         "src/components/admin/AdminApprovalQueue.jsx:8",
         "src/components/admin/AdminApprovalQueue.jsx:11",
         "src/components/admin/AdminApprovalQueue.jsx:12"
-      ]
+      ],
+      "source_named_field_count": 18,
+      "staging_named_fields_matched": 18,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AdminCredentialReference",
@@ -77,7 +93,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AdminCredentialVault",
@@ -91,7 +111,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Agent",
@@ -108,7 +132,11 @@
       "frontend_direct_uses": [
         "src/pages/ExternalAccounts.jsx:32",
         "src/pages/OpsCenter.jsx:43"
-      ]
+      ],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AgentActivity",
@@ -126,7 +154,11 @@
         "src/components/agents/AgentMonitor.jsx:101",
         "src/components/campaigns/OutreachAgentPanel.jsx:29",
         "src/components/mission/AutomationPanel.jsx:32"
-      ]
+      ],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AgentContentDraft",
@@ -140,7 +172,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AgentConversationRun",
@@ -154,7 +190,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AgentDelegation",
@@ -168,7 +208,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 23,
+      "staging_named_fields_matched": 23,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AuditLog",
@@ -184,7 +228,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/AuditLogAdmin.jsx:17"
-      ]
+      ],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "AuthorizationGrant",
@@ -198,7 +246,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "BlogEntry",
@@ -212,7 +264,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Campaign",
@@ -256,7 +312,11 @@
         "src/components/platform/ServiceHealthPanel.jsx:10",
         "src/components/profile/PublicProfileEditor.jsx:17",
         "src/components/profile/PublicProfileEditor.jsx:22"
-      ]
+      ],
+      "source_named_field_count": 29,
+      "staging_named_fields_matched": 29,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "CampaignTranslation",
@@ -270,7 +330,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "CampaignUpdate",
@@ -287,7 +351,11 @@
       "frontend_direct_uses": [
         "src/pages/CampaignDetail.jsx:52",
         "src/components/dashboard/FollowFeed.jsx:20"
-      ]
+      ],
+      "source_named_field_count": 5,
+      "staging_named_fields_matched": 5,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Community",
@@ -307,7 +375,11 @@
         "src/pages/Community.jsx:44",
         "src/pages/CommunityDetail.jsx:28",
         "src/components/platform/ServiceHealthPanel.jsx:14"
-      ]
+      ],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "CommunityMember",
@@ -324,7 +396,11 @@
       "frontend_direct_uses": [
         "src/pages/Community.jsx:37",
         "src/pages/CommunityDetail.jsx:29"
-      ]
+      ],
+      "source_named_field_count": 5,
+      "staging_named_fields_matched": 5,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ConnectedPayoutAccount",
@@ -338,7 +414,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "DeviceAuthorization",
@@ -352,7 +432,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "DiscussionPost",
@@ -368,7 +452,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/community/DiscussionsTab.jsx:27"
-      ]
+      ],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "DiscussionReply",
@@ -384,7 +472,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/community/PostCard.jsx:27"
-      ]
+      ],
+      "source_named_field_count": 4,
+      "staging_named_fields_matched": 4,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "DistributedPost",
@@ -402,7 +494,11 @@
         "src/pages/ExternalAccounts.jsx:31",
         "src/components/distribution/DistributionPanel.jsx:45",
         "src/components/mission/AutomationPanel.jsx:31"
-      ]
+      ],
+      "source_named_field_count": 19,
+      "staging_named_fields_matched": 19,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Donation",
@@ -421,7 +517,11 @@
         "src/components/discover/RecommendedCampaigns.jsx:28",
         "src/components/ops/PendingDonationReview.jsx:7",
         "src/components/platform/ServiceHealthPanel.jsx:11"
-      ]
+      ],
+      "source_named_field_count": 20,
+      "staging_named_fields_matched": 20,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExecutiveReport",
@@ -439,7 +539,11 @@
         "src/components/analytics/ReportsPanel.jsx:36",
         "src/components/analytics/ReportsPanel.jsx:78",
         "src/components/platform/ServiceHealthPanel.jsx:16"
-      ]
+      ],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalAgentApiKey",
@@ -453,7 +557,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalCampaignImport",
@@ -469,7 +577,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/campaigns/ImportedCampaignSync.jsx:11"
-      ]
+      ],
+      "source_named_field_count": 15,
+      "staging_named_fields_matched": 15,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalCampaignImportOperation",
@@ -483,7 +595,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 14,
+      "staging_named_fields_matched": 14,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalCampaignPublication",
@@ -497,7 +613,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 12,
+      "staging_named_fields_matched": 12,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalCollectionAuthorization",
@@ -511,7 +631,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalConversation",
@@ -525,7 +649,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 14,
+      "staging_named_fields_matched": 14,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalConversationMessage",
@@ -539,7 +667,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 15,
+      "staging_named_fields_matched": 15,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalFundMigrationRecord",
@@ -555,7 +687,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/ops/FundMigrationDashboard.jsx:56"
-      ]
+      ],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalFundObservation",
@@ -569,7 +705,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalPlatformRecord",
@@ -583,7 +723,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalSyncClaim",
@@ -597,7 +741,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ExternalSyncEvent",
@@ -611,7 +759,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "FeatureFlag",
@@ -627,7 +779,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/platform/FeatureFlagsPanel.jsx:48"
-      ]
+      ],
+      "source_named_field_count": 5,
+      "staging_named_fields_matched": 5,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "FinancialOperation",
@@ -641,7 +797,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 20,
+      "staging_named_fields_matched": 20,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "FollowedCampaign",
@@ -666,7 +826,11 @@
         "src/components/dashboard/FollowFeed.jsx:17",
         "src/components/discover/RecommendedCampaigns.jsx:29",
         "src/components/profile/PublicProfileEditor.jsx:18"
-      ]
+      ],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "FoundingWaitlist",
@@ -683,7 +847,11 @@
       "frontend_direct_uses": [
         "src/pages/AdminFoundingWaitlist.jsx:7",
         "src/pages/AdminFoundingWaitlist.jsx:17"
-      ]
+      ],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Friendship",
@@ -697,7 +865,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "FundraisingProviderCapability",
@@ -711,7 +883,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 50,
+      "staging_named_fields_matched": 50,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "GitHubSyncCheckpoint",
@@ -725,7 +901,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "GrantApplication",
@@ -743,7 +923,11 @@
         "src/pages/Analytics.jsx:52",
         "src/components/institutions/MyApplications.jsx:13",
         "src/components/institutions/OpportunitiesTab.jsx:21"
-      ]
+      ],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "HelpArticle",
@@ -763,7 +947,11 @@
         "src/pages/HelpAdmin.jsx:81",
         "src/pages/HelpAdmin.jsx:82",
         "src/pages/HelpArticle.jsx:27"
-      ]
+      ],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "HelpDraft",
@@ -782,7 +970,11 @@
         "src/pages/HelpAdmin.jsx:59",
         "src/pages/HelpAdmin.jsx:60",
         "src/pages/HelpAdmin.jsx:86"
-      ]
+      ],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "HelpFeedback",
@@ -800,7 +992,11 @@
         "src/pages/HelpArticle.jsx:39",
         "src/pages/HelpArticle.jsx:50",
         "src/pages/HelpArticle.jsx:51"
-      ]
+      ],
+      "source_named_field_count": 4,
+      "staging_named_fields_matched": 4,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "HoldingLedgerEntry",
@@ -814,7 +1010,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 20,
+      "staging_named_fields_matched": 20,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "InboxItem",
@@ -831,7 +1031,11 @@
       "frontend_direct_uses": [
         "src/pages/Inbox.jsx:41",
         "src/components/account/AccountManagement.jsx:49"
-      ]
+      ],
+      "source_named_field_count": 17,
+      "staging_named_fields_matched": 17,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Institution",
@@ -850,7 +1054,11 @@
         "src/pages/InstitutionDetail.jsx:25",
         "src/pages/Institutions.jsx:27",
         "src/components/platform/ServiceHealthPanel.jsx:15"
-      ]
+      ],
+      "source_named_field_count": 15,
+      "staging_named_fields_matched": 15,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "InstitutionOpportunity",
@@ -868,7 +1076,11 @@
         "src/pages/Analytics.jsx:53",
         "src/components/institutions/OpportunitiesTab.jsx:20",
         "src/components/institutions/OpportunitiesTab.jsx:35"
-      ]
+      ],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "IntegrationChangeRequest",
@@ -882,7 +1094,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "KnowledgeArticle",
@@ -898,7 +1114,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/platform/KnowledgePanel.jsx:34"
-      ]
+      ],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "LegalAcceptance",
@@ -912,7 +1132,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Message",
@@ -929,7 +1153,11 @@
       "frontend_direct_uses": [
         "src/components/comms/MessageHistory.jsx:23",
         "src/components/platform/ServiceHealthPanel.jsx:12"
-      ]
+      ],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "MissionBrief",
@@ -945,7 +1173,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/MissionControlPage.jsx:21"
-      ]
+      ],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "MonitoredCampaign",
@@ -961,7 +1193,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/OpsCenter.jsx:44"
-      ]
+      ],
+      "source_named_field_count": 13,
+      "staging_named_fields_matched": 13,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "NonprofitSubscriptionApproval",
@@ -975,7 +1211,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 4,
+      "staging_named_fields_matched": 4,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Notification",
@@ -997,7 +1237,11 @@
         "src/components/NotificationBell.jsx:11",
         "src/components/NotificationBell.jsx:24",
         "src/components/account/AccountManagement.jsx:47"
-      ]
+      ],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "OfficialPublication",
@@ -1011,7 +1255,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Opportunity",
@@ -1027,7 +1275,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/mission/OpportunitiesPanel.jsx:27"
-      ]
+      ],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PayPalBillingWebhook",
@@ -1041,7 +1293,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PayPalSubscriptionIntent",
@@ -1055,7 +1311,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformAccessRegistry",
@@ -1071,7 +1331,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/IntegrationsAdmin.jsx:77"
-      ]
+      ],
+      "source_named_field_count": 19,
+      "staging_named_fields_matched": 19,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformConnection",
@@ -1085,7 +1349,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 23,
+      "staging_named_fields_matched": 23,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformConnectionRecipe",
@@ -1099,7 +1367,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 22,
+      "staging_named_fields_matched": 22,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformEvent",
@@ -1115,7 +1387,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/platform/TimelinePanel.jsx:29"
-      ]
+      ],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformIncident",
@@ -1129,7 +1405,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 31,
+      "staging_named_fields_matched": 31,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PlatformOwnedAccount",
@@ -1143,7 +1423,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 14,
+      "staging_named_fields_matched": 14,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PostInterest",
@@ -1157,7 +1441,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 5,
+      "staging_named_fields_matched": 5,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ProtocolReport",
@@ -1173,7 +1461,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/OpsCenter.jsx:46"
-      ]
+      ],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PublicProfile",
@@ -1187,7 +1479,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "PushDevice",
@@ -1201,7 +1497,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "RateLimitBucket",
@@ -1215,7 +1515,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 4,
+      "staging_named_fields_matched": 4,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Recommendation",
@@ -1233,7 +1537,11 @@
         "src/components/mission/RecommendationsPanel.jsx:13",
         "src/components/mission/RecommendationsPanel.jsx:14",
         "src/components/platform/ServiceHealthPanel.jsx:13"
-      ]
+      ],
+      "source_named_field_count": 12,
+      "staging_named_fields_matched": 12,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "ScheduledAutoPostPermit",
@@ -1247,7 +1555,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "SocialPost",
@@ -1268,7 +1580,11 @@
         "src/components/social/SocialFeed.jsx:40",
         "src/components/social/SocialFeed.jsx:58",
         "src/components/social/SocialFeed.jsx:96"
-      ]
+      ],
+      "source_named_field_count": 20,
+      "staging_named_fields_matched": 20,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "StripeReversalHold",
@@ -1282,7 +1598,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "SubscriptionPlanMapping",
@@ -1296,7 +1616,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "SupportTicket",
@@ -1310,7 +1634,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "SustainabilityAudit",
@@ -1328,7 +1656,11 @@
         "src/pages/SustainabilityAdmin.jsx:52",
         "src/pages/SustainabilityAdmin.jsx:76",
         "src/pages/SustainabilityAdmin.jsx:111"
-      ]
+      ],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "SyncRun",
@@ -1344,7 +1676,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/connections/SyncRunHistory.jsx:33"
-      ]
+      ],
+      "source_named_field_count": 24,
+      "staging_named_fields_matched": 24,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "TreasurySnapshot",
@@ -1361,7 +1697,11 @@
       "frontend_direct_uses": [
         "src/pages/OpsCenter.jsx:45",
         "src/components/dashboard/TreasurySnapshotCard.jsx:25"
-      ]
+      ],
+      "source_named_field_count": 7,
+      "staging_named_fields_matched": 7,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "User",
@@ -1377,7 +1717,11 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/components/platform/UserManagementPanel.jsx:29"
-      ]
+      ],
+      "source_named_field_count": 27,
+      "staging_named_fields_matched": 27,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "UserBlog",
@@ -1391,7 +1735,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "UserCredentialVault",
@@ -1410,7 +1758,11 @@
         "src/components/connections/PasswordVaultPanel.jsx:54",
         "src/components/connections/PasswordVaultPanel.jsx:55",
         "src/components/connections/PasswordVaultPanel.jsx:75"
-      ]
+      ],
+      "source_named_field_count": 9,
+      "staging_named_fields_matched": 9,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "VerificationMail",
@@ -1424,7 +1776,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 8,
+      "staging_named_fields_matched": 8,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "VerificationMailbox",
@@ -1438,7 +1794,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 6,
+      "staging_named_fields_matched": 6,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "VolunteerOpportunity",
@@ -1455,7 +1815,11 @@
       "frontend_direct_uses": [
         "src/pages/Analytics.jsx:51",
         "src/components/community/VolunteerTab.jsx:24"
-      ]
+      ],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "VolunteerSignup",
@@ -1472,7 +1836,11 @@
       "frontend_direct_uses": [
         "src/pages/Analytics.jsx:67",
         "src/components/community/VolunteerTab.jsx:25"
-      ]
+      ],
+      "source_named_field_count": 5,
+      "staging_named_fields_matched": 5,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "WebhookEvent",
@@ -1486,7 +1854,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 11,
+      "staging_named_fields_matched": 11,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "Withdrawal",
@@ -1504,7 +1876,11 @@
         "src/pages/Withdrawals.jsx:72",
         "src/pages/Withdrawals.jsx:76",
         "src/components/platform/FraudControlPanel.jsx:25"
-      ]
+      ],
+      "source_named_field_count": 19,
+      "staging_named_fields_matched": 19,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     },
     {
       "name": "WritingResearchBrief",
@@ -1518,8 +1894,19 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [],
+      "source_named_field_count": 10,
+      "staging_named_fields_matched": 10,
+      "staging_field_names_verified": true,
+      "schema_type_constraints_verified": false
     }
   ],
-  "project_ref": "ssibsfmtodgximseeqsv"
+  "project_ref": "ssibsfmtodgximseeqsv",
+  "catalog_check": {
+    "project_ref": "ssibsfmtodgximseeqsv",
+    "source_field_names": 1126,
+    "direct_field_name_matches": 1126,
+    "staging_tables_rls_enabled": 95,
+    "warning": "Catalog/column-name equivalence only; NOT policy behavior, field types, checks, data import or runtime parity."
+  }
 }
