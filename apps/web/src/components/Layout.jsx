@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf } from "lucide-react";
+import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, Smartphone } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useVerifiedUser from "@/lib/useVerifiedUser";
@@ -83,6 +83,7 @@ const navSections = [
     items: [
       { to: "/profile", label: "Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
+      { to: "/devices", label: "Connected Devices", icon: Smartphone },
       { to: "/notifications", label: "Notifications", icon: MailOpen },
       { to: "/subscriptions", label: "Plans", icon: CreditCard },
       { to: "/help", label: "Help Center", icon: CircleHelp },
