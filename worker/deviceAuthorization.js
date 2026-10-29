@@ -11,7 +11,7 @@ function configReady(env) {
   let url;
   try { url = new URL(env?.SUPABASE_URL); } catch { return false; }
   return env?.MIGRATION_API_PREVIEW === 'enabled' && url.protocol === 'https:' &&
-    url.hostname.toLowerCase() === 'ssibsfmtodgximseeqsv.supabase.co' &&
+    url.hostname.toLowerCase() === 'ssibsfmtodgximseeqsv.supabase.co' && url.pathname === '/' && !url.search && !url.hash &&
     typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
     typeof env?.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20;
 }
