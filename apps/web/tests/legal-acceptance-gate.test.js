@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../../"+p,import.meta.url),"utf8");
 
 test("legal acceptance requires authenticated owner and affirmative explicit consent",()=>{
  const module=read("apps/web/src/lib/legalAcceptance.js");
