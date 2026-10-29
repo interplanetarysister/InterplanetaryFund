@@ -8,7 +8,7 @@ Authority: issue #137 and source repository `interplanetarysister/interplanetary
 - Original source: `src/pages/DeviceActivation.jsx`.
 - Required backend contract: `deviceAuthorization` modes `inspect` and `decide`; source function and shared helper are in `base44/functions/deviceAuthorization/entry.ts` and `base44/shared/deviceAuthorization.ts`.
 - Security invariants to preserve: hash-only stored device/user/access tokens; 10-minute short-code expiry; rate limits fail closed; explicit per-scope approval; device token is not a user session; only `identity:read` and `campaigns:read`; revoke/deny/expiry honored.
-- Target finding: route still resolves to `MissingFeaturePage`; no target worker handler or canonical device authorization table was found in the target route/source search. Do not port the form alone or claim activation works before the service, schema, expiry/replay checks, owner checks and revoke path exist.
+- Initial target finding: the route resolved to `MissingFeaturePage` and had no canonical service/schema. The continuation below now adds a dedicated page and worker service, but the schema remains staged and the end-to-end flow is still unverified. Do not certify it until expiry/replay, ownership, revocation, runtime configuration and browser/device tests pass.
 
 ### OAuth consent: `/oauth/consent`
 - Original source: `src/pages/OAuthConsent.jsx`.
