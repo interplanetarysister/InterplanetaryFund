@@ -2173,8 +2173,8 @@
       "title": "Admin integrations redirect",
       "source_component": "Navigate",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/App.jsx (RequireAccess admin + Navigate)",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -2206,7 +2206,8 @@
         "notes": "Original route redirects to /admin/integrations?view=ai and is admin-only"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "known_compatibility_gap": "Original admin-only redirect is ported. Its destination /admin/integrations remains unported and admin backend authorization has not passed end-to-end tests."
     },
     {
       "path": "/admin/external-accounts",
