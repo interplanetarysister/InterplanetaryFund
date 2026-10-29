@@ -45,3 +45,33 @@ using (
   bucket_id = 'ifund-campaign-covers'
   and (storage.foldername(name))[1] = (select auth.uid())::text
 );
+
+
+-- User profile pictures are public media, with owner-only uploads.
+-- Never use user_metadata fields as authorization claims.
+insert into storage.buckets (id,name,public,file_size_limit,allowed_mime_types)
+values ('ifund-profile-images','ifund-profile-images',true,5242880,
+        array['image/png','image/jpeg','image/webp']::text[])
+on conflict (id) do nothing;
+create policy ifund_profile_photo_upload
+on storage.objects for insert to authenticated
+with check (
+  bucket_id = 'ifund-profile-images'
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+create policy ifund_profile_photo_delete
+on storage.objects for delete to authenticated
+using (
+  bucket_id = 'ifund-profile-images'
+  and (storage.foldername(name))[1] = (select auth.uid())::text
+);
+
+-- Giving history is read-only and limited to the signed-in donor.
+-- Do not alter the original payment ledger or permit browser-side writes.
+grant select (
+  id, campaign_id, donor_id, gift_cents, optional_support_cents,
+  currency, status, created_at, captured_at
+) on public.ifund_donations to authenticated;
+create policy ifund_donations_donor_read
+on public.ifund_donations for select to authenticated
+using (donor_id = (select auth.uid()));
