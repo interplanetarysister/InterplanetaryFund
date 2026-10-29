@@ -80,7 +80,7 @@ declare
  live public.ifund_help_articles%rowtype;
  published uuid;
 begin
- if (select auth.jwt()->'app_metadata'->>'role') not in ('admin','super_admin')
+ if coalesce((select auth.jwt()->'app_metadata'->>'role'),'') not in ('admin','super_admin')
    then raise exception 'Administrator access required' using errcode='42501';
  end if;
  select * into d from public.ifund_help_drafts where id=p_draft_id for update;
