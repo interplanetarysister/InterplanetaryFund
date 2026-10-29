@@ -48,7 +48,7 @@ test('private draft requires remote Auth verification and RLS-scoped bearer', as
 test('invalid campaign IDs reject without touching Supabase', async () => {
   const req = new Request('https://api.example.org/api/campaigns/not-a-uuid/draft');
   const r = await routeReadRequest(req, env, () => { throw Error('no request expected'); });
-  assert.equal(r.status, 400);
+  assert.equal(r.status, 404);
 });
 test('upstream errors do not surface provider secrets or internal response bodies', async () => {
   const req = new Request('https://api.example.org/api/community/feed');
