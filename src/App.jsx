@@ -137,7 +137,7 @@ function App() {
           <Route path="/" element={<Feed />} />
           <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/discover" element={<Discover />} />
-          <Route path="/campaign/:id" element={<Detail />} />
+          <Route path="/campaign/:id" element={<Detail user={user} />} />
           <Route
             path="/create"
             element={
