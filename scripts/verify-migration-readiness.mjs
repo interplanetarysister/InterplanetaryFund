@@ -89,7 +89,7 @@ if (production) {
   for (const e of entities.items) if (!e.runtime_table || !e.staging_field_names_verified || !e.migration_table || !e.rls_verified ||
       !e.fields_verified || !e.read_write_verified || !e.data_verified)
     errors.push("Entity not independently reconciled: " + e.name);
-  for (const f of functions.items) if (!(f.retired_by_owner ||
+  for (const f of functions.items) if (!((f.retired_by_owner === true && f.retirement_evidence && f.retirement_approved_by) ||
       (f.target_handler && f.caller_map_verified && f.authorization_verified &&
        f.side_effects_verified && f.integration_tests_verified)))
     errors.push("Backend handler not ported/approved for retirement: " + f.name);
