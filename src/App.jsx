@@ -15,6 +15,7 @@ import Connections from "./pages/Connections";
 import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import MyGiving from "./pages/MyGiving";
+import FollowedCampaigns from "./pages/FollowedCampaigns";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -105,6 +106,7 @@ function App() {
           <NavLink onClick={() => setMenuOpen(false)} to="/create">New Campaign</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/mine">My Campaigns</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/giving">My Giving</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/following">Following</NavLink>
           <strong>Community</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/social">Interplanetary Social</NavLink>
           <strong>Account & Help</strong>
@@ -184,6 +186,7 @@ function App() {
           <Route path="/social" element={<Community user={user} />} />
           <Route path="/profile" element={<Profile user={user} />} />
           <Route path="/giving" element={<MyGiving user={user} />} />
+          <Route path="/following" element={<FollowedCampaigns user={user} />} />
           <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
