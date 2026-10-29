@@ -52,7 +52,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/connect",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -108,6 +108,7 @@ function AppRoutes() {
       <Route path="/mission" element={<RequireAccess access="member"><MissionControlPage /></RequireAccess>} />
       <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
       <Route path="/analytics" element={<RequireAccess access="admin"><Analytics /></RequireAccess>} />
+      <Route path="/connect" element={<RequireAccess access="admin"><Navigate replace to="/admin/integrations?view=ai" /></RequireAccess>} />
       <Route path="/u/:id" element={<PublicProfile />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
