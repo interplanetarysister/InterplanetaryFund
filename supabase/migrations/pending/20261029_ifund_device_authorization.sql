@@ -25,6 +25,24 @@ create table public.ifund_device_authorizations (
   ),
   constraint ifund_device_code_expiry check (expires_at > created_at)
 );
+-- Atomic rate limiting: concurrent requests share one locked bucket; failures deny access.
+create or replace function public.ifund_device_rate_limit(p_bucket_hash text, p_limit integer, p_window_seconds integer)
+returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
+declare allowed boolean;
+begin
+  if p_bucket_hash !~ '^[a-f0-9]{64}$' or p_limit < 1 or p_window_seconds < 1 then return false; end if;
+  insert into public.ifund_device_rate_limits(bucket_hash, window_started_at, request_count, updated_at)
+  values (p_bucket_hash, now(), 1, now())
+  on conflict (bucket_hash) do update set
+    window_started_at = case when public.ifund_device_rate_limits.window_started_at + make_interval(secs => p_window_seconds) <= now() then now() else public.ifund_device_rate_limits.window_started_at end,
+    request_count = case when public.ifund_device_rate_limits.window_started_at + make_interval(secs => p_window_seconds) <= now() then 1 else public.ifund_device_rate_limits.request_count + 1 end,
+    updated_at = now()
+  returning request_count <= p_limit into allowed;
+  return coalesce(allowed, false);
+exception when others then return false;
+end; $$;
+revoke all on function public.ifund_device_rate_limit(text, integer, integer) from public, anon, authenticated;
+grant execute on function public.ifund_device_rate_limit(text, integer, integer) to service_role;
 create index ifund_device_owner_recent on public.ifund_device_authorizations(owner_id,created_at desc);
 create index ifund_device_expiry on public.ifund_device_authorizations(expires_at);
 
