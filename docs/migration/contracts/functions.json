@@ -1,0 +1,1847 @@
+{
+  "schema_version": 1,
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "description": "184 source backend entrypoints; do not mark implemented without executable target and authenticated tests",
+  "items": [
+    {
+      "name": "acknowledgeConnectionIssue",
+      "source": "base44/functions/acknowledgeConnectionIssue/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "activateSubscriptionCheckout",
+      "source": "base44/functions/activateSubscriptionCheckout/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "adminApiConnectionIntake",
+      "source": "base44/functions/adminApiConnectionIntake/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "adminCampaignControl",
+      "source": "base44/functions/adminCampaignControl/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "adminOAuthProviderReadiness",
+      "source": "base44/functions/adminOAuthProviderReadiness/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "adminUpdateUserRole",
+      "source": "base44/functions/adminUpdateUserRole/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "analyzeGrantApplication",
+      "source": "base44/functions/analyzeGrantApplication/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "applyAgentContentDraft",
+      "source": "base44/functions/applyAgentContentDraft/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "applyInstitutionOpportunity",
+      "source": "base44/functions/applyInstitutionOpportunity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "auditAdminAgentGateway",
+      "source": "base44/functions/auditAdminAgentGateway/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "authorizeCollectAndWithdraw",
+      "source": "base44/functions/authorizeCollectAndWithdraw/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "authorizeConnectionAi",
+      "source": "base44/functions/authorizeConnectionAi/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "broadcastPosts",
+      "source": "base44/functions/broadcastPosts/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "cancelPayPalSubscription",
+      "source": "base44/functions/cancelPayPalSubscription/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "capturePayPalOrder",
+      "source": "base44/functions/capturePayPalOrder/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "checkUsernameAvailability",
+      "source": "base44/functions/checkUsernameAvailability/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "communityMembership",
+      "source": "base44/functions/communityMembership/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "completeOAuthConnection",
+      "source": "base44/functions/completeOAuthConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "confirmPayPalSubscription",
+      "source": "base44/functions/confirmPayPalSubscription/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createCommunity",
+      "source": "base44/functions/createCommunity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createDiscussionPost",
+      "source": "base44/functions/createDiscussionPost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createDistributedPost",
+      "source": "base44/functions/createDistributedPost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createDonationCheckout",
+      "source": "base44/functions/createDonationCheckout/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createInstitution",
+      "source": "base44/functions/createInstitution/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createKnowledgeArticle",
+      "source": "base44/functions/createKnowledgeArticle/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createPayPalOrder",
+      "source": "base44/functions/createPayPalOrder/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createPayPalSubscriptionCheckout",
+      "source": "base44/functions/createPayPalSubscriptionCheckout/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createPremiumDayPassCheckout",
+      "source": "base44/functions/createPremiumDayPassCheckout/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createSocialPost",
+      "source": "base44/functions/createSocialPost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createSubscriptionCheckout",
+      "source": "base44/functions/createSubscriptionCheckout/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createSupportTicket",
+      "source": "base44/functions/createSupportTicket/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "createVolunteerOpportunity",
+      "source": "base44/functions/createVolunteerOpportunity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "decideGrantApplication",
+      "source": "base44/functions/decideGrantApplication/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "deleteAccount",
+      "source": "base44/functions/deleteAccount/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "deleteCampaign",
+      "source": "base44/functions/deleteCampaign/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "deviceAuthorization",
+      "source": "base44/functions/deviceAuthorization/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "disconnectPlatformConnection",
+      "source": "base44/functions/disconnectPlatformConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "discoverConnectionMethods",
+      "source": "base44/functions/discoverConnectionMethods/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "discoverExternalCampaignSnapshot",
+      "source": "base44/functions/discoverExternalCampaignSnapshot/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "discoverFeatures",
+      "source": "base44/functions/discoverFeatures/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "discoverPayPalHoldingSettlements",
+      "source": "base44/functions/discoverPayPalHoldingSettlements/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "draftSharePost",
+      "source": "base44/functions/draftSharePost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "enforceCampaignProtocol",
+      "source": "base44/functions/enforceCampaignProtocol/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "executeAdminAgentRequest",
+      "source": "base44/functions/executeAdminAgentRequest/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "executeCollectAndWithdraw",
+      "source": "base44/functions/executeCollectAndWithdraw/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "externalAgentCampaigns",
+      "source": "base44/functions/externalAgentCampaigns/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "externalAgentContentWrite",
+      "source": "base44/functions/externalAgentContentWrite/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "finalizeAppUserOAuthConnection",
+      "source": "base44/functions/finalizeAppUserOAuthConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "generateCampaignCover",
+      "source": "base44/functions/generateCampaignCover/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "generateDistributionContent",
+      "source": "base44/functions/generateDistributionContent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "generateIntelligence",
+      "source": "base44/functions/generateIntelligence/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "generateSocialContent",
+      "source": "base44/functions/generateSocialContent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "geocodeCity",
+      "source": "base44/functions/geocodeCity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getAgentAccountContext",
+      "source": "base44/functions/getAgentAccountContext/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getAgentMailContext",
+      "source": "base44/functions/getAgentMailContext/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getAppUserConnector",
+      "source": "base44/functions/getAppUserConnector/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getBufferReadiness",
+      "source": "base44/functions/getBufferReadiness/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getCampaignDonations",
+      "source": "base44/functions/getCampaignDonations/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getCampaignDraft",
+      "source": "base44/functions/getCampaignDraft/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getCampaignWithdrawalBalance",
+      "source": "base44/functions/getCampaignWithdrawalBalance/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getCommunityFeed",
+      "source": "base44/functions/getCommunityFeed/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getConnectedPayoutAccount",
+      "source": "base44/functions/getConnectedPayoutAccount/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getCryptoDonationReadiness",
+      "source": "base44/functions/getCryptoDonationReadiness/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getFeatureAvailability",
+      "source": "base44/functions/getFeatureAvailability/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getFundraisingMode",
+      "source": "base44/functions/getFundraisingMode/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getLiveProviderStatus",
+      "source": "base44/functions/getLiveProviderStatus/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getMyGiving",
+      "source": "base44/functions/getMyGiving/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getOwnerDonorDirectory",
+      "source": "base44/functions/getOwnerDonorDirectory/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getOwnerFinancialLedger",
+      "source": "base44/functions/getOwnerFinancialLedger/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getPayPalConfig",
+      "source": "base44/functions/getPayPalConfig/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getPayPalPayoutReadiness",
+      "source": "base44/functions/getPayPalPayoutReadiness/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getPayPalSubscriptionOptions",
+      "source": "base44/functions/getPayPalSubscriptionOptions/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getPaymentCapabilities",
+      "source": "base44/functions/getPaymentCapabilities/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getSharedConnectorStatus",
+      "source": "base44/functions/getSharedConnectorStatus/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getStripeIntegrationAudit",
+      "source": "base44/functions/getStripeIntegrationAudit/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getStripeReadiness",
+      "source": "base44/functions/getStripeReadiness/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getStripeSubscriptionOptions",
+      "source": "base44/functions/getStripeSubscriptionOptions/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getUnifiedInbox",
+      "source": "base44/functions/getUnifiedInbox/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getVerifiedIFundIntegrationContext",
+      "source": "base44/functions/getVerifiedIFundIntegrationContext/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "getWritingResearchBrief",
+      "source": "base44/functions/getWritingResearchBrief/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "importExternalCampaign",
+      "source": "base44/functions/importExternalCampaign/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "joinFoundingWaitlist",
+      "source": "base44/functions/joinFoundingWaitlist/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "justGivingStagingPilot",
+      "source": "base44/functions/justGivingStagingPilot/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "kofiWebhook",
+      "source": "base44/functions/kofiWebhook/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "listConnections",
+      "source": "base44/functions/listConnections/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "listFundraisingProviderCapabilities",
+      "source": "base44/functions/listFundraisingProviderCapabilities/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "listInstitutionApplications",
+      "source": "base44/functions/listInstitutionApplications/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "listUntrackedPayPalReceipts",
+      "source": "base44/functions/listUntrackedPayPalReceipts/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "logPlatformEvent",
+      "source": "base44/functions/logPlatformEvent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "maintainPlatformOwnedAccounts",
+      "source": "base44/functions/maintainPlatformOwnedAccounts/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageAdminBuilderWork",
+      "source": "base44/functions/manageAdminBuilderWork/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageAgentContentDraft",
+      "source": "base44/functions/manageAgentContentDraft/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageAgentWork",
+      "source": "base44/functions/manageAgentWork/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageApprovedBuilderExecution",
+      "source": "base44/functions/manageApprovedBuilderExecution/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageBlog",
+      "source": "base44/functions/manageBlog/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageConnectedPayoutAccount",
+      "source": "base44/functions/manageConnectedPayoutAccount/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageDistributedPost",
+      "source": "base44/functions/manageDistributedPost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageExternalAgentKeys",
+      "source": "base44/functions/manageExternalAgentKeys/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageFeatureFlag",
+      "source": "base44/functions/manageFeatureFlag/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageFriends",
+      "source": "base44/functions/manageFriends/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageOAuthClients",
+      "source": "base44/functions/manageOAuthClients/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageOfficialPublications",
+      "source": "base44/functions/manageOfficialPublications/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageOwnerConnectionConfiguration",
+      "source": "base44/functions/manageOwnerConnectionConfiguration/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "managePlatformAccess",
+      "source": "base44/functions/managePlatformAccess/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "managePlatformIncidents",
+      "source": "base44/functions/managePlatformIncidents/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "managePostInterest",
+      "source": "base44/functions/managePostInterest/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "managePublicProfile",
+      "source": "base44/functions/managePublicProfile/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageRecurringDonation",
+      "source": "base44/functions/manageRecurringDonation/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "manageVerificationMailbox",
+      "source": "base44/functions/manageVerificationMailbox/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "markNotificationRead",
+      "source": "base44/functions/markNotificationRead/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "matchExternalPayPalSettlement",
+      "source": "base44/functions/matchExternalPayPalSettlement/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "mirrorExternalPosts",
+      "source": "base44/functions/mirrorExternalPosts/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "ownerAgentChatActions",
+      "source": "base44/functions/ownerAgentChatActions/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "payPalSubscriptionWebhook",
+      "source": "base44/functions/payPalSubscriptionWebhook/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "postCampaignUpdate",
+      "source": "base44/functions/postCampaignUpdate/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "postDiscussionReply",
+      "source": "base44/functions/postDiscussionReply/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "prepareCollectAndWithdraw",
+      "source": "base44/functions/prepareCollectAndWithdraw/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "processAdminActionInbox",
+      "source": "base44/functions/processAdminActionInbox/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "publishInstitutionOpportunity",
+      "source": "base44/functions/publishInstitutionOpportunity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "publishLinkedCampaignToConnection",
+      "source": "base44/functions/publishLinkedCampaignToConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "publishPost",
+      "source": "base44/functions/publishPost/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "receiveCloudflareEmail",
+      "source": "base44/functions/receiveCloudflareEmail/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "reconcileDirectPayPalCampaignDonation",
+      "source": "base44/functions/reconcileDirectPayPalCampaignDonation/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "reconcileExternalPayPalSettlement",
+      "source": "base44/functions/reconcileExternalPayPalSettlement/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "recordAgentInteraction",
+      "source": "base44/functions/recordAgentInteraction/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "recordCampaignCreated",
+      "source": "base44/functions/recordCampaignCreated/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "recordDonation",
+      "source": "base44/functions/recordDonation/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "recordExternalFundMigration",
+      "source": "base44/functions/recordExternalFundMigration/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "recordLegalAcceptance",
+      "source": "base44/functions/recordLegalAcceptance/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "refreshWritingResearch",
+      "source": "base44/functions/refreshWritingResearch/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "registerPushDevice",
+      "source": "base44/functions/registerPushDevice/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "renderInterplanetaryPhoto",
+      "source": "base44/functions/renderInterplanetaryPhoto/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "repairStripeWebhookEvents",
+      "source": "base44/functions/repairStripeWebhookEvents/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "requestManagedConnectionAction",
+      "source": "base44/functions/requestManagedConnectionAction/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "requestWithdrawal",
+      "source": "base44/functions/requestWithdrawal/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "resolveConnectionStatus",
+      "source": "base44/functions/resolveConnectionStatus/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "resolvePlatformConnectionRecipe",
+      "source": "base44/functions/resolvePlatformConnectionRecipe/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "reviewAgentActivity",
+      "source": "base44/functions/reviewAgentActivity/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "revokeConnectionAiConsent",
+      "source": "base44/functions/revokeConnectionAiConsent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "routeAgentTask",
+      "source": "base44/functions/routeAgentTask/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "runBrowserConnection",
+      "source": "base44/functions/runBrowserConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "runOfficialSocialPromotion",
+      "source": "base44/functions/runOfficialSocialPromotion/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "runOutreachAgent",
+      "source": "base44/functions/runOutreachAgent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "runReporterDiary",
+      "source": "base44/functions/runReporterDiary/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "runSocialAutopilot",
+      "source": "base44/functions/runSocialAutopilot/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "saveCampaign",
+      "source": "base44/functions/saveCampaign/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "saveConnectionCredentials",
+      "source": "base44/functions/saveConnectionCredentials/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "sendCommunication",
+      "source": "base44/functions/sendCommunication/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "sendPublicContactMessage",
+      "source": "base44/functions/sendPublicContactMessage/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "setConnectionAiToggle",
+      "source": "base44/functions/setConnectionAiToggle/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "setUnifiedOboConsent",
+      "source": "base44/functions/setUnifiedOboConsent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "setUsername",
+      "source": "base44/functions/setUsername/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "setupPayPalSubscriptionWebhook",
+      "source": "base44/functions/setupPayPalSubscriptionWebhook/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "startPremiumTrial",
+      "source": "base44/functions/startPremiumTrial/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "startStripeConnectOnboarding",
+      "source": "base44/functions/startStripeConnectOnboarding/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "stripeWebhook",
+      "source": "base44/functions/stripeWebhook/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncConnections",
+      "source": "base44/functions/syncConnections/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncExternalFunds",
+      "source": "base44/functions/syncExternalFunds/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncFromConvex",
+      "source": "base44/functions/syncFromConvex/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncGitHub",
+      "source": "base44/functions/syncGitHub/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncImportedCampaign",
+      "source": "base44/functions/syncImportedCampaign/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncPayPalSubscriptionCatalog",
+      "source": "base44/functions/syncPayPalSubscriptionCatalog/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncStripeSubscriptionCatalog",
+      "source": "base44/functions/syncStripeSubscriptionCatalog/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncWixAnalytics",
+      "source": "base44/functions/syncWixAnalytics/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncWixBusinessData",
+      "source": "base44/functions/syncWixBusinessData/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncWixCampaigns",
+      "source": "base44/functions/syncWixCampaigns/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "syncWixContent",
+      "source": "base44/functions/syncWixContent/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "toggleCampaignFollow",
+      "source": "base44/functions/toggleCampaignFollow/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "trackAgentConversation",
+      "source": "base44/functions/trackAgentConversation/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "translateCampaign",
+      "source": "base44/functions/translateCampaign/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "updateCampaignSettings",
+      "source": "base44/functions/updateCampaignSettings/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "updateFollowPreferences",
+      "source": "base44/functions/updateFollowPreferences/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "updateInboxItem",
+      "source": "base44/functions/updateInboxItem/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "updateMissionItemStatus",
+      "source": "base44/functions/updateMissionItemStatus/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "validateIntegrationHealth",
+      "source": "base44/functions/validateIntegrationHealth/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "verifyAdminGateway",
+      "source": "base44/functions/verifyAdminGateway/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "verifyAgentPlatformAccess",
+      "source": "base44/functions/verifyAgentPlatformAccess/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "verifyAppUserConnector",
+      "source": "base44/functions/verifyAppUserConnector/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "verifyOwnerPayPalBasicPlan",
+      "source": "base44/functions/verifyOwnerPayPalBasicPlan/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "verifyPlatformConnection",
+      "source": "base44/functions/verifyPlatformConnection/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "volunteerFollowUp",
+      "source": "base44/functions/volunteerFollowUp/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "volunteerSignup",
+      "source": "base44/functions/volunteerSignup/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "welcomeVolunteer",
+      "source": "base44/functions/welcomeVolunteer/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    },
+    {
+      "name": "wixWebhook",
+      "source": "base44/functions/wixWebhook/entry.ts",
+      "target_handler": null,
+      "caller_map_verified": false,
+      "authorization_verified": false,
+      "side_effects_verified": false,
+      "integration_tests_verified": false,
+      "retired_by_owner": false
+    }
+  ]
+}
