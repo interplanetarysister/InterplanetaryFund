@@ -31,7 +31,7 @@ For each original module, preserve its intended UX and business rules, identify 
 
 
 ## Checkpoint fidelity and recovery contract
-Every checkpoint labeled **full-platform replica** must be independently restorable to the same functioning user experience as the last verified complete original platform. A code commit, partial port, schema-only migration, or screenshot is **not** a certified replica.
+From this point forward, **do not create or label a saved recovery checkpoint for a broken or incomplete platform**. Every newly saved recovery checkpoint must be independently restorable to the same functioning user experience as the last verified complete original platform. A code commit, partial port, schema-only migration, or screenshot is **not** a certified replica.
 
 A certified checkpoint requires:
 - Immutable source revision and matching dependency lockfiles, asset hashes, and Android artifacts where applicable.
@@ -43,4 +43,4 @@ A certified checkpoint requires:
 - Proof of **zero Base44 runtime dependencies**, including network calls, credentials, hosted functions, storage, or workflow execution.
 - Restore rehearsal evidence, timestamp, responsible verifier, integrity hashes, and explicit known gaps.
 
-**Labeling:** `development-snapshot` until all gates pass; only `certified-full-replica` after restore and functional verification. Preserve the last known working original checkpoint and never overwrite it with a partial migration. No claim of certification without evidence. No builds/deployments without the owner's specific authorization.
+**Checkpoint gate:** If any required feature, data, integration, or restore test fails, do not create a recovery checkpoint. Ordinary Git development commits and working branches may continue but must not be represented, named, or promoted as saved platform checkpoints. Only create a `certified-full-replica` checkpoint after successful restore and functional verification. Existing historical checkpoints are not presumed complete; audit them individually. Preserve the last known working original recovery point and never overwrite it with a partial migration. No claim of certification without evidence. No builds/deployments without the owner's specific authorization.
