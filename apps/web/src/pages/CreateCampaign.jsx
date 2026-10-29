@@ -16,8 +16,8 @@ export default function CreateCampaign() {
       try {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(draftId)) throw new Error("Invalid draft reference.");
         const client = authClient();
-        const { data, error: authError } = await client.auth.getUser();
-        const user = data?.user;
+        const { data: authData, error: authError } = await client.auth.getUser();
+        const user = authData?.user;
         if (authError || !user) { navigate("/login", { replace: true }); return; }
         const { data, error: fetchError } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id",draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (fetchError || !data) throw new Error("Draft not found or access denied.");
@@ -38,8 +38,8 @@ export default function CreateCampaign() {
     setBusy(true); setError(""); setSaved("");
     try {
       const client = authClient();
-      const { data, error: authError } = await client.auth.getUser();
-        const user = data?.user;
+      const { data: authData, error: authError } = await client.auth.getUser();
+        const user = authData?.user;
       if (authError || !user) { navigate("/login", { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
