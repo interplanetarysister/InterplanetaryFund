@@ -185,6 +185,38 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
         scope: record.scopes.join(' '), expires_in: Math.max(0, Math.floor((Date.parse(record.grant_expires_at)-Date.now())/1000)) });
     }
 
+    if (mode === 'resource' && request.method === 'POST') {
+      const token = request.headers.get('x-ifund-device-token') || '';
+      if (!/^ifd_at_[a-f0-9]{64}$/.test(token))
+        return response(401, { error: 'Device token required.' });
+      const tokenHash = await accessTokenHash(token);
+      if (!await rateAllowed(env, 'resource:' + tokenHash, 60, 60, fetcher))
+        return response(429, { error: 'Too many device requests.' });
+      const record = await getBy(env, 'access_token_hash', tokenHash, fetcher);
+      if (!record || record.state !== 'approved' || !record.owner_id ||
+          !record.grant_expires_at || Date.parse(record.grant_expires_at) <= Date.now())
+        return response(401, { error: 'Device access expired or revoked.' });
+      const body = await readJsonBody(request, 2048);
+      if (body?.action === 'identity' && record.scopes.includes('identity:read')) {
+        const params = new URLSearchParams({ select: 'id,handle,display_name', id: 'eq.' + record.owner_id, limit: '1' });
+        const rows = await db(env, 'ifund_profiles?' + params.toString(), {}, fetcher);
+        const profile = Array.isArray(rows) ? rows[0] : null;
+        return response(200, { ok: true, identity: {
+          id: record.owner_id, username: profile?.handle || '', display_name: profile?.display_name || profile?.handle || '',
+        } });
+      }
+      if (body?.action === 'campaigns' && record.scopes.includes('campaigns:read')) {
+        const params = new URLSearchParams({
+          select: 'id,title,summary,category,goal_amount,created_at',
+          owner_id: 'eq.' + record.owner_id, status: 'eq.active',
+          order: 'created_at.desc', limit: '100',
+        });
+        const rows = await db(env, 'ifund_campaigns?' + params.toString(), {}, fetcher);
+        return response(200, { ok: true, campaigns: Array.isArray(rows) ? rows : [] });
+      }
+      return response(403, { error: 'This device is not approved for that action.' });
+    }
+
     if (mode === 'revoke' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to manage connected devices.' });
