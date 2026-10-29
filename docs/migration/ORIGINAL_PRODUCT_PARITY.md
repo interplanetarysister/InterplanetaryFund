@@ -28,3 +28,19 @@ For each original module, preserve its intended UX and business rules, identify 
 4. Auth/permissions, donation ledger, agent workflows, sharing, uploads and social connections work independently.
 5. Web and Android app pass equivalent workflows.
 6. Build and deployment only when specifically authorized by the owner.
+
+
+## Checkpoint fidelity and recovery contract
+Every checkpoint labeled **full-platform replica** must be independently restorable to the same functioning user experience as the last verified complete original platform. A code commit, partial port, schema-only migration, or screenshot is **not** a certified replica.
+
+A certified checkpoint requires:
+- Immutable source revision and matching dependency lockfiles, asset hashes, and Android artifacts where applicable.
+- Verified original-versus-target route inventory, visual snapshots at mobile and desktop sizes, and functional acceptance results for every original feature.
+- Database schema, migration history, complete authorized data snapshot, object storage inventory, ownership relationships, and tested restore procedure; keep personal data protected.
+- Reproducible environment variable **names and secret references**, never secret values in source or checkpoint reports.
+- Infrastructure definitions and mappings for Cloudflare, Supabase, domain/DNS, authentication, OAuth, payments, agents, scheduled workflows, and integrations.
+- Real provider callbacks, idempotent ledger and withdrawal accounting, permissions, and authenticated user journeys verified against the target.
+- Proof of **zero Base44 runtime dependencies**, including network calls, credentials, hosted functions, storage, or workflow execution.
+- Restore rehearsal evidence, timestamp, responsible verifier, integrity hashes, and explicit known gaps.
+
+**Labeling:** `development-snapshot` until all gates pass; only `certified-full-replica` after restore and functional verification. Preserve the last known working original checkpoint and never overwrite it with a partial migration. No claim of certification without evidence. No builds/deployments without the owner's specific authorization.
