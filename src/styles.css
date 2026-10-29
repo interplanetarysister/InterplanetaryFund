@@ -348,3 +348,202 @@ html[data-theme="light"] .hero {
     padding: 2rem;
   }
 }
+
+
+/* Original campaign quest: four-step dark planetary wizard, touch-first. */
+.campaign-quest {
+  width: min(920px, 96%);
+  margin: 1.5rem auto 4rem;
+  padding: clamp(1rem, 3.6vw, 2.75rem);
+  border: 1px solid #6d5d9d8a;
+  border-radius: 30px;
+  background: radial-gradient(85% 60% at 12% 0%, #233a60 0%, #15132d 78%);
+  box-shadow: 0 20px 70px #0006;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.campaign-quest h1 {
+  font-size: clamp(1.9rem, 5.6vw, 2.9rem);
+  color: #e2d8ff;
+  margin: 1.5rem 0 0.35rem;
+  line-height: 1.15;
+}
+.campaign-quest h2 {
+  font-size: 1.3rem;
+  margin: 0.25rem 0 0.6rem;
+  color: #f5f4ff;
+}
+.campaign-quest h3 { font-size: 1.1rem; }
+.campaign-quest .quest-intro { color: #cbd9ed; margin: 0 0 1.5rem; }
+.quest-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1.75rem 0 1.1rem;
+  padding: 0;
+  list-style: none;
+}
+.quest-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  min-width: 0;
+  font-size: clamp(0.69rem, 2.2vw, 0.88rem);
+  color: #a7b2ce;
+  font-weight: 650;
+}
+.quest-steps li.current { color: #b7ecff; }
+.quest-steps li.complete { color: #bafde6; }
+.quest-step-icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  background: #181d34;
+  border: 1px solid #646c91;
+  color: #d1d8f7;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+.quest-steps li.current .quest-step-icon {
+  background: #6944c4;
+  border-color: #bda0ff;
+  color: #fff;
+  box-shadow: 0 0 20px #7556cb73;
+}
+.quest-steps li.complete .quest-step-icon {
+  background: #36c5d8;
+  border-color: #72fae9;
+  color: #101a30;
+}
+.quest-panel {
+  border: 1px solid #8590cf60;
+  border-radius: 23px;
+  padding: clamp(1rem, 3.5vw, 1.75rem);
+  background: #202340b5;
+  min-width: 0;
+}
+.quest-panel .form { max-width: none; gap: 1rem; }
+.quest-panel .form > p { color: #d4dcf0; margin: 0 0 0.5rem; }
+.quest-panel label { display: grid; gap: 0.45rem; min-width: 0; font-weight: 650; }
+.quest-panel small { display: block; color: #c3cce0; font-size: 0.82rem; margin-top: 0.4rem; }
+.quest-panel input, .quest-panel select, .quest-panel textarea {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 12px;
+  background: #111b34;
+}
+.quest-panel textarea { resize: vertical; white-space: pre-wrap; }
+.quest-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0.85rem; }
+.quest-extras {
+  padding: 1rem;
+  border: 1px solid #8876b26b;
+  border-radius: 16px;
+  background: #5e469a1d;
+}
+.quest-extras > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: #c8bbff;
+  padding: 0.2rem;
+}
+.quest-extras[open] > summary { margin-bottom: 1rem; }
+.quest-extras label { margin: 0.8rem 0; }
+.quest-toggle {
+  display: flex !important;
+  flex-direction: row;
+  gap: 0.85rem !important;
+  align-items: flex-start;
+  border: 1px solid #4d9caa80;
+  border-radius: 16px;
+  background: #36c6d315;
+  padding: 1rem;
+}
+.quest-toggle input[type="checkbox"], .quest-platforms input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.2rem 0 0;
+  accent-color: #55cde9;
+}
+.quest-platforms { display: flex; gap: 0.5rem; flex-wrap: wrap; border: 0; padding: 0; }
+.quest-platforms legend { padding: 0 0 0.5rem; font-weight: 700; }
+.quest-platforms label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.4rem;
+  background: #151f38;
+  border: 1px solid #646c99;
+  padding: 0.45rem 0.7rem;
+  border-radius: 20px;
+  margin: 0;
+  font-size: 0.86rem;
+}
+.quest-copy {
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid #5d7fa366;
+  background: #1c35504a;
+  padding: 1rem;
+  border-radius: 17px;
+}
+.quest-copy .secondary { justify-self: start; }
+.quest-choice {
+  display: block;
+  width: 100%;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 0.8rem;
+  white-space: normal;
+  border: 1px solid #7e87ba;
+  background: #212b51;
+  color: #f6f4ff;
+}
+.quest-choice:focus-visible { outline: 3px solid #5acaf0; }
+.quest-cover { display: block; width: 100%; max-height: 460px; object-fit: contain; border-radius: 12px; background: #0b1126; }
+.quest-preview { min-width: 0; }
+.quest-preview h2 { margin: 0.7rem 0; overflow-wrap: anywhere; }
+.quest-preview > small { color: #a9e1ff; }
+.quest-story { white-space: pre-wrap; overflow-wrap: anywhere; }
+.quest-save, .quest-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  margin-top: 1.3rem;
+  flex-wrap: wrap;
+}
+.quest-save > small { color: #bdcbe0; flex: 1; }
+.quest-nav .primary { min-height: 48px; }
+html[data-theme="light"] .campaign-quest {
+  color: #263253;
+  background: linear-gradient(145deg,#e8edff,#f7f9ff);
+  border-color: #b6b8d4;
+  box-shadow: 0 12px 40px #1c2c5340;
+}
+html[data-theme="light"] .campaign-quest h1,
+html[data-theme="light"] .campaign-quest h2 { color: #243353; }
+html[data-theme="light"] .campaign-quest .quest-intro,
+html[data-theme="light"] .quest-panel .form > p { color: #425575; }
+html[data-theme="light"] .quest-panel { background: #fff; border-color: #b4c2db; }
+html[data-theme="light"] .quest-extras,
+html[data-theme="light"] .quest-copy { background: #e9efff; }
+html[data-theme="light"] .quest-copy small,
+html[data-theme="light"] .quest-panel small { color: #405373; }
+html[data-theme="light"] .quest-steps li { color: #586886; }
+html[data-theme="light"] .quest-steps li.current { color: #4042a8; }
+html[data-theme="light"] .quest-platforms label { background: #e8edff; }
+@media (max-width: 520px) {
+  .campaign-quest { border-radius: 17px; padding: 0.85rem; width: 98%; }
+  .quest-steps { gap: 0.2rem; }
+  .quest-step-icon { width: 36px; height: 36px; border-radius: 12px; }
+  .quest-columns { grid-template-columns: minmax(0,1fr); }
+  .quest-copy .secondary { width: 100%; }
+  .quest-save .secondary { width: 100%; }
+  .quest-nav { display: grid; grid-template-columns: 1fr; }
+  .quest-nav button { width: 100%; }
+}
