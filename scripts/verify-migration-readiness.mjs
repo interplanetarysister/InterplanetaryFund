@@ -15,6 +15,7 @@ const android = load("docs/migration/contracts/android.json");
 const schemaTypes = load("docs/migration/contracts/schema-type-crosswalk.json");
 const dataMigration = load("docs/migration/contracts/data-migration-checkpoint.json");
 const authEvidence = load("docs/migration/contracts/auth-verification.json");
+const legalEvidence = load("docs/migration/contracts/legal-acceptance-evidence.json");
 const app = readFileSync(new URL("apps/web/src/App.jsx", root), "utf8");
 const errors = [];
 
@@ -83,6 +84,10 @@ if (production) {
   for (const [name,value] of Object.entries(authEvidence.real_world_qa)) {
     if (value !== true)
       errors.push("First signup/login verification missing: " + name);
+  }
+  for (const [name,value] of Object.entries(legalEvidence.proof_requirements)) {
+    if (value !== true)
+      errors.push("Versioned account legal acceptance unverified: " + name);
   }
   if (dataMigration.owner_identity_match_verified !== true ||
       dataMigration.all_source_campaigns_accounted_for !== true ||
