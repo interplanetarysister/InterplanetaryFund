@@ -12,7 +12,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/ActionQueuePanel.jsx:14"
+      ]
     },
     {
       "name": "activateSubscriptionCheckout",
@@ -37,7 +39,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/AdminConnectionAssistant.jsx:7"
+      ]
     },
     {
       "name": "adminCampaignControl",
@@ -48,7 +52,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/FraudControlPanel.jsx:63",
+        "src/components/platform/FraudControlPanel.jsx:73"
+      ]
     },
     {
       "name": "adminOAuthProviderReadiness",
@@ -59,7 +66,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/AdminOAuthProviderReadiness.jsx:18"
+      ]
     },
     {
       "name": "adminUpdateUserRole",
@@ -70,7 +79,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/UserManagementPanel.jsx:47"
+      ]
     },
     {
       "name": "analyzeGrantApplication",
@@ -103,7 +114,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/institutions/ApplyDialog.jsx:41"
+      ]
     },
     {
       "name": "auditAdminAgentGateway",
@@ -125,7 +138,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/withdrawals/CollectAndWithdrawDialog.jsx:47"
+      ]
     },
     {
       "name": "authorizeConnectionAi",
@@ -147,7 +162,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/distribution/DistributionPanel.jsx:86"
+      ]
     },
     {
       "name": "cancelPayPalSubscription",
@@ -171,7 +188,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/PayPalReceiptRecoveryPanel.jsx:70",
+        "src/components/payments/ApplePayButton.jsx:130",
+        "src/components/payments/GooglePayButton.jsx:81",
+        "src/components/payments/PayPalCheckoutButton.jsx:57"
+      ]
     },
     {
       "name": "checkUsernameAvailability",
@@ -231,7 +253,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/CreateCommunityDialog.jsx:27"
+      ]
     },
     {
       "name": "createDiscussionPost",
@@ -242,7 +266,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/DiscussionsTab.jsx:32"
+      ]
     },
     {
       "name": "createDistributedPost",
@@ -253,7 +279,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/PublishFromConnections.jsx:101",
+        "src/components/distribution/DistributionPanel.jsx:76",
+        "src/components/social/PostComposer.jsx:129",
+        "src/components/social/ShareToProfileDialog.jsx:90"
+      ]
     },
     {
       "name": "createDonationCheckout",
@@ -275,7 +306,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/institutions/CreateInstitutionDialog.jsx:33"
+      ]
     },
     {
       "name": "createKnowledgeArticle",
@@ -286,7 +319,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/KnowledgePanel.jsx:59"
+      ]
     },
     {
       "name": "createPayPalOrder",
@@ -297,7 +332,11 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/payments/ApplePayButton.jsx:115",
+        "src/components/payments/GooglePayButton.jsx:62",
+        "src/components/payments/PayPalCheckoutButton.jsx:42"
+      ]
     },
     {
       "name": "createPayPalSubscriptionCheckout",
@@ -332,7 +371,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/social/PostComposer.jsx:105",
+        "src/components/social/ShareToProfileDialog.jsx:73"
+      ]
     },
     {
       "name": "createSubscriptionCheckout",
@@ -367,7 +409,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/VolunteerTab.jsx:34"
+      ]
     },
     {
       "name": "decideGrantApplication",
@@ -378,7 +422,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/institutions/ApplicationsTab.jsx:29"
+      ]
     },
     {
       "name": "deleteAccount",
@@ -389,7 +435,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/account/AccountManagement.jsx:77"
+      ]
     },
     {
       "name": "deleteCampaign",
@@ -400,7 +448,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/DeleteCampaignButton.jsx:28"
+      ]
     },
     {
       "name": "deviceAuthorization",
@@ -415,7 +465,9 @@
         "src/pages/ConnectedDevices.jsx:23",
         "src/pages/ConnectedDevices.jsx:37",
         "src/pages/DeviceActivation.jsx:39",
-        "src/pages/DeviceActivation.jsx:52"
+        "src/pages/DeviceActivation.jsx:52",
+        "src/components/devices/DevicePairingSelfTest.jsx:117",
+        "src/components/devices/DevicePairingSelfTest.jsx:122"
       ]
     },
     {
@@ -427,7 +479,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/ConnectionCard.jsx:47"
+      ]
     },
     {
       "name": "discoverConnectionMethods",
@@ -515,7 +569,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/withdrawals/CollectAndWithdrawDialog.jsx:49"
+      ]
     },
     {
       "name": "externalAgentCampaigns",
@@ -563,7 +619,8 @@
       "retired_by_owner": false,
       "frontend_direct_callers": [
         "src/pages/AIImageStudio.jsx:29",
-        "src/pages/CreateCampaign.jsx:120"
+        "src/pages/CreateCampaign.jsx:120",
+        "src/components/social/PostComposer.jsx:76"
       ]
     },
     {
@@ -587,7 +644,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/MissionControlPage.jsx:32"
+        "src/pages/MissionControlPage.jsx:32",
+        "src/components/mission/OpportunitiesPanel.jsx:37"
       ]
     },
     {
@@ -599,7 +657,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/social/AdminContentPanel.jsx:31"
+      ]
     },
     {
       "name": "geocodeCity",
@@ -645,7 +705,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/ConnectDialog.jsx:70",
+        "src/components/connections/ConnectDialog.jsx:127"
+      ]
     },
     {
       "name": "getBufferReadiness",
@@ -708,7 +771,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/ActivityFeed.jsx:22",
+        "src/components/community/ActivityFeed.jsx:40"
+      ]
     },
     {
       "name": "getConnectedPayoutAccount",
@@ -765,7 +831,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/LiveProvidersPanel.jsx:37"
+      ]
     },
     {
       "name": "getMyGiving",
@@ -815,7 +883,11 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/payments/ApplePayButton.jsx:48",
+        "src/components/payments/GooglePayButton.jsx:35",
+        "src/components/payments/PayPalCheckoutButton.jsx:28"
+      ]
     },
     {
       "name": "getPayPalPayoutReadiness",
@@ -851,7 +923,9 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Withdrawals.jsx:53"
+        "src/pages/Withdrawals.jsx:53",
+        "src/components/campaigns/DonateDialog.jsx:53",
+        "src/components/onboarding/ConnectStep.jsx:20"
       ]
     },
     {
@@ -876,7 +950,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/StripeIntegrationPanel.jsx:17"
+      ]
     },
     {
       "name": "getStripeReadiness",
@@ -968,7 +1044,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/distribution/JustGivingStagingPilot.jsx:25",
+        "src/components/distribution/JustGivingStagingPilot.jsx:34"
+      ]
     },
     {
       "name": "kofiWebhook",
@@ -994,7 +1073,10 @@
         "src/pages/Connections.jsx:115",
         "src/pages/Connections.jsx:214",
         "src/pages/ExternalAccounts.jsx:30",
-        "src/pages/Social.jsx:44"
+        "src/pages/Social.jsx:44",
+        "src/components/account/AccountManagement.jsx:48",
+        "src/components/connections/PublishFromConnections.jsx:47",
+        "src/components/distribution/DistributionPanel.jsx:45"
       ]
     },
     {
@@ -1019,7 +1101,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/institutions/ApplicationsTab.jsx:16"
+      ]
     },
     {
       "name": "listUntrackedPayPalReceipts",
@@ -1030,7 +1114,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/PayPalReceiptRecoveryPanel.jsx:30"
+      ]
     },
     {
       "name": "logPlatformEvent",
@@ -1041,7 +1127,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/logPlatformEvent.js:4"
+      ]
     },
     {
       "name": "maintainPlatformOwnedAccounts",
@@ -1063,7 +1151,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/ChatGPTBuilderHandoff.jsx:31",
+        "src/components/agents/ChatGPTBuilderHandoff.jsx:47"
+      ]
     },
     {
       "name": "manageAgentContentDraft",
@@ -1074,7 +1165,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/AgentContentReview.jsx:34",
+        "src/components/agents/AgentMonitor.jsx:100"
+      ]
     },
     {
       "name": "manageAgentWork",
@@ -1085,7 +1179,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/AgentMonitor.jsx:98",
+        "src/components/connections/AgentWorkPanel.jsx:35",
+        "src/components/connections/AgentWorkPanel.jsx:67",
+        "src/components/connections/AgentWorkPanel.jsx:102"
+      ]
     },
     {
       "name": "manageApprovedBuilderExecution",
@@ -1096,7 +1195,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/BuilderExecutionControls.jsx:19",
+        "src/components/agents/PlatformFixReviewPanel.jsx:27"
+      ]
     },
     {
       "name": "manageBlog",
@@ -1111,7 +1213,8 @@
         "src/pages/BlogArticle.jsx:11",
         "src/pages/Blogs.jsx:11",
         "src/pages/MyBlog.jsx:17",
-        "src/pages/MyBlog.jsx:25"
+        "src/pages/MyBlog.jsx:25",
+        "src/components/social/OfficialPublications.jsx:40"
       ]
     },
     {
@@ -1134,7 +1237,11 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/distribution/DistributedPostCard.jsx:35",
+        "src/components/distribution/DistributedPostCard.jsx:68",
+        "src/components/distribution/DistributedPostCard.jsx:77"
+      ]
     },
     {
       "name": "manageExternalAgentKeys",
@@ -1158,7 +1265,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/FeatureFlagsPanel.jsx:63",
+        "src/components/platform/FeatureFlagsPanel.jsx:89",
+        "src/components/platform/LiveProvidersPanel.jsx:49",
+        "src/components/platform/LiveProvidersPanel.jsx:64"
+      ]
     },
     {
       "name": "manageFriends",
@@ -1169,7 +1281,14 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/profile/FriendsPanel.jsx:21",
+        "src/components/profile/FriendsPanel.jsx:31",
+        "src/components/profile/FriendsPanel.jsx:33",
+        "src/components/profile/FriendsPanel.jsx:44",
+        "src/components/profile/FriendsPanel.jsx:49",
+        "src/components/profile/FriendsPanel.jsx:50"
+      ]
     },
     {
       "name": "manageOAuthClients",
@@ -1194,7 +1313,9 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/PublicationArticle.jsx:21"
+        "src/pages/PublicationArticle.jsx:21",
+        "src/components/social/OfficialPublications.jsx:41",
+        "src/components/social/OfficialPublications.jsx:91"
       ]
     },
     {
@@ -1206,7 +1327,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/OwnerConnectorRoutePanel.jsx:16"
+      ]
     },
     {
       "name": "managePlatformAccess",
@@ -1217,7 +1340,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/IntegrationDetailPanel.jsx:30"
+      ]
     },
     {
       "name": "managePlatformIncidents",
@@ -1228,7 +1353,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/PlatformFixReviewPanel.jsx:26",
+        "src/components/agents/PlatformFixReviewPanel.jsx:40"
+      ]
     },
     {
       "name": "managePostInterest",
@@ -1239,7 +1367,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/social/SocialFeed.jsx:23",
+        "src/components/social/SocialFeed.jsx:85"
+      ]
     },
     {
       "name": "managePublicProfile",
@@ -1251,7 +1382,9 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/PublicProfile.jsx:13"
+        "src/pages/PublicProfile.jsx:13",
+        "src/components/profile/PublicProfileEditor.jsx:16",
+        "src/components/profile/PublicProfileEditor.jsx:39"
       ]
     },
     {
@@ -1263,7 +1396,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/giving/RecurringPlanCard.jsx:23"
+      ]
     },
     {
       "name": "manageVerificationMailbox",
@@ -1274,7 +1409,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/inbox/VerificationInboxPanel.jsx:14",
+        "src/components/inbox/VerificationInboxPanel.jsx:21",
+        "src/components/inbox/VerificationInboxPanel.jsx:31",
+        "src/components/inbox/VerificationInboxPanel.jsx:42"
+      ]
     },
     {
       "name": "markNotificationRead",
@@ -1285,7 +1425,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/inbox/InboxItemCard.jsx:50"
+      ]
     },
     {
       "name": "matchExternalPayPalSettlement",
@@ -1318,7 +1460,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/AgentChat.jsx:23",
+        "src/components/agents/AgentChat.jsx:217"
+      ]
     },
     {
       "name": "payPalSubscriptionWebhook",
@@ -1340,7 +1485,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/UpdatesSection.jsx:78"
+      ]
     },
     {
       "name": "postDiscussionReply",
@@ -1351,7 +1498,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/PostCard.jsx:34"
+      ]
     },
     {
       "name": "prepareCollectAndWithdraw",
@@ -1362,7 +1511,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/withdrawals/CollectAndWithdrawDialog.jsx:38"
+      ]
     },
     {
       "name": "processAdminActionInbox",
@@ -1384,7 +1535,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/institutions/PublishOpportunityForm.jsx:20"
+      ]
     },
     {
       "name": "publishLinkedCampaignToConnection",
@@ -1406,7 +1559,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/PublishFromConnections.jsx:118",
+        "src/components/distribution/DistributedPostCard.jsx:46",
+        "src/components/social/PostComposer.jsx:137",
+        "src/components/social/ShareToProfileDialog.jsx:92"
+      ]
     },
     {
       "name": "receiveCloudflareEmail",
@@ -1428,7 +1586,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/admin/PayPalReceiptRecoveryPanel.jsx:76"
+      ]
     },
     {
       "name": "reconcileExternalPayPalSettlement",
@@ -1474,7 +1634,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/DonateDialog.jsx:69"
+      ]
     },
     {
       "name": "recordExternalFundMigration",
@@ -1485,7 +1647,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/ops/FundMigrationDashboard.jsx:111"
+      ]
     },
     {
       "name": "recordLegalAcceptance",
@@ -1496,7 +1660,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/TermsAcceptance.jsx:28",
+        "src/components/TermsAcceptance.jsx:51"
+      ]
     },
     {
       "name": "refreshWritingResearch",
@@ -1540,7 +1707,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/platform/StripeIntegrationPanel.jsx:28"
+      ]
     },
     {
       "name": "requestManagedConnectionAction",
@@ -1565,7 +1734,11 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Withdrawals.jsx:91"
+        "src/pages/Withdrawals.jsx:91",
+        "src/components/ops/PendingDonationReview.jsx:13",
+        "src/components/platform/FraudControlPanel.jsx:42",
+        "src/components/platform/FraudControlPanel.jsx:52",
+        "src/components/withdrawals/WithdrawalDialog.jsx:28"
       ]
     },
     {
@@ -1605,7 +1778,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/OutreachAgentPanel.jsx:83"
+      ]
     },
     {
       "name": "revokeConnectionAiConsent",
@@ -1627,7 +1802,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/AgentMonitor.jsx:117"
+      ]
     },
     {
       "name": "runBrowserConnection",
@@ -1695,7 +1872,8 @@
       "retired_by_owner": false,
       "frontend_direct_callers": [
         "src/pages/CreateCampaign.jsx:153",
-        "src/pages/CreateCampaign.jsx:214"
+        "src/pages/CreateCampaign.jsx:214",
+        "src/components/campaigns/EditCampaignDetailsDialog.jsx:47"
       ]
     },
     {
@@ -1707,7 +1885,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/ConnectDialog.jsx:252"
+      ]
     },
     {
       "name": "sendCommunication",
@@ -1718,7 +1898,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/comms/ComposeMessage.jsx:83"
+      ]
     },
     {
       "name": "sendPublicContactMessage",
@@ -1742,7 +1924,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/connections/ConnectDialog.jsx:232",
+        "src/components/connections/ConnectionCard.jsx:62"
+      ]
     },
     {
       "name": "setUnifiedOboConsent",
@@ -1754,7 +1939,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Onboarding.jsx:35"
+        "src/pages/Onboarding.jsx:35",
+        "src/components/connections/AIConsentCard.jsx:17"
       ]
     },
     {
@@ -1838,7 +2024,9 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Connections.jsx:111"
+        "src/pages/Connections.jsx:111",
+        "src/components/account/CountMyMoney.jsx:38",
+        "src/components/ops/FundMigrationDashboard.jsx:34"
       ]
     },
     {
@@ -1872,7 +2060,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/ImportedCampaignSync.jsx:18"
+      ]
     },
     {
       "name": "syncPayPalSubscriptionCatalog",
@@ -1908,7 +2098,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Connections.jsx:155"
+        "src/pages/Connections.jsx:155",
+        "src/components/dashboard/MissionControl.jsx:28"
       ]
     },
     {
@@ -1921,7 +2112,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Connections.jsx:154"
+        "src/pages/Connections.jsx:154",
+        "src/components/dashboard/MissionControl.jsx:27"
       ]
     },
     {
@@ -1934,7 +2126,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Connections.jsx:152"
+        "src/pages/Connections.jsx:152",
+        "src/components/dashboard/MissionControl.jsx:25"
       ]
     },
     {
@@ -1947,7 +2140,8 @@
       "integration_tests_verified": false,
       "retired_by_owner": false,
       "frontend_direct_callers": [
-        "src/pages/Connections.jsx:153"
+        "src/pages/Connections.jsx:153",
+        "src/components/dashboard/MissionControl.jsx:26"
       ]
     },
     {
@@ -1959,7 +2153,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/FollowButton.jsx:47",
+        "src/components/campaigns/FollowButton.jsx:66"
+      ]
     },
     {
       "name": "trackAgentConversation",
@@ -1970,7 +2167,17 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/agents/AgentChat.jsx:147",
+        "src/components/agents/AgentChat.jsx:190",
+        "src/components/agents/AgentChat.jsx:236",
+        "src/components/agents/AgentChat.jsx:247",
+        "src/components/agents/AgentChat.jsx:254",
+        "src/components/agents/AgentMonitor.jsx:99",
+        "src/components/connections/AgentWorkPanel.jsx:36",
+        "src/components/connections/AgentWorkPanel.jsx:88",
+        "src/components/mission/AutomationPanel.jsx:33"
+      ]
     },
     {
       "name": "translateCampaign",
@@ -1981,7 +2188,12 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/CampaignTranslation.jsx:35",
+        "src/components/campaigns/CampaignTranslation.jsx:58",
+        "src/components/campaigns/CampaignTranslation.jsx:74",
+        "src/components/campaigns/CampaignTranslation.jsx:93"
+      ]
     },
     {
       "name": "updateCampaignSettings",
@@ -1992,7 +2204,14 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/CashAppSettings.jsx:16",
+        "src/components/campaigns/CryptoCampaignSettings.jsx:15",
+        "src/components/campaigns/EditAIInstructionsDialog.jsx:18",
+        "src/components/campaigns/OutreachAgentPanel.jsx:51",
+        "src/components/campaigns/OutreachAgentPanel.jsx:68",
+        "src/components/distribution/DistributionPanel.jsx:58"
+      ]
     },
     {
       "name": "updateFollowPreferences",
@@ -2003,7 +2222,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/campaigns/FollowPrefsDialog.jsx:32"
+      ]
     },
     {
       "name": "updateInboxItem",
@@ -2014,7 +2235,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/inbox/InboxItemCard.jsx:44",
+        "src/components/inbox/InboxItemCard.jsx:49"
+      ]
     },
     {
       "name": "updateMissionItemStatus",
@@ -2025,7 +2249,10 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/mission/OpportunitiesPanel.jsx:48",
+        "src/components/mission/RecommendationsPanel.jsx:30"
+      ]
     },
     {
       "name": "validateIntegrationHealth",
@@ -2097,7 +2324,8 @@
       "retired_by_owner": false,
       "frontend_direct_callers": [
         "src/pages/Connections.jsx:195",
-        "src/pages/Connections.jsx:532"
+        "src/pages/Connections.jsx:532",
+        "src/components/connections/ConnectionCard.jsx:88"
       ]
     },
     {
@@ -2120,7 +2348,9 @@
       "side_effects_verified": false,
       "integration_tests_verified": false,
       "retired_by_owner": false,
-      "frontend_direct_callers": []
+      "frontend_direct_callers": [
+        "src/components/community/VolunteerTab.jsx:45"
+      ]
     },
     {
       "name": "welcomeVolunteer",
