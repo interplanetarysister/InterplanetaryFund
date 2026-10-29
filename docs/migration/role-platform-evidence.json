@@ -19,7 +19,8 @@
   "target": {
     "repository": "interplanetarysister/InterplanetaryFund",
     "path": "apps/web/src/App.jsx",
-    "branch": "migration/build-completeness-gates-20261029"
+    "branch": "migration/build-completeness-gates-20261029",
+    "route_registry": "apps/web/src/lib/historicalRoutes.js"
   },
   "required_screens": [
     "desktop_light",
@@ -192,8 +193,8 @@
       "title": "Embedded campaign",
       "source_component": "EmbedCampaign",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/EmbedCampaign.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -502,8 +503,8 @@
       "title": "Download IFund",
       "source_component": "DownloadApp",
       "access": "public",
-      "current_state": "missing",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/DownloadApp.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1494,8 +1495,8 @@
       "title": "AI team",
       "source_component": "Agents",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Agents.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
