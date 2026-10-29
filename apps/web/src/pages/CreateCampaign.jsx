@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { categoryLabels } from "@/components/campaigns/CampaignCard";
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
@@ -39,11 +40,12 @@ export default function CreateCampaign() {
     try {
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
-        const user = authData?.user;
+      const user = authData?.user;
       if (authError || !user) { navigate("/login", { replace: true }); return; }
       const goalText = form.goal_amount.trim();
-      const amount = Number(goalText);
-      if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
+      // Drafts can be incomplete. A complete goal and story are required only for publication.
+      if (goalText && !/^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,2})?$/.test(goalText)) throw new Error("Use a nonnegative USD amount with up to two decimals.");
+      const amount = goalText ? Number(goalText) : 0;
       const values = { title: form.title.trim(), summary: form.summary.trim(),
         story: form.story.trim(), category: form.category, goal_amount: amount,
         cover_image_url: form.cover_image_url.trim(), status: "draft" };
@@ -62,11 +64,11 @@ export default function CreateCampaign() {
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
-      <label className="block font-semibold">Campaign title<input required maxLength={150} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Short description<textarea required maxLength={1000} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Your story<textarea rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"><option value="community">Community</option><option value="medical">Medical</option><option value="education">Education</option><option value="environment">Environment</option><option value="creative">Creative</option><option value="other">Other</option></select></label>
-      <label className="block font-semibold">Fundraising goal (USD)<input required min="0" step="0.01" type="number" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <label className="block font-semibold">Campaign title<input maxLength={120} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <label className="block font-semibold">Short description<textarea maxLength={600} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <label className="block font-semibold">Your story<textarea maxLength={15000} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{Object.entries(categoryLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <label className="block font-semibold">Fundraising goal (USD)<input min="0" step="0.01" type="number" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={2000} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {saved && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. Reference: <code className="break-all">{saved}</code>. <Link to="/dashboard" className="underline">Dashboard</Link></p>}
