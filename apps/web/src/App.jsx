@@ -14,6 +14,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
+const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 
@@ -21,7 +22,7 @@ const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 // navigation and land on a branded "Coming soon" page instead of breaking.
 const STANDALONE_COMING_SOON = [
   "/login", "/register", "/forgot-password", "/reset-password", "/onboarding",
-  "/founding-members", "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
+  "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
   "/community", "/community/:id", "/u/:id", "/social", "/blogs", "/blogs/:id", "/publications/:id",
@@ -40,6 +41,7 @@ function AppRoutes() {
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/founding-members" element={<FoundingMembers />} />
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
