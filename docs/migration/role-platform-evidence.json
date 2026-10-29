@@ -1731,8 +1731,8 @@
       "title": "Following",
       "source_component": "FollowedCampaigns",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/FollowedCampaigns.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1766,15 +1766,17 @@
         "source_page_file": "src/pages/FollowedCampaigns.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/followedCampaigns.js",
+      "known_compatibility_gap": "RLS migrations for public.ifund_follows unapplied; original history unavailable, advanced goal/date sorting blocked"
     },
     {
       "path": "/notifications",
       "title": "Notifications",
       "source_component": "Notifications",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Notifications.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1807,7 +1809,9 @@
         "source_page_file": "src/pages/Notifications.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/notifications.js",
+      "known_compatibility_gap": "RLS migrations for public.ifund_notifications unapplied; trusted notice producer/Android push/optional diagnostics missing"
     },
     {
       "path": "/donors",
@@ -2493,6 +2497,20 @@
       },
       "source_backend_calls_verified": false,
       "source_ui_parity_verified": false
+    }
+  ],
+  "extra_independent_routes": [
+    {
+      "path": "/auth/callback",
+      "implementation": "apps/web/src/pages/AuthCallback.jsx",
+      "status": "staged_not_live",
+      "purpose": "Email verification, implicit/PKCE token exchange, password recovery and old email link handling"
+    },
+    {
+      "path": "/mine/:id",
+      "implementation": "apps/web/src/pages/OwnerCampaignPreview.jsx",
+      "status": "staged_not_live",
+      "purpose": "Owner-private paused campaign preview"
     }
   ]
 }
