@@ -12,6 +12,7 @@ const functions = load("docs/migration/contracts/functions.json");
 const automations = load("docs/migration/contracts/automations.json");
 const launch = load("docs/migration/contracts/launch-evidence.json");
 const android = load("docs/migration/contracts/android.json");
+const schemaTypes = load("docs/migration/contracts/schema-type-crosswalk.json");
 const app = readFileSync(new URL("apps/web/src/App.jsx", root), "utf8");
 const errors = [];
 
@@ -26,6 +27,9 @@ function unique(items, key, expected, label) {
 unique(evidence.pages, "path", 59, "Historical routes");
 unique(HISTORICAL_ROUTES, "path", 59, "Web route registry");
 unique(entities.items, "name", 95, "Entity contracts");
+if (schemaTypes.static_field_count !== 1126 || schemaTypes.sql_field_count_matched !== 1126 ||
+    schemaTypes.timestamp_fields?.length !== 75)
+  errors.push("Source-to-SQL field type crosswalk incomplete or unexpectedly changed");
 unique(functions.items, "name", 184, "Function contracts");
 unique(automations.agents, "name", 10, "AI agent contracts");
 unique(automations.workflows, "name", 17, "Workflow contracts");
@@ -72,6 +76,16 @@ if (production) {
       errors.push(page.path + ": missing access proof for " + role);
     for (const field of ["functional","persistence","source_assets","reviewer_approval"])
       if (!page.proof?.[field]) errors.push(page.path + ": missing " + field + " proof");
+  }
+  if (schemaTypes.enum_and_default_semantics_verified !== true ||
+      schemaTypes.other_type_roundtrip_verified !== true ||
+      schemaTypes.timestamp_fields.some(field => field.roundtrip_verified !== true))
+    errors.push("Source-to-SQL serialization, timestamp, enum and default behavior not verified");
+  const canonical = "ssibsfmtodgximseeqsv.supabase.co";
+  for (const name of ["VITE_SUPABASE_URL", "SUPABASE_URL", "SUPABASE_JWKS_URL"]) {
+    try {
+      if (new URL(process.env[name]).hostname !== canonical) throw Error("Not canonical");
+    } catch { errors.push("Cloudflare build binding missing or mismatched: " + name); }
   }
   for (const e of entities.items) if (!e.runtime_table || !e.staging_field_names_verified || !e.migration_table || !e.rls_verified ||
       !e.fields_verified || !e.read_write_verified || !e.data_verified)
