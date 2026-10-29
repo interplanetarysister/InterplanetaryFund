@@ -12,6 +12,8 @@ const Discover = lazy(() => import("./pages/Discover"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const Help = lazy(() => import("./pages/Help"));
+const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
@@ -22,7 +24,7 @@ const STANDALONE_COMING_SOON = [
 ];
 const LAYOUT_COMING_SOON = [
   "/community", "/community/:id", "/u/:id", "/social", "/blogs", "/blogs/:id", "/publications/:id",
-  "/help", "/help/:slug", "/dashboard", "/create", "/giving", "/communications", "/mission", "/ai-images",
+  "/dashboard", "/create", "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/profile", "/my-blog", "/devices", "/connections", "/inbox",
   "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
@@ -40,6 +42,8 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/help/:slug" element={<HelpArticle />} />
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
