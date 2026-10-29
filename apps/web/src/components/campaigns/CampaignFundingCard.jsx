@@ -21,7 +21,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
       <p className="text-sm text-stone-500 mb-3">raised of ${Number(campaign.goal_amount).toLocaleString()} goal</p>
       <Progress value={pct} className="h-2 mb-4" />
       </>) : (
-        <p className="text-sm text-stone-500 mb-4">{hasGoal ? `Fundraising goal: ${Number(campaign.goal_amount).toLocaleString()}. Verified donation totals are not available yet.` : "Verified donation totals are not available yet."}</p>
+        <p className="text-sm text-stone-500 mb-4">{hasGoal ? `Fundraising goal: $${Number(campaign.goal_amount).toLocaleString()}. Verified donation totals are not available yet.` : "Verified donation totals are not available yet."}</p>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mb-4">
         {Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{campaign.donor_count} donors</span>}
