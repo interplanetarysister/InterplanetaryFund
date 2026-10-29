@@ -6,6 +6,7 @@ import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authCallbackUrl } from "@/lib/authCallback";
 import { landingAfterLogin } from "@/lib/postLogin";
+import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
 export default function AuthPage({ mode="login" }){
   const navigate=useNavigate();
@@ -52,7 +53,13 @@ export default function AuthPage({ mode="login" }){
         if(failure)throw failure;
         if(data?.session){
           const {data:verified,error:verifyError}=await auth.getUser();
-          if(verifyError || !verified?.user?.id || !verified.user.email_confirmed_at)throw new Error("Your email confirmation is not complete. Check the newest verification email.");
+          if(verifyError || !verified?.user?.id)throw new Error("Your account session could not be verified. Try signing in again.");
+          if(!isVerifiedEmailUser(verified.user)){
+            setNeedsConfirmation(true);
+            const {error:signoutError}=await auth.signOut();
+            if(signoutError)throw new Error("Your email is not confirmed and the temporary session could not be cleared. Protected account features remain blocked; request a new confirmation email.");
+            throw new Error("Your email confirmation is not complete. Check the newest verification email.");
+          }
           navigate("/onboarding",{replace:true});
         }else{
           setNeedsConfirmation(true);
@@ -72,6 +79,14 @@ export default function AuthPage({ mode="login" }){
           throw failure;
         }
         if(!data?.session)throw new Error("Sign-in did not create a session.");
+        const {data:verified,error:verifyError}=await auth.getUser();
+        if(verifyError || !verified?.user?.id)throw new Error("The sign-in session could not be verified.");
+        if(!isVerifiedEmailUser(verified.user)){
+          setNeedsConfirmation(true);
+          const {error:signoutError}=await auth.signOut();
+          if(signoutError)throw new Error("Your email is not confirmed. Protected account features remain blocked; request a new confirmation email.");
+          throw new Error("Your email has not been confirmed. Open the newest confirmation email or request another one below.");
+        }
         const destination=await landingAfterLogin(authClient(),afterLogin);
         navigate(destination,{replace:true});
       }
