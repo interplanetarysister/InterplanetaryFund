@@ -56,7 +56,7 @@ export function mapCampaign(row = {}) {
 }
 
 export async function listActiveCampaigns({ limit = 100 } = {}) {
-  const max = Math.min(500, Math.max(1, Number(limit) || 100));
+  const max = Math.min(500, Math.max(1, Math.trunc(Number(limit) || 100)));
   const { data, error } = await supabase()
     .from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
@@ -70,7 +70,7 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
 
 export async function searchActiveCampaigns({ category = "all", search = "", limit = 100, offset = 0 } = {}) {
   const max = Math.min(500, Math.max(1, Math.trunc(Number(limit) || 100)));
-  const start = Math.max(0, Math.trunc(Number(offset) || 0));
+  const start = Math.min(100000, Math.max(0, Math.trunc(Number(offset) || 0)));
   let query = supabase().from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
     .eq("status", "active");
@@ -78,7 +78,7 @@ export async function searchActiveCampaigns({ category = "all", search = "", lim
     if (!/^[a-z_]{1,40}$/.test(category)) throw new Error("Invalid campaign category.");
     query = query.eq("category", category);
   }
-  const term = String(search).trim().slice(0, 100).replace(/[^a-zA-Z0-9 -]/g, " ").trim();
+  const term = String(search).trim().slice(0, 100).replace(/[^a-zA-Z0-9 -]/g, " ").replace(/\s+/g, " ").trim();
   if (term) query = query.or(`title.ilike.%${term}%,summary.ilike.%${term}%`);
   const { data, error } = await query
     .order("created_at", { ascending: false })
@@ -102,7 +102,7 @@ export async function getCampaignDetail(id) {
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
-  if (typeof category !== "string" || !category.trim()) return [];
+  if (typeof category !== "string" || !/^[a-z_]{1,40}$/.test(category)) return [];
   const limit = Math.min(12, Math.max(1, Math.trunc(Number(max) || 3)));
   const query = supabase().from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
