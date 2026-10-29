@@ -59,3 +59,14 @@ See [BUILD_PREPARATION_2026-10-29.md](BUILD_PREPARATION_2026-10-29.md) and `cont
 - Campaign draft editing now permits partial saves with source-matched limits and all **11** categories in UI and Worker validator, with synthetic category tests added. No new publish/donate/withdraw feature activated.
 - `apps/web` now has `check:inventory`, `check:release`, and `prebuild` release-blocking logic for Cloudflare production/main. Added 19 owner-evidence launch gates and tests; **not executed** because owner requested only preparation, not a build.
 - No secrets, financial SQL, data imports, DNS switches, Cloudflare deploy settings, payments, Android signing or workflows were changed. Existing mixed Supabase Cloudflare configuration, 16 legacy Worker routes and Android artifacts remain unresolved; do not launch on these structures alone.
+
+
+## October 29 follow-up: creator campaign operations and typed-schema audit
+
+**Prepared and committed to draft PR #165; no build or deployment.**
+- Added `apps/web/src/pages/MyCampaigns.jsx` and `apps/web/src/lib/ownerCampaigns.js`: authenticated member route `/mine`, draft editing at `/create?draft=:uuid` and `/edit/:id`, owner-derived queries and **explicit confirmed draft-only deletion**. Links added to the signed-in dashboard. All writes are still governed by canonical Supabase RLS. Live authenticated browser tests remain pending.
+- Added native share/copy-link and read-only campaign iframe embed-code UI, with strict UUID and HTTPS origin handling. Campaign payment capture remains disabled and cannot run in an embed.
+- Enumerated **1,126/1,126 field types** in source/SQL catalog; direct mappings include 834 string-to-text, 75 source string-to-timestamptz, 73 number-to-numeric, 3 integer-to-bigint, 65 boolean-to-boolean, 22 object-to-jsonb, and 54 array-to-jsonb. Schema-type crosswalk is in `contracts/schema-type-crosswalk.json`. Timestamp serialization, original defaults and enum behavior are **not verified**.
+- Independent read-only canonical Supabase table metadata still shows 27 private staged campaigns and zero public campaigns, donations, and financial ledger rows, with two public profiles; these are row-count observations, not a source/data reconciliation.
+- Production readiness now additionally refuses mismatched/missing `VITE_SUPABASE_URL`, `SUPABASE_URL`, or `SUPABASE_JWKS_URL`, incomplete schema roundtrips, and outstanding Android identity/signing evidence.
+- Source-only contract checks and seven isolated Node tests of owner campaign operations and sharing logic were executed locally and passed **after correcting a typo in the temporary test-copy UUID regex**. These were copies of the branch helpers; this is not an app-wide `npm test`, browser integration run, Vite build, Android build, or proof of production readiness.
