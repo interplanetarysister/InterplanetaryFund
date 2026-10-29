@@ -75,3 +75,28 @@ grant select (
 create policy ifund_donations_donor_read
 on public.ifund_donations for select to authenticated
 using (donor_id = (select auth.uid()));
+
+
+-- Independent follower relationships. Private to the member; no fake counts.
+create table if not exists public.ifund_campaign_follows (
+  campaign_id uuid not null references public.ifund_campaigns(id) on delete cascade,
+  follower_id uuid not null references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (campaign_id, follower_id)
+);
+create index if not exists ifund_campaign_follows_member_recent
+  on public.ifund_campaign_follows(follower_id, created_at desc);
+alter table public.ifund_campaign_follows enable row level security;
+create policy ifund_follows_member_read on public.ifund_campaign_follows
+  for select to authenticated using (follower_id = (select auth.uid()));
+create policy ifund_follows_member_insert on public.ifund_campaign_follows
+  for insert to authenticated with check (
+    follower_id = (select auth.uid())
+    and exists (
+      select 1 from public.ifund_campaigns c
+      where c.id = campaign_id and c.status = 'active'
+    )
+  );
+create policy ifund_follows_member_delete on public.ifund_campaign_follows
+  for delete to authenticated using (follower_id = (select auth.uid()));
+grant select, insert, delete on public.ifund_campaign_follows to authenticated;
