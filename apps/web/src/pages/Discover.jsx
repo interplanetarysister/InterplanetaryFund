@@ -43,6 +43,7 @@ export default function Discover() {
     let active = true;
     setError(null);
     setCampaigns(null);
+    setHasNextPage(false);
     searchActiveCampaigns({ category, search: debouncedSearch, limit: pageSize + 1, offset: page * pageSize })
       .then((items) => {
         if (!active) return;
@@ -90,7 +91,7 @@ export default function Discover() {
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         {categories.map((c) => (
-          <button key={c} onClick={() => setSearchParams(c === "all" ? {} : { category: c })}
+          <button key={c} onClick={() => { setPage(0); setCompareIds([]); setSearchParams(c === "all" ? {} : { category: c }); }}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               category === c
                 ? "bg-blue-700 text-white shadow-md shadow-blue-500/20"
