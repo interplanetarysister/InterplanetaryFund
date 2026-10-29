@@ -20,6 +20,6 @@ export default function Connections() {
   {status==="loading"&&<p>Loading connections…</p>}
   {status==="sign-in"&&<Link to="/login">Sign in to view connections</Link>}
   {status==="error"&&<p role="alert">Connection records are unavailable.</p>}
-  {status==="ready"&&(rows.length?<ul>{rows.map(x=><li key={x.id} className="my-3 rounded-xl border p-4">{x.provider}: {x.status}</li>)}</ul>:<p>No connections recorded.</p>)}
+  {status==="ready"&&(rows.length?<ul>{rows.map(x=><li key={x.id} className="my-3 rounded-xl border p-4">{x.provider}: {x.status === "connected" && !x.verified_at ? "pending verification" : x.status}</li>)}</ul>:<p>No connections recorded.</p>)}
  </main>;
 }
