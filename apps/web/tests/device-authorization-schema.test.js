@@ -31,9 +31,9 @@ test("device authorization RPC is atomic, fail-closed and server-role only", () 
  const table=sql.indexOf("create table public.ifund_device_rate_limits");
  const rpc=sql.indexOf("create or replace function public.ifund_device_rate_limit");
  assert.ok(table >= 0 && rpc > table, "rate-limit table must exist before the RPC is defined");
- assert.match(sql,/on conflict \\(bucket_hash\\) do update set/);
- assert.match(sql,/exception when others then return false/);
- assert.match(sql,/revoke all on function public\\.ifund_device_rate_limit\\(text, integer, integer\\) from public, anon, authenticated/i);
- assert.match(sql,/grant execute on function public\\.ifund_device_rate_limit\\(text, integer, integer\\) to service_role/i);
- assert.match(sql,/set search_path = public, pg_temp/);
+ assert.ok(sql.includes("on conflict (bucket_hash) do update set"));
+ assert.ok(sql.includes("exception when others then return false"));
+ assert.ok(sql.includes("revoke all on function public.ifund_device_rate_limit(text, integer, integer) from public, anon, authenticated"));
+ assert.ok(sql.includes("grant execute on function public.ifund_device_rate_limit(text, integer, integer) to service_role"));
+ assert.ok(sql.includes("set search_path = public, pg_temp"));
 });
