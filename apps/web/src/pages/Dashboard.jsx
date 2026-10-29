@@ -25,7 +25,7 @@ export default function Dashboard() {
         client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(100)
           .then(({data: owned,error: queryError}) => {
             if (!alive) return;
-            if (queryError) setMyCampaignError("Your campaigns could not be loaded.");
+            if (queryError) { setMyCampaigns([]); setMyCampaignError("Your campaigns could not be loaded."); }
             else setMyCampaigns(owned || []);
           }).catch(() => { if (alive) setMyCampaignError("Your campaigns could not be loaded."); });
       }).catch(() => { if (alive) setState("error"); });
@@ -35,7 +35,7 @@ export default function Dashboard() {
       subscription = data.subscription;
       listActiveCampaigns({ limit: 12 }).then(items => {
         if (alive) setCampaigns(items);
-      }).catch(() => { if (alive) setCampaignError("Public campaigns could not be loaded."); });
+      }).catch(() => { if (alive) { setCampaigns([]); setCampaignError("Public campaigns could not be loaded."); } });
     } catch { setState("error"); }
     return () => { alive = false; subscription?.unsubscribe(); };
   }, [navigate]);
