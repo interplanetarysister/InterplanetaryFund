@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22.23.2"
+      - name: Install locked root test dependencies
+        run: npm ci --no-audit --no-fund
       - name: Run independent worker and contract tests
         run: node --test tests/*.test.js
       - name: Run web regression tests and offline coverage audits
