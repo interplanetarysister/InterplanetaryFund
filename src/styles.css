@@ -759,3 +759,37 @@ html[data-theme="light"] .home-hero, html[data-theme="light"] .home-hero h1 { co
   .home-hero { padding:2rem 1rem; }
   .home-story { padding:1.2rem; }
 }
+
+/* Help Center, private notifications and universal inbox: original readable UI. */
+.help-center,.help-article { max-width:1050px; }
+.help-hero {
+  background:radial-gradient(ellipse at 50% 0%,#1c4668,#13182e 85%);
+  border:1px solid #526991; border-radius:22px; padding:clamp(1.3rem,5vw,3.4rem);
+  text-align:center; color:#f4f8ff;
+}
+.help-hero h1 { font-size:clamp(2rem,5vw,3.2rem); margin:.2rem 0; }
+.help-hero p { color:#c2d5e7; }
+.help-hero label { display:grid; max-width:650px; margin:1.2rem auto 0; text-align:left; gap:.4rem; }
+.help-topics { display:flex; flex-wrap:wrap; gap:.6rem; margin:1rem 0 2rem; }
+.help-results { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr)); gap:.8rem; }
+.help-results .card { margin:0; }
+.help-results h3 { margin:.5rem 0; }
+.help-article .eyebrow { margin-top:2rem; }
+.help-article .card { max-width:770px; margin:1rem 0 1.4rem; }
+.help-article .card p { white-space:pre-line; font-size:1.06rem; line-height:1.75; }
+.notice-list,.inbox-list { display:grid; gap:.65rem; max-width:880px; }
+.notice-list .card,.inbox-list .card { margin:0; }
+.notice-heading { display:flex; justify-content:space-between; align-items:center; gap:.7rem; flex-wrap:wrap; }
+.notice-list small,.inbox-list small { display:block; color:#b5cce2; margin:.5rem 0; }
+.account-notifications,.universal-inbox { max-width:970px; }
+.account-notifications h1,.universal-inbox h1 { font-size:clamp(2rem,5vw,3.3rem); }
+.inbox-filters { display:grid; grid-template-columns:2fr 1fr 1.5fr; align-items:end; gap:.8rem; margin:1rem 0; }
+.inbox-filters label { display:grid; gap:.4rem; font-weight:650; }
+.inbox-filters .actions { flex-wrap:nowrap; }
+.inbox-filters .actions button { flex:1; min-width:0; }
+html[data-theme="light"] .help-center .card,.help-article .card,
+html[data-theme="light"] .notice-list .card,html[data-theme="light"] .inbox-list .card { color:#192c4d; }
+html[data-theme="light"] .help-hero { color:#f8faff; }
+html[data-theme="light"] .notice-list small,html[data-theme="light"] .inbox-list small { color:#3e5472; }
+@media (max-width:800px) { .inbox-filters { grid-template-columns:1fr 1fr; } .inbox-filters .actions { grid-column:1/-1; } }
+@media (max-width:540px) { .inbox-filters { grid-template-columns:1fr; } .inbox-filters .actions { grid-column:auto; } .help-center { width:97%; } }
