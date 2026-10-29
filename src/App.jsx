@@ -74,7 +74,7 @@ function App() {
             Home
           </NavLink>
           <NavLink to="/discover">Explore</NavLink>
-          <NavLink to="/community">Community</NavLink>
+          <NavLink to="/social">Community</NavLink>
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
         </nav>
@@ -104,11 +104,12 @@ function App() {
           <strong>Campaigns & Giving</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/create">New Campaign</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/mine">My Campaigns</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/giving">My Giving</NavLink>
           <strong>Community</strong>
-          <NavLink onClick={() => setMenuOpen(false)} to="/community">Community</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/social">Interplanetary Social</NavLink>
           <strong>Account & Help</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/connections">Connections</NavLink>
-          <NavLink onClick={() => setMenuOpen(false)} to="/login">Account</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to={user ? "/profile" : "/login"}>Profile</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/about">About IFund</NavLink>
         </nav>
       </aside>
@@ -159,7 +160,7 @@ function App() {
               ) : (
                 <main>
                   <h1>Sign in to edit a campaign</h1>
-                  <Link to="/login">Sign in</Link>
+                  <Link to={"/login?returnTo=" + encodeURIComponent(location.pathname + location.search)}>Sign in</Link>
                 </main>
               )
             }
@@ -172,7 +173,7 @@ function App() {
               ) : (
                 <main>
                   <h1>My campaigns</h1>
-                  <Link to="/login">Sign in to manage campaigns</Link>
+                  <Link to="/login?returnTo=%2Fmine">Sign in to manage campaigns</Link>
                 </main>
               )
             }
