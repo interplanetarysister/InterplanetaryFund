@@ -6,11 +6,16 @@ export function verifiedCampaignProgress(campaign) {
   const rawRaised = campaign.raised_amount;
   if (rawGoal === null || rawGoal === undefined || rawGoal === "" ||
       rawRaised === null || rawRaised === undefined || rawRaised === "") return null;
+  const validDecimal = value => typeof value === "number"
+    ? Number.isFinite(value)
+    : typeof value === "string" && /^\d+(?:\.\d+)?$/.test(value.trim());
+  if (!validDecimal(rawGoal) || !validDecimal(rawRaised)) return null;
   const goal = Number(rawGoal);
   const raised = Number(rawRaised);
   if (!Number.isFinite(goal) || goal <= 0 || !Number.isFinite(raised) || raised < 0) return null;
   const count = campaign.donor_count;
-  const donorCount = count === null || count === undefined || count === ""
+  const donorCount = count === null || count === undefined ||
+    (typeof count === "string" && !count.trim())
     ? null : Number(count);
   return {
     goal, raised,

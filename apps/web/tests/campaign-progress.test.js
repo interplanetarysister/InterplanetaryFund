@@ -6,10 +6,10 @@ const verified = { funding_totals_verified: true, goal_amount: 100, raised_amoun
 test("unverified or missing donation amounts never become zero raised", () => {
   assert.equal(verifiedCampaignProgress({ ...verified, funding_totals_verified: false }), null);
   assert.equal(verifiedCampaignProgress({ ...verified, funding_totals_verified: undefined }), null);
-  for (const raised_amount of [null, undefined, "", "not a number", -1, Infinity]) {
+  for (const raised_amount of [null, undefined, "", " ", "not a number", "0x10", true, -1, Infinity]) {
     assert.equal(verifiedCampaignProgress({ ...verified, raised_amount }), null);
   }
-  for (const goal_amount of [null, undefined, "", 0, -1, Infinity]) {
+  for (const goal_amount of [null, undefined, "", " ", "0x10", true, 0, -1, Infinity]) {
     assert.equal(verifiedCampaignProgress({ ...verified, goal_amount }), null);
   }
 });
@@ -23,4 +23,5 @@ test("verified amounts calculate percentages and cap display at 100", () => {
   assert.equal(verifiedCampaignProgress({ ...verified, donor_count: null }).donorCount, null);
   assert.equal(verifiedCampaignProgress({ ...verified, donor_count: -1 }).donorCount, null);
   assert.equal(verifiedCampaignProgress({ ...verified, donor_count: 1.5 }).donorCount, null);
+  assert.equal(verifiedCampaignProgress({ ...verified, donor_count: " " }).donorCount, null);
 });
