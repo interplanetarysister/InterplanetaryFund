@@ -2,7 +2,7 @@
   "source_repo": "interplanetarysister/interplanetary-fund2",
   "source_ref": "main",
   "total": 57,
-  "note": "Source-to-preview coverage only. No new runtime parity verification; no builds or deployments authorized. All live payment/agent features remain independently gated.",
+  "note": "Inventory tracks source-only UX parity, not live function. No build/deployment authorized; schema migrations not applied; no AI runtime/payment/withdrawal activation.",
   "pages": [
     {
       "source": "src/pages/AIImageStudio.jsx",
@@ -35,8 +35,8 @@
     {
       "source": "src/pages/Agents.jsx",
       "name": "Agents",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Agents.jsx",
+      "status": "partial_original_roster_runtime_inactive",
       "verified_behavior": false
     },
     {
@@ -56,15 +56,15 @@
     {
       "source": "src/pages/BlogArticle.jsx",
       "name": "BlogArticle",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/BlogArticle.jsx",
+      "status": "partial_published_article_reading",
       "verified_behavior": false
     },
     {
       "source": "src/pages/Blogs.jsx",
       "name": "Blogs",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Blogs.jsx",
+      "status": "partial_public_blog_feed_requires_schema",
       "verified_behavior": false
     },
     {
@@ -196,8 +196,8 @@
     {
       "source": "src/pages/FoundingMembers.jsx",
       "name": "FoundingMembers",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/FoundingMembers.jsx",
+      "status": "partial_auth_opt_in_requires_schema",
       "verified_behavior": false
     },
     {
@@ -210,8 +210,8 @@
     {
       "source": "src/pages/Help.jsx",
       "name": "Help",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Help.jsx",
+      "status": "partial_local_searchable_verified_articles",
       "verified_behavior": false
     },
     {
@@ -224,8 +224,8 @@
     {
       "source": "src/pages/HelpArticle.jsx",
       "name": "HelpArticle",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/HelpArticle.jsx",
+      "status": "partial_local_article_reading",
       "verified_behavior": false
     },
     {
@@ -238,8 +238,8 @@
     {
       "source": "src/pages/Inbox.jsx",
       "name": "Inbox",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Inbox.jsx",
+      "status": "partial_private_inbox_requires_schema",
       "verified_behavior": false
     },
     {
@@ -273,15 +273,15 @@
     {
       "source": "src/pages/MissionControlPage.jsx",
       "name": "MissionControlPage",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/MissionControlPage.jsx",
+      "status": "partial_real_record_briefing_no_agent_runtime",
       "verified_behavior": false
     },
     {
       "source": "src/pages/MyBlog.jsx",
       "name": "MyBlog",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/MyBlog.jsx",
+      "status": "partial_drafts_creator_publish_requires_schema",
       "verified_behavior": false
     },
     {
@@ -294,8 +294,8 @@
     {
       "source": "src/pages/Notifications.jsx",
       "name": "Notifications",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Notifications.jsx",
+      "status": "partial_private_notices_requires_schema",
       "verified_behavior": false
     },
     {
@@ -308,8 +308,8 @@
     {
       "source": "src/pages/Onboarding.jsx",
       "name": "Onboarding",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Onboarding.jsx",
+      "status": "partial_six_stage_private_preferences",
       "verified_behavior": false
     },
     {
