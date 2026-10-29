@@ -10,7 +10,7 @@ export default function CreateCampaign() {
   const [draftLoadError, setDraftLoadError] = useState("");
   useEffect(() => {
     if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); setSaved(""); setForm({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" }); return; }
-    setLoadingDraft(true); setDraftLoadError("");
+    setLoadingDraft(true); setDraftLoadError(""); setSaved(""); setError("");
     let active = true;
     (async () => {
       try {
@@ -31,7 +31,7 @@ export default function CreateCampaign() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
     if (busy || loadingDraft || draftLoadError) return;
@@ -54,7 +54,8 @@ export default function CreateCampaign() {
         try { parsed = new URL(coverUrl); } catch { throw new Error("Enter a valid cover image URL."); }
         if (parsed.protocol !== 'https:' || parsed.username || parsed.password || coverUrl.length > 2000) throw new Error("Cover image must use a secure HTTPS URL without embedded credentials.");
       }
-      if (form.story.length > 20000) throw new Error("Campaign story must be 20,000 characters or fewer.");
+      if (form.story.trim().length > 20000) throw new Error("Campaign story must be 20,000 characters or fewer.");
+      if (!["community", "medical", "education", "environment", "creative", "other"].includes(form.category)) throw new Error("Select a valid campaign category.");
       const values = { title, summary,
         story: form.story.trim(), category: form.category, goal_amount: amount,
         cover_image_url: coverUrl, status: "draft" };
@@ -63,6 +64,7 @@ export default function CreateCampaign() {
         : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw insertError;
+      if (!data?.id) throw new Error("Draft save did not return a campaign reference.");
       setSaved(data.id);
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
