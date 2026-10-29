@@ -29,7 +29,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/admin/AdminApprovalQueue.jsx:9"
+      ]
     },
     {
       "name": "AdminApiConnectionIntake",
@@ -57,7 +59,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/admin/AdminApprovalQueue.jsx:8",
+        "src/components/admin/AdminApprovalQueue.jsx:11",
+        "src/components/admin/AdminApprovalQueue.jsx:12"
+      ]
     },
     {
       "name": "AdminCredentialReference",
@@ -116,7 +122,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/agents/AgentMonitor.jsx:101",
+        "src/components/campaigns/OutreachAgentPanel.jsx:29",
+        "src/components/mission/AutomationPanel.jsx:32"
+      ]
     },
     {
       "name": "AgentContentDraft",
@@ -230,7 +240,22 @@
         "src/pages/MyBlog.jsx:18",
         "src/pages/Social.jsx:45",
         "src/pages/SustainabilityAdmin.jsx:51",
-        "src/pages/Withdrawals.jsx:56"
+        "src/pages/Withdrawals.jsx:56",
+        "src/components/account/AccountManagement.jsx:45",
+        "src/components/admin/PayPalReceiptRecoveryPanel.jsx:31",
+        "src/components/campaigns/FeaturedCarousel.jsx:14",
+        "src/components/campaigns/SuccessStories.jsx:12",
+        "src/components/comms/ComposeMessage.jsx:42",
+        "src/components/connections/ConnectDialog.jsx:60",
+        "src/components/connections/PublishFromConnections.jsx:44",
+        "src/components/dashboard/FollowFeed.jsx:21",
+        "src/components/institutions/ApplyDialog.jsx:26",
+        "src/components/ops/FundMigrationDashboard.jsx:36",
+        "src/components/ops/FundMigrationDashboard.jsx:55",
+        "src/components/platform/FraudControlPanel.jsx:26",
+        "src/components/platform/ServiceHealthPanel.jsx:10",
+        "src/components/profile/PublicProfileEditor.jsx:17",
+        "src/components/profile/PublicProfileEditor.jsx:22"
       ]
     },
     {
@@ -260,7 +285,8 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/CampaignDetail.jsx:52"
+        "src/pages/CampaignDetail.jsx:52",
+        "src/components/dashboard/FollowFeed.jsx:20"
       ]
     },
     {
@@ -279,7 +305,8 @@
         "src/pages/Analytics.jsx:49",
         "src/pages/Community.jsx:36",
         "src/pages/Community.jsx:44",
-        "src/pages/CommunityDetail.jsx:28"
+        "src/pages/CommunityDetail.jsx:28",
+        "src/components/platform/ServiceHealthPanel.jsx:14"
       ]
     },
     {
@@ -339,7 +366,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/community/DiscussionsTab.jsx:27"
+      ]
     },
     {
       "name": "DiscussionReply",
@@ -353,7 +382,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/community/PostCard.jsx:27"
+      ]
     },
     {
       "name": "DistributedPost",
@@ -368,7 +399,9 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/ExternalAccounts.jsx:31"
+        "src/pages/ExternalAccounts.jsx:31",
+        "src/components/distribution/DistributionPanel.jsx:45",
+        "src/components/mission/AutomationPanel.jsx:31"
       ]
     },
     {
@@ -383,7 +416,12 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/account/AccountManagement.jsx:50",
+        "src/components/discover/RecommendedCampaigns.jsx:28",
+        "src/components/ops/PendingDonationReview.jsx:7",
+        "src/components/platform/ServiceHealthPanel.jsx:11"
+      ]
     },
     {
       "name": "ExecutiveReport",
@@ -397,7 +435,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/analytics/ReportsPanel.jsx:36",
+        "src/components/analytics/ReportsPanel.jsx:78",
+        "src/components/platform/ServiceHealthPanel.jsx:16"
+      ]
     },
     {
       "name": "ExternalAgentApiKey",
@@ -425,7 +467,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/campaigns/ImportedCampaignSync.jsx:11"
+      ]
     },
     {
       "name": "ExternalCampaignImportOperation",
@@ -509,7 +553,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/ops/FundMigrationDashboard.jsx:56"
+      ]
     },
     {
       "name": "ExternalFundObservation",
@@ -579,7 +625,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/platform/FeatureFlagsPanel.jsx:48"
+      ]
     },
     {
       "name": "FinancialOperation",
@@ -612,7 +660,12 @@
         "src/pages/FollowedCampaigns.jsx:93",
         "src/pages/FollowedCampaigns.jsx:97",
         "src/pages/FollowedCampaigns.jsx:100",
-        "src/pages/FollowedCampaigns.jsx:103"
+        "src/pages/FollowedCampaigns.jsx:103",
+        "src/components/account/AccountManagement.jsx:46",
+        "src/components/campaigns/FollowButton.jsx:24",
+        "src/components/dashboard/FollowFeed.jsx:17",
+        "src/components/discover/RecommendedCampaigns.jsx:29",
+        "src/components/profile/PublicProfileEditor.jsx:18"
       ]
     },
     {
@@ -687,7 +740,9 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/Analytics.jsx:52"
+        "src/pages/Analytics.jsx:52",
+        "src/components/institutions/MyApplications.jsx:13",
+        "src/components/institutions/OpportunitiesTab.jsx:21"
       ]
     },
     {
@@ -774,7 +829,8 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/Inbox.jsx:41"
+        "src/pages/Inbox.jsx:41",
+        "src/components/account/AccountManagement.jsx:49"
       ]
     },
     {
@@ -792,7 +848,8 @@
       "frontend_direct_uses": [
         "src/pages/Analytics.jsx:50",
         "src/pages/InstitutionDetail.jsx:25",
-        "src/pages/Institutions.jsx:27"
+        "src/pages/Institutions.jsx:27",
+        "src/components/platform/ServiceHealthPanel.jsx:15"
       ]
     },
     {
@@ -808,7 +865,9 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/Analytics.jsx:53"
+        "src/pages/Analytics.jsx:53",
+        "src/components/institutions/OpportunitiesTab.jsx:20",
+        "src/components/institutions/OpportunitiesTab.jsx:35"
       ]
     },
     {
@@ -837,7 +896,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/platform/KnowledgePanel.jsx:34"
+      ]
     },
     {
       "name": "LegalAcceptance",
@@ -865,7 +926,10 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/comms/MessageHistory.jsx:23",
+        "src/components/platform/ServiceHealthPanel.jsx:12"
+      ]
     },
     {
       "name": "MissionBrief",
@@ -929,7 +993,10 @@
         "src/pages/Inbox.jsx:42",
         "src/pages/Notifications.jsx:31",
         "src/pages/Notifications.jsx:104",
-        "src/pages/Notifications.jsx:115"
+        "src/pages/Notifications.jsx:115",
+        "src/components/NotificationBell.jsx:11",
+        "src/components/NotificationBell.jsx:24",
+        "src/components/account/AccountManagement.jsx:47"
       ]
     },
     {
@@ -958,7 +1025,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/mission/OpportunitiesPanel.jsx:27"
+      ]
     },
     {
       "name": "PayPalBillingWebhook",
@@ -1044,7 +1113,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/platform/TimelinePanel.jsx:29"
+      ]
     },
     {
       "name": "PlatformIncident",
@@ -1158,7 +1229,11 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/mission/RecommendationsPanel.jsx:13",
+        "src/components/mission/RecommendationsPanel.jsx:14",
+        "src/components/platform/ServiceHealthPanel.jsx:13"
+      ]
     },
     {
       "name": "ScheduledAutoPostPermit",
@@ -1186,7 +1261,14 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/social/AdminContentPanel.jsx:41",
+        "src/components/social/PostComposer.jsx:156",
+        "src/components/social/SocialFeed.jsx:22",
+        "src/components/social/SocialFeed.jsx:40",
+        "src/components/social/SocialFeed.jsx:58",
+        "src/components/social/SocialFeed.jsx:96"
+      ]
     },
     {
       "name": "StripeReversalHold",
@@ -1260,7 +1342,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/connections/SyncRunHistory.jsx:33"
+      ]
     },
     {
       "name": "TreasurySnapshot",
@@ -1275,7 +1359,8 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/OpsCenter.jsx:45"
+        "src/pages/OpsCenter.jsx:45",
+        "src/components/dashboard/TreasurySnapshotCard.jsx:25"
       ]
     },
     {
@@ -1290,7 +1375,9 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/platform/UserManagementPanel.jsx:29"
+      ]
     },
     {
       "name": "UserBlog",
@@ -1318,7 +1405,12 @@
       "staging_rls_enabled": true,
       "staging_table_exists": true,
       "runtime_table": null,
-      "frontend_direct_uses": []
+      "frontend_direct_uses": [
+        "src/components/connections/PasswordVaultPanel.jsx:39",
+        "src/components/connections/PasswordVaultPanel.jsx:54",
+        "src/components/connections/PasswordVaultPanel.jsx:55",
+        "src/components/connections/PasswordVaultPanel.jsx:75"
+      ]
     },
     {
       "name": "VerificationMail",
@@ -1361,7 +1453,8 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/Analytics.jsx:51"
+        "src/pages/Analytics.jsx:51",
+        "src/components/community/VolunteerTab.jsx:24"
       ]
     },
     {
@@ -1377,7 +1470,8 @@
       "staging_table_exists": true,
       "runtime_table": null,
       "frontend_direct_uses": [
-        "src/pages/Analytics.jsx:67"
+        "src/pages/Analytics.jsx:67",
+        "src/components/community/VolunteerTab.jsx:25"
       ]
     },
     {
@@ -1408,7 +1502,8 @@
       "runtime_table": null,
       "frontend_direct_uses": [
         "src/pages/Withdrawals.jsx:72",
-        "src/pages/Withdrawals.jsx:76"
+        "src/pages/Withdrawals.jsx:76",
+        "src/components/platform/FraudControlPanel.jsx:25"
       ]
     },
     {
