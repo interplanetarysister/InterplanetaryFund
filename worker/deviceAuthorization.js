@@ -94,14 +94,25 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
           body.device_label.trim().length < 1 || body.device_label.trim().length > 80 ||
           !validScopes(body.scopes)) return response(422, { error: 'Invalid device request.' });
       const deviceCode = randomToken();
-      const shortCode = userCode();
+      let shortCode = '';
+      let shortCodeHash = '';
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const candidate = userCode();
+        const candidateHash = await userCodeHash(candidate);
+        if (!await getBy(env, 'user_code_hash', candidateHash, fetcher)) {
+          shortCode = candidate;
+          shortCodeHash = candidateHash;
+          break;
+        }
+      }
+      if (!shortCode) return response(503, { error: 'Could not reserve a unique activation code.' });
       const token = await deriveAccessToken(deviceCode);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       const rows = await db(env, 'ifund_device_authorizations', {
         method: 'POST', prefer: 'return=representation',
         body: JSON.stringify({
           device_code_hash: await deviceHash(deviceCode),
-          user_code_hash: await userCodeHash(shortCode),
+          user_code_hash: shortCodeHash,
           access_token_hash: await accessTokenHash(token),
           client_id: body.client_id, device_label: body.device_label.trim(),
           scopes: body.scopes, state: 'pending', expires_at: expiresAt,
