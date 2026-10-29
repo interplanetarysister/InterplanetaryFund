@@ -20,7 +20,12 @@ export default function Onboarding() {
         if(authError||!user)throw Error("You must sign in first.");
         const {data,error:profileError}=await client.from("ifund_profiles").select("display_name,handle").eq("id",user.id).maybeSingle();
         if(profileError)throw profileError;
-        if(mounted){setName(data?.display_name||"");setHandle(data?.handle||"");}
+        if(mounted){
+          const suggested=String(user.user_metadata?.preferred_handle||"").trim();
+          // A display hint, NOT a permission claim or pre-approved unique handle.
+          setName(data?.display_name||"");
+          setHandle(data?.handle||(HANDLE.test(suggested)?suggested:""));
+        }
       }catch{if(mounted)setError("Your account could not be loaded.");}
       finally{if(mounted)setLoading(false);}
     })();
