@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { platforms } from "../lib/platforms";
@@ -8,26 +8,6 @@ export default function Connections({ user }) {
   const [records, setRecords] = useState(null);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
-  const [busy, setBusy] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setError("");
-    if (!db || !user?.id) {
-      setRecords([]);
-      return;
-    }
-    setBusy(true);
-    try {
-      const { data, error: loadError } = await db.from("ifund_connections")
-        .select("provider,status,verified_at")
-        .eq("owner_id", user.id);
-      if (loadError) throw loadError;
-      setRecords(data || []);
-    } catch (cause) {
-      setError(cause?.message || "Could not load your connections.");
-      setRecords([]);
-    } finally { setBusy(false); }
-  }, [user?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,7 +39,7 @@ export default function Connections({ user }) {
       {!user ? <p><Link to="/login">Sign in</Link> to see your own connections.</p> :
         <div className="actions">
           <button type="button" className="secondary" onClick={() => setRevision((n) => n + 1)}
-            disabled={busy || !db}>Refresh connection statuses</button>
+            disabled={!db}>Refresh connection statuses</button>
           <span role="status">{records === null ? "Loading…" : verified + " verified connections"}</span>
         </div>}
       <Message error>{error}</Message>
