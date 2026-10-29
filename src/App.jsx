@@ -5,6 +5,7 @@ import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
+import Dashboard from "./pages/Dashboard";
 import Discover from "./pages/Discover";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
@@ -123,7 +124,7 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<Feed />} />
-          <Route path="/dashboard" element={<Feed />} />
+          <Route path="/dashboard" element={<Dashboard user={user} />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/campaign/:id" element={<Detail />} />
           <Route
