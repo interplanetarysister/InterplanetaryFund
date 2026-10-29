@@ -56,3 +56,20 @@ test('upstream errors do not surface provider secrets or internal response bodie
   assert.equal(r.status, 503);
   assert.doesNotMatch(await r.text(), /secret-provider-diagnostic/);
 });
+
+
+test('unconfirmed email sessions cannot read private migration data', async () => {
+  const calls = [];
+  const req = new Request(\`https://api.example.org/api/campaigns/\${id}/draft\`, {
+    headers: { authorization: 'Bearer signed.test.jwt' },
+  });
+  const r = await routeReadRequest(req, env, async (url) => {
+    calls.push(String(url));
+    return url.endsWith('/auth/v1/user')
+      ? Response.json({ id: userId, email_confirmed_at: null })
+      : Response.json([{ id }]);
+  });
+  assert.equal(r.status, 401);
+  assert.equal(calls.length, 1);
+  assert.ok(calls[0].endsWith('/auth/v1/user'));
+});
