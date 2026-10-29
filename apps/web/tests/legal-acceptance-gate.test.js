@@ -13,7 +13,7 @@ test("legal acceptance requires authenticated owner and affirmative explicit con
  assert.match(sql,/owner_id=\(select auth\.uid\(\)\)/);
  assert.match(sql,/explicit_consent=true/);
  assert.match(sql,/REVOKE ALL/i);
- assert.match(sql,/GRANT INSERT \(owner_id,terms_version,explicit_consent\)/);
+ assert.match(sql,/GRANT INSERT\s*\(owner_id,terms_version,explicit_consent\)/i);
  assert.doesNotMatch(sql,/GRANT UPDATE|GRANT DELETE/i);
  assert.match(gate,/if\(exempt \|\| phase==="ready"&&!user\)return children/);
  assert.match(gate,/Agreement could not be saved/);
