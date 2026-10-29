@@ -100,7 +100,7 @@ export default function CampaignEditor({ user }) {
     const story = String(form.story || "").trim();
     const payload = {
       title: String(form.title || "").trim(),
-      summary: String(form.summary || "").trim() || story.replace(/\s+/g, " ").slice(0, 220),
+      summary: status === "active" ? (String(form.summary || "").trim() || story.replace(/\s+/g, " ").slice(0, 220)) : String(form.summary || ""),
       story, category: form.category,
       goal_amount: form.goal_amount === "" ? 0 : Number(form.goal_amount),
       cover_image_url: String(form.cover_image_url || "").trim(),
