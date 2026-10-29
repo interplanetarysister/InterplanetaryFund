@@ -7,7 +7,6 @@ const env = {
   SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_key",
   SUPABASE_SERVICE_ROLE_KEY: "server-only-test-service-role-secret",
-  DEVICE_TOKEN_SECRET: "test-device-token-secret-with-at-least-32-characters",
 };
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "content-type": "application/json" },
