@@ -21,6 +21,8 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Help from "./pages/Help";
 import HelpArticle from "./pages/HelpArticle";
+import Inbox from "./pages/Inbox";
+import Notifications from "./pages/Notifications";
 function App() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -111,8 +113,10 @@ function App() {
           <NavLink onClick={() => setMenuOpen(false)} to="/following">Following</NavLink>
           <strong>Community</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/social">Interplanetary Social</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/inbox">Universal Inbox</NavLink>
           <strong>Account & Help</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/connections">Connections</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/notifications">Notifications</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to={user ? "/profile" : "/login"}>Profile</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/help">Help Center</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/about">About IFund</NavLink>
@@ -195,6 +199,8 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/help" element={<Help />} />
           <Route path="/help/:slug" element={<HelpArticle />} />
+          <Route path="/inbox" element={<Inbox user={user} />} />
+          <Route path="/notifications" element={<Notifications user={user} />} />
           <Route
             path="*"
             element={
