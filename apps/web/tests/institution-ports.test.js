@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=p=>readFileSync(new URL("../"+p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../../"+p,import.meta.url),"utf8");
 
 test("institution index and details preserve the historical member routes",()=>{
  const app=read("apps/web/src/App.jsx");
