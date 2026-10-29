@@ -31,9 +31,17 @@ export default function Discover() {
   );
 
   useEffect(() => {
+    let active = true;
+    setError(null);
+    setCampaigns(null);
     listActiveCampaigns({ limit: 100 })
-      .then(setCampaigns)
-      .catch((e) => { console.error("Discover load failed:", e?.name || "UnknownError"); setError("We couldn't load campaigns. Please try again."); });
+      .then((items) => { if (active) setCampaigns(items); })
+      .catch((e) => {
+        if (!active) return;
+        console.error("Discover load failed:", e?.name || "UnknownError");
+        setError("We couldn't load campaigns. Please try again.");
+      });
+    return () => { active = false; };
   }, [refreshKey]);
 
   if (error) {
