@@ -19,8 +19,20 @@ export default function RequireAccess({ access = "member", children }) {
             { phase: "ready", user: data?.user || null });
         })
         .catch(() => { if (mounted) setState({ phase: "error", user: null }); });
-      const { data } = client.auth.onAuthStateChange((event) => {
-        if (event === "SIGNED_OUT" && mounted) setState({ phase: "ready", user: null });
+      const { data } = client.auth.onAuthStateChange(event => {
+        if (!mounted) return;
+        if (event === "SIGNED_OUT") {
+          setState({ phase: "ready", user: null });
+        } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+          // A refreshed session must be verified with the canonical Auth
+          // server before it is trusted for member or admin navigation.
+          client.auth.getUser()
+            .then(({ data: auth, error }) => {
+              if (mounted) setState(error ? { phase: "error", user: null } :
+                { phase: "ready", user: auth?.user || null });
+            })
+            .catch(() => { if (mounted) setState({ phase: "error", user: null }); });
+        }
       });
       subscription = data?.subscription;
     } catch {
