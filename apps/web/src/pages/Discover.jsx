@@ -21,8 +21,8 @@ export default function Discover() {
   const requestedCategory = searchParams.get("category");
   const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
   const [search, setSearch] = useState("");
-  const queryPending = search !== debouncedSearch;
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const queryPending = search !== debouncedSearch;
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 48;
