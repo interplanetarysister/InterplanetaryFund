@@ -29,14 +29,16 @@ export default function CreateCampaign() {
   }, [draftId,navigate]);
   const [form, setForm] = useState({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" });
   const [busy, setBusy] = useState(false);
+  const [draftRevision, setDraftRevision] = useState(0);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  function change(key, value) { setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { setDraftRevision(r => r + 1); setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
     if (busy || loadingDraft || draftLoadError) return;
     setBusy(true); setError(""); setSaved("");
     try {
+      const revisionAtStart = draftRevision;
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
       const user = authData?.user;
@@ -55,7 +57,7 @@ export default function CreateCampaign() {
         if (parsed.protocol !== 'https:' || parsed.username || parsed.password || coverUrl.length > 2000) throw new Error("Cover image must use a secure HTTPS URL without embedded credentials.");
       }
       if (form.story.length > 20000) throw new Error("Campaign story must be 20,000 characters or fewer.");
-      if (!["community", "medical", "education", "environment", "creative", "other"].includes(form.category)) throw new Error("Select a valid campaign category.");
+      if (!["community", "medical", "emergency", "education", "environment", "creative", "other", "animals", "business", "memorial", "disaster_relief"].includes(form.category)) throw new Error("Select a valid campaign category.");
       const values = { title, summary,
         story: form.story.trim(), category: form.category, goal_amount: amount,
         cover_image_url: coverUrl, status: "draft" };
@@ -65,7 +67,7 @@ export default function CreateCampaign() {
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw new Error("Unable to save the campaign draft. Please retry.");
       if (!data?.id) throw new Error("Draft save did not return a campaign reference.");
-      setSaved(data.id);
+      if (revisionAtStart === draftRevision) setSaved(data.id);
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }
@@ -78,7 +80,7 @@ export default function CreateCampaign() {
       <label className="block font-semibold">Campaign title<input required maxLength={150} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea required maxLength={1000} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Your story<textarea rows={8} maxLength={20000} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"><option value="community">Community</option><option value="medical">Medical</option><option value="education">Education</option><option value="environment">Environment</option><option value="creative">Creative</option><option value="other">Other</option></select></label>
+      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"><option value="community">Community</option><option value="medical">Medical</option><option value="emergency">Emergency</option><option value="education">Education</option><option value="animals">Animals</option><option value="environment">Environment</option><option value="business">Business</option><option value="creative">Creative</option><option value="memorial">Memorial</option><option value="disaster_relief">Disaster Relief</option><option value="other">Other</option></select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input required min="0.01" max="100000000" step="0.01" type="number" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Cover image URL (optional)<input type="url" inputMode="url" maxLength={2000} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       {error && <p role="alert" className="text-destructive">{error}</p>}
