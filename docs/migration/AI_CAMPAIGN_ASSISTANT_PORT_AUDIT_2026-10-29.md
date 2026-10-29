@@ -39,7 +39,7 @@ Before enabling AI generation in the independent app:
 3. Require an explicit provider binding and per-user rate limiter. Set request-size, output-size, concurrency, and daily quota limits. Fail closed when either binding or configuration is absent.
 4. Do not silently fall back to a paid provider. Expose a truthful unavailable state when free eligibility, provider permissions, or quota configuration cannot be established.
 5. Keep campaign facts as untrusted prompt data. Preserve the no-fabrication rules, validate structured outputs, reject duplicate/empty choices, and never overwrite creator text on a failed request.
-6. Persist the requested UX: exactly five title options, two short-description options, one authoritative story, independent regeneration controls, and story version/restore. Each generation result must be user-selectable/editable before save.
+6. Persist the requested UX: exactly five title options, exactly two short-description options, one generated authoritative story, independent regeneration controls for title, description, story, and cover image, and story version/restore. Each generation result must be user-selectable/editable before save.
 7. Generate cover images only after the user requests it. Verify the generated asset loads, brand/store it through the approved independent storage path, and retain the previous cover on failure.
 8. Add tests for anonymous/expired/forged tokens, unauthorized feature access, limiter rejection, missing provider bindings, malformed outputs, duplicate choices, prompt injection, oversized requests, and failure preserving the current form.
 9. Mirror the finished experience and user-facing copy across the independent web and app surfaces without coupling either runtime to Base44.
