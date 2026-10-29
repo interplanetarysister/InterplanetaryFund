@@ -12,7 +12,7 @@ automation has the same condition.
 ## Current independent implementation coverage
 
 - [x] Mapped all **59 source routes** to an original source component.
-- [ ] **38 routes partially implemented**, **21 placeholder routes remaining**;
+- [ ] **40 routes partially implemented**, **19 placeholder routes remaining**;
       **zero** source pages have complete browser, role, visual and Android parity.
 - [x] Original **95 entity definitions**, **1,126 source fields**, **184 server
       functions**, **10 AI agents**, **17 workflow triggers**, and **11 connectors**
@@ -26,10 +26,10 @@ automation has the same condition.
 - [ ] Real signup, confirmation link/OTP, password reset, new user onboarding,
       logout/login, provider redirect allowlist and email template tests;
       production build/deployment and Android flows not executed.
-- [x] Institution directory/detail screens now preserve original card/type
+- [x] Source-three.js interactive Globe preserves original 3D visuals, pin selection, WebGL fallback and accessible listing, with opt-in-only location query and nullable coordinates. All staged; no node install, texture validation or browser test yet.\n- [x] Institution directory/detail screens now preserve original card/type
       visuals and categories, approved-only public discovery and opportunities,
       protected by staged PostgreSQL RLS.
-- [ ] Institution create/manage/applications/owner identity/import not ported,
+- [ ] Globe coordinates opt-in and source asset delivery not activated;\n      public campaign location migration unapplied.\n- [ ] Institution create/manage/applications/owner identity/import not ported,
       and SQL is **unapplied**.
 - [x] Backend provenance, finance and ownership guards prevent unsupported
       sample donation totals or financial side effects.
@@ -83,7 +83,7 @@ pass `scripts/audit-backend-coverage.mjs --release`. No build was run;
 latest GitHub PR head reported no PR-triggered GitHub workflow runs and
 a **Vercel failure** status, not passing CI.
 
-Continue porting 21 remaining source routes and their API/role/data
+Continue porting 19 remaining source routes and their API/role/data
 dependencies, then reconcile the original 184-function graph and verified
 production users. Only notify **READY** once the actual source-equivalent
 web + Android release and compliance checks pass, not when code files merely
