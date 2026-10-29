@@ -11,6 +11,8 @@ export default function AuthPage({ mode="login" }){
   const [searchParams]=useSearchParams();
   const afterLogin=safeReturnTo(searchParams.get("returnTo"));
   const [email,setEmail]=useState("");
+  const [username,setUsername]=useState("");
+  const [otpCode,setOtpCode]=useState("");
   const [password,setPassword]=useState("");
   const [confirmPassword,setConfirmPassword]=useState("");
   const [busy,setBusy]=useState(false);
@@ -28,6 +30,8 @@ export default function AuthPage({ mode="login" }){
     const normalizedEmail=email.trim();
     try{
       if(!normalizedEmail)throw new Error("Enter your email address.");
+      if(isRegister && !/^[A-Za-z0-9_-]{3,32}$/.test(username.trim()))
+        throw new Error("Choose a username of 3–32 letters, numbers, underscores or hyphens.");
       if(isRegister && password!==confirmPassword)
         throw new Error("Your passwords do not match.");
       const auth=authClient().auth;
@@ -40,7 +44,9 @@ export default function AuthPage({ mode="login" }){
       }else if(isRegister){
         const {data,error:failure}=await auth.signUp({
           email:normalizedEmail,password,
-          options:{emailRedirectTo:authCallbackUrl(window.location.origin)}
+          options:{emailRedirectTo:authCallbackUrl(window.location.origin),
+            // A display hint only; never trust user_metadata for privileges.
+            data:{preferred_handle:username.trim()}}
         });
         if(failure)throw failure;
         if(data?.session){
@@ -73,6 +79,28 @@ export default function AuthPage({ mode="login" }){
     }finally{setBusy(false);}
   }
 
+  async function verifyCode(){
+    if(busy||resending)return;
+    if(!/^\\d{6,8}$/.test(otpCode.trim())){
+      setError("Enter the complete verification code from your newest email.");
+      return;
+    }
+    setBusy(true);setError("");setMessage("");
+    try{
+      const auth=authClient().auth;
+      const {error:failure}=await auth.verifyOtp({
+        email:email.trim(),token:otpCode.trim(),type:"signup"
+      });
+      if(failure)throw failure;
+      const {data:verified,error:verifyError}=await auth.getUser();
+      if(verifyError||!verified?.user?.id||!verified.user.email_confirmed_at)
+        throw new Error("Confirmation was not verified. Please request a new email.");
+      navigate("/onboarding",{replace:true});
+    }catch(cause){
+      setError(cause?.message||"The code could not be verified. Open the newest email or request another code.");
+    }finally{setBusy(false);}
+  }
+
   async function resend(){
     if(busy||resending||!email.trim())return;
     setResending(true);setError("");setMessage("");
@@ -101,12 +129,22 @@ export default function AuthPage({ mode="login" }){
           {isReset?"Get a secure password reset email.":isRegister?
             "Create an Interplanetary Fund account and verify your email address.":"Sign in securely to Interplanetary Fund."}
         </p>
+        {isRegister&&<p className="mt-4 text-xs text-slate-300">
+          After verification, review and accept our <Link to="/terms" className="underline text-cyan-200">Terms of Service</Link> and{" "}
+          <Link to="/privacy" className="underline text-cyan-200">Privacy Policy</Link> before using IFund account features.
+        </p>}
         <form onSubmit={submit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium">Email address
             <input required type="email" autoComplete="email" maxLength={254}
               value={email} onChange={event=>{setEmail(event.target.value);setNeedsConfirmation(false);}}
               className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"/>
           </label>
+          {isRegister&&<label className="block text-sm font-medium">Username
+            <input required type="text" autoComplete="username" maxLength={32}
+              value={username} onChange={event=>setUsername(event.target.value)}
+              placeholder="yourhandle"
+              className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"/>
+          </label>}
           {!isReset&&<label className="block text-sm font-medium">Password
             <input required minLength={8} type="password"
               autoComplete={isRegister?"new-password":"current-password"}
@@ -125,6 +163,20 @@ export default function AuthPage({ mode="login" }){
             {busy?"Please wait…":isReset?"Email reset link":isRegister?"Create account":"Sign in"}
           </button>
         </form>
+        {needsConfirmation&&!isReset&&<section aria-label="Verify your email address" className="mt-5 rounded-xl border border-slate-500 p-4">
+          <h2 className="text-lg font-semibold">Verify your email</h2>
+          <p className="mt-2 text-sm text-slate-300">Open the confirmation link in the newest email, or enter its verification code here if one is provided.</p>
+          <label className="mt-3 block text-sm font-medium">Email verification code
+            <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={8}
+              pattern="[0-9]{6,8}" value={otpCode}
+              onChange={event=>setOtpCode(event.target.value.replace(/[^0-9]/g,"").slice(0,8))}
+              className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-center font-mono text-xl tracking-widest text-slate-950"/>
+          </label>
+          <button type="button" disabled={busy||resending||otpCode.length<6}
+            onClick={verifyCode} className="mt-3 min-h-11 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">
+            {busy?"Verifying…":"Verify"}
+          </button>
+        </section>}
         {(needsConfirmation||isRegister)&&!isReset&&<button type="button" disabled={busy||resending||!email.trim()}
           onClick={resend} className="mt-4 min-h-11 text-sm font-semibold text-cyan-200 underline disabled:opacity-60">
           {resending?"Requesting confirmation…":"Resend confirmation email"}
