@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
-import { listActiveCampaigns } from "@/api/publicData";
+import { searchActiveCampaigns } from "@/api/publicData";
 import { Search, LifeBuoy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import RecommendedCampaigns from "@/components/discover/RecommendedCampaigns";
@@ -34,7 +34,7 @@ export default function Discover() {
     let active = true;
     setError(null);
     setCampaigns(null);
-    listActiveCampaigns({ limit: 100 })
+    searchActiveCampaigns({ category, limit: 100 })
       .then((items) => { if (active) setCampaigns(items); })
       .catch((e) => {
         if (!active) return;
@@ -42,7 +42,7 @@ export default function Discover() {
         setError("We couldn't load campaigns. Please try again.");
       });
     return () => { active = false; };
-  }, [refreshKey]);
+  }, [refreshKey, category]);
 
   if (error) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
