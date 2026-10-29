@@ -618,7 +618,16 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/components/inbox/IndependentAdminMail.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "No direct static Base44 references; indirect secure mail backend requires separate verification"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/download",
@@ -649,7 +658,16 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/pages/DownloadApp.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "Historical additional route from maintenance branch; browser installation only; signed native APK not verified"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/discover",
@@ -2169,7 +2187,16 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/App.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "Original route redirects to /admin/integrations?view=ai and is admin-only"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/external-accounts",
