@@ -12,7 +12,7 @@ automation has the same condition.
 ## Current independent implementation coverage
 
 - [x] Mapped all **59 source routes** to an original source component.
-- [ ] **40 routes partially implemented**, **19 placeholder routes remaining**;
+- [ ] **42 routes partially implemented**, **17 placeholder routes remaining**;
       **zero** source pages have complete browser, role, visual and Android parity.
 - [x] Original **95 entity definitions**, **1,126 source fields**, **184 server
       functions**, **10 AI agents**, **17 workflow triggers**, and **11 connectors**
