@@ -47,3 +47,15 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+
+## October 29 build-preparation continuation (source-only; supersedes stale earlier counts)
+
+See [BUILD_PREPARATION_2026-10-29.md](BUILD_PREPARATION_2026-10-29.md) and `contracts/`.
+- Verified by read-only canonical Supabase metadata: **95/95** source-named private staging tables, **95 RLS enabled**, **1,126/1,126** source field-name matches; no policy/runtime/type/data parity asserted.
+- Original **59** historical routes are explicitly registered; **23 partial**, **36 reserved/unported**, **0 release-verified**. Added embed, guarded browser install and source-agent readiness screens; protected routes require verified user and admin role UI gate. No page is claimed complete by having a route.
+- Original **184** function names recorded with **236** directly observed frontend call sites covering **123** distinct function names; indirect invocations remain unknown.
+- Original **10 agents**, **17 workflows** (11 scheduled, six entity triggers), and **11 connectors** are mapped. All 17 workflow handlers map to the function census. No AI tools, schedules, cron dispatch, account grants or financial provider effects were activated.
+- Campaign draft editing now permits partial saves with source-matched limits and all **11** categories in UI and Worker validator, with synthetic category tests added. No new publish/donate/withdraw feature activated.
+- `apps/web` now has `check:inventory`, `check:release`, and `prebuild` release-blocking logic for Cloudflare production/main. Added 19 owner-evidence launch gates and tests; **not executed** because owner requested only preparation, not a build.
+- No secrets, financial SQL, data imports, DNS switches, Cloudflare deploy settings, payments, Android signing or workflows were changed. Existing mixed Supabase Cloudflare configuration, 16 legacy Worker routes and Android artifacts remain unresolved; do not launch on these structures alone.
