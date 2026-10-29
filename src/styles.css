@@ -854,3 +854,15 @@ html[data-theme="light"] .agent-chat-disabled { border-color:#b6c6d9; }
   .onboard .quest-step-icon { width:33px; height:33px; font-size:.85rem; }
   .onboard .quest-panel { padding:1rem; }
 }
+
+/* Public founding membership call to action with a verified private join flow. */
+.home-founding { max-width:490px; margin:1.9rem auto 0; padding:1.1rem; background:#0f1b37ca; border:1px solid #63d0e77a; }
+.home-founding h2 { color:#f8faff; font-size:1.25rem; }
+.home-founding p { font-size:.95rem; color:#d5ebff; }
+.founding-members { max-width:930px; }
+.founding-members .hero { text-align:center; padding:clamp(1.5rem,5vw,3rem); }
+.founding-members .hero h1 { font-size:clamp(2rem,6vw,3.5rem); }
+.founding-members .hero p { max-width:670px; margin:1rem auto; }
+.founding-members .card { max-width:760px; margin:1.25rem auto; }
+.founding-members > .actions { justify-content:center; }
+html[data-theme="light"] .home-founding { background:#122747; color:#fff; }
