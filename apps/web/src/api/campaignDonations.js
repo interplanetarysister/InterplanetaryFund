@@ -4,7 +4,7 @@ import { authClient } from "@/api/auth";
 
 export async function startCampaignDonation({ campaignId, amount, supportPlatform = false }) {
   const value = String(amount).trim();
-  if (!/^(?:0|[1-9]\d{0,6})(?:\\.\d{1,2})?$/.test(value)) {
+  if (!/^(?:0|[1-9]\d{0,6})(?:\.\d{1,2})?$/.test(value)) {
     throw new Error("Enter a valid USD amount with no more than two decimal places.");
   }
   const [dollars, fractional = ""] = value.split(".");
