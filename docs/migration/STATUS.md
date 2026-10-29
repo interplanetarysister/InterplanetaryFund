@@ -232,3 +232,6 @@ The green CI result does not clear the production release gate. The 59-route man
 ## October 29 reproducible frontend dependency installation
 
 Generated the independent app lockfile with Node 22.23.2 using npm's package-lock-only resolution with lifecycle scripts disabled. Committed `apps/web/package-lock.json` (lockfile v3, 230 package entries, no Base44/Convex packages). The verification workflow was then simplified to install from the committed lock with `npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund`; the temporary lock-generation workflow was removed. A new full CI run is required to validate this committed-lock-only path before considering dependency reproducibility verified.
+
+
+A further ACL check against the legacy staging project confirmed `public.ifund_migration_owner_commit(text,uuid,text)` is **not executable by service_role** (the role used by the normal server adapter); it is executable only by postgres, while its function body itself requires a `service_role` JWT claim. The companion lookup and owner-campaign RPCs are executable by service_role. This mismatch means the legacy owner-commit path is not callable through the normal Worker service-role client and is an additional hard blocker; do not bypass it by granting broad access or invoking as postgres without a reviewed audited route.

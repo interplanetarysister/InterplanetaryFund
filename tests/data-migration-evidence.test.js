@@ -19,6 +19,8 @@ test("email identity-map status is not treated as owner consent or cutover appro
   assert.equal(evidence.owner_link_evidence.verified_map_state_is_not_owner_consent, true);
   assert.equal(evidence.owner_link_evidence.explicit_consent_receipt_table_present, false);
   assert.equal(evidence.owner_link_evidence.consented_campaign_owners_verified, 0);
+  assert.equal(evidence.owner_link_evidence.legacy_owner_commit_rpc_executable_by_service_role, false);
+  assert.equal(evidence.owner_link_evidence.legacy_owner_commit_rpc_executable_by_postgres, true);
   assert.equal(evidence.runtime_import.approved, false);
   assert.equal(evidence.runtime_import.performed, false);
   assert.equal(evidence.no_import_performed, true);

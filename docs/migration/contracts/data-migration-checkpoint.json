@@ -42,7 +42,11 @@
     "verified_map_state_is_not_owner_consent": true,
     "explicit_consent_receipt_table_present": false,
     "consented_campaign_owners_verified": 0,
-    "note": "The legacy staging database has three identity-map rows marked verified after exact confirmed-email matching, covering 20 of 27 campaign shadows. Seven campaign shadows remain linked to map rows awaiting destination login. The applied legacy owner-commit RPC is service_role-only and performs exact-email matching; no consent-receipt table or user-initiated consent proof was found. Do not equate verification_state='verified' with owner consent or cutover approval."
+    "note": "The legacy staging database has three identity-map rows marked verified after exact confirmed-email matching, covering 20 of 27 campaign shadows. Seven campaign shadows remain linked to map rows awaiting destination login. The applied legacy owner-commit RPC is service_role-only and performs exact-email matching; no consent-receipt table or user-initiated consent proof was found. Do not equate verification_state='verified' with owner consent or cutover approval. The applied legacy owner-commit RPC is not executable by service_role (its ACL grants EXECUTE only to postgres), even though its body checks for a service_role JWT claim. It therefore cannot be called by the normal service-role Worker adapter as currently deployed.",
+    "legacy_owner_commit_rpc_executable_by_service_role": false,
+    "legacy_owner_commit_rpc_executable_by_postgres": true,
+    "legacy_owner_lookup_rpc_executable_by_service_role": true,
+    "legacy_my_campaigns_rpc_executable_by_service_role": true
   },
   "source_integrity": {
     "shadow_hash_fields_present": true,
