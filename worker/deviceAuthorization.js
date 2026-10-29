@@ -134,7 +134,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'inspect' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
-      if (!await rateAllowed(env, 'inspect:' + account.uid, 12, 600, fetcher))
+      if (!await rateAllowed(env, 'code-entry:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many code attempts. Please wait.' });
       const body = await readJsonBody(request, 1024);
       const userCode = typeof body?.user_code === 'string' ? body.user_code.toUpperCase().replaceAll('-', '').replaceAll(' ', '') : '';
@@ -150,7 +150,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'decide' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
-      if (!await rateAllowed(env, 'decide:' + account.uid, 12, 600, fetcher))
+      if (!await rateAllowed(env, 'code-entry:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
       const userCode = typeof body?.user_code === 'string' ? body.user_code.toUpperCase().replaceAll('-', '').replaceAll(' ', '') : '';
