@@ -23,21 +23,30 @@ const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
-const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+import RequireAccess from "@/components/RequireAccess";
+import MissingFeaturePage from "@/pages/MissingFeaturePage";
+import { HISTORICAL_ROUTES } from "@/lib/historicalRoutes";
+const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
+const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 
-// Pages from the Base44 app that are not ported yet. Their links stay in the
-// navigation and land on a branded "Coming soon" page instead of breaking.
-const STANDALONE_COMING_SOON = [
-  "/onboarding",
-  "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
-];
-const LAYOUT_COMING_SOON = [
-  "/community/:id", "/u/:id", "/blogs", "/blogs/:id", "/publications/:id",
-  "/giving", "/communications", "/mission", "/ai-images",
-  "/institutions", "/institutions/:id", "/my-blog", "/devices", "/inbox",
-  "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
-  "/ops", "/platform", "/analytics", "/connect", "/admin/*",
-];
+
+// Exact source route inventory; a mounted page is not proof of feature parity.
+const IMPLEMENTED = new Set([
+  "/", "/about", "/terms", "/privacy", "/contact", "/login",
+  "/register", "/forgot-password", "/reset-password", "/founding-members",
+  "/discover", "/dashboard", "/social", "/community", "/create",
+  "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
+  "/embed/campaign/:id", "/download",
+]);
+const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
+const STANDALONE_PATHS = new Set([
+  "/onboarding", "/globe", "/oauth/consent", "/activate", "/admin/organization-mail",
+]);
+const STANDALONE_PENDING = PENDING_ROUTES.filter(page => STANDALONE_PATHS.has(page.path));
+const LAYOUT_PENDING = PENDING_ROUTES.filter(page => !STANDALONE_PATHS.has(page.path));
+const pendingElement = page => <RequireAccess access={page.access}>
+  <MissingFeaturePage page={page} />
+</RequireAccess>;
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -53,19 +62,21 @@ function AppRoutes() {
     <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
-    {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+    <Route path="/download" element={<DownloadApp />} />
+    <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
+    {STANDALONE_PENDING.map(page => <Route key={page.path} path={page.path} element={pendingElement(page)} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<RequireAccess access="member"><Dashboard /></RequireAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
-      <Route path="/create" element={<CreateCampaign />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/connections" element={<Connections />} />
+      <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
+      <Route path="/profile" element={<RequireAccess access="member"><Profile /></RequireAccess>} />
+      <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
-      {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+      {LAYOUT_PENDING.map(page => <Route key={page.path} path={page.path} element={pendingElement(page)} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
   </Routes></Suspense>;
