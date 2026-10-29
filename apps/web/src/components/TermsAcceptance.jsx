@@ -31,7 +31,7 @@ export default function TermsAcceptance({children}){
    setStatus({phase:"error",owner:user?.id||null});
    setError("We could not verify your agreement. Please retry.");
   }
- },[]);
+ },[user?.id]);
  useEffect(()=>{
   let mounted=true;
   if(!user){setStatus({phase:"checking",owner:null});setAgreed(false);return()=>{mounted=false};}
@@ -51,7 +51,12 @@ export default function TermsAcceptance({children}){
   try{
    const result=await acceptLegalAgreement(authClient(),{explicit_consent:true});
    if(result.accepted!==true||result.terms_version!==TERMS_VERSION)throw Error("Agreement not verified");
-   setStatus({phase:"accepted",owner:user?.id||null});
+   // Re-verify the signed-in identity after the network write. A different
+   // account must never inherit the acceptance of the previous account.
+   const {data:auth,error:authError}=await authClient().auth.getUser();
+   if(authError||auth?.user?.id!==user?.id)
+     throw new Error("Account changed during agreement.");
+   setStatus({phase:"accepted",owner:user.id});
   }catch{
    setError("Agreement could not be saved. Please try again.");
   }finally{setBusy(false);}
