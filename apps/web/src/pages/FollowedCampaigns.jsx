@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listMyFollows, setCampaignFollow, changeFollow, DEFAULT_FOLLOW_PREFS } from "@/lib/followedCampaigns";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
+import { Image } from "@/components/ui/image";
 import { Heart, Pin, Archive, Search } from "lucide-react";
 
 const SORTS=[
@@ -132,7 +133,10 @@ export default function FollowedCampaigns(){
         {filtered.map(({follow,campaign})=><li key={follow.id}>
           <article className="space-y-4 rounded-2xl border border-border bg-card p-5">
             <header className="flex flex-wrap items-start justify-between gap-3">
-              <div>
+              {campaign?.cover_image_url&&<Link to={"/campaign/"+encodeURIComponent(campaign.id)} className="shrink-0">
+                <Image src={campaign.cover_image_url} alt={campaign.title} className="h-24 w-24 rounded-xl object-cover"/>
+              </Link>}
+              <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-semibold">{campaign?.title||"Unavailable campaign"}</h2>
                 <p className="mt-1 text-sm text-muted-foreground">{campaign?
                   (categoryLabels[campaign.category]||campaign.category):
