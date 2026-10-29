@@ -7,7 +7,9 @@ export default function ResetPassword() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   async function submit(e) {
-    e.preventDefault(); setBusy(true); setError("");
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true); setError("");
     try {
       const client = authClient();
       const { data: { session }, error: sessionError } = await client.auth.getSession();
@@ -15,7 +17,8 @@ export default function ResetPassword() {
       if (!session) throw new Error("Open the latest password reset link from your email first.");
       const { error: updateError } = await client.auth.updateUser({ password });
       if (updateError) throw updateError;
-      await client.auth.signOut();
+      const { error: signOutError } = await client.auth.signOut();
+      if (signOutError) throw new Error("Password updated, but sign-out failed. Please sign out before using another account.");
       navigate("/login", { replace: true });
     } catch (err) { setError(err?.message || "Password could not be changed."); }
     finally { setBusy(false); }
