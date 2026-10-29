@@ -37,7 +37,7 @@ export function Loading() {
 
 export function CampaignCard({ c }) {
   return (
-    <Link className="card campaign" to={"/campaign/" + c.id}>
+    <Link className="card campaign" to={c.status === "draft" ? "/create?draft=" + encodeURIComponent(c.id) : "/campaign/" + c.id}>
       {c.cover_image_url && (
         <img src={c.cover_image_url} alt="" loading="lazy" />
       )}
@@ -45,7 +45,7 @@ export function CampaignCard({ c }) {
         {c.category} · {c.status === "active" ? "Published" : "Draft"}
       </small>
       <h3>{c.title || "Untitled campaign"}</h3>
-      <p>{c.summary || "No summary yet"}</p>
+      <p>{c.status === "draft" ? "Private draft · Continue where you left off" : c.summary || "No summary yet"}</p>
       <strong>Goal: ${Number(c.goal_amount || 0).toLocaleString()}</strong>
     </Link>
   );
