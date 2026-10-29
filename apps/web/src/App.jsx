@@ -48,6 +48,7 @@ const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const InstitutionDetail = lazy(() => import("./pages/InstitutionDetail"));
 const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
+const GlobalGlobe = lazy(() => import("./pages/GlobalGlobe"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 import TermsAcceptance from "@/components/TermsAcceptance";
@@ -59,7 +60,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/globe", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -94,6 +95,7 @@ function AppRoutes() {
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/onboarding" element={<RequireAccess access="member"><Onboarding /></RequireAccess>} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
+    <Route path="/globe" element={<GlobalGlobe />} />
     {STANDALONE_PENDING.map(page => <Route key={page.path} path={page.path} element={pendingElement(page)} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
