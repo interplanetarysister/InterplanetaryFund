@@ -11,12 +11,13 @@
 
 No production deployment, DNS change, migration import, schema application, provider mutation, or Base44 shutdown has occurred as part of this work. Do not infer current Cloudflare production settings from this document; re-read the account and deployment configuration before any later release action.
 
-## Verified CI at commit `87fe408ac7b8fab4cf0eeabbab219ae67cee8233`
+## Verified CI at commit `ea4e45f0019dcd64ec62f967360c14050f7b899d`
 
 - Node setup: 22.23.2
-- Worker and contract suite: **102/102 passed**
+- Worker and contract suite: **103/103 passed**
 - Web regression suite: **130/130 passed**
 - Inventory consistency and backend coverage audits: **passed**
+- Runtime-boundary scan: **passed** (no legacy runtime SDK/config references)
 - Independent Vite compilation: **passed**
 
 The CI compile step runs Vite directly after installing the web dependencies. This is a compilation check, not release approval or a deployed artifact. The normal `npm run build` invokes `prebuild` and the release evidence gate. That gate must continue to fail while required evidence is missing.

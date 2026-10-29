@@ -187,13 +187,14 @@ enabled by staged UI components.
 
 **Current independent branch:** `migration/build-completeness-gates-20261029`  
 **Current PR:** [#165 — Draft](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)  
-**Verified code head:** `87fe408ac7b8fab4cf0eeabbab219ae67cee8233`  
+**Verified code head:** `ea4e45f0019dcd64ec62f967360c14050f7b899d`  
 **CI:** [run 40964893372](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40964893372) and paired run 40964885435 — both **PASS**.
 
-- Worker/contract tests: **102/102 passed**.
+- Worker/contract tests: **103/103 passed**.
 - Web regression tests: **130/130 passed**.
 - Route/entity/function/automation inventory consistency: **passed**.
 - Backend coverage audit: **passed as a static census**, while correctly refusing full release certification.
+- Runtime-boundary regression: **passed**; active web/Worker runtime files and runtime package/config files contain no Base44 or Convex SDK, endpoint, or configuration references. Historical provenance remains in migration documentation only.
 - Independent Vite frontend compilation: **passed** (Vite 6.4.5). CI installs web dependencies and compiles without bypassing the release gate.
 - A regression was corrected in verified-session handling: a genuinely signed-out visitor is now distinguished from an Auth provider verification failure. Protected routes can send a signed-out visitor to login while remaining fail-closed when a session exists but the provider cannot verify it.
 - The normal app `prebuild` / release gate remains closed. CI compile success is not production-build approval or a deployed artifact.
@@ -219,3 +220,10 @@ A fresh read-only connector inspection identified two active Supabase projects w
 The earlier data checkpoint incorrectly attributed the 27 campaign shadows to the canonical runtime project. `contracts/data-migration-checkpoint.json` has been corrected to separate the two projects and their evidence. In the legacy project, three owner-map rows are marked `verified` after exact confirmed-email matching and join to 20 campaign shadows; seven campaign shadows remain associated with map rows awaiting destination login. **This is not explicit owner consent**: the applied service-only RPC checks exact email and updates the map, but no consent-receipt table or user-initiated consent proof was found. The 27 shadow rows contain source-hash fields, but those hashes have not been independently recomputed; the earlier source export referenced 28 campaigns and has not been re-exported to establish completeness. No shadow rows have been imported into the canonical runtime.
 
 Security advisor findings on the canonical project include a public `SECURITY DEFINER` trigger function (`public.ifund_create_auth_profile()`) whose EXECUTE ACL currently includes anon and authenticated, and disabled leaked-password protection. The function is attached to the `auth.users` INSERT trigger; its intended trigger use must be preserved while removing unintended direct RPC exposure. RLS-enabled tables without policies are present in private schemas; those policies must be reviewed in context rather than replaced with broad client policies. No Supabase schema, Auth setting, RLS policy, function ACL, or data was changed during this inspection.
+
+
+## October 29 latest independent code CI — 22:29 UTC
+
+Current code head `ea4e45f0019dcd64ec62f967360c14050f7b899d` passed both CI workflows: **103/103 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
+
+The green CI result does not clear the production release gate. The 59-route manifest remains 44 partial / 15 placeholder / 0 release-verified; AI generation, provider-backed images, many backend function ports, full Auth/legal browser tests, owner-consent proof, media/data reconciliation, Android signing, and Cloudflare project alignment remain incomplete. Current Cloudflare production and Supabase state is recorded above. The app-specific dependency lockfile is still missing.

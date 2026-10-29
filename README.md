@@ -13,10 +13,11 @@ This repository contains the **independent, non-Base44** Interplanetary Fund app
 
 The independent app has a 59-route historical inventory: **44 routes have partial implementations, 15 remain placeholders, and 0 are release-verified**. The route inventory is not proof of full feature parity. The 95 entity, 184 function, 10 agent, 17 workflow, and 11 connector inventories are source mappings; they do not mean those services are fully ported or live. The canonical Supabase project currently has zero public campaigns and zero donation/payment-event rows; the 27 campaign shadows are in a separate legacy migration project, not in the canonical runtime. Of those shadows, 20 join to identity-map rows marked verified by exact confirmed-email matching and seven remain awaiting destination login; none has independently verified explicit owner-consent receipts.
 
-Latest verified CI at commit `87fe408ac7b8fab4cf0eeabbab219ae67cee8233`:
-- Worker/contract tests: **102 passed**
+Latest verified CI at commit `ea4e45f0019dcd64ec62f967360c14050f7b899d`:
+- Worker/contract tests: **103 passed**
 - Web regression tests: **130 passed**
 - Inventory and backend-coverage audits: **passed**
+- Runtime-boundary regression: **passed** (no Base44/Convex references in active app/Worker runtime or package/Worker config)
 - Independent Vite compilation: **passed**
 - Release-evidence gate: **intentionally blocks release** while owner, data, auth, legal, feature-parity, provider, and Android evidence remains incomplete.
 
