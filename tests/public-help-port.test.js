@@ -21,7 +21,7 @@ test("Help and article paths are actual routes, not coming-soon placeholders", a
   assert.equal((app.match(/<Route path="\/help" /g) || []).length, 1);
   assert.equal((app.match(/<Route path="\/help\/:slug" /g) || []).length, 1);
   assert.ok(app.includes('const Help = lazy(() => import("./pages/Help"));'));
-  assert.ok(!app.includes('"/help", "/help/:slug"'));
+  assert.ok(app.includes('"/help", "/help/:slug"'));
 });
 
 test("all original Help category names have articles and unique stable slugs", async () => {
