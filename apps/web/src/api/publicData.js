@@ -51,6 +51,7 @@ export function mapCampaign(row = {}) {
     raised_amount: null,
     goal_amount: numOrNull(row.goal_amount),
     donor_count: null,
+    funding_totals_verified: false,
     end_date: null,
   };
 }
