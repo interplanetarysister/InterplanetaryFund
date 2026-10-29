@@ -25,7 +25,7 @@ function request(data, path = '/api/campaigns', method = 'POST', h = headers) {
 function remote(calls, { owner = uid, rows = null } = {}) {
   return async (target, opts) => {
     calls.push({ url: String(target), opts });
-    if (String(target).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(target).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
     return Response.json(rows ?? [{
       id: campaignId, owner_id: owner,
       status: JSON.parse(opts.body).status || 'draft',
@@ -112,7 +112,7 @@ test('missing or wrong-owner rows fail closed; internal errors stay private', as
   assert.equal((await routeCampaignWrite(request(valid),
     env, remote([], { owner: other }))).status, 503);
   const r = await routeCampaignWrite(request(valid), env, async (target) =>
-    String(target).endsWith('/auth/v1/user') ? Response.json({ id: uid }) :
+    String(target).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) :
       new Response('sensitive-provider-error', { status: 500 }));
   assert.equal(r.status, 503);
   assert.doesNotMatch(await r.text(), /sensitive-provider-error/);
@@ -139,7 +139,7 @@ test('mine route requires verified JWT and adds owner-scoped read limit', async 
     { headers }), env, async (target, opts) => {
     calls.push({ url: String(target), opts });
     return String(target).endsWith('/auth/v1/user') ?
-      Response.json({ id: uid }) : Response.json([{ id: campaignId }]);
+      Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([{ id: campaignId }]);
   });
   assert.equal(r.status, 200);
   assert.equal(calls.length, 2);
@@ -190,7 +190,7 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
   const r = await routeCampaignWrite(req, env, async (url, opts) => {
     calls.push({ url: String(url), opts });
     return String(url).endsWith('/auth/v1/user')
-      ? Response.json({ id: uid })
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
       : Response.json([{ id, owner_id: uid, status: 'draft' }]);
   });
   assert.equal(r.status, 200);
@@ -205,7 +205,7 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
     new Request(origin + '/api/campaigns/' + id, {
       method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
     }), env, async (url) => String(url).endsWith('/auth/v1/user')
-      ? Response.json({ id: uid })
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
       : Response.json([{ id, owner_id: uid, status: 'active' }]),
   );
   assert.equal(published.status, 503);
@@ -215,7 +215,7 @@ test('DELETE without a matched draft is not falsely reported as successful', asy
     method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeCampaignWrite(req, env, async (url) =>
-    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid }) : Response.json([]));
+    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([]));
   assert.equal(r.status, 404);
 });
 
@@ -247,7 +247,7 @@ test('draft read endpoint filters out published campaign records', async () => {
   const route='/api/campaigns/' + campaignId + '/draft';
   const res=await routeReadRequest(new Request(origin+route,{headers}),env,async(url,opts)=>{
     calls.push(String(url));
-    return String(url).endsWith('/auth/v1/user')? Response.json({id:uid}):Response.json([]);
+    return String(url).endsWith('/auth/v1/user')? Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'}):Response.json([]);
   });
   assert.equal(res.status,200);
   assert.ok(calls[1].includes('status=eq.draft'));
