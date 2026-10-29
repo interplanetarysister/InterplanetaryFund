@@ -28,6 +28,7 @@ import MissingFeaturePage from "@/pages/MissingFeaturePage";
 import { HISTORICAL_ROUTES } from "@/lib/historicalRoutes";
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
+const Agents = lazy(() => import("./pages/Agents"));
 
 
 // Exact source route inventory; a mounted page is not proof of feature parity.
@@ -36,7 +37,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download",
+  "/embed/campaign/:id", "/download", "/agents",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
       <Route path="/profile" element={<RequireAccess access="member"><Profile /></RequireAccess>} />
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
+      <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
