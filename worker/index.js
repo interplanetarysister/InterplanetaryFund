@@ -6,7 +6,7 @@ import { routeAutomationReadiness } from './automationStatus.js';
 import { routeDeviceAuthorization } from './deviceAuthorization.js';
 import { routeGivingRead } from './givingReads.js';
 
-/** Independent migration API. No Base44 proxy or payment functionality. */
+/** Independent API. No legacy proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;

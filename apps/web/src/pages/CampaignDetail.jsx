@@ -16,7 +16,7 @@ import PageError from "@/components/PageError";
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
-// Public-site port of the Base44 CampaignDetail page. Owner and admin tools
+// Independent public campaign detail page. Owner and admin tools
 // (editing, distribution, outreach agents, AI coach, translations, follow,
 // share kit, supporter list, donation dialog) need a signed-in member and are
 // not part of this slice. Campaign checkout stays disabled while campaign

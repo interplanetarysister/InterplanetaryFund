@@ -54,8 +54,8 @@ async function readOnly(env, relative, jwt, fetcher) {
 }
 
 /**
- * Ported read subset from Base44 getCommunityFeed, getCampaignDraft and
- * campaign discovery. The preview flag defaults disabled. No financial writes.
+ * Independent read endpoints for community feeds, owner drafts, and campaign
+ * discovery. The preview flag defaults disabled. No financial writes.
  */
 export async function routeReadRequest(request, env, fetcher = fetch) {
   if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
