@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { routeDeviceAuthorization } from "../../worker/deviceAuthorization.js";
+import { routeDeviceAuthorization } from "../../../worker/deviceAuthorization.js";
 
 const env = {
   MIGRATION_API_PREVIEW: "enabled",
