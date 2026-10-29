@@ -60,7 +60,7 @@ async function rateAllowed(env, bucket, limit, seconds, fetcher) {
 }
 function clientBucket(request) {
   // The edge-provided IP is used only as input to a keyed hash; raw IP is never stored.
-  const ip = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   return 'ip:' + ip;
 }
 async function member(request, env, fetcher) {
