@@ -658,8 +658,8 @@
       "title": "Member profile",
       "source_component": "PublicProfile",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/PublicProfile.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -875,8 +875,8 @@
       "title": "Get started",
       "source_component": "Onboarding",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Onboarding.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1030,8 +1030,8 @@
       "title": "Mission Control",
       "source_component": "MissionControlPage",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/MissionControlPage.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
