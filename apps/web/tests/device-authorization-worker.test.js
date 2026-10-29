@@ -95,3 +95,30 @@ test("approval cannot add scopes that the device did not request", async () => {
   assert.equal(patchBody.state, "approved");
   assert.equal("scopes" in patchBody, false);
 });
+
+
+test("revoked device grants cannot read resources", async () => {
+  const token = "ifd_at_" + "a".repeat(64);
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("ifund:access-hash:v1:" + token));
+  const tokenHash = [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, "0")).join("");
+  const record = {
+    id: "c7c73f65-09a2-4b92-81d2-9b49f0ef5bb5",
+    access_token_hash: tokenHash, state: "revoked",
+    owner_id: "b7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391",
+    grant_expires_at: new Date(Date.now() + 60_000).toISOString(),
+    scopes: ["identity:read"],
+  };
+  let profileRead = false;
+  const fetcher = async (url, init = {}) => {
+    const target = String(url);
+    if (target.includes("/rpc/ifund_device_rate_limit")) return json(true);
+    if (target.includes("/rest/v1/ifund_device_authorizations?")) return json([record]);
+    if (target.includes("/rest/v1/ifund_profiles?")) { profileRead = true; return json([]); }
+    throw new Error("unexpected upstream request: " + target);
+  };
+  const res = await routeDeviceAuthorization(request("/api/device-authorization/resource", {
+    action: "identity",
+  }, { "x-ifund-device-token": token }), env, fetcher);
+  assert.equal(res.status, 401);
+  assert.equal(profileRead, false);
+});
