@@ -181,3 +181,25 @@ They must be reviewed, reconciled with provider and role configuration and
 explicitly authorized before applying to the canonical production DB. A
 production build remains blocked by verification gates, not silently
 enabled by staged UI components.
+
+
+## October 29 independent prebuild verification — current continuation
+
+**Current independent branch:** `migration/build-completeness-gates-20261029`  
+**Current PR:** [#165 — Draft](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)  
+**Verified code head:** `87fe408ac7b8fab4cf0eeabbab219ae67cee8233`  
+**CI:** [run 40964893372](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40964893372) and paired run 40964885435 — both **PASS**.
+
+- Worker/contract tests: **102/102 passed**.
+- Web regression tests: **130/130 passed**.
+- Route/entity/function/automation inventory consistency: **passed**.
+- Backend coverage audit: **passed as a static census**, while correctly refusing full release certification.
+- Independent Vite frontend compilation: **passed** (Vite 6.4.5). CI installs web dependencies and compiles without bypassing the release gate.
+- A regression was corrected in verified-session handling: a genuinely signed-out visitor is now distinguished from an Auth provider verification failure. Protected routes can send a signed-out visitor to login while remaining fail-closed when a session exists but the provider cannot verify it.
+- The normal app `prebuild` / release gate remains closed. CI compile success is not production-build approval or a deployed artifact.
+
+**Completeness remains blocked:** the evidence manifest currently records 44/59 routes as partial, 15/59 as placeholders, and 0/59 release-verified. The 95 entity, 184 function, 10 agent, 17 workflow, and 11 connector inventories remain source mappings, not completed live ports. Real signup/login/browser tests, Supabase Auth provider configuration, legal-consent RLS tests, 27 staged campaign owner links, source data/media reconciliation, AI copy/image providers, automation executors, Android signing/deep links, and production preview/rollback evidence remain outstanding. Financial checkout, donations and withdrawals remain paused.
+
+The CI dependency install for `apps/web` currently uses `npm install --no-package-lock`; an app-specific reproducible lockfile is still required before dependency resolution can be certified as reproducible. The Vite build was a compile check, not a production deploy. No production data, secrets, schema, DNS, Cloudflare deployment settings, or payment providers were changed.
+
+**Separate source repository:** `interplanetarysister/interplanetary-fund2` main remains at its pre-existing checkpoint; PR #535 remains Draft and has unresolved SQL/RPC/security/test/reconciliation blockers. Do not merge it as part of this independent web prebuild. Keep both repositories and app identities separate.
