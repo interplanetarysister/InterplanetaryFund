@@ -123,7 +123,8 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       if (!await rateAllowed(env, 'inspect:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many code attempts. Please wait.' });
       const body = await readJsonBody(request, 1024);
-      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code))
+      const userCode = typeof body?.user_code === 'string' ? body.user_code.toUpperCase().replaceAll('-', '').replaceAll(' ', '') : '';
+      if (!/^[A-HJ-NP-Z2-9]{10}$/.test(userCode))
         return response(422, { error: 'Enter the 10-character activation code.' });
       const record = await getBy(env, 'user_code_hash', await userCodeHash(userCode), fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
@@ -138,8 +139,9 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       if (!await rateAllowed(env, 'decide:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
-      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code) ||
-          !['approve', 'deny'].includes(body.decision)) return response(422, { error: 'Invalid device decision.' });
+      const userCode = typeof body?.user_code === 'string' ? body.user_code.toUpperCase().replaceAll('-', '').replaceAll(' ', '') : '';
+      if (!/^[A-HJ-NP-Z2-9]{10}$/.test(userCode))
+        return response(422, { error: 'Enter the 10-character activation code.' });
       const codeHash = await userCodeHash(userCode);
       const record = await getBy(env, 'user_code_hash', codeHash, fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
