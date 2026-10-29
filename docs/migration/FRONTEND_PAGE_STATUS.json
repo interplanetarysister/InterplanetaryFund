@@ -182,8 +182,8 @@
     {
       "source": "src/pages/FollowedCampaigns.jsx",
       "name": "FollowedCampaigns",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/FollowedCampaigns.jsx",
+      "status": "ported_following_requires_rls_migration",
       "verified_behavior": false
     },
     {
