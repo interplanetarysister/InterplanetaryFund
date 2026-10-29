@@ -88,3 +88,17 @@ social post, donation or withdrawal was executed.
 An isolated in-memory SQLite check of the D1 schema confirmed trigger/state
 constraints and that a succeeded audit record cannot be overwritten by later
 failure. This is not a real Cloudflare D1 integration test.
+
+
+## Owner-directed full-backend repair sweep — October 29 continuation
+
+The owner requested all remaining pages and all backend functions be audited and repaired until fully operational, while retaining the separately applicable no-build/no-deploy restriction. All work in this section is **committed only to the open draft PR**.
+
+- Route matrix: **59/59 original URL definitions mapped with source component/file and directly detected function/entity/auth dependencies**. **28 partial implemented UI surfaces**, **31 feature routes still pending**; **0 full release-verified**. Three source-component exceptions (special organization mail, a historical download route, redirect) were explicitly mapped. The original 59 pages yielded 56 directly detected original function references, 47 direct entity references and 36 direct Auth references, with all names present in their original inventories.
+- New real partial UI/service restorations: member onboarding writes profile under canonical RLS, a cautious *self-only* profile preview (no non-owner posts/profile aggregation until source privacy consent is mapped), an owner-scoped mission dashboard, admin read-only Ops/Analytics consoles, a private paused-campaign owner preview, and owner-driven campaign publication with complete content validation.
+- Backend source audit: **184/184 original functions accounted for** with 398 function→entity edges, 236 direct frontend call sites and five direct source-function invocations. Seven independently coded routes are classified as partial candidate replacements, **zero source functions are certified fully operational**. Risk triage: 45 financial, 16 identity/privileged, 48 external, 31 AI/metered and 44 application. Full per-function repair ledger in `BACKEND_REPAIR_AUDIT_2026-10-29.md`. `scripts/audit-backend-coverage.mjs` fails a release for incomplete or unapproved handlers, is integrated into the web test script, and has an independent contract test.
+- Fixed owner draft read/write lifecycle filtering: draft reads require `status=eq.draft`; draft save or delete cannot downgrade/delete a published record. Added regression tests. Corrected profile server validation for 100-char display names and optional handle clearing; added regression tests. Protected-route UI now revalidates account on sign-in/token refresh.
+- Production build gate is now unconditional for any `--build`, not contingent on a Cloudflare-provided branch name (no bypass when `CF_PAGES_BRANCH` is missing). No builds executed.
+- Read-only Supabase audit confirmed private staging entity tables have *client-deny* policies, preventing safe naive front-end porting. Current public tables cannot support 31 missing feature backends with original privacy or content. A pending SQL change narrows direct EXECUTE privileges for the `public.ifund_create_auth_profile()` SECURITY DEFINER trigger; NOT applied. Test signup/rollback before applying.
+- No native APK, provider sandbox, cross-user browser, payment/withdrawal, database mutation, DNS, workflow activation or deployment was executed.
+- The existing hourly continuation task has been updated with explicit priorities to keep porting 31 remaining pages and reviewing the entire 184-function graph on future runs, honoring no-build/no-deploy instructions.
