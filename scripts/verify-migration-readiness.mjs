@@ -13,6 +13,7 @@ const automations = load("docs/migration/contracts/automations.json");
 const launch = load("docs/migration/contracts/launch-evidence.json");
 const android = load("docs/migration/contracts/android.json");
 const schemaTypes = load("docs/migration/contracts/schema-type-crosswalk.json");
+const dataMigration = load("docs/migration/contracts/data-migration-checkpoint.json");
 const app = readFileSync(new URL("apps/web/src/App.jsx", root), "utf8");
 const errors = [];
 
@@ -74,6 +75,11 @@ if (!app.includes("/embed/campaign/:id") || !app.includes("/download"))
 const production = process.argv.includes("--release") || process.argv.includes("--build");
 
 if (production) {
+  if (dataMigration.owner_identity_match_verified !== true ||
+      dataMigration.all_source_campaigns_accounted_for !== true ||
+      dataMigration.source_ledger_integrity_verified !== true ||
+      dataMigration.stage_to_runtime_import_approved !== true)
+    errors.push("Historical campaign ownership and ledger reconciliation incomplete; no production cutover.");
   const screens = ["desktop_light","desktop_dark","tablet_light","tablet_dark",
     "mobile_light","mobile_dark","android_light","android_dark"];
   const roles = ["visitor","member","admin","super_admin"];
