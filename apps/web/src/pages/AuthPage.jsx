@@ -52,7 +52,7 @@ export default function AuthPage({ mode="login" }){
         if(failure)throw failure;
         if(data?.session){
           const {data:verified,error:verifyError}=await auth.getUser();
-          if(verifyError || !verified?.user?.id)throw new Error("The new session could not be verified.");
+          if(verifyError || !verified?.user?.id || !verified.user.email_confirmed_at)throw new Error("Your email confirmation is not complete. Check the newest verification email.");
           navigate("/onboarding",{replace:true});
         }else{
           setNeedsConfirmation(true);
