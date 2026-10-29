@@ -5,7 +5,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CLIENTS = new Set(['ifund-device-v1', 'ifund-cli-v1', 'ifund-agent-v1']);
 const SCOPES = new Set(['identity:read', 'campaigns:read']);
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const SELECT = 'id,device_code_hash,user_code_hash,access_token_hash,client_id,device_label,scopes,state,owner_id,created_at,expires_at,approved_at,grant_expires_at';
+const SELECT = 'id,device_code_hash,user_code_hash,access_token_hash,client_id,device_label,scopes,state,owner_id,created_at,expires_at,approved_at,grant_expires_at,last_polled_at';
 
 function configReady(env) {
   let url;
@@ -20,10 +20,7 @@ async function sha256(value) {
   return [...new Uint8Array(bytes)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
 const deviceHash = (code) => sha256('ifund:device-code:v1:' + code);
-const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\\s]/g, ''));
-const accessTokenHash = (token) => sha256('ifund:access-hash:v1:' + token);
-const deviceHash = (code) => sha256('ifund:device-code:v1:' + code);
-const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\\s]/g, ''));
+const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\s]/g, ''));
 const accessTokenHash = (token) => sha256('ifund:access-hash:v1:' + token);
 function randomToken(bytes = 32) {
   const raw = crypto.getRandomValues(new Uint8Array(bytes));
