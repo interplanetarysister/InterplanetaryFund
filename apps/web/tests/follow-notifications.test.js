@@ -5,10 +5,10 @@ import {listMyFollows,setCampaignFollow,changeFollow,validateFollowPrefs,
 import {loadNotifications,acknowledgeNotification,acknowledgeAllNotifications,
   safeNoticeDestination} from "../src/lib/notifications.js";
 
-const owner="caa180c2-f802-46d5-8300-2f7d09806ea1";
-const other="9b090da1-8c86-4505-b87d-55c502890180";
-const campaign="d4bd3494-32dc-4b56-90b8-97c4b88e7ff0";
-const row="a6978467-5a68-4edf-bf44-9a620abb1d98";
+const owner="11111111-2222-4333-8444-555555555555";
+const other="aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
+const campaign="cccccccc-dddd-4eee-8fff-000000000001";
+const row="dddddddd-eeee-4fff-8aaa-111111111111";
 const make=(responses=[],uid=owner)=>{
   const calls=[];
   let index=0;
