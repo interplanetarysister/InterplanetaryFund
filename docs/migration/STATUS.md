@@ -203,3 +203,10 @@ enabled by staged UI components.
 The CI dependency install for `apps/web` currently uses `npm install --no-package-lock`; an app-specific reproducible lockfile is still required before dependency resolution can be certified as reproducible. The Vite build was a compile check, not a production deploy. No production data, secrets, schema, DNS, Cloudflare deployment settings, or payment providers were changed.
 
 **Separate source repository:** `interplanetarysister/interplanetary-fund2` main remains at its pre-existing checkpoint; PR #535 remains Draft and has unresolved SQL/RPC/security/test/reconciliation blockers. Do not merge it as part of this independent web prebuild. Keep both repositories and app identities separate.
+
+
+## October 29 Cloudflare environment audit — production changes not made
+
+Read-only Cloudflare account inspection confirms that Pages project `interplanetaryfund-migration` has the apex, www, and preview domains attached. Its production branch is `main`, production deployments are disabled, and preview deployments are disabled; the latest attempted preview for the migration branch was skipped. The last canonical production deployment observed is from `main` commit `658dc2c88183c8297a6e107eee49b79ef7a5bf49`, not the current migration branch.
+
+**Critical mismatch:** browser `VITE_SUPABASE_URL` is configured for canonical project `ssibsfmtodgximseeqsv`, while production Worker-side `SUPABASE_URL` and `SUPABASE_JWKS_URL` point to a different project, `tzehxfikoslihnclhxuz`. The deployed `interplanetary-fund2` Worker still owns 16 active apex/www routes; the independent Worker in this repo is not proven to own any production route. Pages reports `uses_functions: false`. No bindings, secrets, routes, deployments, DNS, or Pages settings were changed. This mismatch must be reconciled before any preview/API activation or release.

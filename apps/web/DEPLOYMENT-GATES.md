@@ -48,3 +48,18 @@ The app dependency install currently has no committed app-specific lockfile; res
 ## Production cutover
 
 No cutover is permitted until every release blocker above is resolved with evidence, the owner approves the release plan, production deployment is tested on a separate preview route, and a rollback target is verified. Keep the independent build and Base44 version in separate repositories and preserve both identities.
+
+
+## Read-only Cloudflare configuration audit — 2026-10-29
+
+The connected Cloudflare account was inspected without changing settings.
+
+- Pages project `interplanetaryfund-migration` is connected to this repository and has `interplanetaryfund.com`, `www.interplanetaryfund.com`, and `preview.interplanetaryfund.com` attached.
+- Its configured production branch is `main`; production deployments are disabled. Preview deployments are also disabled (`preview_deployment_setting: none`). The latest attempted preview for the current migration branch was skipped because preview deployments are disabled.
+- The last canonical production deployment observed was created from `main` commit `658dc2c88183c8297a6e107eee49b79ef7a5bf49` on 2026-10-29. It is not this current migration branch.
+- The Pages build configuration is rooted at `apps/web`, with `npm install --no-audit --no-fund && npm test && npm run build`.
+- **Critical project mismatch:** browser `VITE_SUPABASE_URL` points at `ssibsfmtodgximseeqsv`, while production Worker-side `SUPABASE_URL` and `SUPABASE_JWKS_URL` point at `tzehxfikoslihnclhxuz`. These are different Supabase projects. Do not deploy or enable Worker/API routes until all server and browser bindings are intentionally aligned and independently verified.
+- The deployed Worker `interplanetary-fund2` still owns **16** active apex/www routes. The independent API code in this repository is not established as the active route owner. Pages reports `uses_functions: false`.
+- No Cloudflare settings, routes, deployments, DNS, bindings, or secrets were modified during this audit. Secret values were not read or recorded.
+
+This audit is a hard prebuild blocker. Do not enable preview or production deployments merely to obtain a green build: first reconcile the project references, determine which legacy routes are still required, and prepare a reversible preview route that cannot disturb the current site.
