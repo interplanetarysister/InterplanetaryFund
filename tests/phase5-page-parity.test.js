@@ -32,3 +32,21 @@ test('deployed frontend source does not import Base44 or Convex runtime SDKs', (
   });
   assert.deepEqual(offenders, []);
 });
+
+test('restored campaign wizard keeps the four original steps and resume-draft route', () => {
+  const editor = readFileSync(join(root, 'src/pages/CampaignEditor.jsx'), 'utf8');
+  for (const label of ['Your Details', 'Basics', 'Your Story', 'Launch']) {
+    assert.ok(editor.includes(label), label);
+  }
+  assert.ok(editor.includes('params.get("draft")'));
+  assert.ok(editor.includes('.eq("owner_id", accountId)'));
+  assert.ok(editor.includes('Drafts stay private'));
+});
+test('the independent dashboard and legacy dashboard URL are wired', () => {
+  assert.ok(app.includes('import Dashboard from "./pages/Dashboard";'));
+  assert.ok(app.includes('path="/dashboard" element={<Dashboard user={user} />}'));
+});
+test('campaign editor has no old Base44 service calls', () => {
+  const editor = readFileSync(join(root, 'src/pages/CampaignEditor.jsx'), 'utf8');
+  assert.doesNotMatch(editor, /base44\.functions|@\/api\/base44Client/);
+});
