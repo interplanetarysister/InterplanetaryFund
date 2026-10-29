@@ -52,7 +52,7 @@ export default function CreateCampaign() {
       if (coverUrl) {
         let parsed;
         try { parsed = new URL(coverUrl); } catch { throw new Error("Enter a valid cover image URL."); }
-        if (!['https:', 'http:'].includes(parsed.protocol) || coverUrl.length > 2000) throw new Error("Cover image must use a valid HTTP or HTTPS URL.");
+        if (parsed.protocol !== 'https:' || parsed.username || parsed.password || coverUrl.length > 2000) throw new Error("Cover image must use a secure HTTPS URL without embedded credentials.");
       }
       const values = { title, summary,
         story: form.story.trim(), category: form.category, goal_amount: amount,
