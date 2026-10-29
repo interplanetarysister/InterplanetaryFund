@@ -21,8 +21,8 @@ Deno.serve(async request => {
     const body = await request.json();
     if (body.action !== "create") return json({ error: "Unsupported action" }, 400);
     const campaignId = String(body.campaignId || "");
-    const gift = Number(body.amountCents);
-    if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(campaignId) || !Number.isSafeInteger(gift) || gift < 100 || gift > 100000000 || typeof body.supportPlatform !== "boolean") return json({ error: "Invalid donation" }, 400);
+    const gift = body.amountCents;
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaignId) || !Number.isSafeInteger(gift) || gift < 100 || gift > 100000000 || typeof body.supportPlatform !== "boolean") return json({ error: "Invalid donation" }, 400);
     const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: campaign, error } = await supabase.from("ifund_campaigns").select("id,status").eq("id", campaignId).eq("status", "active").maybeSingle();
     if (error || !campaign) return json({ error: "Campaign not available" }, 404);
