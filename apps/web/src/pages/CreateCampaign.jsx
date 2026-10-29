@@ -9,7 +9,7 @@ export default function CreateCampaign() {
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
   useEffect(() => {
-    if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); setSaved(""); setForm({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" }); return; }
+    if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); setError(""); setSaved(""); setForm({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" }); return; }
     setLoadingDraft(true); setDraftLoadError(""); setSaved(""); setError("");
     let active = true;
     (async () => {
@@ -43,7 +43,7 @@ export default function CreateCampaign() {
       if (authError || !user) { navigate("/login", { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
-      if (!goalText || !Number.isFinite(amount) || amount <= 0 || amount > 100000000 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
+      if (!goalText || !Number.isFinite(amount) || amount < 0.01 || amount > 100000000 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
       const title = form.title.trim();
       const summary = form.summary.trim();
       if (!title || title.length > 150) throw new Error("Enter a campaign title (up to 150 characters).");
@@ -54,7 +54,7 @@ export default function CreateCampaign() {
         try { parsed = new URL(coverUrl); } catch { throw new Error("Enter a valid cover image URL."); }
         if (parsed.protocol !== 'https:' || parsed.username || parsed.password || coverUrl.length > 2000) throw new Error("Cover image must use a secure HTTPS URL without embedded credentials.");
       }
-      if (form.story.trim().length > 20000) throw new Error("Campaign story must be 20,000 characters or fewer.");
+      if (form.story.length > 20000) throw new Error("Campaign story must be 20,000 characters or fewer.");
       if (!["community", "medical", "education", "environment", "creative", "other"].includes(form.category)) throw new Error("Select a valid campaign category.");
       const values = { title, summary,
         story: form.story.trim(), category: form.category, goal_amount: amount,
@@ -63,7 +63,7 @@ export default function CreateCampaign() {
         ? client.from("ifund_campaigns").update(values).eq("id", draftId).eq("owner_id", user.id).eq("status", "draft")
         : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
       const { data, error: insertError } = await query.select("id").single();
-      if (insertError) throw insertError;
+      if (insertError) throw new Error("Unable to save the campaign draft. Please retry.");
       if (!data?.id) throw new Error("Draft save did not return a campaign reference.");
       setSaved(data.id);
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
