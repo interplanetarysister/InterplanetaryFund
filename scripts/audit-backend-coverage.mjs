@@ -40,7 +40,8 @@ for(const w of automations.workflows){
 if(callers!==236)errors.push("Original 236 direct frontend function references changed: "+callers);
 if(links!==398)errors.push("Original 398 source function/entity edges changed: "+links);
 if(automations.workflows.length!==17)errors.push("Original 17 workflows missing");
-const verified=functions.filter(f=>f.runtime_proven===true&&f.original_feature_parity_verified===true).length;
+const verified=functions.filter(f=>(f.runtime_proven===true&&f.original_feature_parity_verified===true) ||
+  (f.retired_by_owner===true&&f.retirement_evidence&&f.retirement_approved_by)).length;
 const candidate=functions.filter(f=>f.port_candidate).length;
 const summary={functions:184,risk_distribution:risks,source_entity_dependency_edges:links,
   direct_frontend_call_sites:callers,source_workflows:automations.workflows.length,
