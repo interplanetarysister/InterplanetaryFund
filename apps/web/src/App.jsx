@@ -40,6 +40,7 @@ const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
+import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 
 
 // Exact source route inventory; a mounted page is not proof of feature parity.
@@ -112,6 +113,10 @@ function AppRoutes() {
 }
 
 function App() {
+  if (typeof window !== "undefined") {
+    const recovery=legacyAuthLandingRedirect(window.location.href);
+    if (recovery) window.history.replaceState(window.history.state,"",recovery);
+  }
   useEffect(() => {
     // Follow the device until someone explicitly picks a theme. Never override
     // a member's saved light/dark accessibility preference on system changes.
