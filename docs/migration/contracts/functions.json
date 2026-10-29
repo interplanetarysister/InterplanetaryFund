@@ -27,7 +27,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "activateSubscriptionCheckout",
@@ -55,7 +59,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "adminApiConnectionIntake",
@@ -83,7 +91,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "adminCampaignControl",
@@ -110,7 +122,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "adminOAuthProviderReadiness",
@@ -134,7 +150,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "adminUpdateUserRole",
@@ -160,7 +180,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "analyzeGrantApplication",
@@ -191,7 +215,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "applyAgentContentDraft",
@@ -222,7 +250,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "applyInstitutionOpportunity",
@@ -252,7 +284,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "auditAdminAgentGateway",
@@ -274,7 +310,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "authorizeCollectAndWithdraw",
@@ -300,7 +340,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "authorizeConnectionAi",
@@ -324,7 +368,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "broadcastPosts",
@@ -354,7 +402,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "cancelPayPalSubscription",
@@ -380,7 +432,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "capturePayPalOrder",
@@ -413,7 +469,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "checkUsernameAvailability",
@@ -437,7 +497,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "communityMembership",
@@ -465,7 +529,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "completeOAuthConnection",
@@ -489,7 +557,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "confirmPayPalSubscription",
@@ -513,7 +585,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createCommunity",
@@ -540,7 +616,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createDiscussionPost",
@@ -567,7 +647,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createDistributedPost",
@@ -600,7 +684,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createDonationCheckout",
@@ -622,7 +710,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createInstitution",
@@ -648,7 +740,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createKnowledgeArticle",
@@ -674,7 +770,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createPayPalOrder",
@@ -704,7 +804,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createPayPalSubscriptionCheckout",
@@ -732,7 +836,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createPremiumDayPassCheckout",
@@ -754,7 +862,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createSocialPost",
@@ -782,7 +894,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createSubscriptionCheckout",
@@ -804,7 +920,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createSupportTicket",
@@ -830,7 +950,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "createVolunteerOpportunity",
@@ -858,7 +982,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "decideGrantApplication",
@@ -887,7 +1015,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "deleteAccount",
@@ -934,7 +1066,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "deleteCampaign",
@@ -970,7 +1106,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": {
+        "code": "worker/campaignWrites.js",
+        "operations": [
+          "DELETE /api/campaigns/:uuid"
+        ],
+        "scope": "Private draft deletion only; source published-campaign lifecycle not ported"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "deviceAuthorization",
@@ -1005,7 +1151,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "disconnectPlatformConnection",
@@ -1031,7 +1181,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "discoverConnectionMethods",
@@ -1055,7 +1209,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "discoverExternalCampaignSnapshot",
@@ -1079,7 +1237,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "discoverFeatures",
@@ -1110,7 +1272,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "discoverPayPalHoldingSettlements",
@@ -1136,7 +1302,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "draftSharePost",
@@ -1163,7 +1333,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "enforceCampaignProtocol",
@@ -1188,7 +1362,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "executeAdminAgentRequest",
@@ -1212,7 +1390,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "executeCollectAndWithdraw",
@@ -1238,7 +1420,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "externalAgentCampaigns",
@@ -1265,7 +1451,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "externalAgentContentWrite",
@@ -1292,7 +1482,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "finalizeAppUserOAuthConnection",
@@ -1319,7 +1513,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "generateCampaignCover",
@@ -1347,7 +1545,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "generateDistributionContent",
@@ -1375,7 +1577,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "generateIntelligence",
@@ -1409,7 +1615,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "generateSocialContent",
@@ -1436,7 +1646,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "geocodeCity",
@@ -1462,7 +1676,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getAgentAccountContext",
@@ -1495,7 +1713,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getAgentMailContext",
@@ -1520,7 +1742,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getAppUserConnector",
@@ -1545,7 +1771,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getBufferReadiness",
@@ -1573,7 +1803,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getCampaignDonations",
@@ -1602,7 +1836,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getCampaignDraft",
@@ -1628,7 +1866,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": {
+        "code": "worker/reads.js",
+        "operations": [
+          "GET /api/campaigns/:uuid/draft"
+        ],
+        "scope": "Owner-only limited draft fields; source wizard and AI settings absent"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getCampaignWithdrawalBalance",
@@ -1656,7 +1904,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getCommunityFeed",
@@ -1685,7 +1937,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": {
+        "code": "worker/reads.js",
+        "operations": [
+          "GET /api/community/feed"
+        ],
+        "scope": "Public canonical social posts only; original community context, moderation and linked campaigns not ported"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getConnectedPayoutAccount",
@@ -1711,7 +1973,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getCryptoDonationReadiness",
@@ -1733,7 +1999,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getFeatureAvailability",
@@ -1761,7 +2031,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getFundraisingMode",
@@ -1785,7 +2059,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getLiveProviderStatus",
@@ -1812,7 +2090,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getMyGiving",
@@ -1838,7 +2120,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getOwnerDonorDirectory",
@@ -1865,7 +2151,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getOwnerFinancialLedger",
@@ -1893,7 +2183,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getPayPalConfig",
@@ -1923,7 +2217,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getPayPalPayoutReadiness",
@@ -1951,7 +2249,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getPayPalSubscriptionOptions",
@@ -1979,7 +2281,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getPaymentCapabilities",
@@ -2009,7 +2315,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getSharedConnectorStatus",
@@ -2036,7 +2346,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getStripeIntegrationAudit",
@@ -2067,7 +2381,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getStripeReadiness",
@@ -2092,7 +2410,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getStripeSubscriptionOptions",
@@ -2114,7 +2436,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getUnifiedInbox",
@@ -2140,7 +2466,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getVerifiedIFundIntegrationContext",
@@ -2164,7 +2494,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "getWritingResearchBrief",
@@ -2188,7 +2522,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "importExternalCampaign",
@@ -2214,7 +2552,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "joinFoundingWaitlist",
@@ -2240,7 +2582,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "justGivingStagingPilot",
@@ -2273,7 +2619,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "kofiWebhook",
@@ -2299,7 +2649,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "listConnections",
@@ -2331,7 +2685,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": {
+        "code": "worker/accountRoutes.js",
+        "operations": [
+          "GET /api/account/connections"
+        ],
+        "scope": "Read-only verified provider status; OAuth and connected actions not available"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "listFundraisingProviderCapabilities",
@@ -2355,7 +2719,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "listInstitutionApplications",
@@ -2382,7 +2750,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "listUntrackedPayPalReceipts",
@@ -2410,7 +2782,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "logPlatformEvent",
@@ -2436,7 +2812,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "maintainPlatformOwnedAccounts",
@@ -2465,7 +2845,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageAdminBuilderWork",
@@ -2492,7 +2876,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageAgentContentDraft",
@@ -2524,7 +2912,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageAgentWork",
@@ -2556,7 +2948,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageApprovedBuilderExecution",
@@ -2586,7 +2982,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageBlog",
@@ -2618,7 +3018,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageConnectedPayoutAccount",
@@ -2642,7 +3046,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageDistributedPost",
@@ -2670,7 +3078,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageExternalAgentKeys",
@@ -2696,7 +3108,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageFeatureFlag",
@@ -2726,7 +3142,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageFriends",
@@ -2760,7 +3180,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageOAuthClients",
@@ -2787,7 +3211,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageOfficialPublications",
@@ -2815,7 +3243,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageOwnerConnectionConfiguration",
@@ -2842,7 +3274,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "managePlatformAccess",
@@ -2868,7 +3304,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "managePlatformIncidents",
@@ -2897,7 +3337,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "managePostInterest",
@@ -2925,7 +3369,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "managePublicProfile",
@@ -2962,7 +3410,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": {
+        "code": "apps/web/src/pages/PublicProfile.jsx",
+        "operations": [
+          "GET /u/:id"
+        ],
+        "scope": "Only public RLS-exposed campaigns and posts; original privacy flags, bio and linked content absent"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageRecurringDonation",
@@ -2990,7 +3448,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "manageVerificationMailbox",
@@ -3020,7 +3482,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "markNotificationRead",
@@ -3046,7 +3512,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "matchExternalPayPalSettlement",
@@ -3072,7 +3542,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "mirrorExternalPosts",
@@ -3101,7 +3575,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "ownerAgentChatActions",
@@ -3133,7 +3611,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "payPalSubscriptionWebhook",
@@ -3159,7 +3641,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "postCampaignUpdate",
@@ -3190,7 +3676,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "postDiscussionReply",
@@ -3217,7 +3707,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "prepareCollectAndWithdraw",
@@ -3246,7 +3740,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "processAdminActionInbox",
@@ -3273,7 +3771,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "publishInstitutionOpportunity",
@@ -3300,7 +3802,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "publishLinkedCampaignToConnection",
@@ -3330,7 +3836,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "publishPost",
@@ -3363,7 +3873,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "receiveCloudflareEmail",
@@ -3390,7 +3904,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "reconcileDirectPayPalCampaignDonation",
@@ -3419,7 +3937,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "reconcileExternalPayPalSettlement",
@@ -3445,7 +3967,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "recordAgentInteraction",
@@ -3472,7 +3998,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "recordCampaignCreated",
@@ -3501,7 +4031,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "recordDonation",
@@ -3527,7 +4061,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "recordExternalFundMigration",
@@ -3554,7 +4092,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "recordLegalAcceptance",
@@ -3581,7 +4123,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "refreshWritingResearch",
@@ -3613,7 +4159,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "registerPushDevice",
@@ -3638,7 +4188,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "renderInterplanetaryPhoto",
@@ -3668,7 +4222,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "repairStripeWebhookEvents",
@@ -3698,7 +4256,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "requestManagedConnectionAction",
@@ -3729,7 +4291,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "requestWithdrawal",
@@ -3763,7 +4329,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "resolveConnectionStatus",
@@ -3797,7 +4367,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "resolvePlatformConnectionRecipe",
@@ -3821,7 +4395,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "reviewAgentActivity",
@@ -3847,7 +4425,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "revokeConnectionAiConsent",
@@ -3871,7 +4453,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "routeAgentTask",
@@ -3898,7 +4484,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "runBrowserConnection",
@@ -3923,7 +4513,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "runOfficialSocialPromotion",
@@ -3956,7 +4550,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "runOutreachAgent",
@@ -3987,7 +4585,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "runReporterDiary",
@@ -4018,7 +4620,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "runSocialAutopilot",
@@ -4049,7 +4655,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "saveCampaign",
@@ -4077,7 +4687,18 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": {
+        "code": "worker/campaignWrites.js",
+        "operations": [
+          "POST /api/campaigns",
+          "PATCH /api/campaigns/:uuid"
+        ],
+        "scope": "Content-only draft/create/publish; no source AI, distribution or metadata parity"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "saveConnectionCredentials",
@@ -4105,7 +4726,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "sendCommunication",
@@ -4137,7 +4762,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "sendPublicContactMessage",
@@ -4163,7 +4792,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "setConnectionAiToggle",
@@ -4190,7 +4823,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "setUnifiedOboConsent",
@@ -4218,7 +4855,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "setUsername",
@@ -4242,7 +4883,17 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": {
+        "code": "worker/accountRoutes.js",
+        "operations": [
+          "PUT /api/account/profile"
+        ],
+        "scope": "Owner-scoped public handle update only; original username availability and profile parity not verified"
+      },
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "setupPayPalSubscriptionWebhook",
@@ -4269,7 +4920,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "startPremiumTrial",
@@ -4295,7 +4950,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "startStripeConnectOnboarding",
@@ -4317,7 +4976,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "stripeWebhook",
@@ -4350,7 +5013,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncConnections",
@@ -4379,7 +5046,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncExternalFunds",
@@ -4409,7 +5080,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncFromConvex",
@@ -4431,7 +5106,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncGitHub",
@@ -4460,7 +5139,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncImportedCampaign",
@@ -4488,7 +5171,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncPayPalSubscriptionCatalog",
@@ -4516,7 +5203,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncStripeSubscriptionCatalog",
@@ -4538,7 +5229,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncWixAnalytics",
@@ -4567,7 +5262,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncWixBusinessData",
@@ -4596,7 +5295,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncWixCampaigns",
@@ -4625,7 +5328,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "syncWixContent",
@@ -4655,7 +5362,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "toggleCampaignFollow",
@@ -4683,7 +5394,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "trackAgentConversation",
@@ -4717,7 +5432,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "translateCampaign",
@@ -4749,7 +5468,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "updateCampaignSettings",
@@ -4780,7 +5503,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "updateFollowPreferences",
@@ -4806,7 +5533,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "updateInboxItem",
@@ -4833,7 +5564,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "updateMissionItemStatus",
@@ -4858,7 +5593,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "validateIntegrationHealth",
@@ -4888,7 +5627,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "verifyAdminGateway",
@@ -4910,7 +5653,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "privileged_identity"
+      "audit_domain": "privileged_identity",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "verifyAgentPlatformAccess",
@@ -4935,7 +5682,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "metered_agent"
+      "audit_domain": "metered_agent",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "verifyAppUserConnector",
@@ -4957,7 +5708,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "verifyOwnerPayPalBasicPlan",
@@ -4983,7 +5738,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "financial_high_risk"
+      "audit_domain": "financial_high_risk",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "verifyPlatformConnection",
@@ -5013,7 +5772,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "external_side_effect"
+      "audit_domain": "external_side_effect",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "volunteerFollowUp",
@@ -5043,7 +5806,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "volunteerSignup",
@@ -5071,7 +5838,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "welcomeVolunteer",
@@ -5101,7 +5872,11 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     },
     {
       "name": "wixWebhook",
@@ -5127,7 +5902,25 @@
       "idempotency_verified": false,
       "rls_verified": false,
       "authorization_tested": false,
-      "audit_domain": "application"
+      "audit_domain": "application",
+      "port_candidate": null,
+      "runtime_proven": false,
+      "original_feature_parity_verified": false,
+      "release_class": "blocked_pending_implementation_and_qa"
     }
-  ]
+  ],
+  "audit": {
+    "original_entrypoints": 184,
+    "candidate_subset_mappings": 7,
+    "verified_full_ports": 0,
+    "untested_or_unmapped_entrypoints": 184,
+    "methodology": "Name-based source inventory and read-only code inspection. A candidate is not a verified port. Every original source function remains blocked pending parity evidence.",
+    "risk_domain_counts": {
+      "external_side_effect": 48,
+      "financial_high_risk": 45,
+      "privileged_identity": 16,
+      "metered_agent": 31,
+      "application": 44
+    }
+  }
 }
