@@ -65,15 +65,16 @@ export async function routeGivingRead(request, env, fetcher = fetch) {
     }
 
     const campaignIds = [...new Set(rows.map(row => row.campaign_id))];
-    let titles = new Map();
-    if (campaignIds.length) {
+    const titles = new Map();
+    for (let offset = 0; offset < campaignIds.length; offset += 100) {
+      const batch = campaignIds.slice(offset, offset + 100);
       const params = new URLSearchParams({
         select: 'id,title',
-        id: 'in.(' + campaignIds.join(',') + ')',
+        id: 'in.(' + batch.join(',') + ')',
       });
       const campaigns = await read(env, 'ifund_campaigns?' + params.toString(), fetcher);
       for (const campaign of campaigns) {
-        if (!campaign || !UUID.test(campaign.id || '') || !campaignIds.includes(campaign.id) ||
+        if (!campaign || !UUID.test(campaign.id || '') || !batch.includes(campaign.id) ||
             typeof campaign.title !== 'string') {
           return response(503, { error: 'Giving history could not be verified.' });
         }
