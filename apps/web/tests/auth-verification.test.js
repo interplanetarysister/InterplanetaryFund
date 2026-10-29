@@ -5,6 +5,8 @@ import {
 } from "../src/lib/authCallback.js";
 import {safeReturnTo} from "../src/lib/safeReturnTo.js";
 import {landingAfterLogin} from "../src/lib/postLogin.js";
+import {legacyAuthLandingRedirect} from "../src/lib/legacyAuthLanding.js";
+import {readFileSync} from "node:fs";
 
 test("confirmation and recovery use fixed first-party callback destinations",()=>{
   assert.equal(authCallbackUrl("https://interplanetaryfund.com"),
@@ -96,4 +98,31 @@ test("returning member login resumes dashboard; profile errors do not block logi
   await assert.rejects(()=>landingAfterLogin({
     auth:{getUser:async()=>({data:{user:null},error:null})}
   },"/dashboard"),/could not verify/);
+});
+
+test("previously issued dashboard verification links land at callback without losing tokens",()=>{
+  const fromLegacy="https://interplanetaryfund.com/dashboard#access_token=access&refresh_token=refresh&type=signup";
+  assert.equal(legacyAuthLandingRedirect(fromLegacy),
+    "/auth/callback?next=%2Fonboarding#access_token=access&refresh_token=refresh&type=signup");
+  assert.equal(legacyAuthLandingRedirect("https://interplanetaryfund.com/reset-password#access_token=a&refresh_token=b&type=recovery"),
+    "/auth/callback?next=%2Freset-password#access_token=a&refresh_token=b&type=recovery");
+  assert.equal(legacyAuthLandingRedirect("https://interplanetaryfund.com/dashboard#campaign-story"),null);
+  assert.equal(legacyAuthLandingRedirect("https://interplanetaryfund.com/auth/callback?token_hash=hash"),null);
+});
+test("register and login use verified Supabase Auth sessions, and original email OTP is available",()=>{
+  const page=readFileSync(new URL("../src/pages/AuthPage.jsx",import.meta.url),"utf8");
+  assert.match(page,/auth\.signUp\(/);
+  assert.match(page,/emailRedirectTo:authCallbackUrl/);
+  assert.match(page,/auth\.signInWithPassword\(/);
+  assert.match(page,/auth\.verifyOtp\(/);
+  assert.match(page,/type:"signup"/);
+  assert.match(page,/autoComplete="one-time-code"/);
+  assert.match(page,/Resend confirmation email/);
+  assert.match(page,/preferred_handle/);
+  assert.match(page,/landingAfterLogin/);
+  const auth=readFileSync(new URL("../src/api/auth.js",import.meta.url),"utf8");
+  assert.match(auth,/detectSessionInUrl: false/);
+  const router=readFileSync(new URL("../src/App.jsx",import.meta.url),"utf8");
+  assert.match(router,/path="\/auth\/callback"/);
+  assert.match(router,/legacyAuthLandingRedirect/);
 });
