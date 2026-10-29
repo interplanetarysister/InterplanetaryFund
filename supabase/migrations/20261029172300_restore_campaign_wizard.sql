@@ -164,3 +164,19 @@ alter table public.ifund_profiles
 -- Existing owner-only profile UPDATE/INSERT RLS continues to apply.
 -- Delegated OAuth consent must be stored in separate server-verified grants;
 -- onboarding checkbox preferences are never authorization.
+
+
+-- Founding community membership: opt-in by authenticated member only.
+-- No public email list, generated membership counts, or automatic marketing.
+create table if not exists public.ifund_founding_members (
+  member_id uuid primary key references auth.users(id) on delete cascade,
+  joined_at timestamptz not null default now()
+);
+alter table public.ifund_founding_members enable row level security;
+create policy ifund_founding_member_self_read on public.ifund_founding_members
+  for select to authenticated using (member_id = (select auth.uid()));
+create policy ifund_founding_member_self_join on public.ifund_founding_members
+  for insert to authenticated with check (member_id = (select auth.uid()));
+create policy ifund_founding_member_self_leave on public.ifund_founding_members
+  for delete to authenticated using (member_id = (select auth.uid()));
+grant select,insert,delete on public.ifund_founding_members to authenticated;
