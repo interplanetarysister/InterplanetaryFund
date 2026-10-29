@@ -1,0 +1,862 @@
+{
+  "schema_version": 1,
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "description": "Exact source entity names; null target means migration and RLS proof not independently established",
+  "items": [
+    {
+      "name": "ActivityEvent",
+      "source": "base44/entities/ActivityEvent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AdminActionMessage",
+      "source": "base44/entities/AdminActionMessage.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AdminApiConnectionIntake",
+      "source": "base44/entities/AdminApiConnectionIntake.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AdminApproval",
+      "source": "base44/entities/AdminApproval.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AdminCredentialReference",
+      "source": "base44/entities/AdminCredentialReference.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AdminCredentialVault",
+      "source": "base44/entities/AdminCredentialVault.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Agent",
+      "source": "base44/entities/Agent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AgentActivity",
+      "source": "base44/entities/AgentActivity.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AgentContentDraft",
+      "source": "base44/entities/AgentContentDraft.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AgentConversationRun",
+      "source": "base44/entities/AgentConversationRun.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AgentDelegation",
+      "source": "base44/entities/AgentDelegation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AuditLog",
+      "source": "base44/entities/AuditLog.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "AuthorizationGrant",
+      "source": "base44/entities/AuthorizationGrant.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "BlogEntry",
+      "source": "base44/entities/BlogEntry.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Campaign",
+      "source": "base44/entities/Campaign.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "CampaignTranslation",
+      "source": "base44/entities/CampaignTranslation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "CampaignUpdate",
+      "source": "base44/entities/CampaignUpdate.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Community",
+      "source": "base44/entities/Community.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "CommunityMember",
+      "source": "base44/entities/CommunityMember.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ConnectedPayoutAccount",
+      "source": "base44/entities/ConnectedPayoutAccount.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "DeviceAuthorization",
+      "source": "base44/entities/DeviceAuthorization.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "DiscussionPost",
+      "source": "base44/entities/DiscussionPost.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "DiscussionReply",
+      "source": "base44/entities/DiscussionReply.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "DistributedPost",
+      "source": "base44/entities/DistributedPost.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Donation",
+      "source": "base44/entities/Donation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExecutiveReport",
+      "source": "base44/entities/ExecutiveReport.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalAgentApiKey",
+      "source": "base44/entities/ExternalAgentApiKey.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalCampaignImport",
+      "source": "base44/entities/ExternalCampaignImport.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalCampaignImportOperation",
+      "source": "base44/entities/ExternalCampaignImportOperation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalCampaignPublication",
+      "source": "base44/entities/ExternalCampaignPublication.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalCollectionAuthorization",
+      "source": "base44/entities/ExternalCollectionAuthorization.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalConversation",
+      "source": "base44/entities/ExternalConversation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalConversationMessage",
+      "source": "base44/entities/ExternalConversationMessage.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalFundMigrationRecord",
+      "source": "base44/entities/ExternalFundMigrationRecord.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalFundObservation",
+      "source": "base44/entities/ExternalFundObservation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalPlatformRecord",
+      "source": "base44/entities/ExternalPlatformRecord.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalSyncClaim",
+      "source": "base44/entities/ExternalSyncClaim.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ExternalSyncEvent",
+      "source": "base44/entities/ExternalSyncEvent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "FeatureFlag",
+      "source": "base44/entities/FeatureFlag.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "FinancialOperation",
+      "source": "base44/entities/FinancialOperation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "FollowedCampaign",
+      "source": "base44/entities/FollowedCampaign.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "FoundingWaitlist",
+      "source": "base44/entities/FoundingWaitlist.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Friendship",
+      "source": "base44/entities/Friendship.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "FundraisingProviderCapability",
+      "source": "base44/entities/FundraisingProviderCapability.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "GitHubSyncCheckpoint",
+      "source": "base44/entities/GitHubSyncCheckpoint.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "GrantApplication",
+      "source": "base44/entities/GrantApplication.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "HelpArticle",
+      "source": "base44/entities/HelpArticle.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "HelpDraft",
+      "source": "base44/entities/HelpDraft.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "HelpFeedback",
+      "source": "base44/entities/HelpFeedback.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "HoldingLedgerEntry",
+      "source": "base44/entities/HoldingLedgerEntry.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "InboxItem",
+      "source": "base44/entities/InboxItem.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Institution",
+      "source": "base44/entities/Institution.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "InstitutionOpportunity",
+      "source": "base44/entities/InstitutionOpportunity.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "IntegrationChangeRequest",
+      "source": "base44/entities/IntegrationChangeRequest.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "KnowledgeArticle",
+      "source": "base44/entities/KnowledgeArticle.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "LegalAcceptance",
+      "source": "base44/entities/LegalAcceptance.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Message",
+      "source": "base44/entities/Message.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "MissionBrief",
+      "source": "base44/entities/MissionBrief.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "MonitoredCampaign",
+      "source": "base44/entities/MonitoredCampaign.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "NonprofitSubscriptionApproval",
+      "source": "base44/entities/NonprofitSubscriptionApproval.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Notification",
+      "source": "base44/entities/Notification.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "OfficialPublication",
+      "source": "base44/entities/OfficialPublication.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Opportunity",
+      "source": "base44/entities/Opportunity.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PayPalBillingWebhook",
+      "source": "base44/entities/PayPalBillingWebhook.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PayPalSubscriptionIntent",
+      "source": "base44/entities/PayPalSubscriptionIntent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformAccessRegistry",
+      "source": "base44/entities/PlatformAccessRegistry.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformConnection",
+      "source": "base44/entities/PlatformConnection.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformConnectionRecipe",
+      "source": "base44/entities/PlatformConnectionRecipe.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformEvent",
+      "source": "base44/entities/PlatformEvent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformIncident",
+      "source": "base44/entities/PlatformIncident.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PlatformOwnedAccount",
+      "source": "base44/entities/PlatformOwnedAccount.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PostInterest",
+      "source": "base44/entities/PostInterest.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ProtocolReport",
+      "source": "base44/entities/ProtocolReport.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PublicProfile",
+      "source": "base44/entities/PublicProfile.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "PushDevice",
+      "source": "base44/entities/PushDevice.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "RateLimitBucket",
+      "source": "base44/entities/RateLimitBucket.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Recommendation",
+      "source": "base44/entities/Recommendation.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "ScheduledAutoPostPermit",
+      "source": "base44/entities/ScheduledAutoPostPermit.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "SocialPost",
+      "source": "base44/entities/SocialPost.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "StripeReversalHold",
+      "source": "base44/entities/StripeReversalHold.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "SubscriptionPlanMapping",
+      "source": "base44/entities/SubscriptionPlanMapping.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "SupportTicket",
+      "source": "base44/entities/SupportTicket.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "SustainabilityAudit",
+      "source": "base44/entities/SustainabilityAudit.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "SyncRun",
+      "source": "base44/entities/SyncRun.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "TreasurySnapshot",
+      "source": "base44/entities/TreasurySnapshot.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "User",
+      "source": "base44/entities/User.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "UserBlog",
+      "source": "base44/entities/UserBlog.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "UserCredentialVault",
+      "source": "base44/entities/UserCredentialVault.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "VerificationMail",
+      "source": "base44/entities/VerificationMail.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "VerificationMailbox",
+      "source": "base44/entities/VerificationMailbox.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "VolunteerOpportunity",
+      "source": "base44/entities/VolunteerOpportunity.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "VolunteerSignup",
+      "source": "base44/entities/VolunteerSignup.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "WebhookEvent",
+      "source": "base44/entities/WebhookEvent.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "Withdrawal",
+      "source": "base44/entities/Withdrawal.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    },
+    {
+      "name": "WritingResearchBrief",
+      "source": "base44/entities/WritingResearchBrief.jsonc",
+      "migration_table": null,
+      "rls_verified": false,
+      "fields_verified": false,
+      "read_write_verified": false,
+      "data_verified": false
+    }
+  ]
+}
