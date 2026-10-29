@@ -3,7 +3,7 @@ import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-do
 import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
-import { authClient } from "@/api/auth";
+import useVerifiedUser from "@/lib/useVerifiedUser";
 import useSwipeBack from "@/hooks/useSwipeBack";
 import { AnimatePresence, motion } from "framer-motion";
 import OfflineBanner from "@/components/mobile/OfflineBanner";
@@ -120,7 +120,7 @@ const publicNavItems = [
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
-  const [account, setAccount] = useState({ phase: "loading", user: null });
+  const account = useVerifiedUser();
   const drawerCloseRef = useRef(null);
   const [darkTheme, setDarkTheme] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
@@ -136,38 +136,6 @@ export default function Layout() {
     sync();
     window.addEventListener("ifund-theme-changed", sync);
     return () => window.removeEventListener("ifund-theme-changed", sync);
-  }, []);
-  // Session is verified with the canonical Auth server. Navigation hints
-  // never replace RLS and privileged server authorization.
-  useEffect(() => {
-    let mounted = true;
-    let subscription;
-    const verify = async () => {
-      try {
-        const client = authClient();
-        const { data, error } = await client.auth.getUser();
-        if (mounted) setAccount(error ?
-          { phase: "error", user: null } :
-          { phase: "ready", user: data?.user || null });
-      } catch {
-        if (mounted) setAccount({ phase: "error", user: null });
-      }
-    };
-    try {
-      const client = authClient();
-      const { data } = client.auth.onAuthStateChange(event => {
-        if (!mounted) return;
-        if (event === "SIGNED_OUT") setAccount({ phase: "ready", user: null });
-        if (["SIGNED_IN", "TOKEN_REFRESHED", "USER_UPDATED", "INITIAL_SESSION"].includes(event)) {
-          Promise.resolve().then(verify);
-        }
-      });
-      subscription = data?.subscription;
-      Promise.resolve().then(verify);
-    } catch {
-      if (mounted) setAccount({ phase: "error", user: null });
-    }
-    return () => { mounted = false; subscription?.unsubscribe(); };
   }, []);
   const user = account.user;
   const isAdmin = user?.app_metadata?.role === "admin" || user?.app_metadata?.role === "super_admin";
