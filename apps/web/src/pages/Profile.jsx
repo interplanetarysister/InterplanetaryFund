@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { normalizeProfileInput } from "@/lib/profileInput";
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -14,7 +15,8 @@ export default function Profile() {
     async function load() {
       try {
         const client = authClient();
-        const { data: { user: current }, error: authError } = await client.auth.getUser();
+        const { data: authData, error: authError } = await client.auth.getUser();
+        const current = authData?.user;
         if (!active) return;
         if (authError || !current) { navigate("/login", { replace: true }); return; }
         setUser(current);
@@ -31,14 +33,27 @@ export default function Profile() {
     if (!user || busy) return;
     setBusy(true); setError(""); setMessage("");
     try {
-      const handle = profile.handle.trim();
-      if (handle && !/^[A-Za-z0-9_-]{3,32}$/.test(handle)) throw new Error("Handles must be 3–32 letters, numbers, underscores, or hyphens.");
-      const { error: saveError } = await authClient().from("ifund_profiles").upsert({
-        id: user.id, handle: handle || null, display_name: profile.display_name.trim() || null
-      }, { onConflict: "id" });
-      if (saveError) throw saveError;
+      const normalized = normalizeProfileInput(profile);
+      const client = authClient();
+      const { data: currentAuth, error: authError } = await client.auth.getUser();
+      if (authError || currentAuth?.user?.id !== user.id) {
+        throw new Error("Your session has changed. Please sign in again.");
+      }
+      const { data: savedRow, error: saveError } = await client.from("ifund_profiles")
+        .upsert({ id: user.id, ...normalized }, { onConflict: "id" })
+        .select("id,display_name,handle").single();
+      if (saveError || !savedRow || savedRow.id !== user.id ||
+          savedRow.display_name !== normalized.display_name ||
+          savedRow.handle !== normalized.handle) {
+        throw new Error("Your profile could not be verified after saving.");
+      }
+      setProfile({ display_name: savedRow.display_name || "", handle: savedRow.handle || "" });
       setMessage("Profile saved.");
-    } catch (err) { setError(err?.message || "Unable to save profile."); }
+    } catch (err) {
+      const message = err?.message || "";
+      setError(/^(Handles must|Display name must|Your session has changed|Your profile could not be verified)/.test(message)
+        ? message : "Unable to save profile.");
+    }
     finally { setBusy(false); }
   }
   if (loading) return <main role="status" className="mx-auto max-w-3xl p-8">Loading profile…</main>;
