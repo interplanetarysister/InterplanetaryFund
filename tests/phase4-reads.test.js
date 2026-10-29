@@ -32,7 +32,7 @@ test('private draft cannot be retrieved without a validated Supabase JWT', async
 });
 test('private draft requires remote Auth verification and RLS-scoped bearer', async () => {
   const calls = [];
-  const req = new Request(`https://api.example.org/api/campaigns/${id}/draft`, {
+  const req = new Request('https://api.example.org/api/campaigns/' + id + '/draft', {
     headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeReadRequest(req, env, async (url, opts) => {
@@ -46,7 +46,7 @@ test('private draft requires remote Auth verification and RLS-scoped bearer', as
   assert.equal(calls[1].headers.Authorization, 'Bearer signed.test.jwt');
 });
 test('invalid campaign IDs reject without touching Supabase', async () => {
-  const req = new Request('https://api.example.org/api/campaigns/123/draft');
+  const req = new Request('https://api.example.org/api/campaigns/' + id + '/draft', {
   const r = await routeReadRequest(req, env, () => { throw Error('no request expected'); });
   assert.equal(r.status, 400);
 });
@@ -60,7 +60,7 @@ test('upstream errors do not surface provider secrets or internal response bodie
 
 test('unconfirmed email sessions cannot read private migration data', async () => {
   const calls = [];
-  const req = new Request(\`https://api.example.org/api/campaigns/\${id}/draft\`, {
+  const req = new Request('https://api.example.org/api/campaigns/' + id + '/draft', {
     headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeReadRequest(req, env, async (url) => {
