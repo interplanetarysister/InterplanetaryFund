@@ -14,3 +14,17 @@ test("draft save never publishes or charges donors",()=>{
  assert.match(source,/status: "draft"/);
  assert.doesNotMatch(source,/status: "active"|paypal\.capture|stripe/);
 });
+
+test("partial drafts do not require publication-ready fields", () => {
+  assert.match(source, /goalText \? Number\(goalText\) : 0/);
+  assert.doesNotMatch(source, /<input required maxLength=/);
+  assert.doesNotMatch(source, /<textarea required maxLength=/);
+  assert.doesNotMatch(source, /<input required min="0"/);
+  assert.match(source, /status: "draft"/);
+});
+test("campaign editor renders all source category labels and aligned size limits", () => {
+  assert.match(source, /Object\.entries\(categoryLabels\)/);
+  assert.match(source, /maxLength=\{120\}/);
+  assert.match(source, /maxLength=\{600\}/);
+  assert.match(source, /maxLength=\{15000\}/);
+});
