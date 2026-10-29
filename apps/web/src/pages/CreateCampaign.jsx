@@ -48,7 +48,7 @@ export default function CreateCampaign() {
         const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
         if (authError || !user) { navigate("/login", { replace: true }); return; }
-        const { data, error } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id", draftId).eq("owner_id", user.id).eq("status", "draft").single();
+        const { data, error } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id", draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (error || !data) throw new Error("Draft not found or access denied.");
         if (active) setForm({ title: data.title || "", summary: data.summary || "", story: data.story || "", category: data.category || "community", goal_amount: String(data.goal_amount ?? ""), cover_image_url: data.cover_image_url || "" });
       } catch (err) { if (active) setDraftLoadError(err?.message || "Unable to load draft."); }
@@ -87,7 +87,7 @@ export default function CreateCampaign() {
     </nav>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
-    <form onSubmit={e => { e.preventDefault(); if (step < 3) setStep(value => Math.min(3, value + 1)); else save(e, true); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <form onSubmit={e => { e.preventDefault(); if (step < 3) setStep(value => Math.min(3, value + 1)); else save(null, true); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <section className="space-y-2"><h2 className="font-display text-2xl font-bold">{current.title}</h2><p className="text-muted-foreground">{current.description}</p></section>
       {step === 0 && <section className="space-y-4">
         <div className="rounded-xl border border-border bg-background p-4"><h3 className="font-semibold">Campaign owner</h3>{account?.name && <p className="mt-1">{account.name}</p>}<p className="text-sm text-muted-foreground">{account?.email || "Verifying your signed-in account…"}</p><p className="mt-3 text-sm text-muted-foreground">Your account owns this campaign. Your email is not displayed on its public page by this form.</p></div>
