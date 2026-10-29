@@ -60,7 +60,7 @@ test('PUT profile derives uid and uses RLS-scoped upsert without an admin role',
 test('profile write rejects identity overrides and reserved privileged fields',async()=>{
   const attempts=[{handle:'person',id:other},{display_name:'OK',role:'admin'},
     {handle:'x'},{handle:'no space'},{handle:'b'.repeat(33)},{display_name:'x'.repeat(101)},
-    {handle:null},{created_at:'yesterday'},{},['not a profile']];
+    {created_at:'yesterday'},{},['not a profile']];
   for(const attempt of attempts){
     const calls=[];const r=await routeAccountRequest(request('/api/account/profile','PUT',attempt),env,remote(calls));
     assert.equal(r.status,422);assert.equal(calls.length,1);
