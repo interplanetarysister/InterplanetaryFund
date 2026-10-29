@@ -44,3 +44,12 @@ No new route is certified by this audit. No migrations, tests, builds, or deploy
 - Added `apps/web/tests/device-authorization-schema.test.js` to assert those schema safety properties.
 
 These are groundwork only. The migration remains unapplied, the worker endpoint and atomic rate-limit RPC are not implemented, and `/activate` still does not provide a working authorization journey. The schema test has not been executed. The server-only Supabase service-role secret must be configured and validated before any worker handler can use this table. Do not expose that secret to the browser, and do not enable the route until the server handler and its tests exist.
+
+### Device authorization implementation continuation
+
+- Added `worker/deviceAuthorization.js` and wired `/api/device-authorization/*` through `worker/index.js`. The worker is restricted to the canonical Supabase project, requires the independent `MIGRATION_API_PREVIEW=enabled` gate, uses server-only service-role access, and fails closed if the required configuration or database/RPC is unavailable.
+- Implemented temporary request creation, authenticated code inspection, approve/deny compare-and-set, device-code polling, read-only scoped resource reads, owner-scoped device listing, and revocation checks on every resource request. Credential hashes use domain-separated SHA-256 values; visible approval codes match the source's ten-character format; approvals preserve only the scopes requested by the device.
+- Restored `/activate` and `/devices` as dedicated pages and mounted them in the web router. The pages call the independent API, never the legacy Base44 function route.
+- Added worker regression tests for configuration fail-closed behavior, hash-only credential storage, unsupported-scope rejection, no scope escalation, approved identity reads, and revoked-token denial. Added staged SQL assertions for the atomic rate-limit RPC.
+
+**Still not certified:** these commits have not been executed through the Node test suite, browser/device QA, or production build. The schema and RPC migration remains unapplied. No production server secrets have been confirmed/configured, and the route must remain fail-closed until the migration, worker environment and runtime checks are independently verified. The `campaigns:read` device resource currently returns only active campaign metadata; public raised-progress totals are deliberately not fabricated or inferred from unavailable donation data.
