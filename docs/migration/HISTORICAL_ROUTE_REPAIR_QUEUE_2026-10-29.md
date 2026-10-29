@@ -43,7 +43,7 @@ No new route is certified by this audit. No migrations, tests, builds, or deploy
 - Staged `supabase/migrations/pending/20261029_ifund_device_authorization.sql`: canonical table contract for device-code grants, SHA-256-only credential storage, short-lived pending codes, constrained read scopes, revocation states, and rate-limit buckets. RLS is enabled with all browser grants revoked and no client policies.
 - Added `apps/web/tests/device-authorization-schema.test.js` to assert those schema safety properties.
 
-These are groundwork only. The migration remains unapplied, the worker endpoint and atomic rate-limit RPC are not implemented, and `/activate` still does not provide a working authorization journey. The schema test has not been executed. The server-only Supabase service-role secret must be configured and validated before any worker handler can use this table. Do not expose that secret to the browser, and do not enable the route until the server handler and its tests exist.
+At the time of the initial schema-only checkpoint, the worker endpoint and UI were missing. The continuation below records subsequent partial implementation. The migration remains unapplied and tests have not been executed; `/activate` and `/devices` are not certified end to end. The canonical server-only Supabase service-role secret and preview gate must be configured and validated before the handler can access the tables. Never expose the service-role secret to the browser.
 
 ### Device authorization implementation continuation
 
