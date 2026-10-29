@@ -629,3 +629,19 @@ html[data-theme="light"] .side-nav strong { color: #315b8a; }
 @media (prefers-reduced-motion: reduce) {
   .side-menu { transition: none; }
 }
+
+.dashboard-hero h1 { font-size: clamp(2rem,6vw,3.4rem); }
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: .9rem;
+  margin: 1.4rem 0;
+}
+.dashboard-stats .card { margin: 0; }
+.dashboard-stats .card small { display: block; color: #aedafa; }
+.dashboard-stats .card strong { font-size: clamp(1.7rem,5vw,2.8rem); }
+html[data-theme="light"] .dashboard-stats .card small { color: #39628a; }
+@media (max-width: 520px) {
+  .dashboard-stats { grid-template-columns: 1fr; }
+  .dashboard-hero { padding: 1.2rem; }
+}
