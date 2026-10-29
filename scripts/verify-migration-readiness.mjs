@@ -14,6 +14,7 @@ const launch = load("docs/migration/contracts/launch-evidence.json");
 const android = load("docs/migration/contracts/android.json");
 const schemaTypes = load("docs/migration/contracts/schema-type-crosswalk.json");
 const dataMigration = load("docs/migration/contracts/data-migration-checkpoint.json");
+const authEvidence = load("docs/migration/contracts/auth-verification.json");
 const app = readFileSync(new URL("apps/web/src/App.jsx", root), "utf8");
 const errors = [];
 
@@ -75,6 +76,14 @@ if (!app.includes("/embed/campaign/:id") || !app.includes("/download"))
 const production = process.argv.includes("--release") || process.argv.includes("--build");
 
 if (production) {
+  for (const [name,value] of Object.entries(authEvidence.provider_configuration)) {
+    if (name.endsWith("_verified") && value !== true)
+      errors.push("Auth provider configuration missing: " + name);
+  }
+  for (const [name,value] of Object.entries(authEvidence.real_world_qa)) {
+    if (value !== true)
+      errors.push("First signup/login verification missing: " + name);
+  }
   if (dataMigration.owner_identity_match_verified !== true ||
       dataMigration.all_source_campaigns_accounted_for !== true ||
       dataMigration.source_ledger_integrity_verified !== true ||
