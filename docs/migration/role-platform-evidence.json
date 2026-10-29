@@ -2481,8 +2481,8 @@
       "title": "Founding members admin",
       "source_component": "AdminFoundingWaitlist",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "AdminFoundingWaitlist",
       "release_status": "not_verified",
       "proof": {
         "visual": {
