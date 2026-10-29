@@ -22,18 +22,19 @@ async function sha256(value) {
 const deviceHash = (code) => sha256('ifund:device-code:v1:' + code);
 const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\\s]/g, ''));
 const accessTokenHash = (token) => sha256('ifund:access-hash:v1:' + token);
+const deviceHash = (code) => sha256('ifund:device-code:v1:' + code);
+const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\\s]/g, ''));
+const accessTokenHash = (token) => sha256('ifund:access-hash:v1:' + token);
 function randomToken(bytes = 32) {
   const raw = crypto.getRandomValues(new Uint8Array(bytes));
   return [...raw].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
 function userCode() {
-  const raw = crypto.getRandomValues(new Uint8Array(8));
+  const raw = crypto.getRandomValues(new Uint8Array(10));
   return [...raw].map((x) => CODE_ALPHABET[x % CODE_ALPHABET.length]).join('');
 }
-async function deriveAccessToken(deviceCode, secret) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-  const signed = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('ifund-device-access-v1:' + deviceCode));
-  return [...new Uint8Array(signed)].map((x) => x.toString(16).padStart(2, '0')).join('');
+function deriveAccessToken(deviceCode) {
+  return sha256('ifund:access-token:v1:' + deviceCode).then((digest) => 'ifd_at_' + digest);
 }
 function dbHeaders(env, prefer = '') {
   return {
@@ -54,7 +55,7 @@ async function db(env, path, init = {}, fetcher = fetch) {
   return type.includes('json') ? await res.json() : [];
 }
 async function rateAllowed(env, bucket, limit, seconds, fetcher) {
-  const bucketHash = await sha256(String(env.DEVICE_TOKEN_SECRET) + ':' + bucket);
+  const bucketHash = await sha256('ifund:device-rate-limit:v1:' + bucket);
   const rows = await db(env, 'rpc/ifund_device_rate_limit', {
     method: 'POST', body: JSON.stringify({ p_bucket_hash: bucketHash, p_limit: limit, p_window_seconds: seconds }),
   }, fetcher);
@@ -88,114 +89,103 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
   const mode = path.slice('/api/device-authorization/'.length);
   try {
     if (mode === 'request' && request.method === 'POST') {
-      if (!await rateAllowed(env, clientBucket(request), 10, 60, fetcher))
-        return response(429, { error: 'Too many requests. Try again later.' });
+      if (!await rateAllowed(env, clientBucket(request), 8, 600, fetcher))
+        return response(429, { error: 'Too many device requests. Try again later.' });
       const body = await readJsonBody(request, 2048);
       if (!body || typeof body !== 'object' || Array.isArray(body) ||
           !CLIENTS.has(body.client_id) || typeof body.device_label !== 'string' ||
           body.device_label.trim().length < 1 || body.device_label.trim().length > 80 ||
-          !validScopes(body.scopes)) {
-        return response(422, { error: 'Invalid device request.' });
-      }
+          !validScopes(body.scopes)) return response(422, { error: 'Invalid device request.' });
       const deviceCode = randomToken();
       const shortCode = userCode();
-      const token = await deriveAccessToken(deviceCode, env.DEVICE_TOKEN_SECRET);
-      const now = Date.now();
-      const expiresAt = new Date(now + 10 * 60 * 1000).toISOString();
+      const token = await deriveAccessToken(deviceCode);
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       const rows = await db(env, 'ifund_device_authorizations', {
         method: 'POST', prefer: 'return=representation',
         body: JSON.stringify({
-          device_code_hash: await sha256(deviceCode),
-          user_code_hash: await sha256(shortCode),
-          access_token_hash: await sha256(token),
-          client_id: body.client_id,
-          device_label: body.device_label.trim(),
-          scopes: body.scopes,
-          state: 'pending',
-          expires_at: expiresAt,
+          device_code_hash: await deviceHash(deviceCode),
+          user_code_hash: await userCodeHash(shortCode),
+          access_token_hash: await accessTokenHash(token),
+          client_id: body.client_id, device_label: body.device_label.trim(),
+          scopes: body.scopes, state: 'pending', expires_at: expiresAt,
         }),
       }, fetcher);
       if (!Array.isArray(rows) || rows.length !== 1) return response(503, { error: 'Device request could not be created.' });
+      const visible = shortCode.slice(0, 5) + '-' + shortCode.slice(5);
       return response(201, {
-        device_code: deviceCode,
-        user_code: shortCode,
+        device_code: deviceCode, user_code: visible,
         verification_uri: new URL('/activate', request.url).toString(),
-        expires_in: 600,
-        interval: 5,
+        verification_uri_complete: new URL('/activate?code=' + encodeURIComponent(visible), request.url).toString(),
+        expires_in: 600, interval: 5,
       });
     }
 
     if (mode === 'inspect' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
-      if (!await rateAllowed(env, 'inspect:' + account.uid, 20, 60, fetcher))
-        return response(429, { error: 'Too many attempts. Try again later.' });
+      if (!await rateAllowed(env, 'inspect:' + account.uid, 12, 600, fetcher))
+        return response(429, { error: 'Too many code attempts. Please wait.' });
       const body = await readJsonBody(request, 1024);
-      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9]{8}$/.test(body.user_code.toUpperCase()))
-        return response(422, { error: 'Enter a valid activation code.' });
-      const record = await getBy(env, 'user_code_hash', await sha256(body.user_code.toUpperCase()), fetcher);
+      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code))
+        return response(422, { error: 'Enter the 10-character activation code.' });
+      const record = await getBy(env, 'user_code_hash', await userCodeHash(body.user_code), fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
         return response(404, { error: 'This activation code is invalid or expired.' });
-      return response(200, { id: record.id, device_label: record.device_label, client_id: record.client_id,
-        scopes: record.scopes, expires_at: record.expires_at });
+      return response(200, { ok: true, id: record.id, device_label: record.device_label,
+        client_id: record.client_id, scopes: record.scopes, expires_at: record.expires_at });
     }
 
     if (mode === 'decide' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
-      if (!await rateAllowed(env, 'decide:' + account.uid, 10, 60, fetcher))
+      if (!await rateAllowed(env, 'decide:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
-      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9]{8}$/i.test(body.user_code) ||
-          !UUID.test(body.id || '') || !['approve', 'deny'].includes(body.decision) ||
-          (body.decision === 'approve' && !validScopes(body.scopes))) {
-        return response(422, { error: 'Invalid device decision.' });
-      }
-      const inspected = await getBy(env, 'user_code_hash', await sha256(body.user_code.toUpperCase()), fetcher);
-      if (!inspected || inspected.id !== body.id || inspected.state !== 'pending' ||
-          Date.parse(inspected.expires_at) <= Date.now())
+      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code) ||
+          !['approve', 'deny'].includes(body.decision)) return response(422, { error: 'Invalid device decision.' });
+      const codeHash = await userCodeHash(body.user_code);
+      const record = await getBy(env, 'user_code_hash', codeHash, fetcher);
+      if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
         return response(409, { error: 'This activation code has expired or changed. Inspect it again.' });
-      const scopes = body.decision === 'approve' ? body.scopes : [];
-      if (body.decision === 'approve' &&
-          (!validScopes(scopes) || scopes.some((scope) => !inspected.scopes.includes(scope))))
-        return response(422, { error: 'Select only permissions requested by this device.' });
-      const params = new URLSearchParams({ id: 'eq.' + body.id, state: 'eq.pending',
-        user_code_hash: 'eq.' + await sha256(body.user_code.toUpperCase()),
-        expires_at: 'gt.' + new Date().toISOString(), select: SELECT });
+      const params = new URLSearchParams({ id: 'eq.' + record.id, state: 'eq.pending',
+        user_code_hash: 'eq.' + codeHash, expires_at: 'gt.' + new Date().toISOString(), select: SELECT });
       const patch = body.decision === 'approve'
         ? { state: 'approved', owner_id: account.uid, approved_at: new Date().toISOString(),
-            grant_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), scopes }
+            grant_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() }
         : { state: 'denied' };
       const rows = await db(env, 'ifund_device_authorizations?' + params.toString(), {
         method: 'PATCH', prefer: 'return=representation', body: JSON.stringify(patch),
       }, fetcher);
       if (!Array.isArray(rows) || rows.length !== 1)
         return response(409, { error: 'This request has expired or has already been decided.' });
-      return response(200, { state: patch.state });
+      return response(200, { ok: true, decision: body.decision });
     }
 
     if (mode === 'token' && request.method === 'POST') {
-      if (!await rateAllowed(env, clientBucket(request), 30, 60, fetcher))
-        return response(429, { error: 'Too many requests. Try again later.' });
+      if (!await rateAllowed(env, clientBucket(request), 35, 300, fetcher))
+        return response(429, { error: 'slow_down' });
       const body = await readJsonBody(request, 2048);
-      if (!body || typeof body.device_code !== 'string' || !/^[a-f0-9]{64}$/.test(body.device_code))
-        return response(422, { error: 'Invalid device request.' });
-      const record = await getBy(env, 'device_code_hash', await sha256(body.device_code), fetcher);
+      if (!body || body.grant_type !== 'urn:ietf:params:oauth:grant-type:device_code' ||
+          typeof body.device_code !== 'string' || !/^[a-f0-9]{64}$/.test(body.device_code))
+        return response(422, { error: 'invalid_request' });
+      const record = await getBy(env, 'device_code_hash', await deviceHash(body.device_code), fetcher);
       if (!record || Date.parse(record.expires_at) <= Date.now()) return response(400, { error: 'expired_token' });
+      if (record.state === 'denied' || record.state === 'revoked') return response(400, { error: 'access_denied' });
       if (record.state === 'pending') {
+        if (record.last_polled_at && Date.now() - Date.parse(record.last_polled_at) < 5000)
+          return response(429, { error: 'slow_down' });
         await db(env, 'ifund_device_authorizations?id=eq.' + record.id, {
           method: 'PATCH', body: JSON.stringify({ last_polled_at: new Date().toISOString() }),
         }, fetcher);
-        return response(200, { status: 'authorization_pending', interval: 5 });
+        return response(400, { error: 'authorization_pending' });
       }
-      if (record.state === 'denied') return response(200, { status: 'access_denied' });
       if (record.state !== 'approved' || !record.owner_id ||
           !record.grant_expires_at || Date.parse(record.grant_expires_at) <= Date.now())
         return response(400, { error: 'expired_token' });
-      const token = await deriveAccessToken(body.device_code, env.DEVICE_TOKEN_SECRET);
-      if (await sha256(token) !== record.access_token_hash) return response(400, { error: 'invalid_grant' });
+      const token = await deriveAccessToken(body.device_code);
+      if (await accessTokenHash(token) !== record.access_token_hash) return response(400, { error: 'invalid_grant' });
       return response(200, { access_token: token, token_type: 'Bearer',
-        scope: record.scopes.join(' '), expires_at: record.grant_expires_at });
+        scope: record.scopes.join(' '), expires_in: Math.max(0, Math.floor((Date.parse(record.grant_expires_at)-Date.now())/1000)) });
     }
 
     if (mode === 'revoke' && request.method === 'POST') {
