@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "source_repository": "interplanetarysister/interplanetary-fund2",
-  "description": "Exact source entity names; null target means migration and RLS proof not independently established",
+  "description": "Authoritative 95/95 metadata-confirmed private staging tables in canonical Supabase; no runtime schema, row migration, field equivalence or policy parity has been verified.",
   "items": [
     {
       "name": "ActivityEvent",
@@ -10,7 +10,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.activity_event",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AdminActionMessage",
@@ -19,7 +23,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.admin_action_message",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AdminApiConnectionIntake",
@@ -28,7 +36,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_secrets.admin_api_connection_intake",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AdminApproval",
@@ -37,7 +49,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.admin_approval",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AdminCredentialReference",
@@ -46,7 +62,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_secrets.admin_credential_reference",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AdminCredentialVault",
@@ -55,7 +75,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_secrets.admin_credential_vault",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Agent",
@@ -64,7 +88,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.agent",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AgentActivity",
@@ -73,7 +101,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.agent_activity",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AgentContentDraft",
@@ -82,7 +114,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.agent_content_draft",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AgentConversationRun",
@@ -91,7 +127,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.agent_conversation_run",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AgentDelegation",
@@ -100,7 +140,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.agent_delegation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AuditLog",
@@ -109,7 +153,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.audit_log",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "AuthorizationGrant",
@@ -118,7 +166,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.authorization_grant",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "BlogEntry",
@@ -127,7 +179,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.blog_entry",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Campaign",
@@ -136,7 +192,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.campaign",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "CampaignTranslation",
@@ -145,7 +205,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.campaign_translation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "CampaignUpdate",
@@ -154,7 +218,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.campaign_update",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Community",
@@ -163,7 +231,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.community",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "CommunityMember",
@@ -172,7 +244,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.community_member",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ConnectedPayoutAccount",
@@ -181,7 +257,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.connected_payout_account",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "DeviceAuthorization",
@@ -190,7 +270,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.device_authorization",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "DiscussionPost",
@@ -199,7 +283,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.discussion_post",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "DiscussionReply",
@@ -208,7 +296,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.discussion_reply",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "DistributedPost",
@@ -217,7 +309,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.distributed_post",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Donation",
@@ -226,7 +322,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.donation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExecutiveReport",
@@ -235,7 +335,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.executive_report",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalAgentApiKey",
@@ -244,7 +348,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_agent_api_key",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalCampaignImport",
@@ -253,7 +361,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_campaign_import",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalCampaignImportOperation",
@@ -262,7 +374,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_campaign_import_operation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalCampaignPublication",
@@ -271,7 +387,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_campaign_publication",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalCollectionAuthorization",
@@ -280,7 +400,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_collection_authorization",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalConversation",
@@ -289,7 +413,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_conversation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalConversationMessage",
@@ -298,7 +426,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_conversation_message",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalFundMigrationRecord",
@@ -307,7 +439,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.external_fund_migration_record",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalFundObservation",
@@ -316,7 +452,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.external_fund_observation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalPlatformRecord",
@@ -325,7 +465,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_platform_record",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalSyncClaim",
@@ -334,7 +478,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_sync_claim",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ExternalSyncEvent",
@@ -343,7 +491,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.external_sync_event",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "FeatureFlag",
@@ -352,7 +504,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.feature_flag",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "FinancialOperation",
@@ -361,7 +517,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.financial_operation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "FollowedCampaign",
@@ -370,7 +530,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.followed_campaign",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "FoundingWaitlist",
@@ -379,7 +543,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.founding_waitlist",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Friendship",
@@ -388,7 +556,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.friendship",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "FundraisingProviderCapability",
@@ -397,7 +569,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.fundraising_provider_capability",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "GitHubSyncCheckpoint",
@@ -406,7 +582,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.git_hub_sync_checkpoint",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "GrantApplication",
@@ -415,7 +595,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.grant_application",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "HelpArticle",
@@ -424,7 +608,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.help_article",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "HelpDraft",
@@ -433,7 +621,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.help_draft",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "HelpFeedback",
@@ -442,7 +634,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.help_feedback",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "HoldingLedgerEntry",
@@ -451,7 +647,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.holding_ledger_entry",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "InboxItem",
@@ -460,7 +660,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.inbox_item",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Institution",
@@ -469,7 +673,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.institution",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "InstitutionOpportunity",
@@ -478,7 +686,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.institution_opportunity",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "IntegrationChangeRequest",
@@ -487,7 +699,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.integration_change_request",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "KnowledgeArticle",
@@ -496,7 +712,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.knowledge_article",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "LegalAcceptance",
@@ -505,7 +725,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.legal_acceptance",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Message",
@@ -514,7 +738,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.message",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "MissionBrief",
@@ -523,7 +751,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.mission_brief",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "MonitoredCampaign",
@@ -532,7 +764,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.monitored_campaign",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "NonprofitSubscriptionApproval",
@@ -541,7 +777,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.nonprofit_subscription_approval",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Notification",
@@ -550,7 +790,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.notification",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "OfficialPublication",
@@ -559,7 +803,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.official_publication",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Opportunity",
@@ -568,7 +816,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.opportunity",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PayPalBillingWebhook",
@@ -577,7 +829,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.pay_pal_billing_webhook",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PayPalSubscriptionIntent",
@@ -586,7 +842,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.pay_pal_subscription_intent",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformAccessRegistry",
@@ -595,7 +855,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_access_registry",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformConnection",
@@ -604,7 +868,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_connection",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformConnectionRecipe",
@@ -613,7 +881,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_connection_recipe",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformEvent",
@@ -622,7 +894,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_event",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformIncident",
@@ -631,7 +907,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_incident",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PlatformOwnedAccount",
@@ -640,7 +920,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.platform_owned_account",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PostInterest",
@@ -649,7 +933,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.post_interest",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ProtocolReport",
@@ -658,7 +946,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.protocol_report",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PublicProfile",
@@ -667,7 +959,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.public_profile",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "PushDevice",
@@ -676,7 +972,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.push_device",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "RateLimitBucket",
@@ -685,7 +985,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.rate_limit_bucket",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Recommendation",
@@ -694,7 +998,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.recommendation",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "ScheduledAutoPostPermit",
@@ -703,7 +1011,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.scheduled_auto_post_permit",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "SocialPost",
@@ -712,7 +1024,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.social_post",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "StripeReversalHold",
@@ -721,7 +1037,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.stripe_reversal_hold",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "SubscriptionPlanMapping",
@@ -730,7 +1050,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.subscription_plan_mapping",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "SupportTicket",
@@ -739,7 +1063,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.support_ticket",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "SustainabilityAudit",
@@ -748,7 +1076,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.sustainability_audit",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "SyncRun",
@@ -757,7 +1089,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.sync_run",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "TreasurySnapshot",
@@ -766,7 +1102,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.treasury_snapshot",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "User",
@@ -775,7 +1115,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.user",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "UserBlog",
@@ -784,7 +1128,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.user_blog",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "UserCredentialVault",
@@ -793,7 +1141,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_secrets.user_credential_vault",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "VerificationMail",
@@ -802,7 +1154,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.verification_mail",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "VerificationMailbox",
@@ -811,7 +1167,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.verification_mailbox",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "VolunteerOpportunity",
@@ -820,7 +1180,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.volunteer_opportunity",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "VolunteerSignup",
@@ -829,7 +1193,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.volunteer_signup",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "WebhookEvent",
@@ -838,7 +1206,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.webhook_event",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "Withdrawal",
@@ -847,7 +1219,11 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_finance.withdrawal",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     },
     {
       "name": "WritingResearchBrief",
@@ -856,7 +1232,12 @@
       "rls_verified": false,
       "fields_verified": false,
       "read_write_verified": false,
-      "data_verified": false
+      "data_verified": false,
+      "staging_table": "ifund_stage.writing_research_brief",
+      "staging_rls_enabled": true,
+      "staging_table_exists": true,
+      "runtime_table": null
     }
-  ]
+  ],
+  "project_ref": "ssibsfmtodgximseeqsv"
 }
