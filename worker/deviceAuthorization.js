@@ -8,16 +8,20 @@ const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SELECT = 'id,device_code_hash,user_code_hash,access_token_hash,client_id,device_label,scopes,state,owner_id,created_at,expires_at,approved_at,grant_expires_at';
 
 function configReady(env) {
-  return env?.MIGRATION_API_PREVIEW === 'enabled' &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL) &&
+  let url;
+  try { url = new URL(env?.SUPABASE_URL); } catch { return false; }
+  return env?.MIGRATION_API_PREVIEW === 'enabled' && url.protocol === 'https:' &&
+    /^[a-z0-9.-]+\.supabase\.co$/i.test(url.hostname) &&
     typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
-    typeof env?.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20 &&
-    typeof env?.DEVICE_TOKEN_SECRET === 'string' && env.DEVICE_TOKEN_SECRET.length >= 32;
+    typeof env?.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20;
 }
 async function sha256(value) {
   const bytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value));
   return [...new Uint8Array(bytes)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
+const deviceHash = (code) => sha256('ifund:device-code:v1:' + code);
+const userCodeHash = (code) => sha256('ifund:user-code:v1:' + String(code).trim().toUpperCase().replace(/[-\\s]/g, ''));
+const accessTokenHash = (token) => sha256('ifund:access-hash:v1:' + token);
 function randomToken(bytes = 32) {
   const raw = crypto.getRandomValues(new Uint8Array(bytes));
   return [...raw].map((x) => x.toString(16).padStart(2, '0')).join('');
