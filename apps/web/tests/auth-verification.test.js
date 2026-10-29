@@ -91,7 +91,7 @@ test("first confirmed login routes incomplete profiles to onboarding",async()=>{
   assert.equal(await landingAfterLogin(client,"/mine"),"/mine");
 });
 test("returning member login resumes dashboard; profile errors do not block login",async()=>{
-  const client={auth:{getUser:async()=>({data:{user:{id:"verified"}},error:null})},
+  const client={auth:{getUser:async()=>({data:{user:{id:"verified",email_confirmed_at:"2026-10-29"}},error:null})},
     from(){return {select(){return this},eq(){return this},
       maybeSingle:async()=>({data:{display_name:"Member",handle:"person"},error:null})};}};
   assert.equal(await landingAfterLogin(client,"/dashboard"),"/dashboard");
@@ -125,4 +125,9 @@ test("register and login use verified Supabase Auth sessions, and original email
   const router=readFileSync(new URL("../src/App.jsx",import.meta.url),"utf8");
   assert.match(router,/path="\/auth\/callback"/);
   assert.match(router,/legacyAuthLandingRedirect/);
+});
+
+test("a provider session without confirmed email cannot access member navigation",async()=>{
+ const client={auth:{getUser:async()=>({data:{user:{id:"signedup",email_confirmed_at:null}},error:null})}};
+ await assert.rejects(()=>landingAfterLogin(client,"/dashboard"),/Confirm your email/);
 });
