@@ -35,18 +35,26 @@ export function Loading() {
   return <p>Loading…</p>;
 }
 
+const categoryLabels = {
+  medical: "Medical", emergency: "Emergency", education: "Education",
+  community: "Community", animals: "Animals", business: "Business",
+  memorial: "Memorial", disaster_relief: "Disaster Relief",
+  creative: "Creative", environment: "Planet & Environment", other: "Other",
+};
 export function CampaignCard({ c }) {
   return (
     <Link className="card campaign" to={c.status === "draft" ? "/create?draft=" + encodeURIComponent(c.id) : "/campaign/" + c.id}>
-      {c.cover_image_url && (
-        <img src={c.cover_image_url} alt="" loading="lazy" />
-      )}
+      {c.cover_image_url
+        ? <img src={c.cover_image_url} alt={c.title || "Campaign cover"} loading="lazy" />
+        : <div className="campaign-placeholder" aria-hidden="true"><Planet /></div>}
       <small>
-        {c.category} · {c.status === "active" ? "Published" : "Draft"}
+        {categoryLabels[c.category] || "Other"} · {c.status === "active" ? "Published" : c.status === "paused" ? "Paused" : "Draft"}
       </small>
       <h3>{c.title || "Untitled campaign"}</h3>
       <p>{c.status === "draft" ? "Private draft · Continue where you left off" : c.summary || "No summary yet"}</p>
-      <strong>Goal: ${Number(c.goal_amount || 0).toLocaleString()}</strong>
+      <strong>{"Goal: $" + Number(c.goal_amount || 0).toLocaleString()}</strong>
+      {c.raised_amount != null && c.status !== "draft" &&
+        <p>{"Raised: $" + Number(c.raised_amount).toLocaleString()}</p>}
     </Link>
   );
 }
