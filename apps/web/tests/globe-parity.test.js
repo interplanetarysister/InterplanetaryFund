@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../../"+p,import.meta.url),"utf8");
 
 test("original public globe retains Three.js renderer and source appearance",()=>{
  const globe=read("apps/web/src/components/globe/CampaignGlobe.jsx");
