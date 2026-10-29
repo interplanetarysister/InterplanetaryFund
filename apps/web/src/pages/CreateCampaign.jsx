@@ -43,7 +43,7 @@ export default function CreateCampaign() {
       if (authError || !user) { navigate("/login", { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
-      if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
+      if (!goalText || !Number.isFinite(amount) || amount <= 0 || amount > 100000000 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
       const title = form.title.trim();
       const summary = form.summary.trim();
       if (!title || title.length > 150) throw new Error("Enter a campaign title (up to 150 characters).");
