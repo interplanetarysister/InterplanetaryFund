@@ -194,8 +194,8 @@
       "title": "Global Globe",
       "source_component": "GlobalGlobe",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/GlobalGlobe.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -228,7 +228,9 @@
         "source_page_file": "src/pages/GlobalGlobe.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/globeCampaigns.js",
+      "known_compatibility_gap": "Original THREE.js globe rendered conditionally; source-compatible visual component staged, but three package not installed, location columns and opt-in publication migration unapplied, and no source geo ownership/campaign records reconciled."
     },
     {
       "path": "/embed/campaign/:id",
