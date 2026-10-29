@@ -100,3 +100,56 @@ create policy ifund_follows_member_insert on public.ifund_campaign_follows
 create policy ifund_follows_member_delete on public.ifund_campaign_follows
   for delete to authenticated using (follower_id = (select auth.uid()));
 grant select, insert, delete on public.ifund_campaign_follows to authenticated;
+
+
+-- Private notifications and universal-inbox records. External provider messages
+-- may only be created by an authenticated trusted backend after provider checks.
+create table if not exists public.ifund_notifications (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  type text not null default 'system' check (type in ('system','campaign','community','connection','agent')),
+  title text not null check (char_length(trim(title)) between 1 and 180),
+  body text not null default '' check (char_length(body) <= 2000),
+  link text not null default '' check (char_length(link) <= 512 and (link = '' or (link like '/%' and link not like '//%'))),
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists ifund_notifications_owner_recent
+  on public.ifund_notifications(owner_id,created_at desc);
+alter table public.ifund_notifications enable row level security;
+create policy ifund_notifications_owner_select on public.ifund_notifications
+  for select to authenticated using (owner_id = (select auth.uid()));
+create policy ifund_notifications_owner_update on public.ifund_notifications
+  for update to authenticated
+  using (owner_id = (select auth.uid()))
+  with check (owner_id = (select auth.uid()));
+-- Grant only fields the user is allowed to mark read. No recipient, link,
+-- type or title changes, and no browser INSERT rights.
+grant select on public.ifund_notifications to authenticated;
+grant update (read) on public.ifund_notifications to authenticated;
+
+create table if not exists public.ifund_inbox_items (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  platform text not null check (char_length(platform) between 1 and 80),
+  source_ref text not null check (char_length(source_ref) between 1 and 255),
+  subject text not null default '' check (char_length(subject) <= 300),
+  body text not null default '' check (char_length(body) <= 8000),
+  campaign_id uuid references public.ifund_campaigns(id) on delete set null,
+  status text not null default 'open' check (status in ('open','done')),
+  created_at timestamptz not null default now(),
+  unique(owner_id,platform,source_ref)
+);
+create index if not exists ifund_inbox_owner_recent
+  on public.ifund_inbox_items(owner_id,created_at desc);
+alter table public.ifund_inbox_items enable row level security;
+create policy ifund_inbox_owner_select on public.ifund_inbox_items
+  for select to authenticated using (owner_id = (select auth.uid()));
+create policy ifund_inbox_owner_update on public.ifund_inbox_items
+  for update to authenticated
+  using (owner_id = (select auth.uid()))
+  with check (owner_id = (select auth.uid()));
+grant select on public.ifund_inbox_items to authenticated;
+grant update (status) on public.ifund_inbox_items to authenticated;
+-- Provider webhook/connector service must validate signed claims before writing
+-- to either table. No browser INSERT, DELETE, service credentials or fake data.
