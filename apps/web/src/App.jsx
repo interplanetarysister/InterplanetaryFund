@@ -21,6 +21,7 @@ const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 import RequireAccess from "@/components/RequireAccess";
@@ -75,6 +76,7 @@ function AppRoutes() {
     <Route path="/register" element={<AuthPage mode="register" />} />
     <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/onboarding" element={<RequireAccess access="member"><Onboarding /></RequireAccess>} />
