@@ -801,8 +801,8 @@
       "title": "Community discussion",
       "source_component": "CommunityDetail",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/CommunityDetail.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -838,7 +838,9 @@
         "source_page_file": "src/pages/CommunityDetail.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/communities.js",
+      "known_compatibility_gap": "Original join/leave, discussions, volunteers and full member role workflow not operational; approved-only RLS schema staged but unapplied. Opt-in public member display only."
     },
     {
       "path": "/u/:id",
