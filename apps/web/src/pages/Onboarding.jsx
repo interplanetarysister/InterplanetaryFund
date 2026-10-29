@@ -46,6 +46,7 @@ export default function Onboarding() {
       const {error:writeError}=await client.from("ifund_profiles").upsert({
         id:user.id,display_name:name.trim()||null,handle:handle.trim()||null
       },{onConflict:"id"});
+      if(writeError?.code==="23505")throw Error("That username is already taken. Choose another handle.");
       if(writeError)throw Error("Profile save was not confirmed.");
       setStep(2);
     }catch(cause){setError(cause?.message||"Setup could not be saved.");}
