@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import BrandLogo from "@/components/brand/BrandLogo";
+import AuthLayout from "@/components/AuthLayout";
+import { UserPlus, LogIn, Mail } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authCallbackUrl } from "@/lib/authCallback";
@@ -118,17 +119,10 @@ export default function AuthPage({ mode="login" }){
   }
 
   const heading=isReset?"Reset your password":isRegister?"Create your account":"Welcome back";
-  return <main className="ifund-public ifund-auth min-h-dvh px-5 py-12 text-white">
-    <div className="mx-auto w-full max-w-md">
-      <Link to="/" className="inline-flex min-h-11 items-center">
-        <BrandLogo size="sm" nameClassName="text-slate-100"/>
-      </Link>
-      <section className="ifund-auth-card mt-7 rounded-3xl p-7 sm:p-10">
-        <h1 className="text-3xl font-semibold">{heading}</h1>
-        <p className="mt-3 text-sm text-slate-300">
-          {isReset?"Get a secure password reset email.":isRegister?
-            "Create an Interplanetary Fund account and verify your email address.":"Sign in securely to Interplanetary Fund."}
-        </p>
+  const subtitle=isReset?"Get a secure password reset email.":isRegister?
+    "Sign up to get started":"Log in to your account";
+  return <AuthLayout icon={isReset?Mail:isRegister?UserPlus:LogIn} title={heading} subtitle={subtitle}>
+    <div className="text-white">
         {isRegister&&<p className="mt-4 text-xs text-slate-300">
           After verification, review and accept our <Link to="/terms" className="underline text-cyan-200">Terms of Service</Link> and{" "}
           <Link to="/privacy" className="underline text-cyan-200">Privacy Policy</Link> before using IFund account features.
@@ -186,7 +180,6 @@ export default function AuthPage({ mode="login" }){
           {mode!=="login"&&<Link to="/login" className="underline">Sign in</Link>}
           {!isReset&&<Link to="/forgot-password" className="underline">Forgot password?</Link>}
         </nav>
-      </section>
     </div>
-  </main>;
+  </AuthLayout>;
 }
