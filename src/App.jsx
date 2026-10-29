@@ -29,6 +29,7 @@ import BlogArticle from "./pages/BlogArticle";
 import Onboarding from "./pages/Onboarding";
 import MissionControl from "./pages/MissionControlPage";
 import Agents from "./pages/Agents";
+import FoundingMembers from "./pages/FoundingMembers";
 function App() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -131,6 +132,7 @@ function App() {
           <NavLink onClick={() => setMenuOpen(false)} to="/onboarding">Your Setup</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to={user ? "/profile" : "/login"}>Profile</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/help">Help Center</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/founding-members">Founding Members</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/about">About IFund</NavLink>
         </nav>
       </aside>
@@ -219,6 +221,7 @@ function App() {
           <Route path="/onboarding" element={<Onboarding user={user} />} />
           <Route path="/mission" element={<MissionControl user={user} />} />
           <Route path="/agents" element={<Agents user={user} />} />
+          <Route path="/founding-members" element={<FoundingMembers user={user} />} />
           <Route
             path="*"
             element={
