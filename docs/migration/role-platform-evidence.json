@@ -1436,8 +1436,8 @@
       "title": "Institutions",
       "source_component": "Institutions",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Institutions.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1470,15 +1470,17 @@
         "source_page_file": "src/pages/Institutions.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/institutions.js",
+      "known_compatibility_gap": "Original institution create/manage, membership, applications, owner editing and data import remain blocked; read-only and approved-only UI, staged SQL unapplied."
     },
     {
       "path": "/institutions/:id",
       "title": "Institution",
       "source_component": "InstitutionDetail",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/InstitutionDetail.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1511,7 +1513,9 @@
         "source_page_file": "src/pages/InstitutionDetail.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/institutions.js",
+      "known_compatibility_gap": "Original institution create/manage, membership, applications, owner editing and data import remain blocked; read-only and approved-only UI, staged SQL unapplied."
     },
     {
       "path": "/profile",
