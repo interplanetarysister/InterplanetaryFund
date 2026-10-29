@@ -75,3 +75,14 @@ test("home restores original slogan with no Base44 image host", () => {
   assert.match(feed, /Endless possibilities start with one question:/);
   assert.doesNotMatch(feed, /media\.base44\.com/);
 });
+
+test("following reads and writes are scoped to the signed-in member", () => {
+  const followed = read("src/pages/FollowedCampaigns.jsx");
+  const detail = read("src/pages/CampaignDetail.jsx");
+  const sql = read("supabase/migrations/20261029172300_restore_campaign_wizard.sql");
+  assert.match(app, /path="\/following"/);
+  assert.match(followed, /\.eq\("follower_id", user\.id\)/);
+  assert.match(detail, /follower_id: user\.id/);
+  assert.match(sql, /ifund_follows_member_insert/);
+  assert.match(sql, /c\.status = 'active'/);
+});
