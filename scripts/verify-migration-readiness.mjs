@@ -11,6 +11,7 @@ const entities = load("docs/migration/contracts/entities.json");
 const functions = load("docs/migration/contracts/functions.json");
 const automations = load("docs/migration/contracts/automations.json");
 const launch = load("docs/migration/contracts/launch-evidence.json");
+const android = load("docs/migration/contracts/android.json");
 const app = readFileSync(new URL("apps/web/src/App.jsx", root), "utf8");
 const errors = [];
 
@@ -87,6 +88,16 @@ if (production) {
   for (const c of automations.connectors) if (!c.provider_grant ||
       !c.credential_vault_verified || !c.live_verified)
     errors.push("Connector not verified: " + c.name);
+  for (const field of ["native_source_imported", "native_project_buildable",
+    "gradle_wrapper_restored", "app_id_consistency_verified",
+    "app_link_intent_filters_verified", "signing_key_identity_verified",
+    "permissions_tested", "android_login_tested", "android_deep_links_tested",
+    "android_light_dark_tested", "native_share_intents_tested",
+    "roll_back_signed_artifact_available", "release_verified"]) {
+    if (android[field] !== true) errors.push("Android release gate not verified: " + field);
+  }
+  if (!android.signed_artifact_sha256 || !android.android_assetlinks_sha256)
+    errors.push("Android signing and digital asset links evidence missing");
   for (const gate of launch.gates) if (gate.verified !== true || !gate.evidence)
     errors.push("Launch gate not verified: " + gate.name);
 }
