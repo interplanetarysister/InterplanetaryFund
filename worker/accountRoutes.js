@@ -66,14 +66,14 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
         }
         const updated = { id: account.uid };
         if (Object.hasOwn(input, 'handle')) {
-          if (typeof input.handle !== 'string' ||
-            !/^[A-Za-z0-9_-]{3,32}$/.test(input.handle)) {
+          if (input.handle !== null && (typeof input.handle !== 'string' ||
+            (input.handle !== '' && !/^[A-Za-z0-9_-]{3,32}$/.test(input.handle)))) {
             return response(422, { error: 'Handle must be 3–32 letters, numbers, underscores or dashes.' });
           }
-          updated.handle = input.handle;
+          updated.handle = input.handle || null;
         }
         if (Object.hasOwn(input, 'display_name')) {
-          if (typeof input.display_name !== 'string' || input.display_name.trim().length > 80) {
+          if (typeof input.display_name !== 'string' || input.display_name.trim().length > 100) {
             return response(422, { error: 'Invalid display name.' });
           }
           updated.display_name = input.display_name.trim();
