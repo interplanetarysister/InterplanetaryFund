@@ -68,7 +68,7 @@ create table public.ifund_notifications (
     link is null or (
       char_length(link) between 1 and 512
       and left(link,1)='/' and left(link,2)<>'//'
-      and link !~ '[[:cntrl:]\\]'
+      and link !~ '[[:cntrl:]]' and position(chr(92) in link)=0
     )
   ),
   read boolean not null default false,
