@@ -34,7 +34,7 @@ export default function CampaignCard({ campaign }) {
         ) : (
           <>
             <Progress value={pct} className="h-1.5 mb-2.5" />
-            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()} · {campaign.donor_count || 0} donors</span></p>
+            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${Number(campaign.raised_amount).toLocaleString()}</span><span className="text-stone-400"> of ${Number(campaign.goal_amount).toLocaleString()} · {campaign.donor_count || 0} donors</span></p>
           </>
         )}
       </div>
