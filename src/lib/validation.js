@@ -1,23 +1,22 @@
 export function validateCampaign(campaign, publish = false) {
   if (!publish) return [];
   const missing = [];
-  if (!campaign.title?.trim()) missing.push("title");
-  if (!campaign.summary?.trim()) missing.push("summary");
-  if (!campaign.story?.trim()) missing.push("story");
-  if (
-    !Number.isFinite(Number(campaign.goal_amount)) ||
-    Number(campaign.goal_amount) <= 0
-  )
+  if (!String(campaign.title || "").trim()) missing.push("title");
+  // The original campaign flow accepts a creator-written summary OR story.
+  // Publishing derives a short summary from story when summary is blank.
+  if (!String(campaign.story || "").trim() && !String(campaign.summary || "").trim())
+    missing.push("campaign story or description");
+  const goal = Number(campaign.goal_amount);
+  if (!Number.isFinite(goal) || goal <= 0)
     missing.push("a goal greater than zero");
   return missing;
 }
 export function publicStatus(status) {
-  return status === "active" ? "Published" : "Draft";
+  return status === "active" ? "Published" : status === "paused" ? "Paused" : "Draft";
 }
-
-// Existing campaigns require a successful read of the exact same ID. Prevents
-// overwriting an existing record with initial defaults during loading/errors.
+// Editing requires a successful owner-scoped fetch of the exact record.
+// Never overwrite an existing campaign with empty initial form values.
 export function canSaveCampaign({ id, loadedId, loadState, busy }) {
-  if (busy) return false;
-  return !id || (loadState === "ready" && loadedId === id);
+  if (busy || loadState !== "ready") return false;
+  return !id || loadedId === id;
 }
