@@ -15,7 +15,7 @@ No production deployment, DNS change, migration import, schema application, prov
 
 - Node setup: 22.23.2
 - Worker and contract suite: **106/106 passed**
-- Web regression suite: **130/130 passed**
+- Web regression suite: **133/133 passed**
 - Inventory consistency and backend coverage audits: **passed**
 - Runtime-boundary scan: **passed** (no legacy runtime SDK/config references)
 - Independent Vite compilation: **passed**
@@ -29,7 +29,7 @@ The CI compile step runs Vite directly after installing the web dependencies. Th
 3. **Legal consent:** the independent consent migration is staged, not applied; real authenticated owner insert, cross-user isolation, immutable timestamps, and two-user browser tests are unverified.
 4. **Data and ownership:** 27 staged campaigns have no verified auth-owner links; source row hashes and complete source campaign reconciliation are outstanding. No runtime import is approved.
 5. **Backend and automation:** 184 source functions, 10 agents, 17 workflows, and 11 connectors are inventoried, but none is certified fully operational. Scheduled execution and external side effects remain disabled.
-6. **Campaign creation:** content-only drafts and publishing are implemented; full source parity, AI copy choices/story generation, image generation, media storage, and campaign lifecycle proof remain incomplete. The source AI gateway still depends on Base44 identity/feature APIs and is deliberately disabled until provider eligibility, quota, and permissions are verified. See [campaign creation and AI gateway port audit](../docs/migration/AI_CAMPAIGN_ASSISTANT_PORT_AUDIT_2026-10-29.md). Do not copy the source gateway unchanged or enable paid fallback.
+6. **Campaign creation:** the independent creator now has the four-stage Your Details → Basics → Your Story → Launch flow, account ownership context, editable copy/story, review, optional cover URL, and private draft saving. AI copy choices/story generation, story version history, image generation, media storage, location/AI-profile/voice features, and campaign lifecycle proof remain incomplete. The source AI gateway still depends on Base44 identity/feature APIs and is deliberately disabled until provider eligibility, quota, and permissions are verified. The source AI gateway still depends on Base44 identity/feature APIs and is deliberately disabled until provider eligibility, quota, and permissions are verified. See [campaign creation and AI gateway port audit](../docs/migration/AI_CAMPAIGN_ASSISTANT_PORT_AUDIT_2026-10-29.md). Do not copy the source gateway unchanged or enable paid fallback.
 7. **Payments:** checkout, donations, webhook authenticity, ledger settlement, withdrawals, and provider accounting are not release-verified. Keep financial actions paused.
 8. **Android:** native source, signing identity, asset links, deep links, permissions, and signed artifact are not verified.
 9. **Preview and production infrastructure:** independently verify Cloudflare Pages/Workers bindings, Supabase project cohesion, auth redirect allowlists, custom-domain routing, rollback, and real route smoke tests before any release. Do not switch DNS as part of preparation.
