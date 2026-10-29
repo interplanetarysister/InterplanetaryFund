@@ -13,11 +13,7 @@ import PageError from "@/components/PageError";
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
-// Public-site port of the Base44 CampaignDetail page. Owner and admin tools
-// (editing, distribution, outreach agents, AI coach, translations, follow,
-// share kit, supporter list, donation dialog) need a signed-in member and are
-// not part of this slice. Campaign checkout stays disabled while campaign
-// donations are paused.
+// Independent campaign detail; payment entry remains fail-closed until verified checkout is ready.
 export default function CampaignDetail() {
   const { id } = useParams();
   const location = useLocation();
@@ -132,7 +128,7 @@ export default function CampaignDetail() {
         {/* Sidebar */}
         <div className="space-y-5 lg:sticky lg:top-8 self-start">
           <div id="campaign-funding-desktop" tabIndex={-1} className="scroll-mt-24 hidden lg:block">
-            <CampaignFundingCard campaign={campaign} onDonate={donate} />
+            <CampaignFundingCard campaign={campaign} onDonate={checkoutReady ? donate : undefined} />
           </div>
         </div>
       </div>
