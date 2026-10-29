@@ -30,6 +30,9 @@ export default function CampaignDetail() {
 
   const load = useCallback(async () => {
     setError("");
+    setNotFound(false);
+    setCampaign(null);
+    setRelated([]);
     try {
       const c = await getCampaignDetail(id);
       if (!c) { setNotFound(true); setCampaign(null); return; }
