@@ -19,7 +19,7 @@ Node 20 or newer.
 
 | Name | Purpose |
 | --- | --- |
-| `VITE_SUPABASE_URL` | Supabase project URL (project `tzehxfikoslihnclhxuz`) |
+| `VITE_SUPABASE_URL` | Supabase project URL (canonical project `ssibsfmtodgximseeqsv` only) |
 | `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key only. Never a service-role key. |
 
 Never commit real values. Without them the site still renders, and Discover and Campaign pages show the original "couldn't load" retry card.
@@ -35,8 +35,13 @@ Never commit real values. Without them the site still renders, and Discover and 
 
 `src/api/publicData.js` uses `@supabase/supabase-js` and the anon key:
 
-- Campaign list: RPC `ifund_migration_active_campaign_preview(p_after_source_id, p_limit)`, paged by keyset. Rows map to the fields the original cards read (`id` = `source_id`, `title`, `summary`, `category`, `cover_image_url`, `preview_only`, `status: "active"`). Raised amount, goal, and donor count are `null`, and the UI hides them or labels them "Not shown yet".
-- Campaign detail: tries RPC `ifund_public_campaign_detail(p_source_id)`, which is defined in `supabase/migrations/pending/public_campaign_detail_001.sql` and NOT applied yet. If that call fails, it falls back to finding the campaign in the list RPC.
+- Campaign list: RLS-filtered read of `public.ifund_campaigns`, requiring `status=active`; the original cards use the stored real title, summary, story, category, cover image and goal. Raised totals and donor counts remain `null` until independently reconciled.
+- Campaign detail: public lookup by canonical UUID with the same `status=active` restriction. The earlier proposed `ifund_public_campaign_detail` RPC is no longer required and its pending old-project SQL must NOT be applied for this frontend.
+- The public data client explicitly rejects Supabase URLs outside `ssibsfmtodgximseeqsv`; do not mix old Worker/JWKS secrets or project settings. The destination has zero published campaigns as of the October 28 read-only inspection. Empty state does not mean existing Base44 records were deleted.
+
+## Public Help Center
+
+`/help` and `/help/:slug` now use the original topic-grid/search/article composition and public, locally bundled guidance, without calling Base44. These currently document migration availability rather than pretending previously created help records or support tickets have been imported. The contact link opens an email draft and is not a verified support-ticket transaction.
 
 ## Donations
 
@@ -44,7 +49,7 @@ Campaign donations are paused, as on the live site. The "CAMPAIGN DONATIONS ARE 
 
 ## Not ported (yet)
 
-Sign-in and registration, member sessions, Terms acceptance gating, campaign creation and dashboard, community, social, blogs, help center, the Founding Members page, and every owner or admin tool on the campaign page (editing, distribution, outreach agents, AI coach, translations, follow, share kit, recent supporters, donation dialog). Platform error reporting and Firebase diagnostics were also removed.
+Sign-in and registration, member sessions, Terms acceptance gating, campaign creation and dashboard, community, social, blogs, old database-backed help articles and submission forms, the Founding Members page, and every owner or admin tool on the campaign page (editing, distribution, outreach agents, AI coach, translations, follow, share kit, recent supporters, donation dialog). Platform error reporting and Firebase diagnostics were also removed.
 
 ## Assets
 
@@ -52,4 +57,4 @@ The Base44-hosted logo and hero images (media.base44.com) were replaced with loc
 
 ## Preview deploys
 
-`.github/workflows/web-preview.yml` builds this app on pull requests. If the repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` exist, it deploys to the separate Cloudflare Pages project `ifund-web-preview` and comments the URL. Otherwise it uploads `dist` as an artifact. It never touches DNS, production, or the existing Pages project.
+The preview workflow is staged at `apps/web/ci/web-preview.yml`, but is **not installed** at `.github/workflows/web-preview.yml` because the connected token could not write workflow files. No PR-triggered build should be presumed to run until that placement is verified. If the repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` exist, it deploys to the separate Cloudflare Pages project `ifund-web-preview` and comments the URL. Otherwise it uploads `dist` as an artifact. It never touches DNS, production, or the existing Pages project.
