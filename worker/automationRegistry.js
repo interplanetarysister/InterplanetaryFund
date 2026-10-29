@@ -1,6 +1,6 @@
 /**
- * Interplanetary Fund's Base44 automation contract census (read-only source).
- * Source: interplanetary-fund2/base44/{agents,workflows}; issue #137.
+ * Interplanetary Fund's historical automation contract census (read-only source).
+ * Source: the separate legacy application inventory; issue #137.
  * This module defines NO executor, OAuth client, schedule, or payment effect.
  * Names and scheduling rules are metadata only; nothing is active by being listed.
  */
@@ -12,7 +12,7 @@ export const AGENTS = Object.freeze([
 ]);
 
 // Cron and timezone strings are source definitions, NOT active Cloudflare triggers.
-// Handlers are historical Base44 function names, NOT registered replacement endpoints.
+// Handler names are legacy identifiers, NOT registered replacement endpoints.
 const scheduled = (id, cron, timezone, handlers, risk) =>
   ({ id, kind: 'scheduled', cron, timezone, handlers, risk, ported: false });
 const entity = (id, entityName, events, handlers, risk, predicate = null) =>

@@ -1,5 +1,5 @@
 // Independent per-user campaign follows. Original source:
-// base44/entities/FollowedCampaign.jsonc and toggleCampaignFollow/entry.ts.
+// legacy entity and action contract; no legacy SDK or service is called.
 // All operations use canonical auth.uid() and database RLS; never a service key.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const DEFAULT_FOLLOW_PREFS=Object.freeze({

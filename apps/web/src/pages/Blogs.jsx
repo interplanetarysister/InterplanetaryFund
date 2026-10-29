@@ -4,7 +4,7 @@ import {Newspaper,BookOpen,Loader2} from "lucide-react";
 import {listPublishedStories} from "@/lib/editorial";
 import {Image} from "@/components/ui/image";
 
-// Visual composition/text carried from the original Base44 Blogs page.
+// Independent editorial page preserving the established layout and copy.
 export default function Blogs(){
  const [params]=useSearchParams(),author=params.get("author")||"";
  const [items,setItems]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
