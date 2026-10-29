@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
-import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
+import { resolveVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
-// Canonical verified session state. This is for navigation/UI only; never
-// substitute it for server-side JWT validation or row-level security.
+// UI/navigation state only. Protected server actions must independently validate
+// JWT identity, role and row ownership through the Worker and Supabase RLS.
 export default function useVerifiedUser(){
   const [state,setState]=useState({phase:"loading",user:null});
   useEffect(()=>{
@@ -11,11 +11,8 @@ export default function useVerifiedUser(){
     let subscription;
     const verify=async()=>{
       try{
-        const client=authClient();
-        const {data,error}=await client.auth.getUser();
-        if(mounted)setState(error?
-          {phase:"error",user:null}:
-          {phase:"ready",user:isVerifiedEmailUser(data?.user)?data.user:null});
+        const user=await resolveVerifiedEmailUser(authClient().auth);
+        if(mounted)setState({phase:"ready",user});
       }catch{
         if(mounted)setState({phase:"error",user:null});
       }
@@ -26,7 +23,7 @@ export default function useVerifiedUser(){
         if(!mounted)return;
         if(event==="SIGNED_OUT")setState({phase:"ready",user:null});
         if(["SIGNED_IN","TOKEN_REFRESHED","USER_UPDATED","INITIAL_SESSION"].includes(event)){
-          // Supabase recommends avoiding awaited Auth queries inside listeners.
+          // Avoid awaiting Auth APIs inside Supabase's auth event callback.
           Promise.resolve().then(verify);
         }
       });
