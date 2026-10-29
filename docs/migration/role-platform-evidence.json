@@ -62,7 +62,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Login.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/register",
@@ -93,7 +101,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 5,
+        "source_page_file": "src/pages/Register.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/forgot-password",
@@ -124,7 +140,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ForgotPassword.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/reset-password",
@@ -155,7 +179,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ResetPassword.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/globe",
@@ -186,7 +218,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/GlobalGlobe.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/embed/campaign/:id",
@@ -217,7 +259,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/EmbedCampaign.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/oauth/consent",
@@ -248,7 +300,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/OAuthConsent.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/activate",
@@ -279,7 +339,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "deviceAuthorization"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/DeviceActivation.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/",
@@ -310,7 +380,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Home.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/about",
@@ -341,7 +419,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/About.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/founding-members",
@@ -372,7 +458,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "joinFoundingWaitlist"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/FoundingMembers.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/terms",
@@ -403,7 +499,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Terms.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/privacy",
@@ -434,7 +538,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Privacy.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/contact",
@@ -465,7 +577,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "sendPublicContactMessage"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Contact.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/organization-mail",
@@ -558,7 +680,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Discover.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/campaign/:id",
@@ -589,7 +721,20 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "Campaign",
+          "CampaignUpdate"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/CampaignDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/community",
@@ -620,7 +765,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Community",
+          "CommunityMember"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Community.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/community/:id",
@@ -651,7 +807,20 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "communityMembership"
+        ],
+        "entities": [
+          "Community",
+          "CommunityMember"
+        ],
+        "direct_auth_references": 2,
+        "source_page_file": "src/pages/CommunityDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/u/:id",
@@ -682,7 +851,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "managePublicProfile"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/PublicProfile.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/social",
@@ -713,7 +892,20 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "listConnections",
+          "listFundraisingProviderCapabilities"
+        ],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Social.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/blogs",
@@ -744,7 +936,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Blogs.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/blogs/:id",
@@ -775,7 +977,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/BlogArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/publications/:id",
@@ -806,7 +1018,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageOfficialPublications"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/PublicationArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/help",
@@ -837,7 +1059,19 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "createSupportTicket"
+        ],
+        "entities": [
+          "HelpArticle"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Help.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/help/:slug",
@@ -868,7 +1102,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "HelpArticle",
+          "HelpFeedback"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/HelpArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/onboarding",
@@ -899,7 +1144,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "setUnifiedOboConsent"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Onboarding.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/dashboard",
@@ -930,7 +1185,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Dashboard.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/create",
@@ -961,7 +1226,22 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDraft",
+          "importExternalCampaign",
+          "geocodeCity",
+          "generateCampaignCover",
+          "saveCampaign",
+          "recordCampaignCreated"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/CreateCampaign.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/giving",
@@ -992,7 +1272,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getMyGiving"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/MyGiving.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/communications",
@@ -1023,7 +1313,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Communications.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/mission",
@@ -1054,7 +1352,19 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "generateIntelligence"
+        ],
+        "entities": [
+          "MissionBrief"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/MissionControlPage.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/ai-images",
@@ -1085,7 +1395,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "generateCampaignCover"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AIImageStudio.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/institutions",
@@ -1116,7 +1436,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Institution"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Institutions.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/institutions/:id",
@@ -1147,7 +1477,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Institution"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/InstitutionDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/profile",
@@ -1178,7 +1518,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 3,
+        "source_page_file": "src/pages/Profile.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/my-blog",
@@ -1209,7 +1557,19 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/MyBlog.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/devices",
@@ -1240,7 +1600,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "deviceAuthorization"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/ConnectedDevices.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/connections",
@@ -1271,7 +1641,27 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "syncExternalFunds",
+          "listConnections",
+          "resolveConnectionStatus",
+          "syncWixCampaigns",
+          "syncWixContent",
+          "syncWixBusinessData",
+          "syncWixAnalytics",
+          "finalizeAppUserOAuthConnection",
+          "verifyPlatformConnection",
+          "getSharedConnectorStatus",
+          "requestManagedConnectionAction"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Connections.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/inbox",
@@ -1302,7 +1692,21 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "InboxItem",
+          "Notification",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Inbox.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/following",
@@ -1333,7 +1737,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "FollowedCampaign",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/FollowedCampaigns.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/notifications",
@@ -1364,7 +1779,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Notification"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Notifications.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/donors",
@@ -1395,7 +1820,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getOwnerDonorDirectory"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Donors.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/ledger",
@@ -1426,7 +1861,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getOwnerFinancialLedger"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/FinancialLedger.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/subscriptions",
@@ -1457,7 +1902,25 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getPayPalSubscriptionOptions",
+          "confirmPayPalSubscription",
+          "createPayPalSubscriptionCheckout",
+          "startPremiumTrial",
+          "cancelPayPalSubscription",
+          "verifyOwnerPayPalBasicPlan",
+          "setupPayPalSubscriptionWebhook",
+          "activateSubscriptionCheckout",
+          "syncPayPalSubscriptionCatalog"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Subscriptions.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/withdrawals",
@@ -1488,7 +1951,23 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getFeatureAvailability",
+          "getPaymentCapabilities",
+          "getCampaignWithdrawalBalance",
+          "requestWithdrawal"
+        ],
+        "entities": [
+          "Campaign",
+          "Withdrawal"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Withdrawals.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/agents",
@@ -1519,7 +1998,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Agents.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/ops",
@@ -1550,7 +2037,20 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Agent",
+          "MonitoredCampaign",
+          "TreasurySnapshot",
+          "ProtocolReport"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/OpsCenter.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/platform",
@@ -1581,7 +2081,15 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Platform.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/analytics",
@@ -1612,7 +2120,25 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "Campaign",
+          "Community",
+          "Institution",
+          "VolunteerOpportunity",
+          "GrantApplication",
+          "InstitutionOpportunity",
+          "VolunteerSignup"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Analytics.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/connect",
@@ -1674,7 +2200,21 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "listConnections"
+        ],
+        "entities": [
+          "DistributedPost",
+          "Agent",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ExternalAccounts.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/integrations",
@@ -1705,7 +2245,19 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "validateIntegrationHealth"
+        ],
+        "entities": [
+          "PlatformAccessRegistry"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/IntegrationsAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/audit",
@@ -1736,7 +2288,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "AuditLog"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AuditLogAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/agent-api",
@@ -1767,7 +2329,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageOAuthClients",
+          "manageExternalAgentKeys"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AdminAgentApi.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/sustainability",
@@ -1798,7 +2371,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign",
+          "SustainabilityAudit"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/SustainabilityAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/help",
@@ -1829,7 +2413,18 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "HelpDraft",
+          "HelpArticle"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/HelpAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     },
     {
       "path": "/admin/founding-members",
@@ -1860,7 +2455,17 @@
         "persistence": null,
         "source_assets": null,
         "reviewer_approval": null
-      }
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "FoundingWaitlist"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AdminFoundingWaitlist.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
     }
   ]
 }
