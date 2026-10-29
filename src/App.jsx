@@ -13,6 +13,8 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
+import Profile from "./pages/Profile";
+import MyGiving from "./pages/MyGiving";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -84,7 +86,7 @@ function App() {
           >
             ◐
           </button>
-          <Link to="/login">{user ? "Account" : "Sign in"}</Link>
+          <Link to={user ? "/profile" : "/login"}>{user ? "Account" : "Sign in"}</Link>
         </div>
       </header>
       {menuOpen && <button type="button" className="side-menu-backdrop"
@@ -144,7 +146,7 @@ function App() {
                 <main>
                   <h1>Sign in before creating a campaign</h1>
                   <p>Sign in first so your draft is saved to your account.</p>
-                  <Link to="/login">Sign in</Link>
+                  <Link to="/login?returnTo=%2Fcreate">Sign in</Link>
                 </main>
               )
             }
@@ -176,8 +178,11 @@ function App() {
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
-          <Route path="/connections" element={<Connections />} />
+          <Route path="/connections" element={<Connections user={user} />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/social" element={<Community user={user} />} />
+          <Route path="/profile" element={<Profile user={user} />} />
+          <Route path="/giving" element={<MyGiving user={user} />} />
           <Route path="/about" element={<About />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
@@ -197,7 +202,7 @@ function App() {
         <NavLink to="/discover">Explore</NavLink>
         <NavLink to="/create">Create</NavLink>
         <NavLink to="/mine">Campaigns</NavLink>
-        <NavLink to="/community">Community</NavLink>
+        <NavLink to="/social">Social</NavLink>
       </nav>
       <footer>
         <strong>Interplanetary Fund</strong>
