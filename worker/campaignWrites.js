@@ -8,7 +8,7 @@ const ALLOWED = new Set([
 ]);
 const CATEGORIES = new Set([
   'community', 'medical', 'emergency', 'education', 'animals',
-  'business', 'creative', 'other',
+  'business', 'creative', 'memorial', 'disaster_relief', 'environment', 'other',
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
