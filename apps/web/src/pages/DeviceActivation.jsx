@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { KeyRound, ShieldCheck, ShieldX, LoaderCircle } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { authClient } from "@/api/auth";
+import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
 const LABELS = {
   "identity:read": "View your IFund handle and display name",
@@ -44,7 +45,7 @@ export default function DeviceActivation() {
     (async () => {
       try {
         const { data, error: authError } = await authClient().auth.getUser();
-        if (active) setIdentity(!authError && data?.user ? "signed-in" : "signed-out");
+        if (active) setIdentity(!authError && isVerifiedEmailUser(data?.user) ? "signed-in" : "signed-out");
       } catch {
         if (active) setIdentity("signed-out");
       }
