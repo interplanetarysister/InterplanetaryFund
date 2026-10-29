@@ -125,3 +125,59 @@ unapplied profile trigger EXECUTE-grant tightening migration, which must be
 reviewed with auth/signup verification before execution. The existing hourly
 continuation automation was updated to keep auditing original source parity
 on future runs while preserving no-build/no-deploy restrictions.
+
+
+## Migration continuation: independent code repairs and status (2026-10-29)
+
+The connected GitHub PR #165 remains **open and draft**. Cloudflare Pages
+`interplanetaryfund-migration` remains `production_deployments_enabled=false`
+and `preview_deployment_setting=none` (read-only API verification). **No builds,
+deployments, database writes or DNS changes performed.**
+
+Historical route matrix update: **36 partial UI ports, 23 placeholder/blocked
+historical routes, zero independently certified full UI parity**. Source
+implementation is not operational equivalence.
+
+Specific restorations committed this continuation:
+
+- Signup/login: original space-glass branded authentication screen, username
+  registration, two passwords, Supabase email-link and OTP verification,
+  resend links, recovery, legacy `/dashboard` email-link recovery,
+  `/auth/callback` one-time code/token handling, first-login onboarding
+  and unified verified Home/sidebar session display. Confirmed and
+  unconfirmed sessions are differentiated; invalid credentials do not
+  silently create accounts. Historical Base44 account/password migration,
+  Supabase redirect allowlists, email templates/SMTP and native Android
+  deep links still require genuine external tests.
+- Versioned user agreement `2026-10-13-v3`: original Terms Acceptance text,
+  account-specific consent persisted by canonical Supabase with server
+  timestamp and RLS. A cross-account stale acceptance display race was fixed.
+  The SQL is staged, not applied; old acceptance history reconciliation and
+  actual login-to-consent tests are mandatory release blockers.
+- `/following` and `/notifications`: original owner-specific controls and
+  canonical Supabase services staged with RLS, no browser-created financial
+  notifications or payment impersonation. Original follow history and
+  notification producer remain unverified.
+- `/blogs`, `/blogs/:id`, `/publications/:id`: original Reporter,
+  member blog, safe campaign-embed, and approved publication reader
+  layout/logic ported, with published-only RLS tables staged. Real author
+  ownership and original records still need verification.
+- `/admin/help`: original Help Center Editor with private drafts, stable
+  published article URLs and a SECURITY INVOKER atomic publish RPC;
+  canonical read service merges genuinely published articles with existing
+  public migration guidance without exposing private drafts. Admin JWT
+  role, RLS, published content and native/device QA pending.
+- `/admin/sustainability`: original Planet Impact UI and browser-local
+  transfer-size observations restored; source-backed environment campaigns
+  and administrator evidence log. Client cannot grant
+  `independently_verified` status, forge CO2/energy numbers or bypass
+  approved provider evidence. RLS table staged only.
+- New source-oriented regression test files for auth, editorial, legal
+  acceptance, Help Editor and Planet Impact were committed but **were
+  not executed as a full repository test run**. No release certification.
+
+Security migration files are all under `supabase/migrations/pending/`.
+They must be reviewed, reconciled with provider and role configuration and
+explicitly authorized before applying to the canonical production DB. A
+production build remains blocked by verification gates, not silently
+enabled by staged UI components.
