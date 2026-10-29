@@ -56,7 +56,7 @@ export default function Dashboard() {
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
-    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
+    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => c.status === "draft" ? <CampaignCard key={c.id} campaign={c} /> : c.status === "active" ? <CampaignCard key={c.id} campaign={c} /> : <article key={c.id} className="rounded-2xl border border-border bg-card p-5"><h3 className="font-semibold">{c.title || "Untitled campaign"}</h3><p className="mt-2 text-sm text-muted-foreground">Status: {c.status}. This campaign is not publicly accessible, and editing is not available here yet.</p></article>)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
     {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
   </main>;
