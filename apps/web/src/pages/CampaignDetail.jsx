@@ -5,6 +5,7 @@ import { Image } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import CampaignFundingCard from "@/components/campaigns/CampaignFundingCard";
 import CampaignShareTools from "@/components/campaigns/CampaignShareTools";
+import CampaignFollowButton from "@/components/campaigns/CampaignFollowButton";
 import { FALLBACK_IMAGE } from "@/components/brand/brand";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { Loader2, Heart, MapPin } from "lucide-react";
@@ -120,6 +121,7 @@ export default function CampaignDetail() {
           <div id="campaign-funding-desktop" tabIndex={-1} className="scroll-mt-24 hidden lg:block">
             <CampaignFundingCard campaign={campaign} />
           </div>
+          <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
           <CampaignShareTools campaign={campaign} />
         </div>
       </div>
