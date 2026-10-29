@@ -12,6 +12,7 @@ export default function Dashboard() {
   const [myCampaigns, setMyCampaigns] = useState([]);
   const [myCampaignError, setMyCampaignError] = useState("");
   const [campaignError, setCampaignError] = useState("");
+  const [signingOut, setSigningOut] = useState(false);
   useEffect(() => {
     let alive = true;
     let subscription;
@@ -21,7 +22,7 @@ export default function Dashboard() {
         if (!alive) return;
         if (error || !data?.user) { navigate("/login", { replace: true }); return; }
         setUser(data.user); setState("ready");
-        client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).limit(100)
+        client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(100)
           .then(({data: owned,error: queryError}) => {
             if (!alive) return;
             if (queryError) setMyCampaignError("Your campaigns could not be loaded.");
@@ -39,15 +40,18 @@ export default function Dashboard() {
     return () => { alive = false; subscription?.unsubscribe(); };
   }, [navigate]);
   async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
     try { const { error: signOutError } = await authClient().auth.signOut(); if (signOutError) throw signOutError; navigate("/login", { replace: true }); }
     catch { setState("error"); }
+    finally { setSigningOut(false); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
   if (state === "error") return <main role="alert" className="mx-auto max-w-5xl p-8">Account services are unavailable. <Link className="underline" to="/login">Return to sign in</Link>.</main>;
   return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-8">
     <header className="flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="font-display text-3xl font-bold">Your dashboard</h1><p className="mt-2 text-muted-foreground">Signed in as {user?.email}</p></div>
-      <button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2">Sign out</button>
+      <button type="button" disabled={signingOut} onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2 disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>
     </header>
     <section className="rounded-2xl border border-border bg-card p-6">
       <h2 className="text-xl font-semibold">Your campaigns</h2>
