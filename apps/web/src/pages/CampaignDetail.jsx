@@ -44,7 +44,7 @@ export default function CampaignDetail() {
       const rel = await listRelatedCampaigns(c.category, c.id).catch(() => []);
       if (version === requestVersion.current) setRelated(rel || []);
     } catch {
-      setError("We couldn't load this campaign. Please try again.");
+      if (version === requestVersion.current) setError("We couldn't load this campaign. Please try again.");
     }
   }, [id]);
 
