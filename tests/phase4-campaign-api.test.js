@@ -218,3 +218,14 @@ test('DELETE without a matched draft is not falsely reported as successful', asy
     String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid }) : Response.json([]));
   assert.equal(r.status, 404);
 });
+
+test('all 11 original Campaign entity categories are accepted', async () => {
+  const originals = [
+    'medical', 'emergency', 'education', 'community', 'animals', 'business',
+    'memorial', 'disaster_relief', 'creative', 'environment', 'other',
+  ];
+  for (const category of originals) {
+    const result = await routeCampaignWrite(request({ ...valid, category }), env, remote([]));
+    assert.equal(result.status, 201, category);
+  }
+});
