@@ -100,3 +100,8 @@ Worker regression tests and SQL assertions were added but have not been executed
 The /giving route now has a dedicated read-only page and worker endpoint. The API returns only captured PayPal donations for the verified donor, validates ownership/currency/cents/capture timestamps, and keeps optional IFund support separate from campaign-gift amounts. Recurring plans, processor fees and total charged are not shown because the canonical schema does not provide the required verified fields.
 
 The giving endpoint and regression tests have not been executed. The donations table has no donor SELECT policy, so the endpoint relies on a server-only service-role read with strict owner filtering. Auth account-lifecycle parity, browser/Android QA and the platform-wide build remain open; release remains NOT READY.
+## Authentication continuation update — confirmation guard
+
+Added a shared confirmed-email predicate for UI access, enforced it in login/signup session handling, and made the independent worker reject Auth users without a provider-confirmed email. Added callback-flow and confirmed-email regression tests, but tests remain unexecuted.
+
+This is code-level hardening only. The canonical Supabase redirect allowlist, Site URL, confirmation email template, SMTP/deliverability, automatic-confirm setting, and real first-signup/cross-device verification remain unverified. The legal-acceptance table remains staged and unapplied, so the complete onboarding journey is still blocked. Release remains NOT READY.
