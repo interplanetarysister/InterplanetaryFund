@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
-const read=p=>readFileSync(new URL("../../"+p,import.meta.url),"utf8");
+const read=p=>readFileSync(new URL("../../../"+p,import.meta.url),"utf8");
 
 test("device authorization schema stores only hashed credentials and limits grants",()=>{
  const sql=read("supabase/migrations/pending/20261029_ifund_device_authorization.sql");
