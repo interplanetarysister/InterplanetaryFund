@@ -3,8 +3,13 @@
 import { authClient } from "@/api/auth";
 
 export async function startCampaignDonation({ campaignId, amount, supportPlatform = false }) {
-  const cents = Math.round(Number(amount) * 100);
-  if (!/^[0-9a-f-]{36}$/i.test(String(campaignId)) || !Number.isSafeInteger(cents) || cents < 100 || cents > 100000000) {
+  const value = String(amount).trim();
+  if (!/^(?:0|[1-9]\\d{0,6})(?:\\.\\d{1,2})?$/.test(value)) {
+    throw new Error("Enter a valid USD amount with no more than two decimal places.");
+  }
+  const [dollars, fractional = ""] = value.split(".");
+  const cents = Number(dollars) * 100 + Number(fractional.padEnd(2, "0"));
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(campaignId)) || !Number.isSafeInteger(cents) || cents < 100 || cents > 100000000) {
     throw new Error("Enter a valid campaign and donation of at least $1.");
   }
   const client = authClient();
