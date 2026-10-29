@@ -34,6 +34,7 @@ const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const MissionControlPage = lazy(() => import("./pages/MissionControlPage"));
 const OpsCenter = lazy(() => import("./pages/OpsCenter"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const OwnerCampaignPreview = lazy(() => import("./pages/OwnerCampaignPreview"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 
@@ -87,6 +88,7 @@ function AppRoutes() {
       <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
       <Route path="/edit/:id" element={<RequireAccess access="member"><EditDraftRedirect /></RequireAccess>} />
       <Route path="/mine" element={<RequireAccess access="member"><MyCampaigns /></RequireAccess>} />
+      <Route path="/mine/:id" element={<RequireAccess access="member"><OwnerCampaignPreview /></RequireAccess>} />
       <Route path="/profile" element={<RequireAccess access="member"><Profile /></RequireAccess>} />
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
