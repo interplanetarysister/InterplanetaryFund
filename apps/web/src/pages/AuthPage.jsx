@@ -82,7 +82,7 @@ export default function AuthPage({ mode="login" }){
 
   async function verifyCode(){
     if(busy||resending)return;
-    if(!/^\\d{6,8}$/.test(otpCode.trim())){
+    if(!/^\d{6,8}$/.test(otpCode.trim())){
       setError("Enter the complete verification code from your newest email.");
       return;
     }
