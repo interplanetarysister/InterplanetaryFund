@@ -6,7 +6,7 @@ const COLUMNS="id,owner_id,title,body,type,link,read,created_at";
 
 async function ownerId(client){
   const {data,error}=await client.auth.getUser();
-  if(error || !UUID.test(data?.user?.id||""))
+  if(error || !isVerifiedEmailUser(data?.user) || !UUID.test(data?.user?.id||""))
     throw new Error("Sign in to view your notifications.");
   return data.user.id;
 }
