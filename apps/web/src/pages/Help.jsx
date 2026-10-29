@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, LifeBuoy, Link2, ArrowRight, BookOpen, Rocket,
@@ -7,21 +7,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { HELP_CATEGORIES, helpArticlePath } from "@/lib/helpCenter";
 import { helpArticles } from "@/lib/helpArticles";
+import { authClient } from "@/api/auth";
+import { listPublicHelpArticles } from "@/lib/helpPublic";
 
 const CATEGORY_ICONS = { Rocket, Megaphone, HeartHandshake, Link2, Wallet, ShieldCheck, CreditCard, Bot, Users };
 
 export default function Help() {
+  const [articles,setArticles]=useState(helpArticles);
+  useEffect(()=>{
+    let mounted=true;
+    try{
+      listPublicHelpArticles(authClient())
+        .then(result=>{if(mounted)setArticles(result.articles);})
+        .catch(()=>{if(mounted)setArticles(helpArticles);});
+    }catch{setArticles(helpArticles);}
+    return()=>{mounted=false;};
+  },[]);
   const [params, setParams] = useSearchParams();
   const query = params.get("q") || "";
   const category = params.get("category") || "";
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
-    return helpArticles.filter((article) => {
+    return articles.filter((article) => {
       if (category && article.category !== category) return false;
       return !q || [article.question, article.description, article.answer, article.category]
         .join(" ").toLocaleLowerCase().includes(q);
     });
-  }, [query, category]);
+  }, [query, category, articles]);
 
   function updateFilter(key, value) {
     const next = new URLSearchParams(params);
@@ -90,7 +102,7 @@ export default function Help() {
         <h2 id="help-connections-heading" className="font-semibold text-xl">Using connections and AI</h2>
         <p className="text-sm text-muted-foreground">Find the original connection and AI-permissions guidance, with current migration availability clearly identified.</p>
         <div className="space-y-2">
-          {helpArticles.filter(a => ["Connections & Publishing", "AI Assistance"].includes(a.category)).map((article) =>
+          {articles.filter(a => ["Connections & Publishing", "AI Assistance"].includes(a.category)).map((article) =>
             <Link key={article.slug} to={helpArticlePath(article.slug)}
               className="block rounded-xl border border-border px-4 py-3 font-semibold hover:border-cyan-400">
               {article.question} <ArrowRight className="inline w-4 h-4 text-cyan-600 ml-1" aria-hidden="true" />
