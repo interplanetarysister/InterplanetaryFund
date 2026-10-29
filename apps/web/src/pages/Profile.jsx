@@ -42,6 +42,7 @@ export default function Profile() {
     finally { setBusy(false); }
   }
   if (loading) return <main role="status" className="mx-auto max-w-3xl p-8">Loading profile…</main>;
+  if (!user) return <main role="alert" className="mx-auto max-w-3xl p-8">{error || "You must sign in to view your profile."} <Link to="/login" className="underline">Sign in</Link></main>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">My profile</h1><p className="mt-2 text-muted-foreground">Manage your Interplanetary Fund identity.</p></header>
     {user && <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-6">
