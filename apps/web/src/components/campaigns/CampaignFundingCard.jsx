@@ -13,17 +13,19 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
   const platformOnlyMode = !usePublicCampaignFundraising();
   // Campaign checkout is disabled in the public-site port while campaign
   // donations are paused. Totals render only when the data layer provides them.
-  const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0;
-  const pct = hasTotals ? Math.min(100, ((campaign.raised_amount || 0) / campaign.goal_amount) * 100) : 0;
+  const hasGoal = campaign.goal_amount !== null && campaign.goal_amount !== undefined && Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0;
+  const hasRaised = campaign.raised_amount !== null && campaign.raised_amount !== undefined && Number.isFinite(Number(campaign.raised_amount)) && Number(campaign.raised_amount) >= 0;
+  const hasTotals = hasGoal && hasRaised;
+  const pct = hasTotals ? Math.max(0, Math.min(100, (Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100)) : 0;
   const checkoutDisabled = platformOnlyMode || !onDonate;
   return (
     <div className={`bg-white rounded-2xl border border-stone-200/70 p-5 sm:p-6 shadow-sm ${className}`}>
       {hasTotals ? (<>
-      <p className="font-display text-3xl text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</p>
+      <p className="font-display text-3xl text-stone-900">${Number(campaign.raised_amount).toLocaleString()}</p>
       <p className="text-sm text-stone-500 mb-3">raised of ${Number(campaign.goal_amount).toLocaleString()} goal</p>
       <Progress value={pct} className="h-2 mb-4" />
       </>) : (
-        <p className="text-sm text-stone-500 mb-4">Funding totals will appear here when campaign donations reopen.</p>
+        <p className="text-sm text-stone-500 mb-4">{hasGoal ? `Fundraising goal: ${Number(campaign.goal_amount).toLocaleString()}. Verified donation totals are not available yet.` : "Verified donation totals are not available yet."}</p>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mb-4">
         {Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{campaign.donor_count} donors</span>}
@@ -40,6 +42,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
       >
         <Heart className="w-5 h-5 mr-2" /> {platformOnlyMode ? "Campaign donations paused" : "Donate with PayPal"}
       </Button>
+      {checkoutDisabled && !platformOnlyMode && <p role="status" className="mt-3 text-center text-xs text-stone-600">Campaign checkout is being configured and is not yet available.</p>}
       {platformOnlyMode ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center">
           <p className="text-xs font-semibold text-amber-900">Platform support only</p>
