@@ -39,7 +39,7 @@ export default function Dashboard() {
     return () => { alive = false; subscription?.unsubscribe(); };
   }, [navigate]);
   async function signOut() {
-    try { await authClient().auth.signOut(); navigate("/login", { replace: true }); }
+    try { const { error } = await authClient().auth.signOut(); if (error) throw error; navigate("/login", { replace: true }); }
     catch { setState("error"); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
