@@ -23,6 +23,9 @@ import Help from "./pages/Help";
 import HelpArticle from "./pages/HelpArticle";
 import Inbox from "./pages/Inbox";
 import Notifications from "./pages/Notifications";
+import Blogs from "./pages/Blogs";
+import MyBlog from "./pages/MyBlog";
+import BlogArticle from "./pages/BlogArticle";
 function App() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -114,6 +117,8 @@ function App() {
           <strong>Community</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/social">Interplanetary Social</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/inbox">Universal Inbox</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/blogs">Stories & Blogs</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/my-blog">My Blog Studio</NavLink>
           <strong>Account & Help</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/connections">Connections</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/notifications">Notifications</NavLink>
@@ -201,6 +206,9 @@ function App() {
           <Route path="/help/:slug" element={<HelpArticle />} />
           <Route path="/inbox" element={<Inbox user={user} />} />
           <Route path="/notifications" element={<Notifications user={user} />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:id" element={<BlogArticle />} />
+          <Route path="/my-blog" element={<MyBlog user={user} />} />
           <Route
             path="*"
             element={
