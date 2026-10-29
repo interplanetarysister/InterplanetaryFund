@@ -32,6 +32,8 @@ const Agents = lazy(() => import("./pages/Agents"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const MissionControlPage = lazy(() => import("./pages/MissionControlPage"));
+const OpsCenter = lazy(() => import("./pages/OpsCenter"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 
@@ -42,7 +44,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -89,6 +91,8 @@ function AppRoutes() {
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
       <Route path="/mission" element={<RequireAccess access="member"><MissionControlPage /></RequireAccess>} />
+      <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
+      <Route path="/analytics" element={<RequireAccess access="admin"><Analytics /></RequireAccess>} />
       <Route path="/u/:id" element={<PublicProfile />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
