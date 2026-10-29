@@ -36,4 +36,5 @@ test("device authorization RPC is atomic, fail-closed and server-role only", () 
  assert.ok(sql.includes("revoke all on function public.ifund_device_rate_limit(text, integer, integer) from public, anon, authenticated"));
  assert.ok(sql.includes("grant execute on function public.ifund_device_rate_limit(text, integer, integer) to service_role"));
  assert.ok(sql.includes("set search_path = public, pg_temp"));
+ assert.ok(sql.includes("grant all on public.ifund_device_authorizations,public.ifund_device_rate_limits to service_role"));
 });
