@@ -1,0 +1,1865 @@
+{
+  "schema_version": 2,
+  "authority": "https://github.com/interplanetarysister/InterplanetaryFund/issues/137",
+  "source": {
+    "repository": "interplanetarysister/interplanetary-fund2",
+    "ref": "main",
+    "app_file": "src/App.jsx",
+    "blob_sha": "2c7926c47f5469c834d5d0f044181bd7255d8b84",
+    "source_page_components": 57,
+    "historical_max_routes": 59,
+    "source_page_components_max_across_branches": 58,
+    "additional_route": {
+      "path": "/download",
+      "source_branch": "maintenance/ifund-install-brand-ci",
+      "original_component": "src/pages/DownloadApp.jsx",
+      "proven_live": false
+    }
+  },
+  "target": {
+    "repository": "interplanetarysister/InterplanetaryFund",
+    "path": "apps/web/src/App.jsx",
+    "branch": "migration/build-completeness-gates-20261029"
+  },
+  "required_screens": [
+    "desktop_light",
+    "desktop_dark",
+    "tablet_light",
+    "tablet_dark",
+    "mobile_light",
+    "mobile_dark",
+    "android_light",
+    "android_dark"
+  ],
+  "pages": [
+    {
+      "path": "/login",
+      "title": "Sign in",
+      "source_component": "Login",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/register",
+      "title": "Create an account",
+      "source_component": "Register",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/forgot-password",
+      "title": "Recover account",
+      "source_component": "ForgotPassword",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/reset-password",
+      "title": "Reset password",
+      "source_component": "ResetPassword",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "ResetPassword",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/globe",
+      "title": "Global Globe",
+      "source_component": "GlobalGlobe",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/embed/campaign/:id",
+      "title": "Embedded campaign",
+      "source_component": "EmbedCampaign",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/oauth/consent",
+      "title": "Authorize integration",
+      "source_component": "OAuthConsent",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/activate",
+      "title": "Activate device",
+      "source_component": "DeviceActivation",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/",
+      "title": "Home",
+      "source_component": "Home",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Home",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/about",
+      "title": "About",
+      "source_component": "About",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "About",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/founding-members",
+      "title": "Founding members",
+      "source_component": "FoundingMembers",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "FoundingMembers",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/terms",
+      "title": "Terms of Service",
+      "source_component": "Terms",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Terms",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/privacy",
+      "title": "Privacy Policy",
+      "source_component": "Privacy",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Privacy",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/contact",
+      "title": "Contact",
+      "source_component": "Contact",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Contact",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/organization-mail",
+      "title": "Organization mail",
+      "source_component": "IndependentAdminMail",
+      "access": "specially protected administration",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/download",
+      "title": "Download IFund",
+      "source_component": "DownloadApp",
+      "access": "public",
+      "current_state": "missing",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/discover",
+      "title": "Discover campaigns",
+      "source_component": "Discover",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Discover",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/campaign/:id",
+      "title": "Campaign",
+      "source_component": "CampaignDetail",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "CampaignDetail",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/community",
+      "title": "Community",
+      "source_component": "Community",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "SocialFeedPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/community/:id",
+      "title": "Community discussion",
+      "source_component": "CommunityDetail",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/u/:id",
+      "title": "Member profile",
+      "source_component": "PublicProfile",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/social",
+      "title": "IFund Social",
+      "source_component": "Social",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "SocialFeedPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/blogs",
+      "title": "Stories & Blogs",
+      "source_component": "Blogs",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/blogs/:id",
+      "title": "Story",
+      "source_component": "BlogArticle",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/publications/:id",
+      "title": "Publication",
+      "source_component": "PublicationArticle",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/help",
+      "title": "Help Center",
+      "source_component": "Help",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Help",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/help/:slug",
+      "title": "Help article",
+      "source_component": "HelpArticle",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "HelpArticle",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/onboarding",
+      "title": "Get started",
+      "source_component": "Onboarding",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/dashboard",
+      "title": "Dashboard",
+      "source_component": "Dashboard",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Dashboard",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/create",
+      "title": "New campaign",
+      "source_component": "CreateCampaign",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "CreateCampaign",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/giving",
+      "title": "My Giving",
+      "source_component": "MyGiving",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/communications",
+      "title": "Communications",
+      "source_component": "Communications",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/mission",
+      "title": "Mission Control",
+      "source_component": "MissionControlPage",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/ai-images",
+      "title": "AI Image Studio",
+      "source_component": "AIImageStudio",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/institutions",
+      "title": "Institutions",
+      "source_component": "Institutions",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/institutions/:id",
+      "title": "Institution",
+      "source_component": "InstitutionDetail",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/profile",
+      "title": "Profile",
+      "source_component": "Profile",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Profile",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/my-blog",
+      "title": "My Blog",
+      "source_component": "MyBlog",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/devices",
+      "title": "Connected devices",
+      "source_component": "ConnectedDevices",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/connections",
+      "title": "Connections",
+      "source_component": "Connections",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Connections",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/inbox",
+      "title": "Inbox",
+      "source_component": "Inbox",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/following",
+      "title": "Following",
+      "source_component": "FollowedCampaigns",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/notifications",
+      "title": "Notifications",
+      "source_component": "Notifications",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/donors",
+      "title": "Supporters",
+      "source_component": "Donors",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/ledger",
+      "title": "Financial ledger",
+      "source_component": "FinancialLedger",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/subscriptions",
+      "title": "Plans",
+      "source_component": "Subscriptions",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/withdrawals",
+      "title": "Withdrawals",
+      "source_component": "Withdrawals",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/agents",
+      "title": "AI team",
+      "source_component": "Agents",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/ops",
+      "title": "Ops Center",
+      "source_component": "OpsCenter",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/platform",
+      "title": "Platform",
+      "source_component": "Platform",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/analytics",
+      "title": "Command Center",
+      "source_component": "Analytics",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/connect",
+      "title": "Admin integrations redirect",
+      "source_component": "Navigate",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/external-accounts",
+      "title": "External accounts",
+      "source_component": "ExternalAccounts",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/integrations",
+      "title": "Admin integrations",
+      "source_component": "IntegrationsAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/audit",
+      "title": "Audit log",
+      "source_component": "AuditLogAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/agent-api",
+      "title": "Agent API",
+      "source_component": "AdminAgentApi",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/sustainability",
+      "title": "Planet Impact",
+      "source_component": "SustainabilityAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/help",
+      "title": "Help Center editor",
+      "source_component": "HelpAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    },
+    {
+      "path": "/admin/founding-members",
+      "title": "Founding members admin",
+      "source_component": "AdminFoundingWaitlist",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      }
+    }
+  ]
+}
