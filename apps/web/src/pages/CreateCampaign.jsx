@@ -39,14 +39,24 @@ export default function CreateCampaign() {
     try {
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
-        const user = authData?.user;
+      const user = authData?.user;
       if (authError || !user) { navigate("/login", { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
       if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
-      const values = { title: form.title.trim(), summary: form.summary.trim(),
+      const title = form.title.trim();
+      const summary = form.summary.trim();
+      if (!title || title.length > 150) throw new Error("Enter a campaign title (up to 150 characters).");
+      if (!summary || summary.length > 1000) throw new Error("Enter a short description (up to 1,000 characters).");
+      const coverUrl = form.cover_image_url.trim();
+      if (coverUrl) {
+        let parsed;
+        try { parsed = new URL(coverUrl); } catch { throw new Error("Enter a valid cover image URL."); }
+        if (!['https:', 'http:'].includes(parsed.protocol) || coverUrl.length > 2000) throw new Error("Cover image must use a valid HTTP or HTTPS URL.");
+      }
+      const values = { title, summary,
         story: form.story.trim(), category: form.category, goal_amount: amount,
-        cover_image_url: form.cover_image_url.trim(), status: "draft" };
+        cover_image_url: coverUrl, status: "draft" };
       const query = draftId
         ? client.from("ifund_campaigns").update(values).eq("id", draftId).eq("owner_id", user.id).eq("status", "draft")
         : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
