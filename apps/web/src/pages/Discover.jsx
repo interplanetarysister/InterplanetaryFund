@@ -24,6 +24,7 @@ export default function Discover() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 48;
+  const [hasNextPage, setHasNextPage] = useState(false);
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
   const helpLink = (
@@ -36,8 +37,12 @@ export default function Discover() {
     let active = true;
     setError(null);
     setCampaigns(null);
-    searchActiveCampaigns({ category, limit: pageSize, offset: page * pageSize })
-      .then((items) => { if (active) setCampaigns(items); })
+    searchActiveCampaigns({ category, limit: pageSize + 1, offset: page * pageSize })
+      .then((items) => {
+        if (!active) return;
+        setHasNextPage(items.length > pageSize);
+        setCampaigns(items.slice(0, pageSize));
+      })
       .catch((e) => {
         if (!active) return;
         console.error("Discover load failed:", e?.name || "UnknownError");
@@ -110,7 +115,7 @@ export default function Discover() {
       <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
         <button type="button" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
         <span className="text-sm">Page {page + 1}</span>
-        <button type="button" disabled={campaigns.length < pageSize} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
+        <button type="button" disabled={!hasNextPage} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
       </nav>
     </PullToRefresh>
   );
