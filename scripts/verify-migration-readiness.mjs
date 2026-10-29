@@ -47,6 +47,16 @@ if (!Array.isArray(launch.gates) || launch.gates.length < 19)
 
 
 const registered = new Map(HISTORICAL_ROUTES.map(page => [page.path, page]));
+const knownFunctions = new Set(functions.items.map(item=>item.name));
+const knownEntities = new Set(entities.items.map(item=>item.name));
+for (const page of evidence.pages) {
+  if (!page.source_static_dependencies?.source_page_file)
+    errors.push("Original page dependency mapping missing: " + page.path);
+  for (const handler of page.source_static_dependencies?.functions || [])
+    if (!knownFunctions.has(handler)) errors.push(page.path + ": unknown source backend function " + handler);
+  for (const entity of page.source_static_dependencies?.entities || [])
+    if (!knownEntities.has(entity)) errors.push(page.path + ": unknown source entity " + entity);
+}
 for (const page of evidence.pages) {
   const web = registered.get(page.path);
   if (!web || web.access !== page.access || web.source_component !== page.source_component)
@@ -69,6 +79,8 @@ if (production) {
   const roles = ["visitor","member","admin","super_admin"];
   for (const page of evidence.pages) {
     if (page.current_state !== "implemented_full") errors.push(page.path + ": feature implementation still partial/placeholder");
+    if (page.source_backend_calls_verified !== true || page.source_ui_parity_verified !== true)
+      errors.push(page.path + ": original page's backend and UI dependency proof missing");
     if (page.release_status !== "verified") errors.push(page.path + ": full parity not verified");
     for (const s of screens) if (!page.proof?.visual?.[s]) errors.push(page.path + ": missing " + s);
     for (const role of roles) if (!page.proof?.role_matrix?.[role])
