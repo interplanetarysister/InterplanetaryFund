@@ -17,9 +17,12 @@ test("original space-glass AuthLayout is reused for signup and password recovery
 
 test("both Home and sidebar use canonical Auth getUser, never hardcoded guest state",()=>{
  const hook=read("lib/useVerifiedUser.js");
+ const verifier=read("lib/verifiedEmailUser.js");
  const home=read("pages/Home.jsx");
  const layout=read("components/Layout.jsx");
- assert.match(hook,/\.auth\.getUser\(\)/);
+ assert.match(verifier,/auth\.getUser\(\)/);
+ assert.match(verifier,/auth\.getSession\(\)/);
+ assert.match(hook,/resolveVerifiedEmailUser/);
  assert.match(hook,/onAuthStateChange/);
  assert.match(hook,/SIGNED_OUT/);
  assert.match(home,/useVerifiedUser\(\)/);
