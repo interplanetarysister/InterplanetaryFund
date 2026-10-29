@@ -9,8 +9,6 @@ import { FALLBACK_IMAGE } from "@/components/brand/brand";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { Loader2, Heart, MapPin } from "lucide-react";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
-import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
-import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import PageError from "@/components/PageError";
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
@@ -21,7 +19,6 @@ const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 // not part of this slice. Campaign checkout stays disabled while campaign
 // donations are paused.
 export default function CampaignDetail() {
-  const platformOnlyMode = !usePublicCampaignFundraising();
   const { id } = useParams();
   const location = useLocation();
   const [campaign, setCampaign] = useState(null);
@@ -85,14 +82,13 @@ export default function CampaignDetail() {
   const displayed = campaign;
   const textDirection = "auto";
   const scrollToFunding = () => {
-    const section = document.getElementById("campaign-funding-mobile");
+    const section = document.getElementById(window.matchMedia("(min-width: 1024px)").matches ? "campaign-funding-desktop" : "campaign-funding-mobile");
     section?.scrollIntoView({ behavior: "smooth", block: "start" });
     section?.focus({ preventScroll: true });
   };
 
   return (
     <PullToRefresh onRefresh={load} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-      {platformOnlyMode && <PrelaunchNotice className="mb-6" />}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
@@ -134,7 +130,7 @@ export default function CampaignDetail() {
         {/* Sidebar */}
         <div className="space-y-5 lg:sticky lg:top-8 self-start">
           <div id="campaign-funding-desktop" tabIndex={-1} className="scroll-mt-24 hidden lg:block">
-            <CampaignFundingCard campaign={campaign} />
+            <CampaignFundingCard campaign={campaign} onDonate={donate} />
           </div>
         </div>
       </div>
@@ -153,9 +149,9 @@ export default function CampaignDetail() {
       <button
         onClick={scrollToFunding}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
-        aria-label={platformOnlyMode ? "Campaign donations are paused. Show funding details" : "Donate"}
+        aria-label="Show campaign donation options"
       >
-        <span className="flex flex-col items-center leading-tight"><span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {platformOnlyMode ? "Support IF" : "Donate"}</span>{platformOnlyMode && <span className="text-[10px] font-medium opacity-90">Platform, not campaign</span>}</span>
+        <span className="flex flex-col items-center leading-tight"><span className="flex items-center gap-2"><Heart className="w-5 h-5" /> Donate</span></span>
       </button>
     </PullToRefresh>
   );
