@@ -73,8 +73,10 @@ export default function CampaignDetail() {
   if (notFound) return <div className="text-center py-24 text-stone-500">Campaign not found.</div>;
   if (!campaign) return <div className="flex items-center justify-center h-[60vh]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
+  // Only activate after capture verification, refunds and reconciliation are deployed.
+  const checkoutReady = import.meta.env.VITE_IFUND_CAMPAIGN_CHECKOUT_READY === "true";
   const donate = async () => {
-    if (donationBusy) return;
+    if (donationBusy || !checkoutReady) return;
     setDonationBusy(true); setDonationError("");
     try { await startCampaignDonation({ campaignId: campaign.id, amount: donationAmount, supportPlatform }); }
     catch (e) { setDonationError(e?.message || "Checkout could not start."); setDonationBusy(false); }
@@ -117,7 +119,7 @@ export default function CampaignDetail() {
           </section>
           {/* Phones: funding progress sits directly under the title. */}
           <div id="campaign-funding-mobile" tabIndex={-1} className="scroll-mt-24 lg:hidden">
-            <CampaignFundingCard campaign={campaign} onDonate={donate} />
+            <CampaignFundingCard campaign={campaign} onDonate={checkoutReady ? donate : undefined} />
           </div>
           {displayed.story && (
             <div id="campaign-story" tabIndex={-1} className="scroll-mt-24 bg-white rounded-2xl border border-stone-200/70 p-6 shadow-sm">
@@ -144,8 +146,7 @@ export default function CampaignDetail() {
         </section>
       )}
 
-      {/* Mobile floating button keeps the original look; with checkout paused it
-          scrolls to the funding card and its notice instead of opening checkout. */}
+      {/* Mobile floating button scrolls to the campaign funding card. */}
       <button
         onClick={scrollToFunding}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
