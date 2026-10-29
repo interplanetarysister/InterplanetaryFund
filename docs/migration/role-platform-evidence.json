@@ -1276,8 +1276,8 @@
       "title": "My Giving",
       "source_component": "MyGiving",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "MyGiving",
       "release_status": "not_verified",
       "proof": {
         "visual": {
