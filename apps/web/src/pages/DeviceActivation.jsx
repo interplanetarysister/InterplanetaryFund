@@ -41,9 +41,14 @@ export default function DeviceActivation() {
 
   useEffect(() => {
     let active = true;
-    authClient().auth.getUser().then(({ data, error: authError }) => {
-      if (active) setIdentity(!authError && data?.user ? "signed-in" : "signed-out");
-    }).catch(() => { if (active) setIdentity("signed-out"); });
+    (async () => {
+      try {
+        const { data, error: authError } = await authClient().auth.getUser();
+        if (active) setIdentity(!authError && data?.user ? "signed-in" : "signed-out");
+      } catch {
+        if (active) setIdentity("signed-out");
+      }
+    })();
     return () => { active = false; };
   }, []);
 
