@@ -1,0 +1,35 @@
+name: Resolve independent web dependency lock
+on:
+  push:
+    branches:
+      - migration/build-completeness-gates-20261029
+    paths:
+      - apps/web/package.json
+      - .github/workflows/resolve-app-lock.yml
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/build-completeness-gates-20261029
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.23.2
+      - name: Resolve deterministic app dependency lock
+        run: npm --prefix apps/web install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - name: Commit generated lockfile if changed
+        run: |
+          if git diff --quiet -- apps/web/package-lock.json; then
+            echo "Web lockfile is already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/package-lock.json
+          git commit -m "build: lock independent web app dependencies"
+          git push origin HEAD:migration/build-completeness-gates-20261029
