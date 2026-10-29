@@ -29,18 +29,16 @@ export default function CreateCampaign() {
   }, [draftId,navigate]);
   const [form, setForm] = useState({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" });
   const [busy, setBusy] = useState(false);
-  const draftRevision = useRef(0);
   const savingRef = useRef(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  function change(key, value) { if (savingRef.current) return; draftRevision.current += 1; setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { if (savingRef.current) return; setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
     if (savingRef.current || loadingDraft || draftLoadError) return;
     savingRef.current = true;
     setBusy(true); setError(""); setSaved("");
     try {
-      const revisionAtStart = draftRevision.current;
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
       const user = authData?.user;
