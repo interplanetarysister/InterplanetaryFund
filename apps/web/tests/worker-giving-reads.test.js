@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { routeGivingRead } from "../../worker/givingReads.js";
+import { routeGivingRead } from "../../../worker/givingReads.js";
 
 const uid = "b7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391";
 const campaignId = "c7c73f65-09a2-4b92-81d2-9b49f0ef5bb5";
