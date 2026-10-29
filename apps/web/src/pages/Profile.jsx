@@ -50,8 +50,8 @@ export default function Profile() {
     <header><h1 className="font-display text-3xl font-bold">My profile</h1><p className="mt-2 text-muted-foreground">Manage your Interplanetary Fund identity.</p></header>
     {user && <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-6">
       <p className="text-sm text-muted-foreground">Account email: {user.email}</p>
-      <label className="block font-semibold">Display name<input maxLength={100} value={profile.display_name} onChange={e=>{ setMessage(""); setProfile(p=>({...p,display_name:e.target.value})); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Public handle<input maxLength={32} value={profile.handle} onChange={e=>{ setMessage(""); setProfile(p=>({...p,handle:e.target.value})); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="your-handle" /></label>
+      <label className="block font-semibold">Display name<input maxLength={100} value={profile.display_name} onChange={e=>{ setMessage(""); setError(""); setProfile(p=>({...p,display_name:e.target.value})); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <label className="block font-semibold">Public handle<input maxLength={32} value={profile.handle} onChange={e=>{ setMessage(""); setError(""); setProfile(p=>({...p,handle:e.target.value})); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="your-handle" /></label>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {message && <p role="status" className="text-primary">{message}</p>}
       <button disabled={busy} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save profile"}</button>
