@@ -27,7 +27,7 @@ From the repository root:
 npm ci --no-audit --no-fund
 npm test
 npm --prefix apps/web test
-npm --prefix apps/web install --no-package-lock --ignore-scripts --no-audit --no-fund
+npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
 npm --prefix apps/web exec -- vite build
 ```
 

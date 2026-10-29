@@ -40,11 +40,11 @@ The CI compile step runs Vite directly after installing the web dependencies. Th
 npm ci --no-audit --no-fund
 node --test tests/*.test.js
 npm --prefix apps/web test
-npm --prefix apps/web install --no-package-lock --ignore-scripts --no-audit --no-fund
+npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
 npm --prefix apps/web exec -- vite build
 ```
 
-The app dependency install currently has no committed app-specific lockfile; resolve and commit a reproducible lockfile before treating dependency installation as fully release-certified. The compile step does not replace browser, RLS, provider, or mobile testing.
+The independent web app now has a committed npm lockfile (230 package entries, lockfile v3). CI installs it with `npm ci`; the lock was generated in Node 22.23.2 and then committed to this branch. Keep the lock in sync with `apps/web/package.json`. The compile step does not replace browser, RLS, provider, or mobile testing.
 
 ## Production cutover
 
