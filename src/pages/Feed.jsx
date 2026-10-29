@@ -56,6 +56,11 @@ export default function Feed({ user }) {
         </Link>
         <Link className="secondary" to="/discover">Explore causes</Link>
       </div>
+    <div className="home-founding card">
+        <h2>Be here from the beginning</h2>
+        <p>Join the free IFund founding community and help shape what comes next.</p>
+        <Link className="secondary" to="/founding-members">Join Founding Members</Link>
+      </div>
     </section>
 
     <section className="home-story">
