@@ -16,6 +16,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
@@ -28,7 +29,7 @@ const STANDALONE_COMING_SOON = [
   "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
-  "/community", "/community/:id", "/u/:id", "/social", "/blogs", "/blogs/:id", "/publications/:id",
+  "/community/:id", "/u/:id", "/blogs", "/blogs/:id", "/publications/:id",
   "/create", "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/profile", "/my-blog", "/devices", "/connections", "/inbox",
   "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
@@ -53,6 +54,8 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/social" element={<SocialFeedPage />} />
+      <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
