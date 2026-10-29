@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from "react-router-dom";
 import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -29,6 +29,8 @@ import { HISTORICAL_ROUTES } from "@/lib/historicalRoutes";
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const Agents = lazy(() => import("./pages/Agents"));
+const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
+import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 
 
 // Exact source route inventory; a mounted page is not proof of feature parity.
@@ -48,6 +50,11 @@ const LAYOUT_PENDING = PENDING_ROUTES.filter(page => !STANDALONE_PATHS.has(page.
 const pendingElement = page => <RequireAccess access={page.access}>
   <MissingFeaturePage page={page} />
 </RequireAccess>;
+
+function EditDraftRedirect() {
+  const { id } = useParams();
+  return CAMPAIGN_UUID.test(id || "") ? <Navigate replace to={"/create?draft=" + encodeURIComponent(id)} /> : <PageNotFound />;
+}
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -72,6 +79,8 @@ function AppRoutes() {
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
+      <Route path="/edit/:id" element={<RequireAccess access="member"><EditDraftRedirect /></RequireAccess>} />
+      <Route path="/mine" element={<RequireAccess access="member"><MyCampaigns /></RequireAccess>} />
       <Route path="/profile" element={<RequireAccess access="member"><Profile /></RequireAccess>} />
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
