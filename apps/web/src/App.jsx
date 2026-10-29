@@ -47,6 +47,7 @@ const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const InstitutionDetail = lazy(() => import("./pages/InstitutionDetail"));
+const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 import TermsAcceptance from "@/components/TermsAcceptance";
@@ -58,7 +59,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -99,6 +100,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<RequireAccess access="member"><Dashboard /></RequireAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
       <Route path="/edit/:id" element={<RequireAccess access="member"><EditDraftRedirect /></RequireAccess>} />
       <Route path="/mine" element={<RequireAccess access="member"><MyCampaigns /></RequireAccess>} />
