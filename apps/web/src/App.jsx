@@ -51,6 +51,7 @@ const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const GlobalGlobe = lazy(() => import("./pages/GlobalGlobe"));
 const DeviceActivation = lazy(() => import("./pages/DeviceActivation"));
 const ConnectedDevices = lazy(() => import("./pages/ConnectedDevices"));
+const MyGiving = lazy(() => import("./pages/MyGiving"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 import TermsAcceptance from "@/components/TermsAcceptance";
@@ -62,7 +63,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/globe", "/activate", "/devices", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/globe", "/activate", "/devices", "/giving", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -120,6 +121,7 @@ function AppRoutes() {
       <Route path="/institutions/:id" element={<RequireAccess access="member"><InstitutionDetail /></RequireAccess>} />
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
       <Route path="/devices" element={<RequireAccess access="member"><ConnectedDevices /></RequireAccess>} />
+      <Route path="/giving" element={<RequireAccess access="member"><MyGiving /></RequireAccess>} />
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
       <Route path="/mission" element={<RequireAccess access="member"><MissionControlPage /></RequireAccess>} />
       <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
