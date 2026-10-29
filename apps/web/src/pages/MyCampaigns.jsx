@@ -62,7 +62,7 @@ export default function MyCampaigns() {
 
     {phase === "ready" && items.length > 0 && <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {items.map(item => <li key={item.id} className="space-y-3">
-        <CampaignCard campaign={item} />
+        <CampaignCard campaign={item} ownerView />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold capitalize">{item.status}</span>
           {item.status === "draft" ? <>
