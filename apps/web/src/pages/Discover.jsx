@@ -21,6 +21,7 @@ export default function Discover() {
   const requestedCategory = searchParams.get("category");
   const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
   const [search, setSearch] = useState("");
+  const [queryPending, setQueryPending] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(0);
@@ -35,7 +36,8 @@ export default function Discover() {
   );
 
   useEffect(() => {
-    const timeout = setTimeout(() => setDebouncedSearch(search), 300);
+    setQueryPending(search !== debouncedSearch);
+    const timeout = setTimeout(() => { setDebouncedSearch(search); setQueryPending(false); }, 300);
     return () => clearTimeout(timeout);
   }, [search]);
 
@@ -44,6 +46,7 @@ export default function Discover() {
     setError(null);
     setCampaigns(null);
     setHasNextPage(false);
+    setCompareIds([]);
     searchActiveCampaigns({ category, search: debouncedSearch, limit: pageSize + 1, offset: page * pageSize })
       .then((items) => {
         if (!active) return;
@@ -66,7 +69,7 @@ export default function Discover() {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
   }
 
-  const filtered = campaigns;
+  const filtered = queryPending ? [] : campaigns;
   const categories = ["all", ...Object.keys(categoryLabels)];
   const compared = compareIds.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean);
   const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 ? [...current, id] : current);
@@ -87,7 +90,7 @@ export default function Discover() {
 
       <div className="relative mb-6">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-        <Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); setCompareIds([]); }} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
+        <Input aria-label="Search active campaigns" maxLength={100} value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); setCompareIds([]); }} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         {categories.map((c) => (
@@ -109,7 +112,7 @@ export default function Discover() {
         </section>
       )}
 
-      {filtered.length === 0 ? (
+      {queryPending ? <p role="status" className="py-12 text-center text-sm">Updating search…</p> : filtered.length === 0 ? (
         <p className="text-stone-400 text-sm py-16 text-center">
           {debouncedSearch.trim() ? "No campaigns match your search. Try another term." : page > 0 ? "No more campaigns on this page." : "No active campaigns in this category yet — what if yours was the first?"}
         </p>
@@ -119,9 +122,9 @@ export default function Discover() {
         </div>
       )}
       <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
-        <button type="button" disabled={page === 0} onClick={() => { setCompareIds([]); setPage(p => Math.max(0, p - 1)); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
+        <button type="button" disabled={page === 0 || queryPending} onClick={() => { setCompareIds([]); setPage(p => Math.max(0, p - 1)); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
         <span className="text-sm">Page {page + 1}</span>
-        <button type="button" disabled={!hasNextPage} onClick={() => { setCompareIds([]); setPage(p => p + 1); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
+        <button type="button" disabled={!hasNextPage || queryPending} onClick={() => { setCompareIds([]); setPage(p => p + 1); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
       </nav>
     </PullToRefresh>
   );
