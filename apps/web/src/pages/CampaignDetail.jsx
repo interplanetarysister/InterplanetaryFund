@@ -1,3 +1,4 @@
+import { startCampaignDonation } from "@/api/campaignDonations";
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import { getCampaignDetail, listRelatedCampaigns } from "@/api/publicData";
@@ -27,6 +28,10 @@ export default function CampaignDetail() {
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
   const [error, setError] = useState("");
+  const [donationAmount, setDonationAmount] = useState("25");
+  const [supportPlatform, setSupportPlatform] = useState(false);
+  const [donationBusy, setDonationBusy] = useState(false);
+  const [donationError, setDonationError] = useState("");
   const requestVersion = React.useRef(0);
 
   const load = useCallback(async () => {
@@ -71,6 +76,12 @@ export default function CampaignDetail() {
   if (notFound) return <div className="text-center py-24 text-stone-500">Campaign not found.</div>;
   if (!campaign) return <div className="flex items-center justify-center h-[60vh]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
+  const donate = async () => {
+    if (donationBusy) return;
+    setDonationBusy(true); setDonationError("");
+    try { await startCampaignDonation({ campaignId: campaign.id, amount: donationAmount, supportPlatform }); }
+    catch (e) { setDonationError(e?.message || "Checkout could not start."); setDonationBusy(false); }
+  };
   const displayed = campaign;
   const textDirection = "auto";
   const scrollToFunding = () => {
@@ -102,9 +113,15 @@ export default function CampaignDetail() {
             </div>
             {displayed.summary && <p dir={textDirection} className="text-slate-800 mt-2 text-lg font-medium leading-relaxed whitespace-pre-wrap">{displayed.summary}</p>}
           </div>
+          <section aria-label="Campaign donation" className="rounded-2xl border border-stone-200 bg-white p-5">
+            <label className="block text-sm font-semibold text-stone-900">Donation amount (USD)<input type="number" min="1" max="1000000" step="0.01" value={donationAmount} onChange={e => setDonationAmount(e.target.value)} className="mt-2 block w-full rounded-lg border p-3" /></label>
+            <label className="mt-3 flex items-start gap-2 text-sm text-stone-800"><input type="checkbox" checked={supportPlatform} onChange={e => setSupportPlatform(e.target.checked)} /> Add an optional 10% to support Interplanetary Fund (in addition to my campaign gift)</label>
+            {donationError && <p role="alert" className="mt-2 text-sm text-red-700">{donationError}</p>}
+            {donationBusy && <p role="status">Connecting to PayPal…</p>}
+          </section>
           {/* Phones: funding progress sits directly under the title. */}
           <div id="campaign-funding-mobile" tabIndex={-1} className="scroll-mt-24 lg:hidden">
-            <CampaignFundingCard campaign={campaign} />
+            <CampaignFundingCard campaign={campaign} onDonate={donate} />
           </div>
           {displayed.story && (
             <div id="campaign-story" tabIndex={-1} className="scroll-mt-24 bg-white rounded-2xl border border-stone-200/70 p-6 shadow-sm">
