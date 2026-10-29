@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
+import { persistCampaignContent } from "@/lib/campaignPublication";
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
@@ -33,34 +34,25 @@ export default function CreateCampaign() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
-  async function save(e) {
-    e.preventDefault();
+  async function save(e, publish = false) {
+    e?.preventDefault?.();
     if (busy || loadingDraft || draftLoadError) return;
     setBusy(true); setError(""); setSaved("");
     try {
-      const client = authClient();
-      const { data: authData, error: authError } = await client.auth.getUser();
-      const user = authData?.user;
-      if (authError || !user) { navigate("/login", { replace: true }); return; }
-      const goalText = form.goal_amount.trim();
-      // Drafts can be incomplete. A complete goal and story are required only for publication.
-      if (goalText && !/^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,2})?$/.test(goalText)) throw new Error("Use a nonnegative USD amount with up to two decimals.");
-      const amount = goalText ? Number(goalText) : 0;
-      const values = { title: form.title.trim(), summary: form.summary.trim(),
-        story: form.story.trim(), category: form.category, goal_amount: amount,
-        cover_image_url: form.cover_image_url.trim(), status: "draft" };
-      const query = draftId
-        ? client.from("ifund_campaigns").update(values).eq("id", draftId).eq("owner_id", user.id).eq("status", "draft")
-        : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
-      const { data, error: insertError } = await query.select("id").single();
-      if (insertError) throw insertError;
-      setSaved(data.id);
-      if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
-    } catch (err) { setError(err?.message || "Your draft could not be saved."); }
-    finally { setBusy(false); }
+      const outcome = await persistCampaignContent(authClient(), form, { id: draftId || null, publish });
+      if (publish) {
+        navigate("/campaign/" + encodeURIComponent(outcome.id), { replace: true });
+      } else {
+        setSaved(outcome.id);
+        if (!draftId) navigate("/create?draft=" + encodeURIComponent(outcome.id), { replace: true });
+      }
+    } catch (cause) {
+      setError(cause?.message || "The campaign could not be saved.");
+    } finally { setBusy(false); }
   }
+
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Save your campaign story as a private draft. Publishing and donations remain unavailable until independently verified.</p></header>
+    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Save your campaign story as a private draft. Save privately at any step, or publish a complete campaign for public discovery. Campaign donations and withdrawal processing remain paused until provider accounting is verified.</p></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
@@ -72,7 +64,7 @@ export default function CreateCampaign() {
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={2000} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {saved && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. Reference: <code className="break-all">{saved}</code>. <Link to="/dashboard" className="underline">Dashboard</Link></p>}
-      <button type="submit" disabled={busy || loadingDraft || Boolean(draftLoadError)} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save private draft"}</button>
+      <div className="flex flex-wrap gap-3"><button type="submit" disabled={busy || loadingDraft || Boolean(draftLoadError)} className="min-h-12 rounded-xl border border-primary px-6 font-semibold text-primary disabled:opacity-50">{busy ? "Saving…" : "Save private draft"}</button><button type="button" onClick={() => save(null, true)} disabled={busy || loadingDraft || Boolean(draftLoadError)} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">Publish campaign</button></div><p className="text-sm text-muted-foreground">Publishing makes your campaign story public. It does not activate campaign checkout, collect money, or authorize automated sharing.</p>
     </form>
   </main>;
 }
