@@ -37,3 +37,19 @@ test("the original member/admin paths use verified auth gate", () => {
   assert.match(app, /STANDALONE_PENDING/);
   assert.match(app, /LAYOUT_PENDING/);
 });
+
+test("the staging type crosswalk records all original field conversions", () => {
+  const types = read("../../../docs/migration/contracts/schema-type-crosswalk.json");
+  assert.equal(types.static_field_count, 1126);
+  assert.equal(types.sql_field_count_matched, 1126);
+  assert.equal(types.timestamp_fields.length, 75);
+  assert.ok(types.timestamp_fields.every(item => item.roundtrip_verified === false));
+});
+test("draft management routes require owner verification", () => {
+  const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+  assert.match(app, /path="\/mine".*RequireAccess access="member"/);
+  assert.match(app, /path="\/edit\/:id".*RequireAccess access="member"/);
+  const client = readFileSync(new URL("../src/lib/ownerCampaigns.js", import.meta.url), "utf8");
+  assert.match(client, /\.eq\("owner_id", user\.id\)/);
+  assert.match(client, /\.eq\("status", "draft"\)/);
+});
