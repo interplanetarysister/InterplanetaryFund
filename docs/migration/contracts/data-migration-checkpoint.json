@@ -1,26 +1,63 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "checked_at": "2026-10-29",
   "canonical_supabase_project": "ssibsfmtodgximseeqsv",
-  "read_only_database_aggregate": {
-    "staged_campaigns": 27,
-    "distinct_staged_legacy_ids": 27,
-    "staged_active": 17,
-    "staged_drafts": 10,
-    "staged_paused": 0,
-    "staged_rows_with_auth_owner": 0,
-    "staged_rows_with_verified_auth_owner": 0,
-    "runtime_public_campaigns": 0,
-    "runtime_donations": 0
+  "canonical_runtime_aggregate": {
+    "auth_users": 3,
+    "confirmed_auth_users": 3,
+    "public_profiles": 3,
+    "public_campaigns": 0,
+    "public_posts": 1,
+    "public_connections": 0,
+    "public_donations": 0,
+    "public_payment_events": 0,
+    "finance_schema_rows": 0,
+    "workflow_schema_rows": 0,
+    "business_mail_schema_rows": 0,
+    "outreach_mail_schema_rows": 0,
+    "deployed_edge_functions": 0
   },
-  "expected_historical_source_campaigns": "not independently re-exported in this turn (prior checkpoint referenced 28; needs verification)",
-  "owner_identity_match_verified": false,
-  "source_row_hashes_verified": false,
-  "all_source_campaigns_accounted_for": false,
-  "stage_to_runtime_import_approved": false,
-  "source_ledger_preserved": true,
-  "source_ledger_integrity_verified": false,
-  "status": "blocked_by_missing_27_of_27_owner_links",
-  "next_required_evidence": "Authorized original ownership export or independently proven owner mapping for every legacy campaign; never infer ownership from title, email display strings or guesses.",
+  "legacy_migration_staging_project": "tzehxfikoslihnclhxuz",
+  "legacy_read_only_staging_aggregate": {
+    "campaign_shadow_rows": 27,
+    "campaign_shadow_active": 17,
+    "campaign_shadow_drafts": 10,
+    "campaign_shadow_with_source_sha256": 27,
+    "owner_identity_map_rows": 10,
+    "owner_identity_map_marked_verified": 3,
+    "owner_identity_map_awaiting_destination_login": 7,
+    "campaign_shadow_rows_joining_verified_destination_uid": 20,
+    "campaign_shadow_rows_without_verified_destination_uid": 7,
+    "source_records_rows": 42,
+    "source_records_campaign_update": 10,
+    "source_records_platform_connection": 32,
+    "source_records_with_payload_sha256": 42,
+    "import_batches": 4,
+    "cutover_control_rows": 13,
+    "agent_activity_shadow_rows": 397,
+    "agent_delegation_shadow_rows": 26,
+    "content_shadow_rows": 266
+  },
+  "owner_link_evidence": {
+    "verified_map_state_is_not_owner_consent": true,
+    "explicit_consent_receipt_table_present": false,
+    "consented_campaign_owners_verified": 0,
+    "note": "The legacy staging database has three identity-map rows marked verified after exact confirmed-email matching, covering 20 of 27 campaign shadows. Seven campaign shadows remain linked to map rows awaiting destination login. The applied legacy owner-commit RPC is service_role-only and performs exact-email matching; no consent-receipt table or user-initiated consent proof was found. Do not equate verification_state='verified' with owner consent or cutover approval."
+  },
+  "source_integrity": {
+    "shadow_hash_fields_present": true,
+    "source_hashes_independently_recomputed": false,
+    "source_export_completeness_verified": false,
+    "expected_historical_source_campaigns": "not independently re-exported in this check; an earlier checkpoint referenced 28, so 27 staged rows do not prove all source campaigns are accounted for",
+    "source_ledger_preserved": true,
+    "source_ledger_integrity_verified": false
+  },
+  "runtime_import": {
+    "approved": false,
+    "performed": false,
+    "note": "No campaign shadows or legacy source records have been imported into the canonical independent runtime project."
+  },
+  "status": "blocked_by_missing_owner_consent_source_reconciliation_and_project_binding_mismatch",
+  "next_required_evidence": "Obtain explicit, authenticated owner consent for every legacy owner; reconcile the historical source campaign export and independently recompute row hashes; align Cloudflare Pages browser and Worker Supabase project bindings only through an approved reversible plan. Never infer ownership from titles, display names, or unverified email hints.",
   "no_import_performed": true
 }
