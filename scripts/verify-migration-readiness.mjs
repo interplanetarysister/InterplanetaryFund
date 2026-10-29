@@ -29,6 +29,17 @@ unique(functions.items, "name", 184, "Function contracts");
 unique(automations.agents, "name", 10, "AI agent contracts");
 unique(automations.workflows, "name", 17, "Workflow contracts");
 unique(automations.connectors, "name", 11, "Connector contracts");
+const triggerKinds = automations.workflows.reduce((acc, item) => {
+  const kind = item.source_trigger_spec?.type;
+  acc[kind] = (acc[kind] || 0) + 1;
+  if (!item.all_source_handlers_in_inventory) errors.push("Missing historical handler mapping: " + item.name);
+  return acc;
+}, {});
+if (triggerKinds.scheduled !== 11 || triggerKinds.entity !== 6)
+  errors.push("Historical schedule and entity-event trigger counts do not match 11/6");
+if (!Array.isArray(launch.gates) || launch.gates.length < 19)
+  errors.push("Required comprehensive launch goals are missing");
+
 
 const registered = new Map(HISTORICAL_ROUTES.map(page => [page.path, page]));
 for (const page of evidence.pages) {
@@ -53,6 +64,7 @@ if (production) {
     "mobile_light","mobile_dark","android_light","android_dark"];
   const roles = ["visitor","member","admin","super_admin"];
   for (const page of evidence.pages) {
+    if (page.current_state !== "implemented_full") errors.push(page.path + ": feature implementation still partial/placeholder");
     if (page.release_status !== "verified") errors.push(page.path + ": full parity not verified");
     for (const s of screens) if (!page.proof?.visual?.[s]) errors.push(page.path + ": missing " + s);
     for (const role of roles) if (!page.proof?.role_matrix?.[role])
@@ -60,7 +72,7 @@ if (production) {
     for (const field of ["functional","persistence","source_assets","reviewer_approval"])
       if (!page.proof?.[field]) errors.push(page.path + ": missing " + field + " proof");
   }
-  for (const e of entities.items) if (!e.migration_table || !e.rls_verified ||
+  for (const e of entities.items) if (!e.runtime_table || !e.staging_field_names_verified || !e.migration_table || !e.rls_verified ||
       !e.fields_verified || !e.read_write_verified || !e.data_verified)
     errors.push("Entity not independently reconciled: " + e.name);
   for (const f of functions.items) if (!(f.retired_by_owner ||
