@@ -71,7 +71,7 @@ export default function MyCampaigns() {
               className="text-sm font-semibold text-destructive underline">
               {confirmId === item.id ? "Cancel removal" : "Remove draft"}
             </button>
-          </> : <Link className="text-sm font-semibold text-primary underline" to={"/campaign/" + encodeURIComponent(item.id)}>View campaign</Link>}
+          </> : <Link className="text-sm font-semibold text-primary underline" to={(item.status === "active" ? "/campaign/" : "/mine/") + encodeURIComponent(item.id)}>{item.status === "active" ? "View campaign" : "Owner preview"}</Link>}
         </div>
         {item.status === "draft" && confirmId === item.id && <section className="rounded-xl border border-destructive/40 p-4" aria-label="Confirm draft removal">
           <p className="text-sm">Remove this private draft permanently? This cannot be undone. Published campaigns cannot be removed here.</p>
