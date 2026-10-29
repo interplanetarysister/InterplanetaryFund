@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "terms_version": "2026-10-13-v3",
+  "source": "interplanetarysister/interplanetary-fund2/src/components/TermsAcceptance.jsx and base44/functions/recordLegalAcceptance",
+  "implementation": {
+    "ui": "apps/web/src/components/TermsAcceptance.jsx",
+    "service": "apps/web/src/lib/legalAcceptance.js",
+    "schema": "supabase/migrations/pending/20261029_ifund_legal_acceptances.sql",
+    "staged_only": true
+  },
+  "proof_requirements": {
+    "canonical_schema_applied": false,
+    "authenticated_user_insert_verified": false,
+    "anonymous_insert_denied_verified": false,
+    "different_user_read_denied_verified": false,
+    "database_timestamp_immutable_verified": false,
+    "source_terms_version_exact_verified": false,
+    "original_user_acceptance_import_reconciled": false,
+    "consent_required_when_changing_accounts_verified": false,
+    "acceptance_not_inferred_from_browsing_verified": false,
+    "two_user_acceptance_test_passed": false,
+    "web_and_android_flow_verified": false,
+    "first_signup_acceptance_persisted": false
+  },
+  "blocker": "The source legal acceptance logic is staged with account-bound RLS, but not applied/tested on the canonical project. Existing consent histories must not be assumed accepted or forged, and members must not be presented with a false acceptance success. No build or deployment permitted under owner override."
+}
