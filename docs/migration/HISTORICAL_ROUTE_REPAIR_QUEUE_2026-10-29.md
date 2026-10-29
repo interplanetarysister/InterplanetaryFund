@@ -62,3 +62,27 @@ At the time of the initial schema-only checkpoint, the worker endpoint and UI we
 - The page shows confirmed campaign gifts, separately recorded optional IFund support, supported-campaign count, and retry/empty states. It does not invent recurring amounts, processing fees, or total charged because those fields are not available in the canonical donation schema.
 
 **Still partial:** canonical donation RLS currently has no donor SELECT policy, so this path relies on a server-only service-role query with strict donor filtering and response validation. The route tests were added but have not been executed; the API, captured-only truth boundary, RLS/ownership behavior, browser rendering and Android behavior remain unverified. No financial writes were added.
+## Remaining placeholder blocker map
+
+The current canonical public schema inspection returned only `ifund_profiles`, `ifund_campaigns`, `ifund_posts`, `ifund_connections`, `ifund_donations`, and `ifund_payment_events`. The entries below remain blocked by missing service/schema/authorization parity, not merely missing JSX. Do not replace them with success-shaped shells.
+
+| Route | Current blocker that must be resolved before an end-to-end port |
+|---|---|
+| `/oauth/consent` | No canonical client registry, grant store, or opaque single-use context store; must replace the legacy MCP consent routes with context-bound, atomic grant handling. |
+| `/admin/organization-mail` | No verified organization-mail queue/provider service or server-side configuration contract. |
+| `/communications` | No canonical message history, compose/delivery service, or user communication-preference storage. |
+| `/ai-images` | No verified image-generation service, entitlement, request history, or server-side provider configuration. |
+| `/my-blog` | Editorial schema is staged only; owner-authorized draft/update/publish and subscription entitlement checks are absent. |
+| `/inbox` | No canonical inbox-item or notification tables; donation records alone do not reproduce the merged source inbox. |
+| `/donors` | Donation schema lacks source donor-name/anonymous-consent and recurring fields; do not expose profile identities or infer consent from donor IDs. |
+| `/ledger` | A verified source-complete ledger and historical owner mapping are not present in canonical tables; never infer balances from donation rows alone. |
+| `/subscriptions` | No canonical subscription/entitlement records or verified recurring-provider events. |
+| `/withdrawals` | No complete verified payout/withdrawal lifecycle; payment writes are intentionally out of scope until platform parity is restored. |
+| `/platform` | No complete canonical platform-state/agent/workflow registry to support the source admin controls. |
+| `/admin/external-accounts` | `ifund_connections` stores status metadata only; encrypted credentials, scopes, adapters and refresh/revoke lifecycle are not migrated. |
+| `/admin/integrations` | No complete integration registry, credential vault, workflow execution state or verified provider adapters. |
+| `/admin/audit` | No canonical audit-log schema and retention/authorization contract. |
+| `/admin/agent-api` | No canonical agent API-key, scope, approval and execution audit service. |
+| `/admin/founding-members` | Target page exists, but `ifund_founding_waitlist` is absent from the current public schema; its list/update actions cannot succeed yet. |
+
+These blockers should be resolved route by route with source contract review, canonical schema/service implementation, authorization tests, browser evidence and owner review. The route inventory remains 44 partial ports and 15 placeholders; every route is still marked `not_verified`.
