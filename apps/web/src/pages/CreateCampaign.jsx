@@ -8,9 +8,10 @@ export default function CreateCampaign() {
   const draftId = params.get("draft");
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
+  const [loadedDraftId, setLoadedDraftId] = useState(null);
   useEffect(() => {
-    if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); setError(""); setSaved(""); setForm({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" }); return; }
-    setLoadingDraft(true); setDraftLoadError(""); setSaved(""); setError("");
+    if (!draftId) { setLoadedDraftId(null); setLoadingDraft(false); setDraftLoadError(""); setError(""); setSaved(""); setForm({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" }); return; }
+    setLoadedDraftId(null); setLoadingDraft(true); setDraftLoadError(""); setSaved(""); setError("");
     let active = true;
     (async () => {
       try {
@@ -21,7 +22,7 @@ export default function CreateCampaign() {
         if (authError || !user) { navigate("/login", { replace: true }); return; }
         const { data, error: fetchError } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id",draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (fetchError || !data) throw new Error("Draft not found or access denied.");
-        if (active) setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" });
+        if (active) { setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" }); setLoadedDraftId(draftId); }
       } catch (err) { if (active) setDraftLoadError(err?.message || "Unable to load draft."); }
       finally { if (active) setLoadingDraft(false); }
     })();
@@ -35,7 +36,7 @@ export default function CreateCampaign() {
   function change(key, value) { if (savingRef.current) return; setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
-    if (savingRef.current || loadingDraft || draftLoadError) return;
+    if (savingRef.current || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId)) return;
     savingRef.current = true;
     setBusy(true); setError(""); setSaved("");
     try {
@@ -77,7 +78,7 @@ export default function CreateCampaign() {
     {loadingDraft && <p role="status" aria-live="polite">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
     <form onSubmit={save} aria-busy={busy || loadingDraft} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
-      <fieldset disabled={busy || loadingDraft || Boolean(draftLoadError)} className="space-y-5">
+      <fieldset disabled={busy || loadingDraft || Boolean(draftLoadError) || Boolean(draftId && loadedDraftId !== draftId)} className="space-y-5">
       <label className="block font-semibold">Campaign title<input required maxLength={150} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea required maxLength={1000} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Your story<textarea rows={8} maxLength={20000} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
@@ -87,7 +88,7 @@ export default function CreateCampaign() {
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {saved && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. Reference: <code className="break-all">{saved}</code>. <Link to="/dashboard" className="underline">Dashboard</Link></p>}
-      <button type="submit" disabled={busy || loadingDraft || Boolean(draftLoadError)} aria-disabled={busy || loadingDraft || Boolean(draftLoadError)} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save private draft"}</button>
+      <button type="submit" disabled={busy || loadingDraft || Boolean(draftLoadError) || Boolean(draftId && loadedDraftId !== draftId)} aria-disabled={busy || loadingDraft || Boolean(draftLoadError) || Boolean(draftId && loadedDraftId !== draftId)} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save private draft"}</button>
     </form>
   </main>;
 }
