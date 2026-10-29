@@ -48,9 +48,10 @@ export async function routeGivingRead(request, env, fetcher = fetch) {
       donor_id: 'eq.' + account.uid,
       status: 'eq.captured',
       order: 'captured_at.desc',
-      limit: '1000',
+      limit: '1001',
     });
     const rows = await read(env, 'ifund_donations?' + donationParams.toString(), fetcher);
+    if (rows.length > 1000) return response(409, { error: 'Giving history is too large to verify in one request.' });
     const seen = new Set();
     for (const row of rows) {
       if (!row || !UUID.test(row.id || '') || row.donor_id !== account.uid ||
