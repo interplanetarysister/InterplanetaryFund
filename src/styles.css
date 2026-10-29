@@ -645,3 +645,59 @@ html[data-theme="light"] .dashboard-stats .card small { color: #39628a; }
   .dashboard-stats { grid-template-columns: 1fr; }
   .dashboard-hero { padding: 1.2rem; }
 }
+
+
+/* Restored account, social, giving surfaces: single readable responsive shell. */
+.profile-page, .giving-page { max-width: 960px; }
+.profile-identity { display:flex; align-items:center; gap:1rem; min-width:0; margin:1rem 0; }
+.profile-identity div:last-child { display:grid; gap:.25rem; min-width:0; overflow-wrap:anywhere; }
+.profile-avatar { flex:0 0 auto; width:76px; height:76px; border-radius:50%; object-fit:cover; border:2px solid #70bcdf; }
+.profile-avatar-fallback { display:grid; place-items:center; background:#354477; color:#fff; font-weight:800; }
+.profile-upload { display:grid; gap:.45rem; margin:1rem 0; font-weight:700; }
+.profile-page .form { max-width:600px; }
+.profile-page .form small { color:#b7cae0; }
+.profile-page .card p { overflow-wrap:anywhere; }
+.social-hub { max-width:1120px; }
+.social-heading {
+  position:static; z-index:auto; padding:0;
+  border:0; background:transparent; box-shadow:none;
+  display:flex; align-items:center; gap:1rem; justify-content:space-between;
+}
+.social-heading h1 { font-size:clamp(1.7rem,4.6vw,2.9rem); margin:.3rem 0; }
+.social-heading p { margin:.3rem 0; color:#c5cfe6; }
+.social-tabs { display:flex; flex-wrap:wrap; gap:.6rem; padding:.8rem 0; }
+.social-tabs a { border:1px solid #586997; border-radius:15px; padding:.55rem .9rem; }
+.social-tabs a.active { background:#395e7e; color:#fff; }
+.social-layout { display:grid; grid-template-columns:minmax(0,1fr) 265px; gap:1.25rem; }
+.social-main { min-width:0; }
+.social-sidebar { min-width:0; }
+.social-sidebar .card { margin:0 0 1rem; }
+.social-composer { max-width:none; padding:1rem; }
+.social-composer .actions { justify-content:space-between; align-items:center; }
+.social-composer .actions small { color:#b5cde2; }
+.social-post-head, .giving-row { display:flex; justify-content:space-between; align-items:baseline; gap:.8rem; flex-wrap:wrap; }
+.social-post-head small { color:#b8cde7; }
+.social-post-body { white-space:pre-wrap; overflow-wrap:anywhere; font-size:1rem; }
+.giving-list { display:grid; gap:.6rem; margin:1rem 0; }
+.giving-list .card { margin:0; }
+.giving-list .card strong { font-size:1.3rem; }
+.giving-note { color:#b4c6de; }
+html[data-theme="light"] .social-heading { background:transparent; }
+html[data-theme="light"] .social-heading p,
+html[data-theme="light"] .giving-note { color:#465a77; }
+html[data-theme="light"] .social-post-head small,
+html[data-theme="light"] .social-composer .actions small,
+html[data-theme="light"] .profile-page .form small { color:#495d79; }
+html[data-theme="light"] .social-tabs a.active { background:#d1e3f8; color:#173353; }
+@media (max-width: 800px) {
+  .social-layout { grid-template-columns:minmax(0,1fr); }
+  .social-heading { position:static; }
+  .social-sidebar { display:grid; grid-template-columns:repeat(auto-fit,minmax(205px,1fr)); gap:.7rem; }
+  .social-sidebar .card { margin:0; }
+}
+@media (max-width: 500px) {
+  .profile-avatar { width:60px; height:60px; }
+  .social-heading { align-items:flex-start; }
+  .social-heading .secondary { font-size:.8rem; padding:.55rem; }
+  .giving-page .actions button { max-width:100%; }
+}
