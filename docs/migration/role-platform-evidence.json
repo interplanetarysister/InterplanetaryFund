@@ -317,8 +317,8 @@
       "title": "Activate device",
       "source_component": "DeviceActivation",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "DeviceActivation",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1608,8 +1608,8 @@
       "title": "Connected devices",
       "source_component": "ConnectedDevices",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "ConnectedDevices",
       "release_status": "not_verified",
       "proof": {
         "visual": {
