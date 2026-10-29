@@ -91,7 +91,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */6 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runOutreachAgent"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Admin Action Conversation Router",
@@ -100,7 +110,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "*/15 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "processAdminActionInbox"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Campaign Protocol",
@@ -109,7 +129,20 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create",
+          "update"
+        ],
+        "source_handlers": [
+          "enforceCampaignProtocol"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Campaign Sync on Create",
@@ -118,7 +151,19 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Campaign Sync on Update",
@@ -127,7 +172,19 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "CampaignUpdate",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Connection Sync Engine",
@@ -136,7 +193,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "External Feed Mirroring",
@@ -145,7 +212,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "mirrorExternalPosts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Feature Discovery on Completion",
@@ -154,7 +231,19 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "update"
+        ],
+        "source_handlers": [
+          "discoverFeatures"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Grant Application Review",
@@ -163,7 +252,19 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "GrantApplication",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "analyzeGrantApplication"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "IFund Official Social Editor",
@@ -172,7 +273,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */4 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runOfficialSocialPromotion"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "IFund Reporter Daily Diary",
@@ -181,7 +292,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 17 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runReporterDiary"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Integration Health Check",
@@ -190,7 +311,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 */6 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "validateIntegrationHealth"
+        ],
+        "risk": "external"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "PayPal Holding Settlement Reconciliation",
@@ -199,7 +330,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "discoverPayPalHoldingSettlements"
+        ],
+        "risk": "financial"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Platform Account Steward",
@@ -208,7 +349,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 15 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "maintainPlatformOwnedAccounts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Social Media Autopilot",
@@ -217,7 +368,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 14 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runSocialAutopilot"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Volunteer Welcome Follow-up",
@@ -226,7 +387,20 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "VolunteerSignup",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "welcomeVolunteer",
+          "volunteerFollowUp"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true
     },
     {
       "name": "Weekly Writing Psychology & Social Trends Training",
@@ -235,7 +409,17 @@
       "handler": null,
       "idempotency_verified": false,
       "consent_verified": false,
-      "live_verified": false
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 16 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "refreshWritingResearch"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true
     }
   ],
   "connectors": [
