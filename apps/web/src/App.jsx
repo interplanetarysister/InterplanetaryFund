@@ -24,6 +24,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
+const HelpAdmin = lazy(() => import("./pages/HelpAdmin"));
 import RequireAccess from "@/components/RequireAccess";
 import MissingFeaturePage from "@/pages/MissingFeaturePage";
 import { HISTORICAL_ROUTES } from "@/lib/historicalRoutes";
@@ -53,7 +54,7 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/connect",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/connect", "/admin/help",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
@@ -110,6 +111,7 @@ function AppRoutes() {
       <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
       <Route path="/analytics" element={<RequireAccess access="admin"><Analytics /></RequireAccess>} />
       <Route path="/connect" element={<RequireAccess access="admin"><Navigate replace to="/admin/integrations?view=ai" /></RequireAccess>} />
+      <Route path="/admin/help" element={<RequireAccess access="admin"><HelpAdmin /></RequireAccess>} />
       <Route path="/u/:id" element={<PublicProfile />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
