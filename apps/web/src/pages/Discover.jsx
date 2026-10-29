@@ -74,14 +74,11 @@ export default function Discover() {
   if (error && requestKey === `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
   }
-  if (loading || !campaigns || loadedKey !== `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
-    return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
-  }
-
-  const filtered = queryPending ? [] : campaigns;
+  const resultsLoading = loading || !campaigns || loadedKey !== `${category}:${debouncedSearch}:${page}:${refreshKey}`;
+  const filtered = queryPending || resultsLoading ? [] : campaigns;
   const categories = ["all", ...Object.keys(categoryLabels)];
-  const compared = compareIds.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean);
-  const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 && campaigns.some((campaign) => campaign.id === id) ? [...current, id] : current);
+  const compared = compareIds.map((id) => (campaigns || []).find((campaign) => campaign.id === id)).filter(Boolean);
+  const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 && (campaigns || []).some((campaign) => campaign.id === id) ? [...current, id] : current);
 
   return (
     <PullToRefresh onRefresh={() => setRefreshKey((k) => k + 1)} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -95,7 +92,7 @@ export default function Discover() {
         <div className="flex flex-wrap items-center gap-2">{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
-      {!queryPending && !debouncedSearch.trim() && page === 0 && <RecommendedCampaigns allCampaigns={campaigns} />}
+      {!queryPending && !resultsLoading && !debouncedSearch.trim() && page === 0 && <RecommendedCampaigns allCampaigns={campaigns} />}
 
       <div className="relative mb-6" role="search">
         <Search aria-hidden="true" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -114,14 +111,14 @@ export default function Discover() {
         ))}
       </div>
 
-      {!queryPending && compared.length > 0 && (
+      {!queryPending && !resultsLoading && compared.length > 0 && (
         <section className="mb-6 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label="Campaign comparison">
           <div className="flex items-center justify-between gap-3 mb-3"><div><h2 className="font-display text-xl text-stone-900">Compare campaigns</h2><p className="text-xs text-stone-500">Choose up to three. Comparison is informational; you decide where to support.</p></div><button type="button" onClick={() => setCompareIds([])} className="text-sm text-primary hover:underline">Clear</button></div>
           <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-sm"><thead><tr className="text-left text-stone-500"><th className="py-2 pr-3">Campaign</th><th className="py-2 px-3">Category</th><th className="py-2 px-3">Raised</th><th className="py-2 px-3">Goal</th><th className="py-2 pl-3">Supporters</th></tr></thead><tbody>{compared.map((campaign) => <tr key={campaign.id} className="border-t border-stone-100"><td className="py-3 pr-3 font-medium text-stone-900">{campaign.title}</td><td className="py-3 px-3">{categoryLabels[campaign.category] || "Other"}</td><td className="py-3 px-3">{money(campaign.raised_amount)}</td><td className="py-3 px-3">{money(campaign.goal_amount)}</td><td className="py-3 pl-3">{count(campaign.donor_count)}</td></tr>)}</tbody></table></div>
         </section>
       )}
 
-      {queryPending ? <p role="status" className="py-12 text-center text-sm">Updating search…</p> : filtered.length === 0 ? (
+      {resultsLoading ? <CampaignGridSkeleton count={6} /> : queryPending ? <p role="status" className="py-12 text-center text-sm">Updating search…</p> : filtered.length === 0 ? (
         <p className="text-stone-400 text-sm py-16 text-center">
           {debouncedSearch.trim() ? "No campaigns match your search. Try another term." : page > 0 ? "No more campaigns on this page." : "No active campaigns in this category yet — what if yours was the first?"}
         </p>
@@ -130,7 +127,7 @@ export default function Discover() {
           {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
         </div>
       )}
-      {!queryPending && (page > 0 || hasNextPage) && <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
+      {!queryPending && !resultsLoading && (page > 0 || hasNextPage) && <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
         <button type="button" disabled={page === 0 || queryPending} onClick={() => { setCompareIds([]); setPage(p => Math.max(0, p - 1)); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
         <span className="text-sm">Page {page + 1}</span>
         <button type="button" disabled={!hasNextPage || queryPending} onClick={() => { setCompareIds([]); setPage(p => p + 1); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
