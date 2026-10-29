@@ -26,6 +26,9 @@ import Notifications from "./pages/Notifications";
 import Blogs from "./pages/Blogs";
 import MyBlog from "./pages/MyBlog";
 import BlogArticle from "./pages/BlogArticle";
+import Onboarding from "./pages/Onboarding";
+import MissionControl from "./pages/MissionControlPage";
+import Agents from "./pages/Agents";
 function App() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -109,6 +112,7 @@ function App() {
           <strong>Explore</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/dashboard">Dashboard</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/discover">Discover</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/mission">Mission Control</NavLink>
           <strong>Campaigns & Giving</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/create">New Campaign</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/mine">My Campaigns</NavLink>
@@ -119,9 +123,12 @@ function App() {
           <NavLink onClick={() => setMenuOpen(false)} to="/inbox">Universal Inbox</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/blogs">Stories & Blogs</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/my-blog">My Blog Studio</NavLink>
+          <strong>AI Tools</strong>
+          <NavLink onClick={() => setMenuOpen(false)} to="/agents">AI Team</NavLink>
           <strong>Account & Help</strong>
           <NavLink onClick={() => setMenuOpen(false)} to="/connections">Connections</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/notifications">Notifications</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/onboarding">Your Setup</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to={user ? "/profile" : "/login"}>Profile</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/help">Help Center</NavLink>
           <NavLink onClick={() => setMenuOpen(false)} to="/about">About IFund</NavLink>
@@ -209,6 +216,9 @@ function App() {
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:id" element={<BlogArticle />} />
           <Route path="/my-blog" element={<MyBlog user={user} />} />
+          <Route path="/onboarding" element={<Onboarding user={user} />} />
+          <Route path="/mission" element={<MissionControl user={user} />} />
+          <Route path="/agents" element={<Agents user={user} />} />
           <Route
             path="*"
             element={
