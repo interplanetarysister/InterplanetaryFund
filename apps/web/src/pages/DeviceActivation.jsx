@@ -6,7 +6,7 @@ import { authClient } from "@/api/auth";
 
 const LABELS = {
   "identity:read": "View your IFund handle and display name",
-  "campaigns:read": "View campaign names and public fundraising progress",
+  "campaigns:read": "View names and public details of active campaigns",
 };
 const normalize = (value) => String(value || "").toUpperCase().replace(/[^A-Z2-9]/g, "").slice(0, 10);
 const displayCode = (value) => value.length > 5 ? value.slice(0, 5) + "-" + value.slice(5) : value;
