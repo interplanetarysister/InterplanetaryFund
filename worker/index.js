@@ -4,6 +4,7 @@ import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
 import { routeAutomationReadiness } from './automationStatus.js';
 import { routeDeviceAuthorization } from './deviceAuthorization.js';
+import { routeGivingRead } from './givingReads.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
@@ -11,6 +12,7 @@ export default {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/automations/readiness') return routeAutomationReadiness(request);
     if (pathname.startsWith('/api/device-authorization/')) return routeDeviceAuthorization(request, env);
+    if (pathname === '/api/giving/mine') return routeGivingRead(request, env);
     if (pathname === '/api/health') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, { status: 'ok', service: 'ifund-migration-api', production: false });
