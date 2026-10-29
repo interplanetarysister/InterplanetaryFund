@@ -68,6 +68,26 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
   return (data || []).map(mapCampaign);
 }
 
+export async function searchActiveCampaigns({ category = "all", search = "", limit = 100 } = {}) {
+  const max = Math.min(500, Math.max(1, Math.trunc(Number(limit) || 100)));
+  let query = supabase().from("ifund_campaigns")
+    .select(PUBLIC_COLUMNS)
+    .eq("status", "active");
+  if (category !== "all") query = query.eq("category", category);
+  const term = String(search).trim().slice(0, 100);
+  if (term) {
+    // Escape SQL LIKE wildcards so the search remains literal.
+    const escaped = term.replace(/[\\%_]/g, "\\export async function getCampaignDetail(id) {");
+    query = query.or(`title.ilike.%${escaped}%,summary.ilike.%${escaped}%`);
+  }
+  const { data, error } = await query
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(max);
+  if (error) throw error;
+  return (data || []).map(mapCampaign);
+}
+
 export async function getCampaignDetail(id) {
   // Public canonical IDs are UUIDs; do not query private/legacy IDs.
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ""))) return null;
