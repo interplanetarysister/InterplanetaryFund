@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import AuthLayout from "@/components/AuthLayout";
+import { Lock } from "lucide-react";
 
 export default function ResetPassword(){
   const [password,setPassword]=useState("");
@@ -35,10 +37,9 @@ export default function ResetPassword(){
     }finally{setBusy(false);}
   }
 
-  return <main className="ifund-public ifund-auth min-h-dvh px-5 py-12 text-white">
-    <section className="ifund-auth-card mx-auto max-w-md rounded-3xl p-7 sm:p-10">
-      <h1 className="text-3xl font-semibold">Choose a new password</h1>
-      <p className="mt-3 text-sm text-slate-300">Use the newest secure link from your email to authorize this change. After updating your password, sign in again.</p>
+  return <AuthLayout icon={Lock} title="New password" subtitle="Enter your new password below">
+    <div className="text-white">
+      <p className="text-sm text-slate-300">Use the newest secure link from your email to authorize this change. After updating your password, sign in again.</p>
       <form onSubmit={submit} className="mt-6 space-y-4">
         <label className="block text-sm">New password
           <input type="password" autoComplete="new-password" minLength={8} required
@@ -61,6 +62,6 @@ export default function ResetPassword(){
         <Link to="/login" className="underline">Return to sign in</Link>
         <Link to="/forgot-password" className="underline">Request a new recovery link</Link>
       </div>
-    </section>
-  </main>;
+    </div>
+  </AuthLayout>;
 }
