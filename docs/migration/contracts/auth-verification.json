@@ -22,7 +22,9 @@
     "secure_routes": "apps/web/src/components/RequireAccess.jsx",
     "auth_client": "apps/web/src/api/auth.js",
     "signed_in_navigation": "apps/web/src/components/Layout.jsx",
-    "source_ui_wrapper": "apps/web/src/components/AuthLayout.jsx"
+    "source_ui_wrapper": "apps/web/src/components/AuthLayout.jsx",
+    "confirmed_email_guard": "apps/web/src/lib/verifiedEmailUser.js",
+    "confirmed_email_route_state": "apps/web/src/lib/useVerifiedUser.js"
   },
   "provider_configuration": {
     "expected_site_url": "https://interplanetaryfund.com",
