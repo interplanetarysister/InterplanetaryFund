@@ -140,8 +140,8 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
       const userCode = typeof body?.user_code === 'string' ? body.user_code.toUpperCase().replaceAll('-', '').replaceAll(' ', '') : '';
-      if (!/^[A-HJ-NP-Z2-9]{10}$/.test(userCode))
-        return response(422, { error: 'Enter the 10-character activation code.' });
+      if (!/^[A-HJ-NP-Z2-9]{10}$/.test(userCode) || !['approve', 'deny'].includes(body?.decision))
+        return response(422, { error: 'Invalid device decision.' });
       const codeHash = await userCodeHash(userCode);
       const record = await getBy(env, 'user_code_hash', codeHash, fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
