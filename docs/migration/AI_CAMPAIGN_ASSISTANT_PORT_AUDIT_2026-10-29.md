@@ -15,7 +15,7 @@ The source repository's `src/pages/CreateCampaign.jsx` implements a four-step ca
 
 The workflow includes resumable drafts, step persistence, location lookup, optional voice assistance, campaign cover generation, and launch validation. Its copy workflow uses `CampaignCopyChoices` for five title choices and five short-description choices, with separate regeneration. Its story workflow uses `AIStoryGenerator` for a single authoritative story, fresh takes and edits, and version history/restore. Cover generation uses a provider response, validates the returned image URL, brands/uploads the image, and preserves the previous cover if generation fails.
 
-The current independent page `apps/web/src/pages/CreateCampaign.jsx` is a single-page manual form. It persists only title, summary, story, category, goal, and cover URL. It has no title/summary suggestion UI, story generation/history, image generation, step progress, location, AI profile, or voice assistant.
+The independent page `apps/web/src/pages/CreateCampaign.jsx` has now been upgraded from a single-page form to a four-stage flow (Your Details, Basics, Your Story, Launch), with account ownership context, category/title/goal entry, editable description/story, review, optional public cover URL, and private draft saving. It persists only title, summary, story, category, goal, and cover URL. The title/summary suggestion UI, story generation/history, AI image generation, location lookup, AI profile, voice assistant, and source draft-step persistence remain unported. The new wizard has passed 133 web regression tests and Vite compilation, but has not yet been visually or end-to-end tested against the live canonical backend.
 
 ## Gateway findings
 
