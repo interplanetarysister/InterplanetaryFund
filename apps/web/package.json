@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test tests/*.test.js && npm run check:inventory && npm run audit:backend",
+    "test": "cd ../.. && node --test apps/web/tests/*.test.js && node scripts/verify-migration-readiness.mjs --inventory && node scripts/audit-backend-coverage.mjs",
     "check:inventory": "node ../../scripts/verify-migration-readiness.mjs --inventory",
     "check:release": "node ../../scripts/verify-migration-readiness.mjs --release",
     "prebuild": "node ../../scripts/verify-migration-readiness.mjs --build",
