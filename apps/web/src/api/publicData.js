@@ -68,8 +68,9 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
   return (data || []).map(mapCampaign);
 }
 
-export async function searchActiveCampaigns({ category = "all", limit = 100 } = {}) {
+export async function searchActiveCampaigns({ category = "all", limit = 100, offset = 0 } = {}) {
   const max = Math.min(500, Math.max(1, Math.trunc(Number(limit) || 100)));
+  const start = Math.max(0, Math.trunc(Number(offset) || 0));
   let query = supabase().from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
     .eq("status", "active");
@@ -77,7 +78,7 @@ export async function searchActiveCampaigns({ category = "all", limit = 100 } = 
   const { data, error } = await query
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
-    .limit(max);
+    .range(start, start + max - 1);
   if (error) throw error;
   return (data || []).map(mapCampaign);
 }
