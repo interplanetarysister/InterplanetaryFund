@@ -27,7 +27,7 @@ const captured = {
 test("giving history returns only confirmed gift and separately recorded optional support", async () => {
   const fetcher = async (url) => {
     const target = String(url);
-    if (target.endsWith("/auth/v1/user")) return json({ id: uid });
+    if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
     if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid }]);
     if (target.includes("/rest/v1/ifund_donations?")) {
       assert.ok(target.includes("donor_id=eq." + uid));
