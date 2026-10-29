@@ -120,11 +120,11 @@ export default function Discover() {
           {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
         </div>
       )}
-      <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
+      {(page > 0 || hasNextPage) && <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
         <button type="button" disabled={page === 0 || queryPending} onClick={() => { setCompareIds([]); setPage(p => Math.max(0, p - 1)); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
         <span className="text-sm">Page {page + 1}</span>
         <button type="button" disabled={!hasNextPage || queryPending} onClick={() => { setCompareIds([]); setPage(p => p + 1); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
-      </nav>
+      </nav>}
     </PullToRefresh>
   );
 }
