@@ -29,6 +29,7 @@ export default function Discover() {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [requestKey, setRequestKey] = useState("");
+  const [loadedKey, setLoadedKey] = useState("");
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
   const helpLink = (
@@ -49,6 +50,7 @@ export default function Discover() {
     setCampaigns(null);
     setHasNextPage(false);
     setCompareIds([]);
+    setLoadedKey("");
     const currentKey = `${category}:${debouncedSearch}:${page}:${refreshKey}`;
     setRequestKey(currentKey);
     searchActiveCampaigns({ category, search: debouncedSearch, limit: pageSize + 1, offset: page * pageSize })
@@ -56,6 +58,7 @@ export default function Discover() {
         if (!active) return;
         setHasNextPage(items.length > pageSize);
         setCampaigns(items.slice(0, pageSize));
+        setLoadedKey(currentKey);
         setLoading(false);
       })
       .catch((e) => {
@@ -68,10 +71,10 @@ export default function Discover() {
   }, [refreshKey, category, debouncedSearch, page]);
   useEffect(() => { setPage(0); setCompareIds([]); }, [category, debouncedSearch]);
 
-  if (error) {
+  if (error && requestKey === `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
   }
-  if (loading || !campaigns || requestKey !== `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
+  if (loading || !campaigns || loadedKey !== `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
   }
 
