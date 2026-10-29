@@ -125,7 +125,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       const body = await readJsonBody(request, 1024);
       if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code))
         return response(422, { error: 'Enter the 10-character activation code.' });
-      const record = await getBy(env, 'user_code_hash', await userCodeHash(body.user_code), fetcher);
+      const record = await getBy(env, 'user_code_hash', await userCodeHash(userCode), fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
         return response(404, { error: 'This activation code is invalid or expired.' });
       return response(200, { ok: true, id: record.id, device_label: record.device_label,
@@ -140,7 +140,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       const body = await readJsonBody(request, 2048);
       if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9-\s]{10,12}$/i.test(body.user_code) ||
           !['approve', 'deny'].includes(body.decision)) return response(422, { error: 'Invalid device decision.' });
-      const codeHash = await userCodeHash(body.user_code);
+      const codeHash = await userCodeHash(userCode);
       const record = await getBy(env, 'user_code_hash', codeHash, fetcher);
       if (!record || record.state !== 'pending' || Date.parse(record.expires_at) <= Date.now())
         return response(409, { error: 'This activation code has expired or changed. Inspect it again.' });
