@@ -229,3 +229,27 @@ test('all 11 original Campaign entity categories are accepted', async () => {
     assert.equal(result.status, 201, category);
   }
 });
+
+
+test('draft writes never downgrade a published campaign', async () => {
+  const calls = [];
+  const url = '/api/campaigns/' + campaignId;
+  const result = await routeCampaignWrite(request({ title: 'Saved draft', status: 'draft' }, url, 'PATCH'), env, remote(calls));
+  assert.equal(result.status, 200);
+  assert.ok(calls[1].url.includes('status=eq.draft'));
+  const publishCalls = [];
+  const published = await routeCampaignWrite(request(valid, url, 'PATCH'), env, remote(publishCalls));
+  assert.equal(published.status, 200);
+  assert.ok(!publishCalls[1].url.includes('status=eq.draft'));
+});
+test('draft read endpoint filters out published campaign records', async () => {
+  const calls=[];
+  const route='/api/campaigns/' + campaignId + '/draft';
+  const res=await routeReadRequest(new Request(origin+route,{headers}),env,async(url,opts)=>{
+    calls.push(String(url));
+    return String(url).endsWith('/auth/v1/user')? Response.json({id:uid}):Response.json([]);
+  });
+  assert.equal(res.status,200);
+  assert.ok(calls[1].includes('status=eq.draft'));
+  assert.ok(calls[1].includes('owner_id=eq.'));
+});
