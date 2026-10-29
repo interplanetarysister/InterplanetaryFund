@@ -154,6 +154,10 @@ test("approved device reads only the identity fields its grant permits", async (
   assert.deepEqual(body.identity, {
     id: record.owner_id, username: "test-handle", display_name: "Test Display",
   });
+  const forbidden = await routeDeviceAuthorization(request("/api/device-authorization/resource", {
+    action: "campaigns",
+  }, { "x-ifund-device-token": token }), env, fetcher);
+  assert.equal(forbidden.status, 403);
 });
 
 
