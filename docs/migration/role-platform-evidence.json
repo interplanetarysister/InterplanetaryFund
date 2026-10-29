@@ -2427,8 +2427,8 @@
       "title": "Help Center editor",
       "source_component": "HelpAdmin",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/HelpAdmin.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -2462,7 +2462,9 @@
         "source_page_file": "src/pages/HelpAdmin.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/helpEditor.js",
+      "known_compatibility_gap": "Original Help Editor layout, private drafts and atomic publication ported to staged-only RLS schema. Database migration not applied; original historic HelpDraft/HelpArticle records, true admin JWT claims, two-user RLS tests and public runtime behavior are not yet verified."
     },
     {
       "path": "/admin/founding-members",
