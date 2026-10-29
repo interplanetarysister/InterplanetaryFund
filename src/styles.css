@@ -715,3 +715,23 @@ html[data-theme="light"] .social-tabs a.active { background:#d1e3f8; color:#1733
 .campaign-goal { display:block; font-size:clamp(1.8rem,3vw,2.5rem); color:#a1dfff; }
 @media (max-width:860px) { .campaign-detail-grid { grid-template-columns:1fr; } }
 html[data-theme="light"] .campaign-goal { color:#17618b; }
+
+/* Original campaign discovery filters and comparison; fully touch-operable. */
+.discover-page { width:min(1160px,95%); }
+.discover-heading { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
+.discover-heading h1 { font-size:clamp(2rem,5vw,3.2rem); margin-bottom:.35rem; }
+.discover-heading h2 { margin:.2rem 0; }
+.discover-heading p { margin:.3rem 0 .8rem; color:#c5d5e8; }
+.discover-search { display:grid; gap:.4rem; max-width:600px; font-weight:700; margin:1.3rem 0 1rem; }
+.category-strip { display:flex; gap:.5rem; overflow-x:auto; padding:.4rem 0 .8rem; scrollbar-width:thin; }
+.category-strip button { flex:0 0 auto; white-space:nowrap; border-radius:22px; }
+.discover-grid > div { min-width:0; }
+.compare-button { width:100%; margin:.5rem 0 1rem; }
+.compare-scroll { width:100%; overflow-x:auto; }
+.compare-table { width:100%; min-width:580px; border-collapse:collapse; text-align:left; }
+.compare-table th, .compare-table td { border-bottom:1px solid #586284; padding:.8rem .6rem; }
+.compare-table th { color:#99dfff; }
+html[data-theme="light"] .discover-heading p { color:#435777; }
+html[data-theme="light"] .compare-table th { color:#35618a; }
+html[data-theme="light"] .compare-table td { color:#263657; }
+@media (max-width:640px) { .discover-page { width:96%; } }
