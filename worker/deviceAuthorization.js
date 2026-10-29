@@ -5,12 +5,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CLIENTS = new Set(['ifund-device-v1', 'ifund-cli-v1', 'ifund-agent-v1']);
 const SCOPES = new Set(['identity:read', 'campaigns:read']);
 const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-const JSON_TYPE = /^application\\/json(?:\\s*;|\\s*$)/i;
 const SELECT = 'id,device_code_hash,user_code_hash,access_token_hash,client_id,device_label,scopes,state,owner_id,created_at,expires_at,approved_at,grant_expires_at';
 
 function configReady(env) {
-  return typeof env?.SUPABASE_URL === 'string' &&
-    /^https:\\/\\/[a-z0-9.-]+\\.supabase\\.co$/i.test(env.SUPABASE_URL) &&
+  return env?.MIGRATION_API_PREVIEW === 'enabled' &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL) &&
+    typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
     typeof env?.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20 &&
     typeof env?.DEVICE_TOKEN_SECRET === 'string' && env.DEVICE_TOKEN_SECRET.length >= 32;
 }
