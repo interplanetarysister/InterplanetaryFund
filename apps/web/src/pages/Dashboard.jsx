@@ -13,6 +13,8 @@ export default function Dashboard() {
   const [myCampaignError, setMyCampaignError] = useState("");
   const [campaignError, setCampaignError] = useState("");
   const [signingOut, setSigningOut] = useState(false);
+  const [myCampaignsLoading, setMyCampaignsLoading] = useState(true);
+  const [publicCampaignsLoading, setPublicCampaignsLoading] = useState(true);
   useEffect(() => {
     let alive = true;
     let subscription;
@@ -25,17 +27,18 @@ export default function Dashboard() {
         client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).order("id",{ascending:false}).limit(100)
           .then(({data: owned,error: queryError}) => {
             if (!alive) return;
+            setMyCampaignsLoading(false);
             if (queryError) { setMyCampaigns([]); setMyCampaignError("Your campaigns could not be loaded."); }
-            else setMyCampaigns(owned || []);
-          }).catch(() => { if (alive) setMyCampaignError("Your campaigns could not be loaded."); });
+            else { setMyCampaignError(""); setMyCampaigns(owned || []); }
+          }).catch(() => { if (alive) { setMyCampaignsLoading(false); setMyCampaigns([]); setMyCampaignError("Your campaigns could not be loaded."); } });
       }).catch(() => { if (alive) setState("error"); });
       const { data } = client.auth.onAuthStateChange((event) => {
         if (alive && event === "SIGNED_OUT") navigate("/login", { replace: true });
       });
       subscription = data.subscription;
       listActiveCampaigns({ limit: 12 }).then(items => {
-        if (alive) setCampaigns(items);
-      }).catch(() => { if (alive) { setCampaigns([]); setCampaignError("Public campaigns could not be loaded."); } });
+        if (alive) { setCampaigns(items); setPublicCampaignsLoading(false); setCampaignError(""); }
+      }).catch(() => { if (alive) { setCampaigns([]); setPublicCampaignsLoading(false); setCampaignError("Public campaigns could not be loaded."); } });
     } catch { setState("error"); }
     return () => { alive = false; subscription?.unsubscribe(); };
   }, [navigate]);
@@ -59,8 +62,11 @@ export default function Dashboard() {
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
+    {myCampaignsLoading && <p role="status">Loading your campaigns…</p>}
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
+    {!myCampaignsLoading && !myCampaignError && myCampaigns.length === 0 && <p>You have no saved campaigns yet.</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => c.status === "draft" ? <CampaignCard key={c.id} campaign={c} /> : c.status === "active" ? <CampaignCard key={c.id} campaign={c} /> : <article key={c.id} className="rounded-2xl border border-border bg-card p-5"><h3 className="font-semibold">{c.title || "Untitled campaign"}</h3><p className="mt-2 text-sm text-muted-foreground">Status: {c.status}. This campaign is not publicly accessible, and editing is not available here yet.</p></article>)}</div></section>}
+    {publicCampaignsLoading && <p role="status">Loading active campaigns…</p>}
     {campaignError && <p role="alert">{campaignError}</p>}
     {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
   </main>;
