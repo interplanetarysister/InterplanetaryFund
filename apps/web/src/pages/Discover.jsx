@@ -21,6 +21,7 @@ export default function Discover() {
   const requestedCategory = searchParams.get("category");
   const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 48;
@@ -34,10 +35,15 @@ export default function Discover() {
   );
 
   useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  useEffect(() => {
     let active = true;
     setError(null);
     setCampaigns(null);
-    searchActiveCampaigns({ category, limit: pageSize + 1, offset: page * pageSize })
+    searchActiveCampaigns({ category, search: debouncedSearch, limit: pageSize + 1, offset: page * pageSize })
       .then((items) => {
         if (!active) return;
         setHasNextPage(items.length > pageSize);
@@ -49,8 +55,8 @@ export default function Discover() {
         setError("We couldn't load campaigns. Please try again.");
       });
     return () => { active = false; };
-  }, [refreshKey, category, page]);
-  useEffect(() => { setPage(0); setCompareIds([]); }, [category]);
+  }, [refreshKey, category, debouncedSearch, page]);
+  useEffect(() => { setPage(0); setCompareIds([]); }, [category, debouncedSearch]);
 
   if (error) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
@@ -59,8 +65,7 @@ export default function Discover() {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
   }
 
-  const filtered = (category === "all" ? campaigns : campaigns.filter((c) => c.category === category))
-    .filter((c) => !search || `${c.title} ${c.summary || ""}`.toLowerCase().includes(search.toLowerCase()));
+  const filtered = campaigns;
   const categories = ["all", ...Object.keys(categoryLabels)];
   const compared = compareIds.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean);
   const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 ? [...current, id] : current);
