@@ -155,7 +155,9 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       const rows = await db(env, 'ifund_device_authorizations?' + params.toString(), {
         method: 'PATCH', prefer: 'return=representation', body: JSON.stringify(patch),
       }, fetcher);
-      if (!Array.isArray(rows) || rows.length !== 1)
+      const saved = Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+      if (!saved || saved.state !== patch.state ||
+          (body.decision === 'approve' && saved.owner_id !== account.uid))
         return response(409, { error: 'This request has expired or has already been decided.' });
       return response(200, { ok: true, decision: body.decision });
     }
