@@ -15,6 +15,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
@@ -28,7 +29,7 @@ const STANDALONE_COMING_SOON = [
 ];
 const LAYOUT_COMING_SOON = [
   "/community", "/community/:id", "/u/:id", "/social", "/blogs", "/blogs/:id", "/publications/:id",
-  "/dashboard", "/create", "/giving", "/communications", "/mission", "/ai-images",
+  "/create", "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/profile", "/my-blog", "/devices", "/connections", "/inbox",
   "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
@@ -51,6 +52,7 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
