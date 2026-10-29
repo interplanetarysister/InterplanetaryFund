@@ -11,7 +11,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "activateSubscriptionCheckout",
@@ -21,7 +22,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:120",
+        "src/pages/Subscriptions.jsx:144"
+      ]
     },
     {
       "name": "adminApiConnectionIntake",
@@ -31,7 +36,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "adminCampaignControl",
@@ -41,7 +47,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "adminOAuthProviderReadiness",
@@ -51,7 +58,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "adminUpdateUserRole",
@@ -61,7 +69,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "analyzeGrantApplication",
@@ -71,7 +80,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "applyAgentContentDraft",
@@ -81,7 +91,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "applyInstitutionOpportunity",
@@ -91,7 +102,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "auditAdminAgentGateway",
@@ -101,7 +113,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "authorizeCollectAndWithdraw",
@@ -111,7 +124,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "authorizeConnectionAi",
@@ -121,7 +135,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "broadcastPosts",
@@ -131,7 +146,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "cancelPayPalSubscription",
@@ -141,7 +157,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:95"
+      ]
     },
     {
       "name": "capturePayPalOrder",
@@ -151,7 +170,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "checkUsernameAvailability",
@@ -161,7 +181,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "communityMembership",
@@ -171,7 +192,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CommunityDetail.jsx:59",
+        "src/pages/CommunityDetail.jsx:72"
+      ]
     },
     {
       "name": "completeOAuthConnection",
@@ -181,7 +206,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "confirmPayPalSubscription",
@@ -191,7 +217,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:43"
+      ]
     },
     {
       "name": "createCommunity",
@@ -201,7 +230,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createDiscussionPost",
@@ -211,7 +241,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createDistributedPost",
@@ -221,7 +252,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createDonationCheckout",
@@ -231,7 +263,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createInstitution",
@@ -241,7 +274,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createKnowledgeArticle",
@@ -251,7 +285,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createPayPalOrder",
@@ -261,7 +296,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createPayPalSubscriptionCheckout",
@@ -271,7 +307,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:69"
+      ]
     },
     {
       "name": "createPremiumDayPassCheckout",
@@ -281,7 +320,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createSocialPost",
@@ -291,7 +331,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createSubscriptionCheckout",
@@ -301,7 +342,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "createSupportTicket",
@@ -311,7 +353,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Help.jsx:59"
+      ]
     },
     {
       "name": "createVolunteerOpportunity",
@@ -321,7 +366,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "decideGrantApplication",
@@ -331,7 +377,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "deleteAccount",
@@ -341,7 +388,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "deleteCampaign",
@@ -351,7 +399,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "deviceAuthorization",
@@ -361,7 +410,13 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/ConnectedDevices.jsx:23",
+        "src/pages/ConnectedDevices.jsx:37",
+        "src/pages/DeviceActivation.jsx:39",
+        "src/pages/DeviceActivation.jsx:52"
+      ]
     },
     {
       "name": "disconnectPlatformConnection",
@@ -371,7 +426,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "discoverConnectionMethods",
@@ -381,7 +437,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "discoverExternalCampaignSnapshot",
@@ -391,7 +448,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "discoverFeatures",
@@ -401,7 +459,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "discoverPayPalHoldingSettlements",
@@ -411,7 +470,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "draftSharePost",
@@ -421,7 +481,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "enforceCampaignProtocol",
@@ -431,7 +492,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "executeAdminAgentRequest",
@@ -441,7 +503,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "executeCollectAndWithdraw",
@@ -451,7 +514,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "externalAgentCampaigns",
@@ -461,7 +525,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "externalAgentContentWrite",
@@ -471,7 +536,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "finalizeAppUserOAuthConnection",
@@ -481,7 +547,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:185"
+      ]
     },
     {
       "name": "generateCampaignCover",
@@ -491,7 +560,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/AIImageStudio.jsx:29",
+        "src/pages/CreateCampaign.jsx:120"
+      ]
     },
     {
       "name": "generateDistributionContent",
@@ -501,7 +574,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "generateIntelligence",
@@ -511,7 +585,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/MissionControlPage.jsx:32"
+      ]
     },
     {
       "name": "generateSocialContent",
@@ -521,7 +598,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "geocodeCity",
@@ -531,7 +609,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CreateCampaign.jsx:102"
+      ]
     },
     {
       "name": "getAgentAccountContext",
@@ -541,7 +622,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getAgentMailContext",
@@ -551,7 +633,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getAppUserConnector",
@@ -561,7 +644,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getBufferReadiness",
@@ -571,7 +655,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getCampaignDonations",
@@ -581,7 +666,12 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Analytics.jsx:61",
+        "src/pages/CampaignDetail.jsx:53",
+        "src/pages/Inbox.jsx:46"
+      ]
     },
     {
       "name": "getCampaignDraft",
@@ -591,7 +681,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CreateCampaign.jsx:61"
+      ]
     },
     {
       "name": "getCampaignWithdrawalBalance",
@@ -601,7 +694,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Withdrawals.jsx:59"
+      ]
     },
     {
       "name": "getCommunityFeed",
@@ -611,7 +707,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getConnectedPayoutAccount",
@@ -621,7 +718,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getCryptoDonationReadiness",
@@ -631,7 +729,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getFeatureAvailability",
@@ -641,7 +740,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Withdrawals.jsx:52"
+      ]
     },
     {
       "name": "getFundraisingMode",
@@ -651,7 +753,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getLiveProviderStatus",
@@ -661,7 +764,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getMyGiving",
@@ -671,7 +775,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/MyGiving.jsx:19"
+      ]
     },
     {
       "name": "getOwnerDonorDirectory",
@@ -681,7 +788,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Donors.jsx:19"
+      ]
     },
     {
       "name": "getOwnerFinancialLedger",
@@ -691,7 +801,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/FinancialLedger.jsx:30"
+      ]
     },
     {
       "name": "getPayPalConfig",
@@ -701,7 +814,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getPayPalPayoutReadiness",
@@ -711,7 +825,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getPayPalSubscriptionOptions",
@@ -721,7 +836,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:24"
+      ]
     },
     {
       "name": "getPaymentCapabilities",
@@ -731,7 +849,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Withdrawals.jsx:53"
+      ]
     },
     {
       "name": "getSharedConnectorStatus",
@@ -741,7 +862,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:222"
+      ]
     },
     {
       "name": "getStripeIntegrationAudit",
@@ -751,7 +875,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getStripeReadiness",
@@ -761,7 +886,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getStripeSubscriptionOptions",
@@ -771,7 +897,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getUnifiedInbox",
@@ -781,7 +908,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getVerifiedIFundIntegrationContext",
@@ -791,7 +919,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "getWritingResearchBrief",
@@ -801,7 +930,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "importExternalCampaign",
@@ -811,7 +941,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CreateCampaign.jsx:90"
+      ]
     },
     {
       "name": "joinFoundingWaitlist",
@@ -821,7 +954,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/FoundingMembers.jsx:21"
+      ]
     },
     {
       "name": "justGivingStagingPilot",
@@ -831,7 +967,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "kofiWebhook",
@@ -841,7 +978,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "listConnections",
@@ -851,7 +989,13 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:115",
+        "src/pages/Connections.jsx:214",
+        "src/pages/ExternalAccounts.jsx:30",
+        "src/pages/Social.jsx:44"
+      ]
     },
     {
       "name": "listFundraisingProviderCapabilities",
@@ -861,7 +1005,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Social.jsx:46"
+      ]
     },
     {
       "name": "listInstitutionApplications",
@@ -871,7 +1018,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "listUntrackedPayPalReceipts",
@@ -881,7 +1029,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "logPlatformEvent",
@@ -891,7 +1040,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "maintainPlatformOwnedAccounts",
@@ -901,7 +1051,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageAdminBuilderWork",
@@ -911,7 +1062,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageAgentContentDraft",
@@ -921,7 +1073,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageAgentWork",
@@ -931,7 +1084,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageApprovedBuilderExecution",
@@ -941,7 +1095,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageBlog",
@@ -951,7 +1106,13 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/BlogArticle.jsx:11",
+        "src/pages/Blogs.jsx:11",
+        "src/pages/MyBlog.jsx:17",
+        "src/pages/MyBlog.jsx:25"
+      ]
     },
     {
       "name": "manageConnectedPayoutAccount",
@@ -961,7 +1122,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageDistributedPost",
@@ -971,7 +1133,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageExternalAgentKeys",
@@ -981,7 +1144,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/AdminAgentApi.jsx:21"
+      ]
     },
     {
       "name": "manageFeatureFlag",
@@ -991,7 +1157,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageFriends",
@@ -1001,7 +1168,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageOAuthClients",
@@ -1011,7 +1179,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/AdminAgentApi.jsx:13"
+      ]
     },
     {
       "name": "manageOfficialPublications",
@@ -1021,7 +1192,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/PublicationArticle.jsx:21"
+      ]
     },
     {
       "name": "manageOwnerConnectionConfiguration",
@@ -1031,7 +1205,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "managePlatformAccess",
@@ -1041,7 +1216,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "managePlatformIncidents",
@@ -1051,7 +1227,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "managePostInterest",
@@ -1061,7 +1238,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "managePublicProfile",
@@ -1071,7 +1249,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/PublicProfile.jsx:13"
+      ]
     },
     {
       "name": "manageRecurringDonation",
@@ -1081,7 +1262,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "manageVerificationMailbox",
@@ -1091,7 +1273,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "markNotificationRead",
@@ -1101,7 +1284,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "matchExternalPayPalSettlement",
@@ -1111,7 +1295,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "mirrorExternalPosts",
@@ -1121,7 +1306,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "ownerAgentChatActions",
@@ -1131,7 +1317,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "payPalSubscriptionWebhook",
@@ -1141,7 +1328,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "postCampaignUpdate",
@@ -1151,7 +1339,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "postDiscussionReply",
@@ -1161,7 +1350,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "prepareCollectAndWithdraw",
@@ -1171,7 +1361,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "processAdminActionInbox",
@@ -1181,7 +1372,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "publishInstitutionOpportunity",
@@ -1191,7 +1383,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "publishLinkedCampaignToConnection",
@@ -1201,7 +1394,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "publishPost",
@@ -1211,7 +1405,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "receiveCloudflareEmail",
@@ -1221,7 +1416,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "reconcileDirectPayPalCampaignDonation",
@@ -1231,7 +1427,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "reconcileExternalPayPalSettlement",
@@ -1241,7 +1438,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "recordAgentInteraction",
@@ -1251,7 +1449,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "recordCampaignCreated",
@@ -1261,7 +1460,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CreateCampaign.jsx:217"
+      ]
     },
     {
       "name": "recordDonation",
@@ -1271,7 +1473,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "recordExternalFundMigration",
@@ -1281,7 +1484,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "recordLegalAcceptance",
@@ -1291,7 +1495,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "refreshWritingResearch",
@@ -1301,7 +1506,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "registerPushDevice",
@@ -1311,7 +1517,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "renderInterplanetaryPhoto",
@@ -1321,7 +1528,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "repairStripeWebhookEvents",
@@ -1331,7 +1539,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "requestManagedConnectionAction",
@@ -1341,7 +1550,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:280"
+      ]
     },
     {
       "name": "requestWithdrawal",
@@ -1351,7 +1563,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Withdrawals.jsx:91"
+      ]
     },
     {
       "name": "resolveConnectionStatus",
@@ -1361,7 +1576,14 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:138",
+        "src/pages/Connections.jsx:430",
+        "src/pages/Connections.jsx:439",
+        "src/pages/Connections.jsx:546",
+        "src/pages/Connections.jsx:552"
+      ]
     },
     {
       "name": "resolvePlatformConnectionRecipe",
@@ -1371,7 +1593,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "reviewAgentActivity",
@@ -1381,7 +1604,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "revokeConnectionAiConsent",
@@ -1391,7 +1615,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "routeAgentTask",
@@ -1401,7 +1626,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "runBrowserConnection",
@@ -1411,7 +1637,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "runOfficialSocialPromotion",
@@ -1421,7 +1648,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "runOutreachAgent",
@@ -1431,7 +1659,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "runReporterDiary",
@@ -1441,7 +1670,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "runSocialAutopilot",
@@ -1451,7 +1681,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "saveCampaign",
@@ -1461,7 +1692,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/CreateCampaign.jsx:153",
+        "src/pages/CreateCampaign.jsx:214"
+      ]
     },
     {
       "name": "saveConnectionCredentials",
@@ -1471,7 +1706,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "sendCommunication",
@@ -1481,7 +1717,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "sendPublicContactMessage",
@@ -1491,7 +1728,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Contact.jsx:29"
+      ]
     },
     {
       "name": "setConnectionAiToggle",
@@ -1501,7 +1741,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "setUnifiedOboConsent",
@@ -1511,7 +1752,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Onboarding.jsx:35"
+      ]
     },
     {
       "name": "setUsername",
@@ -1521,7 +1765,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "setupPayPalSubscriptionWebhook",
@@ -1531,7 +1776,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:118",
+        "src/pages/Subscriptions.jsx:142"
+      ]
     },
     {
       "name": "startPremiumTrial",
@@ -1541,7 +1790,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:82"
+      ]
     },
     {
       "name": "startStripeConnectOnboarding",
@@ -1551,7 +1803,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "stripeWebhook",
@@ -1561,7 +1814,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncConnections",
@@ -1571,7 +1825,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncExternalFunds",
@@ -1581,7 +1836,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:111"
+      ]
     },
     {
       "name": "syncFromConvex",
@@ -1591,7 +1849,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncGitHub",
@@ -1601,7 +1860,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncImportedCampaign",
@@ -1611,7 +1871,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncPayPalSubscriptionCatalog",
@@ -1621,7 +1882,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:140"
+      ]
     },
     {
       "name": "syncStripeSubscriptionCatalog",
@@ -1631,7 +1895,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "syncWixAnalytics",
@@ -1641,7 +1906,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:155"
+      ]
     },
     {
       "name": "syncWixBusinessData",
@@ -1651,7 +1919,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:154"
+      ]
     },
     {
       "name": "syncWixCampaigns",
@@ -1661,7 +1932,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:152"
+      ]
     },
     {
       "name": "syncWixContent",
@@ -1671,7 +1945,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:153"
+      ]
     },
     {
       "name": "toggleCampaignFollow",
@@ -1681,7 +1958,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "trackAgentConversation",
@@ -1691,7 +1969,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "translateCampaign",
@@ -1701,7 +1980,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "updateCampaignSettings",
@@ -1711,7 +1991,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "updateFollowPreferences",
@@ -1721,7 +2002,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "updateInboxItem",
@@ -1731,7 +2013,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "updateMissionItemStatus",
@@ -1741,7 +2024,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "validateIntegrationHealth",
@@ -1751,7 +2035,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/IntegrationsAdmin.jsx:108"
+      ]
     },
     {
       "name": "verifyAdminGateway",
@@ -1761,7 +2048,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "verifyAgentPlatformAccess",
@@ -1771,7 +2059,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "verifyAppUserConnector",
@@ -1781,7 +2070,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "verifyOwnerPayPalBasicPlan",
@@ -1791,7 +2081,10 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Subscriptions.jsx:114"
+      ]
     },
     {
       "name": "verifyPlatformConnection",
@@ -1801,7 +2094,11 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": [
+        "src/pages/Connections.jsx:195",
+        "src/pages/Connections.jsx:532"
+      ]
     },
     {
       "name": "volunteerFollowUp",
@@ -1811,7 +2108,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "volunteerSignup",
@@ -1821,7 +2119,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "welcomeVolunteer",
@@ -1831,7 +2130,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     },
     {
       "name": "wixWebhook",
@@ -1841,7 +2141,8 @@
       "authorization_verified": false,
       "side_effects_verified": false,
       "integration_tests_verified": false,
-      "retired_by_owner": false
+      "retired_by_owner": false,
+      "frontend_direct_callers": []
     }
   ]
 }
