@@ -4,6 +4,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authCallbackUrl } from "@/lib/authCallback";
+import { landingAfterLogin } from "@/lib/postLogin";
 
 export default function AuthPage({ mode="login" }){
   const navigate=useNavigate();
@@ -64,10 +65,8 @@ export default function AuthPage({ mode="login" }){
           throw failure;
         }
         if(!data?.session)throw new Error("Sign-in did not create a session.");
-        const {data:verified,error:verifyError}=await auth.getUser();
-        if(verifyError||!verified?.user?.id)
-          throw new Error("Sign-in could not be verified. Please try again.");
-        navigate(afterLogin,{replace:true});
+        const destination=await landingAfterLogin(authClient(),afterLogin);
+        navigate(destination,{replace:true});
       }
     }catch(cause){
       setError(cause?.message||"Authentication could not be completed.");
