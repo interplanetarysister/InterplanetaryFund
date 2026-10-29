@@ -87,7 +87,7 @@ export default function Discover() {
 
       <div className="relative mb-6">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-        <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
+        <Input value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); setCompareIds([]); }} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         {categories.map((c) => (
@@ -119,9 +119,9 @@ export default function Discover() {
         </div>
       )}
       <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
-        <button type="button" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
+        <button type="button" disabled={page === 0} onClick={() => { setCompareIds([]); setPage(p => Math.max(0, p - 1)); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
         <span className="text-sm">Page {page + 1}</span>
-        <button type="button" disabled={!hasNextPage} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
+        <button type="button" disabled={!hasNextPage} onClick={() => { setCompareIds([]); setPage(p => p + 1); }} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
       </nav>
     </PullToRefresh>
   );
