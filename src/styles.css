@@ -735,3 +735,27 @@ html[data-theme="light"] .discover-heading p { color:#435777; }
 html[data-theme="light"] .compare-table th { color:#35618a; }
 html[data-theme="light"] .compare-table td { color:#263657; }
 @media (max-width:640px) { .discover-page { width:96%; } }
+
+/* Restored home editorial hero, without dependencies on old Base44 image hosts. */
+.home-page { width:min(1150px,95%); }
+.home-hero { text-align:center; background:radial-gradient(ellipse at 68% 12%,#225a85 0%,#24316a 33%,#15162f 73%); }
+.home-hero .eyebrow { color:#b4e8ff; }
+.home-hero .home-planet { margin:0 auto .75rem; display:grid; place-items:center; }
+.home-hero .home-planet svg { width:77px; height:77px; filter:drop-shadow(0 5px 30px #55c5ff66); }
+.home-hero h1 { margin:.3rem auto 1rem; font-size:clamp(2.5rem,5.3vw,4.6rem); line-height:1.11; max-width:850px; }
+.home-hero h1 span { display:block; color:#9be7ff; }
+.home-hero p:not(.eyebrow) { margin:1rem auto 1.6rem; }
+.home-hero .actions { justify-content:center; }
+.home-story { padding:clamp(1.2rem,4vw,3.2rem); max-width:820px; margin:0 auto; }
+.home-story h2 { font-size:clamp(1.6rem,3vw,2.5rem); }
+.home-story h3 { margin-top:1.6rem; }
+.home-story p { line-height:1.85; color:#d6dcee; }
+.home-story .secondary { margin-top:1rem; }
+.home-support { text-align:center; }
+html[data-theme="light"] .home-story p { color:#445570; }
+html[data-theme="light"] .home-hero, html[data-theme="light"] .home-hero h1 { color:#fff; }
+@media (max-width:520px) {
+  .home-page { width:97%; }
+  .home-hero { padding:2rem 1rem; }
+  .home-story { padding:1.2rem; }
+}
