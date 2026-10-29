@@ -2385,8 +2385,8 @@
       "title": "Planet Impact",
       "source_component": "SustainabilityAdmin",
       "access": "admin",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/SustainabilityAdmin.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -2420,7 +2420,9 @@
         "source_page_file": "src/pages/SustainabilityAdmin.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/sustainability.js",
+      "known_compatibility_gap": "Source React page ported unchanged in look and behavior apart from SDK adapter. Admin-only evidence persistence requires unapplied canonical Supabase RLS table and two-user tests. Independent environmental verification service is deliberately not fabricated; recorded links remain documented, not verified. Android parity untested."
     },
     {
       "path": "/admin/help",
