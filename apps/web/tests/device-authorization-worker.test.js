@@ -83,7 +83,7 @@ test("approval cannot add scopes that the device did not request", async () => {
     if (target.endsWith("/auth/v1/user")) return json({ id: "b7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391" });
     if (target.includes("/rpc/ifund_device_rate_limit")) return json(true);
     if (target.includes("/rest/v1/ifund_device_authorizations?")) {
-      if (init.method === "PATCH") patchBody = JSON.parse(init.body);
+      if (init.method === "PATCH") { patchBody = JSON.parse(init.body); return json([{ ...record, ...patchBody }]); }
       return json([record]);
     }
     throw new Error("unexpected upstream request: " + target);
