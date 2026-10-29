@@ -18,6 +18,9 @@ export default function CampaignDetail({ user }) {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [revision, setRevision] = useState(0);
+  const [following, setFollowing] = useState(false);
+  const [followBusy, setFollowBusy] = useState(false);
+  const [followLoaded, setFollowLoaded] = useState(false);
   useEffect(() => {
     let cancelled = false;
     if (!db) {
@@ -44,6 +47,43 @@ export default function CampaignDetail({ user }) {
       });
     return () => { cancelled = true; };
   }, [id, revision]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFollowing(false); setFollowLoaded(false);
+    if (!db || !user?.id) { setFollowLoaded(true); return; }
+    db.from("ifund_campaign_follows").select("campaign_id")
+      .eq("campaign_id", id).eq("follower_id", user.id).maybeSingle()
+      .then(({ data, error: loadError }) => {
+        if (cancelled) return;
+        setFollowing(Boolean(data));
+        setFollowLoaded(true);
+        if (loadError) setNotice("Following is not yet available on this database.");
+      }).catch(() => {
+        if (cancelled) return;
+        setFollowLoaded(true);
+        setNotice("Following is not yet available on this database.");
+      });
+    return () => { cancelled = true; };
+  }, [id, user?.id]);
+
+  async function toggleFollow() {
+    if (!db || !user?.id || followBusy || !followLoaded) return;
+    setFollowBusy(true); setError(""); setNotice("");
+    try {
+      const request = following
+        ? db.from("ifund_campaign_follows").delete()
+          .eq("campaign_id", id).eq("follower_id", user.id)
+        : db.from("ifund_campaign_follows").insert({ campaign_id: id, follower_id: user.id });
+      const { data, error: actionError } = await request.select("campaign_id");
+      if (actionError) throw actionError;
+      if (!data?.length) throw new Error("Could not verify the new following status.");
+      setFollowing(!following);
+      setNotice(following ? "Campaign removed from Following." : "Campaign added to Following.");
+    } catch (cause) {
+      setError(cause?.message || "Unable to update following status.");
+    } finally { setFollowBusy(false); }
+  }
 
   async function share() {
     const link = window.location.origin + "/campaign/" + encodeURIComponent(id);
@@ -108,7 +148,15 @@ export default function CampaignDetail({ user }) {
         </section>
         <section className="card"><h3>Support the campaign</h3>
           <p>Share this fundraiser while verified payment checkout is being completed.</p>
-          <button type="button" className="primary" onClick={share}>Share this campaign</button>
+          <div className="actions">
+            <button type="button" className="primary" onClick={share}>Share this campaign</button>
+            {campaign.status === "active" && (user
+              ? <button type="button" className="secondary"
+                  onClick={toggleFollow} disabled={!followLoaded || followBusy}>
+                  {followBusy ? "Updating…" : following ? "Unfollow campaign" : "Follow campaign"}</button>
+              : <Link className="secondary" to={"/login?returnTo=" + encodeURIComponent("/campaign/" + id)}>
+                  Sign in to follow</Link>)}
+          </div>
         </section>
       </aside>
     </div>
