@@ -101,7 +101,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Admin Action Conversation Router",
@@ -120,7 +122,9 @@
         ],
         "risk": "privileged"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Campaign Protocol",
@@ -142,7 +146,9 @@
         ],
         "risk": "privileged"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Campaign Sync on Create",
@@ -163,7 +169,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Campaign Sync on Update",
@@ -184,7 +192,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Connection Sync Engine",
@@ -203,7 +213,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "External Feed Mirroring",
@@ -222,7 +234,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Feature Discovery on Completion",
@@ -243,7 +257,9 @@
         ],
         "risk": "metered"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Grant Application Review",
@@ -264,7 +280,9 @@
         ],
         "risk": "metered"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "IFund Official Social Editor",
@@ -283,7 +301,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "IFund Reporter Daily Diary",
@@ -302,7 +322,9 @@
         ],
         "risk": "metered"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Integration Health Check",
@@ -321,7 +343,9 @@
         ],
         "risk": "external"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "PayPal Holding Settlement Reconciliation",
@@ -340,7 +364,9 @@
         ],
         "risk": "financial"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Platform Account Steward",
@@ -359,7 +385,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Social Media Autopilot",
@@ -378,7 +406,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Volunteer Welcome Follow-up",
@@ -400,7 +430,9 @@
         ],
         "risk": "outbound"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     },
     {
       "name": "Weekly Writing Psychology & Social Trends Training",
@@ -419,7 +451,9 @@
         ],
         "risk": "metered"
       },
-      "all_source_handlers_in_inventory": true
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
     }
   ],
   "connectors": [
@@ -511,5 +545,19 @@
       "external_sync_allowed": false,
       "live_verified": false
     }
-  ]
+  ],
+  "staged_engine": {
+    "worker_entrypoint": "worker/nativeAutomationWorker.js",
+    "disabled_config": "wrangler.automations.jsonc",
+    "schedule_matcher": "worker/automationSchedule.js",
+    "entity_outbox_intake": "worker/automationEvents.js",
+    "durable_executor": "worker/automationEngine.js",
+    "private_audit_writer": "worker/automationAudit.js",
+    "unapplied_private_d1_migration": "d1/migrations/0001_ifund_workflow_audit.sql",
+    "ported_handlers": 0,
+    "approved_external_side_effects": 0,
+    "schedules_enabled": false,
+    "workflow_release_enabled": false,
+    "actual_deployment_verified": false
+  }
 }
