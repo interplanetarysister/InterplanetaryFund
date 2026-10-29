@@ -12,7 +12,7 @@ test("legal acceptance requires authenticated owner and affirmative explicit con
  assert.match(module,/accepted_at/);
  assert.match(sql,/owner_id=\(select auth\.uid\(\)\)/);
  assert.match(sql,/explicit_consent=true/);
- assert.match(sql,/REVOKE ALL/);
+ assert.match(sql,/REVOKE ALL/i);
  assert.match(sql,/GRANT INSERT \(owner_id,terms_version,explicit_consent\)/);
  assert.doesNotMatch(sql,/GRANT UPDATE|GRANT DELETE/i);
  assert.match(gate,/if\(exempt \|\| phase==="ready"&&!user\)return children/);
@@ -22,7 +22,7 @@ test("legal acceptance requires authenticated owner and affirmative explicit con
 test("signup never bypasses email confirmation and Terms gate fails closed",()=>{
  const auth=read("apps/web/src/pages/AuthPage.jsx");
  const gate=read("apps/web/src/components/TermsAcceptance.jsx");
- const readiness=read("docs/migration/contracts/auth-verification.json");
+ const readiness=JSON.parse(read("docs/migration/contracts/auth-verification.json"));
  assert.match(auth,/email_confirmed_at/);
  assert.match(auth,/email_not_confirmed/);
  assert.match(auth,/signUp\(/);

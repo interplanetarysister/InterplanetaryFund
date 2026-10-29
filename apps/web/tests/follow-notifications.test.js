@@ -23,7 +23,7 @@ const make=(responses=[],uid=owner)=>{
     limit(...args){calls.push(["limit",...args]);return Promise.resolve(responses[index++]||{data:[],error:null})},
     maybeSingle(){calls.push(["maybeSingle"]);return Promise.resolve(responses[index++]||{data:null,error:null})}
   };
-  return {calls,client:{auth:{getUser:async()=>({data:{user:uid?{id:uid}:null},error:null})},
+  return {calls,client:{auth:{getUser:async()=>({data:{user:uid?{id:uid,email_confirmed_at:"2026-10-29T00:00:00.000Z"}:null},error:null})},
     from(table){calls.push(["from",table]);return query}}};
 };
 
