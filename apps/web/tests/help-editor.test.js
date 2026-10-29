@@ -88,7 +88,7 @@ test("admin published Help Editor shares public reader path",()=>{
  assert.match(publicReader,/listPublicHelpArticles/);
 });
 test("help RLS and publish RPC require trusted admin claims",()=>{
- const sql=source("../supabase/migrations/pending/20261029_ifund_help_editor.sql");
+ const sql=readFileSync(new URL("../../../supabase/migrations/pending/20261029_ifund_help_editor.sql",import.meta.url),"utf8");
  assert.match(sql,/security invoker/);
  assert.match(sql,/for update/);
  assert.match(sql,/auth\.jwt\(\)->'app_metadata'->>'role'/);
