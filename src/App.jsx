@@ -42,6 +42,14 @@ function App() {
     try { localStorage.setItem("ifund-theme", theme); } catch { /* blocked storage */ }
   }, [theme]);
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onEscape = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onEscape);
+    return () => window.removeEventListener("keydown", onEscape);
+  }, [menuOpen]);
   return (
     <div className="app">
       <header>
@@ -54,7 +62,7 @@ function App() {
             <small>{SLOGAN}</small>
           </div>
         </div>
-        <button type="button" className="menu-toggle" aria-label="Open navigation"
+        <button type="button" className="menu-toggle" aria-label={menuOpen ? "Close navigation" : "Open navigation"}
           aria-controls="ifund-side-menu" aria-expanded={menuOpen}
           onClick={() => setMenuOpen((value) => !value)}>
           ☰ Menu
@@ -89,17 +97,17 @@ function App() {
         </div>
         <nav className="side-nav" aria-label="Main menu">
           <strong>Explore</strong>
-          <NavLink to="/dashboard">Dashboard</NavLink>
-          <NavLink to="/discover">Discover</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/dashboard">Dashboard</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/discover">Discover</NavLink>
           <strong>Campaigns & Giving</strong>
-          <NavLink to="/create">New Campaign</NavLink>
-          <NavLink to="/mine">My Campaigns</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/create">New Campaign</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/mine">My Campaigns</NavLink>
           <strong>Community</strong>
-          <NavLink to="/community">Community</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/community">Community</NavLink>
           <strong>Account & Help</strong>
-          <NavLink to="/connections">Connections</NavLink>
-          <NavLink to="/login">Account</NavLink>
-          <NavLink to="/about">About IFund</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/connections">Connections</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/login">Account</NavLink>
+          <NavLink onClick={() => setMenuOpen(false)} to="/about">About IFund</NavLink>
         </nav>
       </aside>
       <div className="platform-strip" aria-label="Connection destinations">
@@ -189,7 +197,7 @@ function App() {
         <NavLink to="/discover">Explore</NavLink>
         <NavLink to="/create">Create</NavLink>
         <NavLink to="/mine">Campaigns</NavLink>
-        <NavLink to="/community">Social</NavLink>
+        <NavLink to="/community">Community</NavLink>
       </nav>
       <footer>
         <strong>Interplanetary Fund</strong>
