@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
 import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
@@ -16,8 +16,13 @@ import About from "./pages/About";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 function App() {
+  const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(undefined);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => {
+    try { return localStorage.getItem("ifund-theme") === "light" ? "light" : "dark"; }
+    catch { return "dark"; }
+  });
   useEffect(() => {
     if (!db) {
       setUser(null);
@@ -33,7 +38,9 @@ function App() {
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("ifund-theme", theme); } catch { /* blocked storage */ }
   }, [theme]);
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
   return (
     <div className="app">
       <header>
@@ -46,7 +53,12 @@ function App() {
             <small>{SLOGAN}</small>
           </div>
         </div>
-        <nav>
+        <button type="button" className="menu-toggle" aria-label="Open navigation"
+          aria-controls="ifund-side-menu" aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((value) => !value)}>
+          ☰ Menu
+        </button>
+        <nav className="header-links" aria-label="Quick navigation">
           <NavLink end to="/">
             Home
           </NavLink>
@@ -66,6 +78,29 @@ function App() {
           <Link to="/login">{user ? "Account" : "Sign in"}</Link>
         </div>
       </header>
+      {menuOpen && <button type="button" className="side-menu-backdrop"
+        aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
+      <aside id="ifund-side-menu" className={"side-menu" + (menuOpen ? " is-open" : "")}
+        aria-label="Interplanetary Fund navigation" aria-hidden={!menuOpen}>
+        <div className="side-menu-heading">
+          <strong>Interplanetary Fund</strong>
+          <button type="button" aria-label="Close menu" onClick={() => setMenuOpen(false)}>✕</button>
+        </div>
+        <nav className="side-nav" aria-label="Main menu">
+          <strong>Explore</strong>
+          <NavLink to="/dashboard">Dashboard</NavLink>
+          <NavLink to="/discover">Discover</NavLink>
+          <strong>Campaigns & Giving</strong>
+          <NavLink to="/create">New Campaign</NavLink>
+          <NavLink to="/mine">My Campaigns</NavLink>
+          <strong>Community</strong>
+          <NavLink to="/community">Community</NavLink>
+          <strong>Account & Help</strong>
+          <NavLink to="/connections">Connections</NavLink>
+          <NavLink to="/login">Account</NavLink>
+          <NavLink to="/about">About IFund</NavLink>
+        </nav>
+      </aside>
       <div className="platform-strip" aria-label="Connection destinations">
         {platforms.map((p) => (
           <Link
@@ -88,6 +123,7 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<Feed />} />
+          <Route path="/dashboard" element={<Feed />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/campaign/:id" element={<Detail />} />
           <Route
@@ -147,6 +183,13 @@ function App() {
           />
         </Routes>
       )}
+      <nav className="mobile-bottom-nav" aria-label="Mobile quick actions">
+        <NavLink end to="/">Home</NavLink>
+        <NavLink to="/discover">Explore</NavLink>
+        <NavLink to="/create">Create</NavLink>
+        <NavLink to="/mine">Campaigns</NavLink>
+        <NavLink to="/community">Social</NavLink>
+      </nav>
       <footer>
         <strong>Interplanetary Fund</strong>
         <p>What if? · Build with care, give with purpose.</p>
