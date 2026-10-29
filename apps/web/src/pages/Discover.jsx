@@ -111,7 +111,7 @@ export default function Discover() {
 
       {filtered.length === 0 ? (
         <p className="text-stone-400 text-sm py-16 text-center">
-          No active campaigns in this category yet — what if yours was the first?
+          {debouncedSearch.trim() ? "No campaigns match your search. Try another term." : page > 0 ? "No more campaigns on this page." : "No active campaigns in this category yet — what if yours was the first?"}
         </p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
