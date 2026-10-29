@@ -58,11 +58,10 @@ for (const p of ["HISTORICAL_ROUTES","STANDALONE_PENDING","LAYOUT_PENDING","Requ
 if (!app.includes("/embed/campaign/:id") || !app.includes("/download"))
   errors.push("Recovered embed/download routes are not mounted");
 
-const production = process.argv.includes("--release") ||
-  (process.argv.includes("--build") && (
-    process.env.IFUND_RELEASE_MODE === "production" ||
-    process.env.CF_PAGES_BRANCH === "main"
-  ));
+// A missing or mislabeled Cloudflare branch variable must never bypass
+// production evidence checks. Every build is blocked until all gates pass.
+// For inventory-only development use --inventory without compiling the app.
+const production = process.argv.includes("--release") || process.argv.includes("--build");
 
 if (production) {
   const screens = ["desktop_light","desktop_dark","tablet_light","tablet_dark",
