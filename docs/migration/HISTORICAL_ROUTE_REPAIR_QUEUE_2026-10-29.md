@@ -37,3 +37,10 @@ A route only leaves the pending queue after (1) original UI/route semantics are 
 ## Current status
 
 No new route is certified by this audit. No migrations, tests, builds, or deployments were run as part of this source review.
+
+## Additional implementation work (2026-10-29 continuation)
+
+- Staged `supabase/migrations/pending/20261029_ifund_device_authorization.sql`: canonical table contract for device-code grants, SHA-256-only credential storage, short-lived pending codes, constrained read scopes, revocation states, and rate-limit buckets. RLS is enabled with all browser grants revoked and no client policies.
+- Added `apps/web/tests/device-authorization-schema.test.js` to assert those schema safety properties.
+
+These are groundwork only. The migration remains unapplied, the worker endpoint and atomic rate-limit RPC are not implemented, and `/activate` still does not provide a working authorization journey. The schema test has not been executed. The server-only Supabase service-role secret must be configured and validated before any worker handler can use this table. Do not expose that secret to the browser, and do not enable the route until the server handler and its tests exist.
