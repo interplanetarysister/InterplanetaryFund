@@ -46,7 +46,7 @@ test('private draft requires remote Auth verification and RLS-scoped bearer', as
   assert.equal(calls[1].headers.Authorization, 'Bearer signed.test.jwt');
 });
 test('invalid campaign IDs reject without touching Supabase', async () => {
-  const req = new Request('https://api.example.org/api/campaigns/' + id + '/draft', {
+  const req = new Request('https://api.example.org/api/campaigns/not-a-uuid/draft');
   const r = await routeReadRequest(req, env, () => { throw Error('no request expected'); });
   assert.equal(r.status, 400);
 });
