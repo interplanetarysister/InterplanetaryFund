@@ -12,6 +12,7 @@ Run in an environment with network access to npm:
 ```sh
 cd apps/web
 npm install --package-lock-only --ignore-scripts
+# Commit apps/web/package-lock.json before CI or deployment
 npm ci
 npm test
 npm run build
