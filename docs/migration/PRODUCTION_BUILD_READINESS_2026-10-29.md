@@ -94,3 +94,9 @@ exist.
 The /activate and /devices historical routes now have dedicated web pages and a first-party worker API path for request, inspect, approve/deny, token polling, scoped reads, listing and revocation. The route inventory has moved two routes from placeholders to partial implementation; this does not certify either route end to end.
 
 Worker regression tests and SQL assertions were added but have not been executed. The device schema/RPC migration remains staged and unapplied. Canonical server secrets and preview configuration are unverified; no browser/Android QA or platform-wide build was run. The release decision remains NOT READY.
+
+## Historical route continuation update — My Giving
+
+The /giving route now has a dedicated read-only page and worker endpoint. The API returns only captured PayPal donations for the verified donor, validates ownership/currency/cents/capture timestamps, and keeps optional IFund support separate from campaign-gift amounts. Recurring plans, processor fees and total charged are not shown because the canonical schema does not provide the required verified fields.
+
+The giving endpoint and regression tests have not been executed. The donations table has no donor SELECT policy, so the endpoint relies on a server-only service-role read with strict owner filtering. Auth account-lifecycle parity, browser/Android QA and the platform-wide build remain open; release remains NOT READY.
