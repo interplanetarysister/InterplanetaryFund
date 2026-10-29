@@ -21,7 +21,7 @@ export default function Discover() {
   const requestedCategory = searchParams.get("category");
   const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
   const [search, setSearch] = useState("");
-  const [queryPending, setQueryPending] = useState(false);
+  const queryPending = search !== debouncedSearch;
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
   const [page, setPage] = useState(0);
@@ -36,8 +36,7 @@ export default function Discover() {
   );
 
   useEffect(() => {
-    setQueryPending(search !== debouncedSearch);
-    const timeout = setTimeout(() => { setDebouncedSearch(search); setQueryPending(false); }, 300);
+    const timeout = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timeout);
   }, [search]);
 
@@ -86,7 +85,7 @@ export default function Discover() {
         <div className="flex flex-wrap items-center gap-2">{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
-      <RecommendedCampaigns allCampaigns={campaigns} />
+      {!queryPending && <RecommendedCampaigns allCampaigns={campaigns} />}
 
       <div className="relative mb-6">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -105,7 +104,7 @@ export default function Discover() {
         ))}
       </div>
 
-      {compared.length > 0 && (
+      {!queryPending && compared.length > 0 && (
         <section className="mb-6 rounded-2xl border border-stone-200 bg-white p-4 shadow-sm" aria-label="Campaign comparison">
           <div className="flex items-center justify-between gap-3 mb-3"><div><h2 className="font-display text-xl text-stone-900">Compare campaigns</h2><p className="text-xs text-stone-500">Choose up to three. Comparison is informational; you decide where to support.</p></div><button type="button" onClick={() => setCompareIds([])} className="text-sm text-primary hover:underline">Clear</button></div>
           <div className="overflow-x-auto"><table className="w-full min-w-[560px] text-sm"><thead><tr className="text-left text-stone-500"><th className="py-2 pr-3">Campaign</th><th className="py-2 px-3">Category</th><th className="py-2 px-3">Raised</th><th className="py-2 px-3">Goal</th><th className="py-2 pl-3">Supporters</th></tr></thead><tbody>{compared.map((campaign) => <tr key={campaign.id} className="border-t border-stone-100"><td className="py-3 pr-3 font-medium text-stone-900">{campaign.title}</td><td className="py-3 px-3">{categoryLabels[campaign.category] || "Other"}</td><td className="py-3 px-3">{money(campaign.raised_amount)}</td><td className="py-3 px-3">{money(campaign.goal_amount)}</td><td className="py-3 pl-3">{count(campaign.donor_count)}</td></tr>)}</tbody></table></div>
