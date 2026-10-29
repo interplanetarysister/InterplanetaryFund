@@ -14,6 +14,8 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
   const hasTotals = hasGoal && hasRaised;
   const pct = hasTotals ? Math.max(0, Math.min(100, (Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100)) : 0;
   const checkoutDisabled = typeof onDonate !== "function";
+  const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
+  const validEndDate = endDate && !Number.isNaN(endDate.getTime());
   return (
     <div className={`bg-white rounded-2xl border border-stone-200/70 p-5 sm:p-6 shadow-sm ${className}`}>
       {hasTotals ? (<>
@@ -25,8 +27,8 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mb-4">
         {Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{campaign.donor_count} donors</span>}
-        {campaign.end_date && (
-          <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4" />Ends {format(new Date(campaign.end_date), "MMM d")}</span>
+        {validEndDate && (
+          <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4" />Ends {format(endDate, "MMM d")}</span>
         )}
       </div>
       <Button
