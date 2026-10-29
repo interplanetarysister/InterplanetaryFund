@@ -64,7 +64,6 @@ function clientBucket(request) {
 async function member(request, env, fetcher) {
   return authenticatedUser(request, {
     ...env,
-    SUPABASE_PUBLISHABLE_KEY: env.SUPABASE_PUBLISHABLE_KEY || env.SUPABASE_SERVICE_ROLE_KEY,
   }, fetcher);
 }
 async function getBy(env, column, value, fetcher) {
@@ -143,14 +142,22 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
       if (!await rateAllowed(env, 'decide:' + account.uid, 10, 60, fetcher))
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
-      if (!body || !UUID.test(body.id || '') || !['approve', 'deny'].includes(body.decision) ||
+      if (!body || typeof body.user_code !== 'string' || !/^[A-HJ-NP-Z2-9]{8}$/i.test(body.user_code) ||
+          !UUID.test(body.id || '') || !['approve', 'deny'].includes(body.decision) ||
           (body.decision === 'approve' && !validScopes(body.scopes))) {
         return response(422, { error: 'Invalid device decision.' });
       }
-      const params = new URLSearchParams({ id: 'eq.' + body.id, state: 'eq.pending',
-        expires_at: 'gt.' + new Date().toISOString(), select: SELECT });
+      const inspected = await getBy(env, 'user_code_hash', await sha256(body.user_code.toUpperCase()), fetcher);
+      if (!inspected || inspected.id !== body.id || inspected.state !== 'pending' ||
+          Date.parse(inspected.expires_at) <= Date.now())
+        return response(409, { error: 'This activation code has expired or changed. Inspect it again.' });
       const scopes = body.decision === 'approve' ? body.scopes : [];
-      if (body.decision === 'approve' && !validScopes(scopes)) return response(422, { error: 'Select at least one permission.' });
+      if (body.decision === 'approve' &&
+          (!validScopes(scopes) || scopes.some((scope) => !inspected.scopes.includes(scope))))
+        return response(422, { error: 'Select only permissions requested by this device.' });
+      const params = new URLSearchParams({ id: 'eq.' + body.id, state: 'eq.pending',
+        user_code_hash: 'eq.' + await sha256(body.user_code.toUpperCase()),
+        expires_at: 'gt.' + new Date().toISOString(), select: SELECT });
       const patch = body.decision === 'approve'
         ? { state: 'approved', owner_id: account.uid, approved_at: new Date().toISOString(),
             grant_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), scopes }
