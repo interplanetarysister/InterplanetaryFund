@@ -105,3 +105,8 @@ The giving endpoint and regression tests have not been executed. The donations t
 Added a shared confirmed-email predicate for UI access, enforced it in login/signup session handling, and made the independent worker reject Auth users without a provider-confirmed email. Added callback-flow and confirmed-email regression tests, but tests remain unexecuted.
 
 This is code-level hardening only. The canonical Supabase redirect allowlist, Site URL, confirmation email template, SMTP/deliverability, automatic-confirm setting, and real first-signup/cross-device verification remain unverified. The legal-acceptance table remains staged and unapplied, so the complete onboarding journey is still blocked. Release remains NOT READY.
+## Regression verification update — October 29
+
+The non-deploying Node 22 workflow passed: 102/102 root worker/contract tests and 127/127 web regression tests. The web route-inventory and backend-coverage audits also passed. This verifies the code-level contracts covered by those tests only.
+
+Production is still NOT READY: no production build or browser/Android QA was run; the device authorization and legal acceptance migrations remain unapplied; canonical server secrets/preview configuration and real Supabase redirect/SMTP/template settings remain unverified; the Vercel status is still failing and is out of scope for Vercel-specific repair.
