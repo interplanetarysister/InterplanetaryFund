@@ -17,6 +17,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
+const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
@@ -30,7 +31,7 @@ const STANDALONE_COMING_SOON = [
 ];
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id", "/blogs", "/blogs/:id", "/publications/:id",
-  "/create", "/giving", "/communications", "/mission", "/ai-images",
+  "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/profile", "/my-blog", "/devices", "/connections", "/inbox",
   "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
@@ -56,6 +57,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
+      <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
