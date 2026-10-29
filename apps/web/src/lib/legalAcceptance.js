@@ -1,4 +1,4 @@
-import { TERMS_VERSION } from "@/lib/legalPolicy";
+import { TERMS_VERSION } from "./legalPolicy.js";
 
 async function currentUser(client){
  const {data,error}=await client.auth.getUser();
