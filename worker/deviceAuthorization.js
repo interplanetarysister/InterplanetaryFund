@@ -52,7 +52,7 @@ async function db(env, path, init = {}, fetcher = fetch) {
   return type.includes('json') ? await res.json() : [];
 }
 async function rateAllowed(env, bucket, limit, seconds, fetcher) {
-  const bucketHash = await sha256('ifund:device-rate-limit:v1:' + bucket);
+  const bucketHash = await sha256('ifund:device-rate-limit:v1:' + env.SUPABASE_SERVICE_ROLE_KEY + ':' + bucket);
   const rows = await db(env, 'rpc/ifund_device_rate_limit', {
     method: 'POST', body: JSON.stringify({ p_bucket_hash: bucketHash, p_limit: limit, p_window_seconds: seconds }),
   }, fetcher);
