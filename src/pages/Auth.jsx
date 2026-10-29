@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Message } from "../components/UI";
 
@@ -15,6 +15,9 @@ const SIGN_IN_PROVIDERS = [
  */
 export default function Auth({ user }) {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const requested = params.get("returnTo") || "";
+  const destination = requested.startsWith("/") && !requested.startsWith("//") && !requested.includes("\\") ? requested : "/dashboard";
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeRequested, setCodeRequested] = useState(false);
@@ -27,6 +30,8 @@ export default function Auth({ user }) {
       <main>
         <h1>Signed in</h1>
         <p>{user.email}</p>
+        <p><Link className="primary" to={destination}>Continue to IFund</Link></p>
+        <p><Link to="/profile">Manage profile</Link></p>
         <button type="button" onClick={() => db?.auth.signOut()}>
           Sign out
         </button>
@@ -41,7 +46,7 @@ export default function Auth({ user }) {
     try {
       const { error: authError } = await db.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + "/login" },
+        options: { redirectTo: window.location.origin + "/login?returnTo=" + encodeURIComponent(destination) },
       });
       if (authError) throw authError;
     } catch (authError) {
@@ -84,7 +89,7 @@ export default function Auth({ user }) {
         type: "email",
       });
       if (authError) throw authError;
-      navigate("/mine");
+      navigate(destination, { replace: true });
     } catch (authError) {
       setError(authError?.message || "That code could not be verified.");
     } finally {
