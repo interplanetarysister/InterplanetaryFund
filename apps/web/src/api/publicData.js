@@ -84,13 +84,14 @@ export async function getCampaignDetail(id) {
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
   if (typeof category !== "string" || !category.trim()) return [];
   const limit = Math.min(12, Math.max(1, Math.trunc(Number(max) || 3)));
-  let query = supabase().from("ifund_campaigns")
+  const query = supabase().from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
     .eq("status", "active")
     .eq("category", category)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .limit(limit + 1);
   const { data, error } = await query;
   if (error) throw error;
-  return (data || []).filter(row => row.id !== excludeId).slice(0, limit).map(mapCampaign);
+  return (data || []).filter(row => String(row.id) !== String(excludeId)).slice(0, limit).map(mapCampaign);
 }
