@@ -187,10 +187,10 @@ enabled by staged UI components.
 
 **Current independent branch:** `migration/build-completeness-gates-20261029`  
 **Current PR:** [#165 — Draft](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)  
-**Verified code head:** `ea4e45f0019dcd64ec62f967360c14050f7b899d`  
+**Verified code head:** `9c9d92f31de7a2c15bd2db199ebf029642af197e`  
 **CI:** [run 40964893372](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40964893372) and paired run 40964885435 — both **PASS**.
 
-- Worker/contract tests: **103/103 passed**.
+- Worker/contract tests: **106/106 passed**.
 - Web regression tests: **130/130 passed**.
 - Route/entity/function/automation inventory consistency: **passed**.
 - Backend coverage audit: **passed as a static census**, while correctly refusing full release certification.
@@ -224,7 +224,7 @@ Security advisor findings on the canonical project include a public `SECURITY DE
 
 ## October 29 latest independent code CI — 22:29 UTC
 
-Current code head `ea4e45f0019dcd64ec62f967360c14050f7b899d` passed both CI workflows: **103/103 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
+Current code head `9c9d92f31de7a2c15bd2db199ebf029642af197e` passed both CI workflows: **103/103 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
 
 The green CI result does not clear the production release gate. The 59-route manifest remains 44 partial / 15 placeholder / 0 release-verified; AI generation, provider-backed images, many backend function ports, full Auth/legal browser tests, owner-consent proof, media/data reconciliation, Android signing, and Cloudflare project alignment remain incomplete. Current Cloudflare production and Supabase state is recorded above. The independent web app now has a committed lockfile (230 package entries, lockfile v3); CI uses `npm ci`.
 
@@ -235,3 +235,6 @@ Generated the independent app lockfile with Node 22.23.2 using npm's package-loc
 
 
 A further ACL check against the legacy staging project confirmed `public.ifund_migration_owner_commit(text,uuid,text)` is **not executable by service_role** (the role used by the normal server adapter); it is executable only by postgres, while its function body itself requires a `service_role` JWT claim. The companion lookup and owner-campaign RPCs are executable by service_role. This mismatch means the legacy owner-commit path is not callable through the normal Worker service-role client and is an additional hard blocker; do not bypass it by granting broad access or invoking as postgres without a reviewed audited route.
+
+
+The current placeholder set is explicitly tracked as 15 routes: `/oauth/consent`, `/admin/organization-mail`, `/communications`, `/ai-images`, `/my-blog`, `/inbox`, `/donors`, `/ledger`, `/subscriptions`, `/withdrawals`, `/platform`, `/admin/external-accounts`, `/admin/integrations`, `/admin/audit`, and `/admin/agent-api`. The other 44 routes are partial, not release-verified.

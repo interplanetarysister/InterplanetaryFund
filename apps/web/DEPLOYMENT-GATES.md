@@ -11,10 +11,10 @@
 
 No production deployment, DNS change, migration import, schema application, provider mutation, or Base44 shutdown has occurred as part of this work. Do not infer current Cloudflare production settings from this document; re-read the account and deployment configuration before any later release action.
 
-## Verified CI at commit `ea4e45f0019dcd64ec62f967360c14050f7b899d`
+## Verified CI at commit `9c9d92f31de7a2c15bd2db199ebf029642af197e`
 
 - Node setup: 22.23.2
-- Worker and contract suite: **103/103 passed**
+- Worker and contract suite: **106/106 passed**
 - Web regression suite: **130/130 passed**
 - Inventory consistency and backend coverage audits: **passed**
 - Runtime-boundary scan: **passed** (no legacy runtime SDK/config references)
@@ -64,3 +64,26 @@ The connected Cloudflare account was inspected without changing settings.
 - No Cloudflare settings, routes, deployments, DNS, bindings, or secrets were modified during this audit. Secret values were not read or recorded.
 
 This audit is a hard prebuild blocker. Do not enable preview or production deployments merely to obtain a green build: first reconcile the project references, determine which legacy routes are still required, and prepare a reversible preview route that cannot disturb the current site.
+
+
+## Explicit placeholder routes still requiring implementation
+
+These 15 historical routes are currently explicit placeholders, not release-ready pages:
+
+- `/oauth/consent`
+- `/admin/organization-mail`
+- `/communications`
+- `/ai-images`
+- `/my-blog`
+- `/inbox`
+- `/donors`
+- `/ledger`
+- `/subscriptions`
+- `/withdrawals`
+- `/platform`
+- `/admin/external-accounts`
+- `/admin/integrations`
+- `/admin/audit`
+- `/admin/agent-api`
+
+The 44 other historical routes are only partial implementations; they are not automatically accepted as complete because a route renders. These routes require the matching backend permissions, persistence, audit behavior, integrations, and real user tests before the 59-route inventory can be considered release-complete.
