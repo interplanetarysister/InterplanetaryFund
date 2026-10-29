@@ -29,7 +29,8 @@ test("device request stores hashes only and returns a ten-minute code", async ()
   let inserted;
   const fetcher = async (url, init = {}) => {
     if (String(url).includes("/rpc/ifund_device_rate_limit")) return json(true);
-    if (String(url).includes("/rest/v1/ifund_device_authorizations") && init.method === "POST") {
+    if (String(url).includes("/rest/v1/ifund_device_authorizations?")) return json([]);
+    if (String(url).endsWith("/rest/v1/ifund_device_authorizations") && init.method === "POST") {
       inserted = JSON.parse(init.body);
       return json([{ id: "c7c73f65-09a2-4b92-81d2-9b49f0ef5bb5" }], 201);
     }
