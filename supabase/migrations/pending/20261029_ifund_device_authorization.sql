@@ -25,6 +25,17 @@ create table public.ifund_device_authorizations (
   ),
   constraint ifund_device_code_expiry check (expires_at > created_at)
 );
+create index ifund_device_owner_recent on public.ifund_device_authorizations(owner_id,created_at desc);
+create index ifund_device_expiry on public.ifund_device_authorizations(expires_at);
+
+-- Atomic rate buckets make parallel guesses/polls count against the same window.
+create table public.ifund_device_rate_limits (
+  bucket_hash text primary key check (bucket_hash ~ '^[a-f0-9]{64}$'),
+  window_started_at timestamptz not null,
+  request_count integer not null check (request_count >= 0),
+  updated_at timestamptz not null default now()
+);
+
 -- Atomic rate limiting: concurrent requests share one locked bucket; failures deny access.
 create or replace function public.ifund_device_rate_limit(p_bucket_hash text, p_limit integer, p_window_seconds integer)
 returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
@@ -43,16 +54,6 @@ exception when others then return false;
 end; $$;
 revoke all on function public.ifund_device_rate_limit(text, integer, integer) from public, anon, authenticated;
 grant execute on function public.ifund_device_rate_limit(text, integer, integer) to service_role;
-create index ifund_device_owner_recent on public.ifund_device_authorizations(owner_id,created_at desc);
-create index ifund_device_expiry on public.ifund_device_authorizations(expires_at);
-
--- Atomic rate buckets make parallel guesses/polls count against the same window.
-create table public.ifund_device_rate_limits (
-  bucket_hash text primary key check (bucket_hash ~ '^[a-f0-9]{64}$'),
-  window_started_at timestamptz not null,
-  request_count integer not null check (request_count >= 0),
-  updated_at timestamptz not null default now()
-);
 
 alter table public.ifund_device_authorizations enable row level security;
 alter table public.ifund_device_rate_limits enable row level security;
