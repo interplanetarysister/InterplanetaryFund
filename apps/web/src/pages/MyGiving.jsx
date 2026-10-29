@@ -73,7 +73,7 @@ export default function MyGiving() {
           <LoaderCircle className="h-6 w-6 animate-spin text-primary" />
           <span className="ml-3 text-sm text-muted-foreground">Loading confirmed gifts…</span>
         </div>
-      ) : (
+      ) : error && donations === null ? null : (
         <>
           <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
