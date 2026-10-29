@@ -2,7 +2,7 @@
   "source_repo": "interplanetarysister/interplanetary-fund2",
   "source_ref": "main",
   "total": 57,
-  "note": "Status describes source-to-preview coverage, not functional parity. Zero pages verified against Base44 live runtime.",
+  "note": "Source-to-preview coverage only. No new runtime parity verification; no builds or deployments authorized. All live payment/agent features remain independently gated.",
   "pages": [
     {
       "source": "src/pages/AIImageStudio.jsx",
@@ -71,7 +71,7 @@
       "source": "src/pages/CampaignDetail.jsx",
       "name": "CampaignDetail",
       "target": "src/pages/CampaignDetail.jsx",
-      "status": "partial_preview",
+      "status": "partial_story_share_and_management",
       "verified_behavior": false
     },
     {
@@ -85,7 +85,7 @@
       "source": "src/pages/Community.jsx",
       "name": "Community",
       "target": "src/pages/Community.jsx",
-      "status": "partial_preview",
+      "status": "partial_live_feed_and_owner_delete",
       "verified_behavior": false
     },
     {
@@ -113,7 +113,7 @@
       "source": "src/pages/Connections.jsx",
       "name": "Connections",
       "target": "src/pages/Connections.jsx",
-      "status": "partial_preview",
+      "status": "partial_owner_scoped_verified_status",
       "verified_behavior": false
     },
     {
@@ -127,14 +127,14 @@
       "source": "src/pages/CreateCampaign.jsx",
       "name": "CreateCampaign",
       "target": "src/pages/CampaignEditor.jsx",
-      "status": "partial_preview",
+      "status": "partial_four_step_wizard_requires_migration",
       "verified_behavior": false
     },
     {
       "source": "src/pages/Dashboard.jsx",
       "name": "Dashboard",
-      "target": "src/pages/Feed.jsx",
-      "status": "partial_preview",
+      "target": "src/pages/Dashboard.jsx",
+      "status": "partial_authenticated_campaign_overview",
       "verified_behavior": false
     },
     {
@@ -148,7 +148,7 @@
       "source": "src/pages/Discover.jsx",
       "name": "Discover",
       "target": "src/pages/Discover.jsx",
-      "status": "partial_preview",
+      "status": "partial_search_filter_compare",
       "verified_behavior": false
     },
     {
@@ -232,7 +232,7 @@
       "source": "src/pages/Home.jsx",
       "name": "Home",
       "target": "src/pages/Feed.jsx",
-      "status": "partial_preview",
+      "status": "partial_original_editorial_and_live_feed",
       "verified_behavior": false
     },
     {
@@ -267,7 +267,7 @@
       "source": "src/pages/Login.jsx",
       "name": "Login",
       "target": "src/pages/Auth.jsx",
-      "status": "partial_preview",
+      "status": "partial_passwordless_auth",
       "verified_behavior": false
     },
     {
@@ -287,8 +287,8 @@
     {
       "source": "src/pages/MyGiving.jsx",
       "name": "MyGiving",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/MyGiving.jsx",
+      "status": "ported_read_only_requires_donor_rls",
       "verified_behavior": false
     },
     {
@@ -336,8 +336,8 @@
     {
       "source": "src/pages/Profile.jsx",
       "name": "Profile",
-      "target": null,
-      "status": "not_ported",
+      "target": "src/pages/Profile.jsx",
+      "status": "partial_owner_profile_and_auth",
       "verified_behavior": false
     },
     {
@@ -372,7 +372,7 @@
       "source": "src/pages/Social.jsx",
       "name": "Social",
       "target": "src/pages/Community.jsx",
-      "status": "partial_preview",
+      "status": "partial_unified_social_hub",
       "verified_behavior": false
     },
     {
