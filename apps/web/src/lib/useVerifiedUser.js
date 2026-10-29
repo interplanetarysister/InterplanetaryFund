@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
+import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
 // Canonical verified session state. This is for navigation/UI only; never
 // substitute it for server-side JWT validation or row-level security.
@@ -14,7 +15,7 @@ export default function useVerifiedUser(){
         const {data,error}=await client.auth.getUser();
         if(mounted)setState(error?
           {phase:"error",user:null}:
-          {phase:"ready",user:data?.user||null});
+          {phase:"ready",user:isVerifiedEmailUser(data?.user)?data.user:null});
       }catch{
         if(mounted)setState({phase:"error",user:null});
       }
