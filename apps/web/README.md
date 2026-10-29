@@ -31,7 +31,7 @@ npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
 npm --prefix apps/web exec -- vite build
 ```
 
-The independent CI currently verifies 103 Worker/contract tests, 130 web regression tests, the source inventory, backend coverage, runtime-independence scan, and a Vite compile. The Vite command is deliberately run directly in CI so the code can be compile-checked while the production evidence gate remains closed.
+The independent CI currently verifies 106 Worker/contract tests, 130 web regression tests, the source inventory, backend coverage, runtime-independence scan, and a Vite compile. The Vite command is deliberately run directly in CI so the code can be compile-checked while the production evidence gate remains closed.
 
 `npm run build` invokes the `prebuild` release gate. It is expected to stop until all required release evidence is true. Do not remove or bypass that gate to force a deployment.
 

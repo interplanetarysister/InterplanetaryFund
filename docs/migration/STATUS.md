@@ -224,7 +224,7 @@ Security advisor findings on the canonical project include a public `SECURITY DE
 
 ## October 29 latest independent code CI — 22:29 UTC
 
-Current code head `9c9d92f31de7a2c15bd2db199ebf029642af197e` passed both CI workflows: **103/103 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
+Current code head `9c9d92f31de7a2c15bd2db199ebf029642af197e` passed both CI workflows: **103/106 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
 
 The green CI result does not clear the production release gate. The 59-route manifest remains 44 partial / 15 placeholder / 0 release-verified; AI generation, provider-backed images, many backend function ports, full Auth/legal browser tests, owner-consent proof, media/data reconciliation, Android signing, and Cloudflare project alignment remain incomplete. Current Cloudflare production and Supabase state is recorded above. The independent web app now has a committed lockfile (230 package entries, lockfile v3); CI uses `npm ci`.
 
