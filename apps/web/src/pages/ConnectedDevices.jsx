@@ -24,7 +24,7 @@ async function deviceRequest(mode, method = "GET", body) {
 
 const SCOPE_LABELS = {
   "identity:read": "IFund identity",
-  "campaigns:read": "Campaign names and public progress",
+  "campaigns:read": "Names and public details of active campaigns",
 };
 
 export default function ConnectedDevices() {
