@@ -14,7 +14,7 @@ export default function CreateCampaign() {
     let active = true;
     (async () => {
       try {
-        if (!/^[0-9a-f-]{36}$/i.test(draftId)) throw new Error("Invalid draft reference.");
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(draftId)) throw new Error("Invalid draft reference.");
         const client = authClient();
         const { data: { user }, error: authError } = await client.auth.getUser();
         if (authError || !user) { navigate("/login", { replace: true }); return; }
@@ -50,6 +50,7 @@ export default function CreateCampaign() {
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw insertError;
       setSaved(data.id);
+      if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }
   }
