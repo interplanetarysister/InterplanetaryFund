@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [myCampaignError, setMyCampaignError] = useState("");
   const [campaignError, setCampaignError] = useState("");
   const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const [myCampaignsLoading, setMyCampaignsLoading] = useState(true);
   const [publicCampaignsLoading, setPublicCampaignsLoading] = useState(true);
   useEffect(() => {
@@ -45,8 +46,9 @@ export default function Dashboard() {
   async function signOut() {
     if (signingOut) return;
     setSigningOut(true);
+    setSignOutError("");
     try { const { error: signOutError } = await authClient().auth.signOut(); if (signOutError) throw signOutError; navigate("/login", { replace: true }); }
-    catch { setState("error"); }
+    catch { setSignOutError("Could not sign out. Please retry."); }
     finally { setSigningOut(false); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
@@ -56,6 +58,7 @@ export default function Dashboard() {
       <div><h1 className="font-display text-3xl font-bold">Your dashboard</h1><p className="mt-2 text-muted-foreground">Signed in as {user?.email}</p></div>
       <button type="button" disabled={signingOut} onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2 disabled:opacity-50">{signingOut ? "Signing out…" : "Sign out"}</button>
     </header>
+    {signOutError && <p role="alert">{signOutError}</p>}
     <section className="rounded-2xl border border-border bg-card p-6">
       <h2 className="text-xl font-semibold">Your campaigns</h2>
       <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
