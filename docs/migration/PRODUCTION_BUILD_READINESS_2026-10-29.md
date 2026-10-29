@@ -88,3 +88,9 @@ dependencies, then reconcile the original 184-function graph and verified
 production users. Only notify **READY** once the actual source-equivalent
 web + Android release and compliance checks pass, not when code files merely
 exist.
+
+## Historical route continuation update — device authorization
+
+The /activate and /devices historical routes now have dedicated web pages and a first-party worker API path for request, inspect, approve/deny, token polling, scoped reads, listing and revocation. The route inventory has moved two routes from placeholders to partial implementation; this does not certify either route end to end.
+
+Worker regression tests and SQL assertions were added but have not been executed. The device schema/RPC migration remains staged and unapplied. Canonical server secrets and preview configuration are unverified; no browser/Android QA or platform-wide build was run. The release decision remains NOT READY.
