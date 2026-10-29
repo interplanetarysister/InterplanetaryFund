@@ -21,7 +21,10 @@ export function callbackParameters(href){
   const hash=new URLSearchParams(url.hash.startsWith("#")?url.hash.slice(1):url.hash);
   const error=clean(query.get("error_description")||hash.get("error_description")||
     query.get("error")||hash.get("error"));
-  const next=safeReturnTo(query.get("next")||"/onboarding");
+  const requestedNext=clean(query.get("next"));
+  // Recovery is the only callback allowed to target the reset form; keep this
+  // exact same-origin path exception local to auth callbacks, not generic redirects.
+  const next=requestedNext==="/reset-password"?"/reset-password":safeReturnTo(requestedNext||"/onboarding");
   const code=clean(query.get("code"));
   const token_hash=clean(query.get("token_hash"));
   const token_type=clean(query.get("type"));
