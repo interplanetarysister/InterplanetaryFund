@@ -14,6 +14,8 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
@@ -21,7 +23,7 @@ const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
 const STANDALONE_COMING_SOON = [
-  "/login", "/register", "/forgot-password", "/reset-password", "/onboarding",
+  "/onboarding",
   "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
@@ -41,6 +43,10 @@ function AppRoutes() {
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/login" element={<AuthPage mode="login" />} />
+    <Route path="/register" element={<AuthPage mode="register" />} />
+    <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
+    <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
