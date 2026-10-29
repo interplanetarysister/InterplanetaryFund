@@ -9,6 +9,8 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [state, setState] = useState("loading");
   const [campaigns, setCampaigns] = useState([]);
+  const [myCampaigns, setMyCampaigns] = useState([]);
+  const [myCampaignError, setMyCampaignError] = useState("");
   const [campaignError, setCampaignError] = useState("");
   useEffect(() => {
     let alive = true;
@@ -19,6 +21,12 @@ export default function Dashboard() {
         if (!alive) return;
         if (error || !data.user) { navigate("/login", { replace: true }); return; }
         setUser(data.user); setState("ready");
+        client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).limit(100)
+          .then(({data: owned,error: queryError}) => {
+            if (!alive) return;
+            if (queryError) setMyCampaignError("Your campaigns could not be loaded.");
+            else setMyCampaigns(owned || []);
+          }).catch(() => { if (alive) setMyCampaignError("Your campaigns could not be loaded."); });
       }).catch(() => { if (alive) setState("error"); });
       const { data } = client.auth.onAuthStateChange((event) => {
         if (alive && event === "SIGNED_OUT") navigate("/login", { replace: true });
@@ -42,10 +50,13 @@ export default function Dashboard() {
       <button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2">Sign out</button>
     </header>
     <section className="rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-xl font-semibold">Campaigns</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Browse active public campaigns. Private campaign management, donations, and withdrawals remain unavailable until their independent services are verified.</p>
+      <h2 className="text-xl font-semibold">Your campaigns</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
+      <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
+    {myCampaignError && <p role="alert">{myCampaignError}</p>}
+    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
     {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
   </main>;
