@@ -102,3 +102,26 @@ The owner requested all remaining pages and all backend functions be audited and
 - Read-only Supabase audit confirmed private staging entity tables have *client-deny* policies, preventing safe naive front-end porting. Current public tables cannot support 31 missing feature backends with original privacy or content. A pending SQL change narrows direct EXECUTE privileges for the `public.ifund_create_auth_profile()` SECURITY DEFINER trigger; NOT applied. Test signup/rollback before applying.
 - No native APK, provider sandbox, cross-user browser, payment/withdrawal, database mutation, DNS, workflow activation or deployment was executed.
 - The existing hourly continuation task has been updated with explicit priorities to keep porting 31 remaining pages and reviewing the entire 184-function graph on future runs, honoring no-build/no-deploy instructions.
+
+
+## Read-only canonical campaign reconciliation checkpoint (2026-10-29)
+
+Read-only Supabase aggregate queries: `ifund_stage.campaign` contains **27** rows,
+**27/27 unique nonnull original legacy IDs**, **17 active**, **10 drafts**, **zero
+auth UID owner links**, and therefore **zero independently matched owner accounts**.
+The independent `public.ifund_campaigns` and `public.ifund_donations` tables
+each contain **zero** rows. Source archive re-export verification is absent;
+the prior checkpoint's 28-source-record claim must not be treated as a proven
+current export. Canonical stage lacks an original `created_by_id` column, so
+do NOT guess ownership. Evidence in
+`contracts/data-migration-checkpoint.json`.
+Production release gate now requires owner identity proof, complete source
+campaign reconciliation, ledger integrity and import approval before any cutover.
+
+New content-only campaign publish helper, associated tests, private paused-campaign
+preview and conditional source URL behavior were staged without running the
+application or changing the database. Backend security review produced an
+unapplied profile trigger EXECUTE-grant tightening migration, which must be
+reviewed with auth/signup verification before execution. The existing hourly
+continuation automation was updated to keep auditing original source parity
+on future runs while preserving no-build/no-deploy restrictions.
