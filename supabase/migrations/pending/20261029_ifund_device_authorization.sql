@@ -58,6 +58,7 @@ grant execute on function public.ifund_device_rate_limit(text, integer, integer)
 alter table public.ifund_device_authorizations enable row level security;
 alter table public.ifund_device_rate_limits enable row level security;
 revoke all on public.ifund_device_authorizations,public.ifund_device_rate_limits from public,anon,authenticated;
+grant all on public.ifund_device_authorizations,public.ifund_device_rate_limits to service_role;
 -- No browser policies or grants: all access must go through the separately
 -- authenticated worker using its server-only Supabase service-role secret.
 commit;
