@@ -153,3 +153,14 @@ grant select on public.ifund_inbox_items to authenticated;
 grant update (status) on public.ifund_inbox_items to authenticated;
 -- Provider webhook/connector service must validate signed claims before writing
 -- to either table. No browser INSERT, DELETE, service credentials or fake data.
+
+
+-- Restored six-stage onboarding preferences, with no delegated consent implied.
+alter table public.ifund_profiles
+  add column if not exists onboarding jsonb not null default '{}'::jsonb,
+  add column if not exists onboarding_completed boolean not null default false;
+alter table public.ifund_profiles
+  add constraint ifund_onboarding_object check (jsonb_typeof(onboarding) = 'object');
+-- Existing owner-only profile UPDATE/INSERT RLS continues to apply.
+-- Delegated OAuth consent must be stored in separate server-verified grants;
+-- onboarding checkbox preferences are never authorization.
