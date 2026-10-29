@@ -215,12 +215,14 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
           !record.grant_expires_at || Date.parse(record.grant_expires_at) <= Date.now())
         return response(401, { error: 'Device access expired or revoked.' });
       const body = await readJsonBody(request, 2048);
+      const profileParams = new URLSearchParams({ select: 'id,handle,display_name', id: 'eq.' + record.owner_id, limit: '1' });
+      const profiles = await db(env, 'ifund_profiles?' + profileParams.toString(), {}, fetcher);
+      const profile = Array.isArray(profiles) && profiles.length === 1 ? profiles[0] : null;
+      if (!profile || profile.id !== record.owner_id)
+        return response(403, { error: 'The account for this device is no longer available.' });
       if (body?.action === 'identity' && record.scopes.includes('identity:read')) {
-        const params = new URLSearchParams({ select: 'id,handle,display_name', id: 'eq.' + record.owner_id, limit: '1' });
-        const rows = await db(env, 'ifund_profiles?' + params.toString(), {}, fetcher);
-        const profile = Array.isArray(rows) ? rows[0] : null;
         return response(200, { ok: true, identity: {
-          id: record.owner_id, username: profile?.handle || '', display_name: profile?.display_name || profile?.handle || '',
+          id: record.owner_id, username: profile.handle || '', display_name: profile.display_name || profile.handle || '',
         } });
       }
       if (body?.action === 'campaigns' && record.scopes.includes('campaigns:read')) {
