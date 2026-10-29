@@ -90,7 +90,6 @@ export async function routeGivingRead(request, env, fetcher = fetch) {
       platform_support_amount: row.optional_support_cents / 100,
       created_date: row.captured_at,
       payment_method: 'PayPal',
-      is_recurring: false,
     })) });
   } catch {
     return response(503, { error: 'We could not load your confirmed giving history.' });
