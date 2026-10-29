@@ -25,6 +25,7 @@ async function api(mode, { body, token, deviceToken, method = "POST" } = {}) {
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   const data = await response.json().catch(() => ({}));
+  if (Array.isArray(data)) return { ok: response.ok, status: response.status, data };
   return { ok: response.ok, status: response.status, ...data };
 }
 
@@ -77,7 +78,7 @@ export default function DevicePairingSelfTest({ onChanged }) {
   }
 
   useEffect(() => {
-    if (!test || status !== "waiting") return;
+    if (!test) return;
     let timer;
     let stopped = false;
     const stop = () => { stopped = true; clearTimeout(timer); };
@@ -113,8 +114,8 @@ export default function DevicePairingSelfTest({ onChanged }) {
               const { data: { session }, error: sessionError } = await client.auth.getSession();
               if (sessionError || !session?.access_token) throw new Error("Owner session unavailable");
               const rows = await api("devices", { method: "GET", token: session.access_token });
-              if (!rows.ok || !Array.isArray(rows)) throw new Error("Device list unavailable");
-              const matches = rows.filter(row => row.device_label === test.label && row.state === "approved");
+              if (!rows.ok || !Array.isArray(rows.data)) throw new Error("Device list unavailable");
+              const matches = rows.data.filter(row => row.device_label === test.label && row.state === "approved");
               if (matches.length !== 1) throw new Error("Cannot identify unique test grant");
               const result = await api("revoke", {
                 body: { id: matches[0].id }, token: session.access_token,
@@ -152,7 +153,7 @@ export default function DevicePairingSelfTest({ onChanged }) {
     };
     timer = setTimeout(poll, 5000);
     return stop;
-  }, [test, status, onChanged]);
+  }, [test, onChanged]);
 
   const activeTest = status === "waiting" || status === "checking";
   return (
