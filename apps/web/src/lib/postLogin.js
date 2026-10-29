@@ -7,6 +7,8 @@ export async function landingAfterLogin(client,requested){
   const {data:verified,error:authError}=await client.auth.getUser();
   if(authError||!verified?.user?.id)
     throw new Error("The authentication service could not verify this session.");
+  if(!verified.user.email_confirmed_at)
+    throw new Error("Confirm your email address before signing in. Use the newest confirmation link.");
   if(destination!=="/dashboard")return destination;
   try{
     const {data,error}=await client.from("ifund_profiles")
