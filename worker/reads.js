@@ -39,7 +39,7 @@ export async function authenticatedUser(request, env, fetcher = fetch) {
   });
   if (!res.ok) return null;
   const account = await res.json();
-  if (!uuid.test(account?.id || '')) return null;
+  if (!uuid.test(account?.id || '') || !account.email_confirmed_at) return null;
   return { uid: account.id, jwt };
 }
 
