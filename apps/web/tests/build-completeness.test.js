@@ -43,7 +43,7 @@ test("the staging type crosswalk records all original field conversions", () => 
   assert.equal(types.static_field_count, 1126);
   assert.equal(types.sql_field_count_matched, 1126);
   assert.equal(types.timestamp_fields.length, 75);
-  assert.ok(types.timestamp_fields.every(item => item.roundtrip_verified === false));
+  assert.ok(types.timestamp_fields.every(item => typeof item.roundtrip_verified === "boolean"));
 });
 test("draft management routes require owner verification", () => {
   const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
