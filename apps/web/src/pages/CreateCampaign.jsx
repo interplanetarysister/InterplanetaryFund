@@ -16,7 +16,8 @@ export default function CreateCampaign() {
       try {
         if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(draftId)) throw new Error("Invalid draft reference.");
         const client = authClient();
-        const { data: { user }, error: authError } = await client.auth.getUser();
+        const { data, error: authError } = await client.auth.getUser();
+        const user = data?.user;
         if (authError || !user) { navigate("/login", { replace: true }); return; }
         const { data, error: fetchError } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id",draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (fetchError || !data) throw new Error("Draft not found or access denied.");
@@ -37,10 +38,12 @@ export default function CreateCampaign() {
     setBusy(true); setError(""); setSaved("");
     try {
       const client = authClient();
-      const { data: { user }, error: authError } = await client.auth.getUser();
+      const { data, error: authError } = await client.auth.getUser();
+        const user = data?.user;
       if (authError || !user) { navigate("/login", { replace: true }); return; }
-      const amount = Number(form.goal_amount);
-      if (!Number.isFinite(amount) || amount < 0) throw new Error("Enter a valid fundraising goal.");
+      const goalText = form.goal_amount.trim();
+      const amount = Number(goalText);
+      if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
       const values = { title: form.title.trim(), summary: form.summary.trim(),
         story: form.story.trim(), category: form.category, goal_amount: amount,
         cover_image_url: form.cover_image_url.trim(), status: "draft" };
