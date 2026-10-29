@@ -19,7 +19,7 @@ export default function Dashboard() {
       const client = authClient();
       client.auth.getUser().then(({ data, error }) => {
         if (!alive) return;
-        if (error || !data.user) { navigate("/login", { replace: true }); return; }
+        if (error || !data?.user) { navigate("/login", { replace: true }); return; }
         setUser(data.user); setState("ready");
         client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).limit(100)
           .then(({data: owned,error: queryError}) => {
