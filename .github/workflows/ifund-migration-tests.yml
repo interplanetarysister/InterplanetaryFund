@@ -41,3 +41,7 @@ jobs:
         run: node --test tests/*.test.js
       - name: Run web regression tests and offline coverage audits
         run: npm --prefix apps/web test
+      - name: Install independent web app dependencies
+        run: npm --prefix apps/web install --no-package-lock --ignore-scripts --no-audit --no-fund
+      - name: Compile independent web app (without bypassing release gate)
+        run: npm --prefix apps/web exec -- vite build
