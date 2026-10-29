@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 
@@ -29,16 +29,16 @@ export default function CreateCampaign() {
   }, [draftId,navigate]);
   const [form, setForm] = useState({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" });
   const [busy, setBusy] = useState(false);
-  const [draftRevision, setDraftRevision] = useState(0);
+  const draftRevision = useRef(0);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  function change(key, value) { setDraftRevision(r => r + 1); setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { draftRevision.current += 1; setSaved(""); setError(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
     if (busy || loadingDraft || draftLoadError) return;
     setBusy(true); setError(""); setSaved("");
     try {
-      const revisionAtStart = draftRevision;
+      const revisionAtStart = draftRevision.current;
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
       const user = authData?.user;
@@ -67,8 +67,8 @@ export default function CreateCampaign() {
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw new Error("Unable to save the campaign draft. Please retry.");
       if (!data?.id) throw new Error("Draft save did not return a campaign reference.");
-      if (revisionAtStart === draftRevision) setSaved(data.id);
-      if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
+      if (revisionAtStart === draftRevision.current) setSaved(data.id);
+      if (!draftId && revisionAtStart === draftRevision.current) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }
   }
