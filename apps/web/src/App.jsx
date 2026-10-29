@@ -49,6 +49,8 @@ const Institutions = lazy(() => import("./pages/Institutions"));
 const InstitutionDetail = lazy(() => import("./pages/InstitutionDetail"));
 const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const GlobalGlobe = lazy(() => import("./pages/GlobalGlobe"));
+const DeviceActivation = lazy(() => import("./pages/DeviceActivation"));
+const ConnectedDevices = lazy(() => import("./pages/ConnectedDevices"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 import TermsAcceptance from "@/components/TermsAcceptance";
@@ -60,11 +62,11 @@ const IMPLEMENTED = new Set([
   "/register", "/forgot-password", "/reset-password", "/founding-members",
   "/discover", "/dashboard", "/social", "/community", "/create",
   "/profile", "/connections", "/campaign/:id", "/help", "/help/:slug",
-  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/globe", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
+  "/embed/campaign/:id", "/download", "/agents", "/onboarding", "/u/:id", "/mission", "/ops", "/analytics", "/following", "/notifications", "/blogs", "/blogs/:id", "/publications/:id", "/institutions", "/institutions/:id", "/community/:id", "/globe", "/activate", "/devices", "/connect", "/admin/help", "/admin/sustainability", "/admin/founding-members",
 ]);
 const PENDING_ROUTES = HISTORICAL_ROUTES.filter(page => !IMPLEMENTED.has(page.path));
 const STANDALONE_PATHS = new Set([
-  "/globe", "/oauth/consent", "/activate", "/admin/organization-mail",
+  "/globe", "/oauth/consent", "/admin/organization-mail",
 ]);
 const STANDALONE_PENDING = PENDING_ROUTES.filter(page => STANDALONE_PATHS.has(page.path));
 const LAYOUT_PENDING = PENDING_ROUTES.filter(page => !STANDALONE_PATHS.has(page.path));
@@ -96,6 +98,7 @@ function AppRoutes() {
     <Route path="/onboarding" element={<RequireAccess access="member"><Onboarding /></RequireAccess>} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
     <Route path="/globe" element={<GlobalGlobe />} />
+    <Route path="/activate" element={<DeviceActivation />} />
     {STANDALONE_PENDING.map(page => <Route key={page.path} path={page.path} element={pendingElement(page)} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
@@ -116,6 +119,7 @@ function AppRoutes() {
       <Route path="/institutions" element={<RequireAccess access="member"><Institutions /></RequireAccess>} />
       <Route path="/institutions/:id" element={<RequireAccess access="member"><InstitutionDetail /></RequireAccess>} />
       <Route path="/connections" element={<RequireAccess access="member"><Connections /></RequireAccess>} />
+      <Route path="/devices" element={<RequireAccess access="member"><ConnectedDevices /></RequireAccess>} />
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
       <Route path="/mission" element={<RequireAccess access="member"><MissionControlPage /></RequireAccess>} />
       <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
