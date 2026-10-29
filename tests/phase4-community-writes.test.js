@@ -27,7 +27,7 @@ function mock(calls, options = {}) {
   return async (url, settings) => {
     calls.push({ url: String(url), settings });
     if (String(url).endsWith('/auth/v1/user')) {
-      return Response.json({ id: uid });
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
     }
     if (options.error) return new Response('private diagnostic', { status: 500 });
     if (options.rows) return Response.json(options.rows);
