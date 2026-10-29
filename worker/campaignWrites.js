@@ -104,9 +104,10 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
-      // Deletion is restricted to empty/draft records; published campaigns
-      // can have donors and must enter a separate audited archive workflow.
-      if (deleting) query.set('status', 'eq.draft');
+      // A draft save must NEVER downgrade an already published campaign to
+      // draft; published campaigns may have history or donors. Only a
+      // separately audited lifecycle endpoint may archive/pause them.
+      if (deleting || campaign?.status === 'draft') query.set('status', 'eq.draft');
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
       method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',
