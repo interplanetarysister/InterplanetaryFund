@@ -105,6 +105,7 @@ export async function routeReadRequest(request, env, fetcher = fetch) {
         select: 'id,title,summary,story,category,goal_amount,cover_image_url,status',
         id: 'eq.' + match[1],
         owner_id: 'eq.' + member.uid,
+        status: 'eq.draft',
         limit: '1',
       });
       return await readOnly(env, 'ifund_campaigns?' + params.toString(), member.jwt, fetcher);
