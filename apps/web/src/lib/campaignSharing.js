@@ -16,6 +16,5 @@ export function campaignEmbedCode(origin, id) {
   const embedUrl = publicUrl.replace("/campaign/", "/embed/campaign/");
   return '<iframe title="Interplanetary Fund campaign" src="' + embedUrl +
     '" width="360" height="460" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" ' +
-    'sandbox="allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" ' +
     'style="max-width:100%;border:0" ></iframe>';
 }
