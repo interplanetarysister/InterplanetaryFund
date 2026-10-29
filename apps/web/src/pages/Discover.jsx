@@ -28,6 +28,7 @@ export default function Discover() {
   const pageSize = 48;
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [requestKey, setRequestKey] = useState("");
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
   const helpLink = (
@@ -48,6 +49,8 @@ export default function Discover() {
     setCampaigns(null);
     setHasNextPage(false);
     setCompareIds([]);
+    const currentKey = `${category}:${debouncedSearch}:${page}:${refreshKey}`;
+    setRequestKey(currentKey);
     searchActiveCampaigns({ category, search: debouncedSearch, limit: pageSize + 1, offset: page * pageSize })
       .then((items) => {
         if (!active) return;
@@ -68,14 +71,14 @@ export default function Discover() {
   if (error) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
   }
-  if (loading || !campaigns) {
+  if (loading || !campaigns || requestKey !== `${category}:${debouncedSearch}:${page}:${refreshKey}`) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
   }
 
   const filtered = queryPending ? [] : campaigns;
   const categories = ["all", ...Object.keys(categoryLabels)];
   const compared = compareIds.map((id) => campaigns.find((campaign) => campaign.id === id)).filter(Boolean);
-  const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 ? [...current, id] : current);
+  const toggleCompare = (id) => setCompareIds((current) => current.includes(id) ? current.filter((value) => value !== id) : current.length < 3 && campaigns.some((campaign) => campaign.id === id) ? [...current, id] : current);
 
   return (
     <PullToRefresh onRefresh={() => setRefreshKey((k) => k + 1)} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
@@ -91,9 +94,9 @@ export default function Discover() {
 
       {!queryPending && !debouncedSearch.trim() && page === 0 && <RecommendedCampaigns allCampaigns={campaigns} />}
 
-      <div className="relative mb-6">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
-        <Input aria-label="Search active campaigns" maxLength={100} value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); setCompareIds([]); }} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
+      <div className="relative mb-6" role="search">
+        <Search aria-hidden="true" className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+        <Input type="search" aria-label="Search active campaigns" maxLength={100} value={search} onChange={(e) => { setSearch(e.target.value); setPage(0); setCompareIds([]); }} placeholder="Search campaigns by name or cause…" className="pl-9 max-w-md" />
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         {categories.map((c) => (
