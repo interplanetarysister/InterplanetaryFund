@@ -177,13 +177,16 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     }
 
     if (mode === 'token' && request.method === 'POST') {
-      if (!await rateAllowed(env, clientBucket(request), 35, 300, fetcher))
+      if (!await rateAllowed(env, clientBucket(request), 100, 300, fetcher))
         return response(429, { error: 'slow_down' });
       const body = await readJsonBody(request, 2048);
       if (!body || body.grant_type !== 'urn:ietf:params:oauth:grant-type:device_code' ||
           typeof body.device_code !== 'string' || !/^[a-f0-9]{64}$/.test(body.device_code))
         return response(422, { error: 'invalid_request' });
-      const record = await getBy(env, 'device_code_hash', await deviceHash(body.device_code), fetcher);
+      const codeHash = await deviceHash(body.device_code);
+      if (!await rateAllowed(env, 'poll:' + codeHash, 35, 300, fetcher))
+        return response(429, { error: 'slow_down' });
+      const record = await getBy(env, 'device_code_hash', codeHash, fetcher);
       if (!record || Date.parse(record.expires_at) <= Date.now()) return response(400, { error: 'expired_token' });
       if (record.state === 'denied' || record.state === 'revoked') return response(400, { error: 'access_denied' });
       if (record.state === 'pending') {
