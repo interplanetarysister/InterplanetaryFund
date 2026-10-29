@@ -17,7 +17,7 @@ export default function CampaignCard({ campaign }) {
   const isDraft = campaign.status === "draft";
   // Public preview data has no funding totals yet; hide them instead of
   // showing misleading zeros.
-  const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0;
+  const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0 && Number.isFinite(Number(campaign.raised_amount)) && campaign.raised_amount !== null && campaign.raised_amount !== undefined && Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && campaign.donor_count !== undefined;
   const pct = hasTotals ? Math.min(100, ((campaign.raised_amount || 0) / campaign.goal_amount) * 100) : 0;
   return (
     <Link to={isDraft ? `/create?draft=${encodeURIComponent(campaign.id)}` : `/campaign/${campaign.id}`} className="group bg-white rounded-2xl border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
