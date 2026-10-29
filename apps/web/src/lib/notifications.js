@@ -1,7 +1,9 @@
 // Owner-only in-app notifications. No browser notification creation,
 // no financial notice mirroring and no unverified Android push registration.
 // A future trusted producer can insert source_event_id-deduplicated notices.
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isVerifiedEmailUser } from "./verifiedEmailUser.js";
+
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COLUMNS="id,owner_id,title,body,type,link,read,created_at";
 
 async function ownerId(client){
