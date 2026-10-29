@@ -31,7 +31,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "activateSubscriptionCheckout",
@@ -63,7 +65,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "adminApiConnectionIntake",
@@ -95,7 +99,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "adminCampaignControl",
@@ -126,7 +132,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "adminOAuthProviderReadiness",
@@ -154,7 +162,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "adminUpdateUserRole",
@@ -184,7 +194,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "analyzeGrantApplication",
@@ -219,7 +231,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "applyAgentContentDraft",
@@ -254,7 +268,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "applyInstitutionOpportunity",
@@ -288,7 +304,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "auditAdminAgentGateway",
@@ -314,7 +332,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "authorizeCollectAndWithdraw",
@@ -344,7 +364,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "authorizeConnectionAi",
@@ -372,7 +394,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "broadcastPosts",
@@ -406,7 +430,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "cancelPayPalSubscription",
@@ -436,7 +462,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "capturePayPalOrder",
@@ -473,7 +501,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "checkUsernameAvailability",
@@ -501,7 +531,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "communityMembership",
@@ -533,7 +565,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "completeOAuthConnection",
@@ -561,7 +595,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "confirmPayPalSubscription",
@@ -589,7 +625,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createCommunity",
@@ -620,7 +658,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createDiscussionPost",
@@ -651,7 +691,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createDistributedPost",
@@ -688,7 +730,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createDonationCheckout",
@@ -714,7 +758,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createInstitution",
@@ -744,7 +790,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createKnowledgeArticle",
@@ -774,7 +822,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createPayPalOrder",
@@ -808,7 +858,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createPayPalSubscriptionCheckout",
@@ -840,7 +892,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createPremiumDayPassCheckout",
@@ -866,7 +920,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createSocialPost",
@@ -898,7 +954,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createSubscriptionCheckout",
@@ -924,7 +982,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createSupportTicket",
@@ -954,7 +1014,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "createVolunteerOpportunity",
@@ -986,7 +1048,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "decideGrantApplication",
@@ -1019,7 +1083,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "deleteAccount",
@@ -1070,7 +1136,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "deleteCampaign",
@@ -1116,7 +1184,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "deviceAuthorization",
@@ -1155,7 +1225,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "disconnectPlatformConnection",
@@ -1185,7 +1257,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "discoverConnectionMethods",
@@ -1213,7 +1287,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "discoverExternalCampaignSnapshot",
@@ -1241,7 +1317,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "discoverFeatures",
@@ -1276,7 +1354,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "discoverPayPalHoldingSettlements",
@@ -1306,7 +1386,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "draftSharePost",
@@ -1337,7 +1419,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "enforceCampaignProtocol",
@@ -1366,7 +1450,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "executeAdminAgentRequest",
@@ -1394,7 +1480,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "executeCollectAndWithdraw",
@@ -1424,7 +1512,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "externalAgentCampaigns",
@@ -1455,7 +1545,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "externalAgentContentWrite",
@@ -1486,7 +1578,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "finalizeAppUserOAuthConnection",
@@ -1517,7 +1611,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "generateCampaignCover",
@@ -1549,7 +1645,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "generateDistributionContent",
@@ -1581,7 +1679,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "generateIntelligence",
@@ -1619,7 +1719,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "generateSocialContent",
@@ -1650,7 +1752,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "geocodeCity",
@@ -1680,7 +1784,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getAgentAccountContext",
@@ -1717,7 +1823,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getAgentMailContext",
@@ -1746,7 +1854,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getAppUserConnector",
@@ -1775,7 +1885,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getBufferReadiness",
@@ -1807,7 +1919,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getCampaignDonations",
@@ -1840,7 +1954,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getCampaignDraft",
@@ -1876,7 +1992,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getCampaignWithdrawalBalance",
@@ -1908,7 +2026,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getCommunityFeed",
@@ -1947,7 +2067,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getConnectedPayoutAccount",
@@ -1977,7 +2099,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getCryptoDonationReadiness",
@@ -2003,7 +2127,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getFeatureAvailability",
@@ -2035,7 +2161,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getFundraisingMode",
@@ -2063,7 +2191,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getLiveProviderStatus",
@@ -2094,7 +2224,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getMyGiving",
@@ -2124,7 +2256,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getOwnerDonorDirectory",
@@ -2155,7 +2289,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getOwnerFinancialLedger",
@@ -2187,7 +2323,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getPayPalConfig",
@@ -2221,7 +2359,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getPayPalPayoutReadiness",
@@ -2253,7 +2393,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getPayPalSubscriptionOptions",
@@ -2285,7 +2427,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getPaymentCapabilities",
@@ -2319,7 +2463,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getSharedConnectorStatus",
@@ -2350,7 +2496,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getStripeIntegrationAudit",
@@ -2385,7 +2533,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getStripeReadiness",
@@ -2414,7 +2564,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getStripeSubscriptionOptions",
@@ -2440,7 +2592,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getUnifiedInbox",
@@ -2470,7 +2624,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getVerifiedIFundIntegrationContext",
@@ -2498,7 +2654,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "getWritingResearchBrief",
@@ -2526,7 +2684,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "importExternalCampaign",
@@ -2556,7 +2716,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "joinFoundingWaitlist",
@@ -2586,7 +2748,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "justGivingStagingPilot",
@@ -2623,7 +2787,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "kofiWebhook",
@@ -2653,7 +2819,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "listConnections",
@@ -2695,7 +2863,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "listFundraisingProviderCapabilities",
@@ -2723,7 +2893,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "listInstitutionApplications",
@@ -2754,7 +2926,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "listUntrackedPayPalReceipts",
@@ -2786,7 +2960,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "logPlatformEvent",
@@ -2816,7 +2992,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "maintainPlatformOwnedAccounts",
@@ -2849,7 +3027,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageAdminBuilderWork",
@@ -2880,7 +3060,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageAgentContentDraft",
@@ -2916,7 +3098,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageAgentWork",
@@ -2952,7 +3136,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageApprovedBuilderExecution",
@@ -2986,7 +3172,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageBlog",
@@ -3022,7 +3210,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageConnectedPayoutAccount",
@@ -3050,7 +3240,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageDistributedPost",
@@ -3082,7 +3274,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageExternalAgentKeys",
@@ -3112,7 +3306,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageFeatureFlag",
@@ -3146,7 +3342,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageFriends",
@@ -3184,7 +3382,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageOAuthClients",
@@ -3215,7 +3415,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageOfficialPublications",
@@ -3247,7 +3449,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageOwnerConnectionConfiguration",
@@ -3278,7 +3482,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "managePlatformAccess",
@@ -3308,7 +3514,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "managePlatformIncidents",
@@ -3341,7 +3549,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "managePostInterest",
@@ -3373,7 +3583,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "managePublicProfile",
@@ -3420,7 +3632,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageRecurringDonation",
@@ -3452,7 +3666,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "manageVerificationMailbox",
@@ -3486,7 +3702,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "markNotificationRead",
@@ -3516,7 +3734,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "matchExternalPayPalSettlement",
@@ -3546,7 +3766,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "mirrorExternalPosts",
@@ -3579,7 +3801,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "ownerAgentChatActions",
@@ -3615,7 +3839,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "payPalSubscriptionWebhook",
@@ -3645,7 +3871,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "postCampaignUpdate",
@@ -3680,7 +3908,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "postDiscussionReply",
@@ -3711,7 +3941,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "prepareCollectAndWithdraw",
@@ -3744,7 +3976,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "processAdminActionInbox",
@@ -3775,7 +4009,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "publishInstitutionOpportunity",
@@ -3806,7 +4042,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "publishLinkedCampaignToConnection",
@@ -3840,7 +4078,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "publishPost",
@@ -3877,7 +4117,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "receiveCloudflareEmail",
@@ -3908,7 +4150,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "reconcileDirectPayPalCampaignDonation",
@@ -3941,7 +4185,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "reconcileExternalPayPalSettlement",
@@ -3971,7 +4217,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "recordAgentInteraction",
@@ -4002,7 +4250,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "recordCampaignCreated",
@@ -4035,7 +4285,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "recordDonation",
@@ -4065,7 +4317,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "recordExternalFundMigration",
@@ -4096,7 +4350,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "recordLegalAcceptance",
@@ -4127,7 +4383,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "refreshWritingResearch",
@@ -4163,7 +4421,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "registerPushDevice",
@@ -4192,7 +4452,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "renderInterplanetaryPhoto",
@@ -4226,7 +4488,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "repairStripeWebhookEvents",
@@ -4260,7 +4524,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "requestManagedConnectionAction",
@@ -4295,7 +4561,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "requestWithdrawal",
@@ -4333,7 +4601,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "resolveConnectionStatus",
@@ -4371,7 +4641,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "resolvePlatformConnectionRecipe",
@@ -4399,7 +4671,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "reviewAgentActivity",
@@ -4429,7 +4703,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "revokeConnectionAiConsent",
@@ -4457,7 +4733,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "routeAgentTask",
@@ -4488,7 +4766,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "runBrowserConnection",
@@ -4517,7 +4797,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "runOfficialSocialPromotion",
@@ -4554,7 +4836,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "runOutreachAgent",
@@ -4589,7 +4873,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "runReporterDiary",
@@ -4624,7 +4910,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "runSocialAutopilot",
@@ -4659,7 +4947,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "saveCampaign",
@@ -4698,7 +4988,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "saveConnectionCredentials",
@@ -4730,7 +5022,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "sendCommunication",
@@ -4766,7 +5060,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "sendPublicContactMessage",
@@ -4796,7 +5092,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "setConnectionAiToggle",
@@ -4827,7 +5125,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "setUnifiedOboConsent",
@@ -4859,7 +5159,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "setUsername",
@@ -4893,7 +5195,9 @@
       },
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "setupPayPalSubscriptionWebhook",
@@ -4924,7 +5228,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "startPremiumTrial",
@@ -4954,7 +5260,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "startStripeConnectOnboarding",
@@ -4980,7 +5288,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "stripeWebhook",
@@ -5017,7 +5327,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncConnections",
@@ -5050,7 +5362,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncExternalFunds",
@@ -5084,7 +5398,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncFromConvex",
@@ -5110,7 +5426,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncGitHub",
@@ -5143,7 +5461,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncImportedCampaign",
@@ -5175,7 +5495,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncPayPalSubscriptionCatalog",
@@ -5207,7 +5529,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncStripeSubscriptionCatalog",
@@ -5233,7 +5557,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncWixAnalytics",
@@ -5266,7 +5592,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncWixBusinessData",
@@ -5299,7 +5627,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncWixCampaigns",
@@ -5332,7 +5662,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "syncWixContent",
@@ -5366,7 +5698,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "toggleCampaignFollow",
@@ -5398,7 +5732,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "trackAgentConversation",
@@ -5436,7 +5772,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "translateCampaign",
@@ -5472,7 +5810,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "updateCampaignSettings",
@@ -5507,7 +5847,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "updateFollowPreferences",
@@ -5537,7 +5879,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "updateInboxItem",
@@ -5568,7 +5912,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "updateMissionItemStatus",
@@ -5597,7 +5943,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "validateIntegrationHealth",
@@ -5631,7 +5979,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "verifyAdminGateway",
@@ -5657,7 +6007,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "verifyAgentPlatformAccess",
@@ -5686,7 +6038,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "verifyAppUserConnector",
@@ -5712,7 +6066,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "verifyOwnerPayPalBasicPlan",
@@ -5742,7 +6098,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "verifyPlatformConnection",
@@ -5776,7 +6134,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "volunteerFollowUp",
@@ -5810,7 +6170,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "volunteerSignup",
@@ -5842,7 +6204,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "welcomeVolunteer",
@@ -5876,7 +6240,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     },
     {
       "name": "wixWebhook",
@@ -5906,7 +6272,9 @@
       "port_candidate": null,
       "runtime_proven": false,
       "original_feature_parity_verified": false,
-      "release_class": "blocked_pending_implementation_and_qa"
+      "release_class": "blocked_pending_implementation_and_qa",
+      "retirement_evidence": null,
+      "retirement_approved_by": null
     }
   ],
   "audit": {
