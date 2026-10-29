@@ -930,8 +930,8 @@
       "title": "Stories & Blogs",
       "source_component": "Blogs",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Blogs.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -964,15 +964,17 @@
         "source_page_file": "src/pages/Blogs.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
     },
     {
       "path": "/blogs/:id",
       "title": "Story",
       "source_component": "BlogArticle",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/BlogArticle.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1005,15 +1007,17 @@
         "source_page_file": "src/pages/BlogArticle.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
     },
     {
       "path": "/publications/:id",
       "title": "Publication",
       "source_component": "PublicationArticle",
       "access": "public",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/PublicationArticle.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1046,7 +1050,9 @@
         "source_page_file": "src/pages/PublicationArticle.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
     },
     {
       "path": "/help",
