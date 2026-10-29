@@ -32,9 +32,11 @@ export default function Profile() {
     setBusy(true); setError(""); setMessage("");
     try {
       const handle = profile.handle.trim();
+      const displayName = profile.display_name.trim();
+      if (displayName.length > 100) throw new Error("Display name is too long.");
       if (handle && !/^[A-Za-z0-9_-]{3,32}$/.test(handle)) throw new Error("Handles must be 3–32 letters, numbers, underscores, or hyphens.");
       const { error: saveError } = await authClient().from("ifund_profiles").upsert({
-        id: user.id, handle: handle || null, display_name: profile.display_name.trim() || null
+        id: user.id, handle: handle || null, display_name: displayName || null
       }, { onConflict: "id" });
       if (saveError) throw saveError;
       setMessage("Profile saved.");
