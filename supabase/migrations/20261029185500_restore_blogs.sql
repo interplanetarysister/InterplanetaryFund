@@ -64,6 +64,8 @@ create policy ifund_blog_entries_owner_insert on public.ifund_blog_entries
     owner_id = (select auth.uid())
     and exists (select 1 from public.ifund_blogs b
       where b.id=blog_id and b.owner_id=(select auth.uid()))
+    and (kind <> 'newsletter'
+      or (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'))
     and (status = 'draft' or (
       (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
       or exists (select 1 from public.ifund_creator_access a
@@ -78,6 +80,8 @@ create policy ifund_blog_entries_owner_update on public.ifund_blog_entries
     owner_id = (select auth.uid())
     and exists (select 1 from public.ifund_blogs b
       where b.id=blog_id and b.owner_id=(select auth.uid()))
+    and (kind <> 'newsletter'
+      or (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'))
     and (status = 'draft' or (
       (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
       or exists (select 1 from public.ifund_creator_access a
