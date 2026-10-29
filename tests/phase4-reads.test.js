@@ -37,7 +37,7 @@ test('private draft requires remote Auth verification and RLS-scoped bearer', as
   });
   const r = await routeReadRequest(req, env, async (url, opts) => {
     calls.push({ url, headers: opts.headers });
-    return url.endsWith('/auth/v1/user') ? Response.json({ id: userId }) : Response.json([{ id }]);
+    return url.endsWith('/auth/v1/user') ? Response.json({ id: userId, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([{ id }]);
   });
   assert.equal(r.status, 200);
   assert.equal(calls.length, 2);
