@@ -154,3 +154,37 @@ test("approved device reads only the identity fields its grant permits", async (
     id: record.owner_id, username: "test-handle", display_name: "Test Display",
   });
 });
+
+
+test("approved device-code exchange returns only the scoped bearer format", async () => {
+  const deviceCode = "d".repeat(64);
+  const digest = async value => {
+    const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+    return [...new Uint8Array(bytes)].map(x => x.toString(16).padStart(2, "0")).join("");
+  };
+  const token = "ifd_at_" + await digest("ifund:access-token:v1:" + deviceCode);
+  const record = {
+    id: "c7c73f65-09a2-4b92-81d2-9b49f0ef5bb5",
+    device_code_hash: await digest("ifund:device-code:v1:" + deviceCode),
+    access_token_hash: await digest("ifund:access-hash:v1:" + token),
+    state: "approved", owner_id: "b7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391",
+    expires_at: new Date(Date.now() + 60_000).toISOString(),
+    grant_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    scopes: ["identity:read"],
+  };
+  const fetcher = async (url) => {
+    const target = String(url);
+    if (target.includes("/rpc/ifund_device_rate_limit")) return json(true);
+    if (target.includes("/rest/v1/ifund_device_authorizations?")) return json([record]);
+    throw new Error("unexpected upstream request: " + target);
+  };
+  const res = await routeDeviceAuthorization(request("/api/device-authorization/token", {
+    grant_type: "urn:ietf:params:oauth:grant-type:device_code", device_code: deviceCode,
+  }), env, fetcher);
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.access_token, token);
+  assert.equal(body.token_type, "Bearer");
+  assert.equal(body.scope, "identity:read");
+  assert.ok(body.expires_in > 0);
+});
