@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CAMPAIGN_UUID, loadOwnedCampaigns, deleteOwnedDraft } from "../src/lib/ownerCampaigns.js";
@@ -53,3 +54,14 @@ test("provider failure never reports a successful deletion", async () => {
   const { client } = fakeClient({ dbError: Error("provider failure") });
   await assert.rejects(() => deleteOwnedDraft(client, draft), /Unable to remove/);
 });
+
+test("paused campaign owner preview never uses the anonymous public campaign loader", ()=>{
+  const fs=requireSource();
+  assert.match(fs,/authClient\(\)/);
+  assert.match(fs,/\.eq\("owner_id",user\.id\)/);
+  assert.match(fs,/\.select\("id,title,summary,story,category,goal_amount,status,created_at,updated_at"\)/);
+  assert.doesNotMatch(fs,/getCampaignDetail|listActiveCampaigns/);
+});
+function requireSource(){
+  return readFileSync(new URL("../src/pages/OwnerCampaignPreview.jsx",import.meta.url),"utf8");
+}
