@@ -16,7 +16,7 @@ function request(path,method='GET',body,auth=true){
 function remote(calls,rows=[]){
   return async(url,opts)=>{
     calls.push({url:String(url),opts});
-    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid});
+    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'});
     return Response.json(rows);
   };
 }
@@ -98,7 +98,7 @@ test('account writes reject inappropriate methods, content types and oversized b
 });
 test('provider failures are sanitized and cannot expose upstream details',async()=>{
   const r=await routeAccountRequest(request('/api/account/profile'),env,async(url)=>{
-    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid});
+    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'});
     return new Response('provider diagnostic SECRET',{status:500});
   });
   assert.equal(r.status,503);assert.doesNotMatch(await r.text(),/SECRET/);
