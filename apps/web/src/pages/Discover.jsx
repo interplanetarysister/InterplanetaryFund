@@ -19,7 +19,7 @@ export default function Discover() {
   const [campaigns, setCampaigns] = useState(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedCategory = searchParams.get("category");
-  const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
+  const category = Object.prototype.hasOwnProperty.call(categoryLabels, requestedCategory) ? requestedCategory : "all";
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const queryPending = search !== debouncedSearch;
@@ -85,7 +85,7 @@ export default function Discover() {
         <div className="flex flex-wrap items-center gap-2">{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
-      {!queryPending && <RecommendedCampaigns allCampaigns={campaigns} />}
+      {!queryPending && !debouncedSearch.trim() && page === 0 && <RecommendedCampaigns allCampaigns={campaigns} />}
 
       <div className="relative mb-6">
         <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
@@ -93,7 +93,7 @@ export default function Discover() {
       </div>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-6 -mx-1 px-1">
         {categories.map((c) => (
-          <button key={c} onClick={() => { setPage(0); setCompareIds([]); setSearchParams(c === "all" ? {} : { category: c }); }}
+          <button type="button" key={c} aria-pressed={category === c} onClick={() => { setPage(0); setCompareIds([]); setSearchParams(c === "all" ? {} : { category: c }); }}
             className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               category === c
                 ? "bg-blue-700 text-white shadow-md shadow-blue-500/20"
