@@ -24,7 +24,7 @@ jobs:
         run: npm --prefix apps/web install --package-lock-only --ignore-scripts --no-audit --no-fund
       - name: Commit generated lockfile if changed
         run: |
-          if git diff --quiet -- apps/web/package-lock.json; then
+          if [ -z "$(git status --porcelain -- apps/web/package-lock.json)" ]; then
             echo "Web lockfile is already current."
             exit 0
           fi
