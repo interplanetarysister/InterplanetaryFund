@@ -22,6 +22,8 @@ export default function Discover() {
   const category = categoryLabels[requestedCategory] ? requestedCategory : "all";
   const [search, setSearch] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [page, setPage] = useState(0);
+  const pageSize = 48;
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
   const helpLink = (
@@ -34,7 +36,7 @@ export default function Discover() {
     let active = true;
     setError(null);
     setCampaigns(null);
-    searchActiveCampaigns({ category, limit: 100 })
+    searchActiveCampaigns({ category, limit: pageSize, offset: page * pageSize })
       .then((items) => { if (active) setCampaigns(items); })
       .catch((e) => {
         if (!active) return;
@@ -42,7 +44,8 @@ export default function Discover() {
         setError("We couldn't load campaigns. Please try again.");
       });
     return () => { active = false; };
-  }, [refreshKey, category]);
+  }, [refreshKey, category, page]);
+  useEffect(() => { setPage(0); setCompareIds([]); }, [category]);
 
   if (error) {
     return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
@@ -104,6 +107,11 @@ export default function Discover() {
           {filtered.map((c) => <div key={c.id} className="min-w-0"><CampaignCard campaign={c} /><button type="button" onClick={() => toggleCompare(c.id)} disabled={!compareIds.includes(c.id) && compareIds.length >= 3} aria-pressed={compareIds.includes(c.id)} className="mt-2 w-full rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm font-medium text-stone-700 disabled:cursor-not-allowed disabled:opacity-70 disabled:bg-stone-100">{compareIds.includes(c.id) ? "Remove from comparison" : "Compare campaign"}</button></div>)}
         </div>
       )}
+      <nav aria-label="Campaign pages" className="mt-8 flex items-center justify-center gap-4">
+        <button type="button" disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Previous</button>
+        <span className="text-sm">Page {page + 1}</span>
+        <button type="button" disabled={campaigns.length < pageSize} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">Next</button>
+      </nav>
     </PullToRefresh>
   );
 }
