@@ -27,25 +27,28 @@ export default function CampaignDetail() {
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
   const [error, setError] = useState("");
+  const requestVersion = React.useRef(0);
 
   const load = useCallback(async () => {
+    const version = ++requestVersion.current;
     setError("");
     setNotFound(false);
     setCampaign(null);
     setRelated([]);
     try {
       const c = await getCampaignDetail(id);
+      if (version !== requestVersion.current) return;
       if (!c) { setNotFound(true); setCampaign(null); return; }
       setNotFound(false);
       setCampaign(c);
       const rel = await listRelatedCampaigns(c.category, c.id).catch(() => []);
-      setRelated(rel || []);
+      if (version === requestVersion.current) setRelated(rel || []);
     } catch {
       setError("We couldn't load this campaign. Please try again.");
     }
   }, [id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); return () => { requestVersion.current += 1; }; }, [load]);
 
   useEffect(() => {
     if (!campaign || !location.hash) return;
