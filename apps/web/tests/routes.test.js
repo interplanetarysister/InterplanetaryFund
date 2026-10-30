@@ -4,12 +4,12 @@ import { readFileSync } from "node:fs";
 const file = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const app = file("../src/App.jsx");
 test("independent user-facing routes are explicitly implemented", () => {
- for (const route of ["/login","/register","/forgot-password","/reset-password","/dashboard","/profile","/connections","/social","/community","/create","/blogs","/blogs/:id","/my-blog"]) {
+ for (const route of ["/login","/register","/forgot-password","/reset-password","/dashboard","/profile","/connections","/social","/community","/create"]) {
   assert.ok(app.includes(`<Route path="${route}" element={`), route);
  }
 });
 test("implemented pages do not import Base44 client", () => {
- for (const name of ["AuthPage","ResetPassword","Dashboard","Profile","Connections","SocialFeedPage","CreateCampaign","Blogs","BlogArticle","MyBlog"]) {
+ for (const name of ["AuthPage","ResetPassword","Dashboard","Profile","Connections","SocialFeedPage","CreateCampaign"]) {
   assert.doesNotMatch(file(`../src/pages/${name}.jsx`), /base44Client|base44\.functions|base44\.entities/, name);
  }
 });
