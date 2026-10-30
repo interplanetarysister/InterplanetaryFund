@@ -31,7 +31,7 @@ The source app does not define a `BlogComment` entity, so no comments table or f
 
 Project: `ssibsfmtodgximseeqsv` (`InterplanetaryFund`).
 
-Tables: `public.ifund_blogs`, `public.ifund_blog_entries`. RLS is enabled. Anonymous readers can see only active publication metadata and published entries. The authenticated owner can manage the publication and its entries using the explicitly matched Supabase Auth identity. Drafts are not public.
+Tables: `public.ifund_blogs`, `public.ifund_blog_entries`. RLS is enabled. Anonymous readers can see only active publication metadata and published entries. The authenticated owner can manage the publication and its entries using the explicitly matched Supabase Auth identity. Drafts are not public. A second migration separates SELECT/UPDATE/DELETE policies and adds the missing foreign-key indexes.
 
 No Base44 password hash, OAuth grant, or session was migrated. The owner signs in using the destination's existing verified Supabase Auth account.
 
