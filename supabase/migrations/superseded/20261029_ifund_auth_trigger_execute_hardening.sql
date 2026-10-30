@@ -1,3 +1,7 @@
+-- SUPERSEDED by applied migration 20261030152135_ifund_public_grants_and_auth_trigger_hardening.
+-- Live ACL verified 2026-10-30: anon=false, authenticated=false, supabase_auth_admin=true.
+-- Retained for audit lineage only. DO NOT APPLY.
+
 -- REVIEWED-BUT-UNAPPLIED production security hardening.
 -- Canonical project: ssibsfmtodgximseeqsv.
 -- Source evidence (2026-10-29): public.ifund_create_auth_profile() is a

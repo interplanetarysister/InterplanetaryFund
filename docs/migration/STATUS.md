@@ -1,5 +1,23 @@
-# Migration status — 2026-10-24
+# Migration status — 2026-10-30
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
+
+## Current verified state — 2026-10-30
+
+This section is the latest verified snapshot; older sections below are historical checkpoints and may be superseded.
+
+- Working PR: #165, branch `migration/build-completeness-gates-20261029`, implementation head before this bookkeeping commit: `b396a2aa206a7f45de01446792a05a34b6342b5c`.
+- CI on that head passed **114/114 Worker tests, 140/140 web tests, and Vite 6.4.5 compilation** under Node 22.23.2 / npm 10.9.8.
+- Supabase migration `20261030180529_ifund_account_lifecycle_guard_20261030` is applied. `ifund_profiles.account_status` defaults to `active`; `account_deletion_pending` defaults to `false`. Browser roles cannot write either field; trusted server role can update them. Three target profiles are all active and valid.
+- The Worker and frontend both re-read lifecycle state from the owner-scoped profile row. Disabled, anonymized, deletion-pending, and missing-profile accounts are blocked; database verification failures fail closed. Device-token resource access also checks lifecycle state.
+- The canonical project currently has 3 Auth users, 3 profiles, and 0 legal-acceptance rows. The separate source staging schema has 10 User records and zero verified `owner_auth_uid` mappings; no source identities have been assigned to target Auth users.
+- Applied migration `20261030152135_ifund_public_grants_and_auth_trigger_hardening` restricts direct trigger-function execution: anon=false, authenticated=false, supabase_auth_admin=true. Applied migration `20261030152355_ifund_legal_acceptances_owner_scoped` created the consent table with owner-scoped SELECT/INSERT RLS and expanded consent fields. The two older SQL drafts are superseded and moved out of the pending folder. End-to-end signup/consent remains unverified.
+- Supabase security review still reports leaked-password protection disabled and 14 RLS-enabled tables without policies. No broad client policies were added; tables without policies remain default-deny and need feature-by-feature review.
+- A separate Cloudflare Pages preview project `interplanetaryfund-migration-preview.pages.dev` is connected to the target repo and current migration branch only. Production deployments are disabled and it has no custom domains. The first preview build will start on the next branch push. The old Pages project remains connected to `interplanetary-fund2`, with deployments disabled; production routing and DNS are untouched.
+- Preview API functions are configured with the canonical Supabase URL and publishable key. No service-role secret is configured, so device authorization and giving-history endpoints remain disabled. No real payment or withdrawal was performed.
+- Production readiness remains **NOT READY**: historical route/function parity, full data/ownership reconciliation, real authenticated browser tests, workflows/agents/connectors, mobile parity, and production runtime bindings still require evidence.
+
+---
+
 
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — migrate 95 entities and full RLS: **not started**; 4-table illustrative staging SQL only.

@@ -40,6 +40,14 @@ The migration workflow runs:
 
 The Vite step is a compilation check, not release approval or proof of browser, provider, Android, or production runtime behavior. Repair deployments are authorized when a safe target and rollback are verified.
 
+## Isolated migration preview — created 2026-10-30
+
+A separate Cloudflare Pages project, `interplanetaryfund-migration-preview`, is connected to `interplanetarysister/InterplanetaryFund` (repository ID `1326040927`). It is restricted to preview builds from `migration/build-completeness-gates-20261029`; `production_deployments_enabled=false`, and it has no custom domains. The existing `interplanetaryfund-migration` project remains connected to the legacy `interplanetary-fund2` repository with automatic deployments and previews disabled. No production domains, DNS, or Worker routes were changed.
+
+The new preview uses Node `22.23.2`, npm `10.9.8`, the canonical Supabase project, and `MIGRATION_API_PREVIEW=enabled`. The new root `functions/api/[[path]].js` delegates same-origin `/api/*` requests to the independent Worker. The first preview build is pending the next branch push. `SUPABASE_SERVICE_ROLE_KEY` is not configured in preview, so device-authorization and giving-history endpoints remain fail-closed/disabled until a trusted secret is provisioned.
+
+The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, and `20261030180529_ifund_account_lifecycle_guard_20261030`. The auth-trigger ACL and legal-acceptance table/RLS were verified read-only; there are currently zero legal-acceptance rows, so the signup-to-consent journey remains unproven.
+
 ## Required production gates
 
 Production remains **NOT READY** until the release audit proves, from the actual target:
@@ -50,7 +58,7 @@ Production remains **NOT READY** until the release audit proves, from the actual
 - All 17 workflow triggers, 10 agents, and 11 provider connectors.
 - Complete source-data reconciliation and explicit Auth ownership mapping.
 - First-time signup, email verification, login, and legal acceptance end to end.
-- Actual `public.ifund_legal_acceptances` table, RLS, and Auth redirect/email configuration.
+- End-to-end signup, email verification, login, and legal acceptance. The `public.ifund_legal_acceptances` table and owner-scoped RLS now exist, but there are zero acceptance rows and browser completion is unverified; Auth redirect/email configuration remains to be proven.
 - Donor, withdrawal, dispute, and ledger safety.
 - Android parity and independent browser/provider verification.
 
@@ -60,7 +68,8 @@ Static route shells, schema names, mocks, or passing unit tests are not runtime 
 
 - Draft PR: #165
 - Working branch: `migration/build-completeness-gates-20261029`
-- Current implementation commit: `3a183491340136ba2e7e9c57c7df3ed02d97113e`
+- Current implementation commit: `b396a2aa206a7f45de01446792a05a34b6342b5c`
+- Latest CI: **114/114 Worker tests, 140/140 web tests, Vite 6.4.5 compile passed**
 - Build/CI/deployment repair authorization: **granted**
 - Production readiness: **NOT READY**
 

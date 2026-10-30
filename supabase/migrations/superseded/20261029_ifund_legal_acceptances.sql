@@ -1,3 +1,7 @@
+-- SUPERSEDED by applied migration 20261030152355_ifund_legal_acceptances_owner_scoped.
+-- Live table, owner RLS policies, and expanded consent fields verified 2026-10-30.
+-- Retained for audit lineage only. DO NOT APPLY.
+
 -- STAGED ONLY: independent source-aligned affirmative legal consent
 -- from base44/functions/recordLegalAcceptance and TermsAcceptance.
 -- Requires owner authorization and real two-account RLS tests to apply.
