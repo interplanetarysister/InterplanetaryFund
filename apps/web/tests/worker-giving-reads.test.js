@@ -28,7 +28,7 @@ test("giving history returns only confirmed gift and separately recorded optiona
   const fetcher = async (url) => {
     const target = String(url);
     if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
-    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid }]);
+    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
     if (target.includes("/rest/v1/ifund_donations?")) {
       assert.ok(target.includes("donor_id=eq." + uid));
       assert.ok(target.includes("status=eq.captured"));
@@ -54,7 +54,7 @@ test("giving history fails closed if a returned row crosses donor ownership", as
   const fetcher = async (url) => {
     const target = String(url);
     if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
-    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid }]);
+    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
     if (target.includes("/rest/v1/ifund_donations?")) return json([{ ...captured, donor_id: "a7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391" }]);
     throw new Error("unexpected upstream request: " + target);
   };
