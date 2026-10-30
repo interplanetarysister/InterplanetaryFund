@@ -83,7 +83,7 @@ BEGIN
     RAISE EXCEPTION 'Anonymous snapshot read succeeded';
   EXCEPTION WHEN insufficient_privilege THEN NULL; END;
   RESET ROLE;
+  RAISE NOTICE 'PASS: 17 database-role ownership and privilege checks; rolling back fixtures';
 END;
 $probe$;
 ROLLBACK;
-SELECT 'PASS: 17 database-role ownership and privilege checks; fixtures rolled back' AS result;
