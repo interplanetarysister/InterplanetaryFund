@@ -9,7 +9,6 @@ const env = {
   MIGRATION_API_PREVIEW: "enabled",
   SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
   SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_key",
-  SUPABASE_SERVICE_ROLE_KEY: "server-only-test-service-role-secret",
 };
 const json = (body, status = 200) => new Response(JSON.stringify(body), {
   status, headers: { "content-type": "application/json" },
@@ -19,22 +18,25 @@ const req = () => new Request("https://interplanetaryfund.com/api/giving/mine", 
 });
 const captured = {
   id: donationId, donor_id: uid, campaign_id: campaignId,
+  campaign_title: "Repair the community garden",
   gift_cents: 2500, optional_support_cents: 250, currency: "USD",
-  status: "captured", created_at: "2026-10-01T12:00:00.000Z",
-  captured_at: "2026-10-01T12:01:00.000Z",
+  status: "captured", captured_at: "2026-10-01T12:01:00.000Z",
 };
 
-test("giving history returns only confirmed gift and separately recorded optional support", async () => {
-  const fetcher = async (url) => {
+test("giving history uses the caller-scoped RPC and returns only confirmed gift/support amounts", async () => {
+  const fetcher = async (url, init = {}) => {
     const target = String(url);
     if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
-    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
-    if (target.includes("/rest/v1/ifund_donations?")) {
-      assert.ok(target.includes("donor_id=eq." + uid));
-      assert.ok(target.includes("status=eq.captured"));
+    if (target.endsWith("/rest/v1/ifund_profiles?select=id%2Caccount_status%2Caccount_deletion_pending&id=eq." + uid + "&limit=2")) {
+      return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
+    }
+    if (target.endsWith("/rest/v1/rpc/ifund_get_my_giving_history")) {
+      assert.equal(init.method, "POST");
+      assert.equal(init.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+      assert.equal(init.headers.Authorization, "Bearer verified-user-jwt");
+      assert.equal(init.body, "{}");
       return json([captured]);
     }
-    if (target.includes("/rest/v1/ifund_campaigns?")) return json([{ id: campaignId, title: "Repair the community garden" }]);
     throw new Error("unexpected upstream request: " + target);
   };
   const res = await routeGivingRead(req(), env, fetcher);
@@ -50,14 +52,29 @@ test("giving history returns only confirmed gift and separately recorded optiona
   assert.equal("total_charged" in body.donations[0], false);
 });
 
-test("giving history fails closed if a returned row crosses donor ownership", async () => {
+test("giving history fails closed if the database function returns another donor's row", async () => {
   const fetcher = async (url) => {
     const target = String(url);
     if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
     if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
-    if (target.includes("/rest/v1/ifund_donations?")) return json([{ ...captured, donor_id: "a7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391" }]);
+    if (target.endsWith("/rest/v1/rpc/ifund_get_my_giving_history")) {
+      return json([{ ...captured, donor_id: "a7a2dd75-c4c1-4fb0-b91d-4e2b57a4f391" }]);
+    }
     throw new Error("unexpected upstream request: " + target);
   };
   const res = await routeGivingRead(req(), env, fetcher);
   assert.equal(res.status, 503);
+});
+
+test("giving history does not require or accept a service-role key in the worker environment", async () => {
+  const fetcher = async (url) => {
+    const target = String(url);
+    if (target.endsWith("/auth/v1/user")) return json({ id: uid, email_confirmed_at: "2026-10-01T00:00:00.000Z" });
+    if (target.includes("/rest/v1/ifund_profiles?")) return json([{ id: uid, account_status: "active", account_deletion_pending: false }]);
+    if (target.endsWith("/rest/v1/rpc/ifund_get_my_giving_history")) return json([]);
+    throw new Error("unexpected upstream request: " + target);
+  };
+  const res = await routeGivingRead(req(), env, fetcher);
+  assert.equal(res.status, 200);
+  assert.deepEqual((await res.json()).donations, []);
 });
