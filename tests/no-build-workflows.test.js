@@ -4,11 +4,8 @@ import { readFileSync } from 'node:fs';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
 
-test('repository automation has no build or deployment command', () => {
+test('CI workflows may compile repairs but do not deploy production', () => {
   const forbidden = [
-    'npm run build',
-    'npm build',
-    'vite build',
     'wrangler deploy',
     'wrangler pages deploy',
     'pages deploy',
@@ -24,10 +21,13 @@ test('repository automation has no build or deployment command', () => {
   }
 });
 
-test('test workflow installs dependencies without running package lifecycle scripts', () => {
+test('test workflow installs dependencies and compiles the independent web app', () => {
   const workflow = read('.github/workflows/ifund-migration-tests.yml');
   assert.ok(workflow.includes('npm ci --ignore-scripts'));
   assert.ok(workflow.includes('npm --prefix apps/web ci --ignore-scripts'));
   assert.ok(workflow.includes('node --test tests/*.test.js'));
   assert.ok(workflow.includes('npm --prefix apps/web test'));
+  const webTests = workflow.indexOf('npm --prefix apps/web test');
+  const webBuild = workflow.indexOf('npm --prefix apps/web exec -- vite build');
+  assert.ok(webBuild > webTests, 'web compilation must run after regression tests');
 });

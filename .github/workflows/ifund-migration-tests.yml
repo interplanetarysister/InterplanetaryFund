@@ -45,3 +45,5 @@ jobs:
         run: npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
       - name: Run web regression tests and offline coverage audits
         run: npm --prefix apps/web test
+      - name: Compile the independent web app for repair verification
+        run: npm --prefix apps/web exec -- vite build
