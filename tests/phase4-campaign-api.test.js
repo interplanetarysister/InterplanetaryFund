@@ -192,7 +192,9 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
     calls.push({ url: String(url), opts });
     return String(url).endsWith('/auth/v1/user')
       ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
-      : Response.json([{ id, owner_id: uid, status: 'draft' }]);
+      : String(url).includes('account_status')
+        ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }])
+        : Response.json([{ id, owner_id: uid, status: 'draft' }]);
   });
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id, deleted: true });
@@ -207,7 +209,9 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
       method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
     }), env, async (url) => String(url).endsWith('/auth/v1/user')
       ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
-      : Response.json([{ id, owner_id: uid, status: 'active' }]),
+      : String(url).includes('account_status')
+        ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }])
+        : Response.json([{ id, owner_id: uid, status: 'active' }]),
   );
   assert.equal(published.status, 503);
 });
@@ -216,7 +220,7 @@ test('DELETE without a matched draft is not falsely reported as successful', asy
     method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeCampaignWrite(req, env, async (url) =>
-    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([]));
+    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : String(url).includes('account_status') ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]) : Response.json([]));
   assert.equal(r.status, 404);
 });
 
@@ -241,14 +245,14 @@ test('draft writes never downgrade a published campaign', async () => {
   const publishCalls = [];
   const published = await routeCampaignWrite(request(valid, url, 'PATCH'), env, remote(publishCalls));
   assert.equal(published.status, 200);
-  assert.ok(!publishCalls[1].url.includes('status=eq.draft'));
+  assert.ok(!publishCalls[2].url.includes('status=eq.draft'));
 });
 test('draft read endpoint filters out published campaign records', async () => {
   const calls=[];
   const route='/api/campaigns/' + campaignId + '/draft';
   const res=await routeReadRequest(new Request(origin+route,{headers}),env,async(url,opts)=>{
     calls.push(String(url));
-    return String(url).endsWith('/auth/v1/user')? Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'}):Response.json([]);
+    return String(url).endsWith('/auth/v1/user')? Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'}):String(url).includes('account_status')?Response.json([{id:uid,account_status:'active',account_deletion_pending:false}]):Response.json([]);
   });
   assert.equal(res.status,200);
   assert.ok(calls[2].includes('status=eq.draft'));
