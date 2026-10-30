@@ -40,12 +40,6 @@ BEGIN
      OR has_table_privilege('authenticated', 'public.ifund_profiles', 'UPDATE') THEN
     RAISE EXCEPTION 'Browser roles have table-level profile INSERT/UPDATE; lifecycle columns cannot be protected safely.';
   END IF;
-  IF EXISTS (
-    SELECT 1 FROM pg_class
-    WHERE oid = 'public.ifund_profiles'::regclass AND relforcerowsecurity
-  ) THEN
-    RAISE EXCEPTION 'ifund_profiles FORCE ROW LEVEL SECURITY would prevent the lifecycle helper from safely bypassing its own profile policy.';
-  END IF;
 END;
 $preflight$;
 

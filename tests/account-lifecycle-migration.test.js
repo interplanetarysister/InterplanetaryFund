@@ -10,8 +10,8 @@ test('existing unmapped profiles are reset to NULL without changing later signup
   assert.match(sql, /ALTER COLUMN account_status DROP NOT NULL/i);
   assert.match(sql, /ALTER COLUMN account_deletion_pending DROP DEFAULT/i);
   assert.match(sql, /ALTER COLUMN account_deletion_pending DROP NOT NULL/i);
-  assert.match(sql, /UPDATE public\\.ifund_profiles[\\s\\S]*?SET account_status = NULL, account_deletion_pending = NULL[\\s\\S]*?WHERE created_at < '2026-10-30 18:05:29\\+00'/i);
-  assert.match(sql, /account_status IS NULL OR account_status IN \\('active', 'disabled'\\)/i);
+  assert.match(sql, /UPDATE public\.ifund_profiles[\s\S]*?SET account_status = NULL, account_deletion_pending = NULL[\s\S]*?WHERE created_at < '2026-10-30 18:05:29\+00'/i);
+  assert.match(sql, /account_status IS NULL OR account_status IN \('active', 'disabled'\)/i);
 });
 
 test('new signups alone receive active lifecycle defaults from the trusted Auth trigger', () => {
@@ -29,11 +29,11 @@ test('RLS helper is invoker-safe, keeps anonymous public reads, and requires an 
   const helperStart=sql.indexOf('CREATE OR REPLACE FUNCTION public.ifund_current_account_is_active()');
   const helperEnd=sql.indexOf('REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()',helperStart);
   const helper=sql.slice(helperStart,helperEnd);
-  assert.match(helper, /SECURITY INVOKER\\s+SET search_path TO ''[\\s\\S]*?WHEN caller\\.uid IS NULL THEN true/i);
+  assert.match(helper, /SECURITY INVOKER\s+SET search_path TO ''[\s\S]*?WHEN caller\.uid IS NULL THEN true/i);
   assert.doesNotMatch(helper, /SECURITY DEFINER/i);
-  assert.match(helper, /p\\.account_status = 'active'/i);
-  assert.match(helper, /p\\.account_deletion_pending IS FALSE/i);
-  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\\.ifund_current_account_is_active\\(\\)\\s*TO anon, authenticated/i);
+  assert.match(helper, /p\.account_status = 'active'/i);
+  assert.match(helper, /p\.account_deletion_pending IS FALSE/i);
+  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.ifund_current_account_is_active\(\)\s*TO anon, authenticated/i);
   assert.doesNotMatch(sql, /DROP POLICY IF EXISTS ifund_profiles_read/i);
 });
 
@@ -52,6 +52,6 @@ test('every authenticated owner or public-data policy is lifecycle-gated', () =>
   for (const name of names) {
     const match = sql.match(new RegExp('CREATE POLICY ' + name + '\\b[\\s\\S]*?;', 'i'));
     assert.ok(match, 'missing policy ' + name);
-    assert.match(match[0], /ifund_current_account_is_active\(\)/i, name + ' is not lifecycle-gated');
+    assert.match(match[0], /\(SELECT public\.ifund_current_account_is_active\(\)\)/i, name + ' is not lifecycle-gated');
   }
 });
