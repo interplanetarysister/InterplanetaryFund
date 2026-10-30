@@ -125,20 +125,24 @@ TO supabase_auth_admin;
 -- caller's privileges; the owner-only profile SELECT policy avoids recursion.
 CREATE OR REPLACE FUNCTION public.ifund_current_account_is_active()
 RETURNS boolean
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY INVOKER
 SET search_path TO ''
 AS $function$
-  SELECT CASE
-    WHEN (SELECT auth.uid()) IS NULL THEN false
-    ELSE EXISTS (
-      SELECT 1 FROM public.ifund_profiles p
-      WHERE p.id = (SELECT auth.uid())
-        AND p.account_status = 'active'
-        AND p.account_deletion_pending IS FALSE
-    )
-  END;
+DECLARE
+  caller_id uuid := auth.uid();
+BEGIN
+  IF caller_id IS NULL THEN
+    RETURN false;
+  END IF;
+  RETURN EXISTS (
+    SELECT 1 FROM public.ifund_profiles p
+    WHERE p.id = caller_id
+      AND p.account_status = 'active'
+      AND p.account_deletion_pending IS FALSE
+  );
+END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()

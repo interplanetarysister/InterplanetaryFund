@@ -29,7 +29,7 @@ test('RLS helper is invoker-safe, keeps anonymous public reads, and requires an 
   const helperStart=sql.indexOf('CREATE OR REPLACE FUNCTION public.ifund_current_account_is_active()');
   const helperEnd=sql.indexOf('REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()',helperStart);
   const helper=sql.slice(helperStart,helperEnd);
-  assert.match(helper, /SECURITY INVOKER\s+SET search_path TO ''[\s\S]*?WHEN \(SELECT auth\.uid\(\)\) IS NULL THEN false/i);
+  assert.match(helper, /LANGUAGE plpgsql[\s\S]*?SECURITY INVOKER\s+SET search_path TO ''[\s\S]*?IF caller_id IS NULL THEN\s+RETURN false/i);
   assert.doesNotMatch(helper, /SECURITY DEFINER/i);
   assert.match(helper, /p\.account_status = 'active'/i);
   assert.match(helper, /p\.account_deletion_pending IS FALSE/i);
