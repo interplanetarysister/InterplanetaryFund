@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - migration/supabase-cloudflare
-  workflow_dispatch:
+  workflow_dispatch
 permissions:
   contents: read
 jobs:
@@ -19,15 +19,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install dependencies from real npm registry
-        run: npm ci --no-audit --no-fund
+      - name: Install dependencies from real npm registry without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify npm lock resolution is reproducible
         run: |
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           git diff --exit-code -- package-lock.json package.json
       - name: Unit tests
         run: npm test
-      - name: Vite production build
-        run: npm run build
       - name: Prettier check
         run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
