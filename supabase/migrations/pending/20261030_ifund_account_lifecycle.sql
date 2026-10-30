@@ -130,22 +130,18 @@ STABLE
 SECURITY INVOKER
 SET search_path TO ''
 AS $function$
-  SELECT CASE
-    WHEN caller.uid IS NULL THEN true
-    ELSE EXISTS (
-      SELECT 1 FROM public.ifund_profiles p
-      WHERE p.id = caller.uid
-        AND p.account_status = 'active'
-        AND p.account_deletion_pending IS FALSE
-    )
-  END
-  FROM (SELECT auth.uid() AS uid) caller;
+  SELECT EXISTS (
+    SELECT 1 FROM public.ifund_profiles p
+    WHERE p.id = (SELECT auth.uid())
+      AND p.account_status = 'active'
+      AND p.account_deletion_pending IS FALSE
+  );
 $function$;
 
 REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()
 FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.ifund_current_account_is_active()
-TO anon, authenticated;
+TO authenticated;
 
 COMMENT ON FUNCTION public.ifund_current_account_is_active() IS
   'RLS predicate: public anonymous reads remain available; authenticated access requires an explicitly active, non-deletion-pending profile.';
@@ -180,8 +176,11 @@ DROP POLICY IF EXISTS ifund_campaigns_public_read ON public.ifund_campaigns;
 CREATE POLICY ifund_campaigns_public_read
 ON public.ifund_campaigns FOR SELECT TO anon, authenticated
 USING (
-  (SELECT public.ifund_current_account_is_active())
-  AND (status = 'active'::text OR owner_id = (SELECT auth.uid() AS uid))
+  (SELECT auth.uid()) IS NULL
+  OR (
+    (SELECT public.ifund_current_account_is_active())
+    AND (status = 'active'::text OR owner_id = (SELECT auth.uid() AS uid))
+  )
 );
 
 DROP POLICY IF EXISTS ifund_campaigns_update ON public.ifund_campaigns;
@@ -203,7 +202,7 @@ WITH CHECK (author_id = (SELECT auth.uid() AS uid) AND (SELECT public.ifund_curr
 DROP POLICY IF EXISTS ifund_posts_public_read ON public.ifund_posts;
 CREATE POLICY ifund_posts_public_read
 ON public.ifund_posts FOR SELECT TO anon, authenticated
-USING ((SELECT public.ifund_current_account_is_active()));
+USING ((SELECT auth.uid()) IS NULL OR (SELECT public.ifund_current_account_is_active()));
 
 DROP POLICY IF EXISTS ifund_connections_owner_read ON public.ifund_connections;
 CREATE POLICY ifund_connections_owner_read
@@ -250,8 +249,11 @@ DROP POLICY IF EXISTS ifund_blogs_read_active_or_owner ON public.ifund_blogs;
 CREATE POLICY ifund_blogs_read_active_or_owner
 ON public.ifund_blogs FOR SELECT TO anon, authenticated
 USING (
-  (SELECT public.ifund_current_account_is_active())
-  AND (status = 'active'::text OR owner_auth_user_id = (SELECT auth.uid() AS uid))
+  (SELECT auth.uid()) IS NULL
+  OR (
+    (SELECT public.ifund_current_account_is_active())
+    AND (status = 'active'::text OR owner_auth_user_id = (SELECT auth.uid() AS uid))
+  )
 );
 
 DROP POLICY IF EXISTS ifund_blog_entries_owner_delete ON public.ifund_blog_entries;
@@ -274,8 +276,11 @@ DROP POLICY IF EXISTS ifund_blog_entries_read_public_or_owner ON public.ifund_bl
 CREATE POLICY ifund_blog_entries_read_public_or_owner
 ON public.ifund_blog_entries FOR SELECT TO anon, authenticated
 USING (
-  (SELECT public.ifund_current_account_is_active())
-  AND (status = 'published'::text OR owner_auth_user_id = (SELECT auth.uid() AS uid))
+  (SELECT auth.uid()) IS NULL
+  OR (
+    (SELECT public.ifund_current_account_is_active())
+    AND (status = 'published'::text OR owner_auth_user_id = (SELECT auth.uid() AS uid))
+  )
 );
 
 DO $postflight$
@@ -304,9 +309,9 @@ BEGIN
      OR has_function_privilege('service_role', 'public.ifund_create_auth_profile()', 'EXECUTE') THEN
     RAISE EXCEPTION 'Auth profile trigger function EXECUTE ACL is not restricted correctly.';
   END IF;
-  IF NOT has_function_privilege('anon', 'public.ifund_current_account_is_active()', 'EXECUTE')
+  IF has_function_privilege('anon', 'public.ifund_current_account_is_active()', 'EXECUTE')
      OR NOT has_function_privilege('authenticated', 'public.ifund_current_account_is_active()', 'EXECUTE') THEN
-    RAISE EXCEPTION 'RLS lifecycle helper EXECUTE grants are missing.';
+    RAISE EXCEPTION 'RLS lifecycle helper EXECUTE grants are missing or overly broad.';
   END IF;
   IF (SELECT prosecdef FROM pg_proc WHERE oid = 'public.ifund_current_account_is_active()'::regprocedure) THEN
     RAISE EXCEPTION 'RLS lifecycle helper must remain SECURITY INVOKER.';
