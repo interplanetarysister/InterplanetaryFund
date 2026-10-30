@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 // Only campaign content may be written. Never accept ownership, balances,
 // provider receipts, withdrawal metadata or other privileged fields.
@@ -91,6 +91,7 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
     const deleting = request.method === 'DELETE';
     let campaign;
     if (!deleting) {

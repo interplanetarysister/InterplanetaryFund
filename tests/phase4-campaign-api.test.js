@@ -9,7 +9,7 @@ const other = '9baa21da-845b-46d9-9476-a41c38564756';
 const campaignId = 'b7486a53-40a8-4a71-8377-141332ab4341';
 const env = {
   MIGRATION_API_PREVIEW: 'enabled',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'publishable-test-only',
 };
 const origin = 'https://api.example.org';
@@ -26,6 +26,7 @@ function remote(calls, { owner = uid, rows = null } = {}) {
   return async (target, opts) => {
     calls.push({ url: String(target), opts });
     if (String(target).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
+    if (String(target).includes('account_status')) return Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]);
     return Response.json(rows ?? [{
       id: campaignId, owner_id: owner,
       status: JSON.parse(opts.body).status || 'draft',
@@ -57,13 +58,13 @@ test('new draft uses JWT authentication, publishable key and derived owner only'
   const calls = [];
   const r = await routeCampaignWrite(request({ title: 'New draft' }), env, remote(calls));
   assert.equal(r.status, 201);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].opts.method, 'POST');
-  assert.equal(calls[1].opts.headers.Authorization, 'Bearer signed.test.jwt');
-  assert.equal(calls[1].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
-  assert.equal(calls[1].opts.headers.Prefer, 'return=representation');
-  assert.equal(JSON.parse(calls[1].opts.body).owner_id, uid);
-  assert.equal(JSON.parse(calls[1].opts.body).status, 'draft');
+  assert.equal(calls.length, 3);
+  assert.equal(calls[2].opts.method, 'POST');
+  assert.equal(calls[2].opts.headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls[2].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(calls[2].opts.headers.Prefer, 'return=representation');
+  assert.equal(JSON.parse(calls[2].opts.body).owner_id, uid);
+  assert.equal(JSON.parse(calls[2].opts.body).status, 'draft');
   assert.deepEqual(await r.json(), {
     id: campaignId, status: 'draft', updated_at: '2026-10-25T00:00:00Z',
   });
@@ -74,7 +75,7 @@ test('publish validates complete content, while valid publish succeeds', async (
     status: 'active', title: 'Incomplete', goal_amount: 5,
   }), env, remote(calls));
   assert.equal(missing.status, 422);
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
   const good = await routeCampaignWrite(request(valid), env, remote([]));
   assert.equal(good.status, 201);
 });
@@ -90,7 +91,7 @@ test('writes reject owner override, financial fields, unsafe links and invalid m
   for (const data of invalid) {
     const calls = [];
     assert.equal((await routeCampaignWrite(request(data), env, remote(calls))).status, 422);
-    assert.equal(calls.length, 1);
+    assert.equal(calls.length, 2);
   }
 });
 test('PATCH must include both exact campaign id and signed-in owner filter', async () => {
@@ -99,11 +100,11 @@ test('PATCH must include both exact campaign id and signed-in owner filter', asy
     title: 'Updated',
   }, '/api/campaigns/' + campaignId, 'PATCH'), env, remote(calls));
   assert.equal(r.status, 200);
-  assert.equal(calls[1].opts.method, 'PATCH');
-  assert.match(calls[1].url, /owner_id=eq/);
-  assert.ok(calls[1].url.includes(uid));
-  assert.ok(calls[1].url.includes(campaignId));
-  assert.equal(JSON.parse(calls[1].opts.body).owner_id, undefined);
+  assert.equal(calls[2].opts.method, 'PATCH');
+  assert.match(calls[2].url, /owner_id=eq/);
+  assert.ok(calls[2].url.includes(uid));
+  assert.ok(calls[2].url.includes(campaignId));
+  assert.equal(JSON.parse(calls[2].opts.body).owner_id, undefined);
 });
 test('missing or wrong-owner rows fail closed; internal errors stay private', async () => {
   const path = '/api/campaigns/' + campaignId;
@@ -128,7 +129,7 @@ test('rejects unknown IDs, unsupported methods, content types and oversized data
   assert.equal((await routeCampaignWrite(request({
     story: 'a'.repeat(35_000),
   }), env, remote(calls))).status, 413);
-  assert.equal(calls.length, 1); // Verified auth, but never issued a content write.
+  assert.equal(calls.length, 2); // Verified auth, but never issued a content write.
 });
 test('mine route requires verified JWT and adds owner-scoped read limit', async () => {
   const anon = await routeReadRequest(new Request(origin + '/api/campaigns/mine'),
@@ -139,14 +140,14 @@ test('mine route requires verified JWT and adds owner-scoped read limit', async 
     { headers }), env, async (target, opts) => {
     calls.push({ url: String(target), opts });
     return String(target).endsWith('/auth/v1/user') ?
-      Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([{ id: campaignId }]);
+      Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : String(target).includes('account_status') ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]) : Response.json([{ id: campaignId }]);
   });
   assert.equal(r.status, 200);
-  assert.equal(calls.length, 2);
-  assert.match(calls[1].url, /owner_id=eq/);
-  assert.ok(calls[1].url.includes(uid));
-  assert.match(calls[1].url, /limit=50/);
-  assert.equal(calls[1].opts.headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls.length, 3);
+  assert.match(calls[2].url, /owner_id=eq/);
+  assert.ok(calls[2].url.includes(uid));
+  assert.match(calls[2].url, /limit=50/);
+  assert.equal(calls[2].opts.headers.Authorization, 'Bearer signed.test.jwt');
 });
 test('public detail route only requests active campaigns with selected fields', async () => {
   const calls = [];
@@ -195,12 +196,12 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
   });
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id, deleted: true });
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].opts.method, 'DELETE');
-  assert.equal(calls[1].opts.body, undefined);
-  assert.ok(calls[1].url.includes('id=eq.'));
-  assert.ok(calls[1].url.includes('owner_id=eq.'));
-  assert.ok(calls[1].url.includes('status=eq.draft'));
+  assert.equal(calls.length, 3);
+  assert.equal(calls[2].opts.method, 'DELETE');
+  assert.equal(calls[2].opts.body, undefined);
+  assert.ok(calls[2].url.includes('id=eq.'));
+  assert.ok(calls[2].url.includes('owner_id=eq.'));
+  assert.ok(calls[2].url.includes('status=eq.draft'));
   const published = await routeCampaignWrite(
     new Request(origin + '/api/campaigns/' + id, {
       method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
@@ -236,7 +237,7 @@ test('draft writes never downgrade a published campaign', async () => {
   const url = '/api/campaigns/' + campaignId;
   const result = await routeCampaignWrite(request({ title: 'Saved draft', status: 'draft' }, url, 'PATCH'), env, remote(calls));
   assert.equal(result.status, 200);
-  assert.ok(calls[1].url.includes('status=eq.draft'));
+  assert.ok(calls[2].url.includes('status=eq.draft'));
   const publishCalls = [];
   const published = await routeCampaignWrite(request(valid, url, 'PATCH'), env, remote(publishCalls));
   assert.equal(published.status, 200);
@@ -250,6 +251,6 @@ test('draft read endpoint filters out published campaign records', async () => {
     return String(url).endsWith('/auth/v1/user')? Response.json({id:uid,email_confirmed_at:'2026-10-01T00:00:00.000Z'}):Response.json([]);
   });
   assert.equal(res.status,200);
-  assert.ok(calls[1].includes('status=eq.draft'));
-  assert.ok(calls[1].includes('owner_id=eq.'));
+  assert.ok(calls[2].includes('status=eq.draft'));
+  assert.ok(calls[2].includes('owner_id=eq.'));
 });

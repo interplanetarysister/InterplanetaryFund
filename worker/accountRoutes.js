@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const profileSelect = 'id,handle,display_name,created_at';
@@ -30,6 +30,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to view your account.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
     if (path === '/api/account/me') {
       return response(200, { id: account.uid });
     }

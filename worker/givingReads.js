@@ -1,4 +1,4 @@
-import { authenticatedUser, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -35,6 +35,7 @@ export async function routeGivingRead(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to view your giving history.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
 
     // The canonical donations table currently has no donor SELECT policy, so
     // this server-only read is always constrained to the verified donor ID.

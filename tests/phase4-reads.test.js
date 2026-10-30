@@ -4,7 +4,7 @@ import { routeReadRequest } from '../worker/reads.js';
 
 const env = {
   MIGRATION_API_PREVIEW: 'enabled',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'publishable-test-only',
 };
 const id = 'b7486a53-40a8-4a71-8377-141332ab4341';
@@ -37,13 +37,13 @@ test('private draft requires remote Auth verification and RLS-scoped bearer', as
   });
   const r = await routeReadRequest(req, env, async (url, opts) => {
     calls.push({ url, headers: opts.headers });
-    return url.endsWith('/auth/v1/user') ? Response.json({ id: userId, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : Response.json([{ id }]);
+    return url.endsWith('/auth/v1/user') ? Response.json({ id: userId, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : String(url).includes('account_status') ? Response.json([{ id: userId, account_status: 'active', account_deletion_pending: false }]) : Response.json([{ id }]);
   });
   assert.equal(r.status, 200);
-  assert.equal(calls.length, 2);
-  assert.ok(calls[1].url.includes('owner_id=eq.'));
-  assert.ok(calls[1].url.includes(userId));
-  assert.equal(calls[1].headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls.length, 3);
+  assert.ok(calls[2].url.includes('owner_id=eq.'));
+  assert.ok(calls[2].url.includes(userId));
+  assert.equal(calls[2].headers.Authorization, 'Bearer signed.test.jwt');
 });
 test('invalid campaign IDs reject without touching Supabase', async () => {
   const req = new Request('https://api.example.org/api/campaigns/not-a-uuid/draft');

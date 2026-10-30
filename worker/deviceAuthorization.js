@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CLIENTS = new Set(['ifund-device-v1', 'ifund-cli-v1', 'ifund-agent-v1']);
@@ -63,14 +63,7 @@ function clientBucket(request) {
   const ip = request.headers.get('cf-connecting-ip') || 'unknown';
   return 'ip:' + ip;
 }
-async function member(request, env, fetcher) {
-  const account = await authenticatedUser(request, env, fetcher);
-  if (!account) return null;
-  const params = new URLSearchParams({ select: 'id', id: 'eq.' + account.uid, limit: '1' });
-  const profiles = await db(env, 'ifund_profiles?' + params.toString(), {}, fetcher);
-  if (!Array.isArray(profiles) || profiles.length !== 1 || profiles[0]?.id !== account.uid) return null;
-  return account;
-}
+async function member(request, env, fetcher) { return authenticatedUser(request, env, fetcher); }
 async function getBy(env, column, value, fetcher) {
   const params = new URLSearchParams({ select: SELECT, [column]: 'eq.' + value, limit: '1' });
   const rows = await db(env, 'ifund_device_authorizations?' + params.toString(), {}, fetcher);
@@ -134,6 +127,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'inspect' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
+      const denied=accountGuardResponse(account); if(denied)return denied;
       if (!await rateAllowed(env, 'code-entry:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many code attempts. Please wait.' });
       const body = await readJsonBody(request, 1024);
@@ -150,6 +144,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'decide' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to approve a device.' });
+      const denied=accountGuardResponse(account); if(denied)return denied;
       if (!await rateAllowed(env, 'code-entry:' + account.uid, 12, 600, fetcher))
         return response(429, { error: 'Too many approval attempts. Try again later.' });
       const body = await readJsonBody(request, 2048);
@@ -218,10 +213,14 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
           !record.grant_expires_at || Date.parse(record.grant_expires_at) <= Date.now())
         return response(401, { error: 'Device access expired or revoked.' });
       const body = await readJsonBody(request, 2048);
-      const profileParams = new URLSearchParams({ select: 'id,handle,display_name', id: 'eq.' + record.owner_id, limit: '1' });
+      const profileParams = new URLSearchParams({ select: 'id,handle,display_name,account_status,account_deletion_pending', id: 'eq.' + record.owner_id, limit: '1' });
       const profiles = await db(env, 'ifund_profiles?' + profileParams.toString(), {}, fetcher);
       const profile = Array.isArray(profiles) && profiles.length === 1 ? profiles[0] : null;
       if (!profile || profile.id !== record.owner_id)
+        return response(403, { error: 'The account for this device is no longer available.' });
+      if (profile.account_deletion_pending === true)
+        return response(403, { error: 'This account is scheduled for deletion and can no longer be used.' });
+      if (profile.account_status !== 'active' || typeof profile.account_deletion_pending !== 'boolean')
         return response(403, { error: 'The account for this device is no longer available.' });
       if (body?.action === 'identity' && record.scopes.includes('identity:read')) {
         return response(200, { ok: true, identity: {
@@ -243,6 +242,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'revoke' && request.method === 'POST') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to manage connected devices.' });
+      const denied=accountGuardResponse(account); if(denied)return denied;
       const body = await readJsonBody(request, 1024);
       if (!body || !UUID.test(body.id || '')) return response(422, { error: 'Invalid device.' });
       const rows = await db(env, 'ifund_device_authorizations?id=eq.' + body.id +
@@ -256,6 +256,7 @@ export async function routeDeviceAuthorization(request, env, fetcher = fetch) {
     if (mode === 'devices' && request.method === 'GET') {
       const account = await member(request, env, fetcher);
       if (!account) return response(401, { error: 'Sign in to manage connected devices.' });
+      const denied=accountGuardResponse(account); if(denied)return denied;
       const params = new URLSearchParams({ select: 'id,client_id,device_label,scopes,state,created_at,approved_at,grant_expires_at,last_polled_at',
         owner_id: 'eq.' + account.uid, state: 'in.(approved,revoked)', order: 'created_at.desc', limit: '100' });
       const rows = await db(env, 'ifund_device_authorizations?' + params.toString(), {}, fetcher);
