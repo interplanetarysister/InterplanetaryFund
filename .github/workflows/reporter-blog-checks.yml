@@ -1,0 +1,32 @@
+name: Reporter blog migration checks
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "tests/reporter-blog.test.js"
+      - "supabase/migrations/*blog*"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/reporter-blog-checks.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.2"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run test suite
+        run: npm test
+      - name: Build production bundle
+        run: npm run build
