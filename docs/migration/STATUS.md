@@ -1,6 +1,22 @@
 # Migration status — 2026-10-24
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
+## Current Phase 6 update — October 25, 2026
+
+**Private cached-data transfer completed; full migration remains incomplete.**
+741 newly copied cached records plus 27 previously staged campaigns now give
+**768/768 exact destination payload SHA-256 matches**. Nine campaign serialization
+differences were repaired under semantic-equality and source-digest guards.
+No users were claimed, no public rows published, and no financial authority set.
+See [the transfer report](CACHED_SNAPSHOT_TRANSFER_20261025.md) for counts,
+provenance, repeatable tooling, and remaining runtime gates.
+Local install, **77 tests**, and Vite build passed. A rollback-only RLS probe was
+prepared but its tool execution failed with expired request state; it is not
+runtime test evidence. All temporary-fixture counts remained zero on recheck.
+Earlier sections below are historical evidence; the transfer report supersedes
+their statements that destination content/source snapshot tables are empty and
+that the Pages frontend still points at the old project.
+
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — migrate 95 entities and full RLS: **not started**; 4-table illustrative staging SQL only.
 - [ ] Phase 3 — Supabase Auth identity mapping + role gates: **not started**.
