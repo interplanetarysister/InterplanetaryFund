@@ -28,7 +28,7 @@ export default function MyBlog() {
     setSaving(true); setError(""); setMessage("");
     try {
       const saved = await saveOwnerBlogEntry({ id: selectedId || undefined, title, summary, body, status });
-      await load(); choose(saved); setMessage(status === "published" ? "Story published." : "Draft saved.");
+      await load(); setSelectedId(saved.id); setMessage(status === "published" ? "Story published." : "Draft saved.");
     } catch (e) { setError(e?.message || "The story could not be saved."); }
     finally { setSaving(false); }
   }
