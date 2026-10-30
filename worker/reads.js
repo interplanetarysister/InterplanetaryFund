@@ -37,6 +37,7 @@ async function activeProfileError(uid,jwt,env,fetcher) {
     if(!Array.isArray(rows))return {status:503,message:'Account status could not be verified.'};
     if(rows.length!==1||rows[0]?.id!==uid)return {status:401,message:'This account is no longer available.'};
     const p=rows[0];
+    if(p.account_status===null||p.account_deletion_pending===null)return {status:403,message:'Account access is pending migration verification.'};
     if(typeof p.account_status!=='string'||typeof p.account_deletion_pending!=='boolean')return {status:503,message:'Account status could not be verified.'};
     if(p.account_deletion_pending)return {status:403,message:'This account is scheduled for deletion and can no longer be used.'};
     if(p.account_status!=='active')return {status:403,message:'This account is no longer available.'};
