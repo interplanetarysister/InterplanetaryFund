@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf } from "lucide-react";
+import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, Smartphone } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
+import useVerifiedUser from "@/lib/useVerifiedUser";
 import useSwipeBack from "@/hooks/useSwipeBack";
 import { AnimatePresence, motion } from "framer-motion";
 import OfflineBanner from "@/components/mobile/OfflineBanner";
@@ -82,6 +83,8 @@ const navSections = [
     items: [
       { to: "/profile", label: "Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
+      { to: "/devices", label: "Connected Devices", icon: Smartphone },
+      { to: "/notifications", label: "Notifications", icon: MailOpen },
       { to: "/subscriptions", label: "Plans", icon: CreditCard },
       { to: "/help", label: "Help Center", icon: CircleHelp },
     ],
@@ -118,6 +121,7 @@ const publicNavItems = [
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
+  const account = useVerifiedUser();
   const drawerCloseRef = useRef(null);
   const [darkTheme, setDarkTheme] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
@@ -134,10 +138,9 @@ export default function Layout() {
     window.addEventListener("ifund-theme-changed", sync);
     return () => window.removeEventListener("ifund-theme-changed", sync);
   }, []);
-  // Public-site port: no member session yet, so the visitor navigation is shown.
-  const user = null;
-  const isAdmin = false;
-  const hasAiAgents = false;
+  const user = account.user;
+  const isAdmin = user?.app_metadata?.role === "admin" || user?.app_metadata?.role === "super_admin";
+  const hasAiAgents = !!user;
   const { pathname } = useLocation();
   const title = pageTitle(pathname);
   // Keep each area recognizable beyond the sidebar, including nested pages.

@@ -5,7 +5,7 @@ import { routeCommunityWrite } from '../worker/communityWrites.js';
 
 const env = {
   MIGRATION_API_PREVIEW: 'enabled',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_fake_for_tests',
 };
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
@@ -27,7 +27,10 @@ function mock(calls, options = {}) {
   return async (url, settings) => {
     calls.push({ url: String(url), settings });
     if (String(url).endsWith('/auth/v1/user')) {
-      return Response.json({ id: uid });
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
+    }
+    if (String(url).includes('account_status')) {
+      return Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]);
     }
     if (options.error) return new Response('private diagnostic', { status: 500 });
     if (options.rows) return Response.json(options.rows);
@@ -58,14 +61,14 @@ test('new post derives author from verified Auth and forwards user bearer to RLS
   assert.deepEqual(await r.json(), {
     id: postId, body: 'Hello friends', created_at: '2026-10-25T00:00:00Z',
   });
-  assert.equal(calls.length, 2);
+  assert.equal(calls.length, 3);
   assert.ok(calls[0].url.endsWith('/auth/v1/user'));
-  assert.ok(calls[1].url.includes('/rest/v1/ifund_posts?'));
-  assert.equal(calls[1].settings.method, 'POST');
-  assert.equal(calls[1].settings.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
-  assert.equal(calls[1].settings.headers.Authorization, 'Bearer signed.test.jwt');
-  assert.equal(calls[1].settings.headers.Prefer, 'return=representation');
-  assert.deepEqual(JSON.parse(calls[1].settings.body), {
+  assert.ok(calls[2].url.includes('/rest/v1/ifund_posts?'));
+  assert.equal(calls[2].settings.method, 'POST');
+  assert.equal(calls[2].settings.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(calls[2].settings.headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls[2].settings.headers.Prefer, 'return=representation');
+  assert.deepEqual(JSON.parse(calls[2].settings.body), {
     author_id: uid, body: 'Hello friends',
   });
 });
@@ -85,7 +88,7 @@ test('identity and privileged fields cannot be supplied by browser', async () =>
       makeRequest('POST', '/api/community/posts', payload), env, mock(calls),
     );
     assert.equal(r.status, 422);
-    assert.equal(calls.length, 1); // Auth checked; no PostgREST write.
+    assert.equal(calls.length, 2); // Auth checked; no PostgREST write.
   }
 });
 test('delete is constrained by exact post id and verified owner', async () => {
@@ -95,13 +98,13 @@ test('delete is constrained by exact post id and verified owner', async () => {
   );
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id: postId, deleted: true });
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].settings.method, 'DELETE');
-  assert.ok(calls[1].url.includes('id=eq.'));
-  assert.ok(calls[1].url.includes(postId));
-  assert.ok(calls[1].url.includes('author_id=eq.'));
-  assert.ok(calls[1].url.includes(uid));
-  assert.equal(calls[1].settings.body, undefined);
+  assert.equal(calls.length, 3);
+  assert.equal(calls[2].settings.method, 'DELETE');
+  assert.ok(calls[2].url.includes('id=eq.'));
+  assert.ok(calls[2].url.includes(postId));
+  assert.ok(calls[2].url.includes('author_id=eq.'));
+  assert.ok(calls[2].url.includes(uid));
+  assert.equal(calls[2].settings.body, undefined);
 });
 test('not-owner and missing posts are not falsely reported as deleted', async () => {
   const r = await routeCommunityWrite(
@@ -137,7 +140,7 @@ test('invalid post ids, unsupported methods, MIME and JSON fail closed', async (
     env, mock(calls),
   );
   assert.equal(r.status, 400);
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
 });
 test('oversized post, upstream failures and unverified responses never claim success', async () => {
   const calls = [];
@@ -147,7 +150,7 @@ test('oversized post, upstream failures and unverified responses never claim suc
   );
   assert.equal(large.status, 413);
   // The authenticated user was checked; no PostgREST write was attempted.
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
   assert.ok(calls[0].url.endsWith('/auth/v1/user'));
   const errored = await routeCommunityWrite(
     makeRequest('POST', '/api/community/posts', { body: 'Hello' }),

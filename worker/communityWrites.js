@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_POST_BYTES = 4_096;
@@ -55,6 +55,7 @@ export async function routeCommunityWrite(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to update the community.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
 
     let url = env.SUPABASE_URL + '/rest/v1/ifund_posts?';
     let body;

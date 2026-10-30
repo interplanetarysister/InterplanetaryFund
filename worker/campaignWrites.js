@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 // Only campaign content may be written. Never accept ownership, balances,
 // provider receipts, withdrawal metadata or other privileged fields.
@@ -8,7 +8,7 @@ const ALLOWED = new Set([
 ]);
 const CATEGORIES = new Set([
   'community', 'medical', 'emergency', 'education', 'animals',
-  'business', 'creative', 'other',
+  'business', 'creative', 'memorial', 'disaster_relief', 'environment', 'other',
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
@@ -91,6 +91,7 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
     const deleting = request.method === 'DELETE';
     let campaign;
     if (!deleting) {
@@ -104,9 +105,10 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
-      // Deletion is restricted to empty/draft records; published campaigns
-      // can have donors and must enter a separate audited archive workflow.
-      if (deleting) query.set('status', 'eq.draft');
+      // A draft save must NEVER downgrade an already published campaign to
+      // draft; published campaigns may have history or donors. Only a
+      // separately audited lifecycle endpoint may archive/pause them.
+      if (deleting || campaign?.status === 'draft') query.set('status', 'eq.draft');
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
       method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',

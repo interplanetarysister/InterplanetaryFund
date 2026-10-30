@@ -1,0 +1,2535 @@
+{
+  "schema_version": 2,
+  "authority": "https://github.com/interplanetarysister/InterplanetaryFund/issues/137",
+  "source": {
+    "repository": "interplanetarysister/interplanetary-fund2",
+    "ref": "main",
+    "app_file": "src/App.jsx",
+    "blob_sha": "2c7926c47f5469c834d5d0f044181bd7255d8b84",
+    "source_page_components": 57,
+    "historical_max_routes": 59,
+    "source_page_components_max_across_branches": 58,
+    "additional_route": {
+      "path": "/download",
+      "source_branch": "maintenance/ifund-install-brand-ci",
+      "original_component": "src/pages/DownloadApp.jsx",
+      "proven_live": false
+    }
+  },
+  "target": {
+    "repository": "interplanetarysister/InterplanetaryFund",
+    "path": "apps/web/src/App.jsx",
+    "branch": "migration/build-completeness-gates-20261029",
+    "route_registry": "apps/web/src/lib/historicalRoutes.js"
+  },
+  "required_screens": [
+    "desktop_light",
+    "desktop_dark",
+    "tablet_light",
+    "tablet_dark",
+    "mobile_light",
+    "mobile_dark",
+    "android_light",
+    "android_dark"
+  ],
+  "pages": [
+    {
+      "path": "/login",
+      "title": "Sign in",
+      "source_component": "Login",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Login.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/register",
+      "title": "Create an account",
+      "source_component": "Register",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 5,
+        "source_page_file": "src/pages/Register.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/forgot-password",
+      "title": "Recover account",
+      "source_component": "ForgotPassword",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "AuthPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ForgotPassword.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/reset-password",
+      "title": "Reset password",
+      "source_component": "ResetPassword",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "ResetPassword",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ResetPassword.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/globe",
+      "title": "Global Globe",
+      "source_component": "GlobalGlobe",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/GlobalGlobe.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/GlobalGlobe.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/globeCampaigns.js",
+      "known_compatibility_gap": "Original THREE.js globe rendered conditionally; source-compatible visual component staged, but three package not installed, location columns and opt-in publication migration unapplied, and no source geo ownership/campaign records reconciled."
+    },
+    {
+      "path": "/embed/campaign/:id",
+      "title": "Embedded campaign",
+      "source_component": "EmbedCampaign",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/EmbedCampaign.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/EmbedCampaign.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/oauth/consent",
+      "title": "Authorize integration",
+      "source_component": "OAuthConsent",
+      "access": "public",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/OAuthConsent.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/activate",
+      "title": "Activate device",
+      "source_component": "DeviceActivation",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "DeviceActivation",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "deviceAuthorization"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/DeviceActivation.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/",
+      "title": "Home",
+      "source_component": "Home",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Home",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Home.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/about",
+      "title": "About",
+      "source_component": "About",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "About",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/About.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/founding-members",
+      "title": "Founding members",
+      "source_component": "FoundingMembers",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "FoundingMembers",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "joinFoundingWaitlist"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/FoundingMembers.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/terms",
+      "title": "Terms of Service",
+      "source_component": "Terms",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Terms",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Terms.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/privacy",
+      "title": "Privacy Policy",
+      "source_component": "Privacy",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Privacy",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Privacy.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/contact",
+      "title": "Contact",
+      "source_component": "Contact",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Contact",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "sendPublicContactMessage"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Contact.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/admin/organization-mail",
+      "title": "Organization mail",
+      "source_component": "IndependentAdminMail",
+      "access": "specially protected administration",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/components/inbox/IndependentAdminMail.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "No direct static Base44 references; indirect secure mail backend requires separate verification"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/download",
+      "title": "Download IFund",
+      "source_component": "DownloadApp",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/DownloadApp.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/pages/DownloadApp.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "Historical additional route from maintenance branch; browser installation only; signed native APK not verified"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/discover",
+      "title": "Discover campaigns",
+      "source_component": "Discover",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Discover",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Discover.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/campaign/:id",
+      "title": "Campaign",
+      "source_component": "CampaignDetail",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "CampaignDetail",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "Campaign",
+          "CampaignUpdate"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/CampaignDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/community",
+      "title": "Community",
+      "source_component": "Community",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "SocialFeedPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Community",
+          "CommunityMember"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Community.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/community/:id",
+      "title": "Community discussion",
+      "source_component": "CommunityDetail",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/CommunityDetail.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "communityMembership"
+        ],
+        "entities": [
+          "Community",
+          "CommunityMember"
+        ],
+        "direct_auth_references": 2,
+        "source_page_file": "src/pages/CommunityDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/communities.js",
+      "known_compatibility_gap": "Original join/leave, discussions, volunteers and full member role workflow not operational; approved-only RLS schema staged but unapplied. Opt-in public member display only."
+    },
+    {
+      "path": "/u/:id",
+      "title": "Member profile",
+      "source_component": "PublicProfile",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/PublicProfile.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "managePublicProfile"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/PublicProfile.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/social",
+      "title": "IFund Social",
+      "source_component": "Social",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "SocialFeedPage",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "listConnections",
+          "listFundraisingProviderCapabilities"
+        ],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Social.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/blogs",
+      "title": "Stories & Blogs",
+      "source_component": "Blogs",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Blogs.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Blogs.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
+    },
+    {
+      "path": "/blogs/:id",
+      "title": "Story",
+      "source_component": "BlogArticle",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/BlogArticle.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/BlogArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
+    },
+    {
+      "path": "/publications/:id",
+      "title": "Publication",
+      "source_component": "PublicationArticle",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/PublicationArticle.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageOfficialPublications"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/PublicationArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/editorial.js",
+      "known_compatibility_gap": "Public reader port uses staged-but-unapplied read-only tables. Old source blog/publication rows, approval evidence, author mapping, reader behavior on devices and entitlement-aware editing are not verified."
+    },
+    {
+      "path": "/help",
+      "title": "Help Center",
+      "source_component": "Help",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "Help",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "createSupportTicket"
+        ],
+        "entities": [
+          "HelpArticle"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Help.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/help/:slug",
+      "title": "Help article",
+      "source_component": "HelpArticle",
+      "access": "public",
+      "current_state": "implemented_partial",
+      "implementation": "HelpArticle",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "HelpArticle",
+          "HelpFeedback"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/HelpArticle.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/onboarding",
+      "title": "Get started",
+      "source_component": "Onboarding",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Onboarding.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "setUnifiedOboConsent"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Onboarding.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/dashboard",
+      "title": "Dashboard",
+      "source_component": "Dashboard",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Dashboard",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Dashboard.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/create",
+      "title": "New campaign",
+      "source_component": "CreateCampaign",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "CreateCampaign",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDraft",
+          "importExternalCampaign",
+          "geocodeCity",
+          "generateCampaignCover",
+          "saveCampaign",
+          "recordCampaignCreated"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/CreateCampaign.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/giving",
+      "title": "My Giving",
+      "source_component": "MyGiving",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "MyGiving",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getMyGiving"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/MyGiving.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/communications",
+      "title": "Communications",
+      "source_component": "Communications",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Communications.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/mission",
+      "title": "Mission Control",
+      "source_component": "MissionControlPage",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/MissionControlPage.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "generateIntelligence"
+        ],
+        "entities": [
+          "MissionBrief"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/MissionControlPage.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/ai-images",
+      "title": "AI Image Studio",
+      "source_component": "AIImageStudio",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "generateCampaignCover"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AIImageStudio.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/institutions",
+      "title": "Institutions",
+      "source_component": "Institutions",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Institutions.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Institution"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Institutions.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/institutions.js",
+      "known_compatibility_gap": "Original institution create/manage, membership, applications, owner editing and data import remain blocked; read-only and approved-only UI, staged SQL unapplied."
+    },
+    {
+      "path": "/institutions/:id",
+      "title": "Institution",
+      "source_component": "InstitutionDetail",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/InstitutionDetail.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Institution"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/InstitutionDetail.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/institutions.js",
+      "known_compatibility_gap": "Original institution create/manage, membership, applications, owner editing and data import remain blocked; read-only and approved-only UI, staged SQL unapplied."
+    },
+    {
+      "path": "/profile",
+      "title": "Profile",
+      "source_component": "Profile",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Profile",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 3,
+        "source_page_file": "src/pages/Profile.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/my-blog",
+      "title": "My Blog",
+      "source_component": "MyBlog",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageBlog"
+        ],
+        "entities": [
+          "Campaign"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/MyBlog.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/devices",
+      "title": "Connected devices",
+      "source_component": "ConnectedDevices",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "ConnectedDevices",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "deviceAuthorization"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/ConnectedDevices.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/connections",
+      "title": "Connections",
+      "source_component": "Connections",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "Connections",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "syncExternalFunds",
+          "listConnections",
+          "resolveConnectionStatus",
+          "syncWixCampaigns",
+          "syncWixContent",
+          "syncWixBusinessData",
+          "syncWixAnalytics",
+          "finalizeAppUserOAuthConnection",
+          "verifyPlatformConnection",
+          "getSharedConnectorStatus",
+          "requestManagedConnectionAction"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Connections.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/inbox",
+      "title": "Inbox",
+      "source_component": "Inbox",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "InboxItem",
+          "Notification",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Inbox.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/following",
+      "title": "Following",
+      "source_component": "FollowedCampaigns",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/FollowedCampaigns.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "FollowedCampaign",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/FollowedCampaigns.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/followedCampaigns.js",
+      "known_compatibility_gap": "RLS migrations for public.ifund_follows unapplied; original history unavailable, advanced goal/date sorting blocked"
+    },
+    {
+      "path": "/notifications",
+      "title": "Notifications",
+      "source_component": "Notifications",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Notifications.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Notification"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Notifications.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/notifications.js",
+      "known_compatibility_gap": "RLS migrations for public.ifund_notifications unapplied; trusted notice producer/Android push/optional diagnostics missing"
+    },
+    {
+      "path": "/donors",
+      "title": "Supporters",
+      "source_component": "Donors",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getOwnerDonorDirectory"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/Donors.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/ledger",
+      "title": "Financial ledger",
+      "source_component": "FinancialLedger",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getOwnerFinancialLedger"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/FinancialLedger.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/subscriptions",
+      "title": "Plans",
+      "source_component": "Subscriptions",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getPayPalSubscriptionOptions",
+          "confirmPayPalSubscription",
+          "createPayPalSubscriptionCheckout",
+          "startPremiumTrial",
+          "cancelPayPalSubscription",
+          "verifyOwnerPayPalBasicPlan",
+          "setupPayPalSubscriptionWebhook",
+          "activateSubscriptionCheckout",
+          "syncPayPalSubscriptionCatalog"
+        ],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Subscriptions.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/withdrawals",
+      "title": "Withdrawals",
+      "source_component": "Withdrawals",
+      "access": "member",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getFeatureAvailability",
+          "getPaymentCapabilities",
+          "getCampaignWithdrawalBalance",
+          "requestWithdrawal"
+        ],
+        "entities": [
+          "Campaign",
+          "Withdrawal"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Withdrawals.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/agents",
+      "title": "AI team",
+      "source_component": "Agents",
+      "access": "member",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Agents.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Agents.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/ops",
+      "title": "Ops Center",
+      "source_component": "OpsCenter",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/OpsCenter.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Agent",
+          "MonitoredCampaign",
+          "TreasurySnapshot",
+          "ProtocolReport"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/OpsCenter.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/platform",
+      "title": "Platform",
+      "source_component": "Platform",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Platform.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/analytics",
+      "title": "Command Center",
+      "source_component": "Analytics",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Analytics.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "getCampaignDonations"
+        ],
+        "entities": [
+          "Campaign",
+          "Community",
+          "Institution",
+          "VolunteerOpportunity",
+          "GrantApplication",
+          "InstitutionOpportunity",
+          "VolunteerSignup"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/Analytics.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/connect",
+      "title": "Admin integrations redirect",
+      "source_component": "Navigate",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/App.jsx (RequireAccess admin + Navigate)",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "source_page_file": "src/App.jsx",
+        "functions": [],
+        "entities": [],
+        "direct_auth_references": 0,
+        "notes": "Original route redirects to /admin/integrations?view=ai and is admin-only"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "known_compatibility_gap": "Original admin-only redirect is ported. Its destination /admin/integrations remains unported and admin backend authorization has not passed end-to-end tests."
+    },
+    {
+      "path": "/admin/external-accounts",
+      "title": "External accounts",
+      "source_component": "ExternalAccounts",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "listConnections"
+        ],
+        "entities": [
+          "DistributedPost",
+          "Agent",
+          "Campaign"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/ExternalAccounts.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/admin/integrations",
+      "title": "Admin integrations",
+      "source_component": "IntegrationsAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "validateIntegrationHealth"
+        ],
+        "entities": [
+          "PlatformAccessRegistry"
+        ],
+        "direct_auth_references": 1,
+        "source_page_file": "src/pages/IntegrationsAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/admin/audit",
+      "title": "Audit log",
+      "source_component": "AuditLogAdmin",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "AuditLog"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AuditLogAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/admin/agent-api",
+      "title": "Agent API",
+      "source_component": "AdminAgentApi",
+      "access": "admin",
+      "current_state": "placeholder",
+      "implementation": null,
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [
+          "manageOAuthClients",
+          "manageExternalAgentKeys"
+        ],
+        "entities": [],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AdminAgentApi.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    },
+    {
+      "path": "/admin/sustainability",
+      "title": "Planet Impact",
+      "source_component": "SustainabilityAdmin",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/SustainabilityAdmin.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "Campaign",
+          "SustainabilityAudit"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/SustainabilityAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/sustainability.js",
+      "known_compatibility_gap": "Source React page ported unchanged in look and behavior apart from SDK adapter. Admin-only evidence persistence requires unapplied canonical Supabase RLS table and two-user tests. Independent environmental verification service is deliberately not fabricated; recorded links remain documented, not verified. Android parity untested."
+    },
+    {
+      "path": "/admin/help",
+      "title": "Help Center editor",
+      "source_component": "HelpAdmin",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/HelpAdmin.jsx",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "HelpDraft",
+          "HelpArticle"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/HelpAdmin.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/helpEditor.js",
+      "known_compatibility_gap": "Original Help Editor layout, private drafts and atomic publication ported to staged-only RLS schema. Database migration not applied; original historic HelpDraft/HelpArticle records, true admin JWT claims, two-user RLS tests and public runtime behavior are not yet verified."
+    },
+    {
+      "path": "/admin/founding-members",
+      "title": "Founding members admin",
+      "source_component": "AdminFoundingWaitlist",
+      "access": "admin",
+      "current_state": "implemented_partial",
+      "implementation": "AdminFoundingWaitlist",
+      "release_status": "not_verified",
+      "proof": {
+        "visual": {
+          "desktop_light": null,
+          "desktop_dark": null,
+          "tablet_light": null,
+          "tablet_dark": null,
+          "mobile_light": null,
+          "mobile_dark": null,
+          "android_light": null,
+          "android_dark": null
+        },
+        "role_matrix": {
+          "visitor": null,
+          "member": null,
+          "admin": null,
+          "super_admin": null
+        },
+        "functional": null,
+        "persistence": null,
+        "source_assets": null,
+        "reviewer_approval": null
+      },
+      "source_static_dependencies": {
+        "functions": [],
+        "entities": [
+          "FoundingWaitlist"
+        ],
+        "direct_auth_references": 0,
+        "source_page_file": "src/pages/AdminFoundingWaitlist.jsx"
+      },
+      "source_backend_calls_verified": false,
+      "source_ui_parity_verified": false
+    }
+  ],
+  "extra_independent_routes": [
+    {
+      "path": "/auth/callback",
+      "implementation": "apps/web/src/pages/AuthCallback.jsx",
+      "status": "staged_not_live",
+      "purpose": "Email verification, implicit/PKCE token exchange, password recovery and old email link handling"
+    },
+    {
+      "path": "/mine/:id",
+      "implementation": "apps/web/src/pages/OwnerCampaignPreview.jsx",
+      "status": "staged_not_live",
+      "purpose": "Owner-private paused campaign preview"
+    }
+  ]
+}

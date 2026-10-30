@@ -1,12 +1,29 @@
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { authClient } from "@/api/auth";
+import { getPublicHelpArticle } from "@/lib/helpPublic";
 import { helpArticleBySlug } from "@/lib/helpArticles";
 
 export default function HelpArticle() {
   const { slug } = useParams();
-  const article = helpArticleBySlug(slug);
+  const [article,setArticle]=useState(()=>helpArticleBySlug(slug));
+  const [loading,setLoading]=useState(false);
+  useEffect(()=>{
+    let mounted=true;
+    setArticle(helpArticleBySlug(slug));
+    setLoading(true);
+    try{
+      getPublicHelpArticle(authClient(),slug)
+       .then(result=>{if(mounted)setArticle(result.article);})
+       .catch(()=>{if(mounted)setArticle(helpArticleBySlug(slug));})
+       .finally(()=>{if(mounted)setLoading(false);});
+    }catch{setLoading(false);}
+    return()=>{mounted=false;};
+  },[slug]);
   return <main className="max-w-3xl mx-auto px-4 sm:px-8 py-10 min-w-0 text-foreground">
     <Link to="/help" className="font-semibold text-cyan-700 underline">Back to Help Center</Link>
-    {article ? <article className="mt-8">
+    {loading&&!article?<p role="status" className="mt-6">Loading help article…</p>:
+    article ? <article className="mt-8">
       <p className="text-sm font-semibold text-cyan-700">{article.category}</p>
       <h1 className="font-display text-3xl sm:text-4xl mt-2 break-words">{article.question}</h1>
       <p className="text-muted-foreground mt-3">{article.description}</p>

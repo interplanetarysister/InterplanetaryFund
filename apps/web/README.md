@@ -1,60 +1,59 @@
-# Interplanetary Fund public site (apps/web)
+# Interplanetary Fund independent web app
 
-Standalone React + Vite + Tailwind port of the public pages of the Interplanetary Fund web app, taken from the Base44 export (`migration/reference/2026-10-25-base44-export/`). It has no Base44 dependencies.
+This is the independent React + Vite + Tailwind web application in `interplanetarysister/InterplanetaryFund`. It does not load the Base44 SDK or call Base44-hosted functions. The original application is retained in a separate repository as read-only migration evidence.
 
-## Run locally
+## Runtime
 
-```bash
-cd apps/web
-cp .env.example .env.local   # fill in publishable values
-npm install
-npm run dev                  # http://localhost:5173
-npm run build                # outputs dist/
-npm run preview
+- React 18 and React Router
+- Supabase Auth and Postgres using the canonical independent project
+- Cloudflare Pages for the web frontend and Cloudflare Workers for independently implemented API routes
+- Node 22.x for CI and build verification
+
+## Environment
+
+| Variable | Use |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Canonical Supabase project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Browser-safe publishable key (preferred) |
+| `VITE_SUPABASE_ANON_KEY` | Legacy browser-safe anon key fallback |
+
+Never place a service-role key or provider secret in a `VITE_*` variable. Worker-only configuration is separate from browser environment variables.
+
+## Development and verification
+
+From the repository root:
+
+```sh
+npm ci --no-audit --no-fund
+npm test
+npm --prefix apps/web test
+npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+npm --prefix apps/web exec -- vite build
 ```
 
-Node 20 or newer.
+The independent CI currently verifies 106 Worker/contract tests, 130 web regression tests, the source inventory, backend coverage, runtime-independence scan, and a Vite compile. The Vite command is deliberately run directly in CI so the code can be compile-checked while the production evidence gate remains closed.
 
-## Environment variables
+`npm run build` invokes the `prebuild` release gate. It is expected to stop until all required release evidence is true. Do not remove or bypass that gate to force a deployment.
 
-| Name | Purpose |
-| --- | --- |
-| `VITE_SUPABASE_URL` | Supabase project URL (canonical project `ssibsfmtodgximseeqsv` only) |
-| `VITE_SUPABASE_ANON_KEY` | Supabase publishable/anon key only. Never a service-role key. |
+## Current completeness
 
-Never commit real values. Without them the site still renders, and Discover and Campaign pages show the original "couldn't load" retry card.
+The historical route inventory contains 59 routes:
+- 44 are partial implementations;
+- 15 remain explicit placeholders;
+- 0 are verified as release-complete.
 
-## What is ported
+The app's route list, entity/function/agent/workflow/connector inventories are mapping aids, not evidence that the corresponding feature is live. Public-profile visibility, first-time signup/login in a real browser, legal-consent persistence, full campaign creation and AI assistance, backend parity, media migration, mobile/Android behavior, and production provider setup still require proof.
 
-- `/` Home, `/about` About, `/terms` Terms, `/privacy` Privacy
-- `/discover` Discover and `/campaign/:id` Campaign detail, inside the original Layout (sidebar, mobile header, drawer, bottom nav, quick actions, back-to-top, legal footer)
-- The original `index.css`, `styles-ifund-studio.css`, Tailwind config, shadcn ui components actually used (button, input, badge, progress, skeleton, dialog, image), brand assets, copy, and the light/dark theme logic from `App.jsx`
-- Every route from the original app that is not ported yet stays linked and opens a branded "Coming soon on the new platform" page. Unknown routes show the original 404 page.
+Campaign creation currently supports content-only draft saving and publication. It does not activate donations, checkout, withdrawals, or external platform distribution. The requested AI-generated five-title choices, two short-description choices, story generation/regeneration, and signature-style AI cover generation still need an independent provider-backed implementation; do not display a fake success or placeholder image.
 
-## Data
+## Security and data boundaries
 
-`src/api/publicData.js` uses `@supabase/supabase-js` and the anon key:
+- Member access requires provider-confirmed email and server-verified identity; UI guards do not replace Worker authorization or Supabase RLS.
+- Public campaign reads are restricted to active records. Draft access and changes are owner-scoped.
+- Do not infer ownership from names, email display strings, or campaign titles.
+- Historical migration SQL is staged only until separately reviewed and explicitly applied.
+- No source user records, campaign records, media, donations, credentials, or payment secrets are assumed imported.
 
-- Campaign list: RLS-filtered read of `public.ifund_campaigns`, requiring `status=active`; the original cards use the stored real title, summary, story, category, cover image and goal. Raised totals and donor counts remain `null` until independently reconciled.
-- Campaign detail: public lookup by canonical UUID with the same `status=active` restriction. The earlier proposed `ifund_public_campaign_detail` RPC is no longer required and its pending old-project SQL must NOT be applied for this frontend.
-- The public data client explicitly rejects Supabase URLs outside `ssibsfmtodgximseeqsv`; do not mix old Worker/JWKS secrets or project settings. The destination has zero published campaigns as of the October 28 read-only inspection. Empty state does not mean existing Base44 records were deleted.
+## Branding and historical provenance
 
-## Public Help Center
-
-`/help` and `/help/:slug` now use the original topic-grid/search/article composition and public, locally bundled guidance, without calling Base44. These currently document migration availability rather than pretending previously created help records or support tickets have been imported. The contact link opens an email draft and is not a verified support-ticket transaction.
-
-## Donations
-
-Campaign donations are paused, as on the live site. The "CAMPAIGN DONATIONS ARE CURRENTLY PAUSED" banner is kept and campaign checkout is disabled. The separate Interplanetary Fund platform-support PayPal link (unchanged from the original) still appears where it did before.
-
-## Not ported (yet)
-
-Sign-in and registration, member sessions, Terms acceptance gating, campaign creation and dashboard, community, social, blogs, old database-backed help articles and submission forms, the Founding Members page, and every owner or admin tool on the campaign page (editing, distribution, outreach agents, AI coach, translations, follow, share kit, recent supporters, donation dialog). Platform error reporting and Firebase diagnostics were also removed.
-
-## Assets
-
-The Base44-hosted logo and hero images (media.base44.com) were replaced with local files. The logo uses `public/ifund-logo.jpg`. The home hero loads `public/images/home-hero.png`. That file could not be downloaded during the port, so add it to restore the original hero art. Until then the deep-space gradient shows on its own.
-
-## Preview deploys
-
-The preview workflow is staged at `apps/web/ci/web-preview.yml`, but is **not installed** at `.github/workflows/web-preview.yml` because the connected token could not write workflow files. No PR-triggered build should be presumed to run until that placement is verified. If the repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` exist, it deploys to the separate Cloudflare Pages project `ifund-web-preview` and comments the URL. Otherwise it uploads `dist` as an artifact. It never touches DNS, production, or the existing Pages project.
+The independent frontend uses local brand assets and its own runtime configuration. References to Base44 or Convex in `docs/migration/` describe historical source behavior and migration/retirement evidence only; they are not dependencies of the independent app.

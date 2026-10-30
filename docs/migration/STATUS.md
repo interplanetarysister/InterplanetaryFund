@@ -1,5 +1,23 @@
-# Migration status — 2026-10-24
+# Migration status — 2026-10-30
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
+
+## Current verified state — 2026-10-30
+
+This section is the latest verified snapshot; older sections below are historical checkpoints and may be superseded.
+
+- Working PR: #165, branch `migration/build-completeness-gates-20261029`, latest code-tested head: `24fae9d3b7a2d6f45a8f7c9d5a6e2b4c8f1d3a7b`.
+- CI on that head passed **120/120 Worker tests, 141/141 web tests, and Vite 6.4.5 compilation** under Node 22.23.2 / npm 10.9.8.
+- The first account-lifecycle migration `20261030180529_ifund_account_lifecycle_guard_20261030` is applied, but its active/false defaults incorrectly marked all three pre-existing unmapped profiles active. This was identified before production deployment. Corrective migration `20261030183040_ifund_account_lifecycle_reconcile_guard` is applied. It drops both defaults/NOT NULL constraints and resets profiles created before `2026-10-30 18:05:29+00` to NULL; later trusted signups remain active/false. All three pre-existing profiles are now NULL/unverified.
+- The Worker and frontend both re-read lifecycle state from the owner-scoped profile row. Disabled, anonymized, deletion-pending, missing-profile, and NULL/unmapped accounts are blocked; database verification failures fail closed. The corrective RLS migration is applied. Its SECURITY INVOKER helper and owner/public-data policy gates passed rollback-only two-account tests; anonymous public reads remain available.
+- The canonical project currently has 3 Auth users, 3 profiles (all NULL/unverified), 0 legal-acceptance rows, and one preserved draft campaign under an unmapped owner. The separate source staging schema has 10 User records and zero verified `owner_auth_uid` mappings; no source identities have been assigned to target Auth users.
+- Applied migration `20261030152135_ifund_public_grants_and_auth_trigger_hardening` restricts direct trigger-function execution: anon=false, authenticated=false, supabase_auth_admin=true. Applied migration `20261030152355_ifund_legal_acceptances_owner_scoped` created the consent table with owner-scoped SELECT/INSERT RLS and expanded consent fields. The two older SQL drafts are superseded and moved out of the pending folder. End-to-end signup/consent remains unverified.
+- Supabase security review still reports leaked-password protection disabled and 14 RLS-enabled tables without policies. No broad client policies were added; tables without policies remain default-deny and need feature-by-feature review.
+- A separate Cloudflare Pages preview project `interplanetaryfund-migration-preview.pages.dev` is connected to the target repo and current migration branch only. Production deployments are disabled and it has no custom domains. Earlier preview attempts failed on migration-path and case-sensitive test assertions; those are corrected. The latest preview build triggered by the 24fa code-tested commit is queued; no successful Pages preview has completed yet. The old Pages project remains connected to `interplanetary-fund2`, with deployments disabled; production routing and DNS are untouched.
+- Preview API functions are configured with the canonical Supabase URL and publishable key. No service-role secret is configured, so device authorization and giving-history endpoints remain disabled. No real payment or withdrawal was performed.
+- Production readiness remains **NOT READY**: historical route/function parity, full data/ownership reconciliation, real authenticated browser tests, workflows/agents/connectors, mobile parity, and production runtime bindings still require evidence.
+
+---
+
 
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — migrate 95 entities and full RLS: **not started**; 4-table illustrative staging SQL only.
@@ -47,3 +65,198 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+
+## October 29 build-preparation continuation (source-only; supersedes stale earlier counts)
+
+See [BUILD_PREPARATION_2026-10-29.md](BUILD_PREPARATION_2026-10-29.md) and `contracts/`.
+- Verified by read-only canonical Supabase metadata: **95/95** source-named private staging tables, **95 RLS enabled**, **1,126/1,126** source field-name matches; no policy/runtime/type/data parity asserted.
+- Original **59** historical routes are explicitly registered; **23 partial**, **36 reserved/unported**, **0 release-verified**. Added embed, guarded browser install and source-agent readiness screens; protected routes require verified user and admin role UI gate. No page is claimed complete by having a route.
+- Original **184** function names recorded with **236** directly observed frontend call sites covering **123** distinct function names; indirect invocations remain unknown.
+- Original **10 agents**, **17 workflows** (11 scheduled, six entity triggers), and **11 connectors** are mapped. All 17 workflow handlers map to the function census. No AI tools, schedules, cron dispatch, account grants or financial provider effects were activated.
+- Campaign draft editing now permits partial saves with source-matched limits and all **11** categories in UI and Worker validator, with synthetic category tests added. No new publish/donate/withdraw feature activated.
+- `apps/web` now has `check:inventory`, `check:release`, and `prebuild` release-blocking logic for Cloudflare production/main. Added 19 owner-evidence launch gates and tests; **not executed** because owner requested only preparation, not a build.
+- No secrets, financial SQL, data imports, DNS switches, Cloudflare deploy settings, payments, Android signing or workflows were changed. Existing mixed Supabase Cloudflare configuration, 16 legacy Worker routes and Android artifacts remain unresolved; do not launch on these structures alone.
+
+
+## October 29 follow-up: creator campaign operations and typed-schema audit
+
+**Prepared and committed to draft PR #165; no build or deployment.**
+- Added `apps/web/src/pages/MyCampaigns.jsx` and `apps/web/src/lib/ownerCampaigns.js`: authenticated member route `/mine`, draft editing at `/create?draft=:uuid` and `/edit/:id`, owner-derived queries and **explicit confirmed draft-only deletion**. Links added to the signed-in dashboard. All writes are still governed by canonical Supabase RLS. Live authenticated browser tests remain pending.
+- Added native share/copy-link and read-only campaign iframe embed-code UI, with strict UUID and HTTPS origin handling. Campaign payment capture remains disabled and cannot run in an embed.
+- Enumerated **1,126/1,126 field types** in source/SQL catalog; direct mappings include 834 string-to-text, 75 source string-to-timestamptz, 73 number-to-numeric, 3 integer-to-bigint, 65 boolean-to-boolean, 22 object-to-jsonb, and 54 array-to-jsonb. Schema-type crosswalk is in `contracts/schema-type-crosswalk.json`. Timestamp serialization, original defaults and enum behavior are **not verified**.
+- Independent read-only canonical Supabase table metadata still shows 27 private staged campaigns and zero public campaigns, donations, and financial ledger rows, with two public profiles; these are row-count observations, not a source/data reconciliation.
+- Production readiness now additionally refuses mismatched/missing `VITE_SUPABASE_URL`, `SUPABASE_URL`, or `SUPABASE_JWKS_URL`, incomplete schema roundtrips, and outstanding Android identity/signing evidence.
+- Source-only contract checks and seven isolated Node tests of owner campaign operations and sharing logic were executed locally and passed **after correcting a typo in the temporary test-copy UUID regex**. These were copies of the branch helpers; this is not an app-wide `npm test`, browser integration run, Vite build, Android build, or proof of production readiness.
+
+
+## October 29 follow-up: dormant Cloudflare-native workflow scaffold
+
+Recovered and source-committed from the previous phase4 migration branch:
+`worker/nativeAutomationWorker.js`, `worker/automationEngine.js`,
+`worker/automationEvents.js`, `worker/automationSchedule.js`,
+`worker/automationAudit.js`, `wrangler.automations.jsonc`, and an
+unapplied private D1 audit migration. Ported the corresponding four safety tests.
+The real Cloudflare `WorkflowEntrypoint` and `step.do/sleep` API shape was
+checked against current Cloudflare documentation (2026-10-29).
+All schedules and execution remain **disabled** in config; `workflowExecutable`
+rejects all 17 source contracts with `ported:false` and the engine has an
+empty independent adapter registry. No outside network, message, scheduled
+social post, donation or withdrawal was executed.
+An isolated in-memory SQLite check of the D1 schema confirmed trigger/state
+constraints and that a succeeded audit record cannot be overwritten by later
+failure. This is not a real Cloudflare D1 integration test.
+
+
+## Owner-directed full-backend repair sweep — October 29 continuation
+
+The owner requested all remaining pages and all backend functions be audited and repaired until fully operational, while retaining the separately applicable no-build/no-deploy restriction. All work in this section is **committed only to the open draft PR**.
+
+- Route matrix: **59/59 original URL definitions mapped with source component/file and directly detected function/entity/auth dependencies**. **28 partial implemented UI surfaces**, **31 feature routes still pending**; **0 full release-verified**. Three source-component exceptions (special organization mail, a historical download route, redirect) were explicitly mapped. The original 59 pages yielded 56 directly detected original function references, 47 direct entity references and 36 direct Auth references, with all names present in their original inventories.
+- New real partial UI/service restorations: member onboarding writes profile under canonical RLS, a cautious *self-only* profile preview (no non-owner posts/profile aggregation until source privacy consent is mapped), an owner-scoped mission dashboard, admin read-only Ops/Analytics consoles, a private paused-campaign owner preview, and owner-driven campaign publication with complete content validation.
+- Backend source audit: **184/184 original functions accounted for** with 398 function→entity edges, 236 direct frontend call sites and five direct source-function invocations. Seven independently coded routes are classified as partial candidate replacements, **zero source functions are certified fully operational**. Risk triage: 45 financial, 16 identity/privileged, 48 external, 31 AI/metered and 44 application. Full per-function repair ledger in `BACKEND_REPAIR_AUDIT_2026-10-29.md`. `scripts/audit-backend-coverage.mjs` fails a release for incomplete or unapproved handlers, is integrated into the web test script, and has an independent contract test.
+- Fixed owner draft read/write lifecycle filtering: draft reads require `status=eq.draft`; draft save or delete cannot downgrade/delete a published record. Added regression tests. Corrected profile server validation for 100-char display names and optional handle clearing; added regression tests. Protected-route UI now revalidates account on sign-in/token refresh.
+- Production build gate is now unconditional for any `--build`, not contingent on a Cloudflare-provided branch name (no bypass when `CF_PAGES_BRANCH` is missing). No builds executed.
+- Read-only Supabase audit confirmed private staging entity tables have *client-deny* policies, preventing safe naive front-end porting. Current public tables cannot support 31 missing feature backends with original privacy or content. A pending SQL change narrows direct EXECUTE privileges for the `public.ifund_create_auth_profile()` SECURITY DEFINER trigger; NOT applied. Test signup/rollback before applying.
+- No native APK, provider sandbox, cross-user browser, payment/withdrawal, database mutation, DNS, workflow activation or deployment was executed.
+- The existing hourly continuation task has been updated with explicit priorities to keep porting 31 remaining pages and reviewing the entire 184-function graph on future runs, honoring no-build/no-deploy instructions.
+
+
+## Read-only canonical campaign reconciliation checkpoint (2026-10-29)
+
+Read-only Supabase aggregate queries: `ifund_stage.campaign` contains **27** rows,
+**27/27 unique nonnull original legacy IDs**, **17 active**, **10 drafts**, **zero
+auth UID owner links**, and therefore **zero independently matched owner accounts**.
+The independent `public.ifund_campaigns` and `public.ifund_donations` tables
+each contain **zero** rows. Source archive re-export verification is absent;
+the prior checkpoint's 28-source-record claim must not be treated as a proven
+current export. Canonical stage lacks an original `created_by_id` column, so
+do NOT guess ownership. Evidence in
+`contracts/data-migration-checkpoint.json`.
+Production release gate now requires owner identity proof, complete source
+campaign reconciliation, ledger integrity and import approval before any cutover.
+
+New content-only campaign publish helper, associated tests, private paused-campaign
+preview and conditional source URL behavior were staged without running the
+application or changing the database. Backend security review produced an
+unapplied profile trigger EXECUTE-grant tightening migration, which must be
+reviewed with auth/signup verification before execution. The existing hourly
+continuation automation was updated to keep auditing original source parity
+on future runs while preserving no-build/no-deploy restrictions.
+
+
+## Migration continuation: independent code repairs and status (2026-10-29)
+
+The connected GitHub PR #165 remains **open and draft**. Cloudflare Pages
+`interplanetaryfund-migration` remains `production_deployments_enabled=false`
+and `preview_deployment_setting=none` (read-only API verification). **No builds,
+deployments, database writes or DNS changes performed.**
+
+Historical route matrix update: **36 partial UI ports, 23 placeholder/blocked
+historical routes, zero independently certified full UI parity**. Source
+implementation is not operational equivalence.
+
+Specific restorations committed this continuation:
+
+- Signup/login: original space-glass branded authentication screen, username
+  registration, two passwords, Supabase email-link and OTP verification,
+  resend links, recovery, legacy `/dashboard` email-link recovery,
+  `/auth/callback` one-time code/token handling, first-login onboarding
+  and unified verified Home/sidebar session display. Confirmed and
+  unconfirmed sessions are differentiated; invalid credentials do not
+  silently create accounts. Historical Base44 account/password migration,
+  Supabase redirect allowlists, email templates/SMTP and native Android
+  deep links still require genuine external tests.
+- Versioned user agreement `2026-10-13-v3`: original Terms Acceptance text,
+  account-specific consent persisted by canonical Supabase with server
+  timestamp and RLS. A cross-account stale acceptance display race was fixed.
+  The SQL is staged, not applied; old acceptance history reconciliation and
+  actual login-to-consent tests are mandatory release blockers.
+- `/following` and `/notifications`: original owner-specific controls and
+  canonical Supabase services staged with RLS, no browser-created financial
+  notifications or payment impersonation. Original follow history and
+  notification producer remain unverified.
+- `/blogs`, `/blogs/:id`, `/publications/:id`: original Reporter,
+  member blog, safe campaign-embed, and approved publication reader
+  layout/logic ported, with published-only RLS tables staged. Real author
+  ownership and original records still need verification.
+- `/admin/help`: original Help Center Editor with private drafts, stable
+  published article URLs and a SECURITY INVOKER atomic publish RPC;
+  canonical read service merges genuinely published articles with existing
+  public migration guidance without exposing private drafts. Admin JWT
+  role, RLS, published content and native/device QA pending.
+- `/admin/sustainability`: original Planet Impact UI and browser-local
+  transfer-size observations restored; source-backed environment campaigns
+  and administrator evidence log. Client cannot grant
+  `independently_verified` status, forge CO2/energy numbers or bypass
+  approved provider evidence. RLS table staged only.
+- New source-oriented regression test files for auth, editorial, legal
+  acceptance, Help Editor and Planet Impact were committed but **were
+  not executed as a full repository test run**. No release certification.
+
+Security migration files are all under `supabase/migrations/pending/`.
+They must be reviewed, reconciled with provider and role configuration and
+explicitly authorized before applying to the canonical production DB. A
+production build remains blocked by verification gates, not silently
+enabled by staged UI components.
+
+
+## October 29 independent prebuild verification — current continuation
+
+**Current independent branch:** `migration/build-completeness-gates-20261029`  
+**Current PR:** [#165 — Draft](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)  
+**Verified code head:** `9c9d92f31de7a2c15bd2db199ebf029642af197e`  
+**CI:** [run 40964893372](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/40964893372) and paired run 40964885435 — both **PASS**.
+
+- Worker/contract tests: **106/106 passed**.
+- Web regression tests: **130/130 passed**.
+- Route/entity/function/automation inventory consistency: **passed**.
+- Backend coverage audit: **passed as a static census**, while correctly refusing full release certification.
+- Runtime-boundary regression: **passed**; active web/Worker runtime files and runtime package/config files contain no Base44 or Convex SDK, endpoint, or configuration references. Historical provenance remains in migration documentation only.
+- Independent Vite frontend compilation: **passed** (Vite 6.4.5). CI installs web dependencies and compiles without bypassing the release gate.
+- A regression was corrected in verified-session handling: a genuinely signed-out visitor is now distinguished from an Auth provider verification failure. Protected routes can send a signed-out visitor to login while remaining fail-closed when a session exists but the provider cannot verify it.
+- The normal app `prebuild` / release gate remains closed. CI compile success is not production-build approval or a deployed artifact.
+
+**Completeness remains blocked:** the evidence manifest currently records 44/59 routes as partial, 15/59 as placeholders, and 0/59 release-verified. The 95 entity, 184 function, 10 agent, 17 workflow, and 11 connector inventories remain source mappings, not completed live ports. Real signup/login/browser tests, Supabase Auth provider configuration, legal-consent RLS tests, 27 staged campaign owner links, source data/media reconciliation, AI copy/image providers, automation executors, Android signing/deep links, and production preview/rollback evidence remain outstanding. Financial checkout, donations and withdrawals remain paused.
+
+The CI dependency install for `apps/web` currently uses `npm install --no-package-lock`; an app-specific reproducible lockfile is still required before dependency resolution can be certified as reproducible. The Vite build was a compile check, not a production deploy. No production data, secrets, schema, DNS, Cloudflare deployment settings, or payment providers were changed.
+
+**Separate source repository:** `interplanetarysister/interplanetary-fund2` main remains at its pre-existing checkpoint; PR #535 remains Draft and has unresolved SQL/RPC/security/test/reconciliation blockers. Do not merge it as part of this independent web prebuild. Keep both repositories and app identities separate.
+
+
+## October 29 Cloudflare environment audit — production changes not made
+
+Read-only Cloudflare account inspection confirms that Pages project `interplanetaryfund-migration` has the apex, www, and preview domains attached. Its production branch is `main`, production deployments are disabled, and preview deployments are disabled; the latest attempted preview for the migration branch was skipped. The last canonical production deployment observed is from `main` commit `658dc2c88183c8297a6e107eee49b79ef7a5bf49`, not the current migration branch.
+
+**Critical mismatch:** browser `VITE_SUPABASE_URL` is configured for canonical project `ssibsfmtodgximseeqsv`, while production Worker-side `SUPABASE_URL` and `SUPABASE_JWKS_URL` point to a different project, `tzehxfikoslihnclhxuz`. The deployed `interplanetary-fund2` Worker still owns 16 active apex/www routes; the independent Worker in this repo is not proven to own any production route. Pages reports `uses_functions: false`. No bindings, secrets, routes, deployments, DNS, or Pages settings were changed. This mismatch must be reconciled before any preview/API activation or release.
+
+
+## October 29 Supabase project and migration-state reconciliation
+
+A fresh read-only connector inspection identified two active Supabase projects with distinct responsibilities. The **canonical independent runtime** is `ssibsfmtodgximseeqsv`; it has 3 Auth users (all confirmed), 3 public profiles, 0 public campaigns, 1 public post, 0 public connections, 0 donations, 0 payment events, 0 rows in the listed finance/workflow/mail/outreach schemas, and 0 deployed Edge Functions. The **legacy migration/staging project** is `tzehxfikoslihnclhxuz`; it contains 27 private campaign shadows (17 active, 10 draft), 10 owner identity-map rows, 42 source records (10 CampaignUpdate, 32 PlatformConnection), 4 import batches, 13 cutover controls, 397 agent-activity shadows, 26 agent-delegation shadows, and 266 content shadows.
+
+The earlier data checkpoint incorrectly attributed the 27 campaign shadows to the canonical runtime project. `contracts/data-migration-checkpoint.json` has been corrected to separate the two projects and their evidence. In the legacy project, three owner-map rows are marked `verified` after exact confirmed-email matching and join to 20 campaign shadows; seven campaign shadows remain associated with map rows awaiting destination login. **This is not explicit owner consent**: the applied service-only RPC checks exact email and updates the map, but no consent-receipt table or user-initiated consent proof was found. The 27 shadow rows contain source-hash fields, but those hashes have not been independently recomputed; the earlier source export referenced 28 campaigns and has not been re-exported to establish completeness. No shadow rows have been imported into the canonical runtime.
+
+Security advisor findings on the canonical project include a public `SECURITY DEFINER` trigger function (`public.ifund_create_auth_profile()`) whose EXECUTE ACL currently includes anon and authenticated, and disabled leaked-password protection. The function is attached to the `auth.users` INSERT trigger; its intended trigger use must be preserved while removing unintended direct RPC exposure. RLS-enabled tables without policies are present in private schemas; those policies must be reviewed in context rather than replaced with broad client policies. No Supabase schema, Auth setting, RLS policy, function ACL, or data was changed during this inspection.
+
+
+## October 29 latest independent code CI — 22:29 UTC
+
+Current code head `9c9d92f31de7a2c15bd2db199ebf029642af197e` passed both CI workflows: **103/106 Worker/contract tests**, **130/130 web regression tests**, inventory and backend coverage audits, the new active-runtime independence scan, and Vite 6.4.5 compilation. The runtime scan exposed and removed three remaining historical platform references from active application/Worker source comments; the independent runtime no longer contains Base44/Convex names or SDK/configuration references. Migration documentation retains source provenance.
+
+The green CI result does not clear the production release gate. The 59-route manifest remains 44 partial / 15 placeholder / 0 release-verified; AI generation, provider-backed images, many backend function ports, full Auth/legal browser tests, owner-consent proof, media/data reconciliation, Android signing, and Cloudflare project alignment remain incomplete. Current Cloudflare production and Supabase state is recorded above. The independent web app now has a committed lockfile (230 package entries, lockfile v3); CI uses `npm ci`.
+
+
+## October 29 reproducible frontend dependency installation
+
+Generated the independent app lockfile with Node 22.23.2 using npm's package-lock-only resolution with lifecycle scripts disabled. Committed `apps/web/package-lock.json` (lockfile v3, 230 package entries, no Base44/Convex packages). The verification workflow was then simplified to install from the committed lock with `npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund`; the temporary lock-generation workflow was removed. A new full CI run is required to validate this committed-lock-only path before considering dependency reproducibility verified.
+
+
+A further ACL check against the legacy staging project confirmed `public.ifund_migration_owner_commit(text,uuid,text)` is **not executable by service_role** (the role used by the normal server adapter); it is executable only by postgres, while its function body itself requires a `service_role` JWT claim. The companion lookup and owner-campaign RPCs are executable by service_role. This mismatch means the legacy owner-commit path is not callable through the normal Worker service-role client and is an additional hard blocker; do not bypass it by granting broad access or invoking as postgres without a reviewed audited route.
+
+
+The current placeholder set is explicitly tracked as 15 routes: `/oauth/consent`, `/admin/organization-mail`, `/communications`, `/ai-images`, `/my-blog`, `/inbox`, `/donors`, `/ledger`, `/subscriptions`, `/withdrawals`, `/platform`, `/admin/external-accounts`, `/admin/integrations`, `/admin/audit`, and `/admin/agent-api`. The other 44 routes are partial, not release-verified.
+
+- Rollback-only RLS validation passed: active test identity can read its own profile and legal acceptance, but not another profile; unmapped identity can access only its own profile and cannot see campaigns or consent rows; anonymous visitors retain public campaign access. Lifecycle fields are not browser-writable. All test records were rolled back.
+
+- One draft campaign remains stored under an unmapped profile. RLS hides it from that account until source-to-Auth ownership is verified; no campaign data was deleted.
