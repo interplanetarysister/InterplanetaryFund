@@ -8,6 +8,7 @@ export default function RequireAccess({access="member",children}){
  const state=useVerifiedUser();
  if(access==="public")return children;
  if(state.phase==="loading")return <main role="status" className="mx-auto max-w-3xl p-8">Verifying account access…</main>;
+ if(state.phase==="blocked")return <main role="alert" className="mx-auto max-w-3xl p-8"><h1 className="text-2xl font-semibold">Account access restricted</h1><p className="mt-2">{state.message||"This account is no longer available."}</p><Link to="/login" className="mt-4 inline-block underline">Return to sign in</Link></main>;
  if(state.phase==="error")return <main role="alert" className="mx-auto max-w-3xl p-8">Account verification is unavailable. No protected information was loaded.</main>;
  if(!state.user){
    const returnTo=location.pathname+location.search+location.hash;
