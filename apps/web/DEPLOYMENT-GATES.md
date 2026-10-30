@@ -44,9 +44,9 @@ The Vite step is a compilation check, not release approval or proof of browser, 
 
 A separate Cloudflare Pages project, `interplanetaryfund-migration-preview`, is connected to `interplanetarysister/InterplanetaryFund` (repository ID `1326040927`). It is restricted to preview builds from `migration/build-completeness-gates-20261029`; `production_deployments_enabled=false`, and it has no custom domains. The existing `interplanetaryfund-migration` project remains connected to the legacy `interplanetary-fund2` repository with automatic deployments and previews disabled. No production domains, DNS, or Worker routes were changed.
 
-The new preview uses Node `22.23.2`, npm `10.9.8`, the canonical Supabase project, and `MIGRATION_API_PREVIEW=enabled`. The new root `functions/api/[[path]].js` delegates same-origin `/api/*` requests to the independent Worker. The first preview build is pending the next branch push. `SUPABASE_SERVICE_ROLE_KEY` is not configured in preview, so device-authorization and giving-history endpoints remain fail-closed/disabled until a trusted secret is provisioned.
+The new preview uses Node `22.23.2`, npm `10.9.8`, the canonical Supabase project, and `MIGRATION_API_PREVIEW=enabled`. The new root `functions/api/[[path]].js` delegates same-origin `/api/*` requests to the independent Worker. The first preview build triggered by the latest code-tested branch push is queued; no successful Pages preview has completed yet. `SUPABASE_SERVICE_ROLE_KEY` is not configured in preview, so device-authorization and giving-history endpoints remain fail-closed/disabled until a trusted secret is provisioned.
 
-The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, and the initial `20261030180529_ifund_account_lifecycle_guard_20261030`. The initial lifecycle migration incorrectly defaulted existing unmapped profiles active; a corrective migration is staged to reset pre-existing profiles to NULL and gate all authenticated RLS policies. The legal-acceptance table/RLS were verified read-only; there are currently zero acceptance rows, so signup-to-consent remains unproven.
+The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, the initial `20261030180529_ifund_account_lifecycle_guard_20261030`, and corrective `20261030183040_ifund_account_lifecycle_reconcile_guard`. The corrective migration resets all three pre-existing unmapped profiles to NULL, removes unsafe defaults, and gates authenticated RLS policies while preserving anonymous public reads. Rollback-only two-account RLS tests passed, including owner isolation and legal-consent insertion. The legal-acceptance table currently has zero real acceptance rows, so signup-to-consent remains unproven.
 
 ## Required production gates
 
@@ -68,8 +68,8 @@ Static route shells, schema names, mocks, or passing unit tests are not runtime 
 
 - Draft PR: #165
 - Working branch: `migration/build-completeness-gates-20261029`
-- Current implementation commit: `b396a2aa206a7f45de01446792a05a34b6342b5c`
-- Latest CI: **114/114 Worker tests, 140/140 web tests, Vite 6.4.5 compile passed**
+- Current implementation commit: `24fae9d3b7a2d6f45a8f7c9d5a6e2b4c8f1d3a7b`
+- Latest CI: **120/120 Worker tests, 141/141 web tests, Vite 6.4.5 compile passed**
 - Build/CI/deployment repair authorization: **granted**
 - Production readiness: **NOT READY**
 

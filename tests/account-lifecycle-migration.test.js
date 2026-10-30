@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const sql = readFileSync(new URL('../supabase/migrations/pending/20261030_ifund_account_lifecycle.sql', import.meta.url), 'utf8');
+const sql = readFileSync(new URL('../supabase/migrations/20261030183040_ifund_account_lifecycle_reconcile_guard.sql', import.meta.url), 'utf8');
 
 test('existing unmapped profiles are reset to NULL without changing later signups', () => {
   assert.match(sql, /ADD COLUMN IF NOT EXISTS account_status text\s*,\s*ADD COLUMN IF NOT EXISTS account_deletion_pending boolean/i);

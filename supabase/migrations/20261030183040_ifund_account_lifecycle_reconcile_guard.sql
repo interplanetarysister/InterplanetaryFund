@@ -1,10 +1,12 @@
 -- Enforce the original Base44 account lifecycle guard in the independent target.
+-- Applied migration 20261030183040_ifund_account_lifecycle_reconcile_guard.
+-- Two-account and anonymous RLS transaction tests passed before apply; all test rows rolled back.
 -- Existing Auth users have no verified source-owner mapping. Their lifecycle
 -- columns must remain NULL and fail closed until reconciled. The prior applied
 -- migration (20261030180529) incorrectly defaulted all existing rows to active;
 -- this corrective migration resets only profiles created before that migration.
 -- New Auth signups after that timestamp retain active/false from the trusted trigger.
--- Apply only after the isolated two-account RLS checks below pass.
+-- Applied after isolated two-account RLS checks passed on 2026-10-30.
 BEGIN;
 
 DO $preflight$
