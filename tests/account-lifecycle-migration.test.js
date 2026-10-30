@@ -4,13 +4,14 @@ import { readFileSync } from 'node:fs';
 
 const sql = readFileSync(new URL('../supabase/migrations/pending/20261030_ifund_account_lifecycle.sql', import.meta.url), 'utf8');
 
-test('existing profiles remain unknown: no active defaults or blanket backfill', () => {
+test('existing unmapped profiles are reset to NULL without changing later signups', () => {
   assert.match(sql, /ADD COLUMN IF NOT EXISTS account_status text\s*,\s*ADD COLUMN IF NOT EXISTS account_deletion_pending boolean/i);
-  assert.doesNotMatch(sql, /account_status text\s+NOT NULL\s+DEFAULT/i);
-  assert.doesNotMatch(sql, /account_deletion_pending boolean\s+NOT NULL\s+DEFAULT/i);
-  assert.doesNotMatch(sql, /UPDATE\s+public\.ifund_profiles\s+SET\s+account_status/i);
-  assert.doesNotMatch(sql, /UPDATE\s+public\.ifund_profiles\s+SET\s+account_deletion_pending/i);
-  assert.match(sql, /account_status IS NULL OR account_status IN \('active', 'disabled'\)/i);
+  assert.match(sql, /ALTER COLUMN account_status DROP DEFAULT/i);
+  assert.match(sql, /ALTER COLUMN account_status DROP NOT NULL/i);
+  assert.match(sql, /ALTER COLUMN account_deletion_pending DROP DEFAULT/i);
+  assert.match(sql, /ALTER COLUMN account_deletion_pending DROP NOT NULL/i);
+  assert.match(sql, /UPDATE public\\.ifund_profiles[\\s\\S]*?SET account_status = NULL, account_deletion_pending = NULL[\\s\\S]*?WHERE created_at < '2026-10-30 18:05:29\\+00'/i);
+  assert.match(sql, /account_status IS NULL OR account_status IN \\('active', 'disabled'\\)/i);
 });
 
 test('new signups alone receive active lifecycle defaults from the trusted Auth trigger', () => {
@@ -24,11 +25,15 @@ test('lifecycle fields are not browser writable and are service-controlled', () 
   assert.match(sql, /GRANT SELECT \(account_status, account_deletion_pending\),\s*UPDATE \(account_status, account_deletion_pending\)[\s\S]*?TO service_role/i);
 });
 
-test('RLS helper keeps anonymous public reads but requires an active signed-in profile', () => {
-  assert.match(sql, /SECURITY DEFINER\s+SET search_path TO ''[\s\S]*?WHEN auth\.uid\(\) IS NULL THEN true/i);
-  assert.match(sql, /p\.account_status = 'active'/i);
-  assert.match(sql, /p\.account_deletion_pending IS FALSE/i);
-  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.ifund_current_account_is_active\(\)\s*TO anon, authenticated/i);
+test('RLS helper is invoker-safe, keeps anonymous public reads, and requires an active signed-in profile', () => {
+  const helperStart=sql.indexOf('CREATE OR REPLACE FUNCTION public.ifund_current_account_is_active()');
+  const helperEnd=sql.indexOf('REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()',helperStart);
+  const helper=sql.slice(helperStart,helperEnd);
+  assert.match(helper, /SECURITY INVOKER\\s+SET search_path TO ''[\\s\\S]*?WHEN caller\\.uid IS NULL THEN true/i);
+  assert.doesNotMatch(helper, /SECURITY DEFINER/i);
+  assert.match(helper, /p\\.account_status = 'active'/i);
+  assert.match(helper, /p\\.account_deletion_pending IS FALSE/i);
+  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\\.ifund_current_account_is_active\\(\\)\\s*TO anon, authenticated/i);
   assert.doesNotMatch(sql, /DROP POLICY IF EXISTS ifund_profiles_read/i);
 });
 

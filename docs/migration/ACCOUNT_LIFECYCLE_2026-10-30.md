@@ -4,18 +4,18 @@ The authoritative Base44 `assertActiveAccount` guard blocks missing/deleted reco
 
 ## Target behavior
 
-- `ifund_profiles.account_status` and `account_deletion_pending` are server-controlled, nullable lifecycle fields.
+- `ifund_profiles.account_status` and `account_deletion_pending` are server-controlled, nullable lifecycle fields. The first applied migration incorrectly added active/false defaults; the corrective migration removes those defaults and resets only profiles created before 2026-10-30 18:05:29 UTC to NULL. Later profiles from trusted signups are preserved.
 - NULL is deliberately **unverified**, not active. Existing target profiles are not backfilled because the source staging data has zero verified `owner_auth_uid` mappings. No old Base44 status is assigned to a target Auth user without an explicit identity match.
 - New target Auth signups receive `account_status='active'` and `account_deletion_pending=false` only through the trusted `auth.users` profile trigger. The Worker still independently requires provider-confirmed email.
 - Authenticated Worker routes re-read lifecycle fields on every request using the caller's verified JWT. Deletion-pending and every non-active state return 403; unmapped NULL lifecycle state returns a migration-specific 403; missing or malformed lifecycle data fails closed.
-- The `ifund_current_account_is_active()` SECURITY DEFINER RLS predicate blocks authenticated direct PostgREST reads/writes when the current profile is not explicitly active. Anonymous visitors retain public read access. The owner-only profile SELECT policy remains ungated so the Worker can inspect the private lifecycle fields.
+- The `ifund_current_account_is_active()` SECURITY INVOKER RLS predicate blocks authenticated direct PostgREST reads/writes when the current profile is not explicitly active. It queries only the caller's own profile through the existing owner-only SELECT policy; anonymous visitors retain public read access.
 - Browser roles cannot INSERT or UPDATE lifecycle columns. The trusted `service_role` can update them. The Auth trigger function is executable only by `supabase_auth_admin` (and its owner).
 
 ## Existing accounts and rollout
 
 Existing target profiles remain NULL until a verified source-to-Auth identity mapping and account-status reconciliation is completed. This is intentionally fail-closed and may block existing users from authenticated features until that reconciliation is performed. Do not solve this by blanket-setting all existing profiles active.
 
-The migration remains in `supabase/migrations/pending/`. It has not been applied to the canonical project. Before applying it, run isolated two-account RLS tests proving:
+The corrective migration remains in `supabase/migrations/pending/`. The earlier defaulting migration is already in the canonical migration history; the corrective migration must be applied before any production release. Before applying it, run isolated two-account RLS tests proving:
 1. an active account can read/write only its own permitted records;
 2. disabled, deletion-pending, and unmapped accounts cannot use Worker or direct PostgREST paths;
 3. anonymous public reads still work;

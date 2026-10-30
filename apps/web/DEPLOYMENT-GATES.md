@@ -46,7 +46,7 @@ A separate Cloudflare Pages project, `interplanetaryfund-migration-preview`, is 
 
 The new preview uses Node `22.23.2`, npm `10.9.8`, the canonical Supabase project, and `MIGRATION_API_PREVIEW=enabled`. The new root `functions/api/[[path]].js` delegates same-origin `/api/*` requests to the independent Worker. The first preview build is pending the next branch push. `SUPABASE_SERVICE_ROLE_KEY` is not configured in preview, so device-authorization and giving-history endpoints remain fail-closed/disabled until a trusted secret is provisioned.
 
-The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, and `20261030180529_ifund_account_lifecycle_guard_20261030`. The auth-trigger ACL and legal-acceptance table/RLS were verified read-only; there are currently zero legal-acceptance rows, so the signup-to-consent journey remains unproven.
+The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, and the initial `20261030180529_ifund_account_lifecycle_guard_20261030`. The initial lifecycle migration incorrectly defaulted existing unmapped profiles active; a corrective migration is staged to reset pre-existing profiles to NULL and gate all authenticated RLS policies. The legal-acceptance table/RLS were verified read-only; there are currently zero acceptance rows, so signup-to-consent remains unproven.
 
 ## Required production gates
 
