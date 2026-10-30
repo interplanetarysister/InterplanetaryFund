@@ -130,18 +130,21 @@ STABLE
 SECURITY INVOKER
 SET search_path TO ''
 AS $function$
-  SELECT EXISTS (
-    SELECT 1 FROM public.ifund_profiles p
-    WHERE p.id = (SELECT auth.uid())
-      AND p.account_status = 'active'
-      AND p.account_deletion_pending IS FALSE
-  );
+  SELECT CASE
+    WHEN (SELECT auth.uid()) IS NULL THEN false
+    ELSE EXISTS (
+      SELECT 1 FROM public.ifund_profiles p
+      WHERE p.id = (SELECT auth.uid())
+        AND p.account_status = 'active'
+        AND p.account_deletion_pending IS FALSE
+    )
+  END;
 $function$;
 
 REVOKE ALL ON FUNCTION public.ifund_current_account_is_active()
 FROM PUBLIC, anon, authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.ifund_current_account_is_active()
-TO authenticated;
+TO anon, authenticated;
 
 COMMENT ON FUNCTION public.ifund_current_account_is_active() IS
   'RLS predicate: public anonymous reads remain available; authenticated access requires an explicitly active, non-deletion-pending profile.';
@@ -309,9 +312,9 @@ BEGIN
      OR has_function_privilege('service_role', 'public.ifund_create_auth_profile()', 'EXECUTE') THEN
     RAISE EXCEPTION 'Auth profile trigger function EXECUTE ACL is not restricted correctly.';
   END IF;
-  IF has_function_privilege('anon', 'public.ifund_current_account_is_active()', 'EXECUTE')
+  IF NOT has_function_privilege('anon', 'public.ifund_current_account_is_active()', 'EXECUTE')
      OR NOT has_function_privilege('authenticated', 'public.ifund_current_account_is_active()', 'EXECUTE') THEN
-    RAISE EXCEPTION 'RLS lifecycle helper EXECUTE grants are missing or overly broad.';
+    RAISE EXCEPTION 'RLS lifecycle helper EXECUTE grants are missing.';
   END IF;
   IF (SELECT prosecdef FROM pg_proc WHERE oid = 'public.ifund_current_account_is_active()'::regprocedure) THEN
     RAISE EXCEPTION 'RLS lifecycle helper must remain SECURITY INVOKER.';
