@@ -70,9 +70,9 @@ test("legal consent status is keyed to current account, preventing cross-login s
  assert.match(component,/auth\.getUser\(\)/);
 });
 test("canonical RLS requires owner, immutable server timestamp and no anonymous insert",()=>{
- const schema=readFileSync(new URL("../../../supabase/migrations/pending/20261029_ifund_legal_acceptances.sql",import.meta.url),"utf8");
+ const schema=readFileSync(new URL("../../../supabase/migrations/20261030152355_ifund_legal_acceptances_owner_scoped.sql",import.meta.url),"utf8");
  assert.match(schema,/accepted_at timestamptz not null default now\(\)/);
- assert.match(schema,/grant insert \(owner_id,terms_version,explicit_consent\)/);
+ assert.match(schema,/grant insert \(owner_id, terms_version, explicit_consent, acceptance_method, terms_path, privacy_path\)/i);
  assert.match(schema,/owner_id=\(select auth\.uid\(\)\)/);
  assert.doesNotMatch(schema,/grant insert.*\bto anon\b/i);
 });

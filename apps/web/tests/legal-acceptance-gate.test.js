@@ -5,7 +5,7 @@ const read=p=>readFileSync(new URL("../../../"+p,import.meta.url),"utf8");
 
 test("legal acceptance requires authenticated owner and affirmative explicit consent",()=>{
  const module=read("apps/web/src/lib/legalAcceptance.js");
- const sql=read("supabase/migrations/pending/20261029_ifund_legal_acceptances.sql");
+ const sql=read("supabase/migrations/20261030152355_ifund_legal_acceptances_owner_scoped.sql");
  const gate=read("apps/web/src/components/TermsAcceptance.jsx");
  assert.match(module,/auth\.getUser\(\)/);
  assert.match(module,/explicit_consent!==true/);
@@ -13,7 +13,7 @@ test("legal acceptance requires authenticated owner and affirmative explicit con
  assert.match(sql,/owner_id=\(select auth\.uid\(\)\)/);
  assert.match(sql,/explicit_consent=true/);
  assert.match(sql,/REVOKE ALL/i);
- assert.match(sql,/GRANT INSERT\s*\(owner_id,terms_version,explicit_consent\)/i);
+ assert.match(sql,/GRANT INSERT\s*\(owner_id, terms_version, explicit_consent, acceptance_method, terms_path, privacy_path\)/i);
  assert.doesNotMatch(sql,/GRANT UPDATE|GRANT DELETE/i);
  assert.match(gate,/if\(exempt \|\| phase==="ready"&&!user\)return children/);
  assert.match(gate,/Agreement could not be saved/);
