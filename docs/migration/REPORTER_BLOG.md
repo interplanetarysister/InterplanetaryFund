@@ -1,6 +1,6 @@
 # Reporter blog migration
 
-Status: data import completed; application integration submitted for review. Production cutover is not claimed.
+Status: merged to `main` in commit `d3b4a7975ee0e62000a630d7c347fbbbd0690bfe`. Cloudflare production deployment and runtime verification are pending. The original Base44 publication remains intact until cutover checks pass.
 
 ## Source identity
 
@@ -37,11 +37,19 @@ No Base44 password hash, OAuth grant, or session was migrated. The owner signs i
 
 ## Application
 
-The proposed web changes add:
+Merged routes and capabilities:
 - Public Reporter index at `/blogs`
 - Published article route at `/blogs/:id`
 - Owner-only Reporter Studio at `/my-blog`
 - Draft saving and publishing through owner-scoped Supabase RLS
 - Route regression coverage
 
-Build, browser verification, deployed-domain routing, and live owner publishing remain pending CI/review and runtime checks. Keep the original Base44 publication intact until those checks pass.
+## Verification status
+
+- Node 22.23.2 / npm 10.9.8 CI: passed.
+- Test suite: 79 passed, 0 failed.
+- Vite production bundle: built successfully.
+- Cloudflare Pages production deploy: pending.
+- Browser verification of public routes and owner sign-in/editor/publishing: pending.
+- Verify `interplanetaryfund.com` routing after release.
+- Keep the original Base44 publication intact until runtime and owner publishing checks pass.
