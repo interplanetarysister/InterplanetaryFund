@@ -12,6 +12,9 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
+import Blogs from "./pages/Blogs";
+import BlogArticle from "./pages/BlogArticle";
+import MyBlog from "./pages/MyBlog";
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
@@ -49,6 +52,7 @@ function App() {
           </NavLink>
           <NavLink to="/discover">Explore</NavLink>
           <NavLink to="/community">Community</NavLink>
+          <NavLink to="/blogs">Reporter</NavLink>
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
         </nav>
@@ -130,6 +134,9 @@ function App() {
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:id" element={<BlogArticle />} />
+          <Route path="/my-blog" element={<MyBlog user={user} />} />
           <Route
             path="*"
             element={
