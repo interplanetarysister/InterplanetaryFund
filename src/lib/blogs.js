@@ -5,7 +5,7 @@ const BLOG_ID = "6ac9c315a7434f25c88834b5";
 export async function getReporterBlog() {
   if (!db) throw new Error("The publication service is not configured.");
   const { data, error } = await db.from("ifund_blogs")
-    .select("id,title,description,type,status,cover_image_url,owner_auth_user_id")
+    .select("id,title,description,type,status,cover_image_url")
     .eq("id", BLOG_ID).eq("status", "active").maybeSingle();
   if (error) throw error;
   return data;

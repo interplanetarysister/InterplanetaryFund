@@ -18,6 +18,8 @@ test("public Reporter queries expose published entries only", () => {
   assert.match(api, /from\("ifund_blog_entries"\)/);
   assert.match(api, /eq\("status", "published"\)/);
   assert.match(api, /eq\("id", String\(id\)\)/);
+  const publicBlogQuery = api.match(/export async function getReporterBlog\(\) \{([\s\S]*?)\n\}/)?.[1] || "";
+  assert.doesNotMatch(publicBlogQuery, /owner_auth_user_id/);
   assert.doesNotMatch(api, /service_role|SUPABASE_SERVICE_ROLE_KEY/);
 });
 
