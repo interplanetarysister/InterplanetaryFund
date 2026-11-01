@@ -311,7 +311,7 @@ function Editor({ user }) {
             {["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"].map(t => <option key={t}>{t}</option>)}
           </select>
         </label>
-        <p>Need an illustration idea? <Link to="/ai-images" state={{theme:imageTheme,cause:form.summary || form.title || ""}}>Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
+        <p>Need an illustration idea? <Link to="/ai-images" state={{theme:imageTheme,cause:form.summary || form.title || "",returnTo:id ? "/edit/"+id : "/create"}}>Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
         <label>Image brief (planning only; not included in the published campaign)
           <textarea rows="4" value={imageBrief} onChange={e => setImageBrief(e.target.value)} maxLength={1800} disabled={editorDisabled} placeholder="Your creative brief will appear here when you return from Cosmic Image Studio."/>
         </label>
