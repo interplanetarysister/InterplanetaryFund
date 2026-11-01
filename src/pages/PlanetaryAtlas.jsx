@@ -10,6 +10,7 @@ const position = (c) => ({ left: ((Number(c.longitude) + 180) / 360 * 100) + "%"
 export default function PlanetaryAtlas() {
   const [campaigns, setCampaigns] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [query, setQuery] = useState("");
   const [state, setState] = useState("loading");
   useEffect(() => {
     let live = true;
@@ -23,6 +24,7 @@ export default function PlanetaryAtlas() {
       }).catch(() => { if (live) setState("unavailable"); });
     return () => { live = false; };
   }, []);
+  const visible = campaigns.filter(c => (c.title || "").toLowerCase().includes(query.trim().toLowerCase()));
   return <main className="ifund-atlas">
     <section className="ifund-atlas-heading">
       <Globe2 size={32} aria-hidden="true" />
@@ -44,18 +46,24 @@ export default function PlanetaryAtlas() {
           <path d="M320 58L354 42 381 68 360 111 324 100Z"/>
         </g>
       </svg>
-      {campaigns.map(c => <button key={c.id} type="button" className="ifund-atlas-marker" style={position(c)}
+      {visible.map(c => <button key={c.id} type="button" className="ifund-atlas-marker" style={position(c)}
         aria-label={"View " + c.title} aria-pressed={selected?.id === c.id} onClick={() => setSelected(c)}><span /></button>)}
       <span className="ifund-atlas-map-label"><Compass size={16}/> EARTH // LIVE LOCATIONS ONLY</span>
     </div>
     {state === "loading" && <p role="status">Loading campaign locations...</p>}
     {state === "unavailable" && <p role="status">Campaign locations are not available yet. Location coordinates must be enabled in the campaign database.</p>}
     {state === "ready" && campaigns.length === 0 && <p>No published campaigns with verified map coordinates are available yet. Browse all campaigns instead.</p>}
+    {state === "ready" && campaigns.length > 0 && <section className="ifund-atlas-directory" aria-label="Campaign location directory">
+      <h2>Find a mission on Earth</h2>
+      <label>Search mapped campaigns<input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Campaign name" /></label>
+      <p role="status">{visible.length} mapped {visible.length === 1 ? "campaign" : "campaigns"}</p>
+      <div className="ifund-atlas-directory-list">{visible.map(c => <button key={c.id} type="button" aria-pressed={selected?.id === c.id} onClick={() => setSelected(c)}><MapPin size={18} aria-hidden="true" />{c.title || "Fundraising mission"}</button>)}</div>
+    </section>}
     {selected && <section className="card ifund-atlas-selection" aria-live="polite">
       <MapPin size={24} aria-hidden="true"/>
       <div><h2>{selected.title || "Fundraising mission"}</h2><p>{selected.summary || "Explore this campaign to learn more."}</p><Link className="primary" to={"/campaign/" + selected.id}>View campaign</Link></div>
     </section>}
     <Link className="secondary" to="/discover">Explore all campaigns</Link>
-    <p className="ifund-atlas-note">Stylized world map, not satellite imagery. Only campaigns with location coordinates appear as markers; coordinates should be approximate and publicly shareable.</p>
+    <p className="ifund-atlas-note">Stylized world map, not satellite imagery. Only campaigns with coordinates appear as markers. Coordinates must be intentionally public and approximate, never a private home address.</p>
   </main>;
 }
