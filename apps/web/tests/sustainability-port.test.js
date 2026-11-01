@@ -72,3 +72,12 @@ test("original Planet Impact source text and browser sampling survive the port",
  assert.match(page,/saveSustainabilityEvidence/);
  assert.doesNotMatch(page,/base44\./);
 });
+
+test("staged sustainability admin policies require an active account",()=>{
+ const schema=readFileSync(new URL("../../../supabase/migrations/pending/20261029_ifund_sustainability_audits.sql",import.meta.url),"utf8");
+ for(const name of ["ifund_sustainability_admin_read","ifund_sustainability_admin_note"]){
+  const policy=schema.match(new RegExp("create policy "+name+"[\\s\\S]*?;","i"))?.[0];
+  assert.ok(policy,name+" policy exists");
+  assert.match(policy,/ifund_current_account_is_active/);
+ }
+});
