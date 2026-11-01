@@ -1,5 +1,5 @@
 import "./navigation.css";
-import { Bot, UserRound, Radio, Users, Compass, PlusCircle, LayoutDashboard, Link2, BookOpen, House, Menu, X } from "lucide-react";
+import { Bot, UserRound, Radio, Users, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
@@ -79,7 +79,7 @@ function App() {
           <Link to="/login">{user ? "Account" : "Sign in"}</Link>
         </div>
       </header>
-      <div className="platform-strip" aria-label="Connection destinations">
+      {user && <div className="platform-strip" aria-label="Connection destinations">
         {platforms.map((p) => (
           <Link
             key={p.id}
@@ -89,7 +89,7 @@ function App() {
             {p.name}
           </Link>
         ))}
-      </div>
+      </div>}
       {!configured && (
         <p className="setup-warning">
           Setup needed: configure the Supabase publishable key and apply the
@@ -121,9 +121,6 @@ function App() {
           <Route path="/institutions" element={user ? <VisualWorkspace path="/institutions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/subscriptions" element={user ? <VisualWorkspace path="/subscriptions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/donors" element={user ? <VisualWorkspace path="/donors" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/analytics" element={user ? <VisualWorkspace path="/analytics" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/ops" element={user ? <VisualWorkspace path="/ops" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/platform" element={user ? <VisualWorkspace path="/platform" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/profile" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
           <Route path="/social" element={<Community user={user} />} />
           <Route path="/campaign/:id" element={<Detail />} />
