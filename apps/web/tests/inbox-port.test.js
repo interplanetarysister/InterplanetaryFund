@@ -86,3 +86,10 @@ test("notification acknowledgement updates only read for the authenticated owner
     JSON.stringify(call[2]) === JSON.stringify({ read: true })));
   assert.ok(x.calls.some(call => call[0] === "eq" && call[1] === "ifund_notifications" && call[2] === "owner_id" && call[3] === OWNER));
 });
+
+test("acknowledgement rejects malformed record identifiers before database access", async () => {
+  const x = clientFactory();
+  await assert.rejects(() => markInboxItemDone(x.client, "not-a-uuid"), /Invalid inbox item/);
+  await assert.rejects(() => markInboxNotificationRead(x.client, "not-a-uuid"), /Invalid notification/);
+  assert.equal(x.calls.length, 0);
+});
