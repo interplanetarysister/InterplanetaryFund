@@ -2,7 +2,7 @@ name: IFund migration tests
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, migration/supabase-cloudflare, migration/build-completeness-gates-20261029]
     paths:
       - "worker/**"
       - "apps/web/src/**"
@@ -15,7 +15,7 @@ on:
       - "supabase/migrations/pending/**"
       - ".github/workflows/ifund-migration-tests.yml"
   push:
-    branches: [migration/build-completeness-gates-20261029]
+    branches: [migration/build-completeness-gates-20261029, migration/supabase-cloudflare]
     paths:
       - "worker/**"
       - "apps/web/src/**"
