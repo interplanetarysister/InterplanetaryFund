@@ -68,7 +68,7 @@ function App() {
         <nav id="ifund-primary-nav" className={menuOpen ? "ifund-primary-nav is-open" : "ifund-primary-nav"} aria-label="Main navigation">
           <div className="ifund-nav-group"><span>Explore</span><NavLink end to="/">Launchpad</NavLink><NavLink to="/discover">Explore Universe</NavLink><NavLink to="/globe">Planetary Atlas</NavLink><NavLink to="/community">Community Hub</NavLink><NavLink to="/blogs">Star Stories</NavLink></div>
           <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">Launch a Mission</NavLink><NavLink to="/dashboard">Mission Dashboard</NavLink><NavLink to="/mine">My Missions</NavLink></div>
-          <div className="ifund-nav-group"><span>Account & Help</span><NavLink to="/connections">Connections</NavLink><NavLink to="/help">Help Center</NavLink><NavLink to="/about">About</NavLink></div>
+          <div className="ifund-nav-group"><span>Account & Help</span><NavLink to="/connections">Mission Links</NavLink><NavLink to="/help">Help Center</NavLink><NavLink to="/about">About</NavLink></div>
         </nav>
         <div className="actions top-actions">
           <button
