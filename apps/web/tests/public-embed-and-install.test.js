@@ -8,7 +8,8 @@ test("public campaign iframe and download route replace placeholders",()=>{
   const app=file("src/App.jsx");
   assert.match(app,/path="\/embed\/campaign\/:id" element={<EmbedCampaign \/>}/);
   assert.match(app,/path="\/download" element={<DownloadApp \/>}/);
-  assert.doesNotMatch(app,/STANDALONE_COMING_SOON = \[[\s\S]*?"\/embed\/campaign\/:id"/);
+  const placeholders = app.match(/const STANDALONE_COMING_SOON = \[([\s\S]*?)\];/)?.[1] || "";
+  assert.doesNotMatch(placeholders, /"\/embed\/campaign\/:id"/);
 });
 
 test("embeds only show real published campaign and never accept money inside iframe",()=>{
