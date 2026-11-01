@@ -163,6 +163,9 @@ That is **12 explicit routes versus 58 original explicit routes**. It is a reduc
 
 At the latest comparison, `fix/public-column-projections-main-20261101` was **8 commits ahead and 0 behind** `main`, with merge base `471bbe73b6ca6bf0c6173a85d655c9f6b35e4793`. Recheck this immediately before opening/merging a PR; do not force-push or rewrite main. If main advances, incorporate it using a normal merge/rebase on the repair branch and re-run exact-head validation. This branch is a narrow permission hotfix, not a full parity implementation.
 
-## Verification status
+## Main-branch release validation
+
+The repair branch now includes `.github/workflows/main-release-candidate-checks.yml`, which runs lockfile reproducibility, unit tests, production build and Prettier checks for pull requests targeting `main`. The existing migration check workflow only targets `migration/supabase-cloudflare`, so it would not have validated a PR to `main`. The new workflow has not run yet: a pull request has not been opened. A green result on the exact proposed merge commit is still a merge gate.
+
 
 This document is a source-code comparison baseline. It does not claim that the original Base44 runtime was accessible in this session, that all pages were visually inspected, that all route handlers are live, or that the replacement has achieved parity. The public production site could not be fetched from the current network environment; authenticated access was not available. Record those as verification blockers, not as passes.
