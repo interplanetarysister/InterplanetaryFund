@@ -1,0 +1,13 @@
+{
+  "name": "ifund-geocode-staging",
+  "main": "geocodeWorker.js",
+  "compatibility_date": "2026-10-23",
+  "workers_dev": true,
+  "routes": [],
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "MIGRATION_API_PREVIEW": "enabled",
+    "IFUND_GEOCODE_ENABLED": "enabled",
+    "IFUND_GEOCODE_VERIFIER": "enabled"
+  }
+}

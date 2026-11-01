@@ -1,0 +1,352 @@
+{
+  "observed_date": "2026-11-01",
+  "method": "Chromium public browsing; non-GET requests blocked",
+  "observations": [
+    {
+      "site": "reference",
+      "url": "https://interplanetaryfund.base44.app/",
+      "status": 200,
+      "body_excerpt": "CAMPAIGN DONATIONS ARE CURRENTLY PAUSED\n\nInterplanetary Fund is live. You can create, publish, browse, and share campaigns now. Individual campaigns cannot accept donations while this notice is shown. Separate donations to Interplanetary Fund support operation of the platform only.\n\nA UNIVERSE OF POSSIBILITY\n\nInterplanetary Fund\nEndless possibilities start with one question:\nWhat if?\n\nOne place to ask for help \u2014 or make something possible.\n\nStart a campaign\nExplore causes\n\nBe here from the beginning.\n\nJoin the free InterplanetaryFund founding community and get early-access updates.\n\nJoin Founding Members\n\nAlready have an account? Log in \u00b7 Create one\n\nWHO IS INTERPLANETARY FUND?\n\nOne universe of funding \u2014 for every person, every cause, every platform.\n\nThank you for giving me the opportunity to introduce you to Interplanetary Fund.\n\nI want to start with a simple question: What if raising money for a cause, a business idea, a personal need, or a dream didn't require people to navigate a dozen different platforms?\n\nWhat if the technology could bring the fundraising ecosystem together?\n\nThat is the idea behind Interplanetary Fund.\n\nRead more \u00b7 Our Story\nExplore causes\nStart your own fund\n\nSupport Interplanetary Fund itself\n\nThis donation helps operate the platform. It is not credited to any individual campaign.\n\nSupport Interplanetary Fund with PayPal\n\nPayment supports IFund only; PayPal controls checkout options.\n\nPowered by\n\nCryptocurrency donations \u2014 Coming soon\u2026\n\nAbout\n\u00b7\nContact\n\u00b7\nTerms\n\u00b7\nPrivacy\n\u00b7\nHelp & Legal\n\u00a9 2026 Interplanetary Fund \u00b7 All rights reserved \u00b7 Donations are voluntary and may not reach campaign goals.\nEdit with",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/"
+        },
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/api/apps/public/prod/public-settings/by-id/6a67a778342a8fe05ee79cba"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/api/app-logs/6a67a778342a8fe05ee79cba/log-user-in-app/home"
+        },
+        {
+          "method": "POST",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/analytics/track/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/functions/getFundraisingMode"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "reference",
+      "url": "https://interplanetaryfund.base44.app/login",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\n\nINTERPLANETARY FUND \u00b7 MEMBER ACCESS\n\nWhat If?\n\nWelcome back\n\nLog in to your account\n\nContinue with Google\nApple\nFacebook\n\nSocial sign-in opens your IFund account. To publish to Facebook Pages, connect Facebook separately after signing in.\n\nOR\nEmail address\nPassword\nForgot password?\n\nUse the email linked to your IFund account. If you registered with Google, Apple or Facebook, use that same sign-in option above instead.\n\nLog in\n\nForgot your password? Reset it here.\n\nDon't have an account? Create one\n\nEdit with",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/login"
+        },
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/api/apps/public/prod/public-settings/by-id/6a67a778342a8fe05ee79cba"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/analytics/track/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/app-logs/6a67a778342a8fe05ee79cba/log-user-in-app/login"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "reference",
+      "url": "https://interplanetaryfund.base44.app/discover",
+      "status": 200,
+      "body_excerpt": "IFund\n\nWhat If?\n\nEXPLORE\n\nHome\nDiscover\nCommunity\nIFund Social\nGlobal Globe\nStories & Blogs\nHelp Center\n\nEXPLORE\n\nDiscover\n\nHelp Center\nDiscover campaigns\n\nWhat if your support changed everything for someone today? These causes need help right now.\n\nHelp Center\nTips\nTrending campaigns\n\nCauses gaining the most momentum right now.\n\nPLANET & ENVIRONMENT\n\nBread for the hungry\n\n$0 of $2,222 \u00b7 0 donors\n\nOTHER\n\nEmpowering dreams through collective funding: Secure your spot on our waitlist today\n\n$0 of $1,000 \u00b7 0 donors\n\nBUSINESS\n\nSupport a Hackathon Project: Help Us Build Alexa Integration\n\n$0 of $250 \u00b7 0 donors\n\nAll\nMedical\nEmergency\nEducation\nCommunity\nAnimals\nBusiness\nMemorial\nDisaster Relief\nCreative\nPlanet & Environment\nOther\n\nPLANET & ENVIRONMENT\n\nBread for the hungry\n\n$0 of $2,222 \u00b7 0 donors\n\nCompare campaign\n\nOTHER\n\nEmpowering dreams through collective funding: Secure your spot on our waitlist today\n\n$0 of $1,000 \u00b7 0 donors\n\nCompare campaign\n\nBUSINESS\n\nSupport a Hackathon Project: Help Us Build Alexa Integration\n\n$0 of $250 \u00b7 0 donors\n\nCompare campaign\n\nPLANET & ENVIRONMENT\n\nHelp Clean Up Cannon Beach, Oregon\n\n$0 of $1,500 \u00b7 0 donors\n\nCompare campaign\n\nBUSINESS\n\nHelp us win the hackathon!\n\n$0 of $5,000 \u00b7 0 donors\n\nCompare campaign\n\nCOMMUNITY\n\nHelp this ol' gal with medical transportation!\n\n$0 of $2,500 \u00b7 0 donors\n\nCompare campaign\n\nMEDICAL\n\nAllen has cancer and needs a place to recover!\n\n$0 of $20,000 \u00b7 0 donors\n\nCompare campaign\n\nDISASTER RELIEF\n\nA Tiny home for the Houseless\n\n$0 of $50,000 \u00b7 0 donors\n\nCompare campaign\n\nBUSINESS\n\nA moneymaking question, What if?\n\n$0 of $5,000 \u00b7 0 donors\n\nCompare campaign\n\nBUSINESS\n\nHelp buissness idea\n\n$0 of $25,000 \u00b7 0 donors\n\nCompare campaign\n\nBUSINESS\n\nInterplanetary fund: What if?\n\n$0 of $2,500 \u00b7 0 donors\n\nCompare campaign\n\nMEDICA",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/discover"
+        },
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/api/apps/public/prod/public-settings/by-id/6a67a778342a8fe05ee79cba"
+        },
+        {
+          "status": 200,
+          "host": "base44.app",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/entities/Campaign"
+        },
+        {
+          "status": 401,
+          "host": "base44.app",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/entities/User/me"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/analytics/track/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/app-logs/6a67a778342a8fe05ee79cba/log-user-in-app/discover"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "reference",
+      "url": "https://interplanetaryfund.base44.app/help",
+      "status": 200,
+      "body_excerpt": "IFund\n\nWhat If?\n\nEXPLORE\n\nHome\nDiscover\nCommunity\nIFund Social\nGlobal Globe\nStories & Blogs\nHelp Center\n\nEXPLORE\n\nHelp Center\n\nHelp Center\nHow can we help?\n\nThe Interplanetary Fund Help Center\n\nSearch IFund help articles\nBrowse by topic\nGetting Started\nYour first steps with IFund\nCampaigns\nCreate, manage and share a fundraiser\nDonations\nGiving, confirmations and receipts\nConnections & Publishing\nLink accounts and share your campaigns\nMoney & Withdrawals\nBalances, transfers and payout questions\nAccount & Security\nYour profile, sign-in and privacy\nSubscriptions\nPlans, charges and billing\nAI Assistance\nHow IFund assistants can help\nCommunity\nGroups, posts and conversations\nLegal & Policies\nTerms, privacy, copyright and permissions\nLegal documents & rights\n\nPublic IFund agreements, privacy information, copyright and campaign permissions. No sign-in required.\n\nTerms of Service\nPrivacy Policy\nCopyright & Intellectual Property\nCampaign & AI Permissions\nPayments & Withdrawals\nPermissions & Infringement Reports\nUsing connections and AI\n\nSimple, current steps for connecting apps, saving passwords, choosing permissions, and using your private verification inbox.\n\nHow do I connect another app? \nWhat can IFund AI do with my connected accounts? \nHow do I change what AI is allowed to do? \nHow do I save or use a password? \nWhere do my sign-up codes and verification emails go? \nHelp articles\nConnections & Publishing\nHow do I connect another app?\nPick an app, sign in, and check if it works.\nAI Assistance\nWhat can IFund AI do with my connected accounts?\nOne big AI switch, and one switch for each app.\nConnections & Publishing\nHow do I change what AI is allowed to do?\nTurn AI off any time. Reconnect for a different scope.\nAccount & Security\nHow do I save or use a password?\nUse your phone pa",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/help"
+        },
+        {
+          "status": 200,
+          "host": "interplanetaryfund.base44.app",
+          "path": "/api/apps/public/prod/public-settings/by-id/6a67a778342a8fe05ee79cba"
+        },
+        {
+          "status": 401,
+          "host": "base44.app",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/entities/User/me"
+        },
+        {
+          "status": 200,
+          "host": "base44.app",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/entities/HelpArticle"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/api/apps/6a67a778342a8fe05ee79cba/analytics/track/batch"
+        },
+        {
+          "method": "POST",
+          "path": "/api/app-logs/6a67a778342a8fe05ee79cba/log-user-in-app/help"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "production",
+      "url": "https://interplanetaryfund.com/",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\n\nONE UNIVERSE OF FUNDING\n\nWhat if?\n\nThe Universal Fundraising Operating System\n\nStart a campaign\nExplore campaigns\nCommunity live feed\n\nNo posts yet. Community updates will appear here.\n\nCampaigns\n\nThere are no published campaigns yet.\n\npermission denied for table ifund_campaigns\n\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.com",
+          "path": "/"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_campaigns"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_posts"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/cdn-cgi/rum"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "production",
+      "url": "https://interplanetaryfund.com/login",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nSign in to Interplanetary Fund\n\nUse your connected identity or a one-time email code. Passwords are not required.\n\nContinue with Google\nContinue with Facebook\nEmail address\nEmail me a sign-in code\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.com",
+          "path": "/login"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/cdn-cgi/rum"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "production",
+      "url": "https://interplanetaryfund.com/discover",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nDiscover campaigns\n\npermission denied for table ifund_campaigns\n\nNo active campaigns yet.\n\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.com",
+          "path": "/discover"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_campaigns"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/cdn-cgi/rum"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "production",
+      "url": "https://interplanetaryfund.com/help",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nPage not found\nHome\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund.com",
+          "path": "/help"
+        }
+      ],
+      "blocked_writes": [
+        {
+          "method": "POST",
+          "path": "/cdn-cgi/rum"
+        }
+      ],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "published-pages",
+      "url": "https://interplanetaryfund-migration.pages.dev/",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\n\nONE UNIVERSE OF FUNDING\n\nWhat if?\n\nThe Universal Fundraising Operating System\n\nStart a campaign\nExplore campaigns\nCommunity live feed\n\nNo posts yet. Community updates will appear here.\n\nCampaigns\n\nThere are no published campaigns yet.\n\npermission denied for table ifund_campaigns\n\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund-migration.pages.dev",
+          "path": "/"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_campaigns"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_posts"
+        }
+      ],
+      "blocked_writes": [],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "published-pages",
+      "url": "https://interplanetaryfund-migration.pages.dev/login",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nSign in to Interplanetary Fund\n\nUse your connected identity or a one-time email code. Passwords are not required.\n\nContinue with Google\nContinue with Facebook\nEmail address\nEmail me a sign-in code\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund-migration.pages.dev",
+          "path": "/login"
+        }
+      ],
+      "blocked_writes": [],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "published-pages",
+      "url": "https://interplanetaryfund-migration.pages.dev/discover",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nDiscover campaigns\n\npermission denied for table ifund_campaigns\n\nNo active campaigns yet.\n\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund-migration.pages.dev",
+          "path": "/discover"
+        },
+        {
+          "status": 401,
+          "host": "ssibsfmtodgximseeqsv.supabase.co",
+          "path": "/rest/v1/ifund_campaigns"
+        }
+      ],
+      "blocked_writes": [],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    },
+    {
+      "site": "published-pages",
+      "url": "https://interplanetaryfund-migration.pages.dev/help",
+      "status": 200,
+      "body_excerpt": "Interplanetary Fund\nWhat if?\nHome\nExplore\nCommunity\nReporter\nConnections\nMy campaigns\n\u25d0\nSign in\nFacebook\nInstagram\nYouTube\nTikTok\nReddit\nX\nLinkedIn\nPinterest\nGoFundMe\nPayPal\nPage not found\nHome\nInterplanetary Fund\n\nWhat if? \u00b7 Build with care, give with purpose.\n\nPreview migration build \u2014 no payment processing enabled.",
+      "requests": [
+        {
+          "status": 200,
+          "host": "interplanetaryfund-migration.pages.dev",
+          "path": "/help"
+        }
+      ],
+      "blocked_writes": [],
+      "limitations": [
+        "Anonymous desktop light theme only",
+        "POST requests blocked; no signed-in or payment journey tested"
+      ]
+    }
+  ]
+}
