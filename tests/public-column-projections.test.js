@@ -26,7 +26,7 @@ test("community pages never select the private author UUID", () => {
 
 test("community ownership controls use the authenticated own-post ID RPC", () => {
   const source = read("Community.jsx");
-  assert.match(source, /rpc\(\s*["']ifund_my_post_ids["']\s*\)/);
+  assert.match(source, /rpc\(\s*["']ifund_my_post_ids["']\s*,?\s*\)/);
   assert.match(source, /ownPostIds\.has\(p\.id\)/);
   assert.doesNotMatch(source, /\.eq\(["']author_id["']/);
 });
