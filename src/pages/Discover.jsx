@@ -13,12 +13,17 @@ export default function Discover() {
   useEffect(() => {
     let active = true;
     if (!db) { setList([]); setError("Campaign data is not configured."); return; }
+    setList(null);
     db.from("ifund_campaigns").select(COLUMNS).eq("status", "active")
       .order("created_at", { ascending: false }).limit(100)
       .then(({ data, error: e }) => {
         if (!active) return;
         setList(data || []);
         setError(e?.message || "");
+      }).catch(() => {
+        if (!active) return;
+        setList([]);
+        setError("Campaigns could not be loaded. Please try again later.");
       });
     return () => { active = false; };
   }, []);
@@ -31,7 +36,7 @@ export default function Discover() {
   );
   return <main className="ifund-discover">
     <div className="ifund-discover-heading">
-      <div><p className="eyebrow">EXPLORE THE UNIVERSE OF GIVING</p><h1>Discover campaigns</h1>
+      <div><p className="eyebrow">EXPLORE THE UNIVERSE OF GIVING</p><h1>Explore Universe</h1>
         <p>What if your support changed everything for someone today? These causes need help right now.</p></div>
       <Link className="secondary" to="/help"><LifeBuoy size={18}/> Help Center</Link>
     </div>
