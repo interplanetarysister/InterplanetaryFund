@@ -88,8 +88,7 @@ function App() {
       </header>
       {!configured && (
         <p className="setup-warning">
-          Setup needed: configure the Supabase publishable key and apply the
-          schema migration before the app can load live data.
+          Some account and campaign services are temporarily unavailable. Please try again later.
         </p>
       )}
       {user === undefined && configured ? (
