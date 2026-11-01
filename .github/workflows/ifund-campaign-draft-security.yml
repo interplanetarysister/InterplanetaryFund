@@ -6,11 +6,15 @@ on:
     paths:
       - supabase/functions/ifund-campaign-draft/index.ts
       - tests/campaign-draft-auth-boundary.test.js
+      - apps/web/src/lib/legacyAuthLanding.js
+      - apps/web/tests/legacy-auth-landing.test.js
       - .github/workflows/ifund-campaign-draft-security.yml
   pull_request:
     paths:
       - supabase/functions/ifund-campaign-draft/index.ts
       - tests/campaign-draft-auth-boundary.test.js
+      - apps/web/src/lib/legacyAuthLanding.js
+      - apps/web/tests/legacy-auth-landing.test.js
       - .github/workflows/ifund-campaign-draft-security.yml
 permissions:
   contents: read
@@ -23,4 +27,4 @@ jobs:
         with:
           node-version: "22.23.2"
       - name: Verify preview authorization and bounded request contract
-        run: node --test tests/campaign-draft-auth-boundary.test.js
+        run: node --test tests/campaign-draft-auth-boundary.test.js apps/web/tests/legacy-auth-landing.test.js
