@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { safeReturnTo } from "../lib/authReturnTo";
 import { db } from "../lib/supabase";
 import { Message } from "../components/UI";
 
@@ -15,6 +16,8 @@ const SIGN_IN_PROVIDERS = [
  */
 export default function Auth({ user }) {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const returnTo = safeReturnTo(params.get("returnTo"));
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [codeRequested, setCodeRequested] = useState(false);
@@ -22,14 +25,31 @@ export default function Auth({ user }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  async function signOut() {
+    if (!db || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const { error: signOutError } = await db.auth.signOut();
+      if (signOutError) throw signOutError;
+      navigate("/login", { replace: true });
+    } catch {
+      setError("We could not complete sign-out. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (user) {
     return (
       <main>
         <h1>Signed in</h1>
         <p>{user.email}</p>
-        <button type="button" onClick={() => db?.auth.signOut()}>
-          Sign out
-        </button>
+        <div className="actions">
+          <Link className="primary" to={returnTo}>Continue to your destination</Link>
+          <button type="button" disabled={busy} onClick={signOut}>Sign out</button>
+        </div>
+        <Message error>{error}</Message>
       </main>
     );
   }
@@ -41,7 +61,7 @@ export default function Auth({ user }) {
     try {
       const { error: authError } = await db.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + "/login" },
+        options: { redirectTo: window.location.origin + "/login?returnTo=" + encodeURIComponent(returnTo) },
       });
       if (authError) throw authError;
     } catch (authError) {
@@ -84,7 +104,7 @@ export default function Auth({ user }) {
         type: "email",
       });
       if (authError) throw authError;
-      navigate("/mine");
+      navigate(returnTo, { replace: true });
     } catch (authError) {
       setError(authError?.message || "That code could not be verified.");
     } finally {
