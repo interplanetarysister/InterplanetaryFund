@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {listMyFollows,setCampaignFollow,changeFollow,validateFollowPrefs,
   DEFAULT_FOLLOW_PREFS} from "../src/lib/followedCampaigns.js";
 import {loadNotifications,acknowledgeNotification,acknowledgeAllNotifications,
@@ -87,5 +88,22 @@ test("notification destinations are strictly local, contextual, and token-free",
     "/%2f%2fevil.invalid","/dashboard\\evil","/auth/callback?token_hash=secret",
     "/dashboard\nLocation: https://evil.invalid"]){
     assert.equal(safeNoticeDestination(path),null,path);
+  }
+});
+
+
+test("staged follows migration uses verified lifecycle and consent gates without recreating notifications",()=>{
+  const sql=readFileSync(new URL("../../../supabase/migrations/pending/20261029_ifund_follow_notifications.sql",import.meta.url),"utf8");
+  assert.doesNotMatch(sql,/create table public\.ifund_notifications/i);
+  assert.match(sql,/public\.ifund_current_account_is_active\(\)/);
+  assert.match(sql,/public\.ifund_legal_acceptances/);
+  assert.match(sql,/terms_version = '2026-10-13-v3'/);
+  assert.match(sql,/explicit_consent = true/);
+  assert.match(sql,/accepted_at is not null/);
+  for(const name of ["select","insert","update","delete"]){
+    const policy=sql.match(new RegExp("create policy ifund_follows_owner_"+name+"[\\s\\S]*?;","i"))?.[0];
+    assert.ok(policy, name+" policy exists");
+    assert.match(policy,/ifund_current_account_is_active/);
+    assert.match(policy,/ifund_legal_acceptances/);
   }
 });
