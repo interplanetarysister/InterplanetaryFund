@@ -1,6 +1,21 @@
 # Migration status — 2026-11-01
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
+## Production notification Worker — November 1, 2026
+
+Owner explicitly authorized creating missing Cloudflare Workers for interplanetaryfund.com production. Implemented the notification-read slice on the existing draft workstream; this is not a platform-wide cutover or a complete notification feature.
+
+- Source commit: `5a9029a5983870bedda200c29cda3c8ccc2a6d7b`; `worker/notificationsWorker.js`, `tests/notifications-worker.test.js`, `wrangler.notifications.jsonc`. Reuses the existing verified-session/lifecycle helper in `worker/reads.js`; native Fetch API, no added dependency. Inspected Cloudflare workers-sdk as reuse candidate; no SDK/library import was needed for this small existing-pattern handler.
+- Deployed Worker `ifund-notifications`, deployment `c1c2d2c5b0c74fad978d0a9264913c7d`. Four exact routes: apex and www, each `/api/notifications` and `/api/notifications/health`. No pre-existing route was replaced; existing web/admin/MCP/payment paths remain assigned as before.
+- Canonical Supabase backend only; publishable key and user bearer JWT; no service-role credential. Auth confirms the user and fresh active-account state. Notification query always filters by verified owner, retains database RLS, limits to 50 newest rows and explicitly projects safe fields. User-supplied owner/filter queries do not broaden access. Only safe internal links are returned. Redirects, errors and malformed upstream responses fail closed.
+- Live schema/policy inspection confirmed owner SELECT and owner acknowledgement RLS on public.ifund_notifications. No schema, policy or data writes performed. The new Worker supports reads only; no notification creation or acknowledgement is implemented.
+- Local Node tests: 10/10 passed for owner filtering/projection, missing/invalid account state, confirmation/lifecycle gates, canonical-host guard, disabled flag, write/unknown-route rejection, unsafe links, malformed responses, error redaction and health semantics.
+- Live curl checks: 8/8 expected responses across both apex/www (health 200, no session 401, invalid bearer 401, POST 405). A Python urllib probe was blocked by Cloudflare code 1010; the existing curl path returned expected service responses without changing security settings. No real authenticated notification data was read, and two-user production isolation remains unverified.
+- Health URL: https://interplanetaryfund.com/api/notifications/health . The health response reports configured/auth-required/read-only; it does not claim full migration readiness. The original frontend /notifications route is not wired by this Worker deployment; keep its parity row unverified.
+- Rollback: remove ONLY newly added route IDs e3d1d5017c4941e4a65bfe278104f678, 669ecbb64e8e4f6b9db3e740e840c976, 0fa1e0fb4e1d468f9f235e7b0c107f30, e0eafc0497f641fb8c9928c31ae9d19d. This restores prior route matching. Disable IFUND_NOTIFICATIONS_ENABLED to fail closed without deleting data. Preserve every pre-existing route and Worker.
+
+Remaining: frontend integration, real authenticated owner/cross-owner browser checks, acknowledgement semantics, notification delivery/event producers, monitoring and remaining migration Workers. No payment, AI, publishing, workflow replay or overall cutover activated.
+
 ## Latest audit checkpoint — November 1, 2026
 
 Source: authenticated original-app audit and read-only GitHub/Cloudflare/Supabase inspection recorded in the owner's saved `interplanetary-fund-migration-audit-2026-11-01.md`. This section carries forward that evidence; it does not claim a new live database test during this documentation repair. Earlier dated sections below are historical.
