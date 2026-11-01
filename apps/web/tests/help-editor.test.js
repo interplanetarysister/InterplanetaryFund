@@ -97,6 +97,10 @@ test("help RLS and publish RPC require trusted admin claims",()=>{
  assert.match(sql,/grant update\\(slug,category,question,description,answer,keywords,stage\\)/i);
  assert.doesNotMatch(sql,/grant select,insert,update on public\\.ifund_help_drafts/i);
  assert.doesNotMatch(sql,/grant update\\([^)]*author_id/i);
+ assert.match(sql,/ifund_current_account_is_active/);
+ assert.match(sql,/grant update\\(slug,category,question,description,answer,keywords,stage\\)/i);
+ assert.doesNotMatch(sql,/grant select,insert,update on public\\.ifund_help_drafts/i);
+ assert.doesNotMatch(sql,/grant update\\([^)]*author_id/i);
  assert.match(sql,/helpful_yes integer/);
  assert.match(sql,/Published help article URLs cannot be changed/);
  
