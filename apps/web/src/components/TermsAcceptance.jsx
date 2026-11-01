@@ -1,10 +1,11 @@
 import {useCallback,useEffect,useState} from "react";
-import {Link,useLocation} from "react-router-dom";
+import {Link,useLocation,matchPath} from "react-router-dom";
 import BrandLogo from "@/components/brand/BrandLogo";
 import useVerifiedUser from "@/lib/useVerifiedUser";
 import {authClient} from "@/api/auth";
 import {legalAcceptanceStatus,acceptLegalAgreement} from "@/lib/legalAcceptance";
 import {TERMS_VERSION} from "@/lib/legalPolicy";
+import {HISTORICAL_ROUTES} from "@/lib/historicalRoutes";
 
 // Exact original consent text; actual acceptance is stored per authenticated
 // account and legal version, not inferred from a local checkbox or Auth login.
@@ -19,7 +20,10 @@ export default function TermsAcceptance({children}){
  const [agreed,setAgreed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
- const exempt=PUBLIC_LEGAL_ROUTES.has(pathname)||
+ const isPublicRoute=HISTORICAL_ROUTES.some(route=>
+   route.access==="public"&&matchPath({path:route.path,end:true},pathname)
+ );
+ const exempt=isPublicRoute||PUBLIC_LEGAL_ROUTES.has(pathname)||
    pathname.startsWith("/help/")||pathname.startsWith("/embed/");
  const check=useCallback(async()=>{
   setStatus({phase:"checking",owner:user?.id||null});setError("");
@@ -61,7 +65,10 @@ export default function TermsAcceptance({children}){
    setError("Agreement could not be saved. Please try again.");
   }finally{setBusy(false);}
  }
- if(exempt || phase==="ready"&&!user)return children;
+ // The route guard owns the blocked-account message. Do not replace it with
+ // an agreement spinner after lifecycle verification has deliberately blocked
+ // an unmapped, disabled, or deletion-pending account.
+ if(exempt||((phase==="ready"||phase==="blocked")&&!user))return children;
  if(phase==="error")return <div role="alert" className="p-8">Account verification is unavailable. No protected content was loaded.</div>;
  if(phase==="loading")return <div role="status" className="p-8">Checking your account…</div>;
  if(status.phase==="accepted"&&status.owner===user?.id)return children;
