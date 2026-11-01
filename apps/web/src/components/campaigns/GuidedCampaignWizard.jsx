@@ -108,7 +108,7 @@ function categoryFor(cause) {
 // Live AI must replace this with a server-validated contract (5 unique titles,
 // 2 unique summaries, exactly 1 story, and an image request grounded in the same brief).
 export function buildChoices(answers, details, goal, variation=0) {
-  const clean = value => String(value||"").trim().replace(/\\s+/g," ");
+  const clean = value => String(value||"").trim().replace(/\s+/g," ");
   const subject=clean(details);
   if (!subject) throw new Error("Campaign-specific factual details are required");
   const who=clean(answers.beneficiary||"the campaign's intended beneficiaries").toLowerCase();
