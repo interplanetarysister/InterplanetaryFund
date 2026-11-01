@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sparkles, PenLine, Target, Image as ImageIcon, Save, Rocket } from "lucide-react";
 import { db } from "../lib/supabase";
 import {
@@ -30,6 +30,7 @@ function Editor({ user }) {
   const [draftBeneficiary, setDraftBeneficiary] = useState("");
   const [draftNeed, setDraftNeed] = useState("");
   const [draftResult, setDraftResult] = useState(null);
+  const [imageTheme, setImageTheme] = useState("Hopeful and warm");
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
@@ -234,6 +235,7 @@ function Editor({ user }) {
             {draftResult.imagePrompt && (
               <details><summary>Illustration idea (no image generated)</summary>
                 <p>{draftResult.imagePrompt}</p>
+                <p>Suggested artwork theme: {imageTheme}</p>
               </details>
             )}
           </div>
@@ -302,6 +304,12 @@ function Editor({ user }) {
           />
         </label>
         <h2><ImageIcon size={22}/> 4. Add a picture</h2>
+        <label>Artwork theme
+          <select value={imageTheme} onChange={e => setImageTheme(e.target.value)} disabled={editorDisabled}>
+            {["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"].map(t => <option key={t}>{t}</option>)}
+          </select>
+        </label>
+        <p>Need an illustration idea? <Link to="/ai-images">Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
         <label>
           Cover image URL (optional)
           <input
