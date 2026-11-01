@@ -1,6 +1,7 @@
 import "./navigation.css";
+import { Bot, UserRound, Radio, Users, Compass, PlusCircle, LayoutDashboard, Link2, BookOpen, House, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
 import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
@@ -60,7 +61,7 @@ function App() {
             <small>{SLOGAN}</small>
           </div>
         </div>
-        <button type="button" className="ifund-menu-toggle" aria-expanded={menuOpen} aria-controls="ifund-primary-nav" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? "Close menu" : "Menu"}</button>
+        <button type="button" className="ifund-menu-toggle" aria-expanded={menuOpen} aria-controls="ifund-primary-nav" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <><X size={18}/> Close</> : <><Menu size={18}/> Menu</>}</button>
         <nav id="ifund-primary-nav" className={menuOpen ? "ifund-primary-nav is-open" : "ifund-primary-nav"} aria-label="Main navigation">
           <div className="ifund-nav-group"><span>Explore</span><NavLink end to="/">Home</NavLink><NavLink to="/discover">Discover</NavLink><NavLink to="/community">Community</NavLink><NavLink to="/blogs">Stories & Blogs</NavLink></div>
           <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">New Campaign</NavLink><NavLink to="/dashboard">Dashboard</NavLink><NavLink to="/mine">My Campaigns</NavLink></div>
@@ -106,6 +107,8 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/profile" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+          <Route path="/social" element={<Community user={user} />} />
           <Route path="/campaign/:id" element={<Detail />} />
           <Route
             path="/create"
@@ -165,7 +168,12 @@ function App() {
           />
         </Routes>
       )}
-      <nav className="ifund-bottom-nav" aria-label="Mobile navigation"><NavLink end to="/">Home</NavLink><NavLink to="/discover">Discover</NavLink><NavLink to="/create">Create</NavLink><NavLink to="/mine">Campaigns</NavLink><NavLink to="/connections">Connect</NavLink></nav>
+      <nav className="ifund-bottom-nav" aria-label="Mobile navigation">
+        <NavLink to={user ? "/agents" : loginPath} aria-label="AI Team"><Bot size={21}/><span>AI Team</span></NavLink>
+        <NavLink to={user ? "/profile" : loginPath} aria-label="Profile"><UserRound size={21}/><span>Profile</span></NavLink>
+        <NavLink to="/social" aria-label="IFund Social"><Radio size={21}/><span>IFund Social</span></NavLink>
+        <NavLink to="/community" aria-label="Forums"><Users size={21}/><span>Forums</span></NavLink>
+      </nav>
       <footer>
         <strong>Interplanetary Fund</strong>
         <p>What if? · Build with care, give with purpose.</p>
