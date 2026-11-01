@@ -185,3 +185,22 @@
 .ifund-my-campaigns-empty{text-align:center;border:1px dashed #52668b;border-radius:20px;padding:clamp(2rem,5vw,3.5rem)}
 .ifund-my-campaigns-empty>svg{color:#67e8f9}
 .ifund-my-campaigns-empty .primary{margin-top:.7rem}
+
+
+.ifund-atlas-heading{border:1px solid #347b92;border-radius:24px;padding:clamp(1.5rem,4vw,3rem);background:radial-gradient(ellipse at 85% 5%,#155c72,transparent 60%),linear-gradient(125deg,#0b1833,#241640);margin-bottom:1rem}
+.ifund-atlas-heading>svg{color:#67e8f9}
+.ifund-atlas-heading h1{margin:.4rem 0}
+.ifund-atlas-heading p:last-child{max-width:62ch}
+.ifund-atlas-map{position:relative;overflow:hidden;isolation:isolate;aspect-ratio:2/1;border:2px solid #367c92;border-radius:20px;background:radial-gradient(ellipse at center,#13435b,#061125 70%);box-shadow:inset 0 0 65px #0b6d8b55,0 0 32px #0b6d8b33;margin-bottom:1rem}
+.ifund-atlas-map>svg{display:block;width:100%;height:100%}
+.ifund-atlas-marker{position:absolute;transform:translate(-50%,-50%);width:44px;height:44px;min-width:44px;min-height:44px;display:grid;place-items:center;border:0;background:transparent;border-radius:50%;cursor:pointer;z-index:2}
+.ifund-atlas-marker span{width:16px;height:16px;background:#67e8f9;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 5px #22d3ee55,0 0 24px 8px #22d3eeaa}
+.ifund-atlas-marker[aria-pressed="true"] span{background:#f0abfc;box-shadow:0 0 0 6px #c084fc88,0 0 24px #f0abfc}
+.ifund-atlas-marker:focus-visible{outline:3px solid #fff;outline-offset:0}
+.ifund-atlas-map-label{position:absolute;left:.7rem;bottom:.6rem;display:flex;align-items:center;gap:.35rem;background:#061125d9;padding:.35rem .6rem;border-radius:8px;font-size:.72rem;letter-spacing:.06em;color:#b2f6ff;pointer-events:none}
+.ifund-atlas-selection{display:flex;align-items:flex-start;gap:1rem;margin:1rem 0}
+.ifund-atlas-selection>svg{flex-shrink:0;color:#67e8f9}
+.ifund-atlas-selection h2{margin:0}
+.ifund-atlas-selection .primary{display:inline-flex;margin-top:.5rem}
+.ifund-atlas-note{font-size:.85rem;opacity:.9;margin-top:1rem}
+@media(max-width:600px){.ifund-atlas-map{aspect-ratio:1.3/1}.ifund-atlas-map-label{font-size:.6rem}.ifund-atlas-marker{width:40px;height:40px;min-width:40px;min-height:40px}}
