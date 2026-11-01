@@ -9,6 +9,7 @@ import { loginPathFor } from "./lib/authReturnTo";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
 import Dashboard from "./pages/Dashboard";
+import VisualWorkspace from "./pages/VisualWorkspace";
 import Discover from "./pages/Discover";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
@@ -107,6 +108,22 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/agents" element={user ? <VisualWorkspace path="/agents" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/mission" element={user ? <VisualWorkspace path="/mission" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ai-images" element={user ? <VisualWorkspace path="/ai-images" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/inbox" element={user ? <VisualWorkspace path="/inbox" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/following" element={user ? <VisualWorkspace path="/following" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/giving" element={user ? <VisualWorkspace path="/giving" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ledger" element={user ? <VisualWorkspace path="/ledger" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/withdrawals" element={user ? <VisualWorkspace path="/withdrawals" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/notifications" element={user ? <VisualWorkspace path="/notifications" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/communications" element={user ? <VisualWorkspace path="/communications" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/institutions" element={user ? <VisualWorkspace path="/institutions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/subscriptions" element={user ? <VisualWorkspace path="/subscriptions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/donors" element={user ? <VisualWorkspace path="/donors" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/analytics" element={user ? <VisualWorkspace path="/analytics" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ops" element={user ? <VisualWorkspace path="/ops" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/platform" element={user ? <VisualWorkspace path="/platform" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/profile" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
           <Route path="/social" element={<Community user={user} />} />
           <Route path="/campaign/:id" element={<Detail />} />
