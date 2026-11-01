@@ -12,6 +12,13 @@ const PUBLIC_LEGAL_ROUTES=new Set([
  "/","/terms","/privacy","/contact","/help","/login","/register",
  "/forgot-password","/reset-password","/auth/callback"
 ]);
+// These routes are explicitly public in App.jsx. A failed account check must
+// not turn public browsing into a mandatory authenticated Terms flow.
+const PUBLIC_BROWSE_ROUTES=new Set([
+ "/discover","/social","/community","/blogs","/globe",
+ "/download","/founding-members","/activate"
+]);
+const PUBLIC_BROWSE_PREFIXES=["/campaign/","/blogs/","/publications/","/u/","/community/"];
 export default function TermsAcceptance({children}){
  const {pathname}=useLocation();
  const {user,phase}=useVerifiedUser();
@@ -19,7 +26,8 @@ export default function TermsAcceptance({children}){
  const [agreed,setAgreed]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
- const exempt=PUBLIC_LEGAL_ROUTES.has(pathname)||
+ const exempt=PUBLIC_LEGAL_ROUTES.has(pathname)||PUBLIC_BROWSE_ROUTES.has(pathname)||
+   PUBLIC_BROWSE_PREFIXES.some(prefix=>pathname.startsWith(prefix))||
    pathname.startsWith("/help/")||pathname.startsWith("/embed/");
  const check=useCallback(async()=>{
   setStatus({phase:"checking",owner:user?.id||null});setError("");
@@ -62,6 +70,12 @@ export default function TermsAcceptance({children}){
   }finally{setBusy(false);}
  }
  if(exempt || phase==="ready"&&!user)return children;
+ if(phase==="blocked")return <div role="alert" className="min-h-screen deep-space flex flex-col items-center justify-center gap-4 p-8 text-center text-white">
+  <h1 className="text-xl font-semibold">Account access unavailable</h1>
+  <p>Your account cannot access member features until its status is verified or restored.</p>
+  <Link to="/help" className="underline text-cyan-200">Visit the public Help Center</Link>
+  <Link to="/" className="underline text-cyan-200">Return to public home</Link>
+ </div>;
  if(phase==="error")return <div role="alert" className="p-8">Account verification is unavailable. No protected content was loaded.</div>;
  if(phase==="loading")return <div role="status" className="p-8">Checking your account…</div>;
  if(status.phase==="accepted"&&status.owner===user?.id)return children;
