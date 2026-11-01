@@ -83,7 +83,7 @@ The original Base44 `src/pages/Home.jsx` includes:
 
 The original campaign page includes campaign media, progress/funding information, updates, sharing, translations, follow controls, campaign-management tools, and a donation dialog. Its checkout path calls Base44 functions including `getPaymentCapabilities`, `createPayPalOrder`, and `capturePayPalOrder`. Those backend contracts must be independently replaced and verified before campaign donations can be enabled.
 
-The fuller independent app in `apps/web` preserves substantially more of the original homepage content and layout than the reduced root app. It still has numerous routes explicitly mapped to “Coming soon”, including giving, communications, mission, AI images, institutions, inbox, notifications, donors, ledger, subscriptions, withdrawals, agents, operations, analytics, and admin routes.
+The fuller independent app in `apps/web` preserves substantially more of the original homepage content and layout than the reduced root app. Its current `Home.jsx` nevertheless hardcodes `isAuthenticated = false` and `user = null`, so signed-in home behavior is not wired through on that page. It also has numerous routes explicitly mapped to “Coming soon”, including giving, communications, mission, AI images, institutions, inbox, notifications, donors, ledger, subscriptions, withdrawals, agents, operations, analytics, and admin routes.
 
 ### Confirmed missing visual asset
 
