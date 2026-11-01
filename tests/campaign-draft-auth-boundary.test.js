@@ -81,6 +81,31 @@ test("valid owner with confirmed email gets exactly 5 titles, 2 summaries, 1 gro
   assert.equal(h.calls[1].options.headers.Authorization, "Bearer signed.test.jwt");
   assert.equal(h.calls[1].options.headers.apikey, "sb_publishable_test");
 });
+test("bounded variations produce distinct factual choices without external inference", async () => {
+  const h = harness();
+  const firstTitles = [];
+  for (let variation = 0; variation < 5; variation++) {
+    const response = await h.handler(h.request({ ...payload, variation }));
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.variation, variation);
+    assert.equal(body.titles.length, 5);
+    assert.equal(new Set(body.titles).size, 5);
+    assert.equal(body.summaries.length, 2);
+    assert.equal(new Set(body.summaries).size, 2);
+    assert.match(body.story, /neighborhood cleanup event/);
+    assert.equal(body.ai_inference, false);
+    assert.equal(body.image_rendered, false);
+    firstTitles.push(body.titles[0]);
+  }
+  assert.equal(new Set(firstTitles).size, 5);
+  assert.equal(h.calls.length, 10); // Auth + profile only, no AI or image provider.
+  for (const variation of [-1, 5, 1.5, "1", null]) {
+    const response = await h.handler(h.request({ ...payload, variation }));
+    assert.equal(response.status, 422);
+  }
+});
+
 test("configuration must point to canonical Supabase project", async () => {
   const h = harness({ url: "https://evil.example" });
   assert.equal((await h.handler(h.request())).status, 503);
