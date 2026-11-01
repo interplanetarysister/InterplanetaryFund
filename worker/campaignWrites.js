@@ -13,6 +13,31 @@ const CATEGORIES = new Set([
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
 const SELECT = 'id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,updated_at';
+const TERMS_VERSION = '2026-10-13-v3';
+
+async function currentTermsAcceptanceError(account, env, fetcher) {
+  const params = new URLSearchParams({
+    select: 'owner_id,terms_version,explicit_consent,accepted_at',
+    owner_id: 'eq.' + account.uid,
+    terms_version: 'eq.' + TERMS_VERSION,
+    limit: '2',
+  });
+  const upstream = await fetcher(
+    env.SUPABASE_URL + '/rest/v1/ifund_legal_acceptances?' + params.toString(),
+    { method: 'GET', headers: apiHeaders(env, account.jwt) },
+  );
+  if (!upstream.ok)
+    return response(503, { error: 'Agreement status could not be verified.' });
+  const rows = await upstream.json();
+  if (!Array.isArray(rows) || rows.length > 1)
+    return response(503, { error: 'Agreement status could not be verified.' });
+  const accepted = rows[0];
+  if (!accepted || accepted.owner_id !== account.uid ||
+      accepted.terms_version !== TERMS_VERSION ||
+      accepted.explicit_consent !== true || !accepted.accepted_at)
+    return response(403, { error: 'Accept the current IFund user agreement before managing campaigns.' });
+  return null;
+}
 
 function validatePayload(raw, isCreate) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -101,6 +126,10 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
         return response(422, { error: 'Invalid or incomplete campaign fields.' });
       if (create) campaign.owner_id = account.uid;
     }
+    // Enforce the versioned agreement on the server; the React dialog is only
+    // a user experience layer and can be bypassed by direct API requests.
+    const agreementDenied = await currentTermsAcceptanceError(account, env, fetcher);
+    if (agreementDenied) return agreementDenied;
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
