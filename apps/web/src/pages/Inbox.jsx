@@ -10,15 +10,6 @@ function localDestination(value) {
   return value;
 }
 
-function externalDestination(value) {
-  try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" || url.username || url.password) return null;
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
 
 export default function Inbox() {
   const [items, setItems] = useState([]);
@@ -123,7 +114,6 @@ export default function Inbox() {
         <div className="space-y-3">
           {visible.map(item => {
             const local = localDestination(item.link);
-            const external = !local ? externalDestination(item.link) : null;
             return (
               <article key={item.key} className="rounded-2xl border border-border bg-card p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -137,8 +127,7 @@ export default function Inbox() {
                     <p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{item.content}</p>
                     <p className="mt-3 text-xs text-muted-foreground">{item.date ? new Date(item.date).toLocaleString() : "Date unavailable"}</p>
                     {local && <Link to={local} className="mt-2 inline-block text-sm font-medium text-cyan-800 underline">View in IFund</Link>}
-                    {external && <a href={external} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-medium text-cyan-800 underline">Open source platform</a>}
-                    {!local && !external && item.link && <p className="mt-2 text-xs text-muted-foreground">External link unavailable</p>}
+                    {!local && item.link && <p className="mt-2 text-xs text-muted-foreground">External links are not opened from imported inbox records.</p>}
                   </div>
                   {item.status === "open" ? (
                     <button type="button" onClick={() => markDone(item)} disabled={Boolean(busy)}
