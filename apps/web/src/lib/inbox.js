@@ -3,6 +3,7 @@ import { isVerifiedEmailUser } from "./verifiedEmailUser.js";
 
 const INBOX_COLUMNS = "id,owner_id,platform,type,author,content,link,campaign_id,campaign_title,status,ai_draft,recipient_address,mailbox_priority,created_at";
 const NOTIFICATION_COLUMNS = "id,owner_id,title,body,type,link,read,created_at";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
@@ -59,6 +60,7 @@ export async function loadUniversalInbox(client) {
 }
 
 export async function markInboxItemDone(client, itemId) {
+  if (!UUID.test(itemId || "")) throw new Error("Invalid inbox item.");
   const owner = await verifiedOwner(client);
   const { data, error } = await client.from("ifund_inbox_items")
     .update({ status: "done" })
@@ -70,6 +72,7 @@ export async function markInboxItemDone(client, itemId) {
 }
 
 export async function markInboxNotificationRead(client, notificationId) {
+  if (!UUID.test(notificationId || "")) throw new Error("Invalid notification.");
   const owner = await verifiedOwner(client);
   const { data, error } = await client.from("ifund_notifications")
     .update({ read: true })
