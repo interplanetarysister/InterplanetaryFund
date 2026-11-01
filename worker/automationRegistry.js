@@ -38,6 +38,16 @@ export const WORKFLOWS = Object.freeze([
   scheduled('Weekly Writing Psychology & Social Trends Training', '0 16 * * *', 'UTC', ['refreshWritingResearch'], 'metered'),
 ]);
 
+// Two later Base44 workflow records were discovered in the authenticated
+// 2026-11-01 read-only inventory and canonical private Supabase registry.
+// Their original handler, predicate and schedule contracts are NOT verified.
+// Do not invent executable adapters or add them to the scheduler.
+export const SOURCE_ONLY_WORKFLOWS = Object.freeze([
+  Object.freeze({ source_id: '6ab445d712ec5013ebff9328', id: 'External Fund Sync', kind: 'scheduled', ported: false, inventory_only: true }),
+  Object.freeze({ source_id: '6ab446399b180129557a306a', id: 'Future Workflow Registry', kind: 'entity', ported: false, inventory_only: true }),
+]);
+export const ALL_SOURCE_WORKFLOWS = Object.freeze([...WORKFLOWS, ...SOURCE_ONLY_WORKFLOWS]);
+
 export const CONNECTOR_IDS = Object.freeze([
   'discord', 'facebook_pages', 'github', 'googleworkspace', 'gumroad',
   'instagram', 'linkedin', 'one_drive', 'slackbot', 'wix', 'wordpress_com',
@@ -48,7 +58,7 @@ export function readinessSummary() {
   return {
     state: 'not_connected',
     source_agents: AGENTS.length,
-    source_workflows: WORKFLOWS.length,
+    source_workflows: ALL_SOURCE_WORKFLOWS.length,
     source_connectors: CONNECTOR_IDS.length,
     verified_active_agents: 0,
     verified_active_workflows: 0,
