@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
 import { resolveVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 import { verifyAccountLifecycle } from "@/lib/accountLifecycle";
@@ -75,11 +75,7 @@ export function VerifiedUserProvider({ children }) {
     };
   }, []);
 
-  return (
-    <VerifiedUserContext.Provider value={state}>
-      {children}
-    </VerifiedUserContext.Provider>
-  );
+  return createElement(VerifiedUserContext.Provider, { value: state }, children);
 }
 
 export default function useVerifiedUser() {
