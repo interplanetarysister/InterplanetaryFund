@@ -36,7 +36,8 @@ alter table public.ifund_help_articles enable row level security;
 
 revoke all on public.ifund_help_drafts,public.ifund_help_articles from public,anon,authenticated;
 grant select on public.ifund_help_articles to anon,authenticated;
-grant select,insert,update on public.ifund_help_drafts to authenticated;
+grant select,insert on public.ifund_help_drafts to authenticated;
+grant update(slug,category,question,description,answer,keywords,stage) on public.ifund_help_drafts to authenticated;
 grant insert,update on public.ifund_help_articles to authenticated;
 
 -- Auth JWT app_metadata is only set by the trusted Auth service. Never
@@ -73,7 +74,7 @@ create policy ifund_help_drafts_admin_update on public.ifund_help_drafts
 -- update a public article without changing existing permanent URLs, link the
 -- draft, or rollback all changes on any error. SECURITY INVOKER respects RLS.
 create or replace function public.ifund_publish_help_draft(p_draft_id uuid)
-returns uuid language plpgsql security invoker set search_path=''
+returns uuid language plpgsql security definer set search_path=''
 as $$
 declare
  d public.ifund_help_drafts%rowtype;
