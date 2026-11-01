@@ -4,7 +4,14 @@
 export function legacyAuthLandingRedirect(href){
   let url;
   try{url=new URL(href);}catch{return null;}
-  if(url.pathname==="/auth/callback")return null;
+  // Legacy email confirmation links landed only on these auth/navigation pages.
+  // Device pairing (/activate?code=...), OAuth consent, and feature-specific
+  // one-time codes must never be mistaken for Supabase Auth callbacks.
+  const LEGACY_AUTH_LANDINGS = new Set([
+    "/", "/dashboard", "/onboarding", "/login", "/register",
+    "/forgot-password", "/reset-password",
+  ]);
+  if(!LEGACY_AUTH_LANDINGS.has(url.pathname))return null;
   if(url.protocol!=="https:" && !(url.protocol==="http:"&&url.hostname==="localhost"))
     return null;
   const hash=new URLSearchParams(url.hash.replace(/^#/,""));
