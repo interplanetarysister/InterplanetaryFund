@@ -176,7 +176,7 @@ function Editor({ user }) {
   }
   return (
     <main className="editor">
-      <div className="ifund-editor-hero"><p className="eyebrow">YOUR FUNDRAISING MISSION</p><h1>{id ? "Edit campaign" : "Create campaign"}</h1><p>Tell your story. Choose your goal. Share your cause.</p></div>
+      <div className="ifund-editor-hero"><p className="eyebrow">YOUR FUNDRAISING MISSION</p><h1>{id ? "Edit Your Mission" : "Launch a Mission"}</h1><p>Tell your story. Choose your goal. Share your cause.</p></div>
       <p>
         Save an incomplete draft at any time. Publishing validates the required
         fields.
