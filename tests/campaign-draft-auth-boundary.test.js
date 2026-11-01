@@ -3,7 +3,11 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
-const source = readFileSync(new URL("../supabase/functions/ifund-campaign-draft/index.ts", import.meta.url), "utf8");
+const source = readFileSync(new URL("../supabase/functions/ifund-campaign-draft-preview/index.ts", import.meta.url), "utf8");
+const sourceReference = readFileSync(new URL("../supabase/functions/ifund-campaign-draft/index.ts", import.meta.url), "utf8");
+test("invoked preview slug is staged with identical hardened source", () => {
+  assert.equal(source, sourceReference);
+});
 const uid = "a09c3b82-1758-454d-912c-e69ea4136daa";
 const base = "https://ssibsfmtodgximseeqsv.supabase.co";
 const payload = { answers: { cause: "Community initiative", beneficiary: "My community", need: "Equipment" },
