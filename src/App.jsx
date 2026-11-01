@@ -3,7 +3,6 @@ import { Bot, UserRound, Radio, Users, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
-import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
 import { loginPathFor } from "./lib/authReturnTo";
 import { Planet, Loading } from "./components/UI";
@@ -78,20 +77,9 @@ function App() {
           >
             ◐
           </button>
-          <Link to="/login">{user ? "Account" : "Sign in"}</Link>
+          <Link to={user ? "/dashboard" : "/login"}>{user ? "My dashboard" : "Sign in"}</Link>
         </div>
       </header>
-      {user && <div className="platform-strip" aria-label="Connection destinations">
-        {platforms.map((p) => (
-          <Link
-            key={p.id}
-            to="/connections"
-            title={p.name + " connection status"}
-          >
-            {p.name}
-          </Link>
-        ))}
-      </div>}
       {!configured && (
         <p className="setup-warning">
           Setup needed: configure the Supabase publishable key and apply the
@@ -186,7 +174,7 @@ function App() {
       )}
       <nav className="ifund-bottom-nav" aria-label="Mobile navigation">
         <NavLink to={user ? "/agents" : loginPath} aria-label="AI Team"><Bot size={21}/><span>AI Team</span></NavLink>
-        <NavLink to={user ? "/profile" : loginPath} aria-label="Profile"><UserRound size={21}/><span>Profile</span></NavLink>
+        <NavLink to={user ? "/dashboard" : loginPath} aria-label="Dashboard"><UserRound size={21}/><span>Dashboard</span></NavLink>
         <NavLink to="/social" aria-label="IFund Social"><Radio size={21}/><span>IFund Social</span></NavLink>
         <NavLink to="/community" aria-label="Forums"><Users size={21}/><span>Forums</span></NavLink>
       </nav>
