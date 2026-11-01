@@ -13,8 +13,8 @@ export default function Connections() {
       <section className="ifund-connections-hero">
         <PlugZap size={30} aria-hidden="true" />
         <p className="eyebrow">YOUR CONNECTED UNIVERSE</p>
-        <h1>Connections</h1>
-        <p>Keep your fundraising and social accounts together in one place.</p>
+        <h1>Mission Links</h1>
+        <p>Explore the accounts you can connect to your fundraising mission.</p>
       </section>
       <section className="ifund-connections-guidance">
         <ShieldCheck size={24} aria-hidden="true" />
@@ -28,7 +28,7 @@ export default function Connections() {
         <span className="sr-only">Find a platform</span>
         <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a platform..." />
       </label>
-      <h2>Platforms</h2>
+      <h2>Available platforms</h2>
       <div className="ifund-connections-grid">
         {visible.map((platform) => (
           <article className="card ifund-connection-card" key={platform.id}>
