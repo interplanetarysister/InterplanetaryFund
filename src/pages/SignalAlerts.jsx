@@ -11,7 +11,7 @@ export default function SignalAlerts({user}) {
   if(!db||!user?.id){setStatus("unavailable");return;}
   setStatus("loading");
   try {
-   const {data,error:e}=await db.from("ifund_notifications").select("*").eq("owner_id",user.id).limit(50);
+   const {data,error:e}=await db.from("ifund_notifications").select("id,title,body,type,read,created_at").eq("owner_id",user.id).order("created_at",{ascending:false}).limit(50);
    if(e)throw e;
    setItems(data||[]);setStatus("ready");setError("");
   }catch{setStatus("unavailable");setError("Alerts could not be loaded. Notification permissions or migrations may still be pending.");}
