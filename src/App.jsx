@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import VisualWorkspace from "./pages/VisualWorkspace";
 import Following from "./pages/Following";
 import MissionControl from "./pages/MissionControl";
+import SignalAlerts from "./pages/SignalAlerts";
 import AgentsPreview from "./pages/AgentsPreview";
 import InboxPreview from "./pages/InboxPreview";
 import Discover from "./pages/Discover";
@@ -110,7 +111,7 @@ function App() {
           <Route path="/giving" element={user ? <VisualWorkspace path="/giving" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/ledger" element={user ? <VisualWorkspace path="/ledger" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/withdrawals" element={user ? <VisualWorkspace path="/withdrawals" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/notifications" element={user ? <VisualWorkspace path="/notifications" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/notifications" element={user ? <SignalAlerts user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/communications" element={user ? <VisualWorkspace path="/communications" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/institutions" element={user ? <VisualWorkspace path="/institutions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/subscriptions" element={user ? <VisualWorkspace path="/subscriptions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
