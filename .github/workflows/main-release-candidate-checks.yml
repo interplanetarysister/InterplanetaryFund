@@ -1,0 +1,32 @@
+name: Main release candidate checks
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Verify lockfile is reproducible
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          git diff --exit-code -- package-lock.json package.json
+      - name: Unit tests
+        run: npm test
+      - name: Production build
+        run: npm run build
+      - name: Formatting check
+        run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
