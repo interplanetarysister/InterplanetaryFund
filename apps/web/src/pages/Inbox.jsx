@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, CheckCircle2, Loader2, MailOpen, RefreshCw, Search } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead } from "@/lib/inbox";
 import { safeNoticeDestination } from "@/lib/notifications";
@@ -21,6 +21,9 @@ function localDestination(value) {
 
 
 export default function Inbox() {
+  const [params] = useSearchParams();
+  const requestedCampaign = params.get("campaign") || "all";
+  const [campaignFilter, setCampaignFilter] = useState(requestedCampaign);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState("");
@@ -42,14 +45,17 @@ export default function Inbox() {
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+  useEffect(() => { setCampaignFilter(requestedCampaign); }, [requestedCampaign]);
 
   const platforms = useMemo(() => [...new Set(items.map(item => item.platform))].sort(), [items]);
+  const campaigns = useMemo(() => [...new Map(items.filter(item => item.campaign_id && item.campaign_title).map(item => [item.campaign_id, item.campaign_title])).entries()], [items]);
   const visible = useMemo(() => items.filter(item =>
     (tab === "all" || item.status === tab) &&
     (platform === "all" || item.platform === platform) &&
+    (campaignFilter === "all" || item.campaign_id === campaignFilter) &&
     (!search || [item.author, item.content, item.campaign_title, item.platform]
       .filter(Boolean).join(" ").toLowerCase().includes(search.toLowerCase()))
-  ), [items, tab, platform, search]);
+  ), [items, tab, platform, campaignFilter, search]);
 
   async function markDone(item) {
     if (busy) return;
@@ -99,6 +105,11 @@ export default function Inbox() {
           className="min-h-10 rounded-xl border border-border bg-background px-3 text-sm">
           <option value="all">All platforms</option>
           {platforms.map(name => <option key={name} value={name}>{name}</option>)}
+        </select>
+        <select value={campaignFilter} onChange={event => setCampaignFilter(event.target.value)} aria-label="Filter by campaign"
+          className="min-h-10 max-w-48 rounded-xl border border-border bg-background px-3 text-sm">
+          <option value="all">All campaigns</option>
+          {campaigns.map(([id, title]) => <option key={id} value={id}>{title}</option>)}
         </select>
         <button type="button" onClick={load} disabled={loading}
           className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-3 text-sm hover:bg-muted disabled:opacity-50">
