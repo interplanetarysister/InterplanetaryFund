@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { loadNotifications, acknowledgeNotification,
-  acknowledgeAllNotifications, safeNoticeDestination } from "@/lib/notifications";
+import { loadWorkerNotifications as loadNotifications,
+  acknowledgeWorkerNotification as acknowledgeNotification,
+  acknowledgeWorkerNotifications as acknowledgeAllNotifications } from "@/lib/notificationApi";
+import { safeNoticeDestination } from "@/lib/notifications";
 import { Bell, CheckCheck, ChevronRight } from "lucide-react";
 
 export default function Notifications(){
   const navigate=useNavigate();
   const alive=useRef(true);
   const requestId=useRef(0);
+  const actionLock=useRef(false);
   const [items,setItems]=useState([]);
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
@@ -35,16 +38,18 @@ export default function Notifications(){
   },[load]);
   const unread=items.filter(item=>item.read!==true).length;
   async function markAll(){
-    if(busy)return;
+    if(actionLock.current)return;
+    actionLock.current=true;
     setBusy("all");setError("");
     try {
-      await acknowledgeAllNotifications(authClient());
+      await acknowledgeAllNotifications(authClient(),items.filter(item=>!item.read).map(item=>item.id));
       await load();
     } catch(cause){setError(cause?.message||"Could not acknowledge notifications.");}
-    finally{setBusy("");}
+    finally{actionLock.current=false;if(alive.current)setBusy("");}
   }
   async function openNotice(item){
-    if(busy)return;
+    if(actionLock.current)return;
+    actionLock.current=true;
     setBusy(item.id);setError("");
     try {
       if(item.read!==true)await acknowledgeNotification(authClient(),item.id);
@@ -52,7 +57,7 @@ export default function Notifications(){
       const destination=safeNoticeDestination(item.link);
       if(destination)navigate(destination);
     } catch(cause){setError(cause?.message||"Could not acknowledge this notice.");}
-    finally{setBusy("");}
+    finally{actionLock.current=false;if(alive.current)setBusy("");}
   }
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header className="flex flex-wrap items-center justify-between gap-3">
@@ -62,7 +67,7 @@ export default function Notifications(){
       </div>
       {phase==="ready"&&unread>0&&<button type="button" disabled={Boolean(busy)}
         onClick={markAll} className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 disabled:opacity-50">
-        <CheckCheck aria-hidden="true" className="h-4 w-4"/>Mark all read ({unread})
+        <CheckCheck aria-hidden="true" className="h-4 w-4"/>Mark displayed read ({unread})
       </button>}
     </header>
     {error&&<p role="alert" className="rounded-lg border border-destructive/40 p-3 text-destructive">{error}</p>}

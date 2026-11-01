@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {loadWorkerNotifications,acknowledgeWorkerNotification,acknowledgeWorkerNotifications} from '../apps/web/src/lib/notificationApi.js';
+const uid='11111111-1111-4111-8111-111111111111';
+const session={access_token:'test.jwt',user:{id:uid}};
+const client=(changed=false)=>{let n=0;return {auth:{getSession:async()=>({data:{session:changed&&n++?{...session,user:{id:'other'}}:session}}),getUser:async()=>({data:{user:{id:uid,email_confirmed_at:'2026-01-01'}}})}};};
+test('worker list uses relative same-origin URL and bearer with no cookie fallback',async()=>{let calls=0;const rows=await loadWorkerNotifications(client(),async(url,init)=>{calls++;assert.equal(url,'/api/notifications');assert.equal(init.credentials,'omit');assert.equal(init.redirect,'error');assert.equal(init.headers.Authorization,'Bearer test.jwt');return Response.json([{id:uid,title:'Notice',read:false}]);});assert.equal(rows.length,1);assert.equal(calls,1);});
+test('account change discards the old response',async()=>{await assert.rejects(()=>loadWorkerNotifications(client(true),async()=>Response.json([])),/account changed/);});
+test('acknowledgement confirms exact returned ID',async()=>{assert.equal(await acknowledgeWorkerNotification(client(),uid,async(url,init)=>{assert.equal(init.method,'PATCH');assert.equal(init.body,undefined);return Response.json({acknowledged:[uid]});}),uid);await assert.rejects(()=>acknowledgeWorkerNotification(client(),uid,async()=>Response.json({acknowledged:[]})),/not confirmed/);});
+test('bulk operation sends only displayed IDs and rejects foreign results',async()=>{assert.equal(await acknowledgeWorkerNotifications(client(),[uid,uid],async(url,init)=>{assert.equal(url,'/api/notifications/acknowledge');assert.deepEqual(JSON.parse(init.body),{ids:[uid]});return Response.json({acknowledged:[uid]});}),1);await assert.rejects(()=>acknowledgeWorkerNotifications(client(),[uid],async()=>Response.json({acknowledged:['other']})),/not confirmed/);});
+test('upstream failures have no direct database fallback',async()=>{let count=0;await assert.rejects(()=>loadWorkerNotifications(client(),async()=>{count++;return Response.json({error:'private'},{status:503});}),/could not be confirmed/);assert.equal(count,1);});

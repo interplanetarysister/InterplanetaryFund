@@ -24,6 +24,14 @@
     {
       "pattern": "www.interplanetaryfund.com/api/notifications/health",
       "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "interplanetaryfund.com/api/notifications/*",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "www.interplanetaryfund.com/api/notifications/*",
+      "zone_name": "interplanetaryfund.com"
     }
   ]
 }
