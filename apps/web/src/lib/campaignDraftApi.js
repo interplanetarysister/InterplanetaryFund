@@ -1,5 +1,12 @@
 import { authClient } from "@/api/auth";
 
+// Fail closed on malformed suggestions; never apply arbitrary provider payloads.
+function validChoices(items, expected, maxLength) {
+  return Array.isArray(items) && items.length === expected &&
+    items.every(item => typeof item === "string" && item.trim().length > 0 && item.length <= maxLength) &&
+    new Set(items.map(item => item.trim().toLowerCase())).size === expected;
+}
+
 // Connect only to isolated preview function; authenticated Supabase session required.
 // This does not activate live AI inference, image rendering, payments or posting.
 export async function requestCampaignDraft({ answers, details, goal, variation = 0 }) {
@@ -10,9 +17,10 @@ export async function requestCampaignDraft({ answers, details, goal, variation =
     body: { answers, details, goal, variation },
   });
   if (error) throw new Error("The campaign preview service is unavailable. Your answers are unchanged.");
-  if (!data || !Array.isArray(data.titles) || data.titles.length !== 5 ||
-      !Array.isArray(data.summaries) || data.summaries.length !== 2 ||
-      typeof data.story !== "string" || data.ai_inference !== false ||
+  if (!data || !validChoices(data.titles, 5, 120) ||
+      !validChoices(data.summaries, 2, 600) ||
+      typeof data.story !== "string" || !data.story.trim() ||
+      data.story.length > 15000 || data.ai_inference !== false ||
       data.image_rendered !== false) {
     throw new Error("The campaign preview returned an invalid response.");
   }
