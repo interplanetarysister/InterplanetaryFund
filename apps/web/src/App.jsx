@@ -37,6 +37,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const MissionControlPage = lazy(() => import("./pages/MissionControlPage"));
 const OpsCenter = lazy(() => import("./pages/OpsCenter"));
+const WorkerConnectionsAdmin = lazy(() => import("./pages/WorkerConnectionsAdmin"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const OwnerCampaignPreview = lazy(() => import("./pages/OwnerCampaignPreview"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
@@ -125,6 +126,7 @@ function AppRoutes() {
       <Route path="/agents" element={<RequireAccess access="member"><Agents /></RequireAccess>} />
       <Route path="/mission" element={<RequireAccess access="member"><MissionControlPage /></RequireAccess>} />
       <Route path="/ops" element={<RequireAccess access="admin"><OpsCenter /></RequireAccess>} />
+      <Route path="/admin/worker-connections" element={<RequireAccess access="admin"><WorkerConnectionsAdmin /></RequireAccess>} />
       <Route path="/analytics" element={<RequireAccess access="admin"><Analytics /></RequireAccess>} />
       <Route path="/connect" element={<RequireAccess access="admin"><Navigate replace to="/admin/integrations?view=ai" /></RequireAccess>} />
       <Route path="/admin/help" element={<RequireAccess access="admin"><HelpAdmin /></RequireAccess>} />
