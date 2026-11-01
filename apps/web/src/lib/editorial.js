@@ -1,5 +1,5 @@
 // Source-aligned public editorial content, using the *verified live* Supabase
-// schema. The old draft branch referenced ifund_user_blogs and UUID entry IDs;
+// schema. The old draft branch referenced a nonexistent relation and UUID entry IDs;
 // neither matches production. Keep all unpublished author data private.
 import { authClient } from "@/api/auth";
 import {
