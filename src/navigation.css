@@ -1,0 +1,17 @@
+/* Base44-inspired responsive navigation shell; missing routes remain unavailable until implemented. */
+.ifund-primary-nav{display:flex;flex-wrap:wrap;gap:1rem;align-items:center}
+.ifund-nav-group{display:flex;flex-wrap:wrap;gap:.65rem;align-items:center}
+.ifund-nav-group>span{font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;opacity:.65}
+.ifund-primary-nav a,.ifund-bottom-nav a{padding:.55rem .7rem;border-radius:.7rem;text-decoration:none}
+.ifund-primary-nav a.active,.ifund-bottom-nav a.active{background:rgba(6,182,212,.18);color:#67e8f9}
+.ifund-menu-toggle,.ifund-bottom-nav{display:none}
+@media(max-width:850px){
+ .app{padding-bottom:calc(4.5rem + env(safe-area-inset-bottom))}
+ .ifund-menu-toggle{display:inline-flex;padding:.65rem 1rem;cursor:pointer}
+ .ifund-primary-nav{display:none;width:100%;flex-direction:column;align-items:stretch;max-height:65dvh;overflow-y:auto;overscroll-behavior:contain}
+ .ifund-primary-nav.is-open{display:flex}
+ .ifund-nav-group{display:flex;flex-direction:column;align-items:stretch}
+ .ifund-nav-group>span{padding:.6rem .7rem 0}
+ .ifund-bottom-nav{display:flex;position:fixed;z-index:60;bottom:0;left:0;right:0;justify-content:space-around;gap:.1rem;background:var(--surface,#101827);border-top:1px solid rgba(148,163,184,.25);padding:.45rem .25rem calc(.45rem + env(safe-area-inset-bottom));font-size:.76rem}
+ .ifund-bottom-nav a{flex:1;text-align:center;padding:.55rem .1rem}
+}
