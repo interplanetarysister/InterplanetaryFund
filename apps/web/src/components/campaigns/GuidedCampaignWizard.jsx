@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { buildCoverPrompt } from "@/lib/coverPrompt";
+import { requestCampaignDraft } from "@/lib/campaignDraftApi";
 
 // Choice-based draft coaching. No network call or paid model is implied.
 // Future AI calls must use an authenticated, rate-limited server endpoint.
@@ -41,6 +42,7 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
   const [details, setDetails] = useState("");
   const [error, setError] = useState("");
   const [stage, setStage] = useState("questions");
+  const [requesting, setRequesting] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [selectedTitle, setSelectedTitle] = useState(0);
   const [selectedSummary, setSelectedSummary] = useState(0);
@@ -48,7 +50,7 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
   const question = getWizardQuestion(step, answers);
   const chosen = answers[question.key] || "";
   function choose(value) { setAnswers(previous => ({ ...previous, [question.key]: value })); setCustom(""); setError(""); }
-  function next() {
+  async function next() {
     const value = custom.trim() || chosen;
     if (!value) return;
     const updated = { ...answers, [question.key]: value };
@@ -56,9 +58,9 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
     if (step < QUESTIONS.length - 1) { setStep(previous => previous + 1); setCustom(""); setError(""); return; }
     if (!details.trim()) { setError("Please add one sentence describing your real project before generating a draft."); return; }
     const draft = draftFromWizard(updated, details, goal);
-    if (draft) { setCopy(buildChoices(updated, details, goal, 0)); setStage("copy"); }
+    if (draft) { setRequesting(true); try { const result=await requestCampaignDraft({answers:updated,details,goal}); setCopy({titles:result.titles,summaries:result.summaries,story:result.story}); setStage("copy"); } catch(e) { setError(e.message); } finally { setRequesting(false); } }
   }
-  function regenerate() { const n=generation+1; setGeneration(n); setCopy(buildChoices(answers, details, goal, n)); setSelectedTitle(0); setSelectedSummary(0); }
+  async function regenerate() { const n=generation+1; setRequesting(true); setError(""); try { const result=await requestCampaignDraft({answers,details,goal}); setGeneration(n); setCopy({titles:result.titles,summaries:result.summaries,story:result.story}); setSelectedTitle(0); setSelectedSummary(0); } catch(e) {setError(e.message);} finally {setRequesting(false);} }
   const imagePrompt = copy ? buildCoverPrompt({title:copy.titles[selectedTitle],category:categoryFor(answers.cause),story:copy.story,regenCount:generation}) : "";
   return <section aria-label="Five-choice guided campaign assistant" className="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-6">
     <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">✨ Guided campaign assistant</h3><span className="text-sm text-muted-foreground">{stage === "questions" ? `Question ${step+1} of ${QUESTIONS.length}` : "Review generated content"}</span></div>
@@ -78,10 +80,10 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     <div className="flex flex-wrap gap-3">
       <button type="button" disabled={step === 0} onClick={() => { setStep(previous => previous - 1); setCustom(""); setError(""); }} className="min-h-12 rounded-xl border border-input px-5 disabled:opacity-50">Back</button>
-      <button type="button" disabled={!chosen && !custom.trim()} onClick={next} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">{step === QUESTIONS.length - 1 ? "Create editable starter story" : "Next question"}</button>
+      <button type="button" disabled={requesting || (!chosen && !custom.trim())} onClick={next} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">{step === QUESTIONS.length - 1 ? "Create editable starter story" : "Next question"}</button>
     </div>
     </> : <div className="space-y-5">
-      <p className="text-sm text-muted-foreground">These are offline, fact-grounded starter suggestions, not model-generated writing or image files. Model-backed regeneration remains unavailable until its secured service is connected.</p>
+      <p className="text-sm text-muted-foreground">These are authenticated backend-generated factual starter suggestions, not model-generated writing or image files. Live model inference and image rendering remain unavailable.</p>
       <fieldset className="space-y-2"><legend className="font-semibold">Choose a title — 5 options</legend>
         {copy.titles.map((item,i)=><button key={i} type="button" onClick={()=>setSelectedTitle(i)} aria-pressed={selectedTitle===i} className={`block w-full min-h-12 rounded-xl border p-3 text-left ${selectedTitle===i?"border-primary bg-primary/15":"border-border"}`}>{i+1}. {item}</button>)}
       </fieldset>
@@ -92,7 +94,7 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
       <div className="space-y-2"><h4 className="font-semibold">Interplanetary Fund image concept</h4><p className="text-sm text-muted-foreground">The original signature interstellar/cyberpunk/space-comic image prompt is prepared from your campaign context. Image rendering is not connected, and no image is represented as generated.</p><details><summary className="cursor-pointer text-sm underline">See image prompt</summary><textarea readOnly aria-label="Campaign-grounded cover image prompt" value={imagePrompt} rows={5} className="mt-2 w-full rounded-xl border bg-background p-3 text-xs" /></details></div>
       <div className="flex flex-wrap gap-2">
         <button type="button" onClick={()=>setStage("questions")} className="min-h-12 rounded-xl border px-4">Edit answers</button>
-        <button type="button" onClick={regenerate} className="min-h-12 rounded-xl border px-4">Try another set</button>
+        <button type="button" onClick={regenerate} disabled={requesting} className="min-h-12 rounded-xl border px-4">Try another set</button>
         <button type="button" onClick={()=>onApply({title:copy.titles[selectedTitle],summary:copy.summaries[selectedSummary],story:copy.story,imagePrompt})} className="min-h-12 rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Use selected campaign content</button>
       </div>
     </div>}
