@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { persistCampaignContent } from "@/lib/campaignPublication";
+import GuidedCampaignWizard from "@/components/campaigns/GuidedCampaignWizard";
 
 const STEPS = [
   { label: "Your Details", title: "Your campaign starts here", description: "Your signed-in account owns this private draft. You can save progress and return at any time." },
@@ -99,9 +100,10 @@ export default function CreateCampaign() {
         <label className="block font-semibold">Fundraising goal (USD)<input required min="0.01" step="0.01" type="number" value={form.goal_amount} onChange={e => change("goal_amount", e.target.value)} placeholder="5000" className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4 font-normal" /></label>
       </section>}
       {step === 2 && <section className="space-y-4">
+        <GuidedCampaignWizard goal={form.goal_amount} onApply={draft => setForm(previous => ({ ...previous, summary: draft.summary, story: draft.story }))} />
         <label className="block font-semibold">Short description<textarea maxLength={600} rows={3} value={form.summary} onChange={e => change("summary", e.target.value)} placeholder="A few sentences that explain your campaign." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.summary.length}/600 characters</span></label>
         <label className="block font-semibold">Your campaign story<textarea required maxLength={15000} rows={10} value={form.story} onChange={e => change("story", e.target.value)} placeholder="Tell people what happened, what you hope to accomplish, and how support will help." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.story.length}/15,000 characters</span></label>
-        <div className="rounded-xl border border-border p-4"><p className="font-semibold">AI writing assistance</p><p className="mt-1 text-sm text-muted-foreground">AI title, description, and story generation are not connected in this independent build yet. Your writing is saved as entered. Generation controls will appear when the independent AI service passes authentication, quota, and cost-safety checks.</p></div>
+        <p className="text-sm text-muted-foreground">Review and personalize the suggested story before publishing. Model-powered rewriting is not yet connected; no facts are invented automatically.</p>
       </section>}
       {step === 3 && <section className="space-y-4">
         <div className="space-y-2 rounded-xl border border-border p-4"><p className="text-xs font-semibold uppercase tracking-wider text-primary">{categoryLabels[form.category]}</p><h3 className="font-display text-2xl font-bold break-words">{form.title || "Your campaign title"}</h3>{form.summary && <p className="whitespace-pre-wrap text-muted-foreground">{form.summary}</p>}<p className="font-semibold">Goal: ${Number(form.goal_amount || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p><div className="border-t border-border pt-3"><h4 className="font-semibold">Campaign story</h4><p className="mt-2 whitespace-pre-wrap break-words text-sm">{form.story || "Your story will appear here."}</p></div></div>
