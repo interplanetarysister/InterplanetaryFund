@@ -4,10 +4,17 @@ alter table public.ifund_campaigns
   add column if not exists latitude numeric(8,5),
   add column if not exists longitude numeric(8,5);
 
-alter table public.ifund_campaigns
-  add constraint ifund_atlas_latitude_range check (latitude between -90 and 90),
-  add constraint ifund_atlas_longitude_range check (longitude between -180 and 180),
-  add constraint ifund_atlas_location_pair check ((latitude is null) = (longitude is null));
+do $ begin
+  if not exists (select 1 from pg_constraint where conname = 'ifund_atlas_latitude_range' and conrelid = 'public.ifund_campaigns'::regclass) then
+    alter table public.ifund_campaigns add constraint ifund_atlas_latitude_range check (latitude between -90 and 90);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'ifund_atlas_longitude_range' and conrelid = 'public.ifund_campaigns'::regclass) then
+    alter table public.ifund_campaigns add constraint ifund_atlas_longitude_range check (longitude between -180 and 180);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'ifund_atlas_location_pair' and conrelid = 'public.ifund_campaigns'::regclass) then
+    alter table public.ifund_campaigns add constraint ifund_atlas_location_pair check ((latitude is null) = (longitude is null));
+  end if;
+end $;
 
 -- Keep location editing owner-only through existing campaign RLS.
 -- Existing client grants are column-restricted; no latitude/longitude write grants
