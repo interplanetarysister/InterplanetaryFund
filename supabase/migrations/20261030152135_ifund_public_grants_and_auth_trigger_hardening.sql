@@ -1,16 +1,10 @@
--- Applied migration 20261030152135_ifund_public_grants_and_auth_trigger_hardening.
--- Reconciled from the live migration history and verified ACL on 2026-10-30.
-
--- REVIEWED-BUT-UNAPPLIED production security hardening.
--- Canonical project: ssibsfmtodgximseeqsv.
--- Source evidence (2026-10-29): public.ifund_create_auth_profile() is a
--- SECURITY DEFINER trigger function, owned by postgres, wired to
--- auth.users by trigger ifund_auth_profile_created.
--- Anon and authenticated roles have direct EXECUTE grants unnecessarily.
--- Do not apply until independent signup/rollback test evidence is available.
-
+-- APPLIED migration 20261030152135_ifund_public_grants_and_auth_trigger_hardening.
+-- Reconstructed from the canonical Supabase migration ledger. Do not replay
+-- manually or use this file as a rollback script.
+-- The auth trigger must remain executable by supabase_auth_admin while
+-- direct anon/authenticated execution is revoked.
+-- The live ACL must be independently rechecked after any provider upgrade.
 BEGIN;
-
 DO $preflight$
 BEGIN
   IF NOT EXISTS (
@@ -29,19 +23,9 @@ BEGIN
   END IF;
 END
 $preflight$;
-
--- Explicitly preserve the auth service's trigger execution role. Do not
--- revoke function access from postgres or supabase_auth_admin.
 GRANT EXECUTE ON FUNCTION public.ifund_create_auth_profile() TO supabase_auth_admin;
 REVOKE EXECUTE ON FUNCTION public.ifund_create_auth_profile() FROM PUBLIC, anon, authenticated;
-
 COMMIT;
-
--- Post-apply check (read only):
--- select has_function_privilege('anon','public.ifund_create_auth_profile()','EXECUTE'),
---        has_function_privilege('authenticated','public.ifund_create_auth_profile()','EXECUTE'),
---        has_function_privilege('supabase_auth_admin','public.ifund_create_auth_profile()','EXECUTE');
--- Expected false, false, true. Verify new-user auth/signup and profile
--- creation with isolated test identities, then independently review logs.
--- In rollback: GRANT EXECUTE ON FUNCTION public.ifund_create_auth_profile()
---              TO anon, authenticated;
+-- If rollback is ever approved, it must restore only the previous provider
+-- state and be treated as a security downgrade. Never re-grant EXECUTE to
+-- anon/authenticated as a routine rollback step.
