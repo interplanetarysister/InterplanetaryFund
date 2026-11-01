@@ -41,6 +41,18 @@ test("older deployed preview cannot silently pretend to offer a new set", async 
   await old.requestCampaignDraft(sample); // legacy initial preview remains compatible
   await assert.rejects(old.requestCampaignDraft({ ...sample, variation: 1 }), /not yet available/);
 });
+test("malformed, duplicate or non-string suggestions are rejected before UI apply", async () => {
+  const bad = [
+    { ...result(0), titles: ["same", "same", "three", "four", "five"] },
+    { ...result(0), summaries: ["valid", 7] },
+    { ...result(0), story: "" },
+    { ...result(0), titles: ["", "two", "three", "four", "five"] },
+  ];
+  for (const reply of bad) {
+    const h = apiHarness(reply);
+    await assert.rejects(h.requestCampaignDraft(sample), /invalid response/);
+  }
+});
 test("wizard locks overlapping requests and preserves an edited story", () => {
   assert.match(wizardSource, /if \(inFlight\.current \|\| !copy\) return/);
   assert.match(wizardSource, /requestId !== requestVersion\.current/);
