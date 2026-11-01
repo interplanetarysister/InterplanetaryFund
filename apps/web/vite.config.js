@@ -29,6 +29,13 @@ function blockCyclicProductionChunks() {
 }
 
 export default defineConfig({
+  server: {
+    allowedHosts: ['.app.github.dev'],
+    proxy: {
+      '/api/': 'http://127.0.0.1:8787',
+      '/functions/geocodeCity': 'http://127.0.0.1:8787',
+    },
+  },
   plugins: [react(), blockCyclicProductionChunks()],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: {

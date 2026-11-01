@@ -75,3 +75,27 @@ provider-payment and remaining original-route parity are not certified by this
 preview build.
 
 Frontend preview validation: 43 apps/web tests pass, the complete Vite + Pages Worker artifact builds and verifies, and Chromium captured 24 original-versus-coded home/login screenshots across 390/768/1440 widths and light/dark themes. All 12 coded cases had no missing design assets and no horizontal overflow; local fonts/hero loaded and story expansion worked. This is bounded UI evidence, not full-platform certification.
+
+## Live source preview and Codespaces tooling
+
+Cloudflare successfully built and deployed commit
+`d3cffd907b50cf2ebb04625cd9164d772853cd5b` at
+https://5fbe97ad.interplanetaryfund-source-preview.pages.dev . Live health,
+public campaign reads and community reads returned 200; the community endpoint
+returned one real record. Missing-session account/campaign/post/geocode calls
+returned 401. Unknown financial API returned 404. The published build manifest
+identified apps/web, the exact commit, clean source and bundled API Worker.
+Twenty-four live public-page browser cases passed across mobile/desktop and
+light/dark with no missing design assets, overflow or Base44 requests.
+
+Codespaces setup is checked in under `.devcontainer`; `npm run dev:preview`
+serves the frontend on 5173 and the independent API on loopback 8787. Local
+startup and proxy checks passed: login 200, health 200, missing-session account
+401. The first startup attempt raced a concurrent dependency install; rerunning
+after that install completed passed without a source-code change.
+`build_preview.py` completed its actual frozen install, tests, frontend/API build
+and artifact verification. Its optional deploy targets only the separate
+preview project. No Cloudflare credential is stored in the helper.
+The public configuration endpoint returns only canonical modern publishable
+configuration and rejects private/legacy keys; 44 frontend/API tests now pass.
+Actual Codespace container creation/rebuild is not controlled from this chat.

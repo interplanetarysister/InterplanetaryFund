@@ -31,3 +31,17 @@ test('public community projection does not require private author identity grant
   assert.equal(r.status, 200);
   assert.equal(requested.searchParams.get('select'), 'id,body,created_at');
 });
+
+test('public configuration exposes only a canonical publishable key', async () => {
+  for (const key of ['sb_secret_private','eyJ.service_role.jwt','']) {
+    const r = await pages.fetch(new Request('https://preview.example/api/public-config'), {
+      SUPABASE_URL:'https://ssibsfmtodgximseeqsv.supabase.co', SUPABASE_PUBLISHABLE_KEY:key,
+    });
+    assert.equal(r.status,503);
+    assert.doesNotMatch(await r.text(),/sb_secret_private|eyJ/);
+  }
+  const r = await pages.fetch(new Request('https://preview.example/api/public-config'), {
+    SUPABASE_URL:'https://ssibsfmtodgximseeqsv.supabase.co', SUPABASE_PUBLISHABLE_KEY:'sb_publishable_test',
+  });
+  assert.deepEqual(await r.json(),{url:'https://ssibsfmtodgximseeqsv.supabase.co',key:'sb_publishable_test'});
+});

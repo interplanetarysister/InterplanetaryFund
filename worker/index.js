@@ -8,6 +8,16 @@ import { geocodeCity } from './geocodeCity.js';
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/public-config') {
+      if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+      if (env.SUPABASE_URL !== 'https://ssibsfmtodgximseeqsv.supabase.co' ||
+          typeof env.SUPABASE_PUBLISHABLE_KEY !== 'string' || !env.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_')) {
+        return response(503, { error: 'Public configuration unavailable.' });
+      }
+      // Publishable keys are intentionally browser-visible; private and legacy
+      // JWT-shaped credentials are never returned by this endpoint.
+      return response(200, { url: env.SUPABASE_URL, key: env.SUPABASE_PUBLISHABLE_KEY });
+    }
     if (pathname === '/functions/geocodeCity' || pathname === '/api/apps/6a67a778342a8fe05ee79cba/functions/geocodeCity') return geocodeCity(request, env);
     if (pathname === '/api/health') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });

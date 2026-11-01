@@ -107,3 +107,19 @@ select only public columns. Missing sessions are rejected; financial checkout
 has no invented success path. Authenticated write journeys still need actual
 signed-in runtime verification. Home/navigation now read real Supabase session
 state rather than hard-coding every visitor as signed out.
+
+## GitHub Codespaces
+
+Check out `fix/source-backed-preview` and rebuild the dev container. The checked-in
+`.devcontainer` selects Node 24 and installs both manifests. `npm run dev:preview`
+starts the original-source frontend on forwarded port 5173 and a loopback-only
+independent API on 8787, with Vite proxying API traffic. It obtains only the
+intentionally public configuration from the source preview, or accepts a
+`VITE_SUPABASE_PUBLISHABLE_KEY` Codespaces secret. No private key is fetched or
+committed. Codespace port visibility stays private by default.
+
+`python3 build_preview.py` builds/tests/verifies the actual frontend and backend.
+`python3 build_preview.py --deploy` uses the existing Cloudflare CLI credentials
+and deploys only to `interplanetaryfund-source-preview`; it does not switch the
+production domain. Cloudflare credentials belong in encrypted environment
+settings, never in the Python file.
