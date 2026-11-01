@@ -1,9 +1,14 @@
 // IFund campaign-writing contract; deploy as an isolated authenticated function.
 // No payment, domain, workflow, database mutation, or external AI charge.
 const headers = {"content-type":"application/json","cache-control":"no-store"};
-const send=(status,data)=>new Response(JSON.stringify(data),{status,headers});
+const allowedOrigins = new Set(["https://interplanetaryfund.com","https://www.interplanetaryfund.com","http://localhost:5173","http://127.0.0.1:5173"]);
+let requestHeaders = headers;
+const send=(status,data)=>new Response(JSON.stringify(data),{status,headers:requestHeaders});
 const clean=(v,n=1500)=>typeof v==="string"?v.trim().replace(/\s+/g," ").slice(0,n):"";
 Deno.serve(async req=>{
+  const origin = req.headers.get("origin");
+  requestHeaders = origin && allowedOrigins.has(origin) ? {...headers,"access-control-allow-origin":origin,"access-control-allow-methods":"POST, OPTIONS","access-control-allow-headers":"authorization,apikey,content-type,x-client-info","vary":"Origin"} : headers;
+  if(req.method==="OPTIONS") return new Response(null,{status:204,headers:requestHeaders});
   if(req.method!=="POST")return send(405,{error:"method_not_allowed"});
   if(!req.headers.get("authorization")?.startsWith("Bearer "))return send(401,{error:"authentication_required"});
   if(Number(req.headers.get("content-length")||0)>12000)return send(413,{error:"too_large"});
