@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { buildCoverPrompt } from "@/lib/coverPrompt";
 
 // Choice-based draft coaching. No network call or paid model is implied.
 // Future AI calls must use an authenticated, rate-limited server endpoint.
@@ -39,6 +40,11 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
   const [custom, setCustom] = useState("");
   const [details, setDetails] = useState("");
   const [error, setError] = useState("");
+  const [stage, setStage] = useState("questions");
+  const [generation, setGeneration] = useState(0);
+  const [selectedTitle, setSelectedTitle] = useState(0);
+  const [selectedSummary, setSelectedSummary] = useState(0);
+  const [copy, setCopy] = useState(null);
   const question = getWizardQuestion(step, answers);
   const chosen = answers[question.key] || "";
   function choose(value) { setAnswers(previous => ({ ...previous, [question.key]: value })); setCustom(""); setError(""); }
@@ -50,11 +56,14 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
     if (step < QUESTIONS.length - 1) { setStep(previous => previous + 1); setCustom(""); setError(""); return; }
     if (!details.trim()) { setError("Please add one sentence describing your real project before generating a draft."); return; }
     const draft = draftFromWizard(updated, details, goal);
-    if (draft) onApply(draft);
+    if (draft) { setCopy(buildChoices(updated, details, goal, 0)); setStage("copy"); }
   }
+  function regenerate() { const n=generation+1; setGeneration(n); setCopy(buildChoices(answers, details, goal, n)); setSelectedTitle(0); setSelectedSummary(0); }
+  const imagePrompt = copy ? buildCoverPrompt({title:copy.titles[selectedTitle],category:categoryFor(answers.cause),story:copy.story,regenCount:generation}) : "";
   return <section aria-label="Five-choice guided campaign assistant" className="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-6">
-    <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">✨ Guided campaign assistant</h3><span className="text-sm text-muted-foreground">Question {step + 1} of {QUESTIONS.length}</span></div>
-    <p className="text-sm text-muted-foreground">Choose one of five answers, or type your own. The assistant will prepare an editable starter story without making up personal facts.</p>
+    <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">✨ Guided campaign assistant</h3><span className="text-sm text-muted-foreground">{stage === "questions" ? `Question ${step+1} of ${QUESTIONS.length}` : "Review generated content"}</span></div>
+    <p className="text-sm text-muted-foreground">Five easy choices per question. Then review five title ideas, two short descriptions, one story and a signature cover-art direction.</p>
+    {stage === "questions" ? <>
     <progress aria-label="Guided campaign progress" value={step + 1} max={QUESTIONS.length} className="w-full" />
     <h4 className="font-semibold">{question.prompt}</h4>
     <div className="grid gap-2">
@@ -71,6 +80,47 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
       <button type="button" disabled={step === 0} onClick={() => { setStep(previous => previous - 1); setCustom(""); setError(""); }} className="min-h-12 rounded-xl border border-input px-5 disabled:opacity-50">Back</button>
       <button type="button" disabled={!chosen && !custom.trim()} onClick={next} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">{step === QUESTIONS.length - 1 ? "Create editable starter story" : "Next question"}</button>
     </div>
-    <p className="text-xs text-muted-foreground">Local starter text only; real AI generation will be enabled after server-side authentication, quota and safety tests. Nothing publishes or posts automatically.</p>
+    </> : <div className="space-y-5">
+      <p className="text-sm text-muted-foreground">These are offline, fact-grounded starter suggestions, not model-generated writing or image files. Model-backed regeneration remains unavailable until its secured service is connected.</p>
+      <fieldset className="space-y-2"><legend className="font-semibold">Choose a title — 5 options</legend>
+        {copy.titles.map((item,i)=><button key={i} type="button" onClick={()=>setSelectedTitle(i)} aria-pressed={selectedTitle===i} className={`block w-full min-h-12 rounded-xl border p-3 text-left ${selectedTitle===i?"border-primary bg-primary/15":"border-border"}`}>{i+1}. {item}</button>)}
+      </fieldset>
+      <fieldset className="space-y-2"><legend className="font-semibold">Choose a short description — 2 options</legend>
+        {copy.summaries.map((item,i)=><button key={i} type="button" onClick={()=>setSelectedSummary(i)} aria-pressed={selectedSummary===i} className={`block w-full min-h-12 rounded-xl border p-3 text-left ${selectedSummary===i?"border-primary bg-primary/15":"border-border"}`}>{i+1}. {item}</button>)}
+      </fieldset>
+      <div className="space-y-2"><h4 className="font-semibold">One editable story</h4><textarea aria-label="Your campaign story" value={copy.story} onChange={e=>setCopy(prev=>({...prev,story:e.target.value}))} maxLength={15000} rows={8} className="w-full rounded-xl border border-input bg-background p-3" /></div>
+      <div className="space-y-2"><h4 className="font-semibold">Interplanetary Fund image concept</h4><p className="text-sm text-muted-foreground">The original signature interstellar/cyberpunk/space-comic image prompt is prepared from your campaign context. Image rendering is not connected, and no image is represented as generated.</p><details><summary className="cursor-pointer text-sm underline">See image prompt</summary><textarea readOnly aria-label="Campaign-grounded cover image prompt" value={imagePrompt} rows={5} className="mt-2 w-full rounded-xl border bg-background p-3 text-xs" /></details></div>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={()=>setStage("questions")} className="min-h-12 rounded-xl border px-4">Edit answers</button>
+        <button type="button" onClick={regenerate} className="min-h-12 rounded-xl border px-4">Try another set</button>
+        <button type="button" onClick={()=>onApply({title:copy.titles[selectedTitle],summary:copy.summaries[selectedSummary],story:copy.story,imagePrompt})} className="min-h-12 rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Use selected campaign content</button>
+      </div>
+    </div>}
+    <p className="text-xs text-muted-foreground">Nothing publishes or posts automatically. Always review factual claims and images before sharing.</p>
   </section>;
+}
+
+function categoryFor(cause) {
+  return cause === "Creative project" ? "creative" : cause === "Personal emergency" ? "emergency" : cause === "New business" ? "business" : "community";
+}
+
+// These are deterministic offline previews, deliberately not labeled as AI generations.
+// Live AI must replace this with a server-validated contract (5 unique titles,
+// 2 unique summaries, exactly 1 story, and an image request grounded in the same brief).
+export function buildChoices(answers, details, goal, variation=0) {
+  const clean = value => String(value||"").trim().replace(/\\s+/g," ");
+  const subject=clean(details);
+  if (!subject) throw new Error("Campaign-specific factual details are required");
+  const who=clean(answers.beneficiary||"the campaign's intended beneficiaries").toLowerCase();
+  const purpose=clean(answers.need||"this project").toLowerCase();
+  const main=purpose.charAt(0).toUpperCase()+purpose.slice(1);
+  const titles=[
+    `Help Make ${main} Possible`,`Together for ${who}`,`Support ${main} for ${who}`,
+    `Bring Our ${clean(answers.cause)||"Campaign"} to Life`,`Take the Next Step: ${main}`
+  ];
+  const shift=variation%titles.length;
+  const ordered=titles.slice(shift).concat(titles.slice(0,shift));
+  const summaries=[`Support ${purpose} benefiting ${who}. ${subject}`,`${subject} Help us move this effort forward through community support.`].map(s=>s.slice(0,600));
+  const initial=draftFromWizard(answers,subject,goal);
+  return {titles:ordered,summaries:variation%2?summaries.reverse():summaries,story:initial.story};
 }
