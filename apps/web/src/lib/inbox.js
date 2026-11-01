@@ -1,5 +1,5 @@
-import { verifyAccountLifecycle } from "@/lib/accountLifecycle";
-import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
+import { verifyAccountLifecycle } from "./accountLifecycle.js";
+import { isVerifiedEmailUser } from "./verifiedEmailUser.js";
 
 const INBOX_COLUMNS = "id,owner_id,platform,type,author,content,link,campaign_id,campaign_title,status,ai_draft,recipient_address,mailbox_priority,created_at";
 const NOTIFICATION_COLUMNS = "id,owner_id,title,body,type,link,read,created_at";
