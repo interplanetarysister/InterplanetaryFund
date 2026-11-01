@@ -23,3 +23,13 @@
 .ifund-dashboard-links{display:flex;flex-wrap:wrap;gap:.75rem;margin:1.5rem 0}
 .ifund-dashboard-links a{border:1px solid #5a6290;border-radius:12px;padding:.6rem .9rem}
 @media(max-width:600px){.ifund-dashboard-stats{grid-template-columns:1fr 1fr}.ifund-dashboard-stats .card:last-child{grid-column:span 2}}
+
+/* Original app's compact, cyan-accented navigation treatments. */
+.ifund-menu-toggle{align-items:center;gap:.4rem}
+.ifund-primary-nav a{transition:background .18s,color .18s}
+.ifund-primary-nav a:focus-visible,.ifund-bottom-nav a:focus-visible{outline:2px solid #22d3ee;outline-offset:2px}
+.ifund-bottom-nav{background:#0b1425;color:#94a3b8;box-shadow:0 -8px 24px #0005}
+.ifund-bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.25rem;min-height:48px;line-height:1.2}
+.ifund-bottom-nav a.active{color:#67e8f9;background:transparent}
+@media(min-width:851px){.ifund-bottom-nav{display:none}}
+@media(max-width:850px){.ifund-bottom-nav{font-size:.7rem}.ifund-bottom-nav a{padding:.35rem .1rem}}
