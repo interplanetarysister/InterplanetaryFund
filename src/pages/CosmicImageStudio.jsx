@@ -5,6 +5,7 @@ import { Image as ImageIcon, Copy, Sparkles, ShieldCheck } from "lucide-react";
 const themes=["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"];
 export default function CosmicImageStudio(){
  const location = useLocation();
+ const returnTo = /^\/edit\/[0-9a-f-]{36}$/i.test(location.state?.returnTo || "") ? location.state.returnTo : "/create";
  const [cause,setCause]=useState(() => (location.state?.cause||"").slice(0,1000));
  const [audience,setAudience]=useState("");
  const [theme,setTheme]=useState(() => themes.includes(location.state?.theme) ? location.state.theme : themes[0]);
@@ -23,6 +24,6 @@ export default function CosmicImageStudio(){
     <label>Other creative details<textarea value={details} onChange={e=>{setDetails(e.target.value);setCopied(false);}} rows={3} maxLength={1000} placeholder="Colors, setting, mood, and imagery to include or avoid"/></label>
    </div>
   </section>
-  <section className="card"><h2>Your image brief</h2><p>Review the text below before sharing it with an image-generation tool.</p><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{cause.trim()?prompt:"Enter a campaign description above to create a brief."}</pre><div className="actions"><button type="button" disabled={!cause.trim()} onClick={copy}><Copy size={17} aria-hidden="true"/>{copied?"Copied":"Copy image brief"}</button><Link to="/create" state={{imageTheme:theme,imageBrief:prompt.slice(0,1800)}}>Use brief in a new campaign</Link></div></section>
+  <section className="card"><h2>Your image brief</h2><p>Review the text below before sharing it with an image-generation tool.</p><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{cause.trim()?prompt:"Enter a campaign description above to create a brief."}</pre><div className="actions"><button type="button" disabled={!cause.trim()} onClick={copy}><Copy size={17} aria-hidden="true"/>{copied?"Copied":"Copy image brief"}</button><Link to={returnTo} state={{imageTheme:theme,imageBrief:prompt.slice(0,1800)}}>Return to campaign with brief</Link></div></section>
  </main>;
 }
