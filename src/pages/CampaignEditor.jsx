@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Sparkles, PenLine, Target, Image as ImageIcon, Save, Rocket } from "lucide-react";
 import { db } from "../lib/supabase";
 import {
   saveCampaignThroughWorker,
@@ -175,13 +176,13 @@ function Editor({ user }) {
   }
   return (
     <main className="editor">
-      <h1>{id ? "Edit campaign" : "Create campaign"}</h1>
+      <div className="ifund-editor-hero"><p className="eyebrow">YOUR FUNDRAISING MISSION</p><h1>{id ? "Edit campaign" : "Create campaign"}</h1><p>Tell your story. Choose your goal. Share your cause.</p></div>
       <p>
         Save an incomplete draft at any time. Publishing validates the required
         fields.
       </p>
-      <section className="card" aria-label="Campaign writing assistant">
-        <h2>Campaign writing assistant</h2>
+      <section className="card ifund-editor-section" aria-label="Campaign writing assistant">
+        <h2><Sparkles size={22}/> 1. Tell us about your cause</h2>
         <p>Describe your fundraiser and get editable story ideas. This uses the existing Supabase drafting service, not paid AI. Suggestions are never published automatically.</p>
         <label>
           What is happening, and why is support needed?
@@ -238,7 +239,8 @@ function Editor({ user }) {
           </div>
         )}
       </section>
-      <div className="form">
+      <div className="form ifund-editor-form">
+        <h2><PenLine size={22}/> 2. Describe your campaign</h2>
         <label>
           Title
           <input
@@ -286,6 +288,7 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
+        <h2><Target size={22}/> 3. Set your goal</h2>
         <label>
           Funding goal (USD)
           <input
@@ -298,6 +301,7 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
+        <h2><ImageIcon size={22}/> 4. Add a picture</h2>
         <label>
           Cover image URL (optional)
           <input
@@ -308,13 +312,14 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
-        <div className="actions">
+        <h2><Rocket size={22}/> 5. Save or publish</h2>
+        <div className="actions ifund-editor-save">
           <button
             type="button"
             disabled={!canSaveCampaign({ id, loadedId, loadState, busy })}
             onClick={() => save("draft")}
           >
-            Save draft
+            <Save size={18}/> Save draft
           </button>
           <button
             type="button"
