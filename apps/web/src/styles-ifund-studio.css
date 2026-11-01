@@ -1,0 +1,408 @@
+/*
+ * IFund Studio visual system — one set of surfaces for browser, mobile
+ * browser, and installed PWA. Purposefully does not override payment dialogs,
+ * semantic status colors, or high-contrast campaign creation controls.
+ */
+:root {
+  --if-surface: 255 255 255;
+  --if-ink: 19 33 54;
+  --if-sky: 23 104 191;
+  --if-orbit: 91 73 184;
+  --if-copper: 197 145 83;
+  --if-outline: 196 210 226;
+  --if-shadow: 31 51 83;
+}
+.dark {
+  --if-surface: 22 34 57;
+  --if-ink: 235 243 253;
+  --if-sky: 78 191 240;
+  --if-orbit: 166 148 245;
+  --if-outline: 77 97 123;
+  --if-shadow: 0 0 0;
+}
+html {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+body {
+  letter-spacing: -.008em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgb(68 162 225 / .24); color: inherit; }
+
+/* Shared workspace chrome, same stylesheet for desktop and installed PWA. */
+.ifund-shell {
+  --radius: .875rem;
+  isolation: isolate;
+}
+.ifund-stage {
+  position: relative;
+  background:
+    radial-gradient(74rem 32rem at 96% -8%, rgb(105 91 220 / .085), transparent 63%),
+    radial-gradient(55rem 28rem at 0% 40%, rgb(14 165 208 / .055), transparent 70%),
+    linear-gradient(160deg, hsl(var(--background)), hsl(var(--background)));
+}
+.ifund-sidebar {
+  background:
+    radial-gradient(34rem 25rem at 0% 5%, rgb(103 75 212 / .22), transparent 70%),
+    linear-gradient(167deg, #111c36 0%, #0e1529 60%, #101a31 100%);
+  border-right: 1px solid rgb(178 205 255 / .10);
+  box-shadow: 6px 0 34px rgb(10 18 37 / .12);
+}
+.ifund-sidebar .ifund-nav-link {
+  border: 1px solid transparent;
+  min-height: 43px;
+}
+.ifund-sidebar .ifund-nav-link:hover {
+  border-color: rgb(125 182 255 / .11);
+}
+.ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  background: linear-gradient(100deg, rgb(91 185 236 / .17), rgb(117 106 241 / .1));
+  border-color: rgb(126 202 254 / .18);
+  box-shadow: inset 3px 0 rgb(69 211 232 / .8);
+}
+.ifund-nav-section-title {
+  letter-spacing: .145em;
+}
+.ifund-mobile-header,
+.ifund-mobile-nav {
+  background: linear-gradient(110deg, #101b34 0%, #10192d 100%);
+  box-shadow: 0 -6px 28px rgb(6 12 27 / .14);
+}
+.ifund-mobile-nav a {
+  position: relative;
+  font-variant-numeric: tabular-nums;
+}
+.ifund-mobile-nav a[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 26px;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #57e1dd, #9f9bff);
+}
+.ifund-workspace-bar {
+  min-height: 76px;
+  border-bottom: 1px solid rgb(var(--if-outline) / .58);
+  background: rgb(var(--if-surface) / .86);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.ifund-workspace-kicker {
+  text-transform: uppercase;
+  letter-spacing: .19em;
+  color: rgb(var(--if-sky));
+  font: 750 .65rem/1.25 var(--font-body);
+}
+.ifund-workspace-title {
+  font: 750 clamp(1.1rem, 1.55vw, 1.32rem)/1.3 var(--font-heading);
+  color: rgb(var(--if-ink));
+  letter-spacing: -.035em;
+}
+.ifund-workspace-utility {
+  color: rgb(var(--if-ink) / .73);
+  border: 1px solid rgb(var(--if-outline) / .8);
+  border-radius: 999px;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+.ifund-workspace-utility:hover,
+.ifund-workspace-utility:focus-visible {
+  background: rgb(var(--if-sky) / .08);
+  border-color: rgb(var(--if-sky) / .38);
+}
+
+/* Consistent layouts, typography, controls and surfaces, without reauthoring
+ * forty plus functional pages or affecting existing handler contracts. */
+.ifund-experience {
+  font-family: var(--font-body);
+}
+.ifund-shell .ifund-experience :where(h1,h2,h3,h4) {
+  font-family: var(--font-heading);
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+.ifund-shell .ifund-experience :where(h1) { font-weight: 760; }
+.ifund-shell .ifund-experience :where(h2) { font-weight: 710; }
+.ifund-shell .ifund-experience :where(h3) { font-weight: 660; }
+.ifund-experience :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select, [role="combobox"]) {
+  border-radius: .82rem;
+  transition: box-shadow 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+.ifund-experience :where(input,textarea,select,[role="combobox"]):focus-visible {
+  outline: 2px solid rgb(var(--if-sky) / .65);
+  outline-offset: 2px;
+}
+.ifund-experience :where([class~="bg-white"]) {
+  border: 1px solid rgb(var(--if-outline) / .55);
+  box-shadow: 0 10px 28px rgb(var(--if-shadow) / .055), 0 1px 3px rgb(var(--if-shadow) / .025);
+}
+.ifund-experience :where([class~="rounded-xl"], [class~="rounded-2xl"]) {
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+.ifund-experience :where(button,a,[role="button"]):focus-visible {
+  outline: 2px solid rgb(var(--if-sky));
+  outline-offset: 3px;
+}
+.ifund-experience :where(table) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.ifund-experience :where(th) {
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.ifund-experience :where(hr) { border-color: rgb(var(--if-outline) / .7); }
+
+/* Editorial brand moments only, with readable text and a restrained texture. */
+.ifund-public {
+  background: hsl(var(--background));
+}
+.ifund-public-hero {
+  position: relative;
+  isolation: isolate;
+  border-bottom: 1px solid rgb(107 159 247 / .16);
+}
+.ifund-public-hero::after {
+  pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, rgb(10 16 38 / .19), transparent 58%, rgb(72 55 140 / .18));
+}
+.ifund-editorial-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  color: #a6e3ef;
+  letter-spacing: .2em;
+  font: 700 .68rem/1.4 var(--font-body);
+  text-transform: uppercase;
+}
+.ifund-editorial-eyebrow::before {
+  content: "";
+  display: inline-block;
+  width: 27px;
+  height: 1px;
+  background: #c5a677;
+}
+.ifund-home-headline {
+  font-family: var(--font-display);
+  font-weight: 580;
+  letter-spacing: -.045em;
+}
+.ifund-story-surface {
+  background:
+    radial-gradient(40rem 25rem at 100% 0%, rgb(85 102 211 / .07), transparent),
+    hsl(var(--background));
+}
+.ifund-auth {
+  background:
+    radial-gradient(54rem 33rem at 50% -12%, rgb(61 129 202 / .20), transparent 65%),
+    radial-gradient(42rem 27rem at -10% 80%, rgb(142 108 210 / .13), transparent 68%),
+    linear-gradient(155deg, #101b35, #0b1225);
+}
+.ifund-auth-card {
+  background: rgb(17 29 52 / .83);
+  border: 1px solid rgb(150 185 240 / .23);
+  box-shadow: 0 22px 65px rgb(0 0 0 / .19);
+  backdrop-filter: blur(18px);
+}
+.ifund-auth-card label { color: #e0ebfc; }
+.ifund-auth-card input {
+  background-color: rgb(9 20 39 / .82) !important;
+  border-color: rgb(159 190 241 / .3) !important;
+  color: #f5faff !important;
+  -webkit-text-fill-color: #f5faff !important;
+}
+.ifund-auth-card input::placeholder {
+  color: #aebed8 !important;
+}
+.ifund-auth-card input:focus-visible {
+  outline: 2px solid #78d5f5;
+  outline-offset: 1px;
+}
+.ifund-auth :where(a) { text-decoration-thickness: 1px; text-underline-offset: 3px; }
+
+/* Reduced motion, keyboard usability and installable-app safe areas. */
+@media (prefers-reduced-motion: reduce) {
+  .ifund-shell *, .ifund-public *, .ifund-auth * {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+@media (max-width: 767px) {
+  .ifund-workspace-bar { min-height: 63px; }
+  .ifund-experience :where(h1) { line-height: 1.12; }
+  .ifund-shell [data-page-scroll] { padding-bottom: calc(5.4rem + env(safe-area-inset-bottom)); }
+}
+@media print {
+  .ifund-sidebar,.ifund-mobile-header,.ifund-mobile-nav,.ifund-workspace-bar { display: none !important; }
+  .ifund-shell [data-page-scroll] { overflow: visible !important; padding: 0 !important; }
+}
+
+/* Premium cards are selected by semantic surface tokens; unlike global
+ * forced recoloring this preserves explicit dark panels and status alerts. */
+.ifund-shell .ifund-experience :where([class~="bg-card"]) {
+  border-color: rgb(var(--if-outline) / .56);
+  box-shadow: 0 14px 38px rgb(var(--if-shadow) / .065);
+}
+.ifund-shell .ifund-experience :where(.font-display):not(.brand-gradient-text) {
+  font-family: var(--font-heading);
+}
+.ifund-public :where(h2, h3), .ifund-auth :where(h1) {
+  font-family: var(--font-heading);
+  letter-spacing: -.035em;
+}
+.ifund-public-hero h1, .ifund-public-hero .ifund-home-headline {
+  font-family: var(--font-display);
+}
+
+/* Screenshot-inspired accessible navigation and connection surfaces (2026-10). */
+.ifund-sidebar {
+  background: radial-gradient(36rem 25rem at 0% 0%, #f1eaff, transparent 74%),
+              linear-gradient(158deg, #fafbff, #f0f5ff);
+  color: #1e293b;
+  border-right: 1px solid #dce3ef;
+}
+.dark .ifund-sidebar {
+  background: radial-gradient(34rem 25rem at 0% 5%, rgb(103 75 212 / .22), transparent 70%),
+              linear-gradient(167deg, #111c36 0%, #0e1529 60%, #101a31 100%);
+  color: #edf4ff;
+  border-right-color: rgb(178 205 255 / .10);
+}
+.ifund-sidebar .ifund-nav-link { color: #334155 !important; }
+.ifund-sidebar .ifund-nav-link:hover { background: rgb(111 84 205 / .08); color: #171e35 !important; }
+.ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  background: #e9e7ff;
+  color: #5337b0 !important;
+  border-color: #d7ceff;
+  box-shadow: inset 3px 0 #7553d5;
+}
+.dark .ifund-sidebar .ifund-nav-link { color: #cbd5e1 !important; }
+.dark .ifund-sidebar .ifund-nav-link:hover { color: white !important; background: rgb(255 255 255 / .08); }
+.dark .ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  color: #9decf9 !important;
+  background: linear-gradient(100deg, rgb(91 185 236 / .17), rgb(117 106 241 / .1));
+  border-color: rgb(126 202 254 / .18);
+}
+.ifund-sidebar .ifund-nav-section-title, .ifund-sidebar .text-slate-400,
+.ifund-sidebar .text-slate-500 { color: #64748b !important; }
+.dark .ifund-sidebar .ifund-nav-section-title, .dark .ifund-sidebar .text-slate-400,
+.dark .ifund-sidebar .text-slate-500 { color: #a9b8cd !important; }
+.ifund-sidebar .text-slate-100, .ifund-sidebar .ifund-brand-title { color: #172035 !important; }
+.dark .ifund-sidebar .text-slate-100, .dark .ifund-sidebar .ifund-brand-title { color: #f8fafc !important; }
+.ifund-page-icon {
+  display: inline-flex; flex-shrink: 0; width: 42px; height: 42px;
+  align-items: center; justify-content: center; border-radius: 14px;
+  background: #eee9ff; color: #6846c4; border: 1px solid #e2dcfa;
+}
+.dark .ifund-page-icon { background: #303760; color: #b7a6ff; border-color: #4a507b; }
+.ifund-nav-icon {
+  display: inline-flex; width: 35px; height: 35px; flex-shrink: 0;
+  align-items: center; justify-content: center; border-radius: 12px;
+  background: rgb(125 99 220 / .10); color: #7550c4;
+}
+.dark .ifund-nav-icon { background: rgb(125 203 255 / .11); color: #9adcf3; }
+.ifund-sidebar-theme, .ifund-header-action {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid #e7e5f1; background: rgb(255 255 255 / .72);
+  color: #2a2b42; box-shadow: 0 3px 12px rgb(42 31 79 / .04);
+}
+.dark .ifund-sidebar-theme, .dark .ifund-header-action {
+  border-color: #394866; background: #253452; color: #f3f6ff;
+}
+.ifund-mobile-header, .ifund-mobile-nav {
+  background: rgb(249 249 255 / .94);
+  color: #1e293b;
+  border-color: #e7e6f4;
+  backdrop-filter: blur(18px);
+}
+.dark .ifund-mobile-header, .dark .ifund-mobile-nav {
+  background: linear-gradient(110deg, #101b34 0%, #10192d 100%);
+  color: #f8fafc;
+  border-color: #34415a;
+}
+.ifund-mobile-header .ifund-brand-title, .ifund-mobile-title { color: #1e293b !important; }
+.dark .ifund-mobile-header .ifund-brand-title, .dark .ifund-mobile-title { color: #f8fafc !important; }
+.ifund-mobile-nav a { color: #60677b !important; }
+.ifund-mobile-nav a[aria-current="page"] { color: #6844c4 !important; }
+.dark .ifund-mobile-nav a { color: #b5c1d2 !important; }
+.dark .ifund-mobile-nav a[aria-current="page"] { color: #72e0f3 !important; }
+.ifund-connections-hero {
+  background: radial-gradient(35rem 21rem at 15% 10%, #ece8ff, transparent 80%),
+              linear-gradient(145deg, #f5f6ff, #edf8ff);
+  border-color: #e0e2f7;
+  color: #22253a;
+}
+.dark .ifund-connections-hero {
+  background: linear-gradient(155deg, #1c2949, #152038);
+  border-color: #39476b;
+  color: #f8fafc;
+}
+.ifund-connection-stat { background: rgb(255 255 255 / .83); border-color: #e1e5f1; }
+.dark .ifund-connection-stat { background: rgb(10 20 43 / .60); border-color: #3b4765; }
+.ifund-connection-browser {
+  background: linear-gradient(145deg, #f4f1ff, #edf7ff);
+  border: 1px solid #e0dff1;
+}
+.dark .ifund-connection-browser { background: #162440; border-color: #344668; }
+.ifund-platform-filter {
+  display: inline-flex; align-items: center; gap: .4rem;
+  min-height: 42px; white-space: nowrap; border-radius: 999px;
+  background: rgb(255 255 255 / .70); color: #5c6375;
+  border: 1px solid transparent; padding: .5rem .85rem;
+  font-weight: 650; font-size: .83rem;
+}
+.ifund-platform-filter.is-active { background: #fff; border-color: #d5cafb; color: #583aba; box-shadow: 0 3px 9px rgb(44 37 108 / .06); }
+.dark .ifund-platform-filter { background: #233453; color: #cbd5e1; }
+.dark .ifund-platform-filter.is-active { background: #493980; color: #fff; border-color: #735cab; }
+.ifund-platform-choice, .ifund-connection-card {
+  background: #fff; border-color: #e6e7ef;
+  box-shadow: 0 4px 14px rgb(45 44 98 / .055);
+}
+.ifund-platform-choice:hover, .ifund-platform-choice:focus-visible {
+  border-color: #9675e7; box-shadow: 0 6px 18px rgb(83 56 167 / .11);
+}
+.dark .ifund-platform-choice, .dark .ifund-connection-card { background: #1d2b46; border-color: #3a4865; }
+.ifund-platform-logo { color: var(--brand-accent); background: #fff !important; }
+.dark .ifund-platform-logo { background: #fff !important; border-color: #e0e4ef; color: var(--brand-accent); }
+@media (max-width: 420px) {
+  .ifund-platform-choice { min-height: 70px; }
+  .ifund-sidebar .ifund-nav-link { min-height: 45px; }
+}
+
+
+/* One navigation frame on mobile; fit the sidebar to the longest visible link.
+   Desktop navigation participates in the flex layout: no fixed 240px gutter. */
+.ifund-desktop-sidebar,
+.ifund-drawer {
+  inline-size: max-content;
+  max-inline-size: calc(100vw - 1.5rem);
+}
+.ifund-sidebar-nav {
+  inline-size: max-content;
+  max-inline-size: 100%;
+  align-self: flex-start;
+}
+.ifund-sidebar-nav .ifund-nav-label {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ifund-desktop-sidebar {
+  height: 100%;
+}
+.ifund-drawer {
+  max-height: 100dvh;
+  background: rgb(248 249 255 / .88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.dark .ifund-drawer {
+  background: rgb(16 27 52 / .88);
+}

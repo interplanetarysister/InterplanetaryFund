@@ -1,0 +1,36 @@
+{
+  "name": "Interplanetary Fund",
+  "short_name": "IFund",
+  "description": "The Universal Fundraising Operating System. One campaign. Unlimited reach.",
+  "id": "/",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "background_color": "#0b1225",
+  "theme_color": "#101b34",
+  "orientation": "any",
+  "categories": [
+    "finance",
+    "social",
+    "productivity"
+  ],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
