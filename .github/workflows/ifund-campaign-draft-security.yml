@@ -14,7 +14,9 @@ on:
       - tests/phase4-automations-readiness.test.js
       - tests/phase4-durable-automations.test.js
       - apps/web/src/lib/legacyAuthLanding.js
-      - apps/web/tests/legacy-auth-landing.test.js
+      - apps/web/tests/legacy-auth-landing.test.js apps/web/tests/terms-public-routes.test.js
+      - apps/web/src/components/TermsAcceptance.jsx
+      - apps/web/tests/terms-public-routes.test.js
       - .github/workflows/ifund-campaign-draft-security.yml
   pull_request:
     paths:
@@ -29,6 +31,8 @@ on:
       - tests/phase4-durable-automations.test.js
       - apps/web/src/lib/legacyAuthLanding.js
       - apps/web/tests/legacy-auth-landing.test.js
+      - apps/web/src/components/TermsAcceptance.jsx
+      - apps/web/tests/terms-public-routes.test.js
       - .github/workflows/ifund-campaign-draft-security.yml
 permissions:
   contents: read
