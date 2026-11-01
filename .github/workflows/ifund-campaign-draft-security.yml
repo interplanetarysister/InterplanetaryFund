@@ -5,6 +5,7 @@ on:
       - implementation/secure-foundation-20261101
     paths:
       - supabase/functions/ifund-campaign-draft/index.ts
+      - supabase/functions/ifund-campaign-draft-preview/index.ts
       - tests/campaign-draft-auth-boundary.test.js
       - apps/web/src/lib/campaignDraftApi.js
       - apps/web/src/components/campaigns/GuidedCampaignWizard.jsx
@@ -26,6 +27,7 @@ on:
   pull_request:
     paths:
       - supabase/functions/ifund-campaign-draft/index.ts
+      - supabase/functions/ifund-campaign-draft-preview/index.ts
       - tests/campaign-draft-auth-boundary.test.js
       - apps/web/src/lib/campaignDraftApi.js
       - apps/web/src/components/campaigns/GuidedCampaignWizard.jsx
