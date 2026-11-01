@@ -43,3 +43,22 @@
 .ifund-workspace-hero p{max-width:60ch}
 .ifund-workspace-notice{display:flex;align-items:flex-start;gap:1rem}
 .ifund-workspace-notice p{margin:.4rem 0 0}
+
+.ifund-dashboard-brandhero{position:relative;overflow:hidden;padding:clamp(2rem,5vw,4rem);border-radius:24px;background:linear-gradient(125deg,#0891b2,#2563eb 52%,#6d28d9);color:white;margin-bottom:2rem;box-shadow:0 15px 40px #2563eb33}
+.ifund-dashboard-brandhero h2{max-width:640px;font-size:clamp(1.6rem,3.5vw,3rem);line-height:1.2}
+.ifund-dashboard-brandhero p{position:relative;z-index:1}
+.ifund-dashboard-orb{position:absolute;right:3%;top:-70px;font-size:260px;line-height:1;opacity:.15;pointer-events:none}
+.ifund-dashboard-heading{margin-bottom:1.5rem}
+.ifund-dashboard-heading h1{font-size:clamp(1.8rem,3.2vw,2.6rem);margin:.2rem 0}
+.ifund-dashboard-kicker{opacity:.7;font-size:.9rem}
+.ifund-dashboard-heading .primary{gap:.5rem}
+.ifund-onboarding{display:flex;align-items:center;gap:1rem;padding:1.1rem 1.3rem;border-radius:18px;background:linear-gradient(110deg,#06b6d4,#2563eb,#7c3aed);margin-bottom:1.5rem;color:white}
+.ifund-onboarding-icon{background:#ffffff33;border-radius:12px;padding:.7rem;display:flex}
+.ifund-onboarding p{margin:.2rem 0 0;font-size:.85rem;opacity:.9}
+.ifund-onboarding a{margin-left:auto;border:1px solid #ffffff77;padding:.5rem .8rem;border-radius:10px;white-space:nowrap}
+.ifund-dashboard-stats .card{gap:.35rem}
+.ifund-dashboard-stats .card>svg{color:#22d3ee}
+.ifund-dashboard-stats .card>small{opacity:.6}
+.ifund-dashboard-feature-grid{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin:1.5rem 0}
+.ifund-dashboard-feature-grid h2{display:flex;align-items:center;gap:.6rem;font-size:1.25rem}
+@media(max-width:650px){.ifund-onboarding{flex-wrap:wrap}.ifund-onboarding a{margin-left:0}.ifund-dashboard-feature-grid{grid-template-columns:1fr}}
