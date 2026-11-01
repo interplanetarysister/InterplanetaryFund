@@ -76,3 +76,25 @@
 .ifund-discover-filters button{white-space:nowrap;border-radius:999px;padding:.4rem 1rem;background:transparent;border:1px solid #475569}
 .ifund-discover-filters button.is-active{background:#1d4ed8;border-color:#2563eb;color:white}
 .ifund-discover-empty{text-align:center;padding:3rem 1rem;opacity:.75}
+
+.ifund-agents{max-width:1150px;margin-inline:auto}
+.ifund-agents-heading{margin-bottom:2rem}
+.ifund-agents-heading h1{font-size:clamp(2rem,4vw,3rem);margin:.35rem 0}
+.ifund-agents-heading>p:last-child{opacity:.75;max-width:58ch}
+.ifund-agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:1rem}
+.ifund-agent-card{display:flex;flex-direction:column;gap:1.1rem;border:1px solid #334155;background:linear-gradient(155deg,#14223b,#101827);border-radius:20px;padding:1.5rem;min-height:270px}
+.ifund-agent-icon{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;background:var(--agent-bg);color:var(--agent-color);border:1px solid currentColor}
+.ifund-agent-icon--gold{--agent-bg:#44331b;--agent-color:#facc15}
+.ifund-agent-icon--violet{--agent-bg:#33204f;--agent-color:#c4b5fd}
+.ifund-agent-icon--cyan{--agent-bg:#123e4d;--agent-color:#67e8f9}
+.ifund-agent-icon--blue{--agent-bg:#1b345b;--agent-color:#93c5fd}
+.ifund-agent-icon--pink{--agent-bg:#4d203f;--agent-color:#f9a8d4}
+.ifund-agent-icon--green{--agent-bg:#153e35;--agent-color:#86efac}
+.ifund-agent-icon--orange{--agent-bg:#4a2b1c;--agent-color:#fdba74}
+.ifund-agent-icon--indigo{--agent-bg:#292855;--agent-color:#a5b4fc}
+.ifund-agent-icon--teal{--agent-bg:#164b47;--agent-color:#5eead4}
+.ifund-agent-role{font-size:.73rem;text-transform:uppercase;letter-spacing:.08em;opacity:.65;margin:0}
+.ifund-agent-card h2{font-size:1.35rem;margin:.3rem 0 .6rem}
+.ifund-agent-card p{line-height:1.5}
+.ifund-agent-preview-label{display:flex;align-items:center;gap:.4rem;margin-top:auto;font-size:.75rem;opacity:.65}
+.ifund-agent-disclaimer{margin-top:1.5rem;font-size:.85rem;opacity:.7}
