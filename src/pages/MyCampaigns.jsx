@@ -2,12 +2,16 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Loading, CampaignCard } from "../components/UI";
+
+const OWNER_CAMPAIGN_COLUMNS =
+  "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+
 function MyCampaigns({ user }) {
   const [items, setItems] = useState(null);
   useEffect(() => {
     if (!db || !user) return;
     db.from("ifund_campaigns")
-      .select("*")
+      .select(OWNER_CAMPAIGN_COLUMNS)
       .eq("owner_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }) => setItems(data || []));
