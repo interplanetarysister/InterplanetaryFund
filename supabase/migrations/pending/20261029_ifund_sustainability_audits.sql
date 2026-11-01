@@ -31,11 +31,15 @@ grant insert(author_id,kind,summary,observed_at,source_url,notes,
  to authenticated;
 create policy ifund_sustainability_admin_read
  on public.ifund_sustainability_audits for select to authenticated
- using ((select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin'));
+ using (
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+);
 create policy ifund_sustainability_admin_note
  on public.ifund_sustainability_audits for insert to authenticated
  with check (
   author_id=(select auth.uid())
+  and (select public.ifund_current_account_is_active())
   and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
   and verification_status in ('unverified','documented')
  );
