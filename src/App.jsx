@@ -13,6 +13,7 @@ import Following from "./pages/Following";
 import MissionControl from "./pages/MissionControl";
 import SignalAlerts from "./pages/SignalAlerts";
 import CommsCenter from "./pages/CommsCenter";
+import CosmicImageStudio from "./pages/CosmicImageStudio";
 import AgentsPreview from "./pages/AgentsPreview";
 import InboxPreview from "./pages/InboxPreview";
 import Discover from "./pages/Discover";
@@ -106,7 +107,7 @@ function App() {
           <Route path="/globe" element={<PlanetaryAtlas />} />
           <Route path="/agents" element={user ? <AgentsPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/mission" element={user ? <MissionControl user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/ai-images" element={user ? <VisualWorkspace path="/ai-images" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ai-images" element={user ? <CosmicImageStudio /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/inbox" element={user ? <InboxPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/following" element={user ? <Following user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/giving" element={user ? <VisualWorkspace path="/giving" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
