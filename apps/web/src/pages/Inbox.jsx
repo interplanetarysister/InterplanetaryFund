@@ -3,11 +3,20 @@ import { Bell, CheckCircle2, Loader2, MailOpen, RefreshCw, Search } from "lucide
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead } from "@/lib/inbox";
+import { safeNoticeDestination } from "@/lib/notifications";
 
 function localDestination(value) {
-  if (typeof value !== "string" || !value.startsWith("/") ||
-      value.startsWith("//") || value.includes("\\") || /[\r\n]/.test(value)) return null;
-  return value;
+  const safe = safeNoticeDestination(value);
+  if (!safe) return null;
+  try {
+    const url = new URL(safe, "https://ifund.invalid");
+    // Imported inbox links are navigational hints only. Do not carry tokens,
+    // OAuth codes, arbitrary query state, or fragments into the browser URL.
+    if (url.search || url.hash) return null;
+    return url.pathname;
+  } catch {
+    return null;
+  }
 }
 
 
