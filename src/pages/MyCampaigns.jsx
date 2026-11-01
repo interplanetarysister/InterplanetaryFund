@@ -40,12 +40,12 @@ export default function MyCampaigns({ user }) {
     <section className="ifund-my-campaigns-hero">
       <Rocket size={30} aria-hidden="true" />
       <p className="eyebrow">YOUR MISSIONS</p>
-      <h1>My campaigns</h1>
+      <h1>My Missions</h1>
       <p>Find your fundraisers, make changes, or start something new.</p>
       <Link className="primary" to="/create"><Plus size={19} /> Create campaign</Link>
     </section>
     <div className="ifund-my-campaigns-heading">
-      <h2>Your fundraisers</h2>
+      <h2>Your fundraising missions</h2>
       <button className="secondary" type="button" onClick={() => setRefreshKey((n) => n + 1)} disabled={items === null || !db || !user?.id}>
         <RefreshCw size={18} /> Refresh
       </button>
