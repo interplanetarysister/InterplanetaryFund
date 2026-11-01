@@ -15,6 +15,12 @@ import Community from "./pages/Community";
 import Blogs from "./pages/Blogs";
 import BlogArticle from "./pages/BlogArticle";
 import MyBlog from "./pages/MyBlog";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Help from "./pages/Help";
+import HelpArticle from "./pages/HelpArticle";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
@@ -53,6 +59,8 @@ function App() {
           <NavLink to="/discover">Explore</NavLink>
           <NavLink to="/community">Community</NavLink>
           <NavLink to="/blogs">Reporter</NavLink>
+          <NavLink to="/about">About</NavLink>
+          <NavLink to="/help">Help</NavLink>
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
         </nav>
@@ -89,6 +97,12 @@ function App() {
       ) : (
         <Routes>
           <Route path="/" element={<Feed />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/help/:slug" element={<HelpArticle />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/campaign/:id" element={<Detail />} />
           <Route
@@ -151,6 +165,13 @@ function App() {
       <footer>
         <strong>Interplanetary Fund</strong>
         <p>What if? · Build with care, give with purpose.</p>
+        <nav aria-label="Legal and support links" className="footer-nav">
+          <Link to="/about">About</Link>
+          <Link to="/contact">Contact</Link>
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/help">Help</Link>
+        </nav>
         <small>Preview migration build — no payment processing enabled.</small>
       </footer>
     </div>
