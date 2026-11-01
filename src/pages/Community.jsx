@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Radio, Users, RefreshCw } from "lucide-react";
 import { db } from "../lib/supabase";
 import {
   createCommunityPost,
@@ -14,13 +15,15 @@ function Community({ user }) {
   const [body, setBody] = useState("");
   const [message, setMessage] = useState("");
   const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [ownPostIds, setOwnPostIds] = useState(new Set());
   const [posting, setPosting] = useState(false);
   const [removingPostId, setRemovingPostId] = useState(null);
   const postingRef = useRef(false);
 
   const load = async () => {
-    if (!db) return;
+    if (!db) { setLoading(false); setMessage("Community updates are not connected yet."); return; }
+    setLoading(true);
     const { data, error } = await db
       .from("ifund_posts")
       .select(PUBLIC_POST_COLUMNS)
@@ -28,8 +31,10 @@ function Community({ user }) {
       .limit(50);
     if (error) {
       setMessage(error.message);
+      setLoading(false);
       return;
     }
+    setLoading(false);
     setPosts(data || []);
     if (!user) {
       setOwnPostIds(new Set());
@@ -50,7 +55,7 @@ function Community({ user }) {
   };
 
   useEffect(() => {
-    load();
+    load().catch(() => { setLoading(false); setMessage("Community updates could not be loaded."); });
   }, [user?.id]);
 
   async function post(e) {
@@ -107,7 +112,7 @@ function Community({ user }) {
 
   return (
     <main>
-      <h1>Community</h1>
+      <section className="ifund-community-hero"><Radio size={28} aria-hidden="true"/><p className="eyebrow">YOUR COMMUNITY UNIVERSE</p><h1>Community Hub</h1><p>Share updates, discover stories, and connect with people supporting meaningful causes.</p><div className="actions"><Link to="/discover">Explore campaigns</Link><Link to="/globe">Planetary Atlas</Link></div></section>
       {user ? (
         <form className="form" onSubmit={post}>
           <label>
@@ -128,6 +133,9 @@ function Community({ user }) {
         <Link to="/login">Sign in to post</Link>
       )}
       <Message error>{message}</Message>
+      <div className="ifund-community-feed-heading"><h2><Users size={21} aria-hidden="true"/> Community updates</h2><button type="button" onClick={() => load().catch(() => {setLoading(false);setMessage("Could not refresh updates.");})} disabled={loading}><RefreshCw size={17} aria-hidden="true"/> Refresh</button></div>
+      {loading && <p role="status">Loading community updates…</p>}
+      {!loading && posts.length === 0 && <section className="card"><h3>No updates yet</h3><p>Community posts will appear here when members share them.</p></section>}
       {posts.map((p) => (
         <article key={p.id} className="card">
           <small>{new Date(p.created_at).toLocaleDateString()}</small>
