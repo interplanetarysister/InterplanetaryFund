@@ -4,6 +4,7 @@ import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import MemberAccess from "@/components/auth/MemberAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
@@ -24,6 +25,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
@@ -35,7 +37,7 @@ const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id", "/blogs", "/blogs/:id", "/publications/:id",
   "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices", "/inbox",
-  "/following", "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
+  "/notifications", "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
 
@@ -56,12 +58,13 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
-      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
-      <Route path="/create" element={<CreateCampaign />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/connections" element={<Connections />} />
+      <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />
+      <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
+      <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
+      <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
