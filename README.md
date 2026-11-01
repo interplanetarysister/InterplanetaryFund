@@ -1,13 +1,22 @@
 # Interplanetary Fund
 
-Fresh repository for the Interplanetary Fund platform on **Supabase + Cloudflare**.
+**Official website:** https://interplanetaryfund.com
 
-- Migration instructions: issue #137
-- Read-only source app: `interplanetarysister/interplanetary-fund2` (Base44)
-- Pre-migration files (Convex backend, fundforge, agent docs, QA reports) are preserved on the branch `archive/pre-migration-2026-10-24` and in git history. They are reference only and are not the source of truth.
+**Canonical application source:** https://github.com/interplanetarysister/InterplanetaryFund
 
-## Phase 1 migration review
+React/Vite frontend, Supabase backend, and Cloudflare infrastructure. This repository is the independent migration destination. **Vercel and Convex links are historical, not deployment targets.**
 
-The active Phase 1 PR is made against `migration/supabase-cloudflare` (not `main`). See `docs/migration/{STATUS,BLOCKERS,INVENTORY}.md`. This is a preview scaffold, not a complete application migration. No Base44 data, passwords, donations, media, or payment secrets have been moved. Do not deploy or switch DNS.
+- [Migration issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
+- [Migration pull request #165](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)
+- [Original Base44 source repository (read-only functional reference)](https://github.com/interplanetarysister/interplanetary-fund2)
+- [Original Base44 app (legacy; not the canonical production URL)](https://interplanetaryfund.base44.app)
 
-Local setup (when npm registry access is restored): review existing source-metadata lockfile, use `npm ci --ignore-scripts --no-audit --no-fund` and regenerate the lockfile with `npm install --package-lock-only` only if resolution errors occur, `npm test` and `npm run build`. Set only the publishable Supabase key in `.env.local` to use a **staging** database after the migration SQL has been reviewed. Current untested schema file is `supabase/migrations/20261025011400_initial.sql`. Do not apply it to the connected live project.
+The official domain is the intended public entry point, but the migration's user/admin, data, payment, and workflow acceptance tests must pass before cutting over or retiring Base44. A repository link does not prove the destination site is deployed.
+
+Pre-migration Convex/Vercel/FundForge code remains historical reference material in git history and the `archive/pre-migration-2026-10-24` branch. Do not reuse old hostnames or secrets in new UI integrations.
+
+## Development and release
+
+Review `apps/web/DEPLOYMENT-GATES.md`, migration issue #137, and PR #165 before publishing. Use the canonical Supabase project and Cloudflare account only after verifying the intended environment and required approval gates. Keep production DNS, live payment processing, and Base44 unchanged until explicitly authorized.
+
+The GitHub About → Website field is **repository metadata**, not part of this README. It must separately be changed from its old Vercel value to `https://interplanetaryfund.com` using repository settings or an authorized GitHub repository-administration API.
