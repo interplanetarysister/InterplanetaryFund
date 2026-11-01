@@ -1,6 +1,7 @@
 -- STAGED ONLY. Owner approval, two distinct logged-in test accounts,
 -- RLS allow/deny tests, and a rollback plan required before applying.
--- Source: base44/entities/FollowedCampaign.jsonc and Notification.jsonc.
+-- Source: base44/entities/FollowedCampaign.jsonc.
+-- Notifications already exist in the canonical schema; this file must not recreate them.
 -- Does not change the preserved historical private staging schemas or ledger.
 begin;
 
@@ -42,54 +43,74 @@ grant update(pinned,archived,notification_prefs,last_viewed)
   on public.ifund_follows to authenticated;
 
 create policy ifund_follows_owner_select on public.ifund_follows
-  for select to authenticated using (owner_id = (select auth.uid()));
+  for select to authenticated using (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+    and exists (
+      select 1 from public.ifund_legal_acceptances a
+      where a.owner_id = (select auth.uid())
+        and a.terms_version = '2026-10-13-v3'
+        and a.explicit_consent = true
+        and a.accepted_at is not null
+    )
+  );
 create policy ifund_follows_owner_insert on public.ifund_follows
   for insert to authenticated with check (
     owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+    and exists (
+      select 1 from public.ifund_legal_acceptances a
+      where a.owner_id = (select auth.uid())
+        and a.terms_version = '2026-10-13-v3'
+        and a.explicit_consent = true
+        and a.accepted_at is not null
+    )
     and exists (
       select 1 from public.ifund_campaigns c
       where c.id=campaign_id and c.status='active'
     )
   );
 create policy ifund_follows_owner_update on public.ifund_follows
-  for update to authenticated using (owner_id=(select auth.uid()))
-  with check (owner_id=(select auth.uid()));
-create policy ifund_follows_owner_delete on public.ifund_follows
-  for delete to authenticated using (owner_id=(select auth.uid()));
-
-create table public.ifund_notifications (
-  id uuid primary key default gen_random_uuid(),
-  owner_id uuid not null references auth.users(id) on delete cascade,
-  title text not null check (char_length(title) between 1 and 200),
-  body text check (char_length(body) <= 1200),
-  type text not null default 'system'
-    check (type in ('donation','update','thank_you','announcement','milestone','system')),
-  link text check (
-    link is null or (
-      char_length(link) between 1 and 512
-      and left(link,1)='/' and left(link,2)<>'//'
-      and link !~ '[[:cntrl:]]' and position(chr(92) in link)=0
+  for update to authenticated
+  using (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+    and exists (
+      select 1 from public.ifund_legal_acceptances a
+      where a.owner_id = (select auth.uid())
+        and a.terms_version = '2026-10-13-v3'
+        and a.explicit_consent = true
+        and a.accepted_at is not null
     )
-  ),
-  read boolean not null default false,
-  source_event_id text,
-  created_at timestamptz not null default now(),
-  unique (owner_id,source_event_id)
-);
-create index ifund_notifications_owner_created_idx
-  on public.ifund_notifications(owner_id,created_at desc);
+  )
+  with check (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+    and exists (
+      select 1 from public.ifund_legal_acceptances a
+      where a.owner_id = (select auth.uid())
+        and a.terms_version = '2026-10-13-v3'
+        and a.explicit_consent = true
+        and a.accepted_at is not null
+    )
+  );
+create policy ifund_follows_owner_delete on public.ifund_follows
+  for delete to authenticated using (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+    and exists (
+      select 1 from public.ifund_legal_acceptances a
+      where a.owner_id = (select auth.uid())
+        and a.terms_version = '2026-10-13-v3'
+        and a.explicit_consent = true
+        and a.accepted_at is not null
+    )
+  );
 
-alter table public.ifund_notifications enable row level security;
-revoke all on table public.ifund_notifications from public,anon,authenticated;
-grant select on public.ifund_notifications to authenticated;
-grant update(read) on public.ifund_notifications to authenticated;
--- No authenticated INSERT or DELETE; only verified backend producers may
--- create notices. No donation/settlement/PayPal notification is synthesized.
-create policy ifund_notifications_owner_select on public.ifund_notifications
-  for select to authenticated using (owner_id=(select auth.uid()));
-create policy ifund_notifications_owner_ack on public.ifund_notifications
-  for update to authenticated using (owner_id=(select auth.uid()))
-  with check (owner_id=(select auth.uid()));
+-- public.ifund_notifications is already created by the canonical
+-- 20261030170627 foundation migration. Its owner-scoped RLS is managed by
+-- 20261030234921; do not duplicate or replace that table here.
+
 
 commit;
 
