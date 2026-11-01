@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
+import { displayLabel } from "@/lib/presentation";
+import { useMemberSession } from "@/lib/useMemberSession";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
 import { AnimatePresence, motion } from "framer-motion";
@@ -25,7 +27,7 @@ const PAGE_TITLES = {
   "/social": "Social", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
 function pageTitle(pathname) {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
+  if (PAGE_TITLES[pathname]) return displayLabel(pathname, PAGE_TITLES[pathname]);
   if (pathname.startsWith("/campaign/")) return "Campaign";
   if (pathname.startsWith("/u/")) return "Member Profile";
   if (pathname.startsWith("/blogs/")) return "IFund Story";
@@ -134,8 +136,7 @@ export default function Layout() {
     window.addEventListener("ifund-theme-changed", sync);
     return () => window.removeEventListener("ifund-theme-changed", sync);
   }, []);
-  // Public-site port: no member session yet, so the visitor navigation is shown.
-  const user = null;
+  const { user } = useMemberSession();
   const isAdmin = false;
   const hasAiAgents = false;
   const { pathname } = useLocation();
@@ -192,7 +193,7 @@ export default function Layout() {
           <div className="flex flex-col gap-0.5">
             {publicNavItems.map(({ to, label, icon: Icon }) => (
               <NavLink key={to} to={to} end={to === "/"} onClick={() => setOpen(false)} className={({ isActive }) => `ifund-nav-link flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors ${isActive ? "bg-cyan-500/15 text-cyan-300" : "text-slate-400 hover:text-slate-100 hover:bg-white/5"}`}>
-                <span className="ifund-nav-icon"><Icon className="w-5 h-5 shrink-0" strokeWidth={1.85} /></span><span className="ifund-nav-label">{label}</span>
+                <span className="ifund-nav-icon"><Icon className="w-5 h-5 shrink-0" strokeWidth={1.85} /></span><span className="ifund-nav-label">{displayLabel(to, label)}</span>
               </NavLink>
             ))}
           </div>
@@ -218,7 +219,7 @@ export default function Layout() {
                 }
               >
                 <span className="ifund-nav-icon"><Icon className="w-5 h-5 shrink-0" strokeWidth={1.85} /></span>
-                <span className="ifund-nav-label">{label}</span>
+                <span className="ifund-nav-label">{displayLabel(to, label)}</span>
               </NavLink>
             ))}
           </div>

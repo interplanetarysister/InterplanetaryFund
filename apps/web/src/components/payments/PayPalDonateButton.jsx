@@ -37,7 +37,7 @@ export default function PayPalDonateButton({ campaignTitle = "Interplanetary Fun
       <section className="flex items-center gap-1 text-[11px] text-stone-400">
         Powered by
         <img
-          src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
+          src="/images/paypal-wordmark-color.svg"
           alt="PayPal"
           className="h-3"
         />

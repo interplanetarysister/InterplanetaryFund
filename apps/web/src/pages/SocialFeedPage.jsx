@@ -13,7 +13,7 @@ export default function SocialFeedPage({ community = false }) {
     try {
       const client = authClient();
       const { data, error: queryError } = await client.from("ifund_posts")
-        .select("id,author_id,body,created_at")
+        .select("id,body,created_at")
         .order("created_at", { ascending: false }).limit(50);
       if (queryError) throw queryError;
       setPosts(data || []); setError("");

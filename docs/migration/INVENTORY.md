@@ -89,3 +89,15 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 
 ## Owner-provided Base44 secret-name inventory — 2026-10-25
 See [SECRET_DESTINATIONS.md](SECRET_DESTINATIONS.md) for **all 20** owner-listed Base44 secret names, verified static caller examples, read-only Cloudflare Worker name checks, and safe migration destinations. This is **not** a secret-value export and does **not** establish that new backend secrets have been configured. Payment PR #145 needs a newly registered `PAYPAL_WEBHOOK_ID` and backend-only Supabase credentials. The destination's published runtime remains unverified.
+
+## Frontend artifact ownership correction — 2026-11-01
+
+The preview deployment at `635586a5-4bfb-4934-ba87-e522801f8850` built root
+`src` from PR #182 commit `7d55d848b12a2fa84bb5b02d598613bd2814d60e`.
+That is a different application from the original UI port under `apps/web`.
+Concrete code/assets now supply the port's original hero, fonts and auth layout;
+`apps/web/scripts/verify-artifact.mjs` checks the actual bundle, referenced asset
+existence/hashes and absence of Base44 runtime URLs. The build manifest identifies
+its source and scope. A separate source-backed preview preserves the existing
+builder preview while the implementations are reconciled. The owner has accepted
+updated agent icons and space-themed display names; these are not parity defects.

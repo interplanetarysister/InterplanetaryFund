@@ -9,10 +9,10 @@ import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import { useMemberSession } from "@/lib/useMemberSession";
 
-// Hero art is served from this app (public/images). If the file is absent the
-// deep-space gradient shows on its own.
-const HERO_IMAGE = "/images/home-hero.png";
+// Original hero asset is bundled locally and required by artifact verification.
+const HERO_IMAGE = "/images/home-hero.jpg";
 
 // "Who is Interplanetary Fund?" — the opening of our story shows directly; the
 // full letter expands behind "Read more · Our Story".
@@ -37,8 +37,8 @@ const STORY = [
 
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
-  const isAuthenticated = false;
-  const user = null;
+  const { user } = useMemberSession();
+  const isAuthenticated = Boolean(user);
   const [heroOk, setHeroOk] = useState(true);
   const [expanded, setExpanded] = useState(false);
 

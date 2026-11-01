@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import BrandLogo from "@/components/brand/BrandLogo";
+import AuthLayout from "@/components/AuthLayout";
+import SocialButtons from "@/components/auth/SocialButtons";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { LogIn, UserPlus, KeyRound, Mail, Lock } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 
@@ -40,29 +44,25 @@ export default function AuthPage({ mode = "login" }) {
     } finally { setBusy(false); }
   }
   const heading = isReset ? "Reset your password" : isRegister ? "Create your account" : "Welcome back";
-  return <main className="ifund-public ifund-auth min-h-dvh px-5 py-12 text-white">
-    <div className="mx-auto w-full max-w-md">
-      <Link to="/" className="inline-flex min-h-11 items-center"><BrandLogo size="sm" nameClassName="text-slate-100" /></Link>
-      <section className="ifund-auth-card mt-7 rounded-3xl p-7 sm:p-10">
-        <h1 className="text-3xl font-semibold">{heading}</h1>
-        <p className="mt-3 text-sm text-slate-300">Sign in securely to Interplanetary Fund.</p>
-        <form onSubmit={submit} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium">Email address
-            <input required type="email" autoComplete="email" maxLength={254} value={email} onChange={e=>setEmail(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950" />
-          </label>
-          {!isReset && <label className="block text-sm font-medium">Password
-            <input required minLength={8} type="password" autoComplete={isRegister ? "new-password" : "current-password"} value={password} onChange={e=>setPassword(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950" />
-          </label>}
-          {error && <p role="alert" className="text-sm text-red-200">{error}</p>}
-          {message && <p role="status" className="text-sm text-cyan-200">{message}</p>}
-          <button disabled={busy} type="submit" className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">{busy ? "Please wait…" : isReset ? "Email reset link" : isRegister ? "Create account" : "Sign in"}</button>
-        </form>
-        <nav className="mt-5 flex flex-wrap gap-4 text-sm text-cyan-200">
-          {!isRegister && <Link to="/register" className="underline">Create an account</Link>}
-          {mode !== "login" && <Link to="/login" className="underline">Sign in</Link>}
-          {!isReset && <Link to="/forgot-password" className="underline">Forgot password?</Link>}
-        </nav>
-      </section>
-    </div>
-  </main>;
+  return <AuthLayout icon={isReset ? KeyRound : isRegister ? UserPlus : LogIn}
+    title={heading} subtitle={isReset ? "We'll send you a password reset link" : isRegister ? "Sign up to get started" : "Log in to your account"}
+    footer={isRegister || isReset ? <>Already have an account? <Link to="/login" className="text-primary font-medium hover:underline">Log in</Link></> : <>Don't have an account? <Link to="/register" className="text-primary font-medium hover:underline">Create one</Link></>}>
+    {!isReset && <><SocialButtons returnTo={afterLogin} onError={setError} disabled={busy} />
+      <div className="relative my-6"><div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div><div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-3 text-muted-foreground">or</span></div></div></>}
+    {error && <div role="alert" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">{error}</div>}
+    {message && <p role="status" className="mb-4 text-sm text-cyan-200">{message}</p>}
+    <form onSubmit={submit} className="space-y-4">
+      <div className="space-y-2"><label htmlFor="email" className="text-sm font-medium">Email address</label><div className="relative">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+        <Input id="email" required type="email" autoComplete="email" maxLength={254} placeholder="you@example.com" value={email} onChange={e=>setEmail(e.target.value)} className="pl-10 h-12" />
+      </div></div>
+      {!isReset && <div className="space-y-2"><div className="flex items-center justify-between"><label htmlFor="password" className="text-sm font-medium">Password</label>{!isRegister && <Link to="/forgot-password" className="text-xs text-primary hover:underline">Forgot password?</Link>}</div><div className="relative">
+        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+        <Input id="password" required minLength={8} type="password" placeholder="••••••••" autoComplete={isRegister ? "new-password" : "current-password"} value={password} onChange={e=>setPassword(e.target.value)} className="pl-10 h-12" />
+      </div></div>}
+      {!isReset && !isRegister && <p className="text-xs text-muted-foreground">Use the email linked to your IFund account. If you registered with Google, Apple or Facebook, use that same sign-in option above instead.</p>}
+      <Button disabled={busy} type="submit" className="w-full h-12 font-medium">{busy ? "Please wait…" : isReset ? "Email reset link" : isRegister ? "Create account" : "Log in"}</Button>
+    </form>
+    {!isReset && <p className="mt-5 text-center text-xs text-muted-foreground">Forgot your password? <Link to="/forgot-password" className="text-primary hover:underline">Reset it here.</Link></p>}
+  </AuthLayout>;
 }

@@ -2,11 +2,13 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
+import { geocodeCity } from './geocodeCity.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/functions/geocodeCity' || pathname === '/api/apps/6a67a778342a8fe05ee79cba/functions/geocodeCity') return geocodeCity(request, env);
     if (pathname === '/api/health') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, { status: 'ok', service: 'ifund-migration-api', production: false });
