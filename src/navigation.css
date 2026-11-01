@@ -98,3 +98,22 @@
 .ifund-agent-card p{line-height:1.5}
 .ifund-agent-preview-label{display:flex;align-items:center;gap:.4rem;margin-top:auto;font-size:.75rem;opacity:.65}
 .ifund-agent-disclaimer{margin-top:1.5rem;font-size:.85rem;opacity:.7}
+
+/* AI Team cosmic accents: specialist symbols remain the primary icon. */
+.ifund-agents-heading{position:relative;overflow:hidden;padding:clamp(1.5rem,4vw,3rem);border-radius:24px;background:radial-gradient(ellipse at 80% 20%,#164e63 0%,transparent 42%),linear-gradient(135deg,#0b1027,#161b42 60%,#0c2440);border:1px solid #334155}
+.ifund-agents-heading:before,.ifund-agent-card:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#e0f2fe 1px,transparent 1.5px),radial-gradient(circle,#a5b4fc .7px,transparent 1px);background-size:83px 89px,127px 131px;background-position:11px 22px,58px 47px;opacity:.18}
+.ifund-agent-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--agent-color,#38bdf8) 15%,transparent),transparent 60%),linear-gradient(155deg,#131c36,#0a1227);border-color:color-mix(in srgb,var(--agent-color,#475569) 30%,#334155)}
+.ifund-agent-card>*{position:relative;z-index:1}
+.ifund-agent-icon{position:relative;isolation:isolate;box-shadow:0 0 24px color-mix(in srgb,var(--agent-color) 20%,transparent);border-radius:50%;width:68px;height:68px}
+.ifund-agent-icon:before{content:"";position:absolute;inset:-9px;border:1px solid color-mix(in srgb,var(--agent-color) 40%,transparent);border-radius:50%;transform:rotate(-25deg) scaleX(1.28);z-index:-1}
+.ifund-agent-icon:after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;background:var(--agent-color);right:-14px;top:9px;box-shadow:0 0 10px var(--agent-color)}
+.ifund-agent-card:has(.ifund-agent-icon--gold){--agent-color:#facc15}
+.ifund-agent-card:has(.ifund-agent-icon--violet){--agent-color:#c4b5fd}
+.ifund-agent-card:has(.ifund-agent-icon--cyan){--agent-color:#67e8f9}
+.ifund-agent-card:has(.ifund-agent-icon--blue){--agent-color:#93c5fd}
+.ifund-agent-card:has(.ifund-agent-icon--pink){--agent-color:#f9a8d4}
+.ifund-agent-card:has(.ifund-agent-icon--green){--agent-color:#86efac}
+.ifund-agent-card:has(.ifund-agent-icon--orange){--agent-color:#fdba74}
+.ifund-agent-card:has(.ifund-agent-icon--indigo){--agent-color:#a5b4fc}
+.ifund-agent-card:has(.ifund-agent-icon--teal){--agent-color:#5eead4}
+@media(prefers-reduced-motion:no-preference){.ifund-agent-card{transition:transform .2s,border-color .2s}.ifund-agent-card:hover{transform:translateY(-3px)}}
