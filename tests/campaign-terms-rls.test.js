@@ -29,3 +29,15 @@ test("every campaign write predicate checks owner, lifecycle and current explici
   assert.match(policies[2], /status = 'draft'/);
   assert.match(policies[1], /WITH CHECK/);
 });
+
+test("preflight fails closed on extra permissive write policies and unprotected acceptance rows", () => {
+  assert.match(sql, /c\.relname='ifund_legal_acceptances' AND c\.relrowsecurity/);
+  assert.match(sql, /FROM pg_policies p/);
+  assert.match(sql, /p\.schemaname='public'/);
+  assert.match(sql, /p\.tablename='ifund_campaigns'/);
+  assert.match(sql, /p\.permissive='PERMISSIVE'/);
+  assert.match(sql, /p\.cmd IN \('ALL', 'INSERT', 'UPDATE', 'DELETE'\)/);
+  assert.match(sql, /p\.policyname NOT IN/);
+  assert.match(sql, /RAISE EXCEPTION 'Unexpected permissive campaign write policy/);
+  assert.match(sql, /RAISE EXCEPTION 'Legal acceptance RLS must be enabled/);
+});
