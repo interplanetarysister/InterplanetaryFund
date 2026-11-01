@@ -15,7 +15,10 @@ test("legal acceptance requires authenticated owner and affirmative explicit con
  assert.match(sql,/REVOKE ALL/i);
  assert.match(sql,/GRANT INSERT\s*\(owner_id, terms_version, explicit_consent, acceptance_method, terms_path, privacy_path\)/i);
  assert.doesNotMatch(sql,/GRANT UPDATE|GRANT DELETE/i);
- assert.match(gate,/if\(exempt \|\| phase==="ready"&&!user\)return children/);
+ assert.match(gate,/HISTORICAL_ROUTES\.some/);
+ assert.match(gate,/route\.access===\"public\"/);
+ assert.match(gate,/phase===\"blocked\"/);
+ assert.match(gate,/phase===\"error\"/);
  assert.match(gate,/Agreement could not be saved/);
 });
 
