@@ -28,12 +28,12 @@ test("fundraising is never represented as confirmed by draft creation", () => {
 });
 
 test("the restored inbox route requires member access and uses independent Supabase services",()=>{
- assert.match(app,/path="\\/inbox".*RequireAccess access="member"/);
+ assert.ok(app.includes('<Route path="/inbox" element={<RequireAccess access="member">'));
  const page=file("../src/pages/Inbox.jsx");
  const service=file("../src/lib/inbox.js");
  assert.match(page,/loadUniversalInbox/);
  assert.match(page,/markInboxItemDone/);
  assert.match(service,/ifund_inbox_items/);
  assert.match(service,/ifund_notifications/);
- assert.doesNotMatch(page,/base44Client|base44\\.functions|base44\\.entities/);
+ assert.ok(!page.includes("base44Client") && !page.includes("base44.functions") && !page.includes("base44.entities"));
 });
