@@ -1,3 +1,4 @@
+import "./navigation.css";
 import { useEffect, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
@@ -26,7 +27,9 @@ function App() {
   const location = useLocation();
   const loginPath = loginPathFor(location);
   const [user, setUser] = useState(undefined);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => { try { return localStorage.getItem("ifund-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch { return "dark"; } });
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [location.pathname]);
   useEffect(() => {
     if (!db) {
       setUser(null);
@@ -42,6 +45,7 @@ function App() {
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("ifund-theme", theme); } catch {}
   }, [theme]);
   return (
     <div className="app">
@@ -55,17 +59,11 @@ function App() {
             <small>{SLOGAN}</small>
           </div>
         </div>
-        <nav>
-          <NavLink end to="/">
-            Home
-          </NavLink>
-          <NavLink to="/discover">Explore</NavLink>
-          <NavLink to="/community">Community</NavLink>
-          <NavLink to="/blogs">Reporter</NavLink>
-          <NavLink to="/about">About</NavLink>
-          <NavLink to="/help">Help</NavLink>
-          <NavLink to="/connections">Connections</NavLink>
-          <NavLink to="/mine">My campaigns</NavLink>
+        <button type="button" className="ifund-menu-toggle" aria-expanded={menuOpen} aria-controls="ifund-primary-nav" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? "Close menu" : "Menu"}</button>
+        <nav id="ifund-primary-nav" className={menuOpen ? "ifund-primary-nav is-open" : "ifund-primary-nav"} aria-label="Main navigation">
+          <div className="ifund-nav-group"><span>Explore</span><NavLink end to="/">Home</NavLink><NavLink to="/discover">Discover</NavLink><NavLink to="/community">Community</NavLink><NavLink to="/blogs">Stories & Blogs</NavLink></div>
+          <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">New Campaign</NavLink><NavLink to="/mine">My Campaigns</NavLink></div>
+          <div className="ifund-nav-group"><span>Account & Help</span><NavLink to="/connections">Connections</NavLink><NavLink to="/help">Help Center</NavLink><NavLink to="/about">About</NavLink></div>
         </nav>
         <div className="actions top-actions">
           <button
@@ -149,6 +147,7 @@ function App() {
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
+          <Route path="/dashboard" element={user ? <MyCampaigns user={user} /> : <main><h1>Dashboard</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/connections" element={user ? <Connections /> : <main><h1>Sign in to manage your connections</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/community" element={<Community user={user} />} />
           <Route path="/blogs" element={<Blogs />} />
@@ -165,6 +164,7 @@ function App() {
           />
         </Routes>
       )}
+      <nav className="ifund-bottom-nav" aria-label="Mobile navigation"><NavLink end to="/">Home</NavLink><NavLink to="/discover">Discover</NavLink><NavLink to="/create">Create</NavLink><NavLink to="/mine">Campaigns</NavLink><NavLink to="/connections">Connect</NavLink></nav>
       <footer>
         <strong>Interplanetary Fund</strong>
         <p>What if? · Build with care, give with purpose.</p>
