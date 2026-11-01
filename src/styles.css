@@ -390,3 +390,74 @@ html[data-theme="light"] .reporter-story-choice { background: #f3f6ff; color: #1
   .reporter-hero { padding: 1.6rem; }
   .reporter-hero h1 { font-size: clamp(2.2rem, 11vw, 3.5rem); }
 }
+
+/* Independent public routes: source-aligned content with a readable mobile shell. */
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  margin: .7rem 0 1rem;
+}
+.footer-nav a, .help-back, .public-article a {
+  color: #9edaff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.public-page {
+  width: min(1000px, 95%);
+  margin: 1.5rem auto 3rem;
+}
+.public-page > section + section { margin-top: 1.8rem; }
+.public-hero, .ifund-public-hero {
+  background: linear-gradient(125deg, #1a1d42, #101d41 55%, #124354);
+  border: 1px solid #4b668b;
+  border-radius: 22px;
+}
+.public-hero {
+  padding: clamp(1.4rem, 5vw, 3rem);
+}
+.public-hero h1 { margin: .5rem 0 .8rem; }
+.public-hero p { max-width: 710px; color: #d9e5f5; }
+.public-hero label { display:block; margin: 1.4rem 0 .4rem; font-weight: 600; }
+.public-hero input { max-width: 690px; }
+.ifund-public { width: 100%; flex: 1; }
+.ifund-public .ifund-public-hero h1 { color: #fff; }
+.ifund-public .ifund-public-hero p { color: #d5dcef; }
+.ifund-public a:not(.primary) { text-underline-offset: 3px; }
+.ifund-public a:focus-visible, .public-page a:focus-visible, .public-page button:focus-visible {
+  outline: 3px solid #58d3ff;
+  outline-offset: 3px;
+}
+.help-topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(min(100%,230px),1fr));
+  gap: .8rem;
+}
+.help-topic-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  min-height: 108px;
+  gap: .5rem;
+}
+.help-topic-grid button[aria-pressed="true"] {
+  border-color: #58d3ff;
+  box-shadow: inset 0 0 0 1px #58d3ff;
+}
+.help-topic-grid button small { color:#cbd7e9; }
+.help-article-list { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 1rem; }
+.help-article-list .card { margin:0; height:100%; }
+.help-article-list h3 { margin: .5rem 0; }
+.help-answer { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.8; }
+.public-article { padding: clamp(1.3rem,4vw,2.6rem); }
+.public-article h1 { font-size: clamp(2rem,4vw,3.2rem); overflow-wrap: anywhere; }
+html[data-theme="light"] .public-page .card { background: #fff; color: #162039; }
+html[data-theme="light"] .public-hero, html[data-theme="light"] .ifund-public-hero { color: #fff; }
+html[data-theme="light"] .help-topic-grid button small { color: #405170; }
+html[data-theme="light"] .help-back, html[data-theme="light"] .footer-nav a, html[data-theme="light"] .public-article a { color: #09669b; }
+@media(max-width:600px) {
+  .public-page { margin: 1rem auto 2rem; }
+  .public-hero { padding: 1.4rem; }
+  .help-topic-grid { grid-template-columns: 1fr; }
+}
