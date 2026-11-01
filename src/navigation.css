@@ -168,3 +168,20 @@
 .ifund-connection-card p{font-size:.9rem;margin:.3rem 0 0}
 .ifund-connection-avatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#173b55;color:#67e8f9}
 .ifund-connection-status{font-size:.78rem;padding:.4rem .7rem;border-radius:20px;border:1px solid #64748b;margin-left:auto}
+
+
+.ifund-my-campaigns-hero{border:1px solid #42638d;border-radius:24px;padding:clamp(1.5rem,5vw,3rem);background:radial-gradient(ellipse at 90% 0%,#155e75,transparent 55%),linear-gradient(125deg,#101a39,#261943);margin-bottom:1.8rem}
+.ifund-my-campaigns-hero>svg{color:#67e8f9}
+.ifund-my-campaigns-hero h1{margin:.4rem 0}
+.ifund-my-campaigns-hero p:not(.eyebrow){max-width:60ch}
+.ifund-my-campaigns-hero .primary{display:inline-flex;gap:.5rem;margin-top:.7rem}
+.ifund-my-campaigns-heading{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
+.ifund-my-campaigns-heading h2{margin:0}
+.ifund-my-campaigns-heading button{gap:.5rem}
+.ifund-my-campaigns-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:1rem}
+.ifund-my-campaigns-item{display:flex;flex-direction:column;min-width:0}
+.ifund-my-campaigns-item .card{margin:0;flex:1}
+.ifund-my-campaigns-edit{display:flex;justify-content:center;align-items:center;min-height:48px;margin-top:.6rem;border:1px solid #4e7191;border-radius:12px;color:#a5e9ff;font-weight:700}
+.ifund-my-campaigns-empty{text-align:center;border:1px dashed #52668b;border-radius:20px;padding:clamp(2rem,5vw,3.5rem)}
+.ifund-my-campaigns-empty>svg{color:#67e8f9}
+.ifund-my-campaigns-empty .primary{margin-top:.7rem}
