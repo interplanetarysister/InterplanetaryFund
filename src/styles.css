@@ -461,3 +461,31 @@ html[data-theme="light"] .help-back, html[data-theme="light"] .footer-nav a, htm
   .public-hero { padding: 1.4rem; }
   .help-topic-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Universal cosmic accessibility system — applies to every route. */
+:root{--ifund-space:#090f23;--ifund-panel:#131f38;--ifund-neon:#67e8f9;--ifund-text:#f5f8ff}
+.app{background:radial-gradient(ellipse 70% 35% at 85% 0%,#173968 0%,transparent 75%),radial-gradient(ellipse 55% 45% at 0% 65%,#201748 0%,transparent 80%),var(--ifund-space);position:relative}
+.app:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,#dbeafe 1px,transparent 1.6px),radial-gradient(circle,#a5b4fc .8px,transparent 1.2px);background-size:149px 157px,227px 239px;background-position:24px 36px,92px 101px;opacity:.11}
+.app>*{position:relative}
+main{min-width:0}
+main h1,main h2,main h3{overflow-wrap:break-word}
+main h1{font-size:clamp(2rem,5vw,3.4rem)}
+main h2{font-size:clamp(1.35rem,3vw,1.8rem)}
+.card{background:linear-gradient(150deg,#182743ee,#111b32ee);border-color:#42577a;box-shadow:0 10px 28px #0002}
+.hero,.public-hero,.reporter-hero,.ifund-public-hero{position:relative;overflow:hidden;background:radial-gradient(ellipse at 85% 15%,#125b73 0%,transparent 45%),linear-gradient(125deg,#111b3c,#211947 60%,#0d3554);border-color:#416789}
+.hero:after,.public-hero:after,.reporter-hero:after,.ifund-public-hero:after{content:"✧";position:absolute;right:5%;top:0;font-size:clamp(6rem,16vw,13rem);line-height:1;opacity:.09;pointer-events:none}
+button,.primary,.secondary{min-height:44px;min-width:44px;line-height:1.35;font-weight:600}
+a,button,input,textarea,select{touch-action:manipulation}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #67e8f9;outline-offset:3px}
+input,textarea,select{min-height:48px;font-size:1rem}
+label{line-height:1.5}
+.card p,main p{line-height:1.65}
+nav a{min-height:44px;display:inline-flex;align-items:center}
+.eyebrow{letter-spacing:.08em;font-size:.8rem!important;font-weight:700}
+@media(max-width:600px){.stack,main{width:min(100% - 1.5rem,1080px)}.card{padding:1.1rem}.hero{padding:1.5rem}.actions{gap:.5rem}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html[data-theme="light"] .app{background:radial-gradient(ellipse at 90% 0%,#d5e8ff,transparent 65%),linear-gradient(145deg,#f2f7ff,#f5f0ff)}
+html[data-theme="light"] .app:before{opacity:.05}
+html[data-theme="light"] .card{background:#fff;border-color:#b7c7e2;box-shadow:0 8px 24px #233b5a12}
+html[data-theme="light"] main p{color:inherit}
