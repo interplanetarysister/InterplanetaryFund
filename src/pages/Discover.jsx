@@ -13,6 +13,7 @@ export default function Discover() {
   const [locationMode, setLocationMode] = useState("all");
   const [locationText, setLocationText] = useState("");
   const [accountCity, setAccountCity] = useState("");
+  const [locationSupported, setLocationSupported] = useState(false);
   const [nearby, setNearby] = useState(null);
   const [locations, setLocations] = useState(null);
   const [locationMessage, setLocationMessage] = useState("");
@@ -38,11 +39,13 @@ export default function Discover() {
     if (!db) return;
     let live = true;
     db.from("ifund_campaigns").select("id,atlas_city,atlas_country,atlas_visible,latitude,longitude").eq("status","active").eq("atlas_visible",true).limit(100)
-      .then(({data,error}) => { if(live) { setLocations(error ? null : data || []); if(error) setLocationMessage("Location search is not connected yet. All-campaign search still works."); } });
-    db.auth.getUser().then(({data}) => { if(!live || !data?.user) return; db.from("ifund_profiles").select("city").eq("id",data.user.id).maybeSingle().then(({data:profile})=> { if(live) setAccountCity(profile?.city || ""); }); }).catch(()=>{});
+      .then(({data,error}) => { if(live) { setLocations(error ? null : data || []); setLocationSupported(!error); if(error) setLocationMessage("Location search is not connected yet. All-campaign search still works."); } });
+    // Profile city is not yet present in the verified production schema.
+    // Do not request a missing column until a reviewed migration is deployed.
     return () => {live=false;};
   }, []);
   const requestNearby = () => {
+    if (!locationSupported) { setLocationMessage("Location search is not available yet. Browse campaigns everywhere."); return; }
     if (!navigator.geolocation) { setLocationMessage("Your browser does not support location. Search by city instead."); return; }
     setLocationMessage("Requesting your permission to use your current location…");
     navigator.geolocation.getCurrentPosition(({coords}) => {setNearby({lat:coords.latitude,lon:coords.longitude});setLocationMode("nearby");setLocationMessage("Showing mapped campaigns within 100 km of your location.");}, () => setLocationMessage("Location was not shared. You can search by city instead."), {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
@@ -79,9 +82,9 @@ export default function Discover() {
       <p>Search by city, use your saved account city, or share your approximate location once. Your device location is not saved.</p>
       <div className="actions">
         <button type="button" onClick={() => setLocationMode("all")} aria-pressed={locationMode==="all"}>Everywhere</button>
-        <button type="button" onClick={requestNearby} aria-pressed={locationMode==="nearby"}>Near me (100 km)</button>
-        <button type="button" disabled={!accountCity} onClick={() => setLocationMode("account")} aria-pressed={locationMode==="account"}>My account city{accountCity ? ": "+accountCity : " (not set)"}</button>
-        <button type="button" onClick={() => setLocationMode("city")} aria-pressed={locationMode==="city"}>Choose a city</button>
+        <button type="button" disabled={!locationSupported} onClick={requestNearby} aria-pressed={locationMode==="nearby"}>Near me (100 km)</button>
+        <button type="button" disabled={!locationSupported || !accountCity} onClick={() => setLocationMode("account")} aria-pressed={locationMode==="account"}>My account city{accountCity ? ": "+accountCity : " (not set)"}</button>
+        <button type="button" disabled={!locationSupported} onClick={() => setLocationMode("city")} aria-pressed={locationMode==="city"}>Choose a city</button>
       </div>
       {locationMode==="city" && <label>City name<input type="search" value={locationText} onChange={e=>setLocationText(e.target.value)} placeholder="Enter a city name" /></label>}
       {locationMessage && <p role="status">{locationMessage}</p>}
