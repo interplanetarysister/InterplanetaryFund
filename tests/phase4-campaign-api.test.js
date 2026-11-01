@@ -201,11 +201,11 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
   });
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id, deleted: true });
-  assert.equal(calls.length, 3);
-  assert.equal(calls[2].opts.method, 'DELETE');
-  assert.equal(calls[2].opts.body, undefined);
-  assert.ok(calls[2].url.includes('id=eq.'));
-  assert.ok(calls[2].url.includes('owner_id=eq.'));
+  assert.equal(calls.length, 4);
+  assert.equal(calls[3].opts.method, 'DELETE');
+  assert.equal(calls[3].opts.body, undefined);
+  assert.ok(calls[3].url.includes('id=eq.'));
+  assert.ok(calls[3].url.includes('owner_id=eq.'));
   assert.ok(calls[3].url.includes('status=eq.draft'));
   const published = await routeCampaignWrite(
     new Request(origin + '/api/campaigns/' + id, {
@@ -246,7 +246,7 @@ test('draft writes never downgrade a published campaign', async () => {
   const url = '/api/campaigns/' + campaignId;
   const result = await routeCampaignWrite(request({ title: 'Saved draft', status: 'draft' }, url, 'PATCH'), env, remote(calls));
   assert.equal(result.status, 200);
-  assert.ok(calls[2].url.includes('status=eq.draft'));
+  assert.ok(calls[3].url.includes('status=eq.draft'));
   const publishCalls = [];
   const published = await routeCampaignWrite(request(valid, url, 'PATCH'), env, remote(publishCalls));
   assert.equal(published.status, 200);
