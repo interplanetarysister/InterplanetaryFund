@@ -12,7 +12,8 @@ const SIGN_IN_PROVIDERS = [
 /**
  * Passwordless sign-in preview. Provider configuration, consent and the email
  * template containing {{ .Token }} must be approved before production use.
- * Instagram remains a post-sign-in social connection, not a sign-in provider.
+ * Instagram authentication is not configured as a standalone sign-in provider.
+ * Users never need to create a separate Supabase account.
  */
 export default function Auth({ user }) {
   const navigate = useNavigate();
@@ -116,10 +117,11 @@ export default function Auth({ user }) {
     <main className="editor">
       <h1>Sign in to Interplanetary Fund</h1>
       <p>
-        Use your connected identity or a one-time email code. Passwords are not
-        required.
+        Sign in with Google or Facebook, or use a one-time email code. No separate
+        account with our database provider is needed.
       </p>
       <div className="form">
+        <p><strong>Choose how to sign in</strong></p>
         {SIGN_IN_PROVIDERS.map((provider) => (
           <button
             key={provider.id}
@@ -130,6 +132,7 @@ export default function Auth({ user }) {
             {provider.label}
           </button>
         ))}
+        <p>Have an Instagram account? You can connect Instagram to your campaign after signing in. Instagram-only sign-in is not available yet.</p>
         <form onSubmit={codeRequested ? verifyCode : requestCode}>
           <label>
             Email address
@@ -162,7 +165,7 @@ export default function Auth({ user }) {
           </button>
         </form>
         <Message error={Boolean(error)}>
-          {error || message || (!db ? "Supabase is not yet configured." : "")}
+          {error || message || (!db ? "Sign-in is temporarily unavailable. Please try again later." : "")}
         </Message>
       </div>
     </main>
