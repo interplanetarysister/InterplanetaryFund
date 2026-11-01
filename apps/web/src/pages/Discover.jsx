@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { displayLabel } from "@/lib/presentation";
 import { Link, useSearchParams } from "react-router-dom";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { listActiveCampaigns } from "@/api/publicData";
@@ -61,7 +62,7 @@ export default function Discover() {
     <PullToRefresh onRefresh={() => setRefreshKey((k) => k + 1)} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-3xl sm:text-4xl text-foreground mb-2">Discover campaigns</h1>
+          <h1 className="font-display text-3xl sm:text-4xl text-foreground mb-2">{displayLabel('/discover', 'Discover campaigns')}</h1>
           <p className="text-stone-500">
             What if your support changed everything for someone today? These causes need help right now.
           </p>

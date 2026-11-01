@@ -1,0 +1,82 @@
+{
+  "tested_code_commit": "d3cffd907b50cf2ebb04625cd9164d772853cd5b",
+  "preview_url": "https://5fbe97ad.interplanetaryfund-source-preview.pages.dev",
+  "artifact": {
+    "status": 200,
+    "source_commit": "d3cffd907b50cf2ebb04625cd9164d772853cd5b",
+    "frontend_root": "apps/web",
+    "working_tree_dirty": false,
+    "full_platform_parity_verified": false,
+    "files": 93,
+    "backend_present": true
+  },
+  "api_checks": [
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "status": 200,
+      "rows": null,
+      "error": null,
+      "service": "ifund-migration-api"
+    },
+    {
+      "path": "/api/campaigns/public",
+      "method": "GET",
+      "status": 200,
+      "rows": 0,
+      "error": null,
+      "service": null
+    },
+    {
+      "path": "/api/community/feed",
+      "method": "GET",
+      "status": 200,
+      "rows": 1,
+      "error": null,
+      "service": null
+    },
+    {
+      "path": "/api/account/me",
+      "method": "GET",
+      "status": 401,
+      "rows": null,
+      "error": "Sign in to view your account.",
+      "service": null
+    },
+    {
+      "path": "/api/campaigns",
+      "method": "POST",
+      "status": 401,
+      "rows": null,
+      "error": "Sign in to save a campaign.",
+      "service": null
+    },
+    {
+      "path": "/api/community/posts",
+      "method": "POST",
+      "status": 401,
+      "rows": null,
+      "error": "Sign in to update the community.",
+      "service": null
+    },
+    {
+      "path": "/functions/geocodeCity",
+      "method": "POST",
+      "status": 401,
+      "rows": null,
+      "error": "Sign in to continue.",
+      "service": null
+    },
+    {
+      "path": "/api/financial-not-implemented",
+      "method": "GET",
+      "status": 404,
+      "rows": null,
+      "error": "Not found.",
+      "service": null
+    }
+  ],
+  "browser_cases": 24,
+  "asset_failures": 0,
+  "scope": "Anonymous live read/denial checks and 24 responsive public-page checks. Signed-in writes, payments and complete agent/workflow parity are not certified."
+}

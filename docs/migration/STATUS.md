@@ -47,3 +47,55 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+## Source-backed frontend artifact — 2026-11-01
+
+The current preview was traced to PR #182 and a root-directory build. Original
+source JSX/layout/CSS already exists in `apps/web`, but its hero image was
+missing. The new source-backed artifact bundles the exact hero, local original
+font families/subsets/licenses, and the PayPal wordmark; restores the source
+AuthLayout/controls; and supplies an explicit frozen-install/test/build command
+and artifact verification. No Cloudflare design inference is expected.
+
+The updated agent icons and space-themed titles are owner-approved deviations.
+Keep them in the rebuilt system; preserve route/permission/business contracts.
+A video walkthrough can supplement the original source and rendered reference.
+Do not infer full page/function parity from this artifact work. Existing root
+preview work and production remain available. Supabase social sign-in handlers
+use the actual SDK, with live provider configuration/journeys still unverified.
+
+The preview artifact also includes a bundled Pages API Worker for real public
+campaign/community reads, authenticated owner account and campaign/post
+operations, and the independent geocoding function. Configuration uses only
+project ssibsfmtodgximseeqsv and encrypted publishable-key bindings; no privileged
+key or Base44 fallback. Source public-post queries were corrected to request
+publicly granted columns. Home/sidebar presentation observes Supabase Auth
+session state; API/RLS still own permission enforcement. Full AI/tool/workflow,
+provider-payment and remaining original-route parity are not certified by this
+preview build.
+
+Frontend preview validation: 43 apps/web tests pass, the complete Vite + Pages Worker artifact builds and verifies, and Chromium captured 24 original-versus-coded home/login screenshots across 390/768/1440 widths and light/dark themes. All 12 coded cases had no missing design assets and no horizontal overflow; local fonts/hero loaded and story expansion worked. This is bounded UI evidence, not full-platform certification.
+
+## Live source preview and Codespaces tooling
+
+Cloudflare successfully built and deployed commit
+`d3cffd907b50cf2ebb04625cd9164d772853cd5b` at
+https://5fbe97ad.interplanetaryfund-source-preview.pages.dev . Live health,
+public campaign reads and community reads returned 200; the community endpoint
+returned one real record. Missing-session account/campaign/post/geocode calls
+returned 401. Unknown financial API returned 404. The published build manifest
+identified apps/web, the exact commit, clean source and bundled API Worker.
+Twenty-four live public-page browser cases passed across mobile/desktop and
+light/dark with no missing design assets, overflow or Base44 requests.
+
+Codespaces setup is checked in under `.devcontainer`; `npm run dev:preview`
+serves the frontend on 5173 and the independent API on loopback 8787. Local
+startup and proxy checks passed: login 200, health 200, missing-session account
+401. The first startup attempt raced a concurrent dependency install; rerunning
+after that install completed passed without a source-code change.
+`build_preview.py` completed its actual frozen install, tests, frontend/API build
+and artifact verification. Its optional deploy targets only the separate
+preview project. No Cloudflare credential is stored in the helper.
+The public configuration endpoint returns only canonical modern publishable
+configuration and rejects private/legacy keys; 44 frontend/API tests now pass.
+Actual Codespace container creation/rebuild is not controlled from this chat.

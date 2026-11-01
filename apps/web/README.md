@@ -62,3 +62,64 @@ The preview workflow is staged at `apps/web/ci/web-preview.yml`, but is **not in
 ## Cloudflare Pages deployment — 2026-11-01
 
 The `interplanetaryfund-migration-preview` Cloudflare Pages project is connected to `interplanetarysister/InterplanetaryFund` main. Its production build runs `npm --prefix apps/web install --no-audit --no-fund && npm --prefix apps/web test && npm --prefix apps/web run build`, with output `apps/web/dist`. Main-branch automatic deployments were enabled for this separate project on 2026-11-01. This is distinct from `interplanetaryfund-migration` (the current domain's Pages project), whose Git source and cutover must be reconciled and verified separately. New code is not claimed live until the corresponding Cloudflare deployment succeeds. Financial operations remain disabled.
+
+## Source-backed preview build (current)
+
+The original UI is executable code in this directory: `src/pages`,
+`src/components`, `src/index.css`, `src/styles-ifund-studio.css`, the Tailwind
+configuration, and `public/`. Cloudflare needs the compiled artifact from this
+code; design instructions cannot replace these files. The root `src/` scaffold
+is a separate application and produces a different UI.
+
+Run `npm run build:preview` from the repository root. It runs a frozen install,
+40 frontend tests, Vite, and `scripts/verify-artifact.mjs`, producing
+`apps/web/dist`. Cloudflare source settings for this artifact are root
+`apps/web`, command `npm ci --ignore-scripts --no-audit --no-fund && npm test &&
+npm run build`, output `dist`. Keep the existing preview/builder work available
+while this source-backed artifact is checked; do not replace production routing.
+
+The previously missing hero is now `public/images/home-hero.jpg` (the exact
+original image bytes). Fraunces, Inter and Manrope font subsets and OFL licenses
+are local under `public/fonts`; the original PayPal wordmark is also bundled.
+`asset-sources.json` records upstream URLs and SHA-256 hashes. The build fails
+on a missing referenced asset, altered source asset, remote CSS design asset,
+Base44 runtime URL or the wrong root-app bundle. `dist/ifund-build.json` records
+source/artifact hashes and explicitly states that full platform parity is
+unverified. No design generation runs during deployment.
+
+The original AuthLayout is restored as JSX. Password/reset/registration calls
+continue to use Supabase. The original Google/Apple/Facebook button composition
+now invokes Supabase OAuth; provider registrations, callback allowlists and
+actual social sign-in are unverified. Do not describe them as live integrations
+based on rendering. This change does not migrate Base44 users or provider grants.
+
+The owner's 2026-11-01 approval retains the current preview's agent icons and
+space-themed display names. `src/lib/presentation.js` applies these labels to
+the original navigation structure without changing URL paths or permissions.
+The source video, when supplied, will be used for further visual comparison.
+All unported routes and remaining behavior stay explicitly unfinished.
+
+The same build now also bundles `server/worker.js` into Pages `_worker.js` and
+limits dynamic dispatch with `_routes.json`. This serves the independent
+campaign, community-post, owner-account and geocoding API on the preview's own
+origin, using the designated Supabase project and caller-scoped RLS. Public posts
+select only public columns. Missing sessions are rejected; financial checkout
+has no invented success path. Authenticated write journeys still need actual
+signed-in runtime verification. Home/navigation now read real Supabase session
+state rather than hard-coding every visitor as signed out.
+
+## GitHub Codespaces
+
+Check out `fix/source-backed-preview` and rebuild the dev container. The checked-in
+`.devcontainer` selects Node 24 and installs both manifests. `npm run dev:preview`
+starts the original-source frontend on forwarded port 5173 and a loopback-only
+independent API on 8787, with Vite proxying API traffic. It obtains only the
+intentionally public configuration from the source preview, or accepts a
+`VITE_SUPABASE_PUBLISHABLE_KEY` Codespaces secret. No private key is fetched or
+committed. Codespace port visibility stays private by default.
+
+`python3 build_preview.py` builds/tests/verifies the actual frontend and backend.
+`python3 build_preview.py --deploy` uses the existing Cloudflare CLI credentials
+and deploys only to `interplanetaryfund-source-preview`; it does not switch the
+production domain. Cloudflare credentials belong in encrypted environment
+settings, never in the Python file.
