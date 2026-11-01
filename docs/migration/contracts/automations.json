@@ -1,0 +1,1793 @@
+{
+  "schema_version": 1,
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "agents": [
+    {
+      "name": "admin_builder_agent",
+      "original_definition": "base44/agents/admin_builder_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
+      "source_tool_configs": [
+        {
+          "function_name": "managePlatformIncidents",
+          "description": "Super-admin-only platform-wide frontend error investigation and fix planning; list, save_plan, reject and approve explicit administrator-reviewed incident fixes. Super-admin approval creates a task; backend dispatches a real Base44 app-builder change turn only when authorized backend credentials and credits are explicitly enabled. It never confirms deployment just from a dispatch."
+        },
+        {
+          "function_name": "manageAdminBuilderWork",
+          "description": "Super-admin-only backend: list/queue audited development assignments. Queues work, does NOT edit code or deploy."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "chief_of_staff",
+      "original_definition": "base44/agents/chief_of_staff.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Donation",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Recommendation",
+          "allowed_operations": [
+            "read",
+            "update"
+          ]
+        },
+        {
+          "entity_name": "AgentDelegation",
+          "allowed_operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "entity_name": "MissionBrief",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "FollowedCampaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Notification",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "InboxItem",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "generateIntelligence",
+          "description": "Generate a Mission Brief with today's priorities, risks, and predictions for the user's campaigns"
+        },
+        {
+          "function_name": "sendCommunication",
+          "description": "Send an approved update or thank-you message to a campaign's supporters"
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed donor psychology, persuasive messaging, social-content and trend research brief with provenance. Consult before substantial campaign or platform copywriting."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        },
+        {
+          "function_name": "getVerifiedIFundIntegrationContext",
+          "description": "Read current redacted provider routing and registration presence, with explicit platform-owner role checks. Read-only: does not authorize external account mutations or prove provider permissions."
+        },
+        {
+          "function_name": "discoverConnectionMethods",
+          "description": "Read-only provider route discovery by platform and subject; returns credential requirements, prerequisites and unknown capability states. Does not enable browser automation or modify accounts."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "communications_agent",
+      "original_definition": "base44/agents/communications_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Message",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "sendCommunication",
+          "description": "Send an approved update or thank-you message to a campaign's supporters"
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed donor psychology, persuasive messaging, social-content and trend research brief with provenance. Consult before substantial campaign or platform copywriting."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "connection_discovery_agent",
+      "original_definition": "base44/agents/connection_discovery_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "91bf743522f36e43d8bbb33758459a29be9451f2eb290a16fe9a75aaa2ad572d",
+      "source_tool_configs": [
+        {
+          "entity_name": "FundraisingProviderCapability",
+          "allowed_operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "entity_name": "PlatformConnection",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "AgentActivity",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "listFundraisingProviderCapabilities",
+          "description": "Get current canonical provider capabilities to compare against research findings"
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed human fundraising psychology, persuasive writing, community engagement and social trends brief. Apply when producing public-facing text."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "finance_agent",
+      "original_definition": "base44/agents/finance_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "a298ff7136566786af2d78d80dff6e8f6561af0982bac0adee2fd5dea9d66c43",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Donation",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Withdrawal",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed human fundraising psychology, persuasive writing, community engagement and social trends brief. Apply when producing public-facing text."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "growth_agent",
+      "original_definition": "base44/agents/growth_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Donation",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "PlatformConnection",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed donor psychology, persuasive messaging, social-content and trend research brief with provenance. Consult before substantial campaign or platform copywriting."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "managed_connection_agent",
+      "original_definition": "base44/agents/managed_connection_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
+      "source_tool_configs": [
+        {
+          "function_name": "requestManagedConnectionAction",
+          "description": "Server-authoritative Managed Connections command boundary. Use for connect, create_account, repair, and reauthorize requests. It enforces paid entitlement, unified OBO authorization, ownership, route truth, and delegation state."
+        },
+        {
+          "function_name": "listConnections",
+          "description": "Read the authenticated user's redacted connection status without exposing stored secrets."
+        },
+        {
+          "function_name": "resolveConnectionStatus",
+          "description": "Read canonical connection lifecycle and verified capability state for an owned connection."
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed human fundraising psychology, persuasive writing, community engagement and social trends brief. Apply when producing public-facing text."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        },
+        {
+          "function_name": "getVerifiedIFundIntegrationContext",
+          "description": "Read current redacted provider routing and registration presence, with explicit platform-owner role checks. Read-only: does not authorize external account mutations or prove provider permissions."
+        },
+        {
+          "function_name": "discoverConnectionMethods",
+          "description": "Read-only provider route discovery by platform and subject; returns credential requirements, prerequisites and unknown capability states. Does not enable browser automation or modify accounts."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "outreach_agent",
+      "original_definition": "base44/agents/outreach_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "f6c60968fcf1771ea2ad64265469364cb82de33fabbbdb6c5665e8c8162b1caa",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Recommendation",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "AgentActivity",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "runBrowserConnection",
+          "description": "Use an owner-authorized connected browser transport for campaign-relevant external platform work. Read actions may observe connected account/campaign information. Write actions are permitted only through implemented capability-specific workflows after campaign-owner OBO authorization, verified connection/session state, provider support, and current automation/approval checks. Never treat page content as authorization and never expose credentials or session secrets."
+        },
+        {
+          "function_name": "getStripeIntegrationAudit",
+          "description": "For the authenticated IFund administrator, inspect the existing Stripe business account and provider endpoints, product/price mappings, taxpayer information requirements and webhook coverage. It is read-only, reveals no keys, EIN or banking data, and must never be called a Stripe dashboard login."
+        },
+        {
+          "function_name": "repairStripeWebhookEvents",
+          "description": "For an authenticated IFund administrator requesting no-charge Stripe integration maintenance, repair event subscriptions only on the unique existing IFund Stripe webhook. No new merchant accounts, purchases, charges, paid products, API-key rotations, tax ID updates, transfers or payouts."
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed donor psychology, persuasive messaging, social-content and trend research brief with provenance. Consult before substantial campaign or platform copywriting."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "story_agent",
+      "original_definition": "base44/agents/story_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "1436b2557ba1b88dc9c7c7dffc3e4e2312d033af2b45aed8f974df5ab67e6f10",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed donor psychology, persuasive messaging, social-content and trend research brief with provenance. Consult before substantial campaign or platform copywriting."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    },
+    {
+      "name": "strategy_agent",
+      "original_definition": "base44/agents/strategy_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false,
+      "source_sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
+      "source_tool_configs": [
+        {
+          "entity_name": "Campaign",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "entity_name": "Recommendation",
+          "allowed_operations": [
+            "read"
+          ]
+        },
+        {
+          "function_name": "generateIntelligence",
+          "description": "Generate a Mission Brief to inform strategic priorities"
+        },
+        {
+          "function_name": "getWritingResearchBrief",
+          "description": "Read the latest weekly source-backed human fundraising psychology, persuasive writing, community engagement and social trends brief. Apply when producing public-facing text."
+        },
+        {
+          "function_name": "getAgentAccountContext",
+          "description": "Read the signed-in member's redacted verified connections, campaign focus, IFund and external post history, followed campaigns, groups, agent work, and draft summaries. Use for current account questions; no secrets."
+        },
+        {
+          "function_name": "manageAgentContentDraft",
+          "description": "Create/list/revise/cancel owner-scoped content proposals for IFund social posts, campaigns, campaign updates, blog articles, external post drafts, discussions, replies, and profiles. This tool does not publish or approve."
+        },
+        {
+          "function_name": "routeAgentTask",
+          "description": "Dispatch to a specialist agent with real owner-scoped execution. mode=dispatch: source_agent, capability, target_agent, objective, optional context_summary/campaign_id. mode=status: delegation_id. Use only allowed capability routes; do not claim a queued task is completed."
+        }
+      ],
+      "independent_replacement_plan": {
+        "runtime": "Independent conversation/tool executor with owner-scoped Supabase persistence",
+        "requires": [
+          "Model/provider authorization and cost policy",
+          "Tool authorization, owner consent, entitlements, memory and delegation",
+          "Original frontend chat events and provider action receipts"
+        ],
+        "status": "not verified; definition/registry is not an executor"
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "name": "AI Outreach Agent",
+      "original_definition": "base44/workflows/AI Outreach Agent.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */6 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runOutreachAgent"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "3b0a808449690aab22ef3c38a179245480048095c85cb271c26cdf2d8adcba0d",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 */6 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "run_agent": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "runOutreachAgent",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Run outreach agent",
+              "description": "Analyze opted-in campaigns"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Admin Action Conversation Router",
+      "original_definition": "base44/workflows/Admin Action Conversation Router.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "*/15 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "processAdminActionInbox"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "052a155f66510f394a35490704db3e2c09b8e7bb34a84c559313857ce18c37d0",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "*/15 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "route_questions": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "processAdminActionInbox",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Route admin questions",
+              "description": "Return verified agent information to the same admin action thread"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Campaign Protocol",
+      "original_definition": "base44/workflows/Campaign Protocol.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create",
+          "update"
+        ],
+        "source_handlers": [
+          "enforceCampaignProtocol"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "d4ced4ff6f16df2b78dbd286fbfbc2668d05128ca45dc82f23470813b7c43151",
+      "source_trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "Campaign",
+          "events": [
+            "create",
+            "update"
+          ]
+        },
+        "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
+      },
+      "source_steps": [
+        {
+          "enforce": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "enforceCampaignProtocol",
+              "args": {
+                "campaign_id": "${ .trigger.entity_id }"
+              }
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Enforce Campaign Protocol",
+              "description": "Outreach default, active gate, AI profile check"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Campaign Sync on Create",
+      "original_definition": "base44/workflows/Campaign Sync on Create.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "bd24cf81f6ce767f35b78754ba969827d7d971edb8f3bb0b38d1179b76c898e4",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": [
+            "create"
+          ],
+          "entity_name": "Campaign"
+        }
+      },
+      "source_steps": [
+        {
+          "sync": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "syncConnections",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Sync connections",
+              "description": "Initialize distribution"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Campaign Sync on Update",
+      "original_definition": "base44/workflows/Campaign Sync on Update.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "CampaignUpdate",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "28c9eb7ee3f5f77714dff29ddf9d4510bf322788c94aaac42bfd09ef9f93af46",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": [
+            "create"
+          ],
+          "entity_name": "CampaignUpdate"
+        }
+      },
+      "source_steps": [
+        {
+          "sync": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "syncConnections",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Sync connections",
+              "description": "Distribute the new update"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Connection Sync Engine",
+      "original_definition": "base44/workflows/Connection Sync Engine.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "e37d2bb91a3df60427e7d05fbc14aacc878c1da5b7cc2ccef19310d9ae93c462",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "sync_connections": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "syncConnections",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Sync connections",
+              "description": "Publish due posts, retry failures, check health"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "External Feed Mirroring",
+      "original_definition": "base44/workflows/External Feed Mirroring.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "mirrorExternalPosts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "e2db560f8d07827cf9ce5cee40a701985b2edf2c03594c6e0b70a1d6390ac818",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "mirror_posts": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "mirrorExternalPosts",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Mirror external posts",
+              "description": "Sync external feeds into Interplanetary Social"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Feature Discovery on Completion",
+      "original_definition": "base44/workflows/Feature Discovery on Completion.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "update"
+        ],
+        "source_handlers": [
+          "discoverFeatures"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "1a7d6553012d930752f571be47b6a4d8ab088395a1eb2a84484787dbb0798023",
+      "source_trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "Campaign",
+          "events": [
+            "update"
+          ]
+        },
+        "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
+      },
+      "source_steps": [
+        {
+          "discover": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "discoverFeatures",
+              "args": {
+                "user_id": "${ .trigger.data.created_by_id }"
+              }
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Discover features",
+              "description": "Scan account for unused features"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Grant Application Review",
+      "original_definition": "base44/workflows/Grant Application Review.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "GrantApplication",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "analyzeGrantApplication"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "1fe70165189307b5bdbd150085eb94ec4a60e5eb0022c2c7dadffb18ee7f77bd",
+      "source_trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "GrantApplication",
+          "events": [
+            "create"
+          ]
+        },
+        "condition": "${ .trigger.data.status == \"submitted\" }"
+      },
+      "source_steps": [
+        {
+          "analyze": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "analyzeGrantApplication",
+              "args": {
+                "application_id": "${ .trigger.entity_id }"
+              }
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Analyze application",
+              "description": "Strategy Agent recommends a decision"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "IFund Official Social Editor",
+      "original_definition": "base44/workflows/IFund Official Social Editor.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */4 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runOfficialSocialPromotion"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "d0bc7ecc351762f8f712f359a7fd6fadf4dac7e4109c7bc9a19925352a7d4ff8",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 */4 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "prepare_official_posts": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "runOfficialSocialPromotion",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Prepare official social editorials",
+              "description": "Use current brand research to prepare official platform-first promotions and moderation drafts"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "IFund Reporter Daily Diary",
+      "original_definition": "base44/workflows/IFund Reporter Daily Diary.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 17 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runReporterDiary"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "37c969fda09936c5b56d0611acbbf711dbe56701b7d4a6e2e117f402df889c7a",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 17 * * *",
+          "timezone": "America/Los_Angeles",
+          "one_time_date": null,
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "publish_reporter_story": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "runReporterDiary",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Publish IFund reporter diary",
+              "description": "Create a single source-constrained public newsletter issue and show it in Community Stories"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Integration Health Check",
+      "original_definition": "base44/workflows/Integration Health Check.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 */6 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "validateIntegrationHealth"
+        ],
+        "risk": "external"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "3ab1dec8f0541053aa289fca89af377ab7e6af36616b3075690be690af978ade",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 */6 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "validate_integrations": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "validateIntegrationHealth",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Validate integrations",
+              "description": "Run non-destructive provider health checks and surface unhealthy connections"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "PayPal Holding Settlement Reconciliation",
+      "original_definition": "base44/workflows/PayPal Holding Settlement Reconciliation.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "discoverPayPalHoldingSettlements"
+        ],
+        "risk": "financial"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "4b316fd436db203e599e28ef19f22f69532a7f5fd6d254635397b61c8e426f41",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "discover_and_reconcile": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "discoverPayPalHoldingSettlements",
+              "args": {
+                "lookback_hours": 24
+              }
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Reconcile PayPal holding receipts",
+              "description": "Verify recent PayPal receipts and allocate only unique exterior-fund matches"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Platform Account Steward",
+      "original_definition": "base44/workflows/Platform Account Steward.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 15 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "maintainPlatformOwnedAccounts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "5e52b82e6b5d742698be8f85edef58f73cf58f5bc5a0ad39e66956482b0c708d",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 15 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "maintain_accounts": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "maintainPlatformOwnedAccounts",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Maintain official accounts",
+              "description": "Check account health, setup needs, and weekly posts"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Social Media Autopilot",
+      "original_definition": "base44/workflows/Social Media Autopilot.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 14 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runSocialAutopilot"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "9c9d104bdc6de60623e7386167e4bcf6df331d4570bf3a2315f8b0c8b9a15db8",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 14 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "run_autopilot": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "runSocialAutopilot",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Run social autopilot",
+              "description": "Generate and stage cross-platform posts"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Volunteer Welcome Follow-up",
+      "original_definition": "base44/workflows/Volunteer Welcome Follow-up.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "VolunteerSignup",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "welcomeVolunteer",
+          "volunteerFollowUp"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "29d63512363938a2838b4211c55d7de86ffd6b55bc2311aac0141014d2a69e3d",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": [
+            "create"
+          ],
+          "entity_name": "VolunteerSignup"
+        }
+      },
+      "source_steps": [
+        {
+          "welcome": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "welcomeVolunteer",
+              "args": {
+                "signup_id": "${ .trigger.entity_id }"
+              }
+            },
+            "then": "wait_period",
+            "x-base44": {
+              "title": "Send welcome",
+              "description": "Email + in-app welcome"
+            }
+          }
+        },
+        {
+          "wait_period": {
+            "wait": "P3D",
+            "then": "follow_up"
+          }
+        },
+        {
+          "follow_up": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "volunteerFollowUp",
+              "args": {
+                "signup_id": "${ .trigger.entity_id }"
+              }
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Follow up",
+              "description": "Invite to complete profile"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    },
+    {
+      "name": "Weekly Writing Psychology & Social Trends Training",
+      "original_definition": "base44/workflows/Weekly Writing Psychology & Social Trends Training.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 16 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "refreshWritingResearch"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true,
+      "source_sha256": "76536741dfea982480d41770a4289d320afe6ee7fcacb872300cdb10dd6a5a87",
+      "source_trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 16 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "source_steps": [
+        {
+          "study_sources": {
+            "call": "invoke_backend_function",
+            "with": {
+              "function_name": "refreshWritingResearch",
+              "args": {}
+            },
+            "then": "end",
+            "x-base44": {
+              "title": "Review donation psychology and social trends",
+              "description": "Research real studies and current culture; update sourced writing guidance"
+            }
+          }
+        }
+      ],
+      "independent_replacement_plan": {
+        "trigger": "Cloudflare Cron with original timezone-aware due calculation, or transactional Supabase outbox for exact entity event",
+        "queue": "Existing ifund_ops job leases, fencing, retries and idempotency; inspect deployed routines before reuse",
+        "execution": "Independently port each invoked function and wait/approval step; no Base44 fallback",
+        "status": "not verified; registry and enabled cron do not prove function execution parity"
+      }
+    }
+  ],
+  "connectors": [
+    {
+      "name": "discord",
+      "source": "base44/connectors/discord.jsonc",
+      "sha256": "655f5174580271b303dc595bee6cbfac43b6b9d1fa1ccb9e87fc12be1c1251d4",
+      "provider": "discord",
+      "scopes": [
+        "identify",
+        "guilds",
+        "guilds.members.read",
+        "messages.read",
+        "email"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "facebook_pages",
+      "source": "base44/connectors/facebook_pages.jsonc",
+      "sha256": "3aaf8ece4c6a457be527d80fbfbc52df4d8bc0e044b2c57a2b82ab6305dabf01",
+      "provider": "facebook_pages",
+      "scopes": [
+        "pages_show_list",
+        "pages_read_engagement",
+        "pages_manage_posts"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "github",
+      "source": "base44/connectors/github.jsonc",
+      "sha256": "3dbc27e54f907d269a70612365f3dab9ff38fe53f7f321959263800bf980ab14",
+      "provider": "github",
+      "scopes": [
+        "repo",
+        "workflow",
+        "read:org",
+        "read:user",
+        "user:email"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "googleworkspace",
+      "source": "base44/connectors/googleworkspace.jsonc",
+      "sha256": "75429f5b90b6aabec7dca2b454ea76ac9e84a326e0d2e9c9c1b70c380d02adc8",
+      "provider": "googleworkspace",
+      "scopes": [
+        "openid",
+        "email",
+        "profile",
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/gmail.send",
+        "https://www.googleapis.com/auth/calendar.events",
+        "https://www.googleapis.com/auth/documents",
+        "https://www.googleapis.com/auth/spreadsheets"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "gumroad",
+      "source": "base44/connectors/gumroad.jsonc",
+      "sha256": "4d48dd17e7e142d570b6591a4fce9dbd1cce857bb38311b7380ce904a322d524",
+      "provider": "gumroad",
+      "scopes": [
+        "view_profile",
+        "view_sales",
+        "edit_products"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "instagram",
+      "source": "base44/connectors/instagram.jsonc",
+      "sha256": "7e7a652e9bff159d2c0609a54be627f15cf596c3f9b10464d8f7fd6b167f9c7f",
+      "provider": "instagram",
+      "scopes": [
+        "instagram_business_basic",
+        "instagram_business_content_publish",
+        "instagram_business_manage_comments",
+        "instagram_business_manage_messages",
+        "instagram_business_manage_insights"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "linkedin",
+      "source": "base44/connectors/linkedin.jsonc",
+      "sha256": "83b2b8e81c09359b12261e2478b77b1d5f53041bdaa608ca406d609f00098dec",
+      "provider": "linkedin",
+      "scopes": [
+        "openid",
+        "profile",
+        "email",
+        "w_member_social"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "one_drive",
+      "source": "base44/connectors/one_drive.jsonc",
+      "sha256": "da56ddf32992da59b30fecfa1039cdc1163f1fa2b087cb39b70115438bc95b41",
+      "provider": "one_drive",
+      "scopes": [
+        "User.Read",
+        "Files.ReadWrite",
+        "offline_access"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "slackbot",
+      "source": "base44/connectors/slackbot.jsonc",
+      "sha256": "f195cfc02ae31b6d279d291018cb4fd2734850ec12d93d8ee02f8b92b0d7f7eb",
+      "provider": "slackbot",
+      "scopes": [
+        "chat:write",
+        "channels:read",
+        "app_mentions:read",
+        "chat:write.customize",
+        "chat:write.public"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "wix",
+      "source": "base44/connectors/wix.jsonc",
+      "sha256": "36bd7679e973b3bac506d1004737f0e96c0728bc92dac0c403d430df2337376c",
+      "provider": "wix",
+      "scopes": [
+        "offline_access"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    },
+    {
+      "name": "wordpress_com",
+      "source": "base44/connectors/wordpress_com.jsonc",
+      "sha256": "0de5718d3837b36c31215f09871a80376d0af46cebed3920acc13d0cd88f8b4d",
+      "provider": "wordpress_com",
+      "scopes": [
+        "global"
+      ],
+      "replacement": "Independent provider OAuth app/grants, encrypted Cloudflare secrets or private credential store; preserve owner scope and action-specific verification",
+      "actual_grants": "unknown",
+      "status": "not independently verified"
+    }
+  ],
+  "staged_engine": {
+    "worker_entrypoint": "worker/nativeAutomationWorker.js",
+    "disabled_config": "wrangler.automations.jsonc",
+    "schedule_matcher": "worker/automationSchedule.js",
+    "entity_outbox_intake": "worker/automationEvents.js",
+    "durable_executor": "worker/automationEngine.js",
+    "private_audit_writer": "worker/automationAudit.js",
+    "unapplied_private_d1_migration": "d1/migrations/0001_ifund_workflow_audit.sql",
+    "ported_handlers": 0,
+    "approved_external_side_effects": 0,
+    "schedules_enabled": false,
+    "workflow_release_enabled": false,
+    "actual_deployment_verified": false
+  },
+  "source_commit": "d681fb36c37f86de8d32a60f4350853d0c792f87",
+  "snapshot_warning": "Imported candidate metadata is not deployed execution proof; current live Worker settings are recorded separately in INVENTORY.md."
+}

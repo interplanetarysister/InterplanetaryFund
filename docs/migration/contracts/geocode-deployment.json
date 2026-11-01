@@ -1,0 +1,53 @@
+{
+  "checks": [
+    {
+      "path": "/functions/geocodeCity",
+      "method": "POST",
+      "invalid_bearer": false,
+      "status": 401,
+      "body": {
+        "error": "Sign in to continue."
+      }
+    },
+    {
+      "path": "/functions/geocodeCity",
+      "method": "POST",
+      "invalid_bearer": true,
+      "status": 401,
+      "body": {
+        "error": "Sign in to continue."
+      }
+    },
+    {
+      "path": "/api/apps/6a67a778342a8fe05ee79cba/functions/geocodeCity",
+      "method": "POST",
+      "invalid_bearer": false,
+      "status": 401,
+      "body": {
+        "error": "Sign in to continue."
+      }
+    },
+    {
+      "path": "/api/campaigns/public",
+      "method": "GET",
+      "invalid_bearer": false,
+      "status": 404,
+      "body": {
+        "error": "Not found."
+      }
+    }
+  ],
+  "config": {
+    "status": 200,
+    "canonical_project": true,
+    "publishable_key_only": true
+  },
+  "session_storage_empty": true,
+  "verifier_page_status": 200,
+  "worker": "ifund-geocode-staging",
+  "url": "https://ifund-geocode-staging.interplanetary-fund.workers.dev",
+  "deployment_id": "b7774cf181c840cf83b8efcc3d88c51e",
+  "production_route_changed": false,
+  "signed_in_success": "pending private browser test",
+  "timestamp": "2026-11-01T19:36:58Z"
+}
