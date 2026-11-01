@@ -33,3 +33,13 @@
 .ifund-bottom-nav a.active{color:#67e8f9;background:transparent}
 @media(min-width:851px){.ifund-bottom-nav{display:none}}
 @media(max-width:850px){.ifund-bottom-nav{font-size:.7rem}.ifund-bottom-nav a{padding:.35rem .1rem}}
+
+.ifund-visual-workspace{max-width:1080px}
+.ifund-back-link{display:inline-flex;gap:.5rem;align-items:center;margin-bottom:1.25rem;color:#67e8f9}
+.ifund-workspace-hero{border:1px solid #334155;border-radius:1.4rem;background:linear-gradient(130deg,#0e213c,#142748 60%,#073b4b);padding:clamp(1.5rem,5vw,4rem)}
+.ifund-workspace-mark{display:grid;place-items:center;width:60px;height:60px;border-radius:18px;background:#155e75;color:#a5f3fc}
+.ifund-workspace-hero h1{margin:.5rem 0}
+.ifund-workspace-hero h2{font-family:Inter,system-ui,sans-serif;font-size:1.25rem}
+.ifund-workspace-hero p{max-width:60ch}
+.ifund-workspace-notice{display:flex;align-items:flex-start;gap:1rem}
+.ifund-workspace-notice p{margin:.4rem 0 0}
