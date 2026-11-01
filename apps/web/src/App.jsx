@@ -31,12 +31,14 @@ const Inbox = lazy(() => import("./pages/Inbox"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
+const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
+const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
 const STANDALONE_COMING_SOON = [
   "/onboarding",
-  "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
+  "/globe", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
@@ -60,6 +62,8 @@ function AppRoutes() {
     <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
+    <Route path="/download" element={<DownloadApp />} />
+    <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
