@@ -9,7 +9,7 @@ export default function InboxPreview() {
  return <main className="ifund-inbox">
   <Link className="ifund-back-link" to="/dashboard"><ArrowLeft size={16}/> Dashboard</Link>
   <div className="ifund-inbox-heading"><span className="ifund-inbox-mark"><MailOpen size={24}/></span>
-    <div><h1>Universal Inbox</h1><p>Every donation, comment, and alert from every connected platform — one communication center.</p></div>
+    <div><h1>Signal Inbox</h1><p>One place for your campaign messages and alerts when your platforms are connected.</p></div>
   </div>
   <section className="ifund-inbox-verification"><ShieldCheck size={23}/><div><strong>Verification inbox</strong><p>Verified donor and payment activity will appear here when the corresponding integrations are available.</p></div></section>
   <div className="ifund-inbox-controls">
