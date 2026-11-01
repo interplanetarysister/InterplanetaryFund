@@ -62,3 +62,17 @@
 .ifund-dashboard-feature-grid{display:grid;grid-template-columns:2fr 1fr;gap:1rem;margin:1.5rem 0}
 .ifund-dashboard-feature-grid h2{display:flex;align-items:center;gap:.6rem;font-size:1.25rem}
 @media(max-width:650px){.ifund-onboarding{flex-wrap:wrap}.ifund-onboarding a{margin-left:0}.ifund-dashboard-feature-grid{grid-template-columns:1fr}}
+
+.ifund-discover-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:1.25rem;flex-wrap:wrap;margin-bottom:1.5rem}
+.ifund-discover-heading h1{font-size:clamp(2rem,4vw,2.7rem);margin:.3rem 0}
+.ifund-discover-heading p{max-width:650px;opacity:.8}
+.ifund-discover-heading .secondary{display:inline-flex;gap:.5rem}
+.ifund-discover-featured{display:flex;align-items:center;gap:1rem;padding:1.5rem;border-radius:20px;background:linear-gradient(120deg,#0c4a6e,#1e40af,#312e81);margin:1.5rem 0 2rem}
+.ifund-discover-featured h2{font-size:1.4rem;margin:0}
+.ifund-discover-featured p{margin:.3rem 0 0}
+.ifund-discover-search{display:flex;align-items:center;gap:.6rem;max-width:460px;border:1px solid #64748b;border-radius:12px;background:#111b33;padding:0 .9rem}
+.ifund-discover-search input{border:0;background:transparent;outline-offset:2px}
+.ifund-discover-filters{display:flex;gap:.6rem;overflow-x:auto;padding:1.2rem 0;scrollbar-width:thin}
+.ifund-discover-filters button{white-space:nowrap;border-radius:999px;padding:.4rem 1rem;background:transparent;border:1px solid #475569}
+.ifund-discover-filters button.is-active{background:#1d4ed8;border-color:#2563eb;color:white}
+.ifund-discover-empty{text-align:center;padding:3rem 1rem;opacity:.75}
