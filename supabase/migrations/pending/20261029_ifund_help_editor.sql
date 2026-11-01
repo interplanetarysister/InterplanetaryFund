@@ -36,9 +36,15 @@ alter table public.ifund_help_articles enable row level security;
 
 revoke all on public.ifund_help_drafts,public.ifund_help_articles from public,anon,authenticated;
 grant select on public.ifund_help_articles to anon,authenticated;
-grant select,insert on public.ifund_help_drafts to authenticated;
-grant update(slug,category,question,description,answer,keywords,stage) on public.ifund_help_drafts to authenticated;
-grant insert,update on public.ifund_help_articles to authenticated;
+grant select on public.ifund_help_drafts to authenticated;
+grant insert(author_id,slug,category,question,description,answer,keywords,stage)
+  on public.ifund_help_drafts to authenticated;
+grant update(slug,category,question,description,answer,keywords,stage)
+  on public.ifund_help_drafts to authenticated;
+grant insert(slug,category,question,description,answer,keywords)
+  on public.ifund_help_articles to authenticated;
+grant update(category,question,description,answer,keywords)
+  on public.ifund_help_articles to authenticated;
 
 -- Auth JWT app_metadata is only set by the trusted Auth service. Never
 -- authorize administrators from browser-stored role or user_metadata.
