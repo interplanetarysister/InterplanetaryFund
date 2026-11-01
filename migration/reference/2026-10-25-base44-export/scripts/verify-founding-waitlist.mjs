@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const read = p => readFileSync(new URL('../'+p, import.meta.url),'utf8');
+const app=read('src/App.jsx');
+const home=read('src/pages/Home.jsx');
+const page=read('src/pages/FoundingMembers.jsx');
+const api=read('base44/functions/joinFoundingWaitlist/entry.ts');
+const admin=read('src/pages/AdminFoundingWaitlist.jsx');
+const entity=JSON.parse(read('base44/entities/FoundingWaitlist.jsonc'));
+assert.match(app,/path="\/founding-members" element=\{<FoundingMembers/);
+assert.match(app,/path="\/admin\/founding-members" element=\{<AdminFoundingWaitlist/);
+assert.match(home,/to="\/founding-members"/);
+assert.match(page,/joinFoundingWaitlist/);
+assert.match(page,/marketing_opt_in:marketing/);
+assert.match(page,/consent/);
+assert.match(api,/checkRateLimit/);
+assert.match(api,/const existing=/);
+assert.doesNotMatch(api,/existing\[0\]\.referral_code/,'Existing email must not reveal private referral code');
+assert.match(admin,/FoundingWaitlist\.list/);
+for(const operation of ['read','create','update','delete'])
+  assert.equal(entity.rls?.[operation]?.user_condition?.role,'admin',operation+' must stay admin only');
+console.log('Founding waitlist route, privacy and admin contracts verified.');

@@ -1,0 +1,76 @@
+{
+  "name": "GitHubSyncCheckpoint",
+  "type": "object",
+  "properties": {
+    "repository": {
+      "type": "string"
+    },
+    "branch": {
+      "type": "string"
+    },
+    "remote_head_sha": {
+      "type": "string",
+      "description": "Last provider-observed GitHub branch HEAD. Never a credential."
+    },
+    "previous_remote_head_sha": {
+      "type": "string"
+    },
+    "relationship": {
+      "type": "string",
+      "enum": [
+        "INITIAL",
+        "UNCHANGED",
+        "FAST_FORWARD",
+        "DIVERGED",
+        "UNKNOWN"
+      ]
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "observed_by_user_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "github_provider_api"
+      ],
+      "default": "github_provider_api"
+    },
+    "detail": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "repository",
+    "branch",
+    "remote_head_sha",
+    "relationship",
+    "observed_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Non-secret checkpoints for Base44\u2013GitHub synchronization and recovery tracking."
+}

@@ -1,0 +1,114 @@
+name = "interplanetary-fund2"
+main = "host/gateway/worker.js"
+compatibility_date = "2026-09-29"
+workers_dev = true
+# Preserve existing dashboard-configured non-secret admin backend URLs on deploy.
+# Encrypted secrets are preserved by Wrangler separately.
+keep_vars = true
+
+# These hostname routes require authoritative DNS on Cloudflare and a proxied
+# interplanetaryfund.com record. DNS is currently delegated to Wix, so these
+# declarations alone cannot activate the public paths. Preserve production
+# until the DNS cutover has a proven rollback and service-record inventory.
+[[routes]]
+pattern = "interplanetaryfund.com/api/health*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/api/v1/migration/auth/session"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/api/v1/migration/campaigns"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/api/v1/agent/*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/api/mcp*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/v1/admin/agents/*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/.well-known/oauth-*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "interplanetaryfund.com/.well-known/openid-configuration*"
+zone_name = "interplanetaryfund.com"
+
+
+# Both public hostnames must traverse identical protected Worker paths after
+# their Cloudflare-proxied DNS records are activated. Do not cut over early.
+[[routes]]
+pattern = "www.interplanetaryfund.com/api/health*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/api/v1/migration/auth/session"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/api/v1/migration/campaigns"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/api/v1/agent/*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/api/mcp*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/v1/admin/agents/*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/.well-known/oauth-*"
+zone_name = "interplanetaryfund.com"
+
+[[routes]]
+pattern = "www.interplanetaryfund.com/.well-known/openid-configuration*"
+zone_name = "interplanetaryfund.com"
+
+# Non-production Git branches use Cloudflare Workers Previews. Preview builds
+# require an explicit block but must never inherit production secrets, DNS
+# routes, or financial bindings. Provision separate preview bindings only when
+# needed; the existing production [vars]/[assets]/routes remain unchanged.
+[previews]
+
+[vars]
+IFUND_BASE44_ORIGIN = "https://interplanetaryfund.base44.app"
+# Exact known IFund browser origins only; no wildcards or reflected Origin.
+# This must ship with Worker deployment, not depend on dashboard-only state.
+IFUND_ALLOWED_ORIGINS = "https://interplanetaryfund.com,https://www.interplanetaryfund.com,https://interplanetaryfund.base44.app,https://interplanetary-fund2.interplanetary-fund.workers.dev"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = [
+  "/v1/admin/agents/*",
+  "/api/health",
+  "/api/health/*",
+  "/api/v1/campaign-assistant",
+  "/api/v1/migration/auth/session",
+  "/api/v1/migration/campaigns",
+  "/api/v1/agent/*",
+  "/api/mcp",
+  "/api/mcp/*",
+  "/api/apps/*/mcp",
+  "/api/apps/*/mcp/*",
+  "/.well-known/oauth-*",
+  "/.well-known/openid-configuration"
+]
+
+# Campaign assistance is dormant until an explicit, budget-verified activation.
+# Provision AI and CAMPAIGN_AI_LIMITER bindings only after free-tier eligibility
+# and quota approval. Never enable paid fallbacks. See host/gateway/README.md.

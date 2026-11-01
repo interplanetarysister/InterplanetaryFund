@@ -1,0 +1,43 @@
+{
+  "name": "PostInterest",
+  "type": "object",
+  "description": "Private per-user social post likes and saved posts for reliable member interests.",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "post_id": {
+      "type": "string"
+    },
+    "liked": {
+      "type": "boolean",
+      "default": false
+    },
+    "saved": {
+      "type": "boolean",
+      "default": false
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "post_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,2343 @@
+{
+  "generated_at": "2026-10-23T01:56:28.786Z",
+  "scope": "Base44 source inventory; NOT a production deployment audit",
+  "entity_count": 95,
+  "function_directory_count": 184,
+  "entities": [
+    {
+      "name": "ActivityEvent",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AdminActionMessage",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AdminApiConnectionIntake",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AdminApproval",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AdminCredentialReference",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AdminCredentialVault",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Agent",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AgentActivity",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AgentContentDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AgentConversationRun",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AgentDelegation",
+      "domains": [
+        "identity",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AuditLog",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "AuthorizationGrant",
+      "domains": [
+        "identity",
+        "campaign"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "BlogEntry",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Campaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "CampaignTranslation",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "CampaignUpdate",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Community",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "CommunityMember",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ConnectedPayoutAccount",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "DeviceAuthorization",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "DiscussionPost",
+      "domains": [
+        "integrations",
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "DiscussionReply",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "DistributedPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Donation",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExecutiveReport",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalAgentApiKey",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalCampaignImport",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalCampaignImportOperation",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalCampaignPublication",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalCollectionAuthorization",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalConversation",
+      "domains": [
+        "integrations",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalConversationMessage",
+      "domains": [
+        "integrations",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalFundMigrationRecord",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalFundObservation",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalPlatformRecord",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalSyncClaim",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ExternalSyncEvent",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "FeatureFlag",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "FinancialOperation",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "FollowedCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai",
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "FoundingWaitlist",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Friendship",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "FundraisingProviderCapability",
+      "domains": [
+        "finance",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "GitHubSyncCheckpoint",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "GrantApplication",
+      "domains": [
+        "campaign"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "HelpArticle",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "HelpDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "HelpFeedback",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "HoldingLedgerEntry",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "InboxItem",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Institution",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "InstitutionOpportunity",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "IntegrationChangeRequest",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "KnowledgeArticle",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "LegalAcceptance",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Message",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "MissionBrief",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "MonitoredCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "NonprofitSubscriptionApproval",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Notification",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "OfficialPublication",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Opportunity",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PayPalBillingWebhook",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PayPalSubscriptionIntent",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformAccessRegistry",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformConnection",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformConnectionRecipe",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformEvent",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformIncident",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PlatformOwnedAccount",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PostInterest",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ProtocolReport",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PublicProfile",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "PushDevice",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "RateLimitBucket",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Recommendation",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ScheduledAutoPostPermit",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "SocialPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "StripeReversalHold",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "SubscriptionPlanMapping",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "SupportTicket",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "SustainabilityAudit",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "SyncRun",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "TreasurySnapshot",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "User",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "UserBlog",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "UserCredentialVault",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "VerificationMail",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "VerificationMailbox",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "VolunteerOpportunity",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "VolunteerSignup",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "WebhookEvent",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "Withdrawal",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "WritingResearchBrief",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    }
+  ],
+  "function_directories": [
+    {
+      "name": "acknowledgeConnectionIssue",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "activateSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "adminApiConnectionIntake",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "adminCampaignControl",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "adminOAuthProviderReadiness",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "adminUpdateUserRole",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "analyzeGrantApplication",
+      "domains": [
+        "campaign"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "applyAgentContentDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "applyInstitutionOpportunity",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "auditAdminAgentGateway",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "authorizeCollectAndWithdraw",
+      "domains": [
+        "finance",
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "authorizeConnectionAi",
+      "domains": [
+        "identity",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "broadcastPosts",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "cancelPayPalSubscription",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "capturePayPalOrder",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "checkUsernameAvailability",
+      "domains": [
+        "identity",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "communityMembership",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "completeOAuthConnection",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "confirmPayPalSubscription",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createCommunity",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createDiscussionPost",
+      "domains": [
+        "integrations",
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createDistributedPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createDonationCheckout",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createInstitution",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createKnowledgeArticle",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createPayPalOrder",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createPayPalSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createPremiumDayPassCheckout",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createSocialPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createSubscriptionCheckout",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createSupportTicket",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "createVolunteerOpportunity",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "decideGrantApplication",
+      "domains": [
+        "campaign"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "deleteAccount",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "deleteCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "deviceAuthorization",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "disconnectPlatformConnection",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "discoverConnectionMethods",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "discoverExternalCampaignSnapshot",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "discoverFeatures",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "discoverPayPalHoldingSettlements",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "draftSharePost",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "enforceCampaignProtocol",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "executeAdminAgentRequest",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "executeCollectAndWithdraw",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "externalAgentCampaigns",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "externalAgentContentWrite",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "finalizeAppUserOAuthConnection",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "generateCampaignCover",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "generateDistributionContent",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "generateIntelligence",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "generateSocialContent",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "geocodeCity",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getAgentAccountContext",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getAgentMailContext",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getAppUserConnector",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getBufferReadiness",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getCampaignDonations",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getCampaignDraft",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getCampaignWithdrawalBalance",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getCommunityFeed",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getConnectedPayoutAccount",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getCryptoDonationReadiness",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getFeatureAvailability",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getFundraisingMode",
+      "domains": [
+        "finance",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getLiveProviderStatus",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getMyGiving",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getOwnerDonorDirectory",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getOwnerFinancialLedger",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getPayPalConfig",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getPayPalPayoutReadiness",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getPayPalSubscriptionOptions",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getPaymentCapabilities",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getSharedConnectorStatus",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getStripeIntegrationAudit",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getStripeReadiness",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getStripeSubscriptionOptions",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getUnifiedInbox",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getVerifiedIFundIntegrationContext",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "getWritingResearchBrief",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "importExternalCampaign",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "joinFoundingWaitlist",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "justGivingStagingPilot",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "kofiWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "listConnections",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "listFundraisingProviderCapabilities",
+      "domains": [
+        "finance",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "listInstitutionApplications",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "listUntrackedPayPalReceipts",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "logPlatformEvent",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "maintainPlatformOwnedAccounts",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageAdminBuilderWork",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageAgentContentDraft",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageAgentWork",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageApprovedBuilderExecution",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageBlog",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageConnectedPayoutAccount",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageDistributedPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageExternalAgentKeys",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageFeatureFlag",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageFriends",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageOAuthClients",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageOfficialPublications",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageOwnerConnectionConfiguration",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "managePlatformAccess",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "managePlatformIncidents",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "managePostInterest",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "managePublicProfile",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageRecurringDonation",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "manageVerificationMailbox",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "markNotificationRead",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "matchExternalPayPalSettlement",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "mirrorExternalPosts",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "ownerAgentChatActions",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "payPalSubscriptionWebhook",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "postCampaignUpdate",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "postDiscussionReply",
+      "domains": [
+        "integrations",
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "prepareCollectAndWithdraw",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "processAdminActionInbox",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "publishInstitutionOpportunity",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "publishLinkedCampaignToConnection",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "publishPost",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "receiveCloudflareEmail",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "reconcileDirectPayPalCampaignDonation",
+      "domains": [
+        "finance",
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "reconcileExternalPayPalSettlement",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "recordAgentInteraction",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "recordCampaignCreated",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "recordDonation",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "recordExternalFundMigration",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "recordLegalAcceptance",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "refreshWritingResearch",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "registerPushDevice",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "renderInterplanetaryPhoto",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "repairStripeWebhookEvents",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "requestManagedConnectionAction",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "requestWithdrawal",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "resolveConnectionStatus",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "resolvePlatformConnectionRecipe",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "reviewAgentActivity",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "revokeConnectionAiConsent",
+      "domains": [
+        "identity",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "routeAgentTask",
+      "domains": [
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "runBrowserConnection",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "runOfficialSocialPromotion",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "runOutreachAgent",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "runReporterDiary",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "runSocialAutopilot",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "saveCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "saveConnectionCredentials",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "sendCommunication",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "sendPublicContactMessage",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "setConnectionAiToggle",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "setUnifiedOboConsent",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "setUsername",
+      "domains": [
+        "identity"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "setupPayPalSubscriptionWebhook",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "startPremiumTrial",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "startStripeConnectOnboarding",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "stripeWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncConnections",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncExternalFunds",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncFromConvex",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncGitHub",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncImportedCampaign",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncPayPalSubscriptionCatalog",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncStripeSubscriptionCatalog",
+      "domains": [
+        "finance",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncWixAnalytics",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncWixBusinessData",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncWixCampaigns",
+      "domains": [
+        "campaign",
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "syncWixContent",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "toggleCampaignFollow",
+      "domains": [
+        "campaign",
+        "agents-ai",
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "trackAgentConversation",
+      "domains": [
+        "agents-ai",
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "translateCampaign",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "updateCampaignSettings",
+      "domains": [
+        "campaign",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "updateFollowPreferences",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "updateInboxItem",
+      "domains": [
+        "communications"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "updateMissionItemStatus",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "validateIntegrationHealth",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "verifyAdminGateway",
+      "domains": [
+        "other"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "verifyAgentPlatformAccess",
+      "domains": [
+        "integrations",
+        "agents-ai"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "verifyAppUserConnector",
+      "domains": [
+        "identity",
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "verifyOwnerPayPalBasicPlan",
+      "domains": [
+        "finance"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "verifyPlatformConnection",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "volunteerFollowUp",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "volunteerSignup",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "welcomeVolunteer",
+      "domains": [
+        "community"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    },
+    {
+      "name": "wixWebhook",
+      "domains": [
+        "integrations"
+      ],
+      "status": "requires_live_dependency_review",
+      "destination": "unassigned_pending_verification"
+    }
+  ],
+  "policy": "No automatic migration or retirement. Inspect call sites, data ownership, live usage, secrets and side effects before assigning destination."
+}

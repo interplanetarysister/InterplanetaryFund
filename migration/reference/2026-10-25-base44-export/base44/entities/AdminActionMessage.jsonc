@@ -1,0 +1,84 @@
+{
+  "name": "AdminActionMessage",
+  "type": "object",
+  "properties": {
+    "approval_id": {
+      "type": "string"
+    },
+    "sender_type": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "agent",
+        "system"
+      ]
+    },
+    "sender_user_id": {
+      "type": "string"
+    },
+    "sender_agent": {
+      "type": "string"
+    },
+    "message_type": {
+      "type": "string",
+      "enum": [
+        "message",
+        "request_more_information",
+        "information_response",
+        "credentials_submitted",
+        "investigation_note",
+        "status_update"
+      ],
+      "default": "message"
+    },
+    "content": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "processing_status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "processing",
+        "processed",
+        "failed"
+      ],
+      "default": "new"
+    }
+  },
+  "required": [
+    "approval_id",
+    "sender_type",
+    "message_type"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Internal messages, evidence, and progress updates within administrator approval cases."
+}

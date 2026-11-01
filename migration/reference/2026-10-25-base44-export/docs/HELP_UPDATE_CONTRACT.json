@@ -1,0 +1,51 @@
+{
+  "reviewed_at": "2026-10-16",
+  "notice": "When any workflow code changes, update its built-in Help article and refresh the recorded hashes after reviewing the actual new steps.",
+  "workflows": [
+    {
+      "workflow": "Connect outside app",
+      "help_slug": "connect-another-platform",
+      "tracked_files": {
+        "src/components/connections/ConnectDialog.jsx": "54959f5f8be02711e7747e220e794c4b537f963bc1c1a93deb47b4f8ae394ea7",
+        "base44/functions/finalizeAppUserOAuthConnection/entry.ts": "c20b8c58b9d8ba8c6baf674c069ee371716e1b3e7d2a7e260088bf97a013095c",
+        "base44/functions/saveConnectionCredentials/entry.ts": "f5b11950a8aa06286509e2801c2f2da91200ec1b82c5febbcf7b5bdc8bd31d50"
+      }
+    },
+    {
+      "workflow": "AI permissions",
+      "help_slug": "ai-platform-permissions",
+      "tracked_files": {
+        "src/components/connections/AccountAiScope.jsx": "67cb0b4f34fb0d84d7cdcc50e37fba69cd5e00c28bf2317f00e25eda9b770291",
+        "src/components/connections/ConnectionCard.jsx": "660537ab3d970c82dc3732229ba8bb27d27ae1644c1b686b310d7dc25b68db1f",
+        "base44/functions/setConnectionAiToggle/entry.ts": "d53165dcc3b7ed59719178c2f87b46eda315b2c99e4324607b9257128cbb9054",
+        "base44/functions/setUnifiedOboConsent/entry.ts": "47249a13b3b3ac475d35fc178c8f7d27a02d063a7a961170cb3126b4847b4a31"
+      }
+    },
+    {
+      "workflow": "Change outside app permissions",
+      "help_slug": "change-connection-permissions",
+      "tracked_files": {
+        "base44/functions/disconnectPlatformConnection/entry.ts": "645b91d6760862cb027a52af33d22a6f9b1e2e2c664959bb73686cfcb8930b8e",
+        "base44/shared/aiConnectionScope.ts": "86aa144c356a7f97ffe40b1f3af8f018ac4c7a8340f5dd474d2e86e38e015eab"
+      }
+    },
+    {
+      "workflow": "Save a private password",
+      "help_slug": "save-platform-password",
+      "tracked_files": {
+        "src/components/connections/PasswordVaultPanel.jsx": "490fd3c6c824a86756b908dc5bd5e11630791c2cb42269fdeca98b503fa3a15c",
+        "src/lib/credentialVault.js": "90133cafbf04a766588cd5f878d095ced01f676929fe2147a6c19dca779b123d"
+      }
+    },
+    {
+      "workflow": "Receive verification mail",
+      "help_slug": "receive-verification-email",
+      "tracked_files": {
+        "src/components/inbox/VerificationInboxPanel.jsx": "53dba3197d87902931236e1f7e4d8460686006572e4aea106f9bb62df1291b62",
+        "base44/functions/manageVerificationMailbox/entry.ts": "d0cfc729165dc9a6fcebaebaf7150268c9592ad8f325322b55d2ea88340d0353",
+        "base44/functions/receiveCloudflareEmail/entry.ts": "a792ffe8d262e64e9e8f6dc074ac8c47f991543b8b9e36d6f6cbf61f8e2db04d",
+        "host/email/worker.js": "6f2c62fe0cefe992b7b252786f8260dfeebfae8e54e94d678083abf2b9418401"
+      }
+    }
+  ]
+}

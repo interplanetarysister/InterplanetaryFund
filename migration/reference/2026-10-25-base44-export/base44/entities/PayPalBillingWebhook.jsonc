@@ -1,0 +1,57 @@
+{
+  "name": "PayPalBillingWebhook",
+  "type": "object",
+  "properties": {
+    "provider": {
+      "type": "string"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "webhook_id": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "provider",
+    "account_ref",
+    "webhook_id",
+    "url"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "PayPal billing webhook processing receipts used for idempotent subscription reconciliation."
+}

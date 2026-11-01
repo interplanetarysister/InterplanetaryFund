@@ -1,0 +1,87 @@
+{
+  "name": "WritingResearchBrief",
+  "type": "object",
+  "properties": {
+    "week_key": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "verified_sources",
+        "partial",
+        "needs_review"
+      ],
+      "default": "needs_review"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "guidance": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "trend_observations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unverified_claims": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "study_facts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "week_key",
+    "created_at",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Source-backed writing and research briefs awaiting review or publication."
+}

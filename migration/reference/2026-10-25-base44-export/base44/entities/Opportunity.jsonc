@@ -1,0 +1,102 @@
+{
+  "name": "Opportunity",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "grant",
+        "matching_gift",
+        "corporate_giving",
+        "foundation",
+        "business",
+        "community",
+        "media",
+        "event",
+        "other"
+      ],
+      "default": "other"
+    },
+    "description": {
+      "type": "string"
+    },
+    "estimated_value": {
+      "type": "string"
+    },
+    "eligibility": {
+      "type": "string"
+    },
+    "required_actions": {
+      "type": "string"
+    },
+    "confidence": {
+      "type": "string",
+      "enum": [
+        "high",
+        "medium",
+        "low"
+      ],
+      "default": "medium"
+    },
+    "source": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "saved",
+        "dismissed"
+      ],
+      "default": "open"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "General fundraising, partnership, volunteer, or outreach opportunities."
+}

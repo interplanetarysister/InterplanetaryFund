@@ -1,0 +1,70 @@
+{
+  "name": "KnowledgeArticle",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "architecture_decision",
+        "runbook",
+        "playbook",
+        "standard",
+        "data_model",
+        "release_notes",
+        "troubleshooting",
+        "other"
+      ],
+      "default": "other"
+    },
+    "content": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "author_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Reusable knowledge content and procedural guidance for IFund agents or administrators."
+}

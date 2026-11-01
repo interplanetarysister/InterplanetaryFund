@@ -1,0 +1,13 @@
+{
+  "appId": "com.base6a67a778342a8fe05ee79cba.app",
+  "appName": "Interplanetary Fund",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}

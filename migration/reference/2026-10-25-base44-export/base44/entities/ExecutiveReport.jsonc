@@ -1,0 +1,115 @@
+{
+  "name": "ExecutiveReport",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "executive_summary",
+        "board_report",
+        "impact_report",
+        "operational_review",
+        "forecast"
+      ],
+      "default": "executive_summary"
+    },
+    "period": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "concerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "forecast": {
+      "type": "string"
+    },
+    "recommended_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "snapshot": {
+      "type": "object",
+      "properties": {
+        "total_raised": {
+          "type": "number"
+        },
+        "donor_count": {
+          "type": "number"
+        },
+        "active_campaigns": {
+          "type": "number"
+        },
+        "communities": {
+          "type": "number"
+        },
+        "volunteers": {
+          "type": "number"
+        },
+        "institutions": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Administrative or executive reports summarizing IFund operations and decisions; not authoritative financial settlement records."
+}

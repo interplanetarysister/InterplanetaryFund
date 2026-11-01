@@ -1,0 +1,90 @@
+{
+  "name": "ExternalAgentApiKey",
+  "type": "object",
+  "description": "Private hashed credentials for limited external campaign assistant access; never store plaintext keys.",
+  "properties": {
+    "label": {
+      "type": "string"
+    },
+    "key_prefix": {
+      "type": "string"
+    },
+    "key_hash": {
+      "type": "string",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "create": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "delete": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "campaigns:read",
+        "campaigns:read,content:write"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "revoked"
+      ]
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "revoked_at": {
+      "type": "string"
+    },
+    "last_used_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "label",
+    "key_prefix",
+    "key_hash",
+    "scope",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

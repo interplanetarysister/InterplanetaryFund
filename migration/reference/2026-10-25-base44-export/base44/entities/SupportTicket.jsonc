@@ -1,0 +1,80 @@
+{
+  "name": "SupportTicket",
+  "type": "object",
+  "description": "Private support requests. Tickets are visible to their creator and administrators only.",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "name",
+    "email",
+    "message"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

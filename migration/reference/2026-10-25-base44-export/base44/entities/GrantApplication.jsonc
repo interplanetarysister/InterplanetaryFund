@@ -1,0 +1,94 @@
+{
+  "name": "GrantApplication",
+  "type": "object",
+  "properties": {
+    "opportunity_id": {
+      "type": "string"
+    },
+    "opportunity_title": {
+      "type": "string"
+    },
+    "institution_id": {
+      "type": "string"
+    },
+    "institution_name": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "applicant_name": {
+      "type": "string"
+    },
+    "applicant_user_id": {
+      "type": "string"
+    },
+    "narrative": {
+      "type": "string"
+    },
+    "requested_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "submitted",
+        "under_review",
+        "awarded",
+        "declined",
+        "withdrawn"
+      ],
+      "default": "submitted"
+    },
+    "decision_note": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "campaign_id"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.applicant_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.applicant_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Applications for grants or institutional funding and their submission states."
+}

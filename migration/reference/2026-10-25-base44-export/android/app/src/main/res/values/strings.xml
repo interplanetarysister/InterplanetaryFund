@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Interplanetary Fund</string>
+    <string name="title_activity_main">Interplanetary Fund</string>
+    <string name="package_name">com.base6a67a778342a8fe05ee79cba.app</string>
+    <string name="custom_url_scheme">com.base6a67a778342a8fe05ee79cba.app</string>
+</resources>

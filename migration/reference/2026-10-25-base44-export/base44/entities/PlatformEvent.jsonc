@@ -1,0 +1,60 @@
+{
+  "name": "PlatformEvent",
+  "type": "object",
+  "properties": {
+    "action": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "configuration",
+        "health_check",
+        "knowledge",
+        "deployment",
+        "security",
+        "recovery",
+        "other"
+      ],
+      "default": "other"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "affected_resource": {
+      "type": "string"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failure",
+        "warning"
+      ],
+      "default": "success"
+    },
+    "details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Sanitized operational event summaries for configuration, security, deployments, recovery, and system health."
+}

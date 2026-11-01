@@ -1,0 +1,51 @@
+{
+  "name": "NonprofitSubscriptionApproval",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ]
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Review and approval state for nonprofit subscription eligibility."
+}

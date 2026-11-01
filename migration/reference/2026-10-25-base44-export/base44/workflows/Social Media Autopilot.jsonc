@@ -1,0 +1,45 @@
+{
+  "name": "Social Media Autopilot",
+  "description": "Fully autonomous social media management: daily generates one truthful post per eligible campaign and stages it on the owner's connected social destinations \u2014 auto connections get it scheduled for publishing, ask/draft connections stage it for owner approval. Gated by the owner's explicit, revocable AI-publishing consent plus campaign and destination automation settings; no separate recurring grant or per-post reconfirmation is required. Capped at one post per campaign per week.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 14 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "social_media_autopilot",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_autopilot": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runSocialAutopilot",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Run social autopilot",
+            "description": "Generate and stage cross-platform posts"
+          }
+        }
+      }
+    ]
+  }
+}

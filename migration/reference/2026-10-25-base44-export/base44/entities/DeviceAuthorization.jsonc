@@ -1,0 +1,97 @@
+{
+  "name": "DeviceAuthorization",
+  "type": "object",
+  "properties": {
+    "device_code_hash": {
+      "type": "string",
+      "description": "SHA-256 of device secret; raw code is never persisted."
+    },
+    "user_code_hash": {
+      "type": "string",
+      "description": "SHA-256 of the short approval code; raw code is never persisted."
+    },
+    "access_token_hash": {
+      "type": "string",
+      "description": "SHA-256 of the derived read-only device bearer."
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "device_label": {
+      "type": "string"
+    },
+    "scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied",
+        "revoked"
+      ],
+      "default": "pending"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "grant_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_polled_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "device_code_hash",
+    "user_code_hash",
+    "access_token_hash",
+    "client_id",
+    "device_label",
+    "scopes",
+    "state",
+    "created_at",
+    "expires_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Device approval state for companion capabilities, distinct from primary user authentication."
+}

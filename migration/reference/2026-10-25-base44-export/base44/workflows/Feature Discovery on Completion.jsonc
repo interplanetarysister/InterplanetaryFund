@@ -1,0 +1,40 @@
+{
+  "name": "Feature Discovery on Completion",
+  "description": "When a user's campaign reaches completed status, scans that user's account for features they haven't used yet and surfaces them as growth recommendations.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Campaign",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "feature_discovery_on_completion",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "discover": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "discoverFeatures",
+            "args": {
+              "user_id": "${ .trigger.data.created_by_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Discover features",
+            "description": "Scan account for unused features"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "name": "PayPalSubscriptionIntent",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "tier": {
+      "type": "string"
+    },
+    "interval": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string"
+    },
+    "paypal_subscription_id": {
+      "type": "string"
+    },
+    "custom_id": {
+      "type": "string"
+    },
+    "account_ref": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_reversal_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "tier",
+    "interval",
+    "plan_id",
+    "custom_id",
+    "account_ref"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "PayPal subscription enrollment or change requests pending provider confirmation."
+}

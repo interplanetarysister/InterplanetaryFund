@@ -1,0 +1,67 @@
+{
+  "name": "VolunteerSignup",
+  "type": "object",
+  "properties": {
+    "opportunity_id": {
+      "type": "string"
+    },
+    "community_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "user_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "User applications or signups for campaign and community volunteer roles."
+}

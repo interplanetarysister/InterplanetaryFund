@@ -1,0 +1,53 @@
+{
+  "name": "DiscussionReply",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string"
+    },
+    "community_id": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "author_name": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_id",
+    "content"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Replies attached to an IFund discussion or community post."
+}

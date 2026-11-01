@@ -1,0 +1,88 @@
+{
+  "name": "ActivityEvent",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "campaign_created",
+        "campaign_update",
+        "donation_received",
+        "milestone",
+        "announcement",
+        "feature"
+      ],
+      "description": "Kind of activity event surfaced in the Community feed."
+    },
+    "actor_user_id": {
+      "type": "string",
+      "description": "The user who triggered the event, used only for personalization server-side. Never exposed raw to clients \u2014 only sanitized display fields are returned by the feed function."
+    },
+    "actor_display_name": {
+      "type": "string"
+    },
+    "actor_handle": {
+      "type": "string"
+    },
+    "actor_image_url": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "campaign_image_url": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string",
+      "description": "Human-readable summary shown in the feed card."
+    },
+    "link": {
+      "type": "string",
+      "description": "Destination path when the event card is tapped."
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "public",
+        "followers",
+        "private"
+      ],
+      "default": "public",
+      "description": "public = everyone including guests; followers = only users following the related campaign; private = admin-only, never surfaced."
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "type",
+    "body"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Activity-feed events for platform, campaign, or user activity with appropriate visibility."
+}

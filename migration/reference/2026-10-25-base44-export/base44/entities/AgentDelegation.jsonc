@@ -1,0 +1,219 @@
+{
+  "name": "AgentDelegation",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string",
+      "description": "User who owns this delegated work."
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Optional authoritative campaign ID. Campaign-specific context must not be reused for a different campaign."
+    },
+    "campaign_title_snapshot": {
+      "type": "string",
+      "description": "Human-readable campaign title captured for display only; campaign_id remains authoritative."
+    },
+    "source_agent": {
+      "type": "string",
+      "description": "Agent that delegated or originated the work."
+    },
+    "destination_agent": {
+      "type": "string",
+      "description": "Agent responsible for the delegated work."
+    },
+    "objective": {
+      "type": "string",
+      "description": "Concise user objective for this delegation."
+    },
+    "context_summary": {
+      "type": "string",
+      "description": "Relevant context only; never secrets or credentials. Do not present inference as fact."
+    },
+    "context_provenance": {
+      "type": "array",
+      "description": "Optional provenance for important facts carried into the delegation.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "claim": {
+            "type": "string"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "user_statement",
+              "platform_record",
+              "verified_external",
+              "agent_suggestion",
+              "inference"
+            ]
+          },
+          "source_reference": {
+            "type": "string",
+            "description": "Non-secret identifier or concise source reference when available."
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "high",
+              "medium",
+              "low",
+              "unknown"
+            ],
+            "default": "unknown"
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "assigned",
+        "in_progress",
+        "waiting_user",
+        "waiting_external",
+        "needs_review",
+        "completed",
+        "failed",
+        "cancelled",
+        "superseded"
+      ],
+      "default": "requested"
+    },
+    "consent_version": {
+      "type": "string",
+      "description": "The unified OBO consent version active when this delegation was created or last reauthorized. Propagated from ai_obo_consent.permission_version so a revoked/upgraded consent invalidates stale delegations."
+    },
+    "continuation_state": {
+      "type": "object",
+      "description": "Resumable continuation state for delegations interrupted by an external authorization boundary. Preserved across OAuth callbacks so the operation resumes rather than restarting.",
+      "properties": {
+        "pending_step": {
+          "type": "string",
+          "description": "The next step to execute when the delegation resumes."
+        },
+        "completed_steps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "external_requirement": {
+          "type": "string",
+          "description": "The minimum external action required to unblock this delegation."
+        },
+        "return_route": {
+          "type": "string",
+          "description": "The route or entry point to resume after authorization completes."
+        },
+        "continuation_ref": {
+          "type": "string",
+          "description": "Opaque reference linking this delegation to a pending OAuth/callback flow."
+        }
+      }
+    },
+    "retry_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this delegation has been retried after a transient failure."
+    },
+    "max_retries": {
+      "type": "number",
+      "default": 3,
+      "description": "Maximum retry attempts before a delegation is marked failed."
+    },
+    "last_attempt_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the most recent execution attempt occurred."
+    },
+    "next_retry_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Earliest time to retry this delegation. Used for backoff scheduling."
+    },
+    "result_summary": {
+      "type": "string"
+    },
+    "supersedes_delegation_id": {
+      "type": "string",
+      "description": "Optional older delegation replaced by this corrected or newer assignment."
+    },
+    "superseded_by_delegation_id": {
+      "type": "string",
+      "description": "Optional newer delegation that makes this record no longer current."
+    },
+    "verification": {
+      "type": "string",
+      "description": "Evidence or authoritative result used to verify completion."
+    },
+    "parent_delegation_id": {
+      "type": "string",
+      "description": "Optional parent delegation for multi-agent work."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "source_agent",
+    "destination_agent",
+    "objective",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Per-user agent delegation instructions and consent scopes for authorized actions."
+}

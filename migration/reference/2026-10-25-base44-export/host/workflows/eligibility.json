@@ -1,0 +1,180 @@
+{
+  "checked_at": "2026-10-22",
+  "policy": "verify active need, current state, destination parity and duplicate protection before activation",
+  "results": [
+    {
+      "name": "AI Outreach Agent",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Admin Action Conversation Router",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Campaign Protocol",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Campaign Sync on Create",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Campaign Sync on Update",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "trigger mismatch: named Update but listens to create",
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Connection Sync Engine",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "External Feed Mirroring",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Feature Discovery on Completion",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Grant Application Review",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "IFund Official Social Editor",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "IFund Reporter Daily Diary",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Integration Health Check",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "source describes future workflow; activation not confirmed",
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "PayPal Holding Settlement Reconciliation",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Platform Account Steward",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Social Media Autopilot",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Volunteer Welcome Follow-up",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "pending delayed follow-ups require durable state reconciliation",
+        "live entity event source and replay cursor unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    },
+    {
+      "name": "Weekly Writing Psychology & Social Trends Training",
+      "source_function_present": true,
+      "eligible_for_activation": false,
+      "decision": "HOLD",
+      "reasons": [
+        "named Weekly but cron is daily; inspect function throttling",
+        "live enabled state and last successful execution unknown",
+        "independent Cloudflare function implementation and idempotency unverified"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "name": "HoldingLedgerEntry",
+  "type": "object",
+  "properties": {
+    "operation_key": {
+      "type": "string",
+      "description": "Stable idempotency key for this custody movement."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "in",
+        "out",
+        "reserve",
+        "release",
+        "fee"
+      ],
+      "description": "Direction of movement relative to the Interplanetary Fund holding account."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "settled",
+        "reserved",
+        "released",
+        "paid",
+        "failed",
+        "reversed"
+      ],
+      "description": "Custody state. Only settled/reserved/paid entries may represent verified platform-controlled money."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "interplanetary_fund",
+        "external_platform",
+        "payment_processor",
+        "bank",
+        "withdrawal",
+        "adjustment"
+      ]
+    },
+    "source_provider": {
+      "type": "string",
+      "description": "Origin provider for the funds. For exterior settlement this identifies the fundraising platform; provider_transaction_id identifies the receiving PayPal settlement."
+    },
+    "source_account_ref": {
+      "type": "string",
+      "description": "Non-secret provider/account reference."
+    },
+    "provider_transaction_id": {
+      "type": "string",
+      "description": "Provider/bank transaction or settlement identifier used for reconciliation."
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "beneficiary_user_id": {
+      "type": "string",
+      "description": "User whose campaign or balance owns the economic benefit of these funds."
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "description": "ISO 4217 currency. Different currencies must never be combined without a verified conversion."
+    },
+    "platform_contribution": {
+      "type": "number",
+      "default": 0
+    },
+    "processing_fee": {
+      "type": "number",
+      "default": 0
+    },
+    "payment_channel": {
+      "type": "string",
+      "enum": [
+        "paypal",
+        "googlepay",
+        "applepay"
+      ],
+      "description": "PayPal-backed checkout channel. Preserved so partial capture recovery cannot silently relabel Apple Pay, Google Pay, or PayPal."
+    },
+    "withdrawal_id": {
+      "type": "string"
+    },
+    "canonical_operation_id": {
+      "type": "string"
+    },
+    "external_connection_id": {
+      "type": "string"
+    },
+    "external_observation_id": {
+      "type": "string",
+      "description": "Canonical exterior observation identifier reconciled to this custody movement. Required for exterior-platform settlements."
+    },
+    "settled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reconciliation_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "operation_key",
+    "direction",
+    "state",
+    "source_type",
+    "amount",
+    "currency"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Protected ledger records for fund allocation, custody, holds, and release; settlement state requires server validation."
+}

@@ -1,0 +1,127 @@
+{
+  "name": "ExternalCollectionAuthorization",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "operation_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "prepared",
+        "authorized",
+        "processing",
+        "partially_collected",
+        "collected",
+        "user_action_required",
+        "expired",
+        "cancelled",
+        "failed"
+      ],
+      "default": "prepared"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "authorized_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "connection_id": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "payout_model": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "provider_reference": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "campaign_id": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "destination_type": {
+      "type": "string",
+      "enum": [
+        "ifund_connected_account",
+        "paypal",
+        "bank",
+        "other"
+      ],
+      "default": "ifund_connected_account"
+    },
+    "destination_ref": {
+      "type": "string"
+    },
+    "authorization_text_version": {
+      "type": "string"
+    },
+    "consent_snapshot": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "operation_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Explicit authorization for external fundraising collection or transfer, distinct from balance observations."
+}

@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const read=p=>fs.readFileSync(p,'utf8');
+const page=read('src/pages/Agents.jsx');
+const chat=read('src/components/agents/AgentChat.jsx');
+const monitor=read('src/components/agents/AgentMonitor.jsx');
+const admin=read('src/components/agents/AdminDevelopmentChat.jsx');
+const conn=read('src/pages/Connections.jsx');
+const integrations=read('src/pages/IntegrationsAdmin.jsx');
+assert.match(page, /<AgentMonitor user={user} agents={visibleAgents}/, 'The AI screen shows the monitored list');
+assert.match(page, /Tell me which account you want to connect or fix/, 'Connection-agent guidance must be plain language');
+assert.match(monitor, /<Sheet open={open}/, 'The agent chat opens on demand');
+assert.match(monitor, /AgentPlanet kind=/, 'Small planets show the verified states');
+assert.match(monitor, /canUseAdminTools && selectedAgent.name === "chief_of_staff" && chatMode === "admin"/, 'Super-admin chat is isolated');
+assert.match(monitor, /: <AgentChat key={selectedAgent.name}/, 'Only one chat composer exists at once');
+assert.match(monitor, /<AgentContentReview \/>/, 'Review actions remain available');
+assert.match(monitor, /manageAgentWork/, 'Work status comes from server-owned records');
+assert.match(monitor, /trackAgentConversation/, 'Chat status is tracked');
+assert.match(monitor, /timestamp\(item\) > Date.now\(\) - AGE_LIMIT_MS/, 'Stale jobs must not light as working');
+assert.match(chat,/Connect an account/);
+assert.match(chat,/to="\/connections"/);
+assert.match(chat,/data-ifund-chat-composer/, 'Mobile composer must remain accessible');
+assert.doesNotMatch(conn,/<AdminOAuthProviderReadiness/, 'Ordinary Connections must be free of developer setup instructions');
+assert.match(integrations,/<AdminOAuthProviderReadiness/, 'Admins still have their integration setup screen');
+for(const name of ['chief_of_staff','managed_connection_agent','connection_discovery_agent','outreach_agent']){
+  const instructions=JSON.parse(read('base44/agents/'+name+'.jsonc')).instructions;
+  assert.match(instructions,/\/connections/, name+' must direct members to IFund Connections');
+  assert.match(instructions,/developer|administ|API keys|provider/i, name+' must distinguish member and admin steps');
+}
+assert.match(admin,/Verify admin access/, 'Super-admin verification remains accessible in admin mode');
+console.log('PASS: one AI chat workspace, optional progress, simple connection instructions and isolated admin setup');

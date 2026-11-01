@@ -1,0 +1,89 @@
+{
+  "name": "Friendship",
+  "type": "object",
+  "properties": {
+    "requester_user_id": {
+      "type": "string"
+    },
+    "addressee_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "declined",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "requester_user_id",
+    "addressee_user_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.addressee_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "data.requester_user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.addressee_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.requester_user_id": "{{user.id}}"
+        },
+        {
+          "data.addressee_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "User-to-user relationships and friend requests on IFund."
+}

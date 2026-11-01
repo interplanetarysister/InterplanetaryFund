@@ -1,0 +1,45 @@
+{
+  "name": "AI Outreach Agent",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "ai_outreach_agent",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_agent": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "runOutreachAgent",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Run outreach agent",
+            "description": "Analyze opted-in campaigns"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Runs the autonomous AI Outreach Agent on a schedule for campaigns opted in by creators with an active outreach-tier subscription. Every action is recorded for owner approval.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 */6 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

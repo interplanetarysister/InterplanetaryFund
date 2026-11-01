@@ -1,0 +1,97 @@
+{
+  "type": "object",
+  "name": "PlatformOwnedAccount",
+  "properties": {
+    "platform": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "profile_url": {
+      "type": "string"
+    },
+    "profile_description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "approval_needed",
+        "setup_in_progress",
+        "active",
+        "needs_attention",
+        "retired"
+      ],
+      "default": "planned"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "credential_reference": {
+      "type": "string",
+      "description": "Reference to secure credential storage only. Never store a raw password or token here."
+    },
+    "recovery_status": {
+      "type": "string"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_posted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "weekly_post_due_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "discovered_by": {
+      "type": "string",
+      "default": "outreach"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "ifund_facebook_group",
+        "ifund_instagram",
+        "ifund_facebook_business",
+        "other"
+      ],
+      "default": "other",
+      "description": "Explicit admin-classified account type; not inferred from platform name. Official accounts can be exempted from scheduled member post throttles only after linked owner verified."
+    }
+  },
+  "required": [
+    "platform",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "IFund-owned external account metadata, kept separate from users' connected accounts and raw credentials."
+}

@@ -1,0 +1,112 @@
+{
+  "name": "Institution",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "business",
+        "nonprofit",
+        "foundation",
+        "corporate_foundation",
+        "school",
+        "university",
+        "hospital",
+        "faith",
+        "community_org",
+        "government",
+        "association",
+        "research",
+        "ngo",
+        "other"
+      ],
+      "default": "business"
+    },
+    "mission": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "industry": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "causes_supported": {
+      "type": "string"
+    },
+    "logo_url": {
+      "type": "string"
+    },
+    "offers_matching_gifts": {
+      "type": "boolean",
+      "default": false
+    },
+    "offers_volunteer_program": {
+      "type": "boolean",
+      "default": false
+    },
+    "offers_grants": {
+      "type": "boolean",
+      "default": false
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "unverified",
+        "pending",
+        "verified"
+      ],
+      "default": "unverified"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "opportunity_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Organization and institutional partner profiles relevant to fundraising and grants."
+}

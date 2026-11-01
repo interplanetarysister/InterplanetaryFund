@@ -1,0 +1,71 @@
+{
+  "name": "FoundingWaitlist",
+  "type": "object",
+  "description": "Private opt-in founding-member registrations; available only to administrators. Public registration is handled by rate-limited joinFoundingWaitlist function.",
+  "properties": {
+    "email": {
+      "type": "string"
+    },
+    "screen_name": {
+      "type": "string"
+    },
+    "interest": {
+      "type": "string",
+      "enum": [
+        "support",
+        "fundraise",
+        "both"
+      ]
+    },
+    "marketing_opt_in": {
+      "type": "boolean"
+    },
+    "referral_code": {
+      "type": "string"
+    },
+    "referred_by": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "invited",
+        "approved"
+      ],
+      "default": "waiting"
+    },
+    "joined_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "interest",
+    "marketing_opt_in",
+    "referral_code",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

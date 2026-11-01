@@ -1,0 +1,169 @@
+{
+  "name": "PlatformConnectionRecipe",
+  "type": "object",
+  "properties": {
+    "platform": {
+      "type": "string",
+      "description": "Stable platform key shared across users."
+    },
+    "operation": {
+      "type": "string",
+      "description": "Capability/operation this recipe connects or executes, e.g. connect, read_metrics, publish."
+    },
+    "recipe_version": {
+      "type": "number",
+      "default": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proven",
+        "probation",
+        "stale",
+        "disabled"
+      ],
+      "default": "probation"
+    },
+    "preferred_transport": {
+      "type": "string",
+      "enum": [
+        "oauth",
+        "api",
+        "webhook",
+        "token",
+        "authenticated_browser",
+        "public_browser",
+        "manual"
+      ]
+    },
+    "fallback_transports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "candidate_transports": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Provider-permitted routes still eligible for this operation. Documentation alone does not make them proven."
+    },
+    "blocked_routes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Routes excluded by verified failure, provider policy, or unavailable runtime capability."
+    },
+    "successful_route": {
+      "type": "string",
+      "description": "Last route that completed and passed provider verification for this exact operation."
+    },
+    "discovery_state": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "researched",
+        "probation",
+        "proven",
+        "exhausted"
+      ],
+      "default": "unknown"
+    },
+    "rediscovery_on_failure": {
+      "type": "boolean",
+      "default": true
+    },
+    "connector_type": {
+      "type": "string",
+      "description": "Base44 connector type when OAuth/native connector is the proven transport."
+    },
+    "worker_key": {
+      "type": "string",
+      "description": "Stable internal worker/adapter identifier; never a user session or credential."
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "success_count": {
+      "type": "number",
+      "default": 0
+    },
+    "consecutive_failure_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_success_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_failure_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provider_fingerprint": {
+      "type": "string",
+      "description": "Non-secret provider/config fingerprint used to invalidate a recipe after provider changes."
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "result": {
+            "type": "string"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "platform",
+    "operation",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Documented and tested provider routes for authorized connection and publishing operations."
+}

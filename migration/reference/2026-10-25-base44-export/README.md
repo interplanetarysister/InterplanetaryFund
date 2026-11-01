@@ -1,0 +1,3 @@
+# Source ZIP reference for Supabase + Cloudflare migration
+
+**Inactive reference; not production runtime code.** This directory retains vetted source material corresponding to the uploaded Base44 ZIP. Do not execute Base44 SDK imports, workers, payment functions, or old configuration here. Port needed behavior to Supabase/Cloudflare in separate reviewed phase PRs under issue #137. Legacy agent instruction files were renamed to .reference.txt to prevent overriding the root AGENTS.md. Credential-bearing files were withheld; see SOURCE_MANIFEST.json. No actual user or financial database-row export was included.

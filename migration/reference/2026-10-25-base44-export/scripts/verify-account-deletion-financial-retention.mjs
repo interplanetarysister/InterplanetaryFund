@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const src=fs.readFileSync('base44/functions/deleteAccount/entry.ts','utf8');
+assert.match(src,/ensureCanonicalCampaign\(sr, campaign\)/);
+assert.match(src,/withdrawal still being processed or reviewed/);
+assert.doesNotMatch(src,/Withdrawal\.deleteMany\(\{ owner_user_id: user\.id \}\)/);
+assert.doesNotMatch(src,/Donation\.deleteMany\(\{ campaign_id: c\.id \}\)/);
+assert.doesNotMatch(src,/Campaign\.deleteMany\(\{ created_by_id: user\.id \}\)/);
+assert.match(src,/Personal data removed; financial records retained/);
+assert.match(src,/stripe\.subscriptions\.cancel/);
+assert.match(src,/Live billing access is unavailable; provider subscriptions cannot be safely cancelled/);
+assert.match(src,/paypal_email: ''/);
+console.log('account deletion financial-retention contract: PASS');

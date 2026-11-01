@@ -1,0 +1,124 @@
+{
+  "name": "AdminApproval",
+  "type": "object",
+  "properties": {
+    "action_type": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "requested_by_agent": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "target_type": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "payload_summary": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "needs_information",
+        "approved",
+        "denied",
+        "investigating",
+        "executed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_by_user_id": {
+      "type": "string"
+    },
+    "resolution_note": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "default": "medium"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "action",
+        "account_access",
+        "complaint",
+        "security",
+        "financial",
+        "content",
+        "other"
+      ],
+      "default": "action"
+    },
+    "admin_question": {
+      "type": "string"
+    },
+    "investigation_notes": {
+      "type": "string"
+    },
+    "credential_status": {
+      "type": "string",
+      "enum": [
+        "not_needed",
+        "requested",
+        "received",
+        "used",
+        "invalid"
+      ],
+      "default": "not_needed"
+    }
+  },
+  "required": [
+    "action_type",
+    "title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Privileged administrative approval requests and their decisions."
+}

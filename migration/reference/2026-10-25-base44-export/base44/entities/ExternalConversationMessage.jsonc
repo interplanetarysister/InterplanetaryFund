@@ -1,0 +1,113 @@
+{
+  "name": "ExternalConversationMessage",
+  "type": "object",
+  "description": "Provider-backed message or comment events in an ExternalConversation. This entity records imported or confirmed-delivered content only; IFund campaign broadcasts remain in Message and pending AI drafts remain in InboxItem or an approved send workflow.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Account owner, used for server-enforced tenant isolation."
+    },
+    "conversation_id": {
+      "type": "string",
+      "description": "Parent ExternalConversation reference owned by the same user."
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "Source authorized PlatformConnection for scope and provider verification."
+    },
+    "platform": {
+      "type": "string"
+    },
+    "external_message_id": {
+      "type": "string",
+      "description": "Provider-supplied message/comment ID, not a Base44 record ID."
+    },
+    "external_unique_key": {
+      "type": "string",
+      "description": "Composite deduplication key for provider retries; include provider, connection, and message ID."
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "inbound",
+        "outbound"
+      ],
+      "description": "Direction relative to the connected IFund account."
+    },
+    "sender_display_name": {
+      "type": "string",
+      "description": "Provider display name; never use for authorization."
+    },
+    "sender_external_id": {
+      "type": "string",
+      "description": "Provider-scoped opaque sender reference."
+    },
+    "content": {
+      "type": "string",
+      "description": "Message/comment content collected only through authorized provider access and allowed retention."
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Provider deep link when available."
+    },
+    "reply_to_external_message_id": {
+      "type": "string"
+    },
+    "delivery_status": {
+      "type": "string",
+      "enum": [
+        "received",
+        "sent",
+        "failed",
+        "unknown"
+      ],
+      "default": "unknown",
+      "description": "Status confirmed by the platform; do not mark sent from an unverified attempt."
+    },
+    "provider_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only when retrieved or confirmed by an authorized provider route."
+    }
+  },
+  "required": [
+    "user_id",
+    "conversation_id",
+    "connection_id",
+    "platform",
+    "direction"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

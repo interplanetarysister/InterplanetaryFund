@@ -1,0 +1,62 @@
+{
+  "name": "CommunityMember",
+  "type": "object",
+  "properties": {
+    "community_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "moderator",
+        "member"
+      ],
+      "default": "member"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "community_id",
+    "user_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Membership and role associations between IFund users and communities."
+}

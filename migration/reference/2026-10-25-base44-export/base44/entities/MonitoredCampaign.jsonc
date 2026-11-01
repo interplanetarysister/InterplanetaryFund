@@ -1,0 +1,76 @@
+{
+  "name": "MonitoredCampaign",
+  "type": "object",
+  "properties": {
+    "if_campaign_id": {
+      "type": "string",
+      "description": "Interplanetary Fund Base44 campaign id \u2014 the sync match key."
+    },
+    "title": {
+      "type": "string"
+    },
+    "goal_amount": {
+      "type": "number"
+    },
+    "raised_amount": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string"
+    },
+    "outreach_enabled": {
+      "type": "boolean",
+      "description": "Protocol P-1"
+    },
+    "payment_active": {
+      "type": "boolean",
+      "description": "Protocol P-2"
+    },
+    "story_present": {
+      "type": "boolean",
+      "description": "Protocol P-3"
+    },
+    "cover_image_present": {
+      "type": "boolean",
+      "description": "Protocol P-4"
+    },
+    "ai_ideal_donors": {
+      "type": "string",
+      "description": "Protocol P-5 input"
+    },
+    "ai_interested_orgs": {
+      "type": "string",
+      "description": "Protocol P-5 input"
+    },
+    "last_synced": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "if_campaign_id",
+    "title"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Owner-selected campaign monitoring and agent observations."
+}

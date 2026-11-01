@@ -1,0 +1,92 @@
+{
+  "name": "ConnectedPayoutAccount",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "stripe_connect",
+        "paypal_platform",
+        "other"
+      ]
+    },
+    "provider_account_id": {
+      "type": "string",
+      "description": "Non-secret provider account identifier."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "onboarding",
+        "restricted",
+        "ready",
+        "disabled"
+      ],
+      "default": "onboarding"
+    },
+    "charges_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "payouts_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "details_submitted": {
+      "type": "boolean",
+      "default": false
+    },
+    "default_currency": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "provider",
+    "provider_account_id",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Private payout destination references and verification state; no plaintext banking credentials."
+}

@@ -1,0 +1,73 @@
+{
+  "name": "Community",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "neighborhood",
+        "city",
+        "school",
+        "faith",
+        "volunteer",
+        "business",
+        "organization",
+        "professional",
+        "interest",
+        "emergency",
+        "other"
+      ],
+      "default": "interest"
+    },
+    "location": {
+      "type": "string"
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 1
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Community/group metadata for IFund's unified social experience."
+}

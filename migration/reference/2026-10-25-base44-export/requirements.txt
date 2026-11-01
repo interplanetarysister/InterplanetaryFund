@@ -1,0 +1,5 @@
+requests
+selenium
+playwright
+pydantic
+python-dotenv

@@ -1,0 +1,72 @@
+{
+  "name": "TreasurySnapshot",
+  "type": "object",
+  "properties": {
+    "total_raised": {
+      "type": "number"
+    },
+    "total_held": {
+      "type": "number",
+      "description": "Verified funds physically settled into Interplanetary Fund-controlled payment/holding accounts. External observed balances are excluded until a provider/bank settlement is verified."
+    },
+    "total_fees": {
+      "type": "number"
+    },
+    "net_position": {
+      "type": "number",
+      "description": "Treasury position derived only from verified settled funds and recorded liabilities; external observed balances are excluded."
+    },
+    "campaign_totals": {
+      "type": "array",
+      "description": "Per-campaign balances from the Base44 treasury ledger.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campaign": {
+            "type": "string"
+          },
+          "raised": {
+            "type": "number"
+          },
+          "held": {
+            "type": "number"
+          },
+          "fees": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "synced_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Admin-oriented point-in-time totals for IFund treasury reporting. A snapshot is informational and never replaces reconciled processor settlements or ledger entries."
+}

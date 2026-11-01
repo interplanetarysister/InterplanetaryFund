@@ -1,0 +1,306 @@
+{
+  "type": "object",
+  "name": "Campaign",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "story": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "medical",
+        "emergency",
+        "education",
+        "community",
+        "animals",
+        "business",
+        "memorial",
+        "disaster_relief",
+        "creative",
+        "environment",
+        "other"
+      ],
+      "default": "other"
+    },
+    "goal_amount": {
+      "type": "number",
+      "minimum": 0
+    },
+    "raised_amount": {
+      "type": "number",
+      "default": 0
+    },
+    "donor_count": {
+      "type": "number",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active",
+        "paused",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "cover_image_is_ai": {
+      "type": "boolean",
+      "default": false,
+      "description": "Creator-disclosed AI-generated cover illustration; depicted people may be representative."
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "location": {
+      "type": "string",
+      "description": "The city where this campaign is based, so it can appear on the global activity globe."
+    },
+    "location_lat": {
+      "type": "number"
+    },
+    "location_lng": {
+      "type": "number"
+    },
+    "cashapp_tag": {
+      "type": "string"
+    },
+    "distribution_donation_connection_id": {
+      "type": "string",
+      "description": "Optional owner-selected external fundraiser connection for campaign promotion. Empty uses IFund checkout; never transfers external funds."
+    },
+    "external_import_private_marker": {
+      "type": "string",
+      "description": "Server-generated import correlation marker. Field-level security keeps it hidden and immutable to campaign owners and public readers; authority remains in the admin-only import operation.",
+      "rls": {
+        "create": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "delete": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "external_import_recovery_token": {
+      "type": "string",
+      "description": "Deprecated legacy field. It grants no recovery authority and is hidden and immutable outside service-role/admin access.",
+      "rls": {
+        "create": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "update": {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        "delete": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "accept_crypto_donations": {
+      "type": "boolean",
+      "description": "Creator opts into cryptocurrency giving. Checkout requires independently verified settlement readiness; opt-in alone never activates transfers.",
+      "default": false
+    },
+    "ai_profile": {
+      "type": "object",
+      "properties": {
+        "primary_goal": {
+          "type": "string"
+        },
+        "who_helping": {
+          "type": "string"
+        },
+        "ideal_donors": {
+          "type": "string",
+          "description": "Optional creator hypothesis about likely supporters. AI audience discovery must not treat this as a fixed targeting constraint."
+        },
+        "donor_discovery_mode": {
+          "type": "string",
+          "enum": [
+            "ai_research",
+            "creator_guided"
+          ],
+          "default": "ai_research"
+        },
+        "donor_discovery_notes": {
+          "type": "string"
+        },
+        "tone": {
+          "type": "string"
+        },
+        "never_change": {
+          "type": "string"
+        },
+        "always_emphasize": {
+          "type": "string"
+        },
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "interested_orgs": {
+          "type": "string"
+        },
+        "avoid_words": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string"
+        },
+        "long_term_outcome": {
+          "type": "string"
+        }
+      }
+    },
+    "story_versions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "style": {
+            "type": "string"
+          },
+          "audience": {
+            "type": "string"
+          },
+          "seo": {
+            "type": "boolean"
+          },
+          "accessibility": {
+            "type": "boolean"
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "outreach_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "outreach_paused": {
+      "type": "boolean",
+      "default": false
+    },
+    "draft_step": {
+      "type": "integer",
+      "description": "Last step reached in the private campaign creation wizard.",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "outreach_last_run_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Most recent completed Outreach Agent analysis; used for fair scheduling."
+    },
+    "outreach_last_attempt_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Latest attempted Outreach Agent analysis; prevents excessive retries."
+    },
+    "outreach_last_error": {
+      "type": "string",
+      "description": "Human-readable safe last-run outcome; no provider secrets."
+    },
+    "social_last_generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Latest successfully staged AI social content; throttles duplicate generation."
+    },
+    "social_last_generation_attempt_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last AI post generation attempt; prevents excessive LLM retry."
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": {
+            "$ne": "draft"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Primary IFund fundraising campaigns with creator, goal, lifecycle, and provider-verified donation aggregates."
+}

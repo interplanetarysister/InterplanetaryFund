@@ -1,0 +1,3 @@
+2026-10-03 full reliability repair audit complete
+Scope: startup/loading, Base44 auth/data-plane initialization, routing recovery, sync/runtime contract, Cloudflare deployment source of truth, page-level permanent loading states, retry behavior, root render containment.
+Validation requested only after repair audit reached a clean static pass.

@@ -1,0 +1,118 @@
+{
+  "name": "AgentActivity",
+  "type": "object",
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string",
+      "description": "The campaign owner; the only user (besides admins) allowed to see and act on this activity."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "monitoring",
+        "improvement",
+        "content",
+        "outreach",
+        "scheduling",
+        "strategy",
+        "other"
+      ],
+      "default": "other"
+    },
+    "action": {
+      "type": "string",
+      "description": "What was done."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why it was done."
+    },
+    "expected_impact": {
+      "type": "string"
+    },
+    "result": {
+      "type": "string",
+      "description": "Measurable result, when available."
+    },
+    "recommended_next_actions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "recommendation",
+        "draft_message",
+        "social_post",
+        "none"
+      ],
+      "default": "none"
+    },
+    "artifact_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "applied",
+        "superseded"
+      ],
+      "default": "pending"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "campaign_id",
+    "action"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Campaign-owner-visible records of specialist agent actions, rationale, outcomes, and suggested next steps."
+}

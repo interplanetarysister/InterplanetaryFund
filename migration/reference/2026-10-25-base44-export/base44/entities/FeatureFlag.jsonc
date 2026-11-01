@@ -1,0 +1,54 @@
+{
+  "name": "FeatureFlag",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string"
+    },
+    "label": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "global",
+        "beta",
+        "experiment"
+      ],
+      "default": "global"
+    }
+  },
+  "required": [
+    "key"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Runtime feature controls and rollout settings; an enabled flag does not override authentication, provider scopes, or policy."
+}

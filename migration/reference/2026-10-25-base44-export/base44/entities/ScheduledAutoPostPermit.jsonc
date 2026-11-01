@@ -1,0 +1,76 @@
+{
+  "name": "ScheduledAutoPostPermit",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "owner_user_id": {
+      "type": "string"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "priority_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "publishing",
+        "published",
+        "failed",
+        "review"
+      ],
+      "default": "queued"
+    },
+    "publishing_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_error": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "post_id",
+    "campaign_id",
+    "connection_id",
+    "owner_user_id",
+    "platform",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Explicit posting permits governing who may schedule or automate a specific authorized social publishing action."
+}

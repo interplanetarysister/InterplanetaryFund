@@ -1,0 +1,64 @@
+{
+  "name": "PublicProfile",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "username": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "string"
+    },
+    "focus_campaign_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "priority_campaign_id": {
+      "type": "string"
+    },
+    "show_communities": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_posts": {
+      "type": "boolean",
+      "default": true
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "description": "Public-facing, approved account profile information used for IFund community and campaign attribution; excludes authentication secrets."
+}

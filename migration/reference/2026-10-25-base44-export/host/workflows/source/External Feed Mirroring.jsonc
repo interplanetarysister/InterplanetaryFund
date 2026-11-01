@@ -1,0 +1,45 @@
+{
+  "name": "External Feed Mirroring",
+  "description": "Hourly mirrors new posts from connected external social platforms (Bluesky, Mastodon, Discord) into the internal Interplanetary Social feed, deduplicated by external post id. Platforms without a readable API are reported and never faked.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "external_feed_mirroring",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "mirror_posts": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "mirrorExternalPosts",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Mirror external posts",
+            "description": "Sync external feeds into Interplanetary Social"
+          }
+        }
+      }
+    ]
+  }
+}

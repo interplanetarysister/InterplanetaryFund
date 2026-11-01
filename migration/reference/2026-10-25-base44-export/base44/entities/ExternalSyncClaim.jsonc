@@ -1,0 +1,94 @@
+{
+  "name": "ExternalSyncClaim",
+  "type": "object",
+  "description": "Immutable claim records for bounded request-triggered external fundraising jobs, serialized by one conditional global lease.",
+  "properties": {
+    "claim_key": {
+      "type": "string",
+      "description": "Stable immutable request/rate identity or the singleton mutex identity. Upsert is forbidden for this entity because it mutates prior audit evidence."
+    },
+    "claim_type": {
+      "type": "string",
+      "enum": [
+        "request_attempt",
+        "rate_slot",
+        "mutex"
+      ],
+      "description": "Optional for legacy rows; distinguishes request execution claims from atomic rate-limit slots."
+    },
+    "lock_token": {
+      "type": "string",
+      "description": "Opaque short-lived owner token for the global compare-and-set lease."
+    },
+    "lock_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rate_window_started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "rate_slot": {
+      "type": "number"
+    },
+    "request_key": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "request_fingerprint": {
+      "type": "string"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "external_funds",
+        "campaign_discovery",
+        "campaign_import",
+        "imported_campaign_refresh"
+      ]
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "attempt_number": {
+      "type": "number"
+    },
+    "claimed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "claim_key",
+    "request_key",
+    "request_id",
+    "job_type",
+    "actor_user_id",
+    "attempt_number",
+    "claimed_at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

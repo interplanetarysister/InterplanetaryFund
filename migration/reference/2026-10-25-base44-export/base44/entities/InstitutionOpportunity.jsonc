@@ -1,0 +1,96 @@
+{
+  "name": "InstitutionOpportunity",
+  "type": "object",
+  "properties": {
+    "institution_id": {
+      "type": "string"
+    },
+    "institution_name": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "grant",
+        "funding_program",
+        "matching_gift",
+        "in_kind",
+        "professional_services",
+        "facility",
+        "equipment",
+        "volunteers",
+        "mentorship",
+        "training",
+        "research",
+        "other"
+      ],
+      "default": "grant"
+    },
+    "description": {
+      "type": "string"
+    },
+    "award_amount": {
+      "type": "string"
+    },
+    "eligibility": {
+      "type": "string"
+    },
+    "requirements": {
+      "type": "string"
+    },
+    "deadline": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open"
+    },
+    "application_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "institution_id",
+    "title"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  },
+  "description": "Institution-specific campaign, funding, grant, or partnership opportunities associated with an institution."
+}

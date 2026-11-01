@@ -1,0 +1,418 @@
+{
+  "source": "baseline before approved IFund skill remapping; ONLY exception: remove retired syncStripeSubscriptionCatalog tool from outreach_agent",
+  "agents": {
+    "admin_builder_agent": {
+      "file": "admin_builder_agent.jsonc",
+      "entity_access": [],
+      "function_access": [
+        "managePlatformIncidents",
+        "manageAdminBuilderWork"
+      ],
+      "selected_skill_names": [],
+      "selected_workspace_skill_ids": [],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": false,
+        "instructions": "Retain development task references, verified evidence and current objectives only for the signed-in super-admin owner. Do not store secrets. Pending tasks are not completed builds."
+      }
+    },
+    "chief_of_staff": {
+      "file": "chief_of_staff.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Recommendation",
+          "operations": [
+            "read",
+            "update"
+          ]
+        },
+        {
+          "name": "AgentDelegation",
+          "operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "name": "MissionBrief",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "FollowedCampaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Notification",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "InboxItem",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "generateIntelligence",
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [
+        "connections-webproxy"
+      ],
+      "selected_workspace_skill_ids": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab47197ed579d54b1b6b87e",
+        "6ab2366e595f644ba24295f2",
+        "6ab236c1727beca33232db70"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly from verified outcomes and reusable patterns relevant to this role and adjacent fundraising work. Keep user/campaign-specific facts separate from generalized knowledge. Record observations as observations, hypotheses as hypotheses, and prefer patterns supported by repeated or strong evidence. Revisit or discard learned patterns when current evidence contradicts them. Learning expands knowledge and reasoning, never permissions, data access, approval scope, or authority. Never store raw secrets or credentials in conversational memory, prompts, delegation context, logs, or user-visible responses. Platform functionality may retrieve and use required credentials only through the approved protected connection/secret-storage path, subject to authorization; expose only redacted status or metadata to agents and users. Maintain cross-agent conversational continuity for this user when the runtime provides it, so delegated work preserves instructions, decisions, and relevant campaign context. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available."
+      }
+    },
+    "communications_agent": {
+      "file": "communications_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Message",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [
+        "connections-webproxy"
+      ],
+      "selected_workspace_skill_ids": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab4723f7fc2b06c5f3ab8a7",
+        "6ab475f0f3fd429b0510e3ce",
+        "6ab236c1727beca33232db70",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab2366e595f644ba24295f2",
+        "6ab4779013dfc91ef024f384",
+        "6ab236a20f89e75829fa0eec"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly from verified outcomes and reusable patterns relevant to this role and adjacent fundraising work. Keep user/campaign-specific facts separate from generalized knowledge. Record observations as observations, hypotheses as hypotheses, and prefer patterns supported by repeated or strong evidence. Revisit or discard learned patterns when current evidence contradicts them. Learning expands knowledge and reasoning, never permissions, data access, approval scope, or authority. Never store raw secrets or credentials in conversational memory, prompts, delegation context, logs, or user-visible responses. Platform functionality may retrieve and use required credentials only through the approved protected connection/secret-storage path, subject to authorization; expose only redacted status or metadata to agents and users. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available."
+      }
+    },
+    "connection_discovery_agent": {
+      "file": "connection_discovery_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "FundraisingProviderCapability",
+          "operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "name": "PlatformConnection",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "AgentActivity",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "listFundraisingProviderCapabilities",
+        "getWritingResearchBrief",
+        "getAgentAccountContext"
+      ],
+      "selected_skill_names": [],
+      "selected_workspace_skill_ids": [],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": false,
+        "instructions": "Store verified provider capability findings as generalized knowledge: provider name, connection method, API availability, OAuth scopes, payout model, webhook support, and verification requirements. Distinguish verified facts from inferences. Record evidence URLs and last_researched_at dates so future runs can skip recently-verified providers. Never promote an inference into a verified fact. When new evidence contradicts a stored finding, update the finding and note what changed. Keep provider-specific facts isolated to that provider \u2014 never transfer one provider's capabilities to another."
+      }
+    },
+    "finance_agent": {
+      "file": "finance_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Withdrawal",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext"
+      ],
+      "selected_skill_names": [],
+      "selected_workspace_skill_ids": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab47362e1c4cb9cb4d225c7",
+        "6ab2366e595f644ba24295f2",
+        "6ab236c1727beca33232db70",
+        "6ab236a20f89e75829fa0eec",
+        "6ab474e9c2b6b184aa9b049f"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly from verified outcomes and reusable patterns relevant to this role and adjacent fundraising work. Keep user/campaign-specific facts separate from generalized knowledge. Record observations as observations, hypotheses as hypotheses, and prefer patterns supported by repeated or strong evidence. Revisit or discard learned patterns when current evidence contradicts them. Learning expands knowledge and reasoning, never permissions, data access, approval scope, or authority. Never store raw secrets or credentials in conversational memory, prompts, delegation context, logs, or user-visible responses. Platform functionality may retrieve and use required credentials only through the approved protected connection/secret-storage path, subject to authorization; expose only redacted status or metadata to agents and users. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available."
+      }
+    },
+    "growth_agent": {
+      "file": "growth_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "PlatformConnection",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [
+        "connections-webproxy"
+      ],
+      "selected_workspace_skill_ids": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab474e9c2b6b184aa9b049f"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly within this agent's assigned role, including adjacent techniques that can improve the role. Store generalized, reusable patterns rather than copying source sentences or building psychological profiles of individuals. For each candidate learning, distinguish observation from inference; record relevance, provenance/source type, context, outcome evidence when available, confidence, and validation status. Apply the progression Observation -> relevance assessment -> pattern extraction -> validation -> generalized knowledge -> role-specific application. Treat campaign facts and organizer constraints as canonical and never rewrite them as learned knowledge. Keep campaign/user-specific context isolated from generalized knowledge. Revisit, correct, deprecate, or discard learned patterns when later evidence contradicts them. Shared knowledge may include truthful communication, accessibility, trust, clarity, audience relevance, and ethical experimentation; specialized tactics stay within this role. Learning may expand knowledge, techniques, creative range, and strategy options, but never permissions, data access, autonomous authority, consent scope, security boundaries, source-of-truth rules, or ability to bypass human approval. Never learn or apply individualized vulnerability exploitation, sensitive-trait targeting, fabricated urgency, deception, impersonation, or unsupported factual claims. Growth learning: compare audience hypotheses, channels, campaign context, presentation, and observed outcomes. Seek new supporter-discovery strategies while keeping creator-entered audience ideas as hypotheses rather than constraints. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available. CREDENTIAL HANDLING: Required platform secrets may be securely collected, stored, retrieved, refreshed, and used by authorized backend connection functions when needed for platform functionality. Raw values must stay out of conversational memory, agent prompts, delegation context, logs, analytics, and ordinary user-facing responses. Agents should receive only connection state, capabilities, redacted metadata, or action results unless a protected backend operation itself requires the secret."
+      }
+    },
+    "managed_connection_agent": {
+      "file": "managed_connection_agent.jsonc",
+      "entity_access": [],
+      "function_access": [
+        "requestManagedConnectionAction",
+        "listConnections",
+        "resolveConnectionStatus",
+        "getWritingResearchBrief",
+        "getAgentAccountContext"
+      ],
+      "selected_skill_names": [],
+      "selected_workspace_skill_ids": [],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Remember only non-secret reusable connection workflow facts and the user's explicit high-level preferences. Treat current provider state, current subscription, current OBO authorization, current connection ownership, and current campaign records as authoritative on every consequential action. Never store credentials, tokens, cookies, MFA material, recovery codes, banking data, or challenge answers."
+      }
+    },
+    "outreach_agent": {
+      "file": "outreach_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Recommendation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "AgentActivity",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "runBrowserConnection",
+        "getStripeIntegrationAudit",
+        "repairStripeWebhookEvents",
+        "syncStripeSubscriptionCatalog",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [
+        "connections-webproxy",
+        "platform-connection",
+        "failed-connection-recovery"
+      ],
+      "selected_workspace_skill_ids": [
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab4723f7fc2b06c5f3ab8a7",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab475f0f3fd429b0510e3ce"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly within this agent's assigned role, including adjacent techniques that can improve the role. Store generalized, reusable patterns rather than copying source sentences or building psychological profiles of individuals. For each candidate learning, distinguish observation from inference; record relevance, provenance/source type, context, outcome evidence when available, confidence, and validation status. Apply the progression Observation -> relevance assessment -> pattern extraction -> validation -> generalized knowledge -> role-specific application. Treat campaign facts and organizer constraints as canonical and never rewrite them as learned knowledge. Keep campaign/user-specific context isolated from generalized knowledge. Revisit, correct, deprecate, or discard learned patterns when later evidence contradicts them. Shared knowledge may include truthful communication, accessibility, trust, clarity, audience relevance, and ethical experimentation; specialized tactics stay within this role. Learning may expand knowledge, techniques, creative range, and strategy options, but never permissions, data access, autonomous authority, consent scope, security boundaries, source-of-truth rules, or ability to bypass human approval. Never learn or apply individualized vulnerability exploitation, sensitive-trait targeting, fabricated urgency, deception, impersonation, or unsupported factual claims. Outreach learning: compare message angle, channel, audience hypothesis, campaign context, and observed response. Generalize only when evidence supports transfer; do not convert a single person's behavior into a targeting profile. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available. CREDENTIAL HANDLING: Required platform secrets may be securely collected, stored, retrieved, refreshed, and used by authorized backend connection functions when needed for platform functionality. Raw values must stay out of conversational memory, agent prompts, delegation context, logs, analytics, and ordinary user-facing responses. Agents should receive only connection state, capabilities, redacted metadata, or action results unless a protected backend operation itself requires the secret."
+      }
+    },
+    "story_agent": {
+      "file": "story_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [],
+      "selected_workspace_skill_ids": [
+        "6ab4767651cc203b523a04e3",
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab236a20f89e75829fa0eec"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly within this agent's assigned role, including adjacent techniques that can improve the role. Store generalized, reusable patterns rather than copying source sentences or building psychological profiles of individuals. For each candidate learning, distinguish observation from inference; record relevance, provenance/source type, context, outcome evidence when available, confidence, and validation status. Apply the progression Observation -> relevance assessment -> pattern extraction -> validation -> generalized knowledge -> role-specific application. Treat campaign facts and organizer constraints as canonical and never rewrite them as learned knowledge. Keep campaign/user-specific context isolated from generalized knowledge. Revisit, correct, deprecate, or discard learned patterns when later evidence contradicts them. Shared knowledge may include truthful communication, accessibility, trust, clarity, audience relevance, and ethical experimentation; specialized tactics stay within this role. Learning may expand knowledge, techniques, creative range, and strategy options, but never permissions, data access, autonomous authority, consent scope, security boundaries, source-of-truth rules, or ability to bypass human approval. Never learn or apply individualized vulnerability exploitation, sensitive-trait targeting, fabricated urgency, deception, impersonation, or unsupported factual claims. Story/image learning: actively broaden storytelling structures and visual art vocabulary, especially cyberpunk, steampunk, interstellar, space-comic/graphic-novel, afropunk and afrofuturist design. Learn principles and varied implementations rather than one repeated aesthetic. For image direction, do not default unspecified people to any one race; vary representation naturally across generations and allow non-portrait concepts. Afropunk is a rich design vocabulary, not a rule that every depicted person must be Black. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available. CREDENTIAL HANDLING: Required platform secrets may be securely collected, stored, retrieved, refreshed, and used by authorized backend connection functions when needed for platform functionality. Raw values must stay out of conversational memory, agent prompts, delegation context, logs, analytics, and ordinary user-facing responses. Agents should receive only connection state, capabilities, redacted metadata, or action results unless a protected backend operation itself requires the secret."
+      }
+    },
+    "strategy_agent": {
+      "file": "strategy_agent.jsonc",
+      "entity_access": [
+        {
+          "name": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "name": "Recommendation",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "function_access": [
+        "generateIntelligence",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft"
+      ],
+      "selected_skill_names": [
+        "connections-webproxy"
+      ],
+      "selected_workspace_skill_ids": [
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab2366e595f644ba24295f2"
+      ],
+      "anonymous": false,
+      "memory_config": {
+        "enabled": true,
+        "scope": "both",
+        "include_other_conversation_context": true,
+        "instructions": "Learn broadly from verified outcomes and reusable patterns relevant to this role and adjacent fundraising work. Keep user/campaign-specific facts separate from generalized knowledge. Record observations as observations, hypotheses as hypotheses, and prefer patterns supported by repeated or strong evidence. Revisit or discard learned patterns when current evidence contradicts them. Learning expands knowledge and reasoning, never permissions, data access, approval scope, or authority. Never store raw secrets or credentials in conversational memory, prompts, delegation context, logs, or user-visible responses. Platform functionality may retrieve and use required credentials only through the approved protected connection/secret-storage path, subject to authorization; expose only redacted status or metadata to agents and users. MEMORY SCOPE: Treat campaign identity as a hard context boundary. When discussing or acting on a specific campaign, anchor campaign-specific facts, instructions, drafts, outcomes, and preferences to that campaign's current ID/context. Never transfer campaign-specific facts to another campaign merely because they are present in cross-conversation memory. If remembered campaign context conflicts with current authoritative campaign data, use the current data. If the intended campaign is genuinely ambiguous and the distinction changes the action, resolve the campaign before consequential action. General user preferences may carry across campaigns only when they are actually user-level preferences. MEMORY CORRECTION: Treat explicit newer user corrections as superseding older remembered user-provided facts or preferences within the same scope. Do not preserve both as equally current. Treat authoritative current platform records as superseding remembered operational state. When a correction is scoped to one campaign, do not rewrite unrelated campaign or user-level context. When chronology or scope is uncertain and it materially affects a consequential action, verify before acting. Never claim stale remembered information is current merely because it appeared repeatedly in older conversations. MEMORY PROVENANCE: Distinguish remembered information by source and certainty: explicit user statement, authoritative platform record, verified external result, agent-generated suggestion, or inference/hypothesis. Never promote an inference, draft, recommendation, generated content, or unverified external claim into a user fact. Prefer authoritative current records for operational facts and explicit current user statements for user intent/preferences. Preserve uncertainty when evidence is uncertain; confidence may increase only from stronger or repeated independent evidence, not repetition of the same claim. For consequential actions, verify remembered external, financial, authorization, and completion claims against the current authoritative source when available."
+      }
+    }
+  }
+}

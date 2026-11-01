@@ -1,0 +1,50 @@
+{
+  "name": "VerificationMail",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "alias_id": {
+      "type": "string"
+    },
+    "sender": {
+      "type": "string"
+    },
+    "message_key": {
+      "type": "string"
+    },
+    "ciphertext": {
+      "type": "string"
+    },
+    "iv": {
+      "type": "string"
+    },
+    "received_at": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "alias_id",
+    "ciphertext"
+  ],
+  "rls": {
+    "read": {
+      "data.user_id": "{{user.id}}"
+    },
+    "create": {
+      "data.user_id": "{{user.id}}"
+    },
+    "update": {
+      "data.user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.user_id": "{{user.id}}"
+    }
+  },
+  "description": "Owner-only encrypted short-lived signup and MFA email, separate from AI-readable InboxItem. Does not grant agents OTP access."
+}

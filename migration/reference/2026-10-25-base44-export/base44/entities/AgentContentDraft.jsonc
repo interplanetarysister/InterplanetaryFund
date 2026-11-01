@@ -1,0 +1,97 @@
+{
+  "name": "AgentContentDraft",
+  "type": "object",
+  "description": "Owner-scoped AI-prepared content proposals. A draft is not a publication or campaign mutation; applying requires a separate owner-facing action.",
+  "properties": {
+    "owner_user_id": {
+      "type": "string"
+    },
+    "source_agent": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "social_post",
+        "campaign_update",
+        "campaign_changes",
+        "external_post",
+        "blog_entry",
+        "discussion_post",
+        "discussion_reply",
+        "profile_update"
+      ]
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "connection_id": {
+      "type": "string"
+    },
+    "payload": {
+      "type": "object",
+      "description": "Whitelisted non-secret proposed content only; never credentials or financial state."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "applying",
+        "applied",
+        "failed",
+        "cancelled"
+      ],
+      "default": "draft"
+    },
+    "result_id": {
+      "type": "string"
+    },
+    "result_summary": {
+      "type": "string"
+    },
+    "last_error": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "kind",
+    "payload",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.owner_user_id": "{{user.id}}"
+    },
+    "delete": {
+      "data.owner_user_id": "{{user.id}}"
+    }
+  }
+}

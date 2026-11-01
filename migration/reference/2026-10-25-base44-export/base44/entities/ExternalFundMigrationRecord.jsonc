@@ -1,0 +1,90 @@
+{
+  "name": "ExternalFundMigrationRecord",
+  "type": "object",
+  "description": "Admin-only reconciliation record for an external-platform amount. It is not a withdrawal, payout, settlement, or proof of custody.",
+  "properties": {
+    "request_id": {
+      "type": "string",
+      "description": "Stable client request id used for idempotency."
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "beneficiary_user_id": {
+      "type": "string"
+    },
+    "campaign_title": {
+      "type": "string"
+    },
+    "source_platform": {
+      "type": "string"
+    },
+    "reported_amount": {
+      "type": "number",
+      "description": "Admin-entered amount awaiting independent provider/custody reconciliation."
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD"
+    },
+    "prospective_platform_fee": {
+      "type": "number",
+      "description": "Informational 3% IFund fee if this amount later becomes verified settled recipient funds and is withdrawn."
+    },
+    "prospective_net": {
+      "type": "number",
+      "description": "Informational amount after the prospective 3% fee; not a payout amount."
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "recorded",
+        "matched",
+        "settled",
+        "cancelled",
+        "ambiguous"
+      ],
+      "default": "recorded"
+    },
+    "matched_external_observation_id": {
+      "type": "string"
+    },
+    "matched_holding_entry_id": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "request_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "source_platform",
+    "reported_amount",
+    "currency",
+    "state"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

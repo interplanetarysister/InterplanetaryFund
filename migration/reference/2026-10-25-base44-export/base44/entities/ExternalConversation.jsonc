@@ -1,0 +1,117 @@
+{
+  "name": "ExternalConversation",
+  "type": "object",
+  "description": "Owner-scoped conversation threading for authorized messages, questions, and comments from external social or fundraising accounts. Providers retain source ownership; records do not grant reply rights or imply API availability. No credentials are stored here.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "IFund account owner. All conversation and message access is scoped to this identity."
+    },
+    "connection_id": {
+      "type": "string",
+      "description": "Verified IFund PlatformConnection reference for the source account."
+    },
+    "platform": {
+      "type": "string",
+      "description": "Source provider key such as facebook or instagram; Buffer is not a source of direct messages."
+    },
+    "external_thread_id": {
+      "type": "string",
+      "description": "Provider conversation/thread identifier; deduplicate using connection_id and platform."
+    },
+    "external_unique_key": {
+      "type": "string",
+      "description": "Stable composite deduplication identifier for import and webhook retries."
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Optional related IFund campaign."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "direct_message",
+        "comment_thread",
+        "fundraising_group",
+        "support",
+        "other"
+      ],
+      "default": "other",
+      "description": "Classification only; does not indicate provider supports access to that conversation."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Optional subject or safe thread label."
+    },
+    "participant_summary": {
+      "type": "string",
+      "description": "Minimal display-only participants; avoid storing unrelated third-party personal data."
+    },
+    "source_url": {
+      "type": "string",
+      "description": "Original provider conversation link for externally handled replies."
+    },
+    "reply_support": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "native_verified",
+        "external_link",
+        "unsupported"
+      ],
+      "default": "unknown",
+      "description": "Only native_verified after scope and permission checks permits a native IFund Send action."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "done",
+        "archived"
+      ],
+      "default": "open"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_message_preview": {
+      "type": "string",
+      "description": "Short redacted preview; never include tokens, secrets, or sensitive payment credentials."
+    }
+  },
+  "required": [
+    "user_id",
+    "platform",
+    "connection_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
