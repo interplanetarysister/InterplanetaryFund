@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { requestCampaignDraft } from "@/api/campaignDraft";
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
@@ -31,6 +32,30 @@ export default function CreateCampaign() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
+  const [draftDetails, setDraftDetails] = useState("");
+  const [draftBeneficiary, setDraftBeneficiary] = useState("");
+  const [draftNeed, setDraftNeed] = useState("");
+  const [suggestions, setSuggestions] = useState(null);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestionError, setSuggestionError] = useState("");
+  async function suggestDraft() {
+    if (busy || suggesting || loadingDraft || draftLoadError) return;
+    setSuggesting(true); setSuggestionError(""); setSuggestions(null);
+    try {
+      const result = await requestCampaignDraft(authClient(), {
+        details: draftDetails,
+        beneficiary: draftBeneficiary,
+        need: draftNeed,
+        cause: form.category,
+        goal: form.goal_amount,
+      });
+      setSuggestions(result);
+    } catch (error) {
+      setSuggestionError(error?.message || "Could not prepare your draft.");
+    } finally {
+      setSuggesting(false);
+    }
+  }
   function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
@@ -61,6 +86,51 @@ export default function CreateCampaign() {
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Save your campaign story as a private draft. Publishing and donations remain unavailable until independently verified.</p></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
+    <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+      <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
+      <p className="text-sm text-muted-foreground">Get editable wording suggestions using the existing Supabase service. No paid AI, automatic saving, or publishing.</p>
+      <label className="block font-semibold">What is your fundraiser about?
+        <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
+          onChange={e => setDraftDetails(e.target.value)} placeholder="Describe the situation and how funds would help."
+          className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
+      </label>
+      <label className="block font-semibold">Who benefits? (optional)
+        <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
+          onChange={e => setDraftBeneficiary(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+      </label>
+      <label className="block font-semibold">What is needed? (optional)
+        <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
+          onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+      </label>
+      <button type="button" onClick={suggestDraft}
+        disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
+        className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
+        {suggesting ? "Preparing ideas…" : "Generate campaign ideas"}
+      </button>
+      {suggestionError && <p role="alert" className="text-destructive">{suggestionError}</p>}
+      {suggestions && <div aria-label="Campaign ideas" className="space-y-4" role="region">
+        <p role="status" className="text-sm">Suggestions are ready. Choose which ideas to apply to the form below.</p>
+        <h3 className="font-semibold">Title ideas</h3>
+        {suggestions.titles.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
+          <p className="min-w-0 flex-1">{v}</p>
+          <button type="button" className="rounded-xl border border-border px-4 py-2"
+            onClick={() => change("title",v)}>Use title</button>
+        </div>)}
+        <h3 className="font-semibold">Short descriptions</h3>
+        {suggestions.summaries.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
+          <p className="min-w-0 flex-1">{v}</p>
+          <button type="button" className="rounded-xl border border-border px-4 py-2"
+            onClick={() => change("summary",v)}>Use description</button>
+        </div>)}
+        <h3 className="font-semibold">Story idea</h3>
+        <p className="whitespace-pre-wrap">{suggestions.story}</p>
+        <button type="button" className="rounded-xl border border-border px-4 py-2"
+          onClick={() => change("story",suggestions.story)}>Use story</button>
+        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
+          <p>{suggestions.imagePrompt}</p>
+        </details>}
+      </div>}
+    </section>
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <label className="block font-semibold">Campaign title<input required maxLength={150} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea required maxLength={1000} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
