@@ -128,7 +128,7 @@ The independent migration `src/App.jsx` currently declares only these routes:
 - `/blogs/:id`
 - `/my-blog`
 
-That is **9 explicit routes versus 58 original explicit routes**. It is a reduced preview, not the original platform. The earlier Phase 5 parity ledger independently recorded 3 static ports, 10 partial equivalents, and 44 not ported (57 page entries); those categories are not functional-parity signoff.
+That is **12 explicit routes versus 58 original explicit routes**. It is a reduced preview, not the original platform. The earlier Phase 5 parity ledger independently recorded 3 static ports, 10 partial equivalents, and 44 not ported (57 page entries); those categories are not functional-parity signoff.
 
 ## Required parity gates
 
