@@ -9,7 +9,7 @@ export default function Dashboard({ user }) {
   const [error, setError] = useState("");
   useEffect(() => {
     let active = true;
-    if (!db || !user?.id) return;
+    if (!db || !user?.id) { setCampaigns([]); setError("Campaign data is not configured."); return; }
     setCampaigns(null);
     db.from("ifund_campaigns").select(COLUMNS).eq("owner_id", user.id)
       .order("created_at", { ascending: false })
