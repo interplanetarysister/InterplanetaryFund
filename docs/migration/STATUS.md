@@ -1,9 +1,27 @@
-# Migration status — 2026-10-30
+# Migration status — 2026-11-01
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
-## Current verified state — 2026-10-30
+## Latest audit checkpoint — November 1, 2026
 
-This section is the latest verified snapshot; older sections below are historical checkpoints and may be superseded.
+Source: authenticated original-app audit and read-only GitHub/Cloudflare/Supabase inspection recorded in the owner's saved `interplanetary-fund-migration-audit-2026-11-01.md`. This section carries forward that evidence; it does not claim a new live database test during this documentation repair. Earlier dated sections below are historical.
+
+- Source `interplanetary-fund2` remains read-only; independent destination is `InterplanetaryFund`, active broad UI port `apps/web` on PR #165. Root `src/` and `apps/web/` still coexist; resolve the deployment build root before release.
+- Existing acceptance ledger: 59 historical routes, 44 partial implementations, 15 placeholders, zero release-verified routes. Do not replace this ledger or mark partial routes complete.
+- Corrected the existing [agent inventory](inventory/AGENTS.md): all 10 source configurations parsed, 76 tool entries enumerated, 37 workspace-skill references representing 12 distinct IDs. Skill bodies, scoped memory and effective tool execution remain unverified.
+- Canonical Supabase destination `ssibsfmtodgximseeqsv` has 10 legacy owner-map rows (3 marked verified/linked, 7 awaiting login), 28 staged campaign rows, one independent application campaign, and the legal-acceptance table. Linked-map state does not establish explicit migration consent or tested account lifecycle.
+- Destination source snapshots contain 397 historical agent-activity and 26 delegation snapshots plus 32 connection snapshots; snapshots are not active actions or provider grants. All 520 source snapshots remain `source_verified=false`.
+- Three destination mail Edge Functions are ACTIVE. This is deployment-state evidence, not actual delivered-mail or signature-validation proof.
+- Existing gateway binds the destination project but its live health reports `mcp_proxy: base44`. Existing workforce/workflow Workers serve catalogs and deny execution. Do not call these an independent operational backend.
+- All 13 archived cutover controls remain disabled, unreconciled and destination-unverified at that audit. Preserve them; archived controls do not enumerate every live feature flag.
+- Original withdrawal UI specifies a 3% payout fee and seven-day clearing hold. Verify the server/provider contract before any financial change; historical 7% notes are not current implementation authority.
+
+**Continuation:** recover remote skill bodies and scoped memory through authorized workspace access; adapt and verify actual tool handlers and workflow executors; complete the 15 missing routes and the role/data/device evidence. No production readiness approval, deployment, SQL write, payment or agent execution is conferred by this checkpoint.
+
+---
+
+## Historical verified state — 2026-10-30
+
+This is the October 30 snapshot, retained as historical evidence; the November 1 audit checkpoint above supersedes conflicting state claims.
 
 - Working PR: #165, branch `migration/build-completeness-gates-20261029`, latest code-tested head: `24fae9d3b7a2d6f45a8f7c9d5a6e2b4c8f1d3a7b`.
 - CI on that head passed **120/120 Worker tests, 141/141 web tests, and Vite 6.4.5 compilation** under Node 22.23.2 / npm 10.9.8.
