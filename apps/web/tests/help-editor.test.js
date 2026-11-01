@@ -89,11 +89,15 @@ test("admin published Help Editor shares public reader path",()=>{
 });
 test("help RLS and publish RPC require trusted admin claims",()=>{
  const sql=readFileSync(new URL("../../../supabase/migrations/pending/20261029_ifund_help_editor.sql",import.meta.url),"utf8");
- assert.match(sql,/security invoker/);
+ assert.match(sql,/security definer/i);
  assert.match(sql,/for update/);
  assert.match(sql,/auth\.jwt\(\)->'app_metadata'->>'role'/);
  assert.match(sql,/enable row level security/);
+ assert.match(sql,/ifund_current_account_is_active/);
+ assert.match(sql,/grant update\\(slug,category,question,description,answer,keywords,stage\\)/i);
+ assert.doesNotMatch(sql,/grant select,insert,update on public\\.ifund_help_drafts/i);
+ assert.doesNotMatch(sql,/grant update\\([^)]*author_id/i);
  assert.match(sql,/helpful_yes integer/);
  assert.match(sql,/Published help article URLs cannot be changed/);
- assert.doesNotMatch(sql,/security definer/i);
+ 
 });
