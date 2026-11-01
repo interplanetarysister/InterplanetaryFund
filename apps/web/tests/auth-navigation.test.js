@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {legacyAuthLandingRedirect} from "../src/lib/legacyAuthLanding.js";
 const read=path=>readFileSync(new URL("../src/"+path,import.meta.url),"utf8");
 
 test("original space-glass AuthLayout is reused for signup and password recovery",()=>{
@@ -46,8 +47,21 @@ test("after password sign-in, account and email confirmation are reverified",()=
 test("legacy OAuth or email fragments are diverted to explicit callback",()=>{
  const router=read("App.jsx");
  assert.match(router,/legacyAuthLandingRedirect\(window\.location\.href\)/);
- assert.match(router,/path="\/auth\/callback"/);
+ assert.match(router,/path=\"\/auth\/callback\"/);
  const callback=read("pages/AuthCallback.jsx");
  assert.match(callback,/window\.history\.replaceState/);
  assert.match(callback,/completeAuthCallback/);
+});
+
+test("legacy email redirects are restricted to known auth landing routes",()=>{
+ const emailUrl="https://interplanetaryfund.com/dashboard?code=auth-code";
+ assert.match(legacyAuthLandingRedirect(emailUrl),/^\/auth\/callback\?/);
+ assert.equal(
+   legacyAuthLandingRedirect("https://interplanetaryfund.com/activate?code=ABCDE-FGHIJ"),
+   null,
+ );
+ assert.equal(
+   legacyAuthLandingRedirect("https://interplanetaryfund.com/connect?code=provider-code"),
+   null,
+ );
 });
