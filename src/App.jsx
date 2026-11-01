@@ -11,6 +11,7 @@ import Feed from "./pages/Feed";
 import Dashboard from "./pages/Dashboard";
 import VisualWorkspace from "./pages/VisualWorkspace";
 import AgentsPreview from "./pages/AgentsPreview";
+import InboxPreview from "./pages/InboxPreview";
 import Discover from "./pages/Discover";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
@@ -112,7 +113,7 @@ function App() {
           <Route path="/agents" element={user ? <AgentsPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/mission" element={user ? <VisualWorkspace path="/mission" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/ai-images" element={user ? <VisualWorkspace path="/ai-images" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
-          <Route path="/inbox" element={user ? <VisualWorkspace path="/inbox" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/inbox" element={user ? <InboxPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/following" element={user ? <VisualWorkspace path="/following" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/giving" element={user ? <VisualWorkspace path="/giving" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/ledger" element={user ? <VisualWorkspace path="/ledger" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
