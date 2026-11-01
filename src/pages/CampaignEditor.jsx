@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Sparkles, PenLine, Target, Image as ImageIcon, Save, Rocket } from "lucide-react";
 import { db } from "../lib/supabase";
 import {
@@ -23,6 +23,7 @@ const OWNER_CAMPAIGN_COLUMNS =
 function Editor({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -30,7 +31,8 @@ function Editor({ user }) {
   const [draftBeneficiary, setDraftBeneficiary] = useState("");
   const [draftNeed, setDraftNeed] = useState("");
   const [draftResult, setDraftResult] = useState(null);
-  const [imageTheme, setImageTheme] = useState("Hopeful and warm");
+  const [imageTheme, setImageTheme] = useState(() => searchParams.get("imageTheme") || "Hopeful and warm");
+  const [imageBrief, setImageBrief] = useState(() => (searchParams.get("imageBrief") || "").slice(0,1800));
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
@@ -309,7 +311,10 @@ function Editor({ user }) {
             {["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"].map(t => <option key={t}>{t}</option>)}
           </select>
         </label>
-        <p>Need an illustration idea? <Link to="/ai-images">Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
+        <p>Need an illustration idea? <Link to={"/ai-images?theme="+encodeURIComponent(imageTheme)+"&cause="+encodeURIComponent(form.summary || form.title || "")}>Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
+        <label>Image brief (planning only; not included in the published campaign)
+          <textarea rows="4" value={imageBrief} onChange={e => setImageBrief(e.target.value)} maxLength={1800} disabled={editorDisabled} placeholder="Your creative brief will appear here when you return from Cosmic Image Studio."/>
+        </label>
         <label>
           Cover image URL (optional)
           <input
