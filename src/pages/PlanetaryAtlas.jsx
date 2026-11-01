@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 import { Globe2, MapPin, Compass } from "lucide-react";
 import { db } from "../lib/supabase";
 
-const FIELDS = "id,title,summary,category,latitude,longitude";
-const valid = (c) => Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude)) && c.latitude !== null && c.longitude !== null && Number(c.latitude) >= -90 && Number(c.latitude) <= 90 && Number(c.longitude) >= -180 && Number(c.longitude) <= 180;
+const FIELDS = "id,title,summary,category,latitude,longitude,atlas_visible";
+const valid = (c) => c.atlas_visible === true && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude)) && c.latitude !== null && c.longitude !== null && Number(c.latitude) >= -90 && Number(c.latitude) <= 90 && Number(c.longitude) >= -180 && Number(c.longitude) <= 180;
 const position = (c) => ({ left: ((Number(c.longitude) + 180) / 360 * 100) + "%", top: ((90 - Number(c.latitude)) / 180 * 100) + "%" });
 
 export default function PlanetaryAtlas() {
@@ -15,7 +15,7 @@ export default function PlanetaryAtlas() {
   useEffect(() => {
     let live = true;
     if (!db) { setState("unavailable"); return; }
-    db.from("ifund_campaigns").select(FIELDS).eq("status", "active").limit(200)
+    db.from("ifund_campaigns").select(FIELDS).eq("status", "active").eq("atlas_visible", true).limit(200)
       .then(({ data, error }) => {
         if (!live) return;
         if (error) { setState("unavailable"); return; }
@@ -64,6 +64,6 @@ export default function PlanetaryAtlas() {
       <div><h2>{selected.title || "Fundraising mission"}</h2><p>{selected.summary || "Explore this campaign to learn more."}</p><Link className="primary" to={"/campaign/" + selected.id}>View campaign</Link></div>
     </section>}
     <Link className="secondary" to="/discover">Explore all campaigns</Link>
-    <p className="ifund-atlas-note">Stylized world map, not satellite imagery. Only campaigns with coordinates appear as markers. Coordinates must be intentionally public and approximate, never a private home address.</p>
+    <p className="ifund-atlas-note">Stylized world map, not satellite imagery. Only campaigns whose owners opted into public map visibility appear as markers. Coordinates must be intentionally public and approximate, never a private home address.</p>
   </main>;
 }
