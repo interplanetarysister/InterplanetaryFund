@@ -1700,8 +1700,8 @@
       "title": "Inbox",
       "source_component": "Inbox",
       "access": "member",
-      "current_state": "placeholder",
-      "implementation": null,
+      "current_state": "implemented_partial",
+      "implementation": "apps/web/src/pages/Inbox.jsx",
       "release_status": "not_verified",
       "proof": {
         "visual": {
@@ -1738,7 +1738,9 @@
         "source_page_file": "src/pages/Inbox.jsx"
       },
       "source_backend_calls_verified": false,
-      "source_ui_parity_verified": false
+      "source_ui_parity_verified": false,
+      "service_implementation": "apps/web/src/lib/inbox.js",
+      "known_compatibility_gap": "Owner-scoped inbox items and notifications are implemented with active-account checks and safe acknowledgement updates. Donation aggregation, external provider replies, verification panel, and admin approval queue are not ported or enabled; no historical inbox/notification records have verified owner mappings."
     },
     {
       "path": "/following",
