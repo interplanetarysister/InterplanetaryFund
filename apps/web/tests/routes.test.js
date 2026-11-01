@@ -21,6 +21,8 @@ test("auth client targets one canonical Supabase project", () => {
 });
 test("fundraising is never represented as confirmed by draft creation", () => {
  const create = file("../src/pages/CreateCampaign.jsx");
- assert.match(create, /status: "draft"/);
- assert.doesNotMatch(create, /status: "active"/);
+ const publication = file("../src/lib/campaignPublication.js");
+ assert.match(create, /persistCampaignContent/);
+ assert.match(publication, /status:publish\?"active":"draft"/);
+ assert.doesNotMatch(create, /base44Client|base44\\.functions/);
 });

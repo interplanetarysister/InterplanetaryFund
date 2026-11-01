@@ -1,0 +1,563 @@
+{
+  "schema_version": 1,
+  "source_repository": "interplanetarysister/interplanetary-fund2",
+  "agents": [
+    {
+      "name": "admin_builder_agent",
+      "original_definition": "base44/agents/admin_builder_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "chief_of_staff",
+      "original_definition": "base44/agents/chief_of_staff.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "communications_agent",
+      "original_definition": "base44/agents/communications_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "connection_discovery_agent",
+      "original_definition": "base44/agents/connection_discovery_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "finance_agent",
+      "original_definition": "base44/agents/finance_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "growth_agent",
+      "original_definition": "base44/agents/growth_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "managed_connection_agent",
+      "original_definition": "base44/agents/managed_connection_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "outreach_agent",
+      "original_definition": "base44/agents/outreach_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "story_agent",
+      "original_definition": "base44/agents/story_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    },
+    {
+      "name": "strategy_agent",
+      "original_definition": "base44/agents/strategy_agent.jsonc",
+      "executor": null,
+      "tools_authorized": false,
+      "audit_verified": false,
+      "live_verified": false
+    }
+  ],
+  "workflows": [
+    {
+      "name": "AI Outreach Agent",
+      "original_definition": "base44/workflows/AI Outreach Agent.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */6 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runOutreachAgent"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Admin Action Conversation Router",
+      "original_definition": "base44/workflows/Admin Action Conversation Router.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "*/15 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "processAdminActionInbox"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Campaign Protocol",
+      "original_definition": "base44/workflows/Campaign Protocol.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create",
+          "update"
+        ],
+        "source_handlers": [
+          "enforceCampaignProtocol"
+        ],
+        "risk": "privileged"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Campaign Sync on Create",
+      "original_definition": "base44/workflows/Campaign Sync on Create.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Campaign Sync on Update",
+      "original_definition": "base44/workflows/Campaign Sync on Update.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "CampaignUpdate",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Connection Sync Engine",
+      "original_definition": "base44/workflows/Connection Sync Engine.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "syncConnections"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "External Feed Mirroring",
+      "original_definition": "base44/workflows/External Feed Mirroring.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "mirrorExternalPosts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Feature Discovery on Completion",
+      "original_definition": "base44/workflows/Feature Discovery on Completion.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "Campaign",
+        "events": [
+          "update"
+        ],
+        "source_handlers": [
+          "discoverFeatures"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Grant Application Review",
+      "original_definition": "base44/workflows/Grant Application Review.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "GrantApplication",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "analyzeGrantApplication"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "IFund Official Social Editor",
+      "original_definition": "base44/workflows/IFund Official Social Editor.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 */4 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runOfficialSocialPromotion"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "IFund Reporter Daily Diary",
+      "original_definition": "base44/workflows/IFund Reporter Daily Diary.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 17 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "runReporterDiary"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Integration Health Check",
+      "original_definition": "base44/workflows/Integration Health Check.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 */6 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "validateIntegrationHealth"
+        ],
+        "risk": "external"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "PayPal Holding Settlement Reconciliation",
+      "original_definition": "base44/workflows/PayPal Holding Settlement Reconciliation.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 * * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "discoverPayPalHoldingSettlements"
+        ],
+        "risk": "financial"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Platform Account Steward",
+      "original_definition": "base44/workflows/Platform Account Steward.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "30 15 * * *",
+        "timezone": "America/Los_Angeles",
+        "source_handlers": [
+          "maintainPlatformOwnedAccounts"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Social Media Autopilot",
+      "original_definition": "base44/workflows/Social Media Autopilot.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 14 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "runSocialAutopilot"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Volunteer Welcome Follow-up",
+      "original_definition": "base44/workflows/Volunteer Welcome Follow-up.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "entity",
+        "source_entity": "VolunteerSignup",
+        "events": [
+          "create"
+        ],
+        "source_handlers": [
+          "welcomeVolunteer",
+          "volunteerFollowUp"
+        ],
+        "risk": "outbound"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    },
+    {
+      "name": "Weekly Writing Psychology & Social Trends Training",
+      "original_definition": "base44/workflows/Weekly Writing Psychology & Social Trends Training.jsonc",
+      "trusted_trigger": null,
+      "handler": null,
+      "idempotency_verified": false,
+      "consent_verified": false,
+      "live_verified": false,
+      "source_trigger_spec": {
+        "type": "scheduled",
+        "cron": "0 16 * * *",
+        "timezone": "UTC",
+        "source_handlers": [
+          "refreshWritingResearch"
+        ],
+        "risk": "metered"
+      },
+      "all_source_handlers_in_inventory": true,
+      "staged_worker_runtime": "worker/nativeAutomationWorker.js",
+      "staged_trigger_metadata": true
+    }
+  ],
+  "connectors": [
+    {
+      "name": "discord",
+      "original_definition": "base44/connectors/discord.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "facebook_pages",
+      "original_definition": "base44/connectors/facebook_pages.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "github",
+      "original_definition": "base44/connectors/github.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "googleworkspace",
+      "original_definition": "base44/connectors/googleworkspace.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "gumroad",
+      "original_definition": "base44/connectors/gumroad.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "instagram",
+      "original_definition": "base44/connectors/instagram.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "linkedin",
+      "original_definition": "base44/connectors/linkedin.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "one_drive",
+      "original_definition": "base44/connectors/one_drive.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "slackbot",
+      "original_definition": "base44/connectors/slackbot.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "wix",
+      "original_definition": "base44/connectors/wix.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    },
+    {
+      "name": "wordpress_com",
+      "original_definition": "base44/connectors/wordpress_com.jsonc",
+      "provider_grant": null,
+      "credential_vault_verified": false,
+      "external_sync_allowed": false,
+      "live_verified": false
+    }
+  ],
+  "staged_engine": {
+    "worker_entrypoint": "worker/nativeAutomationWorker.js",
+    "disabled_config": "wrangler.automations.jsonc",
+    "schedule_matcher": "worker/automationSchedule.js",
+    "entity_outbox_intake": "worker/automationEvents.js",
+    "durable_executor": "worker/automationEngine.js",
+    "private_audit_writer": "worker/automationAudit.js",
+    "unapplied_private_d1_migration": "d1/migrations/0001_ifund_workflow_audit.sql",
+    "ported_handlers": 0,
+    "approved_external_side_effects": 0,
+    "schedules_enabled": false,
+    "workflow_release_enabled": false,
+    "actual_deployment_verified": false
+  }
+}

@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const profileSelect = 'id,handle,display_name,created_at';
@@ -30,6 +30,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to view your account.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
     if (path === '/api/account/me') {
       return response(200, { id: account.uid });
     }
@@ -66,14 +67,14 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
         }
         const updated = { id: account.uid };
         if (Object.hasOwn(input, 'handle')) {
-          if (typeof input.handle !== 'string' ||
-            !/^[A-Za-z0-9_-]{3,32}$/.test(input.handle)) {
+          if (input.handle !== null && (typeof input.handle !== 'string' ||
+            (input.handle !== '' && !/^[A-Za-z0-9_-]{3,32}$/.test(input.handle)))) {
             return response(422, { error: 'Handle must be 3–32 letters, numbers, underscores or dashes.' });
           }
-          updated.handle = input.handle;
+          updated.handle = input.handle || null;
         }
         if (Object.hasOwn(input, 'display_name')) {
-          if (typeof input.display_name !== 'string' || input.display_name.trim().length > 80) {
+          if (typeof input.display_name !== 'string' || input.display_name.trim().length > 100) {
             return response(422, { error: 'Invalid display name.' });
           }
           updated.display_name = input.display_name.trim();

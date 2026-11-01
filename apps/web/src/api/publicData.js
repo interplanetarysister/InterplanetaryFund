@@ -1,6 +1,6 @@
 // Public, read-only IFund campaign queries against the ONE independent
 // Supabase project. RLS exposes only active rows to anonymous visitors.
-// No Base44 SDK, legacy preview RPC or fallback cross-project connection.
+// No legacy preview RPC or fallback cross-project connection.
 import { createClient } from "@supabase/supabase-js";
 
 const PROJECT_REF = "ssibsfmtodgximseeqsv";

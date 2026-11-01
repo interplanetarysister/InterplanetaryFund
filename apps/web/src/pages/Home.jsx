@@ -9,6 +9,7 @@ import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import useVerifiedUser from "@/lib/useVerifiedUser";
 
 // Hero art is served from this app (public/images). If the file is absent the
 // deep-space gradient shows on its own.
@@ -37,8 +38,8 @@ const STORY = [
 
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
-  const isAuthenticated = false;
-  const user = null;
+  const { user } = useVerifiedUser();
+  const isAuthenticated = !!user;
   const [heroOk, setHeroOk] = useState(true);
   const [expanded, setExpanded] = useState(false);
 

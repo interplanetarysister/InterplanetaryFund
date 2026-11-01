@@ -53,10 +53,11 @@ export default function Dashboard() {
       <h2 className="text-xl font-semibold">Your campaigns</h2>
       <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
+      <Link to="/mine" className="mt-4 mr-5 inline-block text-primary underline">Manage my campaigns</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
-    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
+    {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} ownerView />)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
     {campaigns.length > 0 && <section><h2 className="mb-4 text-xl font-semibold">Discover active campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{campaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
   </main>;

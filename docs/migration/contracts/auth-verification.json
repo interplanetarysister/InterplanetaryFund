@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "tested_at": "2026-10-29",
+  "canonical_supabase_project": "ssibsfmtodgximseeqsv",
+  "source": "read-only canonical auth.users aggregates, auth_logs and original interplanetary-fund2 UI",
+  "verified_metadata": {
+    "auth_users_count": 3,
+    "confirmed_users_count": 3,
+    "confirmed_without_public_profile": 0,
+    "auth_confirmation_mail_send_events_observed": 2,
+    "login_error_code_seen": "invalid_credentials",
+    "notes": "Read-only snapshot; existence of a mail.send log does not prove delivery to a user's inbox or functional redirect. Authentication failure codes were observed; do not infer the user's password."
+  },
+  "frontend_changes": {
+    "login": "apps/web/src/pages/AuthPage.jsx",
+    "signup": "apps/web/src/pages/AuthPage.jsx",
+    "callback": "apps/web/src/pages/AuthCallback.jsx",
+    "callback_service": "apps/web/src/lib/authCallback.js",
+    "legacy_link_recovery": "apps/web/src/lib/legacyAuthLanding.js",
+    "password_reset": "apps/web/src/pages/ResetPassword.jsx",
+    "post_login": "apps/web/src/lib/postLogin.js",
+    "secure_routes": "apps/web/src/components/RequireAccess.jsx",
+    "auth_client": "apps/web/src/api/auth.js",
+    "signed_in_navigation": "apps/web/src/components/Layout.jsx",
+    "source_ui_wrapper": "apps/web/src/components/AuthLayout.jsx",
+    "confirmed_email_guard": "apps/web/src/lib/verifiedEmailUser.js",
+    "confirmed_email_route_state": "apps/web/src/lib/useVerifiedUser.js"
+  },
+  "provider_configuration": {
+    "expected_site_url": "https://interplanetaryfund.com",
+    "redirect_urls_to_allow": [
+      "https://interplanetaryfund.com/auth/callback*",
+      "https://www.interplanetaryfund.com/auth/callback*",
+      "https://interplanetaryfund-migration.pages.dev/auth/callback*"
+    ],
+    "redirect_allowlist_verified": false,
+    "site_url_verified": false,
+    "email_template_confirmation_url_uses_supabase_redirect_to_verified": false,
+    "email_template_contains_usable_otp_verified": false,
+    "smtp_provider_verified": false,
+    "deliverability_and_inbox_verified": false,
+    "enable_email_confirmation_required": true,
+    "automatic_confirm_disabled_verified": false,
+    "leaked_password_protection_enabled_verified": false,
+    "no_bypass_of_email_verification": true
+  },
+  "real_world_qa": {
+    "first_time_password_signup_requested": false,
+    "confirmation_email_delivered": false,
+    "email_link_verified_in_browser": false,
+    "six_digit_otp_verified": false,
+    "cross_device_confirmation_verified": false,
+    "first_session_created_and_persisted": false,
+    "username_prefill_and_profile_saved": false,
+    "second_login_after_signout_verified": false,
+    "invalid_credentials_recovery_verified": false,
+    "password_reset_email_delivered": false,
+    "reset_verified_then_signin": false,
+    "logout_and_token_refresh_verified": false,
+    "second_user_cannot_read_profile": false,
+    "android_deep_link_tested": false,
+    "admin_role_server_verified": false
+  },
+  "state": "staged_code_unbuilt_not_deployed",
+  "required_before_release": "Review provider Auth redirect URLs and templates in the canonical Supabase project; test disposable genuine accounts through email delivery and read-only logs; run React/browser tests and mobile sign-in; do not change owner account credentials or bypass confirmation."
+}

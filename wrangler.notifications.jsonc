@@ -1,0 +1,37 @@
+{
+  "name": "ifund-notifications",
+  "main": "worker/notificationsWorker.js",
+  "compatibility_date": "2026-10-23",
+  "keep_vars": true,
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "MIGRATION_API_PREVIEW": "enabled",
+    "IFUND_NOTIFICATIONS_ENABLED": "enabled"
+  },
+  "routes": [
+    {
+      "pattern": "interplanetaryfund.com/api/notifications",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "interplanetaryfund.com/api/notifications/health",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "www.interplanetaryfund.com/api/notifications",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "www.interplanetaryfund.com/api/notifications/health",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "interplanetaryfund.com/api/notifications/*",
+      "zone_name": "interplanetaryfund.com"
+    },
+    {
+      "pattern": "www.interplanetaryfund.com/api/notifications/*",
+      "zone_name": "interplanetaryfund.com"
+    }
+  ]
+}

@@ -36,7 +36,8 @@ export default function Profile() {
       const { error: saveError } = await authClient().from("ifund_profiles").upsert({
         id: user.id, handle: handle || null, display_name: profile.display_name.trim() || null
       }, { onConflict: "id" });
-      if (saveError) throw saveError;
+      if (saveError?.code === "23505") throw new Error("That username is already taken. Choose another handle.");
+      if (saveError) throw new Error("Your profile was not saved. Please retry.");
       setMessage("Profile saved.");
     } catch (err) { setError(err?.message || "Unable to save profile."); }
     finally { setBusy(false); }

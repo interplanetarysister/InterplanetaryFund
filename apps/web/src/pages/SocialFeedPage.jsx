@@ -1,8 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { listFinalPublications } from "@/lib/editorial";
 import { authClient } from "@/api/auth";
 
 export default function SocialFeedPage({ community = false }) {
+  const [params] = useSearchParams();
+  const publicationsMode = !community && params.get("tab")==="publications";
+  const [publications,setPublications] = useState({phase:"loading",items:[],error:""});
+  useEffect(()=>{
+    if(!publicationsMode)return;
+    let mounted=true;
+    setPublications({phase:"loading",items:[],error:""});
+    listFinalPublications(100)
+      .then(items=>{if(mounted)setPublications({phase:"ready",items,error:""});})
+      .catch(()=>{if(mounted)setPublications({phase:"error",items:[],
+        error:"Approved IFund publications could not be loaded."});});
+    return()=>{mounted=false;};
+  },[publicationsMode]);
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState(null);
   const [body, setBody] = useState("");
@@ -39,6 +53,30 @@ export default function SocialFeedPage({ community = false }) {
     } catch { setError("Your post was not published. Please try again."); }
     finally { setBusy(false); }
   }
+  if(publicationsMode)return <main className="mx-auto max-w-4xl space-y-7 px-4 py-8">
+    <header><h1 className="font-display text-3xl font-bold">IFund Publications</h1>
+      <p className="mt-2 text-muted-foreground">Official reports, research, presentations and updates that have completed final publication approval.</p>
+    </header>
+    <nav className="flex flex-wrap gap-4 border-b border-border pb-3">
+      <Link to="/social" className="underline">Social</Link>
+      <Link to="/blogs" className="underline">Stories & Blogs</Link>
+      <Link to="/social?tab=publications" aria-current="page" className="font-semibold text-primary">Publications</Link>
+    </nav>
+    {publications.phase==="loading"&&<p role="status">Loading approved publications…</p>}
+    {publications.phase==="error"&&<p role="alert">{publications.error}</p>}
+    {publications.phase==="ready"&&
+      (publications.items.length===0?
+        <p className="rounded-2xl border border-border bg-card p-5">No final-approved publications are available from the independent database.</p>:
+        <ul className="space-y-4">{publications.items.map(item=>
+          <li key={item.id}><Link to={"/publications/"+encodeURIComponent(item.id)}
+            className="block rounded-2xl border border-border bg-card p-5 hover:border-primary">
+            <p className="text-xs font-semibold uppercase text-primary">{item.kind?.replace(/_/g," ")}</p>
+            <h2 className="mt-2 text-xl font-semibold">{item.title}</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{item.summary}</p>
+            {item.published_at&&<time className="mt-3 block text-xs text-muted-foreground" dateTime={item.published_at}>{new Date(item.published_at).toLocaleDateString()}</time>}
+          </Link></li>)}</ul>)}
+  </main>;
+
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social"}</h1>
       <p className="mt-2 text-muted-foreground">{community ? "Connect with the Interplanetary Fund community." : "Share updates and discover community conversations."}</p></header>

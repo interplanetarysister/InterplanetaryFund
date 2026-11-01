@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
 
 // Only campaign content may be written. Never accept ownership, balances,
 // provider receipts, withdrawal metadata or other privileged fields.
@@ -8,11 +8,36 @@ const ALLOWED = new Set([
 ]);
 const CATEGORIES = new Set([
   'community', 'medical', 'emergency', 'education', 'animals',
-  'business', 'creative', 'other',
+  'business', 'creative', 'memorial', 'disaster_relief', 'environment', 'other',
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
 const SELECT = 'id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,updated_at';
+const TERMS_VERSION = '2026-10-13-v3';
+
+async function currentTermsAcceptanceError(account, env, fetcher) {
+  const params = new URLSearchParams({
+    select: 'owner_id,terms_version,explicit_consent,accepted_at',
+    owner_id: 'eq.' + account.uid,
+    terms_version: 'eq.' + TERMS_VERSION,
+    limit: '2',
+  });
+  const upstream = await fetcher(
+    env.SUPABASE_URL + '/rest/v1/ifund_legal_acceptances?' + params.toString(),
+    { method: 'GET', headers: apiHeaders(env, account.jwt) },
+  );
+  if (!upstream.ok)
+    return response(503, { error: 'Agreement status could not be verified.' });
+  const rows = await upstream.json();
+  if (!Array.isArray(rows) || rows.length > 1)
+    return response(503, { error: 'Agreement status could not be verified.' });
+  const accepted = rows[0];
+  if (!accepted || accepted.owner_id !== account.uid ||
+      accepted.terms_version !== TERMS_VERSION ||
+      accepted.explicit_consent !== true || !accepted.accepted_at)
+    return response(403, { error: 'Accept the current IFund user agreement before managing campaigns.' });
+  return null;
+}
 
 function validatePayload(raw, isCreate) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
@@ -91,6 +116,7 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
+    const denied=accountGuardResponse(account); if(denied)return denied;
     const deleting = request.method === 'DELETE';
     let campaign;
     if (!deleting) {
@@ -100,13 +126,18 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
         return response(422, { error: 'Invalid or incomplete campaign fields.' });
       if (create) campaign.owner_id = account.uid;
     }
+    // Enforce the versioned agreement on the server; the React dialog is only
+    // a user experience layer and can be bypassed by direct API requests.
+    const agreementDenied = await currentTermsAcceptanceError(account, env, fetcher);
+    if (agreementDenied) return agreementDenied;
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
-      // Deletion is restricted to empty/draft records; published campaigns
-      // can have donors and must enter a separate audited archive workflow.
-      if (deleting) query.set('status', 'eq.draft');
+      // A draft save must NEVER downgrade an already published campaign to
+      // draft; published campaigns may have history or donors. Only a
+      // separately audited lifecycle endpoint may archive/pause them.
+      if (deleting || campaign?.status === 'draft') query.set('status', 'eq.draft');
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
       method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',

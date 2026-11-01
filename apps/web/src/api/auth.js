@@ -11,7 +11,9 @@ export function authClient() {
     throw new Error("Authentication is not configured for the canonical IFund project.");
   }
   if (!client) client = createClient(url, key, {
-    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    auth: { persistSession: true, autoRefreshToken: true,
+      // Callback handles tokens and one-time codes once, with explicit errors.
+      detectSessionInUrl: false, flowType: "implicit" }
   });
   return client;
 }

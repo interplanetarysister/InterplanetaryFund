@@ -6,8 +6,7 @@ import LegalFooter from "@/components/LegalFooter";
 
 const CONTACT_EMAIL = "hello@interplanetaryfund.com";
 
-// The original Base44 contact form called sendPublicContactMessage.
-// Until an independently verified endpoint exists, never pretend a message was sent.
+// Until an independently verified contact endpoint exists, never pretend a message was sent.
 export default function Contact() {
   return <div className="ifund-public min-h-dvh bg-background text-foreground">
     <section className="ifund-public-hero relative overflow-hidden deep-space">

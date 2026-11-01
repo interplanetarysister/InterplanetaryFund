@@ -1,13 +1,47 @@
-# Interplanetary Fund
+# Interplanetary Fund — independent build
 
-Fresh repository for the Interplanetary Fund platform on **Supabase + Cloudflare**.
+This repository contains the **independent, non-Base44** Interplanetary Fund application. Its runtime target is Supabase (Auth/Postgres/Storage) and Cloudflare (Pages/Workers). It is maintained separately from the Base44 version.
 
-- Migration instructions: issue #137
-- Read-only source app: `interplanetarysister/interplanetary-fund2` (Base44)
-- Pre-migration files (Convex backend, fundforge, agent docs, QA reports) are preserved on the branch `archive/pre-migration-2026-10-24` and in git history. They are reference only and are not the source of truth.
+- Independent repository: `interplanetarysister/InterplanetaryFund`
+- Separate source/reference repository: `interplanetarysister/interplanetary-fund2`
+- Independent production domain target: `https://interplanetaryfund.com`
+- Current implementation branch: `migration/build-completeness-gates-20261029`
+- Current review: [Draft PR #165](https://github.com/interplanetarysister/InterplanetaryFund/pull/165)
+- Main remains unchanged; no merge, production deployment, DNS change, data import, or provider mutation has been authorized.
 
-## Phase 1 migration review
+## Current prebuild status
 
-The active Phase 1 PR is made against `migration/supabase-cloudflare` (not `main`). See `docs/migration/{STATUS,BLOCKERS,INVENTORY}.md`. This is a preview scaffold, not a complete application migration. No Base44 data, passwords, donations, media, or payment secrets have been moved. Do not deploy or switch DNS.
+The independent app has a 59-route historical inventory: **44 routes have partial implementations, 15 remain placeholders, and 0 are release-verified**. The route inventory is not proof of full feature parity. The 95 entity, 184 function, 10 agent, 17 workflow, and 11 connector inventories are source mappings; they do not mean those services are fully ported or live. The canonical Supabase project currently has zero public campaigns and zero donation/payment-event rows; the 27 campaign shadows are in a separate legacy migration project, not in the canonical runtime. Of those shadows, 20 join to identity-map rows marked verified by exact confirmed-email matching and seven remain awaiting destination login; none has independently verified explicit owner-consent receipts.
 
-Local setup (when npm registry access is restored): review existing source-metadata lockfile, use `npm ci --ignore-scripts --no-audit --no-fund` and regenerate the lockfile with `npm install --package-lock-only` only if resolution errors occur, `npm test` and `npm run build`. Set only the publishable Supabase key in `.env.local` to use a **staging** database after the migration SQL has been reviewed. Current untested schema file is `supabase/migrations/20261025011400_initial.sql`. Do not apply it to the connected live project.
+Latest verified CI at commit `9c9d92f31de7a2c15bd2db199ebf029642af197e`:
+- Worker/contract tests: **106 passed**
+- Web regression tests: **130 passed**
+- Inventory and backend-coverage audits: **passed**
+- Runtime-boundary regression: **passed** (no Base44/Convex references in active app/Worker runtime or package/Worker config)
+- Independent Vite compilation: **passed**
+- Release-evidence gate: **intentionally blocks release** while owner, data, auth, legal, feature-parity, provider, and Android evidence remains incomplete.
+
+This CI validates the code and compilation only. It does not establish live Supabase Auth, cross-account RLS, original feature parity, browser/mobile acceptance, data reconciliation, or production deployment. See [current migration status](docs/migration/STATUS.md), [blockers](docs/migration/BLOCKERS.md), and [deployment gates](apps/web/DEPLOYMENT-GATES.md).
+
+## Local development
+
+Use Node 22.x. From the repository root:
+
+```sh
+npm ci --no-audit --no-fund
+npm test
+npm --prefix apps/web test
+npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
+npm --prefix apps/web exec -- vite build
+```
+
+The final command is a compile check. The normal `apps/web` build script invokes the production evidence gate and must remain blocked until the release evidence is genuinely complete. Do not bypass that gate to deploy.
+
+Use only the canonical Supabase project and publishable browser key. Never expose service-role keys or provider secrets. No live data or credentials should be copied from the separate source app without explicit owner approval and verified reconciliation.
+
+## Runtime boundaries
+
+- No Base44 SDK, Base44 function proxy, or Convex runtime is used by the independent app.
+- Base44/Convex mentions in migration documents are historical provenance, inventory, or retirement evidence only; they are not runtime configuration.
+- Payments, donations, withdrawals, external posting, AI metered features, and automation execution remain disabled or unverified unless a separately reviewed implementation explicitly enables them.
+- Preserve the independent app's own auth, database, storage, domain, deployment, and rollback identities. Do not overwrite this repository with the Base44 app export.

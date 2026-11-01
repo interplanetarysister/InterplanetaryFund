@@ -1,3 +1,8 @@
+-- SUPERSEDED: this file is not present in the canonical project's applied migration ledger.
+-- The canonical schema starts at 20261025100627_ifund_phase1_application_runtime_schema.
+-- Kept outside supabase/migrations so a fresh replay does not apply an unrecorded
+-- draft schema before the actual applied migration history.
+
 -- Review in staging before applying to production. Non-destructive initial schema.
 -- Existing unrelated Supabase tables are deliberately untouched.
 create extension if not exists pgcrypto;
