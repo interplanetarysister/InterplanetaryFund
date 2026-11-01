@@ -7,6 +7,8 @@ on:
       - supabase/functions/ifund-campaign-draft/index.ts
       - tests/campaign-draft-auth-boundary.test.js
       - tests/legal-consent-worker.test.js
+      - tests/campaign-terms-rls.test.js
+      - supabase/migrations/pending/20261101_ifund_campaign_terms_rls.sql
       - tests/phase4-campaign-api.test.js
       - worker/campaignWrites.js
       - worker/legalConsent.js
@@ -23,6 +25,8 @@ on:
       - supabase/functions/ifund-campaign-draft/index.ts
       - tests/campaign-draft-auth-boundary.test.js
       - tests/legal-consent-worker.test.js
+      - tests/campaign-terms-rls.test.js
+      - supabase/migrations/pending/20261101_ifund_campaign_terms_rls.sql
       - tests/phase4-campaign-api.test.js
       - worker/campaignWrites.js
       - worker/legalConsent.js
@@ -45,4 +49,4 @@ jobs:
         with:
           node-version: "22.23.2"
       - name: Verify preview authorization and bounded request contract
-        run: node --test tests/campaign-draft-auth-boundary.test.js tests/legal-consent-worker.test.js tests/phase4-campaign-api.test.js tests/phase4-automations-readiness.test.js tests/phase4-durable-automations.test.js apps/web/tests/legacy-auth-landing.test.js apps/web/tests/terms-public-routes.test.js
+        run: node --test tests/campaign-draft-auth-boundary.test.js tests/legal-consent-worker.test.js tests/campaign-terms-rls.test.js tests/phase4-campaign-api.test.js tests/phase4-automations-readiness.test.js tests/phase4-durable-automations.test.js apps/web/tests/legacy-auth-landing.test.js apps/web/tests/terms-public-routes.test.js
