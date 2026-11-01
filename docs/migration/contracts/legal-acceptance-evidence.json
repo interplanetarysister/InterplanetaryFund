@@ -5,11 +5,12 @@
   "implementation": {
     "ui": "apps/web/src/components/TermsAcceptance.jsx",
     "service": "apps/web/src/lib/legalAcceptance.js",
-    "schema": "supabase/migrations/pending/20261029_ifund_legal_acceptances.sql",
-    "staged_only": true
+    "schema": "supabase/migrations/20261030152355_ifund_legal_acceptances_owner_scoped.sql",
+    "policy_update": "supabase/migrations/20261101115611_ifund_verified_owner_lifecycle_and_legal_acceptance_insert_20261101.sql",
+    "staged_only": false
   },
   "proof_requirements": {
-    "canonical_schema_applied": false,
+    "canonical_schema_applied": true,
     "authenticated_user_insert_verified": false,
     "anonymous_insert_denied_verified": false,
     "different_user_read_denied_verified": false,
@@ -22,5 +23,5 @@
     "web_and_android_flow_verified": false,
     "first_signup_acceptance_persisted": false
   },
-  "blocker": "The source legal acceptance logic is staged with account-bound RLS, but not applied/tested on the canonical project. Existing consent histories must not be assumed accepted or forged, and members must not be presented with a false acceptance success. No build or deployment permitted under owner override."
+  "blocker": "The canonical owner-scoped legal acceptance table and insert grants are applied, but no acceptance rows are recorded. All three existing Auth profiles still require lifecycle reconciliation. Runtime two-account RLS tests, real first-signup consent persistence, and web/Android verification remain incomplete. Do not bypass consent or mark prior users accepted without evidence."
 }
