@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 const file = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const app = file("../src/App.jsx");
 test("independent user-facing routes are explicitly implemented", () => {
- for (const route of ["/login","/register","/forgot-password","/reset-password","/dashboard","/profile","/connections","/social","/community","/create"]) {
+ for (const route of ["/login","/register","/forgot-password","/reset-password","/dashboard","/profile","/connections","/social","/community","/create","/inbox"]) {
   assert.ok(app.includes(`<Route path="${route}" element={`), route);
  }
 });
@@ -25,4 +25,15 @@ test("fundraising is never represented as confirmed by draft creation", () => {
  assert.match(create, /persistCampaignContent/);
  assert.match(publication, /status:publish\?"active":"draft"/);
  assert.doesNotMatch(create, /base44Client|base44\\.functions/);
+});
+
+test("the restored inbox route requires member access and uses independent Supabase services",()=>{
+ assert.match(app,/path="\\/inbox".*RequireAccess access="member"/);
+ const page=file("../src/pages/Inbox.jsx");
+ const service=file("../src/lib/inbox.js");
+ assert.match(page,/loadUniversalInbox/);
+ assert.match(page,/markInboxItemDone/);
+ assert.match(service,/ifund_inbox_items/);
+ assert.match(service,/ifund_notifications/);
+ assert.doesNotMatch(page,/base44Client|base44\\.functions|base44\\.entities/);
 });
