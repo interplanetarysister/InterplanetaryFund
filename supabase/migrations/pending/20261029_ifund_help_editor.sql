@@ -51,17 +51,21 @@ create policy ifund_help_admin_insert on public.ifund_help_articles
  );
 create policy ifund_help_admin_update on public.ifund_help_articles
  for update to authenticated using (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  ) with check (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  );
 create policy ifund_help_drafts_admin_read on public.ifund_help_drafts
  for select to authenticated using (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  );
 create policy ifund_help_drafts_admin_create on public.ifund_help_drafts
  for insert to authenticated with check (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
   and author_id=(select auth.uid())
  );
 create policy ifund_help_drafts_admin_update on public.ifund_help_drafts
@@ -73,7 +77,7 @@ create policy ifund_help_drafts_admin_update on public.ifund_help_drafts
 
 -- Atomic source-equivalent Publish: validate a private draft, create or
 -- update a public article without changing existing permanent URLs, link the
--- draft, or rollback all changes on any error. SECURITY INVOKER respects RLS.
+-- draft, or rollback all changes on any error. SECURITY DEFINER is guarded by the active-account check and trusted app_metadata administrator claim.
 create or replace function public.ifund_publish_help_draft(p_draft_id uuid)
 returns uuid language plpgsql security definer set search_path=''
 as $$
