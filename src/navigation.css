@@ -150,3 +150,21 @@
 .ifund-editor-save{gap:.8rem;flex-wrap:wrap}
 .ifund-editor-save button{gap:.5rem;min-height:50px}
 @media(max-width:550px){.ifund-editor-save button{flex:1 1 100%}}
+
+
+.ifund-connections-hero{border:1px solid #345d82;border-radius:24px;padding:clamp(1.5rem,5vw,3rem);background:radial-gradient(ellipse at 85% 0%,#155e75,transparent 55%),linear-gradient(125deg,#111a38,#211843);margin-bottom:1.25rem}
+.ifund-connections-hero>svg{color:#67e8f9}
+.ifund-connections-hero h1{margin:.4rem 0}
+.ifund-connections-hero p:last-child{max-width:58ch}
+.ifund-connections-guidance{display:flex;align-items:flex-start;gap:1rem;border:1px solid #256b79;border-radius:16px;padding:1.2rem;background:#112c3f;margin-bottom:1.5rem}
+.ifund-connections-guidance svg{color:#67e8f9;flex-shrink:0}
+.ifund-connections-guidance p{margin:.4rem 0 0}
+.ifund-connections-search{display:flex;align-items:center;gap:.7rem;border:1px solid #64748b;border-radius:12px;padding:0 1rem;max-width:440px;background:#111b33}
+.ifund-connections-search input{border:0;background:transparent}
+.ifund-connections h2{margin:1.5rem 0 1rem}
+.ifund-connections-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:1rem}
+.ifund-connection-card{display:flex;flex-wrap:wrap;align-items:center;gap:.85rem;margin:0;min-height:130px}
+.ifund-connection-card h3{font-family:Inter,system-ui,sans-serif;font-size:1.1rem;margin:0}
+.ifund-connection-card p{font-size:.9rem;margin:.3rem 0 0}
+.ifund-connection-avatar{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:#173b55;color:#67e8f9}
+.ifund-connection-status{font-size:.78rem;padding:.4rem .7rem;border-radius:20px;border:1px solid #64748b;margin-left:auto}
