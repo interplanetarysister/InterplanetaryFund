@@ -55,6 +55,7 @@ const MyGiving = lazy(() => import("./pages/MyGiving"));
 import { CAMPAIGN_UUID } from "./lib/ownerCampaigns";
 import { legacyAuthLandingRedirect } from "./lib/legacyAuthLanding";
 import TermsAcceptance from "@/components/TermsAcceptance";
+import { VerifiedUserProvider } from "@/lib/useVerifiedUser";
 
 
 // Exact source route inventory; a mounted page is not proof of feature parity.
@@ -160,6 +161,6 @@ function App() {
     window.addEventListener("ifund-theme-changed", apply);
     return () => { mq.removeEventListener("change", apply); window.removeEventListener("ifund-theme-changed", apply); };
   }, []);
-  return <ErrorBoundary><Router><ScrollToTop /><TermsAcceptance><AppRoutes /></TermsAcceptance></Router></ErrorBoundary>;
+  return <VerifiedUserProvider><ErrorBoundary><Router><ScrollToTop /><TermsAcceptance><AppRoutes /></TermsAcceptance></Router></ErrorBoundary></VerifiedUserProvider>;
 }
 export default App;
