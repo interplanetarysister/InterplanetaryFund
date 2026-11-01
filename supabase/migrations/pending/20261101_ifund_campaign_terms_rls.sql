@@ -17,6 +17,27 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Campaign RLS must be enabled before policy replacement.';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public' AND c.relname='ifund_legal_acceptances' AND c.relrowsecurity
+  ) THEN
+    RAISE EXCEPTION 'Legal acceptance RLS must be enabled before campaign policy replacement.';
+  END IF;
+  -- PostgreSQL OR-combines permissive policies. If another write/ALL policy
+  -- exists, replacing the three known policies alone would not enforce Terms.
+  -- Fail closed rather than silently applying a bypassable migration.
+  IF EXISTS (
+    SELECT 1 FROM pg_policies p
+    WHERE p.schemaname='public'
+      AND p.tablename='ifund_campaigns'
+      AND p.permissive='PERMISSIVE'
+      AND p.cmd IN ('ALL', 'INSERT', 'UPDATE', 'DELETE')
+      AND p.policyname NOT IN (
+        'ifund_campaigns_insert', 'ifund_campaigns_update', 'ifund_campaigns_delete'
+      )
+  ) THEN
+    RAISE EXCEPTION 'Unexpected permissive campaign write policy; review before Terms migration.';
+  END IF;
 END;
 $preflight$;
 
