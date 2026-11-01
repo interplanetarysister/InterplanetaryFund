@@ -117,16 +117,21 @@ The original Community page includes a live activity feed, joinable communities,
 
 ## Current independent preview comparison (observed from source)
 
-The independent migration `src/App.jsx` currently declares only these routes:
+The independent migration `src/App.jsx` currently declares these **12 explicit routes**, plus a catch-all:
 - `/`
 - `/discover`
 - `/campaign/:id`
+- `/create`
+- `/edit/:id`
+- `/mine`
 - `/login`
 - `/connections`
 - `/community`
 - `/blogs`
 - `/blogs/:id`
 - `/my-blog`
+
+That is **12 explicit routes versus 58 original explicit routes**. The 57-page parity ledger is a separate page inventory count, not the route count.
 
 That is **12 explicit routes versus 58 original explicit routes**. It is a reduced preview, not the original platform. The earlier Phase 5 parity ledger independently recorded 3 static ports, 10 partial equivalents, and 44 not ported (57 page entries); those categories are not functional-parity signoff.
 
