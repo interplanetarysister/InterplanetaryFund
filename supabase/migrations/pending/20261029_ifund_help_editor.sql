@@ -70,9 +70,11 @@ create policy ifund_help_drafts_admin_create on public.ifund_help_drafts
  );
 create policy ifund_help_drafts_admin_update on public.ifund_help_drafts
  for update to authenticated using (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  ) with check (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  );
 
 -- Atomic source-equivalent Publish: validate a private draft, create or
