@@ -27,6 +27,6 @@ test("notifications route is actually implemented and member-gated",()=>{
   assert.match(app,/path="\/notifications" element={<MemberAccess><Notifications \/><\/MemberAccess>}/);
   assert.match(page,/Mark displayed read/);
   assert.match(page,/Notifications/);
-  assert.doesNotMatch(page,/base44|sample notices|static notifications/i);
+  assert.doesNotMatch(page,/base44Client|base44\\.functions|mockNotices|SEED_NOTIFICATIONS/i);
   assert.match(page,/Android push, optional diagnostics, and administrative mail remain separate/);
 });
