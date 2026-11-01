@@ -41,7 +41,7 @@ function App() {
       setUser(null);
       return;
     }
-    db.auth.getUser().then(({ data }) => setUser(data.user || null));
+    db.auth.getUser().then(({ data }) => setUser(data?.user || null)).catch(() => setUser(null));
     const {
       data: { subscription },
     } = db.auth.onAuthStateChange((event, session) =>
