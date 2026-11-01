@@ -3,6 +3,11 @@ import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { SLOGAN, TAGLINE } from "../lib/brand";
 import { Loading, Message, CampaignCard } from "../components/UI";
+
+const PUBLIC_CAMPAIGN_COLUMNS =
+  "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+const PUBLIC_POST_COLUMNS = "id,body,created_at";
+
 function Feed() {
   const [campaigns, setCampaigns] = useState(null);
   const [posts, setPosts] = useState(null);
@@ -12,13 +17,13 @@ function Feed() {
     Promise.all([
       db
         .from("ifund_campaigns")
-        .select("*")
+        .select(PUBLIC_CAMPAIGN_COLUMNS)
         .eq("status", "active")
         .order("created_at", { ascending: false })
         .limit(30),
       db
         .from("ifund_posts")
-        .select("*")
+        .select(PUBLIC_POST_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(20),
     ]).then(([a, b]) => {
