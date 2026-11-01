@@ -11,7 +11,8 @@ test("Reporter pages are routed by the active website entry point", () => {
   assert.match(app, /import Blogs from "\.\/pages\/Blogs"/);
   assert.match(app, /path="\/blogs" element={<Blogs \/>}/);
   assert.match(app, /path="\/blogs\/:id" element={<BlogArticle \/>}/);
-  assert.match(app, /path="\/my-blog" element={<MyBlog user={user} \/>}/);
+  assert.match(app, /path="\/my-blog" element=\{user \? <MyBlog user=\{user\} \/>/);
+  assert.match(app, /Sign in to manage your publication/);
 });
 
 test("public Reporter queries expose published entries only", () => {
