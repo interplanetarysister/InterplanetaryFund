@@ -1,5 +1,6 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
 import { authenticatedUser, accountGuardResponse, migrationReady, response } from './reads.js';
+import { verifyLegalConsent } from './legalConsent.js';
 
 // Only campaign content may be written. Never accept ownership, balances,
 // provider receipts, withdrawal metadata or other privileged fields.
@@ -101,6 +102,11 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
         return response(422, { error: 'Invalid or incomplete campaign fields.' });
       if (create) campaign.owner_id = account.uid;
     }
+    // React's Terms dialog is not an authorization boundary. Every campaign
+    // POST/PATCH/DELETE must independently verify the current version through
+    // the caller's JWT and owner-scoped RLS before touching campaign rows.
+    const consentError = await verifyLegalConsent(account, env, fetcher);
+    if (consentError) return response(consentError.status, { error: consentError.error });
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
