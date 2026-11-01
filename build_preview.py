@@ -7,7 +7,6 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
-import urllib.request
 
 ROOT = Path(__file__).resolve().parent
 SUPABASE_URL = "https://ssibsfmtodgximseeqsv.supabase.co"
@@ -35,8 +34,14 @@ def main():
     key = env.get("VITE_SUPABASE_PUBLISHABLE_KEY") or env.get("SUPABASE_PUBLISHABLE_KEY")
     if not key:
         try:
-            with urllib.request.urlopen(CONFIG_URL, timeout=15) as response:
-                config = json.load(response)
+            # Use the same Node HTTP transport as the app and support the
+            # inherited proxy in managed development environments.
+            config_env = env.copy()
+            config_env.setdefault("NODE_USE_ENV_PROXY", "1")
+            script = "const r=await fetch(" + json.dumps(CONFIG_URL) + ",{signal:AbortSignal.timeout(15000)});if(!r.ok)process.exit(1);process.stdout.write(JSON.stringify(await r.json()));"
+            config = json.loads(subprocess.check_output(
+                ["node", "--input-type=module", "-e", script], env=config_env,
+                text=True, stderr=subprocess.DEVNULL, timeout=20))
             if config.get("url") == SUPABASE_URL:
                 key = config.get("key")
         except Exception:
