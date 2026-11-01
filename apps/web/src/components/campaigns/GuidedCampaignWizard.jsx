@@ -140,6 +140,8 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
     </div>
     </> : <div className="space-y-5">
       <p className="text-sm text-muted-foreground">These are authenticated backend-generated factual starter suggestions, not model-generated writing or image files. Live model inference and image rendering remain unavailable.</p>
+      {requesting && <p role="status" className="text-sm">Preparing alternative suggestions…</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
       <fieldset className="space-y-2"><legend className="font-semibold">Choose a title — 5 options</legend>
         {copy.titles.map((item,i)=><button key={i} type="button" onClick={()=>setSelectedTitle(i)} aria-pressed={selectedTitle===i} className={`block w-full min-h-12 rounded-xl border p-3 text-left ${selectedTitle===i?"border-primary bg-primary/15":"border-border"}`}>{i+1}. {item}</button>)}
       </fieldset>
