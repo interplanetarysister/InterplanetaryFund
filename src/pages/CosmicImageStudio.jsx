@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Image as ImageIcon, Copy, Sparkles, ShieldCheck } from "lucide-react";
 
 const themes=["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"];
 export default function CosmicImageStudio(){
- const [cause,setCause]=useState("");
+ const [params] = useSearchParams();
+ const [cause,setCause]=useState(() => (params.get("cause")||"").slice(0,1000));
  const [audience,setAudience]=useState("");
- const [theme,setTheme]=useState(themes[0]);
+ const [theme,setTheme]=useState(() => themes.includes(params.get("theme")) ? params.get("theme") : themes[0]);
  const [details,setDetails]=useState("");
  const [copied,setCopied]=useState(false);
  const prompt=[cause.trim()&&"Create an original fundraising campaign image for: "+cause.trim(), "Visual direction: "+theme+".",audience.trim()&&"Audience: "+audience.trim()+".",details.trim()&&"Additional details: "+details.trim()+".","Use clear composition, welcoming imagery and accessible contrast. Avoid invented real people, misleading endorsements, false claims or fake donation totals. Do not include personal addresses."].filter(Boolean).join("\n");
@@ -22,6 +23,6 @@ export default function CosmicImageStudio(){
     <label>Other creative details<textarea value={details} onChange={e=>{setDetails(e.target.value);setCopied(false);}} rows={3} maxLength={1000} placeholder="Colors, setting, mood, and imagery to include or avoid"/></label>
    </div>
   </section>
-  <section className="card"><h2>Your image brief</h2><p>Review the text below before sharing it with an image-generation tool.</p><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{cause.trim()?prompt:"Enter a campaign description above to create a brief."}</pre><div className="actions"><button type="button" disabled={!cause.trim()} onClick={copy}><Copy size={17} aria-hidden="true"/>{copied?"Copied":"Copy image brief"}</button><Link to="/create">Create a campaign</Link></div></section>
+  <section className="card"><h2>Your image brief</h2><p>Review the text below before sharing it with an image-generation tool.</p><pre style={{whiteSpace:"pre-wrap",overflowWrap:"anywhere"}}>{cause.trim()?prompt:"Enter a campaign description above to create a brief."}</pre><div className="actions"><button type="button" disabled={!cause.trim()} onClick={copy}><Copy size={17} aria-hidden="true"/>{copied?"Copied":"Copy image brief"}</button><Link to={"/create?imageTheme="+encodeURIComponent(theme)+"&imageBrief="+encodeURIComponent(prompt.slice(0,1800))}>Use brief in a new campaign</Link></div></section>
  </main>;
 }
