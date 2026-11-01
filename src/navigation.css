@@ -15,3 +15,11 @@
  .ifund-bottom-nav{display:flex;position:fixed;z-index:60;bottom:0;left:0;right:0;justify-content:space-around;gap:.1rem;background:var(--surface,#101827);border-top:1px solid rgba(148,163,184,.25);padding:.45rem .25rem calc(.45rem + env(safe-area-inset-bottom));font-size:.76rem}
  .ifund-bottom-nav a{flex:1;text-align:center;padding:.55rem .1rem}
 }
+
+.ifund-dashboard-heading{display:flex;justify-content:space-between;align-items:center;gap:1.25rem;flex-wrap:wrap}
+.ifund-dashboard-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+.ifund-dashboard-stats .card{display:flex;flex-direction:column;gap:.35rem}
+.ifund-dashboard-stats strong{font-size:clamp(1.8rem,4vw,3rem)}
+.ifund-dashboard-links{display:flex;flex-wrap:wrap;gap:.75rem;margin:1.5rem 0}
+.ifund-dashboard-links a{border:1px solid #5a6290;border-radius:12px;padding:.6rem .9rem}
+@media(max-width:600px){.ifund-dashboard-stats{grid-template-columns:1fr 1fr}.ifund-dashboard-stats .card:last-child{grid-column:span 2}}
