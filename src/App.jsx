@@ -10,6 +10,7 @@ import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
 import Dashboard from "./pages/Dashboard";
 import VisualWorkspace from "./pages/VisualWorkspace";
+import AgentsPreview from "./pages/AgentsPreview";
 import Discover from "./pages/Discover";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
@@ -108,7 +109,7 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
-          <Route path="/agents" element={user ? <VisualWorkspace path="/agents" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/agents" element={user ? <AgentsPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/mission" element={user ? <VisualWorkspace path="/mission" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/ai-images" element={user ? <VisualWorkspace path="/ai-images" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/inbox" element={user ? <VisualWorkspace path="/inbox" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
