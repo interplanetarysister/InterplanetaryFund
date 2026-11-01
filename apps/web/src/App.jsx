@@ -28,6 +28,9 @@ const ComingSoon = lazy(() => import("./pages/ComingSoon"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
+const Blogs = lazy(() => import("./pages/Blogs"));
+const BlogArticle = lazy(() => import("./pages/BlogArticle"));
+const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
@@ -36,7 +39,7 @@ const STANDALONE_COMING_SOON = [
   "/globe", "/embed/campaign/:id", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
-  "/community/:id", "/u/:id", "/blogs", "/blogs/:id", "/publications/:id",
+  "/community/:id", "/u/:id",
   "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
@@ -69,6 +72,9 @@ function AppRoutes() {
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
+      <Route path="/blogs" element={<Blogs />} />
+      <Route path="/blogs/:id" element={<BlogArticle />} />
+      <Route path="/publications/:id" element={<PublicationArticle />} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
