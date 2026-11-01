@@ -29,7 +29,7 @@ export default function Blogs(){
     <p className="mt-2 text-slate-600">Our insider reporter’s diary, community stories, ideas and member journalism.</p></div>
    <div className="flex flex-wrap items-center gap-3">
     <Link to="/social?tab=publications" className="text-blue-800 underline font-medium text-sm">All IFund publications</Link>
-    <Link to="/my-blog" className="rounded-xl bg-primary px-4 py-2 font-semibold text-primary-foreground">Write a blog</Link>
+    <span className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-600" aria-disabled="true" title="Blog writing will be enabled after the creator write service and subscription entitlement are verified">Blog writing is not yet available</span>
    </div>
   </header>
   {loading&&<p role="status" className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4"/>Loading stories…</p>}
