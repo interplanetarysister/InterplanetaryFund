@@ -1,4 +1,24 @@
 # Blockers and evidence — migration Phase 1
+
+## Current transfer evidence — October 25, 2026
+
+**Resolved:** copying available private Supabase caches into the designated
+destination. **768/768** payloads now match exact source SHA-256, including
+27 campaigns, 266 content records, 42 update/connection records, and 433
+agent-history/identity-map projections. See
+[CACHED_SNAPSHOT_TRANSFER_20261025.md](CACHED_SNAPSHOT_TRANSFER_20261025.md).
+The Pages frontend's project mismatch was corrected and redeployed earlier in
+this conversation. This supersedes historical statements below about that
+frontend mismatch and empty destination content/source snapshot tables.
+
+**Still blocked/incomplete:** no destination Auth users or ownership claims,
+no published runtime campaign/post rows, no complete 95-entity source-data/media
+reconciliation, unfinished functions/agents/workflows/UI, and unverified payment
+callbacks and payouts. Private copies are not functional or financial parity.
+The 17-check rollback-only RLS SQL probe is prepared but UNVERIFIED because its
+execution returned an invalid/expired request-state error. Fixture counts were
+subsequently confirmed zero. Real authenticated two-account/API tests remain.
+
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 

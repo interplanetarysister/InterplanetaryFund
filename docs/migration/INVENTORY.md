@@ -89,3 +89,19 @@ Project `tzehxfikoslihnclhxuz` returned the following **25 recorded applied migr
 
 ## Owner-provided Base44 secret-name inventory — 2026-10-25
 See [SECRET_DESTINATIONS.md](SECRET_DESTINATIONS.md) for **all 20** owner-listed Base44 secret names, verified static caller examples, read-only Cloudflare Worker name checks, and safe migration destinations. This is **not** a secret-value export and does **not** establish that new backend secrets have been configured. Payment PR #145 needs a newly registered `PAYPAL_WEBHOOK_ID` and backend-only Supabase credentials. The destination's published runtime remains unverified.
+
+
+## Phase 6 cached-data inventory — October 25, 2026
+
+Destination `ifund_transfer`: 27 campaign snapshots, 266 content snapshots, and
+475 source/historical snapshots. All **768** destination JSONB payloads now
+match exact source SHA-256. **741** records were newly inserted; nine existing
+campaign numeric-serialization differences were repaired with value/digest
+checks. This inventory describes private cached projections, not a complete
+95-entity production export. No identity/role ownership or financial authority
+was inferred. See [the transfer report](CACHED_SNAPSHOT_TRANSFER_20261025.md).
+
+New repeatable tools: `scripts/migration/snapshot-transfer.mjs` (private,
+idempotent 100-row SQL generator plus exact readback verifier) and
+`scripts/migration/verify-owner-rls.sql` (17-check rollback-only database-role
+probe, prepared but not verified because its tool execution failed).
