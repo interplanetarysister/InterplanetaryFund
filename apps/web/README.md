@@ -49,7 +49,7 @@ Campaign donations are paused, as on the live site. The "CAMPAIGN DONATIONS ARE 
 
 ## Not ported (yet)
 
-Sign-in and registration, member sessions, Terms acceptance gating, campaign creation and dashboard, community, social, blogs, old database-backed help articles and submission forms, the Founding Members page, and every owner or admin tool on the campaign page (editing, distribution, outreach agents, AI coach, translations, follow, share kit, recent supporters, donation dialog). Platform error reporting and Firebase diagnostics were also removed.
+The current code includes Supabase sign-in/registration, an owner dashboard, private campaign draft saving, and an opt-in campaign-writing assistant backed by the existing authenticated Supabase Edge Function `ifund-campaign-draft-preview`. These are not yet proof of complete end-to-end production acceptance. Payment checkout, withdrawals, agent/workflow parity, all 59 historical route behaviors, and provider integrations remain incomplete or gated.
 
 ## Assets
 
@@ -58,3 +58,7 @@ The Base44-hosted logo and hero images (media.base44.com) were replaced with loc
 ## Preview deploys
 
 The preview workflow is staged at `apps/web/ci/web-preview.yml`, but is **not installed** at `.github/workflows/web-preview.yml` because the connected token could not write workflow files. No PR-triggered build should be presumed to run until that placement is verified. If the repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` exist, it deploys to the separate Cloudflare Pages project `ifund-web-preview` and comments the URL. Otherwise it uploads `dist` as an artifact. It never touches DNS, production, or the existing Pages project.
+
+## Cloudflare Pages deployment — 2026-11-01
+
+The `interplanetaryfund-migration-preview` Cloudflare Pages project is connected to `interplanetarysister/InterplanetaryFund` main. Its production build runs `npm --prefix apps/web install --no-audit --no-fund && npm --prefix apps/web test && npm --prefix apps/web run build`, with output `apps/web/dist`. Main-branch automatic deployments were enabled for this separate project on 2026-11-01. This is distinct from `interplanetaryfund-migration` (the current domain's Pages project), whose Git source and cutover must be reconciled and verified separately. New code is not claimed live until the corresponding Cloudflare deployment succeeds. Financial operations remain disabled.
