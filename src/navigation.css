@@ -137,3 +137,16 @@
 .ifund-inbox-empty h2{margin:1rem 0 .5rem}
 .ifund-inbox-empty p{opacity:.7}
 .ifund-inbox-empty a{display:inline-block;margin-top:.7rem;color:#67e8f9}
+
+.ifund-editor-hero{padding:clamp(1.5rem,5vw,3rem);border:1px solid #3d668a;border-radius:24px;background:radial-gradient(ellipse at 90% 0%,#125c78,transparent 50%),linear-gradient(125deg,#111c3c,#1d1741);margin-bottom:1.5rem}
+.ifund-editor-hero h1{margin:.5rem 0}
+.ifund-editor-hero p:last-child{font-size:1.1rem}
+.ifund-editor-section,.ifund-editor-form{max-width:760px}
+.ifund-editor-section h2,.ifund-editor-form h2{display:flex;align-items:center;gap:.6rem;font-size:1.35rem;margin:1.5rem 0 .75rem}
+.ifund-editor-section h2 svg,.ifund-editor-form h2 svg{color:#67e8f9;flex-shrink:0}
+.ifund-editor-section label{display:grid;gap:.5rem;margin:1rem 0;font-weight:600}
+.ifund-editor-form{gap:1.1rem}
+.ifund-editor-form h2:not(:first-child){border-top:1px solid #43516e;padding-top:1.4rem}
+.ifund-editor-save{gap:.8rem;flex-wrap:wrap}
+.ifund-editor-save button{gap:.5rem;min-height:50px}
+@media(max-width:550px){.ifund-editor-save button{flex:1 1 100%}}
