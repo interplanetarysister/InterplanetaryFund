@@ -15,7 +15,7 @@ export default function AgentsPreview() {
  return <main className="ifund-agents">
    <Link className="ifund-back-link" to="/dashboard"><ArrowLeft size={16}/> Dashboard</Link>
    <section className="ifund-agents-heading"><p className="eyebrow">YOUR FUNDRAISING OPERATING SYSTEM</p>
-     <h1>Your AI Team</h1><p>Meet the specialists behind every stage of your fundraising journey.</p>
+     <h1>AI Command Crew</h1><p>Explore the AI specialist roles designed to help you build and share a fundraiser.</p>
    </section>
    <div className="ifund-agent-grid">
      {SPECIALISTS.map(({name,role,Icon,detail,tone}) => <article className="ifund-agent-card" key={name}>
