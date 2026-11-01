@@ -30,12 +30,15 @@ function Community({ user }) {
       .order("created_at", { ascending: false })
       .limit(50);
     if (error) {
-      setMessage(error.message);
+      setPosts([]);
+      setOwnPostIds(new Set());
+      setMessage("Community updates could not be loaded. Please try refreshing.");
       setLoading(false);
       return;
     }
     setLoading(false);
     setPosts(data || []);
+    setMessage("");
     if (!user) {
       setOwnPostIds(new Set());
       return;
@@ -55,7 +58,7 @@ function Community({ user }) {
   };
 
   useEffect(() => {
-    load().catch(() => { setLoading(false); setMessage("Community updates could not be loaded."); });
+    load().catch(() => { setPosts([]); setOwnPostIds(new Set()); setLoading(false); setMessage("Community updates could not be loaded."); });
   }, [user?.id]);
 
   async function post(e) {
@@ -133,7 +136,7 @@ function Community({ user }) {
         <Link to="/login">Sign in to post</Link>
       )}
       <Message error>{message}</Message>
-      <div className="ifund-community-feed-heading"><h2><Users size={21} aria-hidden="true"/> Community updates</h2><button type="button" onClick={() => load().catch(() => {setLoading(false);setMessage("Could not refresh updates.");})} disabled={loading}><RefreshCw size={17} aria-hidden="true"/> Refresh</button></div>
+      <div className="ifund-community-feed-heading"><h2><Users size={21} aria-hidden="true"/> Community updates</h2><button type="button" onClick={() => load().catch(() => {setPosts([]);setOwnPostIds(new Set());setLoading(false);setMessage("Could not refresh updates.");})} disabled={loading}><RefreshCw size={17} aria-hidden="true"/> Refresh</button></div>
       {loading && <p role="status">Loading community updates…</p>}
       {!loading && posts.length === 0 && <section className="card"><h3>No updates yet</h3><p>Community posts will appear here when members share them.</p></section>}
       {posts.map((p) => (
