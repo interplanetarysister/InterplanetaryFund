@@ -1,12 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import worker from "../worker/index.js";
-import { AGENTS, WORKFLOWS, CONNECTOR_IDS, workflowExecutable } from "../worker/automationRegistry.js";
+import { AGENTS, WORKFLOWS, SOURCE_ONLY_WORKFLOWS, ALL_SOURCE_WORKFLOWS, CONNECTOR_IDS, workflowExecutable } from "../worker/automationRegistry.js";
 const origin = "https://ifund.invalid";
 
 test("all source automation definitions remain inventoried", () => {
   assert.equal(AGENTS.length, 10);
-  assert.equal(WORKFLOWS.length, 17);
+  assert.equal(WORKFLOWS.length, 17); // verified source contracts, still unported
+  assert.equal(SOURCE_ONLY_WORKFLOWS.length, 2);
+  assert.equal(ALL_SOURCE_WORKFLOWS.length, 19);
+  assert.equal(new Set(ALL_SOURCE_WORKFLOWS.map(w => w.id)).size, 19);
+  assert.ok(SOURCE_ONLY_WORKFLOWS.every(w => w.ported === false && w.inventory_only === true));
   assert.equal(CONNECTOR_IDS.length, 11);
 });
 test("readiness route exposes no execution and no privileged internals", async () => {
@@ -17,7 +21,7 @@ test("readiness route exposes no execution and no privileged internals", async (
   assert.equal(data.verified_active_workflows, 0);
   assert.equal(data.execution_enabled, false);
   assert.equal(data.source_agents, 10);
-  assert.equal(data.source_workflows, 17);
+  assert.equal(data.source_workflows, 19);
   assert.equal(data.source_connectors, 11);
   assert.doesNotMatch(JSON.stringify(data), /secret|password|token|credentials/i);
 });
@@ -26,6 +30,6 @@ test("public requests can never start privileged workflows", async () => {
   assert.equal(bad.status, 405);
   const noRoute = await worker.fetch(new Request(origin + "/api/automations/dispatch", { method: "POST" }));
   assert.equal(noRoute.status, 404);
-  for (const workflow of WORKFLOWS)
+  for (const workflow of ALL_SOURCE_WORKFLOWS)
     assert.equal(workflowExecutable(workflow.id, { productionReleaseApproved: true }), false);
 });
