@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buildCoverPrompt } from "@/lib/coverPrompt";
 import { requestCampaignDraft } from "@/lib/campaignDraftApi";
 
@@ -47,20 +47,76 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
   const [selectedTitle, setSelectedTitle] = useState(0);
   const [selectedSummary, setSelectedSummary] = useState(0);
   const [copy, setCopy] = useState(null);
+  const [storyEdited, setStoryEdited] = useState(false);
+  const inFlight = useRef(false);
+  const requestVersion = useRef(0);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
   const question = getWizardQuestion(step, answers);
   const chosen = answers[question.key] || "";
   function choose(value) { setAnswers(previous => ({ ...previous, [question.key]: value })); setCustom(""); setError(""); }
   async function next() {
+    if (inFlight.current) return;
     const value = custom.trim() || chosen;
     if (!value) return;
     const updated = { ...answers, [question.key]: value };
     setAnswers(updated);
-    if (step < QUESTIONS.length - 1) { setStep(previous => previous + 1); setCustom(""); setError(""); return; }
-    if (!details.trim()) { setError("Please add one sentence describing your real project before generating a draft."); return; }
-    const draft = draftFromWizard(updated, details, goal);
-    if (draft) { setRequesting(true); try { const result=await requestCampaignDraft({answers:updated,details,goal}); setCopy({titles:result.titles,summaries:result.summaries,story:result.story}); setStage("copy"); } catch(e) { setError(e.message); } finally { setRequesting(false); } }
+    if (step < QUESTIONS.length - 1) {
+      setStep(previous => previous + 1);
+      setCustom("");
+      setError("");
+      return;
+    }
+    if (!details.trim()) {
+      setError("Please add one sentence describing your real project before generating a draft.");
+      return;
+    }
+    if (!draftFromWizard(updated, details, goal)) return;
+    inFlight.current = true;
+    const requestId = ++requestVersion.current;
+    setRequesting(true);
+    setError("");
+    try {
+      const result = await requestCampaignDraft({ answers: updated, details, goal, variation: 0 });
+      if (requestId !== requestVersion.current) return;
+      setCopy({ titles: result.titles, summaries: result.summaries, story: result.story });
+      setStoryEdited(false);
+      setGeneration(0);
+      setSelectedTitle(0);
+      setSelectedSummary(0);
+      setStage("copy");
+    } catch (e) {
+      if (requestId === requestVersion.current) setError(e?.message || "Campaign preview unavailable.");
+    } finally {
+      inFlight.current = false;
+      if (requestId === requestVersion.current) setRequesting(false);
+    }
   }
-  async function regenerate() { const n=generation+1; setRequesting(true); setError(""); try { const result=await requestCampaignDraft({answers,details,goal}); setGeneration(n); setCopy({titles:result.titles,summaries:result.summaries,story:result.story}); setSelectedTitle(0); setSelectedSummary(0); } catch(e) {setError(e.message);} finally {setRequesting(false);} }
+  async function regenerate() {
+    if (inFlight.current || !copy) return;
+    const variation = (generation + 1) % 5;
+    inFlight.current = true;
+    const requestId = ++requestVersion.current;
+    setRequesting(true);
+    setError("");
+    try {
+      const result = await requestCampaignDraft({ answers, details, goal, variation });
+      if (requestId !== requestVersion.current) return;
+      setGeneration(variation);
+      setCopy(previous => ({
+        titles: result.titles,
+        summaries: result.summaries,
+        // Regeneration must not erase edits to the existing story.
+        story: storyEdited ? previous.story : result.story,
+      }));
+      setSelectedTitle(0);
+      setSelectedSummary(0);
+    } catch (e) {
+      if (requestId === requestVersion.current) setError(e?.message || "Alternative preview unavailable.");
+    } finally {
+      inFlight.current = false;
+      if (requestId === requestVersion.current) setRequesting(false);
+    }
+  }
   const imagePrompt = copy ? buildCoverPrompt({title:copy.titles[selectedTitle],category:categoryFor(answers.cause),story:copy.story,regenCount:generation}) : "";
   return <section aria-label="Five-choice guided campaign assistant" className="space-y-4 rounded-2xl border border-primary/30 bg-primary/5 p-4 sm:p-6">
     <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">✨ Guided campaign assistant</h3><span className="text-sm text-muted-foreground">{stage === "questions" ? `Question ${step+1} of ${QUESTIONS.length}` : "Review generated content"}</span></div>
@@ -90,12 +146,12 @@ export default function GuidedCampaignWizard({ goal, onApply }) {
       <fieldset className="space-y-2"><legend className="font-semibold">Choose a short description — 2 options</legend>
         {copy.summaries.map((item,i)=><button key={i} type="button" onClick={()=>setSelectedSummary(i)} aria-pressed={selectedSummary===i} className={`block w-full min-h-12 rounded-xl border p-3 text-left ${selectedSummary===i?"border-primary bg-primary/15":"border-border"}`}>{i+1}. {item}</button>)}
       </fieldset>
-      <div className="space-y-2"><h4 className="font-semibold">One editable story</h4><textarea aria-label="Your campaign story" value={copy.story} onChange={e=>setCopy(prev=>({...prev,story:e.target.value}))} maxLength={15000} rows={8} className="w-full rounded-xl border border-input bg-background p-3" /></div>
+      <div className="space-y-2"><h4 className="font-semibold">One editable story</h4><textarea aria-label="Your campaign story" value={copy.story} onChange={e=>{ setStoryEdited(true); setCopy(prev=>({...prev,story:e.target.value})); }} maxLength={15000} rows={8} className="w-full rounded-xl border border-input bg-background p-3" /></div>
       <div className="space-y-2"><h4 className="font-semibold">Interplanetary Fund image concept</h4><p className="text-sm text-muted-foreground">The original signature interstellar/cyberpunk/space-comic image prompt is prepared from your campaign context. Image rendering is not connected, and no image is represented as generated.</p><details><summary className="cursor-pointer text-sm underline">See image prompt</summary><textarea readOnly aria-label="Campaign-grounded cover image prompt" value={imagePrompt} rows={5} className="mt-2 w-full rounded-xl border bg-background p-3 text-xs" /></details></div>
       <div className="flex flex-wrap gap-2">
-        <button type="button" onClick={()=>setStage("questions")} className="min-h-12 rounded-xl border px-4">Edit answers</button>
+        <button type="button" onClick={()=>setStage("questions")} disabled={requesting} className="min-h-12 rounded-xl border px-4 disabled:opacity-50">Edit answers</button>
         <button type="button" onClick={regenerate} disabled={requesting} className="min-h-12 rounded-xl border px-4">Try another set</button>
-        <button type="button" onClick={()=>onApply({title:copy.titles[selectedTitle],summary:copy.summaries[selectedSummary],story:copy.story,imagePrompt})} className="min-h-12 rounded-xl bg-primary px-4 font-semibold text-primary-foreground">Use selected campaign content</button>
+        <button type="button" onClick={()=>onApply({title:copy.titles[selectedTitle],summary:copy.summaries[selectedSummary],story:copy.story,imagePrompt})} disabled={requesting} className="min-h-12 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">Use selected campaign content</button>
       </div>
     </div>}
     <p className="text-xs text-muted-foreground">Nothing publishes or posts automatically. Always review factual claims and images before sharing.</p>
