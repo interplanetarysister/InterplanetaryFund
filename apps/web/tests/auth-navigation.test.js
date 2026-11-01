@@ -65,3 +65,20 @@ test("legacy email redirects are restricted to known auth landing routes",()=>{
    null,
  );
 });
+
+test("all protected routes share one verified Auth session provider",()=>{
+ const hook=read("lib/useVerifiedUser.js");
+ const app=read("App.jsx");
+ const guard=read("components/RequireAccess.jsx");
+ const terms=read("components/TermsAcceptance.jsx");
+ const layout=read("components/Layout.jsx");
+ assert.match(hook,/createContext/);
+ assert.match(hook,/VerifiedUserProvider/);
+ assert.match(hook,/useContext\(VerifiedUserContext\)/);
+ assert.equal((hook.match(/onAuthStateChange\(/g)||[]).length,1);
+ assert.doesNotMatch(hook,/export default function useVerifiedUser\(\)\s*\{[\s\S]*?useEffect/);
+ assert.match(app,/<VerifiedUserProvider>/);
+ assert.match(guard,/useVerifiedUser\(\)/);
+ assert.match(terms,/useVerifiedUser\(\)/);
+ assert.match(layout,/useVerifiedUser\(\)/);
+});
