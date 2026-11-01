@@ -1,0 +1,26 @@
+name: IFund campaign draft security (non-deploying)
+on:
+  push:
+    branches:
+      - implementation/secure-foundation-20261101
+    paths:
+      - supabase/functions/ifund-campaign-draft/index.ts
+      - tests/campaign-draft-auth-boundary.test.js
+      - .github/workflows/ifund-campaign-draft-security.yml
+  pull_request:
+    paths:
+      - supabase/functions/ifund-campaign-draft/index.ts
+      - tests/campaign-draft-auth-boundary.test.js
+      - .github/workflows/ifund-campaign-draft-security.yml
+permissions:
+  contents: read
+jobs:
+  campaign-draft-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.2"
+      - name: Verify preview authorization and bounded request contract
+        run: node --test tests/campaign-draft-auth-boundary.test.js
