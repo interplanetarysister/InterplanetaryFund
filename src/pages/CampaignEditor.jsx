@@ -165,7 +165,7 @@ function Editor({ user }) {
         savedId = data.id;
       }
       setMessage(status === "active" ? "Campaign published." : "Draft saved.");
-      navigate("/edit/" + savedId, { replace: true });
+      navigate("/edit/" + savedId, { replace: true, state: { imageTheme, imageBrief } });
     } catch (saveError) {
       setError(true);
       setMessage(
