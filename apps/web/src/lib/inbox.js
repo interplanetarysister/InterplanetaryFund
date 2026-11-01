@@ -8,7 +8,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
   const user = data?.user;
-  if (error || !isVerifiedEmailUser(user)) throw new Error("Sign in with a confirmed email to view your inbox.");
+  if (error || !isVerifiedEmailUser(user) || !UUID.test(user?.id || "")) throw new Error("Sign in with a confirmed email to view your inbox.");
   const lifecycle = await verifyAccountLifecycle(client, user);
   if (!lifecycle.ok) throw new Error(lifecycle.message || "Account access could not be verified.");
   return user.id;
@@ -22,8 +22,15 @@ export async function loadUniversalInbox(client) {
     client.from("ifund_notifications").select(NOTIFICATION_COLUMNS)
       .eq("owner_id", owner).order("created_at", { ascending: false }).limit(50),
   ]);
-  if (inboxResult.error || notificationResult.error)
-    throw new Error("We couldn't load your inbox. Please try again.");
+  if (inboxResult.error || notificationResult.error ||
+      !Array.isArray(inboxResult.data) || !Array.isArray(notificationResult.data) ||
+      inboxResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")) ||
+      notificationResult.data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")))
+    throw new Error("We couldn't verify your private inbox. Please try again.");
+  // Discard a response from a previous account if the session changed while loading.
+  const { data: current, error: currentError } = await client.auth.getUser();
+  if (currentError || current?.user?.id !== owner || !isVerifiedEmailUser(current.user))
+    throw new Error("Your account changed. Reload your inbox.");
   const inbox = (inboxResult.data || []).map(item => ({
     key: "i-" + item.id,
     id: item.id,
