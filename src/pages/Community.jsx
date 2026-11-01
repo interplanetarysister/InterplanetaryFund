@@ -7,26 +7,52 @@ import {
   workerCommunityApiEnabled,
 } from "../lib/communityApi";
 import { Message } from "../components/UI";
+
+const PUBLIC_POST_COLUMNS = "id,body,created_at";
+
 function Community({ user }) {
   const [body, setBody] = useState("");
   const [message, setMessage] = useState("");
   const [posts, setPosts] = useState([]);
+  const [ownPostIds, setOwnPostIds] = useState(new Set());
   const [posting, setPosting] = useState(false);
   const [removingPostId, setRemovingPostId] = useState(null);
   const postingRef = useRef(false);
-  const load = () =>
-    db
-      ?.from("ifund_posts")
-      .select("*")
+
+  const load = async () => {
+    if (!db) return;
+    const { data, error } = await db
+      .from("ifund_posts")
+      .select(PUBLIC_POST_COLUMNS)
       .order("created_at", { ascending: false })
-      .limit(50)
-      .then(({ data, error }) => {
-        setPosts(data || []);
-        if (error) setMessage(error.message);
-      });
+      .limit(50);
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+    setPosts(data || []);
+    if (!user) {
+      setOwnPostIds(new Set());
+      return;
+    }
+    const { data: owned, error: ownershipError } = await db.rpc(
+      "ifund_my_post_ids",
+    );
+    if (ownershipError) {
+      setOwnPostIds(new Set());
+      setMessage(
+        "Community posts loaded, but ownership controls are temporarily unavailable.",
+      );
+      return;
+    }
+    setOwnPostIds(new Set((owned || []).map((item) => item.post_id)));
+    setMessage("");
+  };
+
   useEffect(() => {
     load();
-  }, []);
+  }, [user?.id]);
+
   async function post(e) {
     e.preventDefault();
     if (!user || !db || postingRef.current || !body.trim()) return;
@@ -51,8 +77,9 @@ function Community({ user }) {
       setPosting(false);
     }
   }
+
   async function remove(postId) {
-    if (!user || !db || removingPostId) return;
+    if (!user || !db || removingPostId || !ownPostIds.has(postId)) return;
     if (!window.confirm("Delete your community post?")) return;
     setRemovingPostId(postId);
     setMessage("");
@@ -64,7 +91,6 @@ function Community({ user }) {
           .from("ifund_posts")
           .delete()
           .eq("id", postId)
-          .eq("author_id", user.id)
           .select("id");
         if (error) throw error;
         if (!data?.some((item) => item.id === postId)) {
@@ -78,6 +104,7 @@ function Community({ user }) {
       setRemovingPostId(null);
     }
   }
+
   return (
     <main>
       <h1>Community</h1>
@@ -105,7 +132,7 @@ function Community({ user }) {
         <article key={p.id} className="card">
           <small>{new Date(p.created_at).toLocaleDateString()}</small>
           <p>{p.body}</p>
-          {user?.id === p.author_id && (
+          {ownPostIds.has(p.id) && (
             <button
               type="button"
               disabled={Boolean(removingPostId)}

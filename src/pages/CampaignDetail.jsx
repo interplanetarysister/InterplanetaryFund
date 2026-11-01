@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Loading, Message } from "../components/UI";
+
+const PUBLIC_CAMPAIGN_COLUMNS =
+  "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+
 function Detail() {
   const { id } = useParams();
   const [c, setC] = useState(null);
@@ -9,7 +13,7 @@ function Detail() {
   useEffect(() => {
     if (!db) return;
     db.from("ifund_campaigns")
-      .select("*")
+      .select(PUBLIC_CAMPAIGN_COLUMNS)
       .eq("id", id)
       .single()
       .then(({ data, error: e }) => {

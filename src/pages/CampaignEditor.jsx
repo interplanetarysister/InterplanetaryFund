@@ -17,6 +17,8 @@ const empty = {
   cover_image_url: "",
   status: "draft",
 };
+const OWNER_CAMPAIGN_COLUMNS =
+  "id,title,summary,story,category,goal_amount,cover_image_url,status";
 function Editor({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -50,7 +52,7 @@ function Editor({ user }) {
     }
     let cancelled = false;
     db.from("ifund_campaigns")
-      .select("*")
+      .select(OWNER_CAMPAIGN_COLUMNS)
       .eq("id", id)
       .eq("owner_id", accountId)
       .single()
