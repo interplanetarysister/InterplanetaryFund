@@ -113,6 +113,7 @@ Production is still NOT READY: no production build or browser/Android QA was run
 ## Canonical state correction — 2026-11-01
 
 This section supersedes the October 29 snapshot above wherever the two conflict.
+- The historical Universal Inbox route is now a partial independent implementation using owner-scoped Supabase inbox and notification reads, active-account checks, and constrained acknowledgement writes. Donation aggregation, external replies, and admin approval queue behavior remain disabled; no imported records are assumed to have verified owners. The route inventory now records **45 partial routes / 14 placeholders**, with all routes still unverified for release.
 
 - The canonical project ssibsfmtodgximseeqsv now has **55 applied migrations** in its migration ledger. The current repair branch contains matching SQL files for all 55 applied versions. Fourteen additional SQL files are pending or explicitly superseded, including the new explicit lifecycle-provenance correction; none should be treated as applied merely because it is present in the repository.
 - public.ifund_legal_acceptances exists and is protected by owner-scoped RLS. It currently contains **zero acceptance rows**. The web consent gate and campaign Worker both require the current affirmative versioned acceptance. First-signup persistence and two-user RLS verification remain open.
