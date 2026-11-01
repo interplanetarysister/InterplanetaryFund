@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
 import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
+import { loginPathFor } from "./lib/authReturnTo";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
 import Discover from "./pages/Discover";
@@ -22,6 +23,8 @@ import HelpArticle from "./pages/HelpArticle";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 function App() {
+  const location = useLocation();
+  const loginPath = loginPathFor(location);
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
   useEffect(() => {
@@ -114,7 +117,7 @@ function App() {
                 <main>
                   <h1>Sign in before creating a campaign</h1>
                   <p>Sign in first so your draft is saved to your account.</p>
-                  <Link to="/login">Sign in</Link>
+                  <Link to={loginPath}>Sign in</Link>
                 </main>
               )
             }
@@ -127,7 +130,7 @@ function App() {
               ) : (
                 <main>
                   <h1>Sign in to edit a campaign</h1>
-                  <Link to="/login">Sign in</Link>
+                  <Link to={loginPath}>Sign in</Link>
                 </main>
               )
             }
@@ -140,17 +143,17 @@ function App() {
               ) : (
                 <main>
                   <h1>My campaigns</h1>
-                  <Link to="/login">Sign in to manage campaigns</Link>
+                  <Link to={loginPath}>Sign in to manage campaigns</Link>
                 </main>
               )
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
-          <Route path="/connections" element={<Connections />} />
+          <Route path="/connections" element={user ? <Connections /> : <main><h1>Sign in to manage your connections</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/community" element={<Community user={user} />} />
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:id" element={<BlogArticle />} />
-          <Route path="/my-blog" element={<MyBlog user={user} />} />
+          <Route path="/my-blog" element={user ? <MyBlog user={user} /> : <main><h1>Sign in to manage your publication</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route
             path="*"
             element={
