@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Image as ImageIcon, Copy, Sparkles, ShieldCheck } from "lucide-react";
 
 const themes=["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"];
 export default function CosmicImageStudio(){
- const [params] = useSearchParams();
- const [cause,setCause]=useState(() => (params.get("cause")||"").slice(0,1000));
+ const location = useLocation();
+ const [cause,setCause]=useState(() => (location.state?.cause||"").slice(0,1000));
  const [audience,setAudience]=useState("");
- const [theme,setTheme]=useState(() => themes.includes(params.get("theme")) ? params.get("theme") : themes[0]);
+ const [theme,setTheme]=useState(() => themes.includes(location.state?.theme) ? location.state.theme : themes[0]);
  const [details,setDetails]=useState("");
  const [copied,setCopied]=useState(false);
  const prompt=[cause.trim()&&"Create an original fundraising campaign image for: "+cause.trim(), "Visual direction: "+theme+".",audience.trim()&&"Audience: "+audience.trim()+".",details.trim()&&"Additional details: "+details.trim()+".","Use clear composition, welcoming imagery and accessible contrast. Avoid invented real people, misleading endorsements, false claims or fake donation totals. Do not include personal addresses."].filter(Boolean).join("\n");
