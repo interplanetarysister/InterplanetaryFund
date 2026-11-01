@@ -94,7 +94,11 @@ test("help RLS and publish RPC require trusted admin claims",()=>{
  assert.ok(sql.includes("auth.jwt()->'app_metadata'->>'role'"));
  assert.match(sql,/enable row level security/);
  assert.match(sql,/ifund_current_account_is_active/);
+ assert.ok(sql.includes("grant insert(author_id,slug,category,question,description,answer,keywords,stage)"));
  assert.ok(sql.includes("grant update(slug,category,question,description,answer,keywords,stage)"));
+ assert.ok(sql.includes("grant insert(slug,category,question,description,answer,keywords)"));
+ assert.ok(sql.includes("grant update(category,question,description,answer,keywords)"));
+ assert.equal(sql.includes("grant insert,update on public.ifund_help_articles"),false);
  assert.equal(sql.includes("grant select,insert,update on public.ifund_help_drafts"),false);
  assert.equal(sql.includes("grant update(author_id"),false);
  assert.match(sql,/helpful_yes integer/);
