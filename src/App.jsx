@@ -7,6 +7,7 @@ import { SLOGAN } from "./lib/brand";
 import { loginPathFor } from "./lib/authReturnTo";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
+import Dashboard from "./pages/Dashboard";
 import Discover from "./pages/Discover";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
@@ -62,7 +63,7 @@ function App() {
         <button type="button" className="ifund-menu-toggle" aria-expanded={menuOpen} aria-controls="ifund-primary-nav" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? "Close menu" : "Menu"}</button>
         <nav id="ifund-primary-nav" className={menuOpen ? "ifund-primary-nav is-open" : "ifund-primary-nav"} aria-label="Main navigation">
           <div className="ifund-nav-group"><span>Explore</span><NavLink end to="/">Home</NavLink><NavLink to="/discover">Discover</NavLink><NavLink to="/community">Community</NavLink><NavLink to="/blogs">Stories & Blogs</NavLink></div>
-          <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">New Campaign</NavLink><NavLink to="/mine">My Campaigns</NavLink></div>
+          <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">New Campaign</NavLink><NavLink to="/dashboard">Dashboard</NavLink><NavLink to="/mine">My Campaigns</NavLink></div>
           <div className="ifund-nav-group"><span>Account & Help</span><NavLink to="/connections">Connections</NavLink><NavLink to="/help">Help Center</NavLink><NavLink to="/about">About</NavLink></div>
         </nav>
         <div className="actions top-actions">
@@ -147,7 +148,7 @@ function App() {
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
-          <Route path="/dashboard" element={user ? <MyCampaigns user={user} /> : <main><h1>Dashboard</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <main><h1>Dashboard</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/connections" element={user ? <Connections /> : <main><h1>Sign in to manage your connections</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/community" element={<Community user={user} />} />
           <Route path="/blogs" element={<Blogs />} />
