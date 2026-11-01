@@ -1,14 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Search, LifeBuoy, HeartHandshake } from "lucide-react";
+import { Search, LifeBuoy, HeartHandshake, MapPin } from "lucide-react";
 import { db } from "../lib/supabase";
 import { Loading, Message, CampaignCard } from "../components/UI";
 
+const distanceKm = (a,b,c,d) => { const rad = Math.PI / 180; const x = (c-a)*rad, y = (d-b)*rad; const h = Math.sin(x/2)**2 + Math.cos(a*rad)*Math.cos(c*rad)*Math.sin(y/2)**2; return 12742*Math.asin(Math.min(1,Math.sqrt(h))); };
 const COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
 export default function Discover() {
   const [list, setList] = useState(null);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
+  const [locationMode, setLocationMode] = useState("all");
+  const [locationText, setLocationText] = useState("");
+  const [accountCity, setAccountCity] = useState("");
+  const [nearby, setNearby] = useState(null);
+  const [locations, setLocations] = useState(null);
+  const [locationMessage, setLocationMessage] = useState("");
   const [params, setParams] = useSearchParams();
   useEffect(() => {
     let active = true;
@@ -27,12 +34,27 @@ export default function Discover() {
       });
     return () => { active = false; };
   }, []);
+  useEffect(() => {
+    if (!db) return;
+    let live = true;
+    db.from("ifund_campaigns").select("id,atlas_city,atlas_country,atlas_visible,latitude,longitude").eq("status","active").eq("atlas_visible",true).limit(100)
+      .then(({data,error}) => { if(live) { setLocations(error ? null : data || []); if(error) setLocationMessage("Location search is not connected yet. All-campaign search still works."); } });
+    db.auth.getUser().then(({data}) => { if(!live || !data?.user) return; db.from("ifund_profiles").select("city").eq("id",data.user.id).maybeSingle().then(({data:profile})=> { if(live) setAccountCity(profile?.city || ""); }); }).catch(()=>{});
+    return () => {live=false;};
+  }, []);
+  const requestNearby = () => {
+    if (!navigator.geolocation) { setLocationMessage("Your browser does not support location. Search by city instead."); return; }
+    setLocationMessage("Requesting your permission to use your current location…");
+    navigator.geolocation.getCurrentPosition(({coords}) => {setNearby({lat:coords.latitude,lon:coords.longitude});setLocationMode("nearby");setLocationMessage("Showing mapped campaigns within 100 km of your location.");}, () => setLocationMessage("Location was not shared. You can search by city instead."), {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
+  };
   const categories = useMemo(() => Array.from(new Set((list || []).map(c => c.category).filter(Boolean))).sort(), [list]);
   const category = params.get("category") || "all";
   const selected = category === "all" || categories.includes(category) ? category : "all";
+  const mapped = new Map((locations || []).map(c => [c.id,c]));
   const filtered = (list || []).filter(c =>
     (selected === "all" || c.category === selected) &&
-    (!query.trim() || (c.title + " " + (c.summary || "")).toLowerCase().includes(query.trim().toLowerCase()))
+    (!query.trim() || (c.title + " " + (c.summary || "")).toLowerCase().includes(query.trim().toLowerCase())) &&
+    (locationMode === "all" || (locations && (() => { const p = mapped.get(c.id); if(!p) return false; if(locationMode === "nearby") return nearby && p.latitude != null && p.longitude != null && distanceKm(nearby.lat,nearby.lon,Number(p.latitude),Number(p.longitude)) <= 100; const place = locationMode === "account" ? accountCity : locationText; return Boolean(place.trim()) && (p.atlas_city || "").toLowerCase().includes(place.trim().toLowerCase()); })()))
   );
   return <main className="ifund-discover">
     <div className="ifund-discover-heading">
@@ -52,6 +74,19 @@ export default function Discover() {
         className={selected === c ? "is-active" : ""}
         onClick={() => setParams(c === "all" ? {} : { category: c })}>{c === "all" ? "All" : c}</button>)}
     </div>
+    <section className="card ifund-location-search" aria-label="Find campaigns near you">
+      <h2><MapPin size={20} aria-hidden="true"/> Find campaigns near you</h2>
+      <p>Search by city, use your saved account city, or share your approximate location once. Your device location is not saved.</p>
+      <div className="actions">
+        <button type="button" onClick={() => setLocationMode("all")} aria-pressed={locationMode==="all"}>Everywhere</button>
+        <button type="button" onClick={requestNearby} aria-pressed={locationMode==="nearby"}>Near me (100 km)</button>
+        <button type="button" disabled={!accountCity} onClick={() => setLocationMode("account")} aria-pressed={locationMode==="account"}>My account city{accountCity ? ": "+accountCity : " (not set)"}</button>
+        <button type="button" onClick={() => setLocationMode("city")} aria-pressed={locationMode==="city"}>Choose a city</button>
+      </div>
+      {locationMode==="city" && <label>City name<input type="search" value={locationText} onChange={e=>setLocationText(e.target.value)} placeholder="Enter a city name" /></label>}
+      {locationMessage && <p role="status">{locationMessage}</p>}
+      {locationMode!=="all" && !locations && <p>Nearby campaign data is not available yet.</p>}
+    </section>
     <Message error>{error}</Message>
     {list === null ? <Loading /> : filtered.length
       ? <div className="cards">{filtered.map(c => <CampaignCard c={c} key={c.id} />)}</div>
