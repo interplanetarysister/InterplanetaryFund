@@ -1,10 +1,13 @@
 // Recover email links sent before the independent /auth/callback route
 // existed. They may return to /dashboard with Supabase tokens in the hash.
 // This transforms the local route only; it never contacts an outside host.
+const LEGACY_AUTH_LANDING_PATHS=new Set([
+  "/", "/dashboard", "/onboarding", "/login", "/reset-password",
+]);
 export function legacyAuthLandingRedirect(href){
   let url;
   try{url=new URL(href);}catch{return null;}
-  if(url.pathname==="/auth/callback")return null;
+  if(url.pathname==="/auth/callback"||!LEGACY_AUTH_LANDING_PATHS.has(url.pathname))return null;
   if(url.protocol!=="https:" && !(url.protocol==="http:"&&url.hostname==="localhost"))
     return null;
   const hash=new URLSearchParams(url.hash.replace(/^#/,""));
