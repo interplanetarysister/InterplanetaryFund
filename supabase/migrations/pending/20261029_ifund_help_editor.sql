@@ -46,7 +46,8 @@ create policy ifund_help_public_articles on public.ifund_help_articles
  for select to anon,authenticated using (true);
 create policy ifund_help_admin_insert on public.ifund_help_articles
  for insert to authenticated with check (
-  (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
+  (select public.ifund_current_account_is_active())
+  and (select auth.jwt()->'app_metadata'->>'role') in ('admin','super_admin')
  );
 create policy ifund_help_admin_update on public.ifund_help_articles
  for update to authenticated using (
@@ -81,7 +82,8 @@ declare
  live public.ifund_help_articles%rowtype;
  published uuid;
 begin
- if coalesce((select auth.jwt()->'app_metadata'->>'role'),'') not in ('admin','super_admin')
+ if not coalesce((select public.ifund_current_account_is_active()),false)
+   or coalesce((select auth.jwt()->'app_metadata'->>'role'),'') not in ('admin','super_admin')
    then raise exception 'Administrator access required' using errcode='42501';
  end if;
  select * into d from public.ifund_help_drafts where id=p_draft_id for update;
