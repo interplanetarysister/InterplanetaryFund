@@ -6,6 +6,7 @@ import {
   workerCampaignApiEnabled,
 } from "../lib/campaignApi";
 import { validateCampaign, canSaveCampaign } from "../lib/validation";
+import { generateCampaignDraft } from "../lib/campaignDraft";
 import { Message } from "../components/UI";
 const empty = {
   title: "",
@@ -21,6 +22,11 @@ function Editor({ user }) {
   const navigate = useNavigate();
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
+  const [draftBusy, setDraftBusy] = useState(false);
+  const [draftDescription, setDraftDescription] = useState("");
+  const [draftBeneficiary, setDraftBeneficiary] = useState("");
+  const [draftNeed, setDraftNeed] = useState("");
+  const [draftResult, setDraftResult] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
@@ -75,6 +81,29 @@ function Editor({ user }) {
   const editorDisabled = Boolean(busy || (id && loadState !== "ready"));
   const change = (e) =>
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  async function prepareDraft() {
+    if (!user || !db || editorDisabled || draftBusy) return;
+    setDraftBusy(true);
+    setError(false);
+    setMessage("");
+    setDraftResult(null);
+    try {
+      const suggestion = await generateCampaignDraft(db, {
+        details: draftDescription,
+        beneficiary: draftBeneficiary,
+        need: draftNeed,
+        cause: form.category,
+        goal: form.goal_amount,
+      });
+      setDraftResult(suggestion);
+      setMessage("Draft ready. Choose which suggestions to use; nothing has been saved.");
+    } catch (e) {
+      setError(true);
+      setMessage(e.message || "Unable to prepare draft.");
+    } finally {
+      setDraftBusy(false);
+    }
+  }
   async function save(status) {
     if (!canSaveCampaign({ id, loadedId, loadState, busy })) {
       setError(true);
@@ -149,6 +178,64 @@ function Editor({ user }) {
         Save an incomplete draft at any time. Publishing validates the required
         fields.
       </p>
+      <section className="card" aria-label="Campaign writing assistant">
+        <h2>Campaign writing assistant</h2>
+        <p>Describe your fundraiser and get editable story ideas. This uses the existing Supabase drafting service, not paid AI. Suggestions are never published automatically.</p>
+        <label>
+          What is happening, and why is support needed?
+          <textarea rows="4" value={draftDescription}
+            onChange={(e) => setDraftDescription(e.target.value)}
+            disabled={editorDisabled || draftBusy} maxLength={1500}
+            placeholder="Share specific details in your own words (at least 12 characters)." />
+        </label>
+        <label>
+          Who benefits? (optional)
+          <input value={draftBeneficiary} maxLength={100}
+            disabled={editorDisabled || draftBusy}
+            onChange={(e) => setDraftBeneficiary(e.target.value)} />
+        </label>
+        <label>
+          What is needed? (optional)
+          <input value={draftNeed} maxLength={100}
+            disabled={editorDisabled || draftBusy}
+            onChange={(e) => setDraftNeed(e.target.value)} />
+        </label>
+        <div className="actions">
+          <button type="button" onClick={prepareDraft}
+            disabled={editorDisabled || draftBusy || draftDescription.trim().length < 12}>
+            {draftBusy ? "Preparing suggestions…" : "Generate draft"}
+          </button>
+        </div>
+        {draftResult && (
+          <div aria-label="Generated campaign suggestions" aria-live="polite">
+            <h3>Choose a title</h3>
+            {draftResult.titles.map((title, index) => (
+              <div key={index} className="actions">
+                <span>{title}</span>
+                <button type="button" disabled={editorDisabled}
+                  onClick={() => setForm((f) => ({ ...f, title }))}>Use title</button>
+              </div>
+            ))}
+            <h3>Choose a summary</h3>
+            {draftResult.summaries.map((summary, index) => (
+              <div key={index} className="actions">
+                <span>{summary}</span>
+                <button type="button" disabled={editorDisabled}
+                  onClick={() => setForm((f) => ({ ...f, summary }))}>Use summary</button>
+              </div>
+            ))}
+            <h3>Suggested story</h3>
+            <p style={{ whiteSpace: "pre-wrap" }}>{draftResult.story}</p>
+            <button type="button" disabled={editorDisabled}
+              onClick={() => setForm((f) => ({ ...f, story: draftResult.story }))}>Use story</button>
+            {draftResult.imagePrompt && (
+              <details><summary>Illustration idea (no image generated)</summary>
+                <p>{draftResult.imagePrompt}</p>
+              </details>
+            )}
+          </div>
+        )}
+      </section>
       <div className="form">
         <label>
           Title
