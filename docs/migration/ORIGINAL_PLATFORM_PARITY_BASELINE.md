@@ -88,6 +88,20 @@ The original router declares **58 explicit routes**, plus a catch-all not-found 
 
 The router also has a `*` catch-all. It includes public routes, authenticated routes, and routes nested under the admin authorization boundary; route existence must not be mistaken for unrestricted access.
 
+## Authentication and authorization contract from the original router
+
+The original router separates access into three distinct layers:
+
+- **Public:** sign-in/register/recovery, home and informational pages, public discovery/campaign/community/profile/blog/help pages, campaign embed, globe, OAuth consent and device activation.
+- **Authenticated member:** onboarding and the member workspace are nested beneath `ProtectedRoute`. Unauthenticated visits are redirected to `/login?returnTo=<original path + query + hash>`; the return destination must survive the sign-in round trip.
+- **Administrator:** operations, platform, analytics, external accounts, integrations, audit, agent API, sustainability, help administration and founding-member administration are nested beneath `AdminRoute`. The source component checks authenticated state and `user.role === 'admin'`; the replacement must map this to a server-authoritative role/permission policy, not a client-controlled user field or email heuristic.
+
+The original AuthProvider also performs bounded startup/public-settings and session checks, treats account-deletion-pending as a revocation condition, distinguishes unregistered users, and reports startup/session failures without exposing provider exception text. Its Base44 session token and user records are not evidence of transferable Supabase credentials.
+
+**Observed replacement gap:** the current independent preview uses a single Supabase `getUser()` state in `App.jsx`, provides a passwordless email-code plus Google/Facebook sign-in page, and protects `/create`, `/edit/:id`, and `/mine` with inline `user ? ... : ...` checks. It does not yet recreate the original route-wide member guard, preserved `returnTo` flow, onboarding gate, admin guard/role boundary, account-deletion revocation, unregistered-user handling, or original session/bootstrap state machine. The presence of the Supabase client and provider buttons does not establish configured or tested authentication.
+
+**Required migration behavior:** implement shared route guards and server-enforced RLS/Worker authorization; preserve deep-link return destinations; map verified legacy identities to Supabase Auth identities; keep admin grants server-side; explicitly handle suspended/deletion-pending/unregistered accounts; test public, member, and admin routes with guest, member, and administrator identities. Until then, mark protected routes and privileged workflows blocked rather than exposing them or substituting a public placeholder.
+
 ## Original source inventory
 
 The migration status/inventory recorded against the read-only source includes:
