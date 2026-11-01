@@ -22,11 +22,12 @@ const valid = {
 function request(data, path = '/api/campaigns', method = 'POST', h = headers) {
   return new Request(origin + path, { method, headers: h, body: JSON.stringify(data) });
 }
-function remote(calls, { owner = uid, rows = null } = {}) {
+function remote(calls, { owner = uid, rows = null, accepted = true } = {}) {
   return async (target, opts) => {
     calls.push({ url: String(target), opts });
     if (String(target).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
     if (String(target).includes('account_status')) return Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]);
+    if (String(target).includes('/ifund_legal_acceptances?')) return Response.json(accepted ? [{ owner_id: uid, terms_version: '2026-10-13-v3', explicit_consent: true, accepted_at: '2026-10-30T00:00:00Z' }] : []);
     return Response.json(rows ?? [{
       id: campaignId, owner_id: owner,
       status: JSON.parse(opts.body).status || 'draft',
@@ -58,13 +59,13 @@ test('new draft uses JWT authentication, publishable key and derived owner only'
   const calls = [];
   const r = await routeCampaignWrite(request({ title: 'New draft' }), env, remote(calls));
   assert.equal(r.status, 201);
-  assert.equal(calls.length, 3);
-  assert.equal(calls[2].opts.method, 'POST');
-  assert.equal(calls[2].opts.headers.Authorization, 'Bearer signed.test.jwt');
-  assert.equal(calls[2].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
-  assert.equal(calls[2].opts.headers.Prefer, 'return=representation');
-  assert.equal(JSON.parse(calls[2].opts.body).owner_id, uid);
-  assert.equal(JSON.parse(calls[2].opts.body).status, 'draft');
+  assert.equal(calls.length, 4);
+  assert.equal(calls[3].opts.method, 'POST');
+  assert.equal(calls[3].opts.headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls[3].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(calls[3].opts.headers.Prefer, 'return=representation');
+  assert.equal(JSON.parse(calls[3].opts.body).owner_id, uid);
+  assert.equal(JSON.parse(calls[3].opts.body).status, 'draft');
   assert.deepEqual(await r.json(), {
     id: campaignId, status: 'draft', updated_at: '2026-10-25T00:00:00Z',
   });
@@ -100,11 +101,11 @@ test('PATCH must include both exact campaign id and signed-in owner filter', asy
     title: 'Updated',
   }, '/api/campaigns/' + campaignId, 'PATCH'), env, remote(calls));
   assert.equal(r.status, 200);
-  assert.equal(calls[2].opts.method, 'PATCH');
-  assert.match(calls[2].url, /owner_id=eq/);
-  assert.ok(calls[2].url.includes(uid));
-  assert.ok(calls[2].url.includes(campaignId));
-  assert.equal(JSON.parse(calls[2].opts.body).owner_id, undefined);
+  assert.equal(calls[3].opts.method, 'PATCH');
+  assert.match(calls[3].url, /owner_id=eq/);
+  assert.ok(calls[3].url.includes(uid));
+  assert.ok(calls[3].url.includes(campaignId));
+  assert.equal(JSON.parse(calls[3].opts.body).owner_id, undefined);
 });
 test('missing or wrong-owner rows fail closed; internal errors stay private', async () => {
   const path = '/api/campaigns/' + campaignId;
@@ -194,7 +195,9 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
       ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
       : String(url).includes('account_status')
         ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }])
-        : Response.json([{ id, owner_id: uid, status: 'draft' }]);
+        : String(url).includes('/ifund_legal_acceptances?')
+          ? Response.json([{ owner_id: uid, terms_version: '2026-10-13-v3', explicit_consent: true, accepted_at: '2026-10-30T00:00:00Z' }])
+          : Response.json([{ id, owner_id: uid, status: 'draft' }]);
   });
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id, deleted: true });
@@ -203,7 +206,7 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
   assert.equal(calls[2].opts.body, undefined);
   assert.ok(calls[2].url.includes('id=eq.'));
   assert.ok(calls[2].url.includes('owner_id=eq.'));
-  assert.ok(calls[2].url.includes('status=eq.draft'));
+  assert.ok(calls[3].url.includes('status=eq.draft'));
   const published = await routeCampaignWrite(
     new Request(origin + '/api/campaigns/' + id, {
       method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
@@ -211,7 +214,9 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
       ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' })
       : String(url).includes('account_status')
         ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }])
-        : Response.json([{ id, owner_id: uid, status: 'active' }]),
+        : String(url).includes('/ifund_legal_acceptances?')
+          ? Response.json([{ owner_id: uid, terms_version: '2026-10-13-v3', explicit_consent: true, accepted_at: '2026-10-30T00:00:00Z' }])
+          : Response.json([{ id, owner_id: uid, status: 'active' }]),
   );
   assert.equal(published.status, 503);
 });
@@ -220,7 +225,7 @@ test('DELETE without a matched draft is not falsely reported as successful', asy
     method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeCampaignWrite(req, env, async (url) =>
-    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : String(url).includes('account_status') ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]) : Response.json([]));
+    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' }) : String(url).includes('account_status') ? Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]) : String(url).includes('/ifund_legal_acceptances?') ? Response.json([{ owner_id: uid, terms_version: '2026-10-13-v3', explicit_consent: true, accepted_at: '2026-10-30T00:00:00Z' }]) : Response.json([]));
   assert.equal(r.status, 404);
 });
 
@@ -245,7 +250,7 @@ test('draft writes never downgrade a published campaign', async () => {
   const publishCalls = [];
   const published = await routeCampaignWrite(request(valid, url, 'PATCH'), env, remote(publishCalls));
   assert.equal(published.status, 200);
-  assert.ok(!publishCalls[2].url.includes('status=eq.draft'));
+  assert.ok(!publishCalls[3].url.includes('status=eq.draft'));
 });
 test('draft read endpoint filters out published campaign records', async () => {
   const calls=[];
@@ -257,4 +262,30 @@ test('draft read endpoint filters out published campaign records', async () => {
   assert.equal(res.status,200);
   assert.ok(calls[2].includes('status=eq.draft'));
   assert.ok(calls[2].includes('owner_id=eq.'));
+});
+
+
+test('campaign writes require the current affirmative agreement before any write', async () => {
+  const calls = [];
+  const denied = await routeCampaignWrite(request(valid), env, remote(calls, { accepted: false }));
+  assert.equal(denied.status, 403);
+  assert.match((await denied.json()).error, /Accept the current IFund user agreement/);
+  assert.equal(calls.length, 3);
+  assert.equal(calls.some(call => call.url.includes('/rest/v1/ifund_campaigns?')), false);
+});
+
+test('campaign writes fail closed when agreement status cannot be verified', async () => {
+  const calls = [];
+  const result = await routeCampaignWrite(request(valid), env, async (target, opts) => {
+    calls.push(String(target));
+    if (String(target).endsWith('/auth/v1/user'))
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-01T00:00:00.000Z' });
+    if (String(target).includes('account_status'))
+      return Response.json([{ id: uid, account_status: 'active', account_deletion_pending: false }]);
+    if (String(target).includes('/ifund_legal_acceptances?'))
+      return new Response('temporarily unavailable', { status: 503 });
+    throw new Error('campaign write must not be attempted');
+  });
+  assert.equal(result.status, 503);
+  assert.equal(calls.some(url => url.includes('/rest/v1/ifund_campaigns?')), false);
 });
