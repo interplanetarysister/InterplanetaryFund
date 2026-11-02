@@ -29,10 +29,15 @@ not an authenticated end-to-end browser audit.
 | Direct donation route | Root `App.jsx` has no `/donate` or `/giving` route; unknown paths fall through to Page not found. | No standalone donation route. |
 | Payment completion | No campaign payment endpoint/checkout is wired into the root app. | Cannot complete a campaign gift. |
 
-The last public observation also saw the campaign list fail with
-`permission denied for table ifund_campaigns`. The source currently selects
-explicit public columns, but that source change is not proof the live database
-grant or deployed bundle has been corrected.
+The last public observation saw `permission denied for table ifund_campaigns`.
+The current `main`-branch root `Feed.jsx` and `CampaignDetail.jsx` use explicit
+public-column projections. The last measured production branch still uses
+`.select("*")` for both `ifund_campaigns` and `ifund_posts`. The live database
+confirms anon has no table-level SELECT on either table and cannot select
+`owner_id` or `author_id`; it can select the intended public columns. The
+production-branch queries therefore remain incompatible with the grants. Do
+not widen grants to make `select("*")` work; deploy the explicit-column code
+only after branch reconciliation and verification.
 
 ### B. Platform support donation
 
@@ -63,6 +68,41 @@ The current independent `apps/web` hook hardcodes campaign fundraising to
 `false`; its funding card disables campaign checkout and displays the paused
 notice. This preserves the fail-closed behavior but does not replace the
 original server-backed fundraising-mode setting or campaign checkout.
+
+
+## Supabase production snapshot — read-only, 2026-11-02
+
+The canonical Supabase organization is on the **Free** plan; project
+`ssibsfmtodgximseeqsv` is `ACTIVE_HEALTHY`. No SQL writes or migrations were
+run during this audit.
+
+- `public.ifund_campaigns`: 2 rows — 1 active and 1 draft, owned by 2 distinct
+  users. The anonymous RLS policy permits active campaigns only.
+- `ifund_stage.campaign`: 28 rows with 28 distinct legacy IDs. Only 20 rows
+  have `owner_auth_uid` mapped, across 3 destination owner UUIDs; 8 rows have
+  no mapped owner. The public campaign table contains only 2 rows, so the
+  staged/public counts still require row-by-row ID and ownership reconciliation
+  before any further promotion.
+- Anonymous privileges are column-scoped: `id`, title/content fields and the
+  approved public metadata are readable; table-level SELECT is false and
+  `owner_id` is not readable. On `ifund_posts`, `author_id` is also withheld.
+  This is intentional privacy hardening, not a reason to grant private columns.
+- Financial records are empty: `ifund_donations`, `ifund_payment_events`,
+  `ifund_donation`, `ifund_financial_operation`, `ifund_withdrawal`, PayPal
+  subscription intents, PayPal billing webhooks and generic webhook events each
+  have 0 rows. No campaign-payment ledger or withdrawal is evidenced.
+- `ifund_stage.campaign_update` and `campaign_translation` each have 0 rows.
+  The staging tables for agents/agent activity are empty, and
+  `ifund_ops.workflow_jobs`, `workflow_control` and
+  `workflow_execution_log` each have 0 rows.
+- There are 69 applied migrations and 4 active Edge Functions: three mail
+  ingress/admin-mail functions and `ifund-campaign-draft-preview`. That draft
+  preview function is not a payment checkout or payment webhook.
+
+This snapshot supersedes the earlier 2026-11-01 statement that there were no
+active campaigns. It does not prove the live page can display the active row;
+the production-branch `select("*")` query is still blocked by the verified
+column-level grants.
 
 ## Source parity counts
 
@@ -214,10 +254,12 @@ implementation.
 
 ## Readiness decision
 
-**Not production-ready.** The current root frontend has no campaign checkout,
-the branded frontend deliberately keeps campaign donations paused, there are
-no active campaigns in the last inspected database snapshot, and the
-deployment workflow is blocked before build/publish by a missing public
+**Not production-ready.** The current root frontend has no campaign checkout;
+the branded frontend deliberately keeps campaign donations paused. One active
+campaign now exists in Supabase, but the last measured production-branch query
+still requests private columns and cannot read it. The campaign staging data is
+not reconciled to destination ownership, the payment/ledger tables are empty,
+and the deployment workflow is blocked before build/publish by a missing public
 Supabase URL variable. Authenticated parity, hosted Supabase behavior,
 source-data ownership, workflows, agents, integrations, mobile parity and
 live post-deployment verification remain unproven.
