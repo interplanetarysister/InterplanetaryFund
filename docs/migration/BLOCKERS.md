@@ -2,6 +2,120 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B24 — RESOLVED IN CODE, NOT YET APPLIED: the public Stories RPC does not exist in production
+
+`apps/web/src/lib/editorial.js` calls `rpc("ifund_public_blog_entries_read", ...)`
+for every public story, from `listPublishedStories()` and `getPublishedStory()`.
+Measured against production ssibsfmtodgximseeqsv:
+
+    POST /rest/v1/rpc/ifund_public_blog_entries_read
+      -> 404 {"code":"PGRST202","details":"Searched for the function
+              public.ifund_public_blog_entries_read with parameters ..."}
+
+The function does not exist, so both Stories entry points fail and the pages render
+their error state.
+
+Why this survived review: `apps/web/tests/published-stories-parity.test.js` reads
+`editorial.js` as text and asserts that the `rpc(...)` call is spelled correctly,
+with the right argument names. That test passes whether or not the function exists
+in the database. A source-text assertion cannot observe database state. The new
+`tests/public-blog-entries-read.test.js` closes that class of gap directly: it calls
+the function, and it also compares every `rpc()` name in the client against the
+functions the migrations define, so a call site can no longer pass while the
+function behind it is absent.
+
+**Why it must be a function, not a table read.** Probing the anon grant column by
+column on production shows the author identity columns are withheld:
+
+    ifund_blog_entries  readable: id, status, title, body, summary, type, featured,
+                                  published_at, blog_id, created_at, updated_at
+    ifund_blog_entries  NOT readable: owner_auth_user_id, legacy_owner_user_id
+    ifund_blogs         NOT readable: owner_auth_user_id, legacy_owner_user_id
+
+`listPublishedStories({author})` filters by author, and the author reference is
+exactly the column anon may not read. A direct query cannot express that filter, so
+the resolution has to happen inside a SECURITY DEFINER function that returns only
+public fields.
+
+**Resolution:** `supabase/migrations/pending/20261102_ifund_public_blog_entries_read.sql`.
+Defines the function with the four-argument signature the client calls
+(`p_author_ref`, `p_blog_id`, `p_entry_id`, `p_limit`), matching the original text
+ids, returning only published entries whose parent publication is `active`, nesting
+the parent blog as `jsonb` because `editorialContracts.verifiedPublishedEntries`
+checks `row.blog.status`. It clamps the limit server-side, pins `search_path`, is
+STABLE and read-only, and revokes execute from PUBLIC before granting it to anon and
+authenticated. Proven by 13 tests.
+
+## B25 — RESOLVED IN CODE, NOT YET APPLIED: the committed anon grants are looser than production
+
+The same column-by-column probe found that this repository's committed migrations
+grant anon a table-wide select where production grants only the public columns:
+
+    committed:  grant select on public.ifund_campaigns,public.ifund_posts to anon;
+                grant select on public.ifund_blogs,public.ifund_blog_entries to anon;
+    production: anon may not read ifund_posts.author_id,
+                ifund_campaigns.owner_id, ifund_blog_entries.owner_auth_user_id,
+                ifund_blog_entries.legacy_owner_user_id, ifund_blogs.owner_auth_user_id,
+                ifund_blogs.legacy_owner_user_id
+
+Both row policies permit public rows, so a table-wide grant lets anon read the
+account uuid behind every community post, campaign and story. That is more than
+publishing the content requires. The committed migrations are behind production
+here, which means applying them as written would *widen* access rather than
+reproduce it.
+
+Narrowing anon is safe for every reader in this repository: the public pages and the
+worker select explicit column lists that already exclude the identity columns
+(`src/pages/{Discover,Feed,CampaignDetail}.jsx`, `src/pages/{Community,Feed}.jsx`,
+`worker/reads.js`). `authenticated` keeps its table-wide grant, because the
+ownership policies and the owner-scoped reads are written against `owner_id` and
+`author_id`.
+
+**Resolution:** `supabase/migrations/pending/20261102_ifund_public_read_hardening.sql`.
+Verified by tests that assert anon can still read every column the public pages and
+the worker select, and cannot read any identity column.
+
+## B26 — RESOLVED IN CODE, NOT YET APPLIED: ifund_my_post_ids is missing from the migrations
+
+`src/pages/Community.jsx` asks `rpc("ifund_my_post_ids")` which of the 50 visible
+posts the signed-in member may delete, and reads `item.post_id` from the result.
+Production answers:
+
+    POST /rest/v1/rpc/ifund_my_post_ids -> 401
+      {"code":"42501","message":"permission denied for function ifund_my_post_ids"}
+
+so the page degrades to "ownership controls are temporarily unavailable" and shows
+no delete control. The function is not defined by any migration in this repository,
+so a database built from these migrations would not have it at all.
+
+It cannot be answered client-side for the same reason as B24: `ifund_posts.author_id`
+is withheld from anon, so the client cannot compare it to its own id.
+
+**Resolution:** the same hardening migration defines `ifund_my_post_ids()` with the
+`(post_id uuid)` return shape the page reads, resolving `author_id` inside a
+SECURITY DEFINER body and returning only post ids. Proven by tests that it returns
+the caller's posts and never another member's.
+
+## Base44 backend inventory
+
+`docs/migration/BASE44_FUNCTION_INVENTORY.md` and
+`docs/migration/base44-function-inventory.json`, generated by
+`scripts/inventory-base44-functions.mjs` from `interplanetarysister/interplanetary-fund2`
+(read-only reference; run with `BASE44_SOURCE=/path/to/checkout`). Measured, not
+estimated:
+
+* 184 function entrypoints, all with source.
+* 95 entity schemas; 76 entities are referenced by functions.
+* Of those 76, **only 8 have a table in this repository**. 68 do not.
+* 54 functions are classified financial and stay gated.
+
+Of the 130 non-financial functions, only 27 touch nothing but entities that already
+have a table, and most of those need shared modules or external providers. The
+dominant blocker is therefore the 68 missing tables, not handler code: a function
+cannot be ported faithfully without the table it reads and writes. That is the
+critical path for the remaining backend migration, and it is recorded here rather
+than presented as progress.
+
 ## B23 — RESOLVED IN CODE, NOT YET APPLIED: production's ifund_legal_acceptances has no primary key
 
 Measured directly against production ssibsfmtodgximseeqsv. This did not need
