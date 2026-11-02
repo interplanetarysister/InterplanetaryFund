@@ -124,3 +124,30 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 **What is verified instead (source-level):** the required schema, policies and grants are present in `supabase/migrations/20261025011400_initial.sql` — `status in ('draft','active','paused')`, the `ifund_publish_complete` check, owner-scoped insert/update/delete policies, and the column-level browser grants that cover `status`. This confirms the code is written against the intended contract; it does **not** confirm the live project matches it.
 
 **To unblock, the owner must provide one of:** a non-production Supabase project with the migrations applied plus a service-role key for creating test users; or an existing staging project with two test accounts. Per the migration rules, a separate staging environment or test credentials must be explicitly authorized. No production data or financial records were read or modified.
+
+## B16 — `ifund_posts` insert policy does not check account status (2026-11-02)
+
+**Defect (partially fixed in the browser, still open server-side):** `/social` and `/community` were not wrapped in `MemberAccess` and inserted posts straight into `ifund_posts` from the browser. The RLS policy in `supabase/migrations/20261025011400_initial.sql` is:
+
+```sql
+create policy ifund_posts_insert on public.ifund_posts
+  for insert to authenticated with check (author_id = (select auth.uid()));
+```
+
+It checks only ownership. It does **not** check `ifund_profiles.account_status = 'active'` or `account_deletion_pending = false`. So an authenticated account that is suspended, or scheduled for deletion, could still insert posts by calling PostgREST directly, regardless of any client-side gate.
+
+**Fixed in the browser (this branch):** `src/lib/socialPosts.js` adds `canMemberPost` (confirmed email + `verifyAccountLifecycle`) and `publishPost`, which validates the body to 1–2000 characters — the same rule as `worker/communityWrites.js` — and the feed page now gates its composer and publishes through that path instead of a raw insert. 8 new tests, including that a suspended account or an unconfirmed email attempts no write at all. `apps/web` is now 92/92.
+
+**Still open / requires server work:** the browser fix is UX and defence in depth only. RLS remains the boundary, and the boundary is permissive. Closing it needs a policy or trigger that consults `ifund_profiles` for the acting user, for example:
+
+```sql
+with check (
+  author_id = (select auth.uid())
+  and exists (select 1 from public.ifund_profiles p
+              where p.id = (select auth.uid())
+                and p.account_status = 'active'
+                and p.account_deletion_pending = false)
+);
+```
+
+That is a schema change to a table the AGENTS.md rules require to be independently reviewed and staging-tested before any application, and it cannot be applied here (no credentials, no CLI — see B15). It is recorded, not applied. Until it is, a suspended account can still post by bypassing the UI.

@@ -96,3 +96,13 @@ The PR #186 review found a real race: `saveOwnerCampaign` and `setCampaignStatus
   - `tests/campaign-card-render.test.js` (new, 4 cases) renders the card for real through the shared harness. The paused case was verified to **fail before the fix** and pass after.
   - `tests/helpers/render.js` (new) is a shared component-render harness built on the already-installed `esbuild` + `react-dom/server`; it stubs the few `window` globals that presentational modules read at import time. No new dependency.
 - **UNVERIFIED:** neither fix has been exercised against live data (no Supabase credentials in this environment — see B15). The Dashboard change is only proven at the transport and source level, not in a signed-in browser session.
+
+## Community posting now requires verified member access — 2026-11-02
+
+**Code only. Nothing deployed, no SQL applied, no DNS or payment change.**
+
+- **Gap:** `/social` and `/community` are public pages (correctly, so anonymous visitors can read), but the composer inserted posts straight into `ifund_posts`. A signed-in user was enough to post; the account was never checked for a confirmed email or a live status. The Worker's `worker/communityWrites.js` already validates these writes server-side, and its 1–2000 character body rule was being bypassed by the direct browser insert.
+- **Added:** `apps/web/src/lib/socialPosts.js` — `validatePostBody` (trim, 1–2000 chars), `canMemberPost` (confirmed email + `verifyAccountLifecycle`), `publishPost` (gate, validate, insert only `author_id` + `body`, verify the returned row). `SocialFeedPage.jsx` now gates its composer on `canMemberPost` and publishes through `publishPost`; the raw insert is gone and the `maxLength` uses the shared constant.
+- **Tests:** 8 new cases in `tests/social-posts.test.js`. `apps/web` is now **92/92 pass**; root `npm test` still 96/96; build succeeds. The source-contract assertions were checked against the pre-fix file and fail there.
+- **Still open, recorded as B16:** this is a browser-side fix only. The `ifund_posts_insert` RLS policy checks `author_id` and nothing else, so a suspended account can still post by calling PostgREST directly. Closing that needs a policy/trigger that consults `ifund_profiles`, which is a schema change requiring independent review and staging tests before application. It is not applied here.
+- **UNVERIFIED:** not exercised against live data (no Supabase credentials — B15).

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
@@ -23,7 +24,14 @@ export default function SocialFeedPage({ community = false }) {
   useEffect(() => {
     let active = true;
     try {
-      authClient().auth.getUser().then(({ data }) => { if (active) setUser(data?.user || null); });
+      authClient().auth.getUser().then(async ({ data }) => {
+        if (!active) return;
+        if (!data?.user) { setUser(null); return; }
+        // Posting needs a confirmed email on a live account; a bare session is
+        // not enough, matching the Worker community-write rules.
+        const gate = await canMemberPost(authClient(), data.user);
+        if (active) setUser(gate.ok ? data.user : null);
+      });
     } catch { /* show configuration error through load */ }
     load();
     return () => { active = false; };
@@ -33,10 +41,9 @@ export default function SocialFeedPage({ community = false }) {
     if (busy || !user || !body.trim()) return;
     setBusy(true); setError("");
     try {
-      const { error: insertError } = await authClient().from("ifund_posts").insert({ author_id: user.id, body: body.trim() });
-      if (insertError) throw insertError;
+      await publishPost(authClient(), user, body);
       setBody(""); await load();
-    } catch { setError("Your post was not published. Please try again."); }
+    } catch (cause) { setError(cause?.message || "Your post was not published. Please try again."); }
     finally { setBusy(false); }
   }
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -45,8 +52,8 @@ export default function SocialFeedPage({ community = false }) {
     <nav className="flex gap-4 border-b border-border pb-3"><Link className="text-primary underline" to="/social">Social</Link><Link className="text-primary underline" to="/community">Community</Link></nav>
     {user ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
-      <textarea id="ifund-post" required maxLength={2000} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="What would you like to share?" />
-      <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{body.length}/2000</span><button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
+      <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="What would you like to share?" />
+      <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{body.length}/{MAX_POST_LENGTH}</span><button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
     </form> : <p className="rounded-xl border border-border p-4"><Link className="text-primary underline" to="/login">Sign in</Link> to share a post.</p>}
     {error && <p role="alert" className="rounded-xl border border-destructive p-4">{error}</p>}
     <section aria-label="Recent posts" className="space-y-4">
