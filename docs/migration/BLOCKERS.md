@@ -151,3 +151,16 @@ with check (
 ```
 
 That is a schema change to a table the AGENTS.md rules require to be independently reviewed and staging-tested before any application, and it cannot be applied here (no credentials, no CLI — see B15). It is recorded, not applied. Until it is, a suspended account can still post by bypassing the UI.
+
+## B17 — Cloudflare Pages deploy cannot run here: no API token (2026-11-02)
+
+**Deploy is prepared and blocked on credentials only.**
+
+- Attempting `npx wrangler pages deploy dist --project-name=interplanetaryfund-migration --branch=preview` fails with:
+  `In a non-interactive environment, it's necessary to set a CLOUDFLARE_API_TOKEN environment variable for wrangler to work.`
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` and any `CF_*` variable are all unset, and there is no `~/.wrangler` or `~/.config/.wrangler` auth state.
+- The GitHub Actions workflow `.github/workflows/deploy-web-pages.yml` is ready to do the publish once the repository secrets/variables exist.
+
+**To unblock, the owner must add:** repository secret `CLOUDFLARE_API_TOKEN` (scoped to *Cloudflare Pages: Edit*), repository secret `CLOUDFLARE_ACCOUNT_ID`, and repository variables `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`. Then run the workflow with `production: false` for a preview, and confirm the preview URL before any production run. Do not add a service-role key: it would be baked into the public bundle.
+
+**Not done here:** no DNS change. Attaching `interplanetaryfund.com` remains a dashboard action behind the cutover gate in `apps/web/DEPLOYMENT-GATES.md`.
