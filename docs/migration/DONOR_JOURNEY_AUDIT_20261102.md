@@ -24,7 +24,7 @@ not an authenticated end-to-end browser audit.
 | Step | Evidence | Result |
 |---|---|---|
 | Homepage | The deployed root-app source renders `Feed`; it has campaign discovery and campaign-creation links, but no PayPal/platform-support button. Its footer says the preview does not enable payment processing. | No donation CTA on the currently documented live frontend. |
-| Discover | Root `Discover.jsx` selects active campaigns from `ifund_campaigns`. The last database inspection found one draft and zero active campaigns. | No campaign is available to select. |
+| Discover | Read-only Supabase check on 2026-11-02 found one active and one draft campaign. The last measured production-branch Feed still uses `.select("*")`, which the current anon column grants do not permit. | One active campaign exists in the database, but live display remains blocked/unverified until the production branch uses explicit public columns. |
 | Campaign detail | Root `CampaignDetail.jsx` shows title, category/status, cover, summary, funding goal and story only. It has no `DonateDialog`, checkout control, donation history or updates. Its copy says the preview does not process payments. | Campaign checkout is not implemented in the live root app. |
 | Direct donation route | Root `App.jsx` has no `/donate` or `/giving` route; unknown paths fall through to Page not found. | No standalone donation route. |
 | Payment completion | No campaign payment endpoint/checkout is wired into the root app. | Cannot complete a campaign gift. |
@@ -183,6 +183,12 @@ Cloudflare dashboard confirmation is still required before any publication.
    failed lookups to a fail-closed signed-out UI state, guards against updates
    after unmount, and prevents a late initial lookup from overwriting a newer
    auth-state event. Server-side RLS remains authoritative.
+5. The root public Feed could remain on Loading when Supabase was not configured
+   or the combined campaign/post request rejected; a failed query could also be
+   displayed as an empty feed. It now terminates loading, isolates campaign and
+   post errors, displays generic retryable messaging, ignores stale responses,
+   and never exposes provider error text. Unit tests cover success, isolated
+   errors, malformed results and the failure fallback.
 
 Branch: `fix/campaign-detail-terminal-states-20261102`.
 
@@ -267,12 +273,19 @@ live post-deployment verification remain unproven.
 
 ### Follow-up validation and zero-cost boundary — 2026-11-02
 
-On branch head `1838270b19b1a31eecd4433a324367dba90326f1`, all three public-repository
-standard-runner workflows completed successfully:
+The latest code head `9d4dbc69403ea8ababf89d22ce88102b076039da` passed the
+frontend production build/tests and reporter migration checks:
 
-- [Main release candidate checks — 41516491733](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491733)
-- [Reporter migration checks — 41516491831](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491831)
-- [Frontend production build and tests — 41516491757](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491757)
+- [Frontend production build and tests — 41517620583](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41517620583)
+- [Reporter migration checks — 41517621249](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41517621249)
+
+The main release-candidate workflow's lockfile, root tests, root build and
+targeted Prettier check also passed in
+[run 41517620635](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41517620635).
+Its separate full-source formatting-debt report remained non-blocking and did
+not finish during the observed window. That broad scan is removed from the PR
+workflow; the targeted check for changed public-read surfaces remains required.
+No unrelated legacy formatting files were changed.
 
 The repository is public and these workflows use standard `ubuntu-latest` runners;
 GitHub documents standard hosted runners for public repositories as free. No larger
