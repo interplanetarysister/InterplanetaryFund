@@ -1,0 +1,101 @@
+name: Deploy branded frontend to Cloudflare Pages
+
+# Publishes the apps/web bundle. This does NOT touch DNS: the custom domain is
+# attached in the Cloudflare dashboard, not here, and the cutover gate in
+# apps/web/DEPLOYMENT-GATES.md still applies before interplanetaryfund.com is
+# pointed at this bundle.
+#
+# Default is a PREVIEW deploy (a *.pages.dev URL). A production deploy must be
+# requested explicitly, so a merge can never silently replace the live site.
+#
+# Required repository secrets:
+#   CLOUDFLARE_API_TOKEN   - scoped to "Cloudflare Pages: Edit"
+#   CLOUDFLARE_ACCOUNT_ID
+# Required repository variables (publishable/browser-safe values only):
+#   VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
+# Optional repository variable:
+#   VITE_SUPABASE_OAUTH_PROVIDERS - comma-separated subset of "google,facebook".
+#     Only names a provider whose OAuth client is enabled in the Supabase
+#     dashboard. Empty or unset simply renders no social buttons.
+# Never add a service-role key here; it would be baked into the public bundle.
+
+on:
+  workflow_dispatch:
+    inputs:
+      production:
+        description: Deploy to the production branch instead of a preview
+        type: boolean
+        default: false
+      project:
+        description: Cloudflare Pages project name
+        required: false
+        default: interplanetaryfund-migration
+  push:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - ".github/workflows/deploy-web-pages.yml"
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: pages-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Refuse to deploy without a backend URL
+        if: ${{ vars.VITE_SUPABASE_URL == '' }}
+        run: |
+          echo "::error::Repository variable VITE_SUPABASE_URL is not set. Refusing to publish a build with no backend."
+          exit 1
+
+      - name: Build and test
+        working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_OAUTH_PROVIDERS: ${{ vars.VITE_SUPABASE_OAUTH_PROVIDERS }}
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+          test -f dist/_redirects || { echo "::error::dist/_redirects missing; deep links would 404"; exit 1; }
+          test -f dist/_headers || { echo "::error::dist/_headers missing"; exit 1; }
+
+      - name: Choose deploy branch
+        id: target
+        env:
+          PRODUCTION: ${{ github.event.inputs.production }}
+        run: |
+          if [ "$PRODUCTION" = "true" ]; then
+            echo "branch=main" >> "$GITHUB_OUTPUT"
+          else
+            echo "branch=preview" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: >-
+            pages deploy dist
+            --project-name=${{ github.event.inputs.project || 'interplanetaryfund-migration' }}
+            --branch=${{ steps.target.outputs.branch }}

@@ -1,0 +1,27 @@
+# Cloudflare Pages response headers for the branded frontend.
+#
+# A full default-src/script-src/style-src/connect-src policy is deliberately NOT
+# set here: it cannot be verified against a live Supabase session from this
+# environment, and a wrong policy white-screens the site. The directives below
+# are safe to apply without that live check, plus the framing rules the embed
+# card depends on.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000
+  Content-Security-Policy: object-src 'none'; base-uri 'self'; frame-ancestors 'self'
+
+# The embed card is designed to be framed by third-party sites, so it is the one
+# route that must not be restricted to same-origin framing.
+/embed/*
+  Content-Security-Policy: object-src 'none'; base-uri 'self'; frame-ancestors *
+
+# Vite emits content-hashed asset filenames, so they are safe to cache forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The shell must be revalidated so a new deploy is picked up immediately.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate

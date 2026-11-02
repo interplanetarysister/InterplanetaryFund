@@ -1,0 +1,7759 @@
+{
+ "generatedFrom": "https://github.com/interplanetarysister/interplanetary-fund2.git",
+ "functionCount": 184,
+ "entityCount": 95,
+ "functions": [
+  {
+   "name": "acknowledgeConnectionIssue",
+   "domain": "agents",
+   "lines": 31,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "activateSubscriptionCheckout",
+   "domain": "payments",
+   "lines": 51,
+   "entities": [
+    "FeatureFlag",
+    "PayPalBillingWebhook"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptions",
+    "subscriptionCatalog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "http"
+   ],
+   "financial": true
+  },
+  {
+   "name": "adminApiConnectionIntake",
+   "domain": "admin",
+   "lines": 79,
+   "entities": [
+    "AdminApiConnectionIntake"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "github",
+    "llm",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "adminCampaignControl",
+   "domain": "admin",
+   "lines": 20,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "adminOAuthProviderReadiness",
+   "domain": "admin",
+   "lines": 45,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "connectionVerification"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "adminUpdateUserRole",
+   "domain": "admin",
+   "lines": 24,
+   "entities": [
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "analyzeGrantApplication",
+   "domain": "ai",
+   "lines": 84,
+   "entities": [
+    "Campaign",
+    "GrantApplication",
+    "Institution",
+    "InstitutionOpportunity",
+    "Notification",
+    "Recommendation"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "applyAgentContentDraft",
+   "domain": "agents",
+   "lines": 122,
+   "entities": [
+    "AgentContentDraft",
+    "BlogEntry",
+    "Campaign",
+    "CommunityMember",
+    "DiscussionPost",
+    "PlatformConnection",
+    "PublicProfile",
+    "UserBlog"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "applyInstitutionOpportunity",
+   "domain": "campaigns",
+   "lines": 72,
+   "entities": [
+    "Campaign",
+    "GrantApplication",
+    "Institution",
+    "InstitutionOpportunity",
+    "Notification"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "auditAdminAgentGateway",
+   "domain": "admin",
+   "lines": 20,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "authorizeCollectAndWithdraw",
+   "domain": "treasury",
+   "lines": 31,
+   "entities": [
+    "ExternalCollectionAuthorization"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "authorizeConnectionAi",
+   "domain": "social",
+   "lines": 80,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "broadcastPosts",
+   "domain": "social",
+   "lines": 147,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "integrationRegistry",
+    "providerCapabilities",
+    "socialPublish",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "cancelPayPalSubscription",
+   "domain": "payments",
+   "lines": 33,
+   "entities": [
+    "PayPalSubscriptionIntent"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptionReconcile",
+    "paypalSubscriptions"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "capturePayPalOrder",
+   "domain": "payments",
+   "lines": 303,
+   "entities": [
+    "Campaign",
+    "FinancialOperation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "fees",
+    "financialMirrors",
+    "paypal",
+    "paypalAllocation",
+    "rateLimit",
+    "sendDonationReceipt"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "checkUsernameAvailability",
+   "domain": "accounts",
+   "lines": 22,
+   "entities": [
+    "User"
+   ],
+   "shared": [
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "communityMembership",
+   "domain": "social",
+   "lines": 57,
+   "entities": [
+    "Community",
+    "CommunityMember"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "completeOAuthConnection",
+   "domain": "social",
+   "lines": 85,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "connectionVerification",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "confirmPayPalSubscription",
+   "domain": "payments",
+   "lines": 17,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptionReconcile"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createCommunity",
+   "domain": "social",
+   "lines": 6,
+   "entities": [
+    "Community",
+    "CommunityMember"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createDiscussionPost",
+   "domain": "social",
+   "lines": 4,
+   "entities": [
+    "CommunityMember",
+    "DiscussionPost"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createDistributedPost",
+   "domain": "social",
+   "lines": 54,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "distributionDestination"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createDonationCheckout",
+   "domain": "payments",
+   "lines": 6,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createInstitution",
+   "domain": "campaigns",
+   "lines": 6,
+   "entities": [
+    "Institution"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createKnowledgeArticle",
+   "domain": "agents",
+   "lines": 4,
+   "entities": [
+    "KnowledgeArticle"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createPayPalOrder",
+   "domain": "payments",
+   "lines": 78,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "base44Financial",
+    "featureFlagGate",
+    "fees",
+    "paypal",
+    "prelaunchPayments",
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createPayPalSubscriptionCheckout",
+   "domain": "payments",
+   "lines": 66,
+   "entities": [
+    "NonprofitSubscriptionApproval",
+    "PayPalBillingWebhook",
+    "PayPalSubscriptionIntent"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "paypalSubscriptions"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createPremiumDayPassCheckout",
+   "domain": "payments",
+   "lines": 5,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createSocialPost",
+   "domain": "social",
+   "lines": 30,
+   "entities": [
+    "Campaign",
+    "SocialPost"
+   ],
+   "shared": [
+    "accountGuard",
+    "serverImagePolicy"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createSubscriptionCheckout",
+   "domain": "payments",
+   "lines": 6,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "createSupportTicket",
+   "domain": "other",
+   "lines": 3,
+   "entities": [
+    "SupportTicket"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "createVolunteerOpportunity",
+   "domain": "social",
+   "lines": 3,
+   "entities": [
+    "Community",
+    "CommunityMember",
+    "VolunteerOpportunity"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "decideGrantApplication",
+   "domain": "campaigns",
+   "lines": 109,
+   "entities": [
+    "Campaign",
+    "GrantApplication",
+    "Institution",
+    "Notification"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "financialMirrors"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "deleteAccount",
+   "domain": "accounts",
+   "lines": 232,
+   "entities": [
+    "AgentActivity",
+    "AgentDelegation",
+    "Campaign",
+    "CampaignUpdate",
+    "CommunityMember",
+    "DiscussionPost",
+    "DiscussionReply",
+    "DistributedPost",
+    "Donation",
+    "FollowedCampaign",
+    "GrantApplication",
+    "InboxItem",
+    "Message",
+    "MissionBrief",
+    "Notification",
+    "PlatformConnection",
+    "Recommendation",
+    "User",
+    "VolunteerSignup",
+    "Withdrawal"
+   ],
+   "shared": [
+    "auditLog",
+    "base44Financial"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "deleteCampaign",
+   "domain": "campaigns",
+   "lines": 72,
+   "entities": [
+    "AgentActivity",
+    "AgentDelegation",
+    "Campaign",
+    "CampaignTranslation",
+    "CampaignUpdate",
+    "DistributedPost",
+    "Donation",
+    "FinancialOperation",
+    "HoldingLedgerEntry",
+    "PlatformConnection",
+    "Withdrawal"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "deviceAuthorization",
+   "domain": "accounts",
+   "lines": 173,
+   "entities": [
+    "Campaign",
+    "DeviceAuthorization",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "deviceAuthorization"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "disconnectPlatformConnection",
+   "domain": "social",
+   "lines": 72,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "connectionVerification"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "discoverConnectionMethods",
+   "domain": "discovery",
+   "lines": 72,
+   "entities": [
+    "PlatformConnectionRecipe"
+   ],
+   "shared": [
+    "accountGuard",
+    "connectionVerification",
+    "platformConnectionRecipes"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.53"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "discoverExternalCampaignSnapshot",
+   "domain": "discovery",
+   "lines": 43,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "externalSyncRequest"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "discoverFeatures",
+   "domain": "discovery",
+   "lines": 74,
+   "entities": [
+    "Campaign",
+    "CommunityMember",
+    "GrantApplication",
+    "Institution",
+    "PlatformConnection",
+    "Recommendation",
+    "User",
+    "VolunteerSignup"
+   ],
+   "shared": [
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "discoverPayPalHoldingSettlements",
+   "domain": "payments",
+   "lines": 107,
+   "entities": [
+    "Campaign",
+    "ExternalFundObservation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "paypal"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "draftSharePost",
+   "domain": "ai",
+   "lines": 73,
+   "entities": [
+    "Campaign",
+    "SocialPost"
+   ],
+   "shared": [
+    "accountGuard",
+    "writingGuidance"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "enforceCampaignProtocol",
+   "domain": "campaigns",
+   "lines": 87,
+   "entities": [
+    "Campaign",
+    "Recommendation"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "executeAdminAgentRequest",
+   "domain": "agents",
+   "lines": 249,
+   "entities": [
+    "AgentActivity"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "executeCollectAndWithdraw",
+   "domain": "treasury",
+   "lines": 59,
+   "entities": [
+    "ExternalCollectionAuthorization"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "providerCapabilities"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "externalAgentCampaigns",
+   "domain": "agents",
+   "lines": 25,
+   "entities": [
+    "Campaign",
+    "ExternalAgentApiKey"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": true
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "externalAgentContentWrite",
+   "domain": "agents",
+   "lines": 45,
+   "entities": [
+    "AuthorizationGrant",
+    "Campaign",
+    "CampaignUpdate",
+    "ExternalAgentApiKey"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "finalizeAppUserOAuthConnection",
+   "domain": "social",
+   "lines": 178,
+   "entities": [
+    "Campaign",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "connectionVerification",
+    "externalBalanceEvidence",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "github"
+   ],
+   "financial": false
+  },
+  {
+   "name": "generateCampaignCover",
+   "domain": "ai",
+   "lines": 39,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "ifundSignatureStyle"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "generateDistributionContent",
+   "domain": "ai",
+   "lines": 210,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "distributionDestination",
+    "featureFlagGate",
+    "socialPublish",
+    "writingGuidance"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "generateIntelligence",
+   "domain": "ai",
+   "lines": 169,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "Message",
+    "MissionBrief",
+    "Opportunity",
+    "Recommendation"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": true
+  },
+  {
+   "name": "generateSocialContent",
+   "domain": "ai",
+   "lines": 143,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "ifundSignatureStyle",
+    "writingGuidance"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": true
+  },
+  {
+   "name": "geocodeCity",
+   "domain": "other",
+   "lines": 40,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "getAgentAccountContext",
+   "domain": "agents",
+   "lines": 90,
+   "entities": [
+    "AgentContentDraft",
+    "AgentDelegation",
+    "Campaign",
+    "CommunityMember",
+    "DistributedPost",
+    "FollowedCampaign",
+    "PlatformConnection",
+    "PostInterest",
+    "PublicProfile",
+    "SocialPost"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getAgentMailContext",
+   "domain": "agents",
+   "lines": 70,
+   "entities": [
+    "InboxItem",
+    "PlatformAccessRegistry"
+   ],
+   "shared": [
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getAppUserConnector",
+   "domain": "accounts",
+   "lines": 68,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "connectionVerification"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getBufferReadiness",
+   "domain": "other",
+   "lines": 83,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "getCampaignDonations",
+   "domain": "payments",
+   "lines": 54,
+   "entities": [
+    "Campaign",
+    "Donation"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getCampaignDraft",
+   "domain": "ai",
+   "lines": 23,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "campaignResponse"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getCampaignWithdrawalBalance",
+   "domain": "treasury",
+   "lines": 89,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "fees"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getCommunityFeed",
+   "domain": "social",
+   "lines": 91,
+   "entities": [
+    "ActivityEvent",
+    "Campaign",
+    "FollowedCampaign"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getConnectedPayoutAccount",
+   "domain": "treasury",
+   "lines": 59,
+   "entities": [
+    "ConnectedPayoutAccount"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getCryptoDonationReadiness",
+   "domain": "payments",
+   "lines": 11,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getFeatureAvailability",
+   "domain": "discovery",
+   "lines": 24,
+   "entities": [
+    "FeatureFlag"
+   ],
+   "shared": [
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getFundraisingMode",
+   "domain": "other",
+   "lines": 19,
+   "entities": [],
+   "shared": [
+    "fundraisingMode"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getLiveProviderStatus",
+   "domain": "other",
+   "lines": 31,
+   "entities": [
+    "FeatureFlag",
+    "PlatformAccessRegistry"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "liveProviderReadiness"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getMyGiving",
+   "domain": "other",
+   "lines": 45,
+   "entities": [
+    "Donation"
+   ],
+   "shared": [
+    "accountGuard",
+    "fees"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getOwnerDonorDirectory",
+   "domain": "other",
+   "lines": 111,
+   "entities": [
+    "Campaign",
+    "Donation"
+   ],
+   "shared": [
+    "accountGuard",
+    "fees"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getOwnerFinancialLedger",
+   "domain": "treasury",
+   "lines": 85,
+   "entities": [
+    "Campaign",
+    "FinancialOperation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "getPayPalConfig",
+   "domain": "payments",
+   "lines": 29,
+   "entities": [],
+   "shared": [
+    "paypal"
+   ],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getPayPalPayoutReadiness",
+   "domain": "payments",
+   "lines": 58,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "http"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getPayPalSubscriptionOptions",
+   "domain": "payments",
+   "lines": 81,
+   "entities": [
+    "NonprofitSubscriptionApproval",
+    "PayPalBillingWebhook",
+    "SubscriptionPlanMapping"
+   ],
+   "shared": [
+    "paypal",
+    "paypalSubscriptions",
+    "subscriptionCatalog",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getPaymentCapabilities",
+   "domain": "other",
+   "lines": 27,
+   "entities": [],
+   "shared": [
+    "paypal"
+   ],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getSharedConnectorStatus",
+   "domain": "other",
+   "lines": 117,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "getStripeIntegrationAudit",
+   "domain": "payments",
+   "lines": 113,
+   "entities": [],
+   "shared": [
+    "stripeCryptoReadiness",
+    "stripeSubscriptionCatalog",
+    "subscriptionCatalog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getStripeReadiness",
+   "domain": "payments",
+   "lines": 67,
+   "entities": [],
+   "shared": [],
+   "npmImports": [
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getStripeSubscriptionOptions",
+   "domain": "payments",
+   "lines": 7,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "getUnifiedInbox",
+   "domain": "notifications",
+   "lines": 95,
+   "entities": [
+    "ExternalConversation",
+    "ExternalConversationMessage",
+    "InboxItem"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getVerifiedIFundIntegrationContext",
+   "domain": "other",
+   "lines": 75,
+   "entities": [
+    "PlatformConnectionRecipe"
+   ],
+   "shared": [
+    "accountGuard",
+    "connectionVerification",
+    "platformConnectionRecipes"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.53"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "getWritingResearchBrief",
+   "domain": "ai",
+   "lines": 33,
+   "entities": [
+    "WritingResearchBrief"
+   ],
+   "shared": [
+    "accountGuard",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "importExternalCampaign",
+   "domain": "workflows",
+   "lines": 65,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "externalSyncRequest",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "joinFoundingWaitlist",
+   "domain": "other",
+   "lines": 39,
+   "entities": [
+    "FoundingWaitlist"
+   ],
+   "shared": [
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "justGivingStagingPilot",
+   "domain": "other",
+   "lines": 173,
+   "entities": [
+    "Campaign",
+    "ExternalCampaignPublication"
+   ],
+   "shared": [
+    "accountGuard",
+    "justGivingUnclaimed"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "kofiWebhook",
+   "domain": "other",
+   "lines": 227,
+   "entities": [
+    "Campaign",
+    "PlatformConnection",
+    "WebhookEvent"
+   ],
+   "shared": [
+    "base44Financial",
+    "financialMirrors"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "listConnections",
+   "domain": "social",
+   "lines": 33,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "listFundraisingProviderCapabilities",
+   "domain": "other",
+   "lines": 21,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "providerCapabilities"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "listInstitutionApplications",
+   "domain": "campaigns",
+   "lines": 28,
+   "entities": [
+    "GrantApplication",
+    "Institution"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "listUntrackedPayPalReceipts",
+   "domain": "payments",
+   "lines": 172,
+   "entities": [
+    "Donation",
+    "FinancialOperation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypal"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "logPlatformEvent",
+   "domain": "social",
+   "lines": 3,
+   "entities": [
+    "PlatformEvent"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "maintainPlatformOwnedAccounts",
+   "domain": "social",
+   "lines": 88,
+   "entities": [
+    "AdminApproval",
+    "DistributedPost",
+    "PlatformConnection",
+    "PlatformOwnedAccount"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "manageAdminBuilderWork",
+   "domain": "agents",
+   "lines": 44,
+   "entities": [
+    "AgentDelegation"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageAgentContentDraft",
+   "domain": "agents",
+   "lines": 121,
+   "entities": [
+    "AgentContentDraft",
+    "Campaign",
+    "CommunityMember",
+    "DiscussionPost",
+    "PlatformConnection",
+    "UserBlog"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageAgentWork",
+   "domain": "agents",
+   "lines": 153,
+   "entities": [
+    "AgentDelegation",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "integrationRegistry",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageApprovedBuilderExecution",
+   "domain": "agents",
+   "lines": 167,
+   "entities": [
+    "AgentDelegation",
+    "PlatformIncident"
+   ],
+   "shared": [
+    "accountGuard",
+    "approvedBuilderBridge",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageBlog",
+   "domain": "other",
+   "lines": 137,
+   "entities": [
+    "BlogEntry",
+    "Campaign",
+    "UserBlog"
+   ],
+   "shared": [
+    "accountGuard",
+    "campaignEmbeds",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageConnectedPayoutAccount",
+   "domain": "treasury",
+   "lines": 50,
+   "entities": [
+    "ConnectedPayoutAccount"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "manageDistributedPost",
+   "domain": "social",
+   "lines": 41,
+   "entities": [
+    "DistributedPost"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageExternalAgentKeys",
+   "domain": "agents",
+   "lines": 43,
+   "entities": [
+    "ExternalAgentApiKey"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageFeatureFlag",
+   "domain": "discovery",
+   "lines": 13,
+   "entities": [
+    "FeatureFlag",
+    "PlatformAccessRegistry"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "liveProviderReadiness"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageFriends",
+   "domain": "social",
+   "lines": 101,
+   "entities": [
+    "Friendship",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageOAuthClients",
+   "domain": "social",
+   "lines": 25,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "manageOfficialPublications",
+   "domain": "other",
+   "lines": 84,
+   "entities": [
+    "OfficialPublication"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageOwnerConnectionConfiguration",
+   "domain": "social",
+   "lines": 123,
+   "entities": [
+    "IntegrationChangeRequest",
+    "PlatformConnectionRecipe"
+   ],
+   "shared": [
+    "accountGuard",
+    "platformConnectionRecipes"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.53"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "managePlatformAccess",
+   "domain": "social",
+   "lines": 94,
+   "entities": [
+    "PlatformAccessRegistry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "managePlatformIncidents",
+   "domain": "social",
+   "lines": 181,
+   "entities": [
+    "AgentDelegation",
+    "PlatformIncident"
+   ],
+   "shared": [
+    "accountGuard",
+    "approvedBuilderBridge",
+    "auditLog",
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "managePostInterest",
+   "domain": "social",
+   "lines": 66,
+   "entities": [
+    "PostInterest",
+    "SocialPost"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "managePublicProfile",
+   "domain": "accounts",
+   "lines": 119,
+   "entities": [
+    "Campaign",
+    "Community",
+    "CommunityMember",
+    "DiscussionPost",
+    "DiscussionReply",
+    "FollowedCampaign",
+    "PublicProfile",
+    "SocialPost",
+    "User",
+    "UserBlog"
+   ],
+   "shared": [
+    "accountGuard",
+    "campaignEmbeds"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "manageRecurringDonation",
+   "domain": "payments",
+   "lines": 65,
+   "entities": [
+    "Donation"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "manageVerificationMailbox",
+   "domain": "other",
+   "lines": 52,
+   "entities": [
+    "VerificationMail",
+    "VerificationMailbox"
+   ],
+   "shared": [
+    "accountGuard",
+    "verificationEmailCrypto"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "markNotificationRead",
+   "domain": "notifications",
+   "lines": 3,
+   "entities": [
+    "Notification"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "matchExternalPayPalSettlement",
+   "domain": "payments",
+   "lines": 97,
+   "entities": [
+    "Campaign",
+    "ExternalFundObservation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "paypal"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "mirrorExternalPosts",
+   "domain": "social",
+   "lines": 173,
+   "entities": [
+    "PlatformConnection",
+    "SocialPost",
+    "User"
+   ],
+   "shared": [
+    "featureFlagGate",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "ownerAgentChatActions",
+   "domain": "agents",
+   "lines": 147,
+   "entities": [
+    "AgentContentDraft",
+    "DistributedPost"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "payPalSubscriptionWebhook",
+   "domain": "payments",
+   "lines": 75,
+   "entities": [
+    "PayPalBillingWebhook",
+    "PayPalSubscriptionIntent",
+    "WebhookEvent"
+   ],
+   "shared": [
+    "paypal",
+    "paypalSubscriptionReconcile",
+    "paypalSubscriptions"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": true
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "postCampaignUpdate",
+   "domain": "social",
+   "lines": 107,
+   "entities": [
+    "Campaign",
+    "CampaignUpdate",
+    "FollowedCampaign",
+    "Notification",
+    "PlatformConnection",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "activityEvent",
+    "crossPost"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "postDiscussionReply",
+   "domain": "social",
+   "lines": 40,
+   "entities": [
+    "DiscussionPost",
+    "DiscussionReply"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "prepareCollectAndWithdraw",
+   "domain": "treasury",
+   "lines": 81,
+   "entities": [
+    "Campaign",
+    "ConnectedPayoutAccount",
+    "ExternalCollectionAuthorization",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "featureFlagGate",
+    "providerCapabilities"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "processAdminActionInbox",
+   "domain": "notifications",
+   "lines": 54,
+   "entities": [
+    "AdminActionMessage",
+    "AdminApproval"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "publishInstitutionOpportunity",
+   "domain": "campaigns",
+   "lines": 55,
+   "entities": [
+    "Institution",
+    "InstitutionOpportunity"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "publishLinkedCampaignToConnection",
+   "domain": "social",
+   "lines": 156,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "providerCapabilities",
+    "socialPublish"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "publishPost",
+   "domain": "social",
+   "lines": 159,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "featureFlagGate",
+    "integrationRegistry",
+    "providerCapabilities",
+    "socialPublish",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "receiveCloudflareEmail",
+   "domain": "notifications",
+   "lines": 77,
+   "entities": [
+    "InboxItem",
+    "User",
+    "VerificationMail",
+    "VerificationMailbox"
+   ],
+   "shared": [
+    "verificationEmailCrypto"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "reconcileDirectPayPalCampaignDonation",
+   "domain": "payments",
+   "lines": 329,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "FinancialOperation",
+    "HoldingLedgerEntry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "financialMirrors",
+    "paypal"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "reconcileExternalPayPalSettlement",
+   "domain": "payments",
+   "lines": 157,
+   "entities": [
+    "Campaign",
+    "HoldingLedgerEntry",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "paypal"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "recordAgentInteraction",
+   "domain": "agents",
+   "lines": 49,
+   "entities": [
+    "AgentActivity",
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "recordCampaignCreated",
+   "domain": "campaigns",
+   "lines": 87,
+   "entities": [
+    "ActivityEvent",
+    "Campaign",
+    "PlatformConnection",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "activityEvent",
+    "base44Financial",
+    "crossPost"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "recordDonation",
+   "domain": "payments",
+   "lines": 122,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "featureFlagGate",
+    "fees",
+    "financialMirrors",
+    "fundraisingMode",
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "recordExternalFundMigration",
+   "domain": "other",
+   "lines": 83,
+   "entities": [
+    "Campaign",
+    "ExternalFundMigrationRecord"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "fees"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": false
+  },
+  {
+   "name": "recordLegalAcceptance",
+   "domain": "accounts",
+   "lines": 47,
+   "entities": [
+    "LegalAcceptance"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "refreshWritingResearch",
+   "domain": "ai",
+   "lines": 129,
+   "entities": [
+    "WritingResearchBrief"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "registerPushDevice",
+   "domain": "accounts",
+   "lines": 59,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "renderInterplanetaryPhoto",
+   "domain": "other",
+   "lines": 91,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "ifundSignatureStyle"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "repairStripeWebhookEvents",
+   "domain": "payments",
+   "lines": 58,
+   "entities": [],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "requestManagedConnectionAction",
+   "domain": "social",
+   "lines": 271,
+   "entities": [
+    "AgentDelegation",
+    "Campaign",
+    "PlatformConnection",
+    "PlatformConnectionRecipe"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate",
+    "integrationRegistry",
+    "platformConnectionRecipes",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.53"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "requestWithdrawal",
+   "domain": "treasury",
+   "lines": 470,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "HoldingLedgerEntry",
+    "User",
+    "Withdrawal"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "featureFlagGate",
+    "fees",
+    "financialMirrors",
+    "paypal",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "resolveConnectionStatus",
+   "domain": "social",
+   "lines": 227,
+   "entities": [
+    "AuthorizationGrant",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "connectionVerification",
+    "integrationRegistry",
+    "platformConnectionRecipes"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "resolvePlatformConnectionRecipe",
+   "domain": "social",
+   "lines": 51,
+   "entities": [
+    "PlatformConnectionRecipe"
+   ],
+   "shared": [
+    "accountGuard",
+    "platformConnectionRecipes"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "reviewAgentActivity",
+   "domain": "agents",
+   "lines": 29,
+   "entities": [
+    "AgentActivity"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "revokeConnectionAiConsent",
+   "domain": "social",
+   "lines": 47,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "routeAgentTask",
+   "domain": "agents",
+   "lines": 144,
+   "entities": [
+    "AgentDelegation",
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "runBrowserConnection",
+   "domain": "social",
+   "lines": 51,
+   "entities": [
+    "Campaign",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "browserbase"
+   ],
+   "financial": false
+  },
+  {
+   "name": "runOfficialSocialPromotion",
+   "domain": "social",
+   "lines": 115,
+   "entities": [
+    "AdminApproval",
+    "DistributedPost",
+    "PlatformConnection",
+    "PlatformOwnedAccount",
+    "User",
+    "WritingResearchBrief"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "runOutreachAgent",
+   "domain": "agents",
+   "lines": 202,
+   "entities": [
+    "AgentActivity",
+    "Campaign",
+    "CampaignUpdate",
+    "Donation",
+    "Recommendation",
+    "User"
+   ],
+   "shared": [
+    "featureFlagGate",
+    "integrationRegistry",
+    "subscriptionEntitlements",
+    "writingGuidance"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": true
+  },
+  {
+   "name": "runReporterDiary",
+   "domain": "other",
+   "lines": 64,
+   "entities": [
+    "BlogEntry",
+    "Notification",
+    "User",
+    "UserBlog"
+   ],
+   "shared": [
+    "writingGuidance"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "runSocialAutopilot",
+   "domain": "social",
+   "lines": 174,
+   "entities": [
+    "AgentActivity",
+    "Campaign",
+    "DistributedPost",
+    "ScheduledAutoPostPermit",
+    "User",
+    "WritingResearchBrief"
+   ],
+   "shared": [
+    "distributionDestination",
+    "featureFlagGate",
+    "integrationRegistry",
+    "providerCapabilities",
+    "readEntityPages",
+    "socialPublish",
+    "socialPublishingPolicy"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "saveCampaign",
+   "domain": "campaigns",
+   "lines": 80,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "campaignResponse",
+    "serverImagePolicy"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "saveConnectionCredentials",
+   "domain": "social",
+   "lines": 228,
+   "entities": [
+    "Campaign",
+    "PlatformConnection",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "auditLog",
+    "connectionCrypto",
+    "externalBalanceEvidence",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "sendCommunication",
+   "domain": "other",
+   "lines": 123,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "Message",
+    "Notification",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "integrationRegistry",
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": true
+  },
+  {
+   "name": "sendPublicContactMessage",
+   "domain": "other",
+   "lines": 35,
+   "entities": [],
+   "shared": [
+    "rateLimit"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "setConnectionAiToggle",
+   "domain": "social",
+   "lines": 52,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "setUnifiedOboConsent",
+   "domain": "accounts",
+   "lines": 99,
+   "entities": [
+    "AgentDelegation",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "setUsername",
+   "domain": "accounts",
+   "lines": 24,
+   "entities": [
+    "User"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "setupPayPalSubscriptionWebhook",
+   "domain": "payments",
+   "lines": 76,
+   "entities": [
+    "PayPalBillingWebhook"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptions"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "startPremiumTrial",
+   "domain": "payments",
+   "lines": 38,
+   "entities": [
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "featureFlagGate"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": false
+  },
+  {
+   "name": "startStripeConnectOnboarding",
+   "domain": "payments",
+   "lines": 6,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "stripeWebhook",
+   "domain": "payments",
+   "lines": 528,
+   "entities": [
+    "Campaign",
+    "Donation",
+    "FinancialOperation",
+    "Notification",
+    "StripeReversalHold",
+    "User",
+    "WebhookEvent"
+   ],
+   "shared": [
+    "auditLog",
+    "base44Financial",
+    "fees",
+    "financialMirrors",
+    "premiumAccessCatalog",
+    "sendDonationReceipt",
+    "stripeSubscriptionCatalog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52",
+    "npm:stripe@17.7.0"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "syncConnections",
+   "domain": "workflows",
+   "lines": 275,
+   "entities": [
+    "Campaign",
+    "DistributedPost",
+    "Notification",
+    "PlatformConnection",
+    "ScheduledAutoPostPermit",
+    "User"
+   ],
+   "shared": [
+    "aiConnectionScope",
+    "connectionVerification",
+    "featureFlagGate",
+    "integrationRegistry",
+    "managedQueue",
+    "providerCapabilities",
+    "readEntityPages",
+    "socialPublish",
+    "socialPublishingPolicy",
+    "verifiedConnectionCapabilities"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "syncExternalFunds",
+   "domain": "workflows",
+   "lines": 387,
+   "entities": [
+    "Campaign",
+    "ExternalFundObservation",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "base44Financial",
+    "externalSyncRequest"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "syncFromConvex",
+   "domain": "workflows",
+   "lines": 3,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "syncGitHub",
+   "domain": "workflows",
+   "lines": 228,
+   "entities": [
+    "GitHubSyncCheckpoint",
+    "Notification",
+    "PlatformAccessRegistry",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "github",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "syncImportedCampaign",
+   "domain": "workflows",
+   "lines": 70,
+   "entities": [
+    "Campaign",
+    "ExternalCampaignImport",
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "externalSyncRequest"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "syncPayPalSubscriptionCatalog",
+   "domain": "payments",
+   "lines": 137,
+   "entities": [
+    "SubscriptionPlanMapping"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptions",
+    "subscriptionCatalog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "syncStripeSubscriptionCatalog",
+   "domain": "payments",
+   "lines": 5,
+   "entities": [],
+   "shared": [],
+   "npmImports": [],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": false,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "stripe"
+   ],
+   "financial": true
+  },
+  {
+   "name": "syncWixAnalytics",
+   "domain": "workflows",
+   "lines": 40,
+   "entities": [
+    "ExternalPlatformRecord"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "syncWixBusinessData",
+   "domain": "workflows",
+   "lines": 68,
+   "entities": [
+    "ExternalPlatformRecord"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": true
+  },
+  {
+   "name": "syncWixCampaigns",
+   "domain": "workflows",
+   "lines": 63,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "syncWixContent",
+   "domain": "workflows",
+   "lines": 31,
+   "entities": [
+    "CampaignUpdate",
+    "SocialPost"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "wix",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "toggleCampaignFollow",
+   "domain": "social",
+   "lines": 4,
+   "entities": [
+    "Campaign",
+    "FollowedCampaign"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "trackAgentConversation",
+   "domain": "agents",
+   "lines": 123,
+   "entities": [
+    "AgentConversationRun"
+   ],
+   "shared": [
+    "accountGuard",
+    "rateLimit",
+    "subscriptionEntitlements"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.52"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": true
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "translateCampaign",
+   "domain": "ai",
+   "lines": 163,
+   "entities": [
+    "Campaign",
+    "CampaignTranslation"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "llm"
+   ],
+   "financial": false
+  },
+  {
+   "name": "updateCampaignSettings",
+   "domain": "campaigns",
+   "lines": 62,
+   "entities": [
+    "Campaign"
+   ],
+   "shared": [
+    "accountGuard",
+    "distributionDestination"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "updateFollowPreferences",
+   "domain": "social",
+   "lines": 12,
+   "entities": [
+    "FollowedCampaign"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "updateInboxItem",
+   "domain": "notifications",
+   "lines": 19,
+   "entities": [
+    "InboxItem"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "updateMissionItemStatus",
+   "domain": "other",
+   "lines": 4,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.44"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "validateIntegrationHealth",
+   "domain": "other",
+   "lines": 225,
+   "entities": [
+    "PlatformAccessRegistry"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal",
+    "stripe",
+    "llm",
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "verifyAdminGateway",
+   "domain": "other",
+   "lines": 17,
+   "entities": [],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": false,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "verifyAgentPlatformAccess",
+   "domain": "agents",
+   "lines": 88,
+   "entities": [
+    "PlatformAccessRegistry",
+    "User"
+   ],
+   "shared": [
+    "accountGuard",
+    "auditLog",
+    "integrationRegistry"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "verifyAppUserConnector",
+   "domain": "accounts",
+   "lines": 38,
+   "entities": [],
+   "shared": [
+    "accountGuard",
+    "connectionVerification"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "verifyOwnerPayPalBasicPlan",
+   "domain": "payments",
+   "lines": 64,
+   "entities": [
+    "SubscriptionPlanMapping"
+   ],
+   "shared": [
+    "accountGuard",
+    "paypalSubscriptions",
+    "subscriptionCatalog"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": true,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "paypal"
+   ],
+   "financial": true
+  },
+  {
+   "name": "verifyPlatformConnection",
+   "domain": "social",
+   "lines": 144,
+   "entities": [
+    "PlatformConnection"
+   ],
+   "shared": [
+    "accountGuard",
+    "aiConnectionScope",
+    "connectionCrypto",
+    "connectionVerification",
+    "integrationRegistry",
+    "managedQueue",
+    "verifiedConnectionCapabilities"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": true,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [
+    "http"
+   ],
+   "financial": false
+  },
+  {
+   "name": "volunteerFollowUp",
+   "domain": "social",
+   "lines": 53,
+   "entities": [
+    "Community",
+    "Notification",
+    "User",
+    "VolunteerOpportunity",
+    "VolunteerSignup"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "volunteerSignup",
+   "domain": "social",
+   "lines": 52,
+   "entities": [
+    "Notification",
+    "VolunteerOpportunity",
+    "VolunteerSignup"
+   ],
+   "shared": [
+    "accountGuard"
+   ],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": true,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "welcomeVolunteer",
+   "domain": "social",
+   "lines": 52,
+   "entities": [
+    "Community",
+    "Notification",
+    "User",
+    "VolunteerOpportunity",
+    "VolunteerSignup"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": true,
+    "getOnly": false
+   },
+   "external": [],
+   "financial": false
+  },
+  {
+   "name": "wixWebhook",
+   "domain": "other",
+   "lines": 82,
+   "entities": [
+    "ExternalSyncEvent"
+   ],
+   "shared": [],
+   "npmImports": [
+    "npm:@base44/sdk@0.8.40"
+   ],
+   "auth": {
+    "accountGuard": false,
+    "userClient": false,
+    "serviceRole": true,
+    "adminOnly": false,
+    "rateLimited": false
+   },
+   "request": {
+    "readsBody": false,
+    "getOnly": false
+   },
+   "external": [
+    "wix"
+   ],
+   "financial": true
+  }
+ ],
+ "entities": [
+  {
+   "entity": "ActivityEvent",
+   "properties": [
+    "type",
+    "actor_user_id",
+    "actor_display_name",
+    "actor_handle",
+    "actor_image_url",
+    "campaign_id",
+    "campaign_title",
+    "campaign_image_url",
+    "body",
+    "link",
+    "visibility",
+    "metadata"
+   ],
+   "propertyCount": 12
+  },
+  {
+   "entity": "AdminActionMessage",
+   "properties": [
+    "approval_id",
+    "sender_type",
+    "sender_user_id",
+    "sender_agent",
+    "message_type",
+    "content",
+    "created_at",
+    "processed_at",
+    "processing_status"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "AdminApiConnectionIntake",
+   "properties": [
+    "provider",
+    "kind",
+    "endpoint_url",
+    "auth_type",
+    "notes",
+    "status",
+    "last_test_status",
+    "last_tested_at",
+    "created_by"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "AdminApproval",
+   "properties": [
+    "action_type",
+    "title",
+    "description",
+    "requested_by_agent",
+    "owner_user_id",
+    "target_type",
+    "target_id",
+    "payload_summary",
+    "status",
+    "requested_at",
+    "resolved_at",
+    "resolved_by_user_id",
+    "resolution_note",
+    "risk_level",
+    "category",
+    "admin_question",
+    "investigation_notes",
+    "credential_status"
+   ],
+   "propertyCount": 18
+  },
+  {
+   "entity": "AdminCredentialReference",
+   "properties": [
+    "credential_ref",
+    "platform",
+    "platform_owned_account_id",
+    "approval_id",
+    "browserbase_secret_id",
+    "browserbase_secret_key",
+    "allowed_agents",
+    "status",
+    "created_by_user_id",
+    "created_at",
+    "updated_at",
+    "last_used_at",
+    "last_use_status"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "AdminCredentialVault",
+   "properties": [
+    "credential_ref",
+    "platform",
+    "platform_owned_account_id",
+    "approval_id",
+    "browserbase_secret_id",
+    "browserbase_secret_key",
+    "allowed_agents",
+    "status",
+    "created_by_user_id",
+    "created_at",
+    "updated_at",
+    "last_used_at",
+    "last_use_status"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "Agent",
+   "properties": [
+    "name",
+    "role",
+    "status",
+    "trust_score",
+    "description",
+    "last_synced"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "AgentActivity",
+   "properties": [
+    "campaign_id",
+    "campaign_title",
+    "owner_user_id",
+    "category",
+    "action",
+    "reason",
+    "expected_impact",
+    "result",
+    "recommended_next_actions",
+    "artifact_type",
+    "artifact_id",
+    "status",
+    "description"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "AgentContentDraft",
+   "properties": [
+    "owner_user_id",
+    "source_agent",
+    "kind",
+    "campaign_id",
+    "connection_id",
+    "payload",
+    "status",
+    "result_id",
+    "result_summary",
+    "last_error",
+    "created_at",
+    "updated_at",
+    "applied_at"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "AgentConversationRun",
+   "properties": [
+    "owner_user_id",
+    "agent_name",
+    "conversation_id",
+    "status",
+    "request_summary",
+    "result_summary",
+    "baseline_assistant_ids",
+    "last_checked_at",
+    "created_at",
+    "updated_at"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "AgentDelegation",
+   "properties": [
+    "owner_user_id",
+    "campaign_id",
+    "campaign_title_snapshot",
+    "source_agent",
+    "destination_agent",
+    "objective",
+    "context_summary",
+    "context_provenance",
+    "status",
+    "consent_version",
+    "continuation_state",
+    "retry_count",
+    "max_retries",
+    "last_attempt_at",
+    "next_retry_at",
+    "result_summary",
+    "supersedes_delegation_id",
+    "superseded_by_delegation_id",
+    "verification",
+    "parent_delegation_id",
+    "created_at",
+    "updated_at",
+    "completed_at"
+   ],
+   "propertyCount": 23
+  },
+  {
+   "entity": "AuditLog",
+   "properties": [
+    "action",
+    "actor_user_id",
+    "target_type",
+    "target_id",
+    "detail",
+    "status",
+    "metadata",
+    "description"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "AuthorizationGrant",
+   "properties": [
+    "agent_name",
+    "user_id",
+    "platform",
+    "purpose",
+    "scope",
+    "status",
+    "granted_at",
+    "expires_at",
+    "revoked_at",
+    "revoked_reason",
+    "description"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "BlogEntry",
+   "properties": [
+    "blog_id",
+    "owner_user_id",
+    "type",
+    "title",
+    "summary",
+    "body",
+    "status",
+    "featured",
+    "published_at",
+    "created_at",
+    "updated_at"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "Campaign",
+   "properties": [
+    "title",
+    "summary",
+    "story",
+    "category",
+    "goal_amount",
+    "raised_amount",
+    "donor_count",
+    "status",
+    "cover_image_is_ai",
+    "cover_image_url",
+    "end_date",
+    "location",
+    "location_lat",
+    "location_lng",
+    "cashapp_tag",
+    "distribution_donation_connection_id",
+    "external_import_private_marker",
+    "external_import_recovery_token",
+    "accept_crypto_donations",
+    "ai_profile",
+    "story_versions",
+    "outreach_enabled",
+    "outreach_paused",
+    "draft_step",
+    "outreach_last_run_at",
+    "outreach_last_attempt_at",
+    "outreach_last_error",
+    "social_last_generated_at",
+    "social_last_generation_attempt_at"
+   ],
+   "propertyCount": 29
+  },
+  {
+   "entity": "CampaignTranslation",
+   "properties": [
+    "campaign_id",
+    "language_code",
+    "source_hash",
+    "title",
+    "summary",
+    "story",
+    "status"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "CampaignUpdate",
+   "properties": [
+    "campaign_id",
+    "title",
+    "content",
+    "media_url",
+    "media_type"
+   ],
+   "propertyCount": 5
+  },
+  {
+   "entity": "Community",
+   "properties": [
+    "name",
+    "description",
+    "type",
+    "location",
+    "cover_image_url",
+    "member_count"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "CommunityMember",
+   "properties": [
+    "community_id",
+    "user_id",
+    "user_name",
+    "role",
+    "description"
+   ],
+   "propertyCount": 5
+  },
+  {
+   "entity": "ConnectedPayoutAccount",
+   "properties": [
+    "owner_user_id",
+    "provider",
+    "provider_account_id",
+    "status",
+    "charges_enabled",
+    "payouts_enabled",
+    "details_submitted",
+    "default_currency",
+    "country",
+    "last_verified_at",
+    "last_error"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "DeviceAuthorization",
+   "properties": [
+    "device_code_hash",
+    "user_code_hash",
+    "access_token_hash",
+    "client_id",
+    "device_label",
+    "scopes",
+    "state",
+    "owner_user_id",
+    "created_at",
+    "expires_at",
+    "approved_at",
+    "grant_expires_at",
+    "last_polled_at"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "DiscussionPost",
+   "properties": [
+    "community_id",
+    "title",
+    "content",
+    "category",
+    "author_name",
+    "reply_count",
+    "pinned"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "DiscussionReply",
+   "properties": [
+    "post_id",
+    "community_id",
+    "content",
+    "author_name"
+   ],
+   "propertyCount": 4
+  },
+  {
+   "entity": "DistributedPost",
+   "properties": [
+    "campaign_id",
+    "campaign_title",
+    "connection_id",
+    "platform",
+    "source_update_id",
+    "content",
+    "media_url",
+    "hashtags",
+    "status",
+    "scheduled_for",
+    "published_at",
+    "external_post_url",
+    "donation_destination_url",
+    "donation_destination_platform",
+    "error",
+    "retry_count",
+    "owner_user_id",
+    "origin",
+    "publishing_started_at"
+   ],
+   "propertyCount": 19
+  },
+  {
+   "entity": "Donation",
+   "properties": [
+    "campaign_id",
+    "campaign_title",
+    "amount",
+    "platform_contribution",
+    "processing_fee",
+    "donor_name",
+    "message",
+    "is_recurring",
+    "recurring_status",
+    "donor_user_id",
+    "canonical_operation_id",
+    "stripe_session_id",
+    "idempotency_key",
+    "payment_method",
+    "payment_verified",
+    "is_institutional",
+    "cleared",
+    "withdrawal_id",
+    "description",
+    "provider_transaction_id"
+   ],
+   "propertyCount": 20
+  },
+  {
+   "entity": "ExecutiveReport",
+   "properties": [
+    "title",
+    "report_type",
+    "period",
+    "summary",
+    "highlights",
+    "concerns",
+    "forecast",
+    "recommended_actions",
+    "snapshot"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "ExternalAgentApiKey",
+   "properties": [
+    "label",
+    "key_prefix",
+    "key_hash",
+    "scope",
+    "status",
+    "created_at",
+    "revoked_at",
+    "last_used_at"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "ExternalCampaignImport",
+   "properties": [
+    "owner_user_id",
+    "connection_id",
+    "operation_key",
+    "request_id",
+    "recovery_token",
+    "platform",
+    "external_campaign_id",
+    "external_url",
+    "campaign_id",
+    "sync_enabled",
+    "source_updated_at",
+    "last_imported_at",
+    "field_provenance",
+    "locally_locked_fields",
+    "status"
+   ],
+   "propertyCount": 15
+  },
+  {
+   "entity": "ExternalCampaignImportOperation",
+   "properties": [
+    "target_key",
+    "owner_user_id",
+    "connection_id",
+    "request_fingerprint",
+    "active_claim_key",
+    "recovery_token",
+    "request_id",
+    "campaign_id",
+    "import_id",
+    "source",
+    "source_url",
+    "snapshot",
+    "imported_at",
+    "state"
+   ],
+   "propertyCount": 14
+  },
+  {
+   "entity": "ExternalCampaignPublication",
+   "properties": [
+    "campaign_id",
+    "owner_user_id",
+    "platform",
+    "environment",
+    "status",
+    "page_short_name",
+    "provider_page_id",
+    "provider_page_url",
+    "provider_charity_id",
+    "provider_verified_at",
+    "registration_method",
+    "test_note"
+   ],
+   "propertyCount": 12
+  },
+  {
+   "entity": "ExternalCollectionAuthorization",
+   "properties": [
+    "owner_user_id",
+    "campaign_id",
+    "operation_id",
+    "status",
+    "expires_at",
+    "authorized_at",
+    "sources",
+    "destination_type",
+    "destination_ref",
+    "authorization_text_version",
+    "consent_snapshot"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "ExternalConversation",
+   "properties": [
+    "user_id",
+    "connection_id",
+    "platform",
+    "external_thread_id",
+    "external_unique_key",
+    "campaign_id",
+    "source_type",
+    "subject",
+    "participant_summary",
+    "source_url",
+    "reply_support",
+    "status",
+    "last_message_at",
+    "last_message_preview"
+   ],
+   "propertyCount": 14
+  },
+  {
+   "entity": "ExternalConversationMessage",
+   "properties": [
+    "user_id",
+    "conversation_id",
+    "connection_id",
+    "platform",
+    "external_message_id",
+    "external_unique_key",
+    "direction",
+    "sender_display_name",
+    "sender_external_id",
+    "content",
+    "sent_at",
+    "source_url",
+    "reply_to_external_message_id",
+    "delivery_status",
+    "provider_verified"
+   ],
+   "propertyCount": 15
+  },
+  {
+   "entity": "ExternalFundMigrationRecord",
+   "properties": [
+    "request_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "campaign_title",
+    "source_platform",
+    "reported_amount",
+    "currency",
+    "prospective_platform_fee",
+    "prospective_net",
+    "state",
+    "matched_external_observation_id",
+    "matched_holding_entry_id",
+    "note"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "ExternalFundObservation",
+   "properties": [
+    "operation_key",
+    "provider",
+    "provider_transaction_id",
+    "external_connection_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "amount",
+    "currency",
+    "observed_at",
+    "settlement_state",
+    "holding_ledger_entry_id",
+    "receiving_paypal_transaction_id",
+    "description"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "ExternalPlatformRecord",
+   "properties": [
+    "provider",
+    "record_type",
+    "external_id",
+    "owner_user_id",
+    "status",
+    "data",
+    "observed_at"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "ExternalSyncClaim",
+   "properties": [
+    "claim_key",
+    "claim_type",
+    "lock_token",
+    "lock_expires_at",
+    "rate_window_started_at",
+    "rate_slot",
+    "request_key",
+    "request_id",
+    "request_fingerprint",
+    "job_type",
+    "actor_user_id",
+    "attempt_number",
+    "claimed_at"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "ExternalSyncEvent",
+   "properties": [
+    "provider",
+    "event_id",
+    "event_type",
+    "entity_id",
+    "instance_id",
+    "status",
+    "payload",
+    "received_at",
+    "processed_at",
+    "last_error"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "FeatureFlag",
+   "properties": [
+    "key",
+    "label",
+    "description",
+    "enabled",
+    "scope"
+   ],
+   "propertyCount": 5
+  },
+  {
+   "entity": "FinancialOperation",
+   "properties": [
+    "operation_key",
+    "operation_type",
+    "state",
+    "campaign_id",
+    "campaign_owner_user_id",
+    "provider",
+    "provider_transaction_id",
+    "allocation_fingerprint",
+    "payment_channel",
+    "gross_amount",
+    "platform_contribution",
+    "processing_fee",
+    "platform_fee",
+    "net_amount",
+    "withdrawal_id",
+    "payout_method",
+    "payout_destination_ref",
+    "completed_at",
+    "cancelled_at",
+    "note"
+   ],
+   "propertyCount": 20
+  },
+  {
+   "entity": "FollowedCampaign",
+   "properties": [
+    "user_id",
+    "campaign_id",
+    "campaign_title",
+    "category",
+    "cover_image_url",
+    "notification_prefs",
+    "pinned",
+    "archived",
+    "last_viewed",
+    "description"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "FoundingWaitlist",
+   "properties": [
+    "email",
+    "screen_name",
+    "interest",
+    "marketing_opt_in",
+    "referral_code",
+    "referred_by",
+    "status",
+    "joined_at"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "Friendship",
+   "properties": [
+    "requester_user_id",
+    "addressee_user_id",
+    "status",
+    "requested_at",
+    "accepted_at",
+    "description"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "FundraisingProviderCapability",
+   "properties": [
+    "platform",
+    "display_name",
+    "aliases",
+    "category",
+    "domain",
+    "documentation_urls",
+    "campaign_import",
+    "campaign_sync",
+    "balance_read",
+    "payout_model",
+    "payout_destination_configurable",
+    "api_transfer",
+    "authenticated_browser",
+    "connection_strategy",
+    "account_creation_capability",
+    "delegated_account_creation",
+    "ownership_model",
+    "publishing_capabilities",
+    "campaign_create_documented",
+    "campaign_create_verified",
+    "campaign_create_tested_at",
+    "social_publishing",
+    "direct_publish_verified",
+    "manual_share_verified",
+    "publish_tested_at",
+    "publish_test_account_reference",
+    "manual_share_method",
+    "messaging_capability",
+    "webhook_support",
+    "poll_support",
+    "withdrawal_initiation",
+    "session_persistence",
+    "verification_requirements",
+    "restrictions",
+    "requires_transaction_authorization",
+    "supported_transports",
+    "supported_currencies",
+    "supported_countries",
+    "capability_status",
+    "implementation_status",
+    "test_status",
+    "adapter_reference",
+    "health_state",
+    "supported_actions",
+    "unsupported_actions",
+    "manual_required_actions",
+    "evidence_url",
+    "evidence_checked_at",
+    "last_researched_at",
+    "notes"
+   ],
+   "propertyCount": 50
+  },
+  {
+   "entity": "GitHubSyncCheckpoint",
+   "properties": [
+    "repository",
+    "branch",
+    "remote_head_sha",
+    "previous_remote_head_sha",
+    "relationship",
+    "observed_at",
+    "observed_by_user_id",
+    "source",
+    "detail"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "GrantApplication",
+   "properties": [
+    "opportunity_id",
+    "opportunity_title",
+    "institution_id",
+    "institution_name",
+    "campaign_id",
+    "campaign_title",
+    "applicant_name",
+    "applicant_user_id",
+    "narrative",
+    "requested_amount",
+    "status",
+    "decision_note",
+    "description"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "HelpArticle",
+   "properties": [
+    "category",
+    "question",
+    "answer",
+    "slug",
+    "description",
+    "keywords",
+    "helpful_yes",
+    "helpful_no"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "HelpDraft",
+   "properties": [
+    "category",
+    "question",
+    "answer",
+    "slug",
+    "description",
+    "keywords",
+    "article_id",
+    "stage"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "HelpFeedback",
+   "properties": [
+    "user_id",
+    "article_id",
+    "helpful",
+    "comment"
+   ],
+   "propertyCount": 4
+  },
+  {
+   "entity": "HoldingLedgerEntry",
+   "properties": [
+    "operation_key",
+    "direction",
+    "state",
+    "source_type",
+    "source_provider",
+    "source_account_ref",
+    "provider_transaction_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "amount",
+    "currency",
+    "platform_contribution",
+    "processing_fee",
+    "payment_channel",
+    "withdrawal_id",
+    "canonical_operation_id",
+    "external_connection_id",
+    "external_observation_id",
+    "settled_at",
+    "reconciliation_note"
+   ],
+   "propertyCount": 20
+  },
+  {
+   "entity": "InboxItem",
+   "properties": [
+    "user_id",
+    "platform",
+    "campaign_id",
+    "campaign_title",
+    "canonical_operation_id",
+    "type",
+    "author",
+    "content",
+    "link",
+    "status",
+    "ai_draft",
+    "conversation_id",
+    "external_message_id",
+    "connection_id",
+    "reply_support",
+    "recipient_address",
+    "mailbox_priority"
+   ],
+   "propertyCount": 17
+  },
+  {
+   "entity": "Institution",
+   "properties": [
+    "name",
+    "type",
+    "mission",
+    "description",
+    "industry",
+    "location",
+    "website",
+    "causes_supported",
+    "logo_url",
+    "offers_matching_gifts",
+    "offers_volunteer_program",
+    "offers_grants",
+    "verification_status",
+    "contact_email",
+    "opportunity_count"
+   ],
+   "propertyCount": 15
+  },
+  {
+   "entity": "InstitutionOpportunity",
+   "properties": [
+    "institution_id",
+    "institution_name",
+    "title",
+    "category",
+    "description",
+    "award_amount",
+    "eligibility",
+    "requirements",
+    "deadline",
+    "status",
+    "application_count"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "IntegrationChangeRequest",
+   "properties": [
+    "owner_user_id",
+    "platform",
+    "operation",
+    "transport",
+    "status",
+    "expires_at",
+    "created_at",
+    "approved_at",
+    "applied_at",
+    "expected_recipe_version",
+    "result_summary"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "KnowledgeArticle",
+   "properties": [
+    "title",
+    "category",
+    "content",
+    "summary",
+    "version",
+    "author_name"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "LegalAcceptance",
+   "properties": [
+    "owner_user_id",
+    "terms_version",
+    "accepted_at",
+    "acceptance_method",
+    "terms_path",
+    "privacy_path"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "Message",
+   "properties": [
+    "campaign_id",
+    "campaign_title",
+    "subject",
+    "content",
+    "comm_type",
+    "audience",
+    "channels",
+    "status",
+    "sent_at",
+    "recipient_count",
+    "email_count",
+    "in_app_count",
+    "ai_generated"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "MissionBrief",
+   "properties": [
+    "summary",
+    "today_priorities",
+    "week_priorities",
+    "long_term",
+    "risks",
+    "predictions",
+    "generated_at"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "MonitoredCampaign",
+   "properties": [
+    "if_campaign_id",
+    "title",
+    "goal_amount",
+    "raised_amount",
+    "status",
+    "outreach_enabled",
+    "payment_active",
+    "story_present",
+    "cover_image_present",
+    "ai_ideal_donors",
+    "ai_interested_orgs",
+    "last_synced",
+    "description"
+   ],
+   "propertyCount": 13
+  },
+  {
+   "entity": "NonprofitSubscriptionApproval",
+   "properties": [
+    "user_id",
+    "status",
+    "verified_at",
+    "review_note"
+   ],
+   "propertyCount": 4
+  },
+  {
+   "entity": "Notification",
+   "properties": [
+    "user_id",
+    "title",
+    "body",
+    "type",
+    "link",
+    "read",
+    "canonical_operation_id"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "OfficialPublication",
+   "properties": [
+    "kind",
+    "title",
+    "summary",
+    "body",
+    "pdf_url",
+    "file_label",
+    "status",
+    "final_approved",
+    "published_at",
+    "updated_at"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "Opportunity",
+   "properties": [
+    "title",
+    "type",
+    "description",
+    "estimated_value",
+    "eligibility",
+    "required_actions",
+    "confidence",
+    "source",
+    "status"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "PayPalBillingWebhook",
+   "properties": [
+    "provider",
+    "account_ref",
+    "webhook_id",
+    "url",
+    "events",
+    "verified_at"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "PayPalSubscriptionIntent",
+   "properties": [
+    "user_id",
+    "tier",
+    "interval",
+    "plan_id",
+    "paypal_subscription_id",
+    "custom_id",
+    "account_ref",
+    "status",
+    "created_at",
+    "last_verified_at",
+    "last_reversal_at"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "PlatformAccessRegistry",
+   "properties": [
+    "platform",
+    "purpose",
+    "integration_kind",
+    "account_identifier",
+    "auth_type",
+    "secret_refs",
+    "environment",
+    "optional",
+    "authorized_agents",
+    "status",
+    "last_verified",
+    "last_successful_verification",
+    "admin_owner",
+    "dependencies",
+    "reauth_instructions",
+    "auth_failures",
+    "last_failure",
+    "cleanup_flags",
+    "description"
+   ],
+   "propertyCount": 19
+  },
+  {
+   "entity": "PlatformConnection",
+   "properties": [
+    "platform",
+    "kind",
+    "display_name",
+    "external_url",
+    "campaign_id",
+    "status",
+    "verification_status",
+    "capability_status",
+    "external_data_source",
+    "fundraising_data_consent",
+    "automation_mode",
+    "obo_consent",
+    "agent_access",
+    "credentials",
+    "external_total",
+    "external_currency",
+    "external_donor_count",
+    "last_synced",
+    "external_balance_observed_at",
+    "last_error",
+    "history",
+    "description",
+    "browser_access"
+   ],
+   "propertyCount": 23
+  },
+  {
+   "entity": "PlatformConnectionRecipe",
+   "properties": [
+    "platform",
+    "operation",
+    "recipe_version",
+    "status",
+    "preferred_transport",
+    "fallback_transports",
+    "candidate_transports",
+    "blocked_routes",
+    "successful_route",
+    "discovery_state",
+    "rediscovery_on_failure",
+    "connector_type",
+    "worker_key",
+    "required_capabilities",
+    "success_count",
+    "consecutive_failure_count",
+    "last_success_at",
+    "last_failure_at",
+    "last_verified_at",
+    "provider_fingerprint",
+    "evidence",
+    "notes"
+   ],
+   "propertyCount": 22
+  },
+  {
+   "entity": "PlatformEvent",
+   "properties": [
+    "action",
+    "category",
+    "actor_name",
+    "affected_resource",
+    "outcome",
+    "details"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "PlatformIncident",
+   "properties": [
+    "fingerprint",
+    "source",
+    "route_pattern",
+    "error_kind",
+    "error_summary",
+    "affected_routes",
+    "occurrences",
+    "first_seen_at",
+    "last_seen_at",
+    "status",
+    "analysis",
+    "systemic_scope",
+    "repair_plan",
+    "verification_plan",
+    "rollback_plan",
+    "approval_note",
+    "approved_by_user_id",
+    "approved_at",
+    "builder_task_id",
+    "builder_conversation_id",
+    "dispatch_error",
+    "verified_at",
+    "verification_evidence",
+    "builder_execution_state",
+    "builder_request_ref",
+    "builder_provider_phase",
+    "builder_last_checked_at",
+    "builder_release_approval_at",
+    "builder_release_approval_by",
+    "builder_review_evidence",
+    "builder_attempts"
+   ],
+   "propertyCount": 31
+  },
+  {
+   "entity": "PlatformOwnedAccount",
+   "properties": [
+    "platform",
+    "display_name",
+    "profile_url",
+    "profile_description",
+    "status",
+    "connection_id",
+    "credential_reference",
+    "recovery_status",
+    "last_checked_at",
+    "last_posted_at",
+    "weekly_post_due_at",
+    "discovered_by",
+    "notes",
+    "account_type"
+   ],
+   "propertyCount": 14
+  },
+  {
+   "entity": "PostInterest",
+   "properties": [
+    "user_id",
+    "post_id",
+    "liked",
+    "saved",
+    "updated_at"
+   ],
+   "propertyCount": 5
+  },
+  {
+   "entity": "ProtocolReport",
+   "properties": [
+    "report_id",
+    "title",
+    "summary",
+    "passed_count",
+    "failed_count",
+    "results",
+    "generated_at",
+    "last_synced"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "PublicProfile",
+   "properties": [
+    "user_id",
+    "display_name",
+    "username",
+    "bio",
+    "avatar_url",
+    "focus_campaign_ids",
+    "priority_campaign_id",
+    "show_communities",
+    "show_posts",
+    "updated_at"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "PushDevice",
+   "properties": [
+    "user_id",
+    "token",
+    "platform",
+    "enabled",
+    "created_at",
+    "updated_at"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "RateLimitBucket",
+   "properties": [
+    "key",
+    "window_start",
+    "count",
+    "description"
+   ],
+   "propertyCount": 4
+  },
+  {
+   "entity": "Recommendation",
+   "properties": [
+    "campaign_id",
+    "campaign_title",
+    "owner_user_id",
+    "title",
+    "description",
+    "reasoning",
+    "evidence",
+    "confidence",
+    "expected_impact",
+    "estimated_effort",
+    "agent",
+    "status"
+   ],
+   "propertyCount": 12
+  },
+  {
+   "entity": "ScheduledAutoPostPermit",
+   "properties": [
+    "post_id",
+    "campaign_id",
+    "connection_id",
+    "owner_user_id",
+    "platform",
+    "priority_at",
+    "status",
+    "publishing_at",
+    "published_at",
+    "last_error"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "SocialPost",
+   "properties": [
+    "author_user_id",
+    "author_username",
+    "author_name",
+    "author_avatar_url",
+    "author_banner_tier",
+    "content",
+    "media_url",
+    "campaign_id",
+    "campaign_title",
+    "likes_count",
+    "reposts_count",
+    "comments_count",
+    "is_top_post",
+    "crosspost_platforms",
+    "ai_generated",
+    "source_platform",
+    "external_post_id",
+    "external_url",
+    "agent_managed",
+    "image_generated"
+   ],
+   "propertyCount": 20
+  },
+  {
+   "entity": "StripeReversalHold",
+   "properties": [
+    "payment_intent_id",
+    "charge_id",
+    "reason",
+    "amount_refunded_cents",
+    "disputed",
+    "provider_event_id",
+    "review_status",
+    "recorded_at"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "SubscriptionPlanMapping",
+   "properties": [
+    "provider",
+    "tier",
+    "interval",
+    "currency",
+    "amount_cents",
+    "catalog_version",
+    "account_ref",
+    "product_id",
+    "plan_id",
+    "verified_at"
+   ],
+   "propertyCount": 10
+  },
+  {
+   "entity": "SupportTicket",
+   "properties": [
+    "user_id",
+    "name",
+    "email",
+    "subject",
+    "message",
+    "status",
+    "description"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "SustainabilityAudit",
+   "properties": [
+    "kind",
+    "summary",
+    "observed_at",
+    "source_url",
+    "notes",
+    "verification_status",
+    "transfer_bytes_observed",
+    "resource_count_observed",
+    "resources_missing_transfer_data"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "SyncRun",
+   "properties": [
+    "request_key",
+    "job_type",
+    "initiator_type",
+    "request_id",
+    "request_fingerprint",
+    "target_key",
+    "initiator_id",
+    "initiator_user_id",
+    "obo_user_id",
+    "scope",
+    "campaign_id",
+    "attempt_number",
+    "active_claim_key",
+    "claim_checked_at",
+    "result_payload",
+    "started_at",
+    "completed_at",
+    "overall_status",
+    "provider_results",
+    "total_discovered",
+    "discovered_totals",
+    "total_imported",
+    "campaigns_covered",
+    "description"
+   ],
+   "propertyCount": 24
+  },
+  {
+   "entity": "TreasurySnapshot",
+   "properties": [
+    "total_raised",
+    "total_held",
+    "total_fees",
+    "net_position",
+    "campaign_totals",
+    "synced_at",
+    "description"
+   ],
+   "propertyCount": 7
+  },
+  {
+   "entity": "User",
+   "properties": [
+    "role",
+    "username",
+    "banner_tier",
+    "social_score",
+    "onboarding_completed",
+    "onboarding",
+    "comm_prefs",
+    "ai_connection_consent",
+    "ai_publishing_consent",
+    "subscription_tier",
+    "subscription_status",
+    "subscription_interval",
+    "stripe_customer_id",
+    "stripe_subscription_id",
+    "paypal_subscription_id",
+    "paypal_subscription_plan_id",
+    "subscription_provider",
+    "subscription_renews_at",
+    "trial_end",
+    "premium_trial_started_at",
+    "premium_day_pass_expires_at",
+    "stripe_day_pass_checkout_id",
+    "stripe_day_pass_payment_intent",
+    "account_deletion_pending",
+    "account_status",
+    "ai_obo_consent",
+    "first_paid_subscription_at"
+   ],
+   "propertyCount": 27
+  },
+  {
+   "entity": "UserBlog",
+   "properties": [
+    "owner_user_id",
+    "type",
+    "title",
+    "description",
+    "slug",
+    "cover_image_url",
+    "status",
+    "created_at",
+    "updated_at"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "UserCredentialVault",
+   "properties": [
+    "user_id",
+    "platform",
+    "ciphertext",
+    "iv",
+    "salt",
+    "version",
+    "iterations",
+    "created_at",
+    "updated_at"
+   ],
+   "propertyCount": 9
+  },
+  {
+   "entity": "VerificationMail",
+   "properties": [
+    "user_id",
+    "alias_id",
+    "sender",
+    "message_key",
+    "ciphertext",
+    "iv",
+    "received_at",
+    "expires_at"
+   ],
+   "propertyCount": 8
+  },
+  {
+   "entity": "VerificationMailbox",
+   "properties": [
+    "user_id",
+    "platform",
+    "address",
+    "status",
+    "created_at",
+    "last_received_at"
+   ],
+   "propertyCount": 6
+  },
+  {
+   "entity": "VolunteerOpportunity",
+   "properties": [
+    "community_id",
+    "community_name",
+    "role_title",
+    "description",
+    "skills_needed",
+    "location",
+    "remote_ok",
+    "schedule",
+    "estimated_hours",
+    "status",
+    "volunteer_count"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "VolunteerSignup",
+   "properties": [
+    "opportunity_id",
+    "community_id",
+    "user_id",
+    "user_name",
+    "description"
+   ],
+   "propertyCount": 5
+  },
+  {
+   "entity": "WebhookEvent",
+   "properties": [
+    "source",
+    "event_key",
+    "event_type",
+    "state",
+    "canonical_operation_id",
+    "attempt_count",
+    "last_error",
+    "financial_applied_at",
+    "side_effects_completed_at",
+    "processed_at",
+    "description"
+   ],
+   "propertyCount": 11
+  },
+  {
+   "entity": "Withdrawal",
+   "properties": [
+    "owner_user_id",
+    "user_name",
+    "campaign_id",
+    "campaign_title",
+    "gross_amount",
+    "platform_fee",
+    "net_amount",
+    "paypal_email",
+    "covered_donation_ids",
+    "covered_holding_entry_ids",
+    "status",
+    "canonical_operation_key",
+    "canonical_reservation_id",
+    "canonical_ledger_entry_id",
+    "payout_batch_id",
+    "provider_sender_batch_id",
+    "review_note",
+    "processed_at",
+    "description"
+   ],
+   "propertyCount": 19
+  },
+  {
+   "entity": "WritingResearchBrief",
+   "properties": [
+    "week_key",
+    "created_at",
+    "reviewed_at",
+    "status",
+    "summary",
+    "guidance",
+    "source_urls",
+    "trend_observations",
+    "unverified_claims",
+    "study_facts"
+   ],
+   "propertyCount": 10
+  }
+ ],
+ "summary": {
+  "byDomain": {
+   "agents": [
+    "acknowledgeConnectionIssue",
+    "applyAgentContentDraft",
+    "createKnowledgeArticle",
+    "executeAdminAgentRequest",
+    "externalAgentCampaigns",
+    "externalAgentContentWrite",
+    "getAgentAccountContext",
+    "getAgentMailContext",
+    "manageAdminBuilderWork",
+    "manageAgentContentDraft",
+    "manageAgentWork",
+    "manageApprovedBuilderExecution",
+    "manageExternalAgentKeys",
+    "ownerAgentChatActions",
+    "recordAgentInteraction",
+    "reviewAgentActivity",
+    "routeAgentTask",
+    "runOutreachAgent",
+    "trackAgentConversation",
+    "verifyAgentPlatformAccess"
+   ],
+   "payments": [
+    "activateSubscriptionCheckout",
+    "cancelPayPalSubscription",
+    "capturePayPalOrder",
+    "confirmPayPalSubscription",
+    "createDonationCheckout",
+    "createPayPalOrder",
+    "createPayPalSubscriptionCheckout",
+    "createPremiumDayPassCheckout",
+    "createSubscriptionCheckout",
+    "discoverPayPalHoldingSettlements",
+    "getCampaignDonations",
+    "getCryptoDonationReadiness",
+    "getPayPalConfig",
+    "getPayPalPayoutReadiness",
+    "getPayPalSubscriptionOptions",
+    "getStripeIntegrationAudit",
+    "getStripeReadiness",
+    "getStripeSubscriptionOptions",
+    "listUntrackedPayPalReceipts",
+    "manageRecurringDonation",
+    "matchExternalPayPalSettlement",
+    "payPalSubscriptionWebhook",
+    "reconcileDirectPayPalCampaignDonation",
+    "reconcileExternalPayPalSettlement",
+    "recordDonation",
+    "repairStripeWebhookEvents",
+    "setupPayPalSubscriptionWebhook",
+    "startPremiumTrial",
+    "startStripeConnectOnboarding",
+    "stripeWebhook",
+    "syncPayPalSubscriptionCatalog",
+    "syncStripeSubscriptionCatalog",
+    "verifyOwnerPayPalBasicPlan"
+   ],
+   "admin": [
+    "adminApiConnectionIntake",
+    "adminCampaignControl",
+    "adminOAuthProviderReadiness",
+    "adminUpdateUserRole",
+    "auditAdminAgentGateway"
+   ],
+   "ai": [
+    "analyzeGrantApplication",
+    "draftSharePost",
+    "generateCampaignCover",
+    "generateDistributionContent",
+    "generateIntelligence",
+    "generateSocialContent",
+    "getCampaignDraft",
+    "getWritingResearchBrief",
+    "refreshWritingResearch",
+    "translateCampaign"
+   ],
+   "campaigns": [
+    "applyInstitutionOpportunity",
+    "createInstitution",
+    "decideGrantApplication",
+    "deleteCampaign",
+    "enforceCampaignProtocol",
+    "listInstitutionApplications",
+    "publishInstitutionOpportunity",
+    "recordCampaignCreated",
+    "saveCampaign",
+    "updateCampaignSettings"
+   ],
+   "treasury": [
+    "authorizeCollectAndWithdraw",
+    "executeCollectAndWithdraw",
+    "getCampaignWithdrawalBalance",
+    "getConnectedPayoutAccount",
+    "getOwnerFinancialLedger",
+    "manageConnectedPayoutAccount",
+    "prepareCollectAndWithdraw",
+    "requestWithdrawal"
+   ],
+   "social": [
+    "authorizeConnectionAi",
+    "broadcastPosts",
+    "communityMembership",
+    "completeOAuthConnection",
+    "createCommunity",
+    "createDiscussionPost",
+    "createDistributedPost",
+    "createSocialPost",
+    "createVolunteerOpportunity",
+    "disconnectPlatformConnection",
+    "finalizeAppUserOAuthConnection",
+    "getCommunityFeed",
+    "listConnections",
+    "logPlatformEvent",
+    "maintainPlatformOwnedAccounts",
+    "manageDistributedPost",
+    "manageFriends",
+    "manageOAuthClients",
+    "manageOwnerConnectionConfiguration",
+    "managePlatformAccess",
+    "managePlatformIncidents",
+    "managePostInterest",
+    "mirrorExternalPosts",
+    "postCampaignUpdate",
+    "postDiscussionReply",
+    "publishLinkedCampaignToConnection",
+    "publishPost",
+    "requestManagedConnectionAction",
+    "resolveConnectionStatus",
+    "resolvePlatformConnectionRecipe",
+    "revokeConnectionAiConsent",
+    "runBrowserConnection",
+    "runOfficialSocialPromotion",
+    "runSocialAutopilot",
+    "saveConnectionCredentials",
+    "setConnectionAiToggle",
+    "toggleCampaignFollow",
+    "updateFollowPreferences",
+    "verifyPlatformConnection",
+    "volunteerFollowUp",
+    "volunteerSignup",
+    "welcomeVolunteer"
+   ],
+   "accounts": [
+    "checkUsernameAvailability",
+    "deleteAccount",
+    "deviceAuthorization",
+    "getAppUserConnector",
+    "managePublicProfile",
+    "recordLegalAcceptance",
+    "registerPushDevice",
+    "setUnifiedOboConsent",
+    "setUsername",
+    "verifyAppUserConnector"
+   ],
+   "other": [
+    "createSupportTicket",
+    "geocodeCity",
+    "getBufferReadiness",
+    "getFundraisingMode",
+    "getLiveProviderStatus",
+    "getMyGiving",
+    "getOwnerDonorDirectory",
+    "getPaymentCapabilities",
+    "getSharedConnectorStatus",
+    "getVerifiedIFundIntegrationContext",
+    "joinFoundingWaitlist",
+    "justGivingStagingPilot",
+    "kofiWebhook",
+    "listFundraisingProviderCapabilities",
+    "manageBlog",
+    "manageOfficialPublications",
+    "manageVerificationMailbox",
+    "recordExternalFundMigration",
+    "renderInterplanetaryPhoto",
+    "runReporterDiary",
+    "sendCommunication",
+    "sendPublicContactMessage",
+    "updateMissionItemStatus",
+    "validateIntegrationHealth",
+    "verifyAdminGateway",
+    "wixWebhook"
+   ],
+   "discovery": [
+    "discoverConnectionMethods",
+    "discoverExternalCampaignSnapshot",
+    "discoverFeatures",
+    "getFeatureAvailability",
+    "manageFeatureFlag"
+   ],
+   "notifications": [
+    "getUnifiedInbox",
+    "markNotificationRead",
+    "processAdminActionInbox",
+    "receiveCloudflareEmail",
+    "updateInboxItem"
+   ],
+   "workflows": [
+    "importExternalCampaign",
+    "syncConnections",
+    "syncExternalFunds",
+    "syncFromConvex",
+    "syncGitHub",
+    "syncImportedCampaign",
+    "syncWixAnalytics",
+    "syncWixBusinessData",
+    "syncWixCampaigns",
+    "syncWixContent"
+   ]
+  },
+  "financial": [
+   "activateSubscriptionCheckout",
+   "authorizeCollectAndWithdraw",
+   "cancelPayPalSubscription",
+   "capturePayPalOrder",
+   "confirmPayPalSubscription",
+   "createDonationCheckout",
+   "createPayPalOrder",
+   "createPayPalSubscriptionCheckout",
+   "createPremiumDayPassCheckout",
+   "createSubscriptionCheckout",
+   "deleteAccount",
+   "deleteCampaign",
+   "discoverPayPalHoldingSettlements",
+   "executeCollectAndWithdraw",
+   "generateIntelligence",
+   "generateSocialContent",
+   "getCampaignDonations",
+   "getCampaignWithdrawalBalance",
+   "getCommunityFeed",
+   "getConnectedPayoutAccount",
+   "getCryptoDonationReadiness",
+   "getMyGiving",
+   "getOwnerDonorDirectory",
+   "getOwnerFinancialLedger",
+   "getPayPalConfig",
+   "getPayPalPayoutReadiness",
+   "getPayPalSubscriptionOptions",
+   "getPaymentCapabilities",
+   "getStripeIntegrationAudit",
+   "getStripeReadiness",
+   "getStripeSubscriptionOptions",
+   "kofiWebhook",
+   "listUntrackedPayPalReceipts",
+   "manageConnectedPayoutAccount",
+   "manageRecurringDonation",
+   "matchExternalPayPalSettlement",
+   "payPalSubscriptionWebhook",
+   "prepareCollectAndWithdraw",
+   "reconcileDirectPayPalCampaignDonation",
+   "reconcileExternalPayPalSettlement",
+   "recordDonation",
+   "repairStripeWebhookEvents",
+   "requestWithdrawal",
+   "runOutreachAgent",
+   "sendCommunication",
+   "setupPayPalSubscriptionWebhook",
+   "startStripeConnectOnboarding",
+   "stripeWebhook",
+   "syncExternalFunds",
+   "syncPayPalSubscriptionCatalog",
+   "syncStripeSubscriptionCatalog",
+   "syncWixBusinessData",
+   "verifyOwnerPayPalBasicPlan",
+   "wixWebhook"
+  ],
+  "nonFinancial": [
+   "acknowledgeConnectionIssue",
+   "adminApiConnectionIntake",
+   "adminCampaignControl",
+   "adminOAuthProviderReadiness",
+   "adminUpdateUserRole",
+   "analyzeGrantApplication",
+   "applyAgentContentDraft",
+   "applyInstitutionOpportunity",
+   "auditAdminAgentGateway",
+   "authorizeConnectionAi",
+   "broadcastPosts",
+   "checkUsernameAvailability",
+   "communityMembership",
+   "completeOAuthConnection",
+   "createCommunity",
+   "createDiscussionPost",
+   "createDistributedPost",
+   "createInstitution",
+   "createKnowledgeArticle",
+   "createSocialPost",
+   "createSupportTicket",
+   "createVolunteerOpportunity",
+   "decideGrantApplication",
+   "deviceAuthorization",
+   "disconnectPlatformConnection",
+   "discoverConnectionMethods",
+   "discoverExternalCampaignSnapshot",
+   "discoverFeatures",
+   "draftSharePost",
+   "enforceCampaignProtocol",
+   "executeAdminAgentRequest",
+   "externalAgentCampaigns",
+   "externalAgentContentWrite",
+   "finalizeAppUserOAuthConnection",
+   "generateCampaignCover",
+   "generateDistributionContent",
+   "geocodeCity",
+   "getAgentAccountContext",
+   "getAgentMailContext",
+   "getAppUserConnector",
+   "getBufferReadiness",
+   "getCampaignDraft",
+   "getFeatureAvailability",
+   "getFundraisingMode",
+   "getLiveProviderStatus",
+   "getSharedConnectorStatus",
+   "getUnifiedInbox",
+   "getVerifiedIFundIntegrationContext",
+   "getWritingResearchBrief",
+   "importExternalCampaign",
+   "joinFoundingWaitlist",
+   "justGivingStagingPilot",
+   "listConnections",
+   "listFundraisingProviderCapabilities",
+   "listInstitutionApplications",
+   "logPlatformEvent",
+   "maintainPlatformOwnedAccounts",
+   "manageAdminBuilderWork",
+   "manageAgentContentDraft",
+   "manageAgentWork",
+   "manageApprovedBuilderExecution",
+   "manageBlog",
+   "manageDistributedPost",
+   "manageExternalAgentKeys",
+   "manageFeatureFlag",
+   "manageFriends",
+   "manageOAuthClients",
+   "manageOfficialPublications",
+   "manageOwnerConnectionConfiguration",
+   "managePlatformAccess",
+   "managePlatformIncidents",
+   "managePostInterest",
+   "managePublicProfile",
+   "manageVerificationMailbox",
+   "markNotificationRead",
+   "mirrorExternalPosts",
+   "ownerAgentChatActions",
+   "postCampaignUpdate",
+   "postDiscussionReply",
+   "processAdminActionInbox",
+   "publishInstitutionOpportunity",
+   "publishLinkedCampaignToConnection",
+   "publishPost",
+   "receiveCloudflareEmail",
+   "recordAgentInteraction",
+   "recordCampaignCreated",
+   "recordExternalFundMigration",
+   "recordLegalAcceptance",
+   "refreshWritingResearch",
+   "registerPushDevice",
+   "renderInterplanetaryPhoto",
+   "requestManagedConnectionAction",
+   "resolveConnectionStatus",
+   "resolvePlatformConnectionRecipe",
+   "reviewAgentActivity",
+   "revokeConnectionAiConsent",
+   "routeAgentTask",
+   "runBrowserConnection",
+   "runOfficialSocialPromotion",
+   "runReporterDiary",
+   "runSocialAutopilot",
+   "saveCampaign",
+   "saveConnectionCredentials",
+   "sendPublicContactMessage",
+   "setConnectionAiToggle",
+   "setUnifiedOboConsent",
+   "setUsername",
+   "startPremiumTrial",
+   "syncConnections",
+   "syncFromConvex",
+   "syncGitHub",
+   "syncImportedCampaign",
+   "syncWixAnalytics",
+   "syncWixCampaigns",
+   "syncWixContent",
+   "toggleCampaignFollow",
+   "trackAgentConversation",
+   "translateCampaign",
+   "updateCampaignSettings",
+   "updateFollowPreferences",
+   "updateInboxItem",
+   "updateMissionItemStatus",
+   "validateIntegrationHealth",
+   "verifyAdminGateway",
+   "verifyAgentPlatformAccess",
+   "verifyAppUserConnector",
+   "verifyPlatformConnection",
+   "volunteerFollowUp",
+   "volunteerSignup",
+   "welcomeVolunteer"
+  ],
+  "entityUsageCounts": {
+   "ActivityEvent": 2,
+   "AdminActionMessage": 1,
+   "AdminApiConnectionIntake": 1,
+   "AdminApproval": 3,
+   "AgentActivity": 7,
+   "AgentContentDraft": 4,
+   "AgentConversationRun": 1,
+   "AgentDelegation": 10,
+   "AuthorizationGrant": 2,
+   "BlogEntry": 3,
+   "Campaign": 62,
+   "CampaignTranslation": 2,
+   "CampaignUpdate": 6,
+   "Community": 6,
+   "CommunityMember": 10,
+   "ConnectedPayoutAccount": 3,
+   "DeviceAuthorization": 1,
+   "DiscussionPost": 6,
+   "DiscussionReply": 3,
+   "DistributedPost": 14,
+   "Donation": 14,
+   "ExternalAgentApiKey": 3,
+   "ExternalCampaignImport": 1,
+   "ExternalCampaignPublication": 1,
+   "ExternalCollectionAuthorization": 3,
+   "ExternalConversation": 1,
+   "ExternalConversationMessage": 1,
+   "ExternalFundMigrationRecord": 1,
+   "ExternalFundObservation": 3,
+   "ExternalPlatformRecord": 2,
+   "ExternalSyncEvent": 1,
+   "FeatureFlag": 4,
+   "FinancialOperation": 6,
+   "FollowedCampaign": 7,
+   "FoundingWaitlist": 1,
+   "Friendship": 1,
+   "GitHubSyncCheckpoint": 1,
+   "GrantApplication": 6,
+   "HoldingLedgerEntry": 10,
+   "InboxItem": 5,
+   "Institution": 7,
+   "InstitutionOpportunity": 3,
+   "IntegrationChangeRequest": 1,
+   "KnowledgeArticle": 1,
+   "LegalAcceptance": 1,
+   "Message": 3,
+   "MissionBrief": 2,
+   "NonprofitSubscriptionApproval": 2,
+   "Notification": 14,
+   "OfficialPublication": 1,
+   "Opportunity": 1,
+   "PayPalBillingWebhook": 5,
+   "PayPalSubscriptionIntent": 3,
+   "PlatformAccessRegistry": 7,
+   "PlatformConnection": 39,
+   "PlatformConnectionRecipe": 5,
+   "PlatformEvent": 1,
+   "PlatformIncident": 2,
+   "PlatformOwnedAccount": 2,
+   "PostInterest": 2,
+   "PublicProfile": 3,
+   "Recommendation": 6,
+   "ScheduledAutoPostPermit": 2,
+   "SocialPost": 7,
+   "StripeReversalHold": 1,
+   "SubscriptionPlanMapping": 3,
+   "SupportTicket": 1,
+   "User": 26,
+   "UserBlog": 5,
+   "VerificationMail": 2,
+   "VerificationMailbox": 2,
+   "VolunteerOpportunity": 4,
+   "VolunteerSignup": 5,
+   "WebhookEvent": 3,
+   "Withdrawal": 3,
+   "WritingResearchBrief": 4
+  },
+  "entitiesWithTable": [
+   "BlogEntry",
+   "Campaign",
+   "DiscussionPost",
+   "FollowedCampaign",
+   "InboxItem",
+   "LegalAcceptance",
+   "PlatformConnection",
+   "User"
+  ],
+  "entitiesWithoutTable": [
+   "ActivityEvent",
+   "AdminActionMessage",
+   "AdminApiConnectionIntake",
+   "AdminApproval",
+   "AgentActivity",
+   "AgentContentDraft",
+   "AgentConversationRun",
+   "AgentDelegation",
+   "AuthorizationGrant",
+   "CampaignTranslation",
+   "CampaignUpdate",
+   "Community",
+   "CommunityMember",
+   "ConnectedPayoutAccount",
+   "DeviceAuthorization",
+   "DiscussionReply",
+   "DistributedPost",
+   "Donation",
+   "ExternalAgentApiKey",
+   "ExternalCampaignImport",
+   "ExternalCampaignPublication",
+   "ExternalCollectionAuthorization",
+   "ExternalConversation",
+   "ExternalConversationMessage",
+   "ExternalFundMigrationRecord",
+   "ExternalFundObservation",
+   "ExternalPlatformRecord",
+   "ExternalSyncEvent",
+   "FeatureFlag",
+   "FinancialOperation",
+   "FoundingWaitlist",
+   "Friendship",
+   "GitHubSyncCheckpoint",
+   "GrantApplication",
+   "HoldingLedgerEntry",
+   "Institution",
+   "InstitutionOpportunity",
+   "IntegrationChangeRequest",
+   "KnowledgeArticle",
+   "Message",
+   "MissionBrief",
+   "NonprofitSubscriptionApproval",
+   "Notification",
+   "OfficialPublication",
+   "Opportunity",
+   "PayPalBillingWebhook",
+   "PayPalSubscriptionIntent",
+   "PlatformAccessRegistry",
+   "PlatformConnectionRecipe",
+   "PlatformEvent",
+   "PlatformIncident",
+   "PlatformOwnedAccount",
+   "PostInterest",
+   "PublicProfile",
+   "Recommendation",
+   "ScheduledAutoPostPermit",
+   "SocialPost",
+   "StripeReversalHold",
+   "SubscriptionPlanMapping",
+   "SupportTicket",
+   "UserBlog",
+   "VerificationMail",
+   "VerificationMailbox",
+   "VolunteerOpportunity",
+   "VolunteerSignup",
+   "WebhookEvent",
+   "Withdrawal",
+   "WritingResearchBrief"
+  ],
+  "knownTables": [
+   "ifund_blog_entries",
+   "ifund_blogs",
+   "ifund_campaigns",
+   "ifund_connections",
+   "ifund_follows",
+   "ifund_inbox_items",
+   "ifund_legal_acceptances",
+   "ifund_notifications",
+   "ifund_official_publications",
+   "ifund_posts",
+   "ifund_profiles"
+  ]
+ }
+}

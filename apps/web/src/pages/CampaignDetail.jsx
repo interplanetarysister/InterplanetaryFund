@@ -5,6 +5,7 @@ import { Image } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import CampaignFundingCard from "@/components/campaigns/CampaignFundingCard";
 import CampaignFollowButton from "@/components/campaigns/CampaignFollowButton";
+import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
 import { FALLBACK_IMAGE } from "@/components/brand/brand";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { Loader2, Heart, MapPin } from "lucide-react";
@@ -16,10 +17,10 @@ import PageError from "@/components/PageError";
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
 // Public-site port of the Base44 CampaignDetail page. Owner and admin tools
-// (editing, distribution, outreach agents, AI coach, translations, follow,
-// share kit, supporter list, donation dialog) need a signed-in member and are
-// not part of this slice. Campaign checkout stays disabled while campaign
-// donations are paused.
+// (editing, distribution, outreach agents, AI coach, translations, supporter
+// list, donation dialog) need a signed-in member and are not part of this
+// slice. Following and sharing are available. Campaign checkout stays disabled
+// while campaign donations are paused.
 export default function CampaignDetail() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const { id } = useParams();
@@ -120,6 +121,7 @@ export default function CampaignDetail() {
           <div id="campaign-funding-desktop" tabIndex={-1} className="scroll-mt-24 hidden lg:block">
             <CampaignFundingCard campaign={campaign} />
           </div>
+          <CampaignShareButton campaign={campaign} />
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
         </div>
       </div>

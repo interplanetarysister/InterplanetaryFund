@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf } from "lucide-react";
+import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
@@ -13,6 +13,7 @@ import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
@@ -22,11 +23,13 @@ const PAGE_TITLES = {
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/subscriptions": "Plans", "/withdrawals": "Withdrawals",
   "/admin/founding-members": "Founding Members", "/platform": "Platform", "/create": "New Campaign", "/profile": "Profile", "/notifications": "Notifications",
+  "/campaigns": "My Campaigns",
   "/social": "Social", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
   if (pathname.startsWith("/campaign/")) return "Campaign";
+  if (pathname.startsWith("/campaigns/")) return "Edit Campaign";
   if (pathname.startsWith("/u/")) return "Member Profile";
   if (pathname.startsWith("/blogs/")) return "IFund Story";
   if (pathname.startsWith("/help/")) return "Help Article";
@@ -42,6 +45,7 @@ const navSections = [
     label: "Explore",
     items: [
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
     ],
@@ -134,8 +138,9 @@ export default function Layout() {
     window.addEventListener("ifund-theme-changed", sync);
     return () => window.removeEventListener("ifund-theme-changed", sync);
   }, []);
-  // Public-site port: no member session yet, so the visitor navigation is shown.
-  const user = null;
+  // Session-aware navigation. The status is a client hint only; every
+  // protected read and write is still enforced by Supabase row level security.
+  const { status: sessionStatus, user } = useAuthSession();
   const isAdmin = false;
   const hasAiAgents = false;
   const { pathname } = useLocation();
@@ -152,7 +157,7 @@ export default function Layout() {
     : "Your workspace";
   const navigate = useNavigate();
   const isRoot = ["/", "/dashboard", "/discover", "/social", "/inbox",
-    "/profile", "/community", "/help", "/globe"].includes(pathname);
+    "/profile", "/community", "/help", "/globe", "/campaigns"].includes(pathname);
   const goBack = () => {
     if (canReturnWithinApp(window.history.state)) navigate(-1);
     else navigate(navigationBackFallback(pathname, !!user), { replace: true });

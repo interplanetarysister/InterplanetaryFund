@@ -1,0 +1,1931 @@
+{
+ "generatedFrom": "https://github.com/interplanetarysister/interplanetary-fund2.git",
+ "entityTables": [
+  {
+   "entity": "ActivityEvent",
+   "table": "ifund_activity_event",
+   "columns": [
+    "id",
+    "type",
+    "actor_user_id",
+    "actor_display_name",
+    "actor_handle",
+    "actor_image_url",
+    "campaign_id",
+    "campaign_title",
+    "campaign_image_url",
+    "body",
+    "link",
+    "visibility",
+    "metadata",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_activity_event_type_enum",
+    "ifund_activity_event_visibility_enum"
+   ]
+  },
+  {
+   "entity": "AdminActionMessage",
+   "table": "ifund_admin_action_message",
+   "columns": [
+    "id",
+    "approval_id",
+    "sender_type",
+    "sender_user_id",
+    "sender_agent",
+    "message_type",
+    "content",
+    "processed_at",
+    "processing_status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_admin_action_message_sender_type_enum",
+    "ifund_admin_action_message_message_type_enum",
+    "ifund_admin_action_message_processing_status_enum"
+   ]
+  },
+  {
+   "entity": "AdminApiConnectionIntake",
+   "table": "ifund_admin_api_connection_intake",
+   "columns": [
+    "id",
+    "provider",
+    "kind",
+    "endpoint_url",
+    "auth_type",
+    "notes",
+    "status",
+    "last_test_status",
+    "last_tested_at",
+    "created_by",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "AdminApproval",
+   "table": "ifund_admin_approval",
+   "columns": [
+    "id",
+    "action_type",
+    "title",
+    "description",
+    "requested_by_agent",
+    "owner_user_id",
+    "target_type",
+    "target_id",
+    "payload_summary",
+    "status",
+    "requested_at",
+    "resolved_at",
+    "resolved_by_user_id",
+    "resolution_note",
+    "risk_level",
+    "category",
+    "admin_question",
+    "investigation_notes",
+    "credential_status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_admin_approval_status_enum",
+    "ifund_admin_approval_risk_level_enum",
+    "ifund_admin_approval_category_enum",
+    "ifund_admin_approval_credential_status_enum"
+   ]
+  },
+  {
+   "entity": "AgentActivity",
+   "table": "ifund_agent_activity",
+   "columns": [
+    "id",
+    "campaign_id",
+    "campaign_title",
+    "owner_user_id",
+    "category",
+    "action",
+    "reason",
+    "expected_impact",
+    "result",
+    "recommended_next_actions",
+    "artifact_type",
+    "artifact_id",
+    "status",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_agent_activity_category_enum",
+    "ifund_agent_activity_artifact_type_enum",
+    "ifund_agent_activity_status_enum"
+   ]
+  },
+  {
+   "entity": "AgentContentDraft",
+   "table": "ifund_agent_content_draft",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "source_agent",
+    "kind",
+    "campaign_id",
+    "connection_id",
+    "payload",
+    "status",
+    "result_id",
+    "result_summary",
+    "last_error",
+    "applied_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_agent_content_draft_kind_enum",
+    "ifund_agent_content_draft_status_enum"
+   ]
+  },
+  {
+   "entity": "AgentConversationRun",
+   "table": "ifund_agent_conversation_run",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "agent_name",
+    "conversation_id",
+    "status",
+    "request_summary",
+    "result_summary",
+    "baseline_assistant_ids",
+    "last_checked_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_agent_conversation_run_status_enum"
+   ]
+  },
+  {
+   "entity": "AgentDelegation",
+   "table": "ifund_agent_delegation",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "campaign_id",
+    "campaign_title_snapshot",
+    "source_agent",
+    "destination_agent",
+    "objective",
+    "context_summary",
+    "context_provenance",
+    "status",
+    "consent_version",
+    "continuation_state",
+    "retry_count",
+    "max_retries",
+    "last_attempt_at",
+    "next_retry_at",
+    "result_summary",
+    "supersedes_delegation_id",
+    "superseded_by_delegation_id",
+    "verification",
+    "parent_delegation_id",
+    "completed_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_agent_delegation_status_enum"
+   ]
+  },
+  {
+   "entity": "AuthorizationGrant",
+   "table": "ifund_authorization_grant",
+   "columns": [
+    "id",
+    "agent_name",
+    "user_id",
+    "platform",
+    "purpose",
+    "scope",
+    "status",
+    "granted_at",
+    "expires_at",
+    "revoked_at",
+    "revoked_reason",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_authorization_grant_status_enum"
+   ]
+  },
+  {
+   "entity": "CampaignTranslation",
+   "table": "ifund_campaign_translation",
+   "columns": [
+    "id",
+    "campaign_id",
+    "language_code",
+    "source_hash",
+    "title",
+    "summary",
+    "story",
+    "status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_campaign_translation_language_code_enum",
+    "ifund_campaign_translation_status_enum"
+   ]
+  },
+  {
+   "entity": "CampaignUpdate",
+   "table": "ifund_campaign_update",
+   "columns": [
+    "id",
+    "campaign_id",
+    "title",
+    "content",
+    "media_url",
+    "media_type",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_campaign_update_media_type_enum"
+   ]
+  },
+  {
+   "entity": "Community",
+   "table": "ifund_community",
+   "columns": [
+    "id",
+    "name",
+    "description",
+    "type",
+    "location",
+    "cover_image_url",
+    "member_count",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_community_type_enum"
+   ]
+  },
+  {
+   "entity": "CommunityMember",
+   "table": "ifund_community_member",
+   "columns": [
+    "id",
+    "community_id",
+    "user_id",
+    "user_name",
+    "role",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_community_member_role_enum"
+   ]
+  },
+  {
+   "entity": "ConnectedPayoutAccount",
+   "table": "ifund_connected_payout_account",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "provider",
+    "provider_account_id",
+    "status",
+    "charges_enabled",
+    "payouts_enabled",
+    "details_submitted",
+    "default_currency",
+    "country",
+    "last_verified_at",
+    "last_error",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_connected_payout_account_provider_enum",
+    "ifund_connected_payout_account_status_enum"
+   ]
+  },
+  {
+   "entity": "DeviceAuthorization",
+   "table": "ifund_device_authorization",
+   "columns": [
+    "id",
+    "device_code_hash",
+    "user_code_hash",
+    "access_token_hash",
+    "client_id",
+    "device_label",
+    "scopes",
+    "state",
+    "owner_user_id",
+    "expires_at",
+    "approved_at",
+    "grant_expires_at",
+    "last_polled_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_device_authorization_state_enum"
+   ]
+  },
+  {
+   "entity": "DiscussionReply",
+   "table": "ifund_discussion_reply",
+   "columns": [
+    "id",
+    "post_id",
+    "community_id",
+    "content",
+    "author_name",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "DistributedPost",
+   "table": "ifund_distributed_post",
+   "columns": [
+    "id",
+    "campaign_id",
+    "campaign_title",
+    "connection_id",
+    "platform",
+    "source_update_id",
+    "content",
+    "media_url",
+    "hashtags",
+    "status",
+    "scheduled_for",
+    "published_at",
+    "external_post_url",
+    "donation_destination_url",
+    "donation_destination_platform",
+    "error",
+    "retry_count",
+    "owner_user_id",
+    "origin",
+    "publishing_started_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_distributed_post_status_enum",
+    "ifund_distributed_post_origin_enum"
+   ]
+  },
+  {
+   "entity": "Donation",
+   "table": "ifund_donation",
+   "columns": [
+    "id",
+    "campaign_id",
+    "campaign_title",
+    "amount",
+    "platform_contribution",
+    "processing_fee",
+    "donor_name",
+    "message",
+    "is_recurring",
+    "recurring_status",
+    "donor_user_id",
+    "canonical_operation_id",
+    "stripe_session_id",
+    "idempotency_key",
+    "payment_method",
+    "payment_verified",
+    "is_institutional",
+    "cleared",
+    "withdrawal_id",
+    "description",
+    "provider_transaction_id",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_donation_recurring_status_enum",
+    "ifund_donation_payment_method_enum"
+   ]
+  },
+  {
+   "entity": "ExternalAgentApiKey",
+   "table": "ifund_external_agent_api_key",
+   "columns": [
+    "id",
+    "label",
+    "key_prefix",
+    "key_hash",
+    "scope",
+    "status",
+    "revoked_at",
+    "last_used_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_agent_api_key_scope_enum",
+    "ifund_external_agent_api_key_status_enum"
+   ]
+  },
+  {
+   "entity": "ExternalCampaignImport",
+   "table": "ifund_external_campaign_import",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "connection_id",
+    "operation_key",
+    "request_id",
+    "recovery_token",
+    "platform",
+    "external_campaign_id",
+    "external_url",
+    "campaign_id",
+    "sync_enabled",
+    "source_updated_at",
+    "last_imported_at",
+    "field_provenance",
+    "locally_locked_fields",
+    "status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_campaign_import_status_enum"
+   ]
+  },
+  {
+   "entity": "ExternalCampaignPublication",
+   "table": "ifund_external_campaign_publication",
+   "columns": [
+    "id",
+    "campaign_id",
+    "owner_user_id",
+    "platform",
+    "environment",
+    "status",
+    "page_short_name",
+    "provider_page_id",
+    "provider_page_url",
+    "provider_charity_id",
+    "provider_verified_at",
+    "registration_method",
+    "test_note",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_campaign_publication_environment_enum",
+    "ifund_external_campaign_publication_status_enum"
+   ]
+  },
+  {
+   "entity": "ExternalCollectionAuthorization",
+   "table": "ifund_external_collection_authorization",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "campaign_id",
+    "operation_id",
+    "status",
+    "expires_at",
+    "authorized_at",
+    "sources",
+    "destination_type",
+    "destination_ref",
+    "authorization_text_version",
+    "consent_snapshot",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_collection_authorization_status_enum",
+    "ifund_external_collection_authorization_destination_type_enum"
+   ]
+  },
+  {
+   "entity": "ExternalConversation",
+   "table": "ifund_external_conversation",
+   "columns": [
+    "id",
+    "user_id",
+    "connection_id",
+    "platform",
+    "external_thread_id",
+    "external_unique_key",
+    "campaign_id",
+    "source_type",
+    "subject",
+    "participant_summary",
+    "source_url",
+    "reply_support",
+    "status",
+    "last_message_at",
+    "last_message_preview",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_conversation_source_type_enum",
+    "ifund_external_conversation_reply_support_enum",
+    "ifund_external_conversation_status_enum"
+   ]
+  },
+  {
+   "entity": "ExternalConversationMessage",
+   "table": "ifund_external_conversation_message",
+   "columns": [
+    "id",
+    "user_id",
+    "conversation_id",
+    "connection_id",
+    "platform",
+    "external_message_id",
+    "external_unique_key",
+    "direction",
+    "sender_display_name",
+    "sender_external_id",
+    "content",
+    "sent_at",
+    "source_url",
+    "reply_to_external_message_id",
+    "delivery_status",
+    "provider_verified",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_conversation_message_direction_enum",
+    "ifund_external_conversation_message_delivery_status_enum"
+   ]
+  },
+  {
+   "entity": "ExternalFundMigrationRecord",
+   "table": "ifund_external_fund_migration_record",
+   "columns": [
+    "id",
+    "request_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "campaign_title",
+    "source_platform",
+    "reported_amount",
+    "currency",
+    "prospective_platform_fee",
+    "prospective_net",
+    "state",
+    "matched_external_observation_id",
+    "matched_holding_entry_id",
+    "note",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_fund_migration_record_state_enum"
+   ]
+  },
+  {
+   "entity": "ExternalFundObservation",
+   "table": "ifund_external_fund_observation",
+   "columns": [
+    "id",
+    "operation_key",
+    "provider",
+    "provider_transaction_id",
+    "external_connection_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "amount",
+    "currency",
+    "observed_at",
+    "settlement_state",
+    "holding_ledger_entry_id",
+    "receiving_paypal_transaction_id",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_fund_observation_settlement_state_enum"
+   ]
+  },
+  {
+   "entity": "ExternalPlatformRecord",
+   "table": "ifund_external_platform_record",
+   "columns": [
+    "id",
+    "provider",
+    "record_type",
+    "external_id",
+    "owner_user_id",
+    "status",
+    "data",
+    "observed_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_platform_record_record_type_enum"
+   ]
+  },
+  {
+   "entity": "ExternalSyncEvent",
+   "table": "ifund_external_sync_event",
+   "columns": [
+    "id",
+    "provider",
+    "event_id",
+    "event_type",
+    "entity_id",
+    "instance_id",
+    "status",
+    "payload",
+    "received_at",
+    "processed_at",
+    "last_error",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_external_sync_event_status_enum"
+   ]
+  },
+  {
+   "entity": "FeatureFlag",
+   "table": "ifund_feature_flag",
+   "columns": [
+    "id",
+    "key",
+    "label",
+    "description",
+    "enabled",
+    "scope",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_feature_flag_scope_enum"
+   ]
+  },
+  {
+   "entity": "FinancialOperation",
+   "table": "ifund_financial_operation",
+   "columns": [
+    "id",
+    "operation_key",
+    "operation_type",
+    "state",
+    "campaign_id",
+    "campaign_owner_user_id",
+    "provider",
+    "provider_transaction_id",
+    "allocation_fingerprint",
+    "payment_channel",
+    "gross_amount",
+    "platform_contribution",
+    "processing_fee",
+    "platform_fee",
+    "net_amount",
+    "withdrawal_id",
+    "payout_method",
+    "payout_destination_ref",
+    "completed_at",
+    "cancelled_at",
+    "note",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_financial_operation_operation_type_enum",
+    "ifund_financial_operation_state_enum"
+   ]
+  },
+  {
+   "entity": "FoundingWaitlist",
+   "table": "ifund_founding_waitlist",
+   "columns": [
+    "id",
+    "email",
+    "screen_name",
+    "interest",
+    "marketing_opt_in",
+    "referral_code",
+    "referred_by",
+    "status",
+    "joined_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_founding_waitlist_interest_enum",
+    "ifund_founding_waitlist_status_enum"
+   ]
+  },
+  {
+   "entity": "Friendship",
+   "table": "ifund_friendship",
+   "columns": [
+    "id",
+    "requester_user_id",
+    "addressee_user_id",
+    "status",
+    "requested_at",
+    "accepted_at",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_friendship_status_enum"
+   ]
+  },
+  {
+   "entity": "GitHubSyncCheckpoint",
+   "table": "ifund_git_hub_sync_checkpoint",
+   "columns": [
+    "id",
+    "repository",
+    "branch",
+    "remote_head_sha",
+    "previous_remote_head_sha",
+    "relationship",
+    "observed_at",
+    "observed_by_user_id",
+    "source",
+    "detail",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_git_hub_sync_checkpoint_relationship_enum",
+    "ifund_git_hub_sync_checkpoint_source_enum"
+   ]
+  },
+  {
+   "entity": "GrantApplication",
+   "table": "ifund_grant_application",
+   "columns": [
+    "id",
+    "opportunity_id",
+    "opportunity_title",
+    "institution_id",
+    "institution_name",
+    "campaign_id",
+    "campaign_title",
+    "applicant_name",
+    "applicant_user_id",
+    "narrative",
+    "requested_amount",
+    "status",
+    "decision_note",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_grant_application_status_enum"
+   ]
+  },
+  {
+   "entity": "HoldingLedgerEntry",
+   "table": "ifund_holding_ledger_entry",
+   "columns": [
+    "id",
+    "operation_key",
+    "direction",
+    "state",
+    "source_type",
+    "source_provider",
+    "source_account_ref",
+    "provider_transaction_id",
+    "campaign_id",
+    "beneficiary_user_id",
+    "amount",
+    "currency",
+    "platform_contribution",
+    "processing_fee",
+    "payment_channel",
+    "withdrawal_id",
+    "canonical_operation_id",
+    "external_connection_id",
+    "external_observation_id",
+    "settled_at",
+    "reconciliation_note",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_holding_ledger_entry_direction_enum",
+    "ifund_holding_ledger_entry_state_enum",
+    "ifund_holding_ledger_entry_source_type_enum",
+    "ifund_holding_ledger_entry_payment_channel_enum"
+   ]
+  },
+  {
+   "entity": "Institution",
+   "table": "ifund_institution",
+   "columns": [
+    "id",
+    "name",
+    "type",
+    "mission",
+    "description",
+    "industry",
+    "location",
+    "website",
+    "causes_supported",
+    "logo_url",
+    "offers_matching_gifts",
+    "offers_volunteer_program",
+    "offers_grants",
+    "verification_status",
+    "contact_email",
+    "opportunity_count",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_institution_type_enum",
+    "ifund_institution_verification_status_enum"
+   ]
+  },
+  {
+   "entity": "InstitutionOpportunity",
+   "table": "ifund_institution_opportunity",
+   "columns": [
+    "id",
+    "institution_id",
+    "institution_name",
+    "title",
+    "category",
+    "description",
+    "award_amount",
+    "eligibility",
+    "requirements",
+    "deadline",
+    "status",
+    "application_count",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_institution_opportunity_category_enum",
+    "ifund_institution_opportunity_status_enum"
+   ]
+  },
+  {
+   "entity": "IntegrationChangeRequest",
+   "table": "ifund_integration_change_request",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "platform",
+    "operation",
+    "transport",
+    "status",
+    "expires_at",
+    "approved_at",
+    "applied_at",
+    "expected_recipe_version",
+    "result_summary",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_integration_change_request_status_enum"
+   ]
+  },
+  {
+   "entity": "KnowledgeArticle",
+   "table": "ifund_knowledge_article",
+   "columns": [
+    "id",
+    "title",
+    "category",
+    "content",
+    "summary",
+    "version",
+    "author_name",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_knowledge_article_category_enum"
+   ]
+  },
+  {
+   "entity": "Message",
+   "table": "ifund_message",
+   "columns": [
+    "id",
+    "campaign_id",
+    "campaign_title",
+    "subject",
+    "content",
+    "comm_type",
+    "audience",
+    "channels",
+    "status",
+    "sent_at",
+    "recipient_count",
+    "email_count",
+    "in_app_count",
+    "ai_generated",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_message_comm_type_enum",
+    "ifund_message_audience_enum",
+    "ifund_message_status_enum"
+   ]
+  },
+  {
+   "entity": "MissionBrief",
+   "table": "ifund_mission_brief",
+   "columns": [
+    "id",
+    "summary",
+    "today_priorities",
+    "week_priorities",
+    "long_term",
+    "risks",
+    "predictions",
+    "generated_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "NonprofitSubscriptionApproval",
+   "table": "ifund_nonprofit_subscription_approval",
+   "columns": [
+    "id",
+    "user_id",
+    "status",
+    "verified_at",
+    "review_note",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_nonprofit_subscription_approval_status_enum"
+   ]
+  },
+  {
+   "entity": "Opportunity",
+   "table": "ifund_opportunity",
+   "columns": [
+    "id",
+    "title",
+    "type",
+    "description",
+    "estimated_value",
+    "eligibility",
+    "required_actions",
+    "confidence",
+    "source",
+    "status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_opportunity_type_enum",
+    "ifund_opportunity_confidence_enum",
+    "ifund_opportunity_status_enum"
+   ]
+  },
+  {
+   "entity": "PayPalBillingWebhook",
+   "table": "ifund_pay_pal_billing_webhook",
+   "columns": [
+    "id",
+    "provider",
+    "account_ref",
+    "webhook_id",
+    "url",
+    "events",
+    "verified_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "PayPalSubscriptionIntent",
+   "table": "ifund_pay_pal_subscription_intent",
+   "columns": [
+    "id",
+    "user_id",
+    "tier",
+    "interval",
+    "plan_id",
+    "paypal_subscription_id",
+    "custom_id",
+    "account_ref",
+    "status",
+    "last_verified_at",
+    "last_reversal_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "PlatformAccessRegistry",
+   "table": "ifund_platform_access_registry",
+   "columns": [
+    "id",
+    "platform",
+    "purpose",
+    "integration_kind",
+    "account_identifier",
+    "auth_type",
+    "secret_refs",
+    "environment",
+    "optional",
+    "authorized_agents",
+    "status",
+    "last_verified",
+    "last_successful_verification",
+    "admin_owner",
+    "dependencies",
+    "reauth_instructions",
+    "auth_failures",
+    "last_failure",
+    "cleanup_flags",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_platform_access_registry_integration_kind_enum",
+    "ifund_platform_access_registry_auth_type_enum",
+    "ifund_platform_access_registry_environment_enum",
+    "ifund_platform_access_registry_status_enum"
+   ]
+  },
+  {
+   "entity": "PlatformConnectionRecipe",
+   "table": "ifund_platform_connection_recipe",
+   "columns": [
+    "id",
+    "platform",
+    "operation",
+    "recipe_version",
+    "status",
+    "preferred_transport",
+    "fallback_transports",
+    "candidate_transports",
+    "blocked_routes",
+    "successful_route",
+    "discovery_state",
+    "rediscovery_on_failure",
+    "connector_type",
+    "worker_key",
+    "required_capabilities",
+    "success_count",
+    "consecutive_failure_count",
+    "last_success_at",
+    "last_failure_at",
+    "last_verified_at",
+    "provider_fingerprint",
+    "evidence",
+    "notes",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_platform_connection_recipe_status_enum",
+    "ifund_platform_connection_recipe_preferred_transport_enum",
+    "ifund_platform_connection_recipe_discovery_state_enum"
+   ]
+  },
+  {
+   "entity": "PlatformEvent",
+   "table": "ifund_platform_event",
+   "columns": [
+    "id",
+    "action",
+    "category",
+    "actor_name",
+    "affected_resource",
+    "outcome",
+    "details",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_platform_event_category_enum",
+    "ifund_platform_event_outcome_enum"
+   ]
+  },
+  {
+   "entity": "PlatformIncident",
+   "table": "ifund_platform_incident",
+   "columns": [
+    "id",
+    "fingerprint",
+    "source",
+    "route_pattern",
+    "error_kind",
+    "error_summary",
+    "affected_routes",
+    "occurrences",
+    "first_seen_at",
+    "last_seen_at",
+    "status",
+    "analysis",
+    "systemic_scope",
+    "repair_plan",
+    "verification_plan",
+    "rollback_plan",
+    "approval_note",
+    "approved_by_user_id",
+    "approved_at",
+    "builder_task_id",
+    "builder_conversation_id",
+    "dispatch_error",
+    "verified_at",
+    "verification_evidence",
+    "builder_execution_state",
+    "builder_request_ref",
+    "builder_provider_phase",
+    "builder_last_checked_at",
+    "builder_release_approval_at",
+    "builder_release_approval_by",
+    "builder_review_evidence",
+    "builder_attempts",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_platform_incident_status_enum",
+    "ifund_platform_incident_builder_execution_state_enum"
+   ]
+  },
+  {
+   "entity": "PlatformOwnedAccount",
+   "table": "ifund_platform_owned_account",
+   "columns": [
+    "id",
+    "platform",
+    "display_name",
+    "profile_url",
+    "profile_description",
+    "status",
+    "connection_id",
+    "credential_reference",
+    "recovery_status",
+    "last_checked_at",
+    "last_posted_at",
+    "weekly_post_due_at",
+    "discovered_by",
+    "notes",
+    "account_type",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_platform_owned_account_status_enum",
+    "ifund_platform_owned_account_account_type_enum"
+   ]
+  },
+  {
+   "entity": "PostInterest",
+   "table": "ifund_post_interest",
+   "columns": [
+    "id",
+    "user_id",
+    "post_id",
+    "liked",
+    "saved",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "PublicProfile",
+   "table": "ifund_public_profile",
+   "columns": [
+    "id",
+    "user_id",
+    "display_name",
+    "username",
+    "bio",
+    "avatar_url",
+    "focus_campaign_ids",
+    "priority_campaign_id",
+    "show_communities",
+    "show_posts",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "Recommendation",
+   "table": "ifund_recommendation",
+   "columns": [
+    "id",
+    "campaign_id",
+    "campaign_title",
+    "owner_user_id",
+    "title",
+    "description",
+    "reasoning",
+    "evidence",
+    "confidence",
+    "expected_impact",
+    "estimated_effort",
+    "agent",
+    "status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_recommendation_confidence_enum",
+    "ifund_recommendation_agent_enum",
+    "ifund_recommendation_status_enum"
+   ]
+  },
+  {
+   "entity": "ScheduledAutoPostPermit",
+   "table": "ifund_scheduled_auto_post_permit",
+   "columns": [
+    "id",
+    "post_id",
+    "campaign_id",
+    "connection_id",
+    "owner_user_id",
+    "platform",
+    "priority_at",
+    "status",
+    "publishing_at",
+    "published_at",
+    "last_error",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_scheduled_auto_post_permit_status_enum"
+   ]
+  },
+  {
+   "entity": "SocialPost",
+   "table": "ifund_social_post",
+   "columns": [
+    "id",
+    "author_user_id",
+    "author_username",
+    "author_name",
+    "author_avatar_url",
+    "author_banner_tier",
+    "content",
+    "media_url",
+    "campaign_id",
+    "campaign_title",
+    "likes_count",
+    "reposts_count",
+    "comments_count",
+    "is_top_post",
+    "crosspost_platforms",
+    "ai_generated",
+    "source_platform",
+    "external_post_id",
+    "external_url",
+    "agent_managed",
+    "image_generated",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_social_post_author_banner_tier_enum"
+   ]
+  },
+  {
+   "entity": "StripeReversalHold",
+   "table": "ifund_stripe_reversal_hold",
+   "columns": [
+    "id",
+    "payment_intent_id",
+    "charge_id",
+    "reason",
+    "amount_refunded_cents",
+    "disputed",
+    "provider_event_id",
+    "review_status",
+    "recorded_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "SubscriptionPlanMapping",
+   "table": "ifund_subscription_plan_mapping",
+   "columns": [
+    "id",
+    "provider",
+    "tier",
+    "interval",
+    "currency",
+    "amount_cents",
+    "catalog_version",
+    "account_ref",
+    "product_id",
+    "plan_id",
+    "verified_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "SupportTicket",
+   "table": "ifund_support_ticket",
+   "columns": [
+    "id",
+    "user_id",
+    "name",
+    "email",
+    "subject",
+    "message",
+    "status",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_support_ticket_status_enum"
+   ]
+  },
+  {
+   "entity": "UserBlog",
+   "table": "ifund_user_blog",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "type",
+    "title",
+    "description",
+    "slug",
+    "cover_image_url",
+    "status",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_user_blog_type_enum",
+    "ifund_user_blog_status_enum"
+   ]
+  },
+  {
+   "entity": "VerificationMail",
+   "table": "ifund_verification_mail",
+   "columns": [
+    "id",
+    "user_id",
+    "alias_id",
+    "sender",
+    "message_key",
+    "ciphertext",
+    "iv",
+    "received_at",
+    "expires_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "VerificationMailbox",
+   "table": "ifund_verification_mailbox",
+   "columns": [
+    "id",
+    "user_id",
+    "platform",
+    "address",
+    "status",
+    "last_received_at",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_verification_mailbox_status_enum"
+   ]
+  },
+  {
+   "entity": "VolunteerOpportunity",
+   "table": "ifund_volunteer_opportunity",
+   "columns": [
+    "id",
+    "community_id",
+    "community_name",
+    "role_title",
+    "description",
+    "skills_needed",
+    "location",
+    "remote_ok",
+    "schedule",
+    "estimated_hours",
+    "status",
+    "volunteer_count",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_volunteer_opportunity_status_enum"
+   ]
+  },
+  {
+   "entity": "VolunteerSignup",
+   "table": "ifund_volunteer_signup",
+   "columns": [
+    "id",
+    "opportunity_id",
+    "community_id",
+    "user_id",
+    "user_name",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": []
+  },
+  {
+   "entity": "WebhookEvent",
+   "table": "ifund_webhook_event",
+   "columns": [
+    "id",
+    "source",
+    "event_key",
+    "event_type",
+    "state",
+    "canonical_operation_id",
+    "attempt_count",
+    "last_error",
+    "financial_applied_at",
+    "side_effects_completed_at",
+    "processed_at",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_webhook_event_state_enum"
+   ]
+  },
+  {
+   "entity": "Withdrawal",
+   "table": "ifund_withdrawal",
+   "columns": [
+    "id",
+    "owner_user_id",
+    "user_name",
+    "campaign_id",
+    "campaign_title",
+    "gross_amount",
+    "platform_fee",
+    "net_amount",
+    "paypal_email",
+    "covered_donation_ids",
+    "covered_holding_entry_ids",
+    "status",
+    "canonical_operation_key",
+    "canonical_reservation_id",
+    "canonical_ledger_entry_id",
+    "payout_batch_id",
+    "provider_sender_batch_id",
+    "review_note",
+    "processed_at",
+    "description",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_withdrawal_status_enum"
+   ]
+  },
+  {
+   "entity": "WritingResearchBrief",
+   "table": "ifund_writing_research_brief",
+   "columns": [
+    "id",
+    "week_key",
+    "reviewed_at",
+    "status",
+    "summary",
+    "guidance",
+    "source_urls",
+    "trend_observations",
+    "unverified_claims",
+    "study_facts",
+    "created_date",
+    "updated_date",
+    "created_by_id",
+    "created_at",
+    "updated_at",
+    "source_system",
+    "migrated_at"
+   ],
+   "checks": [
+    "ifund_writing_research_brief_status_enum"
+   ]
+  }
+ ],
+ "existingTables": [
+  {
+   "entity": "BlogEntry",
+   "table": "ifund_blog_entries"
+  },
+  {
+   "entity": "Campaign",
+   "table": "ifund_campaigns"
+  },
+  {
+   "entity": "DiscussionPost",
+   "table": "ifund_posts"
+  },
+  {
+   "entity": "FollowedCampaign",
+   "table": "ifund_follows"
+  },
+  {
+   "entity": "InboxItem",
+   "table": "ifund_inbox_items"
+  },
+  {
+   "entity": "LegalAcceptance",
+   "table": "ifund_legal_acceptances"
+  },
+  {
+   "entity": "Notification",
+   "table": "ifund_notifications"
+  },
+  {
+   "entity": "OfficialPublication",
+   "table": "ifund_official_publications"
+  },
+  {
+   "entity": "PlatformConnection",
+   "table": "ifund_connections"
+  },
+  {
+   "entity": "User",
+   "table": "ifund_profiles"
+  }
+ ],
+ "totals": {
+  "created": 66,
+  "mappedToExisting": 10,
+  "columns": 736,
+  "checks": 97
+ }
+}

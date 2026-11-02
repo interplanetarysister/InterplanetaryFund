@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
+import { listMyCampaigns } from "@/api/ownerCampaigns";
 import CampaignCard from "@/components/campaigns/CampaignCard";
 
 export default function Dashboard() {
@@ -21,12 +22,12 @@ export default function Dashboard() {
         if (!alive) return;
         if (error || !data?.user) { navigate("/login", { replace: true }); return; }
         setUser(data.user); setState("ready");
-        client.from("ifund_campaigns").select("id,title,summary,category,goal_amount,cover_image_url,status,created_at").eq("owner_id",data.user.id).order("created_at",{ascending:false}).limit(100)
-          .then(({data: owned,error: queryError}) => {
-            if (!alive) return;
-            if (queryError) setMyCampaignError("Your campaigns could not be loaded.");
-            else setMyCampaigns(owned || []);
-          }).catch(() => { if (alive) setMyCampaignError("Your campaigns could not be loaded."); });
+        // Owner rows go through the same verified transport as every other
+        // owner read: confirmed email, verified account lifecycle and
+        // owner-scoped, validated rows. No ad-hoc inline query.
+        listMyCampaigns(client)
+          .then((owned) => { if (alive) setMyCampaigns(owned); })
+          .catch((cause) => { if (alive) setMyCampaignError(cause?.message || "Your campaigns could not be loaded."); });
       }).catch(() => { if (alive) setState("error"); });
       const { data } = client.auth.onAuthStateChange((event) => {
         if (alive && event === "SIGNED_OUT") navigate("/login", { replace: true });
@@ -53,6 +54,7 @@ export default function Dashboard() {
       <h2 className="text-xl font-semibold">Your campaigns</h2>
       <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
+      <Link to="/campaigns" className="mt-4 mr-5 inline-block text-primary underline">Manage your campaigns</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
