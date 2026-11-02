@@ -154,6 +154,24 @@ That is a schema change to a table the AGENTS.md rules require to be independent
 
 **Fix written and verified against real Postgres (2026-11-02):** `supabase/migrations/pending/20261102_ifund_member_schema_completion.sql` section 8 replaces both the post and campaign insert policies with a check that calls `public.ifund_current_account_is_active()`. Verified by executing the migration on PostgreSQL 16 (PGlite) with three accounts — a suspended account's insert is now rejected and an active account's succeeds (`tests/member-schema-migration.test.js`, 11 tests). **Status: fixed in SQL, not yet applied to the live project.** Until the migration is applied, a suspended account can still post by bypassing the UI.
 
+**Follow-up (2026-11-02): the first fix was incomplete.** It guarded `INSERT`
+only. A suspended owner could still reach `status = 'active'` by *updating* a
+draft created while the account was active, and could still edit campaign
+content. Reproduced on PostgreSQL 16: a suspended owner ran
+`update public.ifund_campaigns set status='active'` and one row changed. The
+member migration now also gates `UPDATE` on `ifund_campaigns` (both `USING` and
+`WITH CHECK`). `ifund_posts` has no `UPDATE` policy in the committed set, so its
+insert policy is its only write path.
+
+The gate is deliberately asymmetric: `DELETE` on campaigns is left owner-only so
+a suspended account can still remove its own drafts. Publishing and editing are
+what the lifecycle gate blocks.
+
+10 tests in `tests/account-lifecycle-write-gate.test.js` cover both halves,
+including the publish-by-update bypass, content edits, the deletion-pending
+boolean, and the fail-closed case of an account with no profile row.
+
+
 ## B17 — Cloudflare Pages deploy cannot run here: no API token (2026-11-02)
 
 **Deploy is prepared and blocked on credentials only.**

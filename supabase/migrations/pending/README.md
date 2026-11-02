@@ -26,6 +26,9 @@ rather than text.
 the vulnerability without the fix, then proves the fix blocks a non-owner while
 leaving a legitimate owner able to create, publish, edit and delete.
 
+`tests/account-lifecycle-write-gate.test.js` (10 tests) covers blocker B16,
+including the publish-by-update bypass that the first version of the fix missed.
+
 `tests/member-schema-migration.test.js` (11 tests) exercises the result with
 three accounts: an active member, a second active member, and a suspended
 member. It asserts:

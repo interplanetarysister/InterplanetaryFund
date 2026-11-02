@@ -358,15 +358,31 @@ grant select on public.ifund_official_publications to anon,authenticated;
 -- ---------------------------------------------------------------------------
 -- Before this, ifund_posts_insert checked only author_id = auth.uid(), so a
 -- suspended or deletion-pending account could still publish. The browser fix
--- in apps/web/src/lib/socialPosts.js is UX only; RLS is authoritative. The same
--- gap existed on campaign creation. Both are corrected here by requiring
--- public.ifund_current_account_is_active().
+-- in apps/web/src/lib/socialPosts.js is UX only; RLS is authoritative.
+--
+-- The first version of this fix guarded INSERT only, which was not enough. A
+-- suspended owner could still reach `status = 'active'` by *updating* a draft
+-- that was created while the account was active, and could still edit campaign
+-- content. Reproduced on PostgreSQL 16 before correcting it: a suspended owner
+-- ran `update public.ifund_campaigns set status='active'` and one row changed.
+-- So the check belongs on the mutating policies too, not just on insert.
+--
+-- The lifecycle check is intentionally asymmetric between campaigns and posts:
+--
+--   * Campaigns are the one thing an account owns that it may still need to
+--     pause or delete while suspended, so the check is applied to INSERT and
+--     UPDATE, where it stops publishing and content edits, but NOT to DELETE.
+--     That mirrors the application rule "delete only drafts; pause published
+--     campaigns" and keeps a suspended account able to clean up its own drafts.
+--
+--   * ifund_posts has no UPDATE policy at all in the committed set, so the
+--     insert policy is its only write path and guarding insert is sufficient.
+--     There is nothing to add.
 --
 -- Consequence, recorded deliberately: an account that has not yet been
 -- reconciled to account_status='active' can no longer publish. That is the
 -- intended fail-closed behavior; reconciliation sets active for verified
--- accounts, and drafts remain editable.
-drop policy if exists ifund_posts_insert on public.ifund_posts;
+-- accounts, and drafts remain editable by active accounts.
 drop policy if exists ifund_posts_insert on public.ifund_posts;
 create policy ifund_posts_insert on public.ifund_posts
   for insert to authenticated with check (
@@ -375,9 +391,25 @@ create policy ifund_posts_insert on public.ifund_posts
   );
 
 drop policy if exists ifund_campaigns_insert on public.ifund_campaigns;
-drop policy if exists ifund_campaigns_insert on public.ifund_campaigns;
 create policy ifund_campaigns_insert on public.ifund_campaigns
   for insert to authenticated with check (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+  );
+
+-- Update is where the gap was: without this, a suspended account publishes and
+-- edits by updating a row it already owns. USING governs which rows are
+-- visible to the update; WITH CHECK governs the resulting row. Both need the
+-- lifecycle check, or a suspended account could still change a row it could
+-- see. DELETE is deliberately left as the committed owner-only policy.
+drop policy if exists ifund_campaigns_update on public.ifund_campaigns;
+create policy ifund_campaigns_update on public.ifund_campaigns
+  for update to authenticated
+  using (
+    owner_id = (select auth.uid())
+    and (select public.ifund_current_account_is_active())
+  )
+  with check (
     owner_id = (select auth.uid())
     and (select public.ifund_current_account_is_active())
   );
