@@ -2,6 +2,37 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B21 — react-router advisories in the deployed root app (fixed)
+
+`npm audit` on the root app reported two moderate advisories against
+`react-router`, installed at 6.30.4:
+
+* GHSA-wrjc-x8rr-h8h6 — open redirect via backslash in `<Link>` and
+  `useNavigate`. This is the same attack class `src/lib/authReturnTo.js` already
+  guards against at the redirect boundary, so the two protections overlap.
+* GHSA-337j-9hxr-rhxg — arbitrary constructor injection via
+  `deserializeErrors()` in SSR hydration. Not reachable here: the app is a
+  client-rendered SPA and never calls the SSR hydration path.
+
+Both advisories cover the whole 6.x line (`>=6.0.0 <7.18.0`), so the obvious
+patch bump to 6.30.6 does **not** clear them — verified, not assumed. The fix is
+7.18.5.
+
+The upgrade was low risk because the app imports only stable core APIs:
+`BrowserRouter`, `Link`, `NavLink`, `Route`, `Routes`, `useLocation`,
+`useNavigate`, `useParams`, `useSearchParams`. No data router, loaders, actions or
+`json()`/`defer()` are used.
+
+The branded frontend already ran react-router 7.18.x, so this brings the two
+frontends onto one major version.
+
+Verification: `npm test` and `npm run build` both pass on a broken router, because
+neither renders a route, so a render suite was added —
+`tests/root-router-runtime.test.js` renders real root-app components inside a
+real `MemoryRouter` and asserts a `Link` still produces an anchor with the right
+href, that `useLocation` resolves, and that a hostile title stays escaped. 6
+tests. `npm audit --omit=dev` now reports 0 vulnerabilities for both apps.
+
 ## B1 — Can all Base44 records, including donations and financial ledgers, be exported?
 **SUPPORTED API route / UNKNOWN completeness.** Base44 supports Data-dashboard per-entity CSV export and paginated SDK `entities.<Type>.list/filter` reads; [official SDK docs](https://docs.base44.com/sdk-getting-started/client) show `asServiceRole.entities.<Type>.list()` inside Base44-hosted functions, but not external service-role usage. Authorized Base44 owner could run an audited, read-only function that paginates **every** entity (including Donation, HoldingLedgerEntry, FinancialOperation, Withdrawal, WebhookEvent, payouts) to JSONL/JSON; dashboard CSV can be used as independent reconciliation. A management API/CLI alternative may be possible but has not been verified with app permissions. Respect pagination, rate limits, PII access and financial consistency.
 **Test export:** NOT RUN/NOT VERIFIED by this migration effort. **Per-entity row counts:** UNKNOWN (none established). **Checksums:** UNKNOWN. No user data has been copied. No indication that a source-code ZIP includes database records. **Blocks:** production database import and cutover. **Next proof:** owner-authorized read-only 1-entity sample with count and hash, then all 95 entities plus financial provider ledger reconciliation and a no-write-delta cutover plan.
