@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   CANONICAL_ORIGIN, campaignShareUrl, campaignShareText, shareTargets,
-  buildSharePayload, canUseWebShare,
+  buildSharePayload, canUseWebShare, campaignEmbedUrl, campaignEmbedSnippet,
 } from "../src/lib/campaignShare.js";
 
 const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8");
@@ -86,4 +86,61 @@ test("CampaignDetail renders the share kit for visitors", () => {
   assert.match(page, /import CampaignShareButton from "@\/components\/campaigns\/CampaignShareButton"/);
   assert.match(page, /<CampaignShareButton campaign=\{campaign\} \/>/);
   assert.doesNotMatch(page, /share kit, supporter list/);
+});
+
+test("the embed URL is canonical and refuses a non-UUID id", () => {
+  assert.equal(campaignEmbedUrl(ID), `${CANONICAL_ORIGIN}/embed/campaign/${ID}`);
+  assert.equal(campaignEmbedUrl(ID.toUpperCase()), `${CANONICAL_ORIGIN}/embed/campaign/${ID}`);
+  for (const bad of ["", "not-a-uuid", null, undefined, 12, `${ID}x`]) {
+    assert.equal(campaignEmbedUrl(bad), "", `must reject ${JSON.stringify(bad)}`);
+  }
+});
+
+test("the embed URL never trusts a hostile or preview origin", () => {
+  // An embed pasted on someone else's site must point at the branded domain, so
+  // a preview or attacker-controlled origin can never become the canonical src.
+  assert.equal(campaignEmbedUrl(ID, "http://localhost:4599"), `http://localhost:4599/embed/campaign/${ID}`);
+  assert.equal(campaignEmbedUrl(ID, "javascript:alert(1)"), `${CANONICAL_ORIGIN}/embed/campaign/${ID}`);
+  assert.equal(campaignEmbedUrl(ID, "not a url"), `${CANONICAL_ORIGIN}/embed/campaign/${ID}`);
+});
+
+test("the embed snippet is an inert iframe with no script and no privileged attributes", () => {
+  const snippet = campaignEmbedSnippet({ id: ID, title: "Plaza lights" });
+  assert.match(snippet, /^<iframe /);
+  assert.match(snippet, new RegExp(`src="${CANONICAL_ORIGIN}/embed/campaign/${ID}"`));
+  assert.match(snippet, /loading="lazy"/);
+  assert.match(snippet, /referrerpolicy="no-referrer"/);
+  // No script, no event handlers, no allow-scripts sandbox escape.
+  assert.doesNotMatch(snippet, /<script|onload=|onerror=|javascript:|allow-scripts/i);
+  assert.doesNotMatch(snippet, /allowfullscreen/);
+  // Exactly one well-formed, closed iframe element.
+  assert.equal((snippet.match(/<iframe/g) || []).length, 1);
+  assert.match(snippet, /<\/iframe>$/);
+});
+
+test("a campaign title cannot break out of the embed markup", () => {
+  const snippet = campaignEmbedSnippet({
+    id: ID, title: 'x"><script>alert(1)</script>',
+  });
+  assert.doesNotMatch(snippet, /<script/);
+  assert.doesNotMatch(snippet, /"><script/);
+  assert.match(snippet, /&lt;script&gt;/);
+  assert.match(snippet, /&quot;&gt;/);
+  // The attribute stays balanced: exactly the two quotes of the title attribute
+  // are added, none from the payload.
+  assert.equal((snippet.match(/title="/g) || []).length, 1);
+});
+
+test("the embed snippet falls back to a safe default title and refuses a bad id", () => {
+  assert.match(campaignEmbedSnippet({ id: ID }), /title="Interplanetary Fund campaign"/);
+  assert.equal(campaignEmbedSnippet({ title: "x" }), "");
+});
+
+test("the share button exposes the embed code without a script tag", () => {
+  const button = source("src/components/campaigns/CampaignShareButton.jsx");
+  assert.match(button, /campaignEmbedSnippet/);
+  assert.match(button, /id="campaign-embed-code"/);
+  assert.match(button, /Copy embed code/);
+  // A blocked clipboard must not be reported as a successful copy.
+  assert.match(button, /Select the embed code and copy it manually/);
 });

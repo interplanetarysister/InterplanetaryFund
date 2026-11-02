@@ -27,6 +27,32 @@ export function campaignShareUrl(campaignId, origin = CANONICAL_ORIGIN) {
   return `${normalizeOrigin(origin)}/campaign/${String(campaignId).toLowerCase()}`;
 }
 
+/** Canonical embeddable card URL for a campaign. Returns "" for a non-UUID id. */
+export function campaignEmbedUrl(campaignId, origin = CANONICAL_ORIGIN) {
+  if (!UUID.test(String(campaignId || ""))) return "";
+  return `${normalizeOrigin(origin)}/embed/campaign/${String(campaignId).toLowerCase()}`;
+}
+
+// The title is interpolated into an HTML attribute of code the owner pastes into
+// their own site, so it must not be able to close the attribute or the tag.
+function escapeHtmlAttribute(value) {
+  return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/**
+ * Ready-to-paste iframe snippet for the embeddable campaign card. Returns "" for
+ * a non-UUID id. No script is emitted: the card is inert markup and the visitor
+ * is sent to the public campaign page for anything interactive.
+ */
+export function campaignEmbedSnippet(campaign = {}, origin = CANONICAL_ORIGIN) {
+  const src = campaignEmbedUrl(campaign?.id, origin);
+  if (!src) return "";
+  const title = escapeHtmlAttribute(String(campaign?.title || "").trim() || "Interplanetary Fund campaign");
+  return `<iframe src="${src}" title="${title}" width="100%" height="420" ` +
+    `style="border:0;max-width:420px" loading="lazy" referrerpolicy="no-referrer"></iframe>`;
+}
+
 /** Title + one-line summary used as the share message. */
 export function campaignShareText(campaign = {}) {
   const title = String(campaign.title || "").trim() || "an Interplanetary Fund campaign";

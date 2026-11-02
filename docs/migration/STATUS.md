@@ -117,3 +117,28 @@ The PR #186 review found a real race: `saveOwnerCampaign` and `setCampaignStatus
 - **Tests:** `tests/deployment-readiness.test.js` (6 cases) pins the SPA rewrite, the header set, the embed framing exception, the preview-default rule, the absence of hardcoded credentials, and the no-backend refusal. `apps/web` is now **98/98 pass**; root 96/96; build succeeds.
 - **Verified by running it:** a local server that honours `_redirects` like Pages returns 200 + the app shell for `/campaign/<uuid>`, `/campaigns/<uuid>/edit`, `/discover` and `/about`, and the browser renders the About page and client-side routes from a deep link. The built `dist/` contains both files.
 - **UNVERIFIED:** no Cloudflare credentials exist in this environment, so nothing has actually been published. See B17.
+
+## Frontend UX: campaign embed kit + source-repo gap analysis — 2026-11-02
+
+**Code only. Nothing deployed; no SQL; no payment change.**
+
+### Delivered: the embed card is now actually usable
+The app shipped an `/embed/campaign/:id` route and `EmbedCampaign.jsx` renders a public iframe card, but nothing anywhere produced the `<iframe>` snippet, so no owner could embed a campaign. Added to `src/lib/campaignShare.js`:
+- `campaignEmbedUrl(id)` — canonical `/embed/campaign/<uuid>`, empty for a non-UUID id.
+- `campaignEmbedSnippet(campaign)` — a ready-to-paste `<iframe>`, with the title HTML-attribute-escaped so a campaign title cannot break out of the markup, `loading="lazy"`, `referrerpolicy="no-referrer"`, no `<script>`, no event handlers, no `allow-scripts`.
+
+`CampaignShareButton.jsx` gained an "Embed this campaign" section: the snippet is shown in a read-only, selectable textarea (so a browser that blocks the clipboard is not a dead end) plus a copy button. The snippet always uses the canonical origin, so a preview or hostile origin can never be pasted as the embed source.
+
+**Tests:** 6 new cases in `tests/campaign-share.test.js`, including that a `"><script>` title is escaped and cannot inject markup. `apps/web` is now **104/104 pass**; root 96/96; build succeeds; the embed strings ship in the built `CampaignDetail` chunk.
+
+### Source review: `interplanetarysister/interplanetary-fund2` (read-only)
+Compared the source app (57 pages) with `apps/web` to find remaining UX gaps. Most navigation targets are already ported or reach a branded Coming Soon page; the mobile shell (drawer, bottom tab bar, quick actions) is ported. The gaps split cleanly:
+
+- **Code-doable, no schema change:** campaign updates/story sections, FAQ, richer dashboard cards, `/agents` and `/mission` presentation.
+- **Blocked on schema, not on code:** only four tables exist (`ifund_campaigns`, `ifund_connections`, `ifund_posts`, `ifund_profiles`). Follows, notifications, donors/giving, ledger, withdrawals, subscriptions and blogs have no destination table. `/donors`, `/ledger`, `/withdrawals` and `/subscriptions` are additionally financial surfaces that must not be faked. Adding tables requires the AGENTS.md independent-review and staging-test process.
+- **Not achievable by any code change here:** a public profile page (`/u/:id`). `ifund_profiles_read` is `using (id = (select auth.uid()))`, so profiles are readable only by their owner; a public profile needs a new public-read policy or view, which is a schema change. Recorded, not attempted.
+- **Deliberately not ported:** `AIImageStudio` and the Base44 `AICoach`/`AIStoryGenerator` flows depend on the Base44 runtime, which the migration rules exclude.
+
+### Deliberately rejected during this review
+- **Dark-mode "fix" for Discover/CampaignDetail hardcoded light colors:** `src/index.css` already has a global `.dark` override layer that remaps `bg-white`, `bg-stone-*`, `text-stone-*` and the light borders to theme tokens. The apparent problem is already handled; changing the pages would have been wrong.
+- **A restrictive Content-Security-Policy:** cannot be verified against a live Supabase session here, and a wrong policy white-screens the site. The `_headers` file sets only the directives that are safe without that check.
