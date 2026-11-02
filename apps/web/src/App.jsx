@@ -33,6 +33,7 @@ const Inbox = lazy(() => import("./pages/Inbox"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
+const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 
@@ -83,6 +84,8 @@ function AppRoutes() {
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
+      <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
+      <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
