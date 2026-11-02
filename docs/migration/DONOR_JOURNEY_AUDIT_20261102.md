@@ -74,18 +74,19 @@ rendering:
 - Current production-root candidate `src/App.jsx`: **18 explicit routes**,
   plus wildcard.
 - Branded `apps/web/src/App.jsx`: **32 directly declared route patterns**,
-  plus **24 generated Coming Soon route patterns** from its two route arrays,
-  plus wildcard. This is 56 explicit route patterns in total, but 24 are
-  placeholders, not implemented page experiences.
+  plus 24 entries generated from its two Coming Soon arrays. One array entry
+  duplicates the implemented `/my-blog` route, so there are **23 unique
+  placeholder paths** and 55 unique explicit path patterns, plus wildcard.
+  This branch removes that duplicate and adds a regression test.
 
-The 24 `apps/web` placeholder patterns are:
+The 23 unique `apps/web` placeholder paths are:
 
 - Standalone: `/onboarding`, `/globe`, `/oauth/consent`, `/activate`.
 - Layout: `/community/:id`, `/u/:id`, `/giving`, `/communications`,
   `/mission`, `/ai-images`, `/institutions`, `/institutions/:id`,
-  `/my-blog`, `/devices`, `/donors`, `/ledger`, `/subscriptions`,
-  `/withdrawals`, `/agents`, `/ops`, `/platform`, `/analytics`,
-  `/connect`, and `/admin/*`.
+  `/devices`, `/donors`, `/ledger`, `/subscriptions`, `/withdrawals`,
+  `/agents`, `/ops`, `/platform`, `/analytics`, `/connect`, and
+  `/admin/*`.
 
 The route totals are not a parity score: aliases and wildcard grouping differ,
 and page content, authorization, data, links and behavior still require
@@ -105,22 +106,24 @@ route-by-route evidence.
 | Owner/admin management tools | Yes | Basic edit route only | Partial/guarded; not equivalent |
 | Mobile donation affordance | Yes | No | Button scrolls to funding card; checkout remains disabled |
 
-## Safe repair made on this branch
+## Safe repairs made on this branch
 
-The root campaign-detail page previously rendered `Loading…` forever when the
-Supabase client was absent, a campaign did not exist, a permission/query error
-occurred, or the request rejected. It also displayed raw backend error text.
+1. The root campaign-detail page previously rendered `Loading…` forever when the
+   Supabase client was absent, a campaign did not exist, a permission/query error
+   occurred, or the request rejected. It also displayed raw backend error text.
+   The repair adds explicit loading, not-found and retryable-error outcomes,
+   cancels stale responses, uses generic public error text, and clearly discloses
+   that the root preview cannot accept campaign donations. Five unit tests cover
+   successful, missing, not-found and error outcomes.
+2. The branded frontend declared `/my-blog` as both a real member publication
+   route and a Coming Soon route. The duplicate placeholder entry is removed,
+   with a regression test protecting the implemented route.
 
-Branch `fix/campaign-detail-terminal-states-20261102` adds:
+Branch: `fix/campaign-detail-terminal-states-20261102`.
 
-- Explicit loading, not-found, and retryable-error outcomes.
-- Cleanup against stale responses when the route ID changes or the page unmounts.
-- Generic public error text rather than leaking PostgREST details.
-- Clear disclosure that the root preview cannot accept campaign donations.
-- Five unit tests for successful, missing, not-found, and error outcomes.
-
-This is a narrow UI reliability repair. It does not enable payments, change
-permissions, or claim a live-site fix. It has not been merged or deployed.
+These are narrow UI reliability and route-definition repairs. They do not enable
+payments, change permissions, or claim a live-site fix. They have not been merged
+or deployed.
 
 ## CI and deployment evidence
 
