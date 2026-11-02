@@ -88,7 +88,15 @@ Ordered, with a gate at each step. Nothing here is executed from this
 environment: there are no Cloudflare credentials (B17) and no Supabase
 credentials (B15).
 
+0. **Confirm which Supabase project the deployed root app targets.** The root
+   app reads `VITE_SUPABASE_URL` at build time (`src/lib/supabase.js`) and no URL
+   is hard-coded anywhere in the repository, so this cannot be determined from
+   source. Check the Pages project's build variables. This decides *where* B20 is
+   exploitable: if the deployed bundle points at the legacy project rather than
+   `ssibsfmtodgximseeqsv`, the hole is on the legacy database and the fix must be
+   applied there too.
 1. **Apply the two pending security migrations to a preview/staging database.**
+   Verified to apply cleanly in either order (tests/pending-migration-order.test.js).
    `20261102_ifund_blog_entry_ownership_fix.sql` (B20) and
    `20261102_ifund_member_schema_completion.sql` (B18/B16). Verify with the
    in-repo suites plus the two-account checks against real Postgres.
