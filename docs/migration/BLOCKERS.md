@@ -99,3 +99,14 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 **Actions blocking safe Base44 shutdown:** Securely migrate verified Supabase users and campaign ownership with explicit consent, reconcile source content/media and donations, audit RLS and browser column grants with actual two-account negative tests, review/merge remaining source phases and PayPal/finance/webhooks, deploy independent Worker and Pages to a nonproduction route, prove Base44-free HTTP response parity and rollback, then separately authorize production cutover. Data import must not be faked by relabeling the private legacy snapshot tables.
 
 **Merge queue:** #139–#143 currently have conflicts after #138 landed and unresolved review findings. Resolve their conflicts and review findings one at a time rather than force-merging old stacked changes; #141/#142 contain API/UI implementations already extracted cleanly to merged #150/#151. #144/#146/#147/#148 are draft/review-gated; #145 platform-support payments alone are not campaign donations and withdrawals. Obsolete #136 must never be merged.
+
+## B14 — Owner campaign publish flow is code-complete but runtime-unverified (2026-11-02)
+
+**VERIFIED in source and unit tests:** `apps/web` now has owner campaign management (`/campaigns`, `/campaigns/:id/edit`). Status transitions `draft → active → paused → active` are enforced client-side; publish readiness mirrors the `ifund_publish_complete` constraint from `supabase/migrations/20261025011400_initial.sql`; every query is scoped to `owner_id = auth.uid()`; returned rows are verified; deletion is limited to drafts. 18 new `node:test` cases pass (58/58 in `apps/web`), the Vite build succeeds, and the preview server renders the routes.
+
+**UNKNOWN / blocks a truthful "publishing works" claim:**
+- No authenticated browser session has exercised the flow. `ssibsfmtodgximseeqsv` has **zero Auth users**, so the publish→Discover round trip, the live constraint behavior, and cross-account RLS negative tests cannot be run yet.
+- The required browser grants for the lifecycle are assumed to match `20261025011400_initial.sql` (`insert(owner_id,...)` / `update(title,...,status)` for `authenticated`). Whether the **live** destination project has those exact grants is unverified; a previously applied broader or narrower grant set would change behavior. See the Phase 1 note that source grant corrections are not applied live.
+- Whether the published Pages project serves this `apps/web` bundle at all is unchanged from `DEPLOYMENT-GATES.md`: the public-site-port branch is not the deployed production branch.
+
+**Next proof:** create one test Auth user, insert one owned draft, publish it, confirm it appears in an anonymous `ifund_campaigns?status=eq.active` read, then confirm a second user cannot read or modify it. That requires owner authorization for a non-production Supabase environment. No production change was made.

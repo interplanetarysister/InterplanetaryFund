@@ -19,6 +19,8 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
+const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
+const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -71,6 +73,8 @@ function AppRoutes() {
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />
+      <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
+      <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />

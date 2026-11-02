@@ -47,9 +47,29 @@ Never commit real values. Without them the site still renders, and Discover and 
 
 Campaign donations are paused, as on the live site. The "CAMPAIGN DONATIONS ARE CURRENTLY PAUSED" banner is kept and campaign checkout is disabled. The separate Interplanetary Fund platform-support PayPal link (unchanged from the original) still appears where it did before.
 
+## Owner campaign lifecycle
+
+A signed-in member can now take a campaign all the way from a private draft to a publicly discoverable campaign, and back:
+
+| Route | Purpose |
+| --- | --- |
+| `/create` | Write a new campaign and save it as a private draft |
+| `/campaigns` | List every campaign the member owns, with publish / pause / resume / delete |
+| `/campaigns/:id/edit` | Edit one owned campaign and publish or pause it |
+
+Rules enforced in `src/lib/campaignLifecycle.js` and `src/api/ownerCampaigns.js`:
+
+- Status follows `draft → active → paused`, and `paused → active`. `active → draft` and `paused → draft` are refused.
+- Publishing requires a non-empty title, summary and story plus a goal greater than zero. This mirrors the database constraint `ifund_publish_complete` in `supabase/migrations/20261025011400_initial.sql`, so a publish is never sent when it must fail.
+- Every read and write is scoped to `owner_id = auth.uid()` and every returned row is verified before success is reported. Supabase row level security remains authoritative; the client checks are UX only.
+- Deleting is restricted to drafts, matching the audited Worker policy in `worker/campaignWrites.js`. A published campaign is paused instead, because it may already have donors.
+- Publishing changes visibility only. It does not enable donations, create ledger rows, or call a payment provider.
+
+`src/hooks/useAuthSession.js` makes the app shell session-aware, so a signed-in member sees the member navigation. It is a client hint; it grants no access by itself.
+
 ## Not ported (yet)
 
-The current code includes Supabase sign-in/registration, an owner dashboard, private campaign draft saving, and an opt-in campaign-writing assistant backed by the existing authenticated Supabase Edge Function `ifund-campaign-draft-preview`. These are not yet proof of complete end-to-end production acceptance. Payment checkout, withdrawals, agent/workflow parity, all 59 historical route behaviors, and provider integrations remain incomplete or gated.
+The current code includes Supabase sign-in/registration, an owner dashboard, owner campaign management (publish, pause, resume, edit, draft delete), private campaign draft saving, and an opt-in campaign-writing assistant backed by the existing authenticated Supabase Edge Function `ifund-campaign-draft-preview`. These are not yet proof of complete end-to-end production acceptance: no browser test has run against a real Supabase session, the destination project has no Auth users and no published campaigns, and runtime row level security has not been verified against staging. Payment checkout, withdrawals, agent/workflow parity, all 59 historical route behaviors, and provider integrations remain incomplete or gated.
 
 ## Assets
 
