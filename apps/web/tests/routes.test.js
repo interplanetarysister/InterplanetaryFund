@@ -10,7 +10,7 @@ test("independent user-facing routes are explicitly implemented", () => {
 });
 test("implemented pages do not import Base44 client", () => {
  for (const name of ["AuthPage","ResetPassword","Dashboard","Profile","Connections","SocialFeedPage","CreateCampaign"]) {
-  assert.doesNotMatch(file(`../src/pages/${name}.jsx`), /base44Client|base44\.functions|base44\.entities/, name);
+  assert.doesNotMatch(file(`../src/pages/${name}.jsx`), /base44Client|base44\\.functions|base44\\.entities/, name);
  }
 });
 test("auth client targets one canonical Supabase project", () => {
@@ -23,4 +23,10 @@ test("fundraising is never represented as confirmed by draft creation", () => {
  const create = file("../src/pages/CreateCampaign.jsx");
  assert.match(create, /status: "draft"/);
  assert.doesNotMatch(create, /status: "active"/);
+});
+test("the implemented reporter workspace route is not duplicated as Coming Soon", () => {
+ assert.match(app, /<Route path="\\/my-blog" element={<MemberAccess><MyPublication \\/><\\/MemberAccess>} \\/>/);
+ const comingSoon = app.match(/const LAYOUT_COMING_SOON = \\[([\\s\\S]*?)\\];/);
+ assert.ok(comingSoon, "layout Coming Soon route list should be present");
+ assert.doesNotMatch(comingSoon[1], /["']\\/my-blog["']/);
 });
