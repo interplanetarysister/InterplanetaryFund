@@ -2,6 +2,33 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B28 — OPEN: three open PRs propose changes to the same `ifund_campaigns` grant surface
+
+Found while reviewing everything awaiting merge to `main`. Three open PRs each change, or depend on, the
+anon column grant on `public.ifund_campaigns`, and they are mutually inconsistent:
+
+* **#186** (`20261102_ifund_public_read_hardening.sql:95-97`) replaces the table-wide anon grant with an
+  explicit column list: `id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,updated_at`.
+* **#182** (`20261101_planetary_atlas_public_locations.sql`) adds `latitude`, `longitude`,
+  `atlas_city`, `atlas_country`, `atlas_visible` to the table and grants nothing for them. Its new page
+  `src/pages/PlanetaryAtlas.jsx:18` reads `latitude,longitude,atlas_visible` as an anonymous visitor.
+  Its own comment (line 30) asserts "SELECT of active campaigns is already public", which is only true
+  while the grant stays table-wide.
+* **#188** (`docs/migration/sql/public_campaign_detail_updated_at_column_grant.sql`) adds a column grant
+  on the same table, outside `supabase/migrations/`.
+
+Each PR is internally consistent. Together they are not. If #186 and #182 both land, the Atlas select
+raises `42501 permission denied` and the page renders empty for every anonymous visitor.
+
+**Why this matters beyond the one page:** grant narrowing is a global change to a shared object, but it
+was reviewed as a local change. Every concurrent reader of the narrowed columns has to be checked, not
+just the readers already merged.
+
+**Resolution:** one owner for the `ifund_campaigns` grant surface, and one review that covers all three
+proposals together. Either add the atlas columns to the anon grant (only alongside the opt-in consent
+UX #182 defers) or keep the Atlas behind authenticated access, and drop the duplicate grant in #188 in
+favour of a single migration. Recorded on all three PRs.
+
 ## B27 — RESOLVED IN CODE, NOT YET APPLIED: the 66 missing entity tables
 
 The storage gap recorded above is now closed. `scripts/generate-entity-tables.mjs`

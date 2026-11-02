@@ -131,6 +131,16 @@ Durable facts for agents working in this repository. Details in daily logs.
   scripts/generate-entity-tables.mjs from the reference .jsonc schemas; manifest committed at
   docs/migration/base44-entity-tables.json. All DENY-BY-DEFAULT (RLS on, zero grants). Purely additive.
   Do NOT hand-edit the generated SQL — re-run the script.
+- **ALWAYS check `git rev-parse --is-shallow-repository` before history/merge-base reasoning.** This
+  workspace is a SHALLOW clone: `git rev-list --count origin/main` said 1 but main really has 930 commits.
+  I nearly reported a false "main was reset to 1 commit" finding. Run `git fetch --unshallow` first.
+- **PR triage: use `gh api repos/<o>/<r>/compare/main...<branch>`.** `status=ahead, behind=0` = real merge
+  candidate; `diverged` = based on old main. As of 2026-11-02 only 5 of 51 open PRs are `ahead`
+  (#182 #184 #185 #186 #188, all drafts) and 46 are diverged. A diverged branch can merge "cleanly"
+  with 0 deletions and still be unverifiable — clean != compatible.
+- **`ifund_campaigns` anon grant has 3 conflicting proposals** (#186 narrows it, #182's PlanetaryAtlas
+  needs latitude/longitude/atlas_visible, #188 adds a column grant). See BLOCKERS.md B28.
+- **Branch-protection API is 403 for this token** — cannot confirm required checks.
 - **`gh` IS authenticated** (gh pr view/edit works). PR #186 open/draft. Its "Supabase Preview" check
   points at project tzehxfikoslihnclhxuz, which is NOT production (ssibsfmtodgximseeqsv).
 - **No Supabase or Cloudflare credentials exist in this environment.** Live schema reconciliation,
