@@ -9,12 +9,15 @@ Inputs from the owner's independent check of the live Cloudflare Pages project:
   while the latest production deployment references **`InterplanetaryFund`**.
 - Automatic production deployments are **disabled**.
 
-## Decision: `apps/web` is canonical, with one port to finish first
+## Decision: `apps/web` is canonical
 
 `apps/web` is the canonical frontend. It has 28 pages to the root app's 17, and
-every root route has an `apps/web` equivalent except one. That one exception is
-a real capability, not a missing page, so the order is: **port it, then promote
-`apps/web`, then retire the root app from deployment.**
+every root route now has an `apps/web` equivalent. The one real gap — the
+reporter publishing workspace — was closed on 2026-11-02 (commit `e4e2092`), so
+`apps/web` is now a true superset of the root app's user-facing surface.
+
+The remaining order is: **fix B20, verify in preview, promote `apps/web`, then
+retire the root app from deployment.**
 
 ### Route-by-route
 
@@ -23,14 +26,15 @@ a real capability, not a missing page, so the order is: **port it, then promote
 | `/`, `/discover`, `/blogs`, `/blogs/:id`, `/campaign/:id`, `/community`, `/connections`, `/contact`, `/create`, `/help`, `/help/:slug`, `/login`, `/privacy`, `/terms`, `/about` | present | `apps/web` additionally has `/dashboard`, `/inbox`, `/notifications`, `/following`, `/profile`, `/social`, `/campaigns/:id/edit`, `/publications/:id`, `/founding-members`, `/download`, `/embed/campaign/:id`, `/forgot-password`, `/reset-password`, `/register` |
 | `/edit/:id` | `/campaigns/:id/edit` | rename only |
 | `/mine` | `/dashboard` + `/campaigns` | superset |
-| **`/my-blog`** | **absent** | **the one real gap — see below** |
+| `/my-blog` | `/publication` (and `/my-blog`) | **ported 2026-11-02 — gap closed** |
 
-`apps/web` is a strict superset in user-facing surface except for the reporter
-publishing workspace.
+`apps/web` is now a strict superset in user-facing surface. `/my-blog` is routed
+as well as `/publication`, so the root app's existing links keep working.
 
-### The one gap: the reporter publishing workspace
+### The gap that was: the reporter publishing workspace (now closed)
 
-The root app can **create, save and publish** member stories:
+**Closed 2026-11-02.** The root app could **create, save and publish** member
+stories:
 `src/pages/MyBlog.jsx` → `src/lib/blogs.js` (`getReporterWorkspace`,
 `saveReporterStory`). `apps/web` only **reads** published stories
 (`src/lib/editorial.js` → `ifund_public_blog_entries_read`).
@@ -41,10 +45,11 @@ write path is missing its authorization check. Promoting `apps/web` without the
 B20 fix would remove the exploitable surface by accident rather than by design,
 which is not a fix — the RLS hole would remain open to anyone calling PostgREST.
 
-**Good news on scope:** the committed blog migration already contains owner
-insert/update/delete policies and grants, so porting the workspace needs **no new
-schema**. It needs the B20 fix, a member-facing write module in `apps/web`
-mirroring `blogs.js`'s owner check, and a route.
+The port needed **no new schema** — the committed blog migration already
+contains owner insert/update/delete policies and grants. What it needed was the
+B20 fix plus `apps/web/src/lib/reporterWorkspace.js` (owner-scoped, lifecycle-
+gated, response-verified), `apps/web/src/pages/MyPublication.jsx`, two routes,
+and 16 tests. All shipped in `e4e2092`.
 
 ## The Cloudflare configuration discrepancy is a supply-chain risk
 
