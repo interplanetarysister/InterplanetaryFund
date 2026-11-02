@@ -28,6 +28,101 @@
 begin;
 
 -- ---------------------------------------------------------------------------
+-- 0. Preflight: refuse to run against a schema that disagrees with this file
+-- ---------------------------------------------------------------------------
+-- This migration uses `create table if not exists` and then grants column-level
+-- privileges. Against a database that already holds a table of the same name,
+-- `if not exists` verifies nothing: it silently does nothing, and the following
+-- grant either fails on a missing column or succeeds while the application reads
+-- a column that is not there. Neither failure is visible in advance from source.
+--
+-- This block turns that silent divergence into a loud, single, actionable error
+-- before any DDL runs. It is a guard, not a repair: it never changes a table.
+--
+-- It checks two distinct hazards:
+--
+--   (a) NAMING DIVERGENCE. If this database stores the same concepts under
+--       different names (for example public.campaigns rather than
+--       public.ifund_campaigns), then creating the ifund_* set would build an
+--       empty parallel schema, and the application - which queries ifund_* -
+--       would read nothing while the real data sat untouched next to it.
+--
+--   (b) SHAPE DIVERGENCE. If a table this file would create already exists but
+--       lacks a column that the migration's grants or the client code depend on,
+--       the migration cannot succeed as written and must not be applied.
+--
+-- Run docs/migration/PRODUCTION_RECONCILIATION.sql first. It reports the exact
+-- live shape this block is checking against.
+do $$
+declare
+  problems text[] := '{}';
+  required record;
+  found boolean;
+begin
+  -- (a) Parallel-schema detection. Each pair is (expected, conflicting).
+  for required in
+    select * from (values
+      ('ifund_campaigns', 'campaigns'),
+      ('ifund_profiles',  'profiles'),
+      ('ifund_posts',     'posts'),
+      ('ifund_follows',   'follows'),
+      ('ifund_notifications', 'notifications'),
+      ('ifund_legal_acceptances', 'legal_acceptances')
+    ) as pairs(expected, conflicting)
+  loop
+    if to_regclass('public.' || required.expected) is null
+       and to_regclass('public.' || required.conflicting) is not null then
+      problems := problems || format(
+        'NAMING: public.%s exists but public.%s does not; this database does not use the ifund_ prefix',
+        required.conflicting, required.expected);
+    end if;
+  end loop;
+
+  -- (b) Shape detection: for every table this file may create, if it already
+  --     exists it must already carry the columns the file depends on.
+  for required in
+    select * from (values
+      ('ifund_legal_acceptances', 'owner_id'),
+      ('ifund_legal_acceptances', 'terms_version'),
+      ('ifund_legal_acceptances', 'explicit_consent'),
+      ('ifund_notifications',     'owner_id'),
+      ('ifund_notifications',     'read'),
+      ('ifund_inbox_items',       'owner_id'),
+      ('ifund_inbox_items',       'status'),
+      ('ifund_follows',           'owner_id'),
+      ('ifund_follows',           'campaign_id'),
+      ('ifund_follows',           'notification_prefs'),
+      ('ifund_official_publications', 'status'),
+      ('ifund_official_publications', 'final_approved'),
+      ('ifund_profiles',          'id')
+    ) as cols(tbl, col)
+  loop
+    if to_regclass('public.' || required.tbl) is not null then
+      select exists (
+        select 1 from information_schema.columns c
+        where c.table_schema = 'public'
+          and c.table_name = required.tbl
+          and c.column_name = required.col
+      ) into found;
+      if not found then
+        problems := problems || format(
+          'SHAPE: public.%s exists but has no column "%s", which this migration and the client require',
+          required.tbl, required.col);
+      end if;
+    end if;
+  end loop;
+
+  if array_length(problems, 1) > 0 then
+    raise exception E'Preflight failed - this migration was NOT applied.\n%\n'
+      'Resolve the divergence first; see docs/migration/PRODUCTION_RECONCILIATION.sql '
+      'and docs/migration/CANONICAL_FRONTEND_AND_DEPLOYMENT_PLAN.md. Nothing was changed.',
+      array_to_string(problems, E'\n');
+  end if;
+
+  raise notice 'Preflight passed: the schema matches this migration''s assumptions.';
+end $$;
+
+-- ---------------------------------------------------------------------------
 -- 1. Account lifecycle columns on public.ifund_profiles
 -- ---------------------------------------------------------------------------
 -- Client contract: apps/web/src/lib/accountLifecycle.js and
