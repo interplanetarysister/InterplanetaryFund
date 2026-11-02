@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   listOwnerCampaigns, loadOwnerCampaign, saveOwnerCampaign,
-  setCampaignStatus, deleteDraftCampaign,
+  setCampaignStatus, deleteDraftCampaign, isCampaignConflict, CAMPAIGN_CONFLICT_MESSAGE,
 } from "../src/api/ownerCampaigns.js";
 
 const OWNER = "11111111-1111-4111-8111-111111111111";
@@ -34,6 +34,9 @@ function fakeClient({
   failDelete = false,
   returnOtherOwner = false,
   statusOverride = null,
+  // Simulates another browser session changing the row *between* this
+  // operation's pre-read and its write, which is the real race window.
+  raceStatusAfterRead = null,
 } = {}) {
   const calls = [];
   const store = rows.map((row) => ({ ...row }));
@@ -63,13 +66,17 @@ function fakeClient({
         eq(column, value) { query.filters.push([column, value]); calls.push({ type: "eq", table, column, value }); return api; },
         order(column, config) { calls.push({ type: "order", table, column, config }); return api; },
         limit(value) { calls.push({ type: "limit", table, value }); return api; },
-        maybeSingle() { return Promise.resolve(resolve(api, true)); },
-        single() { return Promise.resolve(resolve(api, true)); },
-        then(onFulfilled, onRejected) { return Promise.resolve(resolve(api, false)).then(onFulfilled, onRejected); },
+        maybeSingle() { return Promise.resolve(resolve(api, "maybe")); },
+        single() { return Promise.resolve(resolve(api, "single")); },
+        then(onFulfilled, onRejected) { return Promise.resolve(resolve(api, "list")).then(onFulfilled, onRejected); },
       };
-      // `singleRow` distinguishes .single()/.maybeSingle() from the awaited
-      // list query, which resolves to an array.
-      function resolve(_api, singleRow) {
+      // Mirrors postgrest-js: .single() errors on zero rows, .maybeSingle()
+      // resolves { data: null, error: null }, and a list query resolves [].
+      function resolve(_api, mode) {
+        const singleRow = mode !== "list";
+        const noRows = () => (mode === "maybe" ? { data: null, error: null }
+          : mode === "single" ? { data: null, error: { message: "no rows" } }
+            : { data: [], error: null });
         if (table === "ifund_profiles") {
           return {
             data: profileActive ? { account_status: "active", account_deletion_pending: false } : { account_status: "suspended", account_deletion_pending: false },
@@ -85,8 +92,14 @@ function fakeClient({
             (byOwner === undefined || row.owner_id === byOwner));
           if (returnOtherOwner) found = found.map((row) => ({ ...row, owner_id: OTHER }));
           if (singleRow) {
-            if (found.length !== 1) return { data: null, error: { message: "no rows" } };
-            return { data: { ...found[0] }, error: null };
+            if (found.length !== 1) return noRows();
+            const snapshot = { ...found[0] };
+            // Another session commits a change right after this read returns.
+            if (raceStatusAfterRead !== null) {
+              const index = store.findIndex((row) => row.id === snapshot.id);
+              if (index >= 0) store[index].status = raceStatusAfterRead;
+            }
+            return { data: snapshot, error: null };
           }
           return { data: found.map((row) => ({ ...row })), error: null };
         }
@@ -100,8 +113,12 @@ function fakeClient({
         if (query.op === "update") {
           lastUpdate = query.payload;
           if (failUpdate) return { data: null, error: { message: "update failed" } };
-          const index = store.findIndex((row) => row.id === byId && row.owner_id === byOwner);
-          if (index < 0) return singleRow ? { data: null, error: { message: "no rows" } } : { data: [], error: null };
+          // Real PostgREST applies every filter, including a status filter, so a
+          // compare-and-swap on status matches zero rows once the row moved on.
+          const statusFilter = query.filters.find(([column]) => column === "status");
+          const index = store.findIndex((row) => row.id === byId && row.owner_id === byOwner &&
+            (statusFilter === undefined || row.status === statusFilter[1]));
+          if (index < 0) return noRows();
           store[index] = { ...store[index], ...query.payload };
           if (statusOverride !== null) store[index].status = statusOverride;
           return singleRow ? { data: { ...store[index] }, error: null } : { data: [{ ...store[index] }], error: null };
@@ -206,7 +223,7 @@ test("illegal status transitions and unconfirmed status writes fail closed", asy
   // The database left the row in its previous state even though the client
   // allowed the transition; the write must not be reported as success.
   const stale = fakeClient({ rows: [campaign()], statusOverride: "draft" });
-  await assert.rejects(setCampaignStatus(stale.client, DRAFT_ID, "active"), /could not be verified|not confirmed/);
+  await assert.rejects(setCampaignStatus(stale.client, DRAFT_ID, "active"), /changed in another session/);
   await assert.rejects(setCampaignStatus(f.client, "not-a-uuid", "active"), /Invalid campaign reference/);
 });
 
@@ -233,4 +250,84 @@ test("only unpublished drafts can be deleted", async () => {
 
 test("a session change mid-flight is not accepted as the original owner", async () => {
   await assert.rejects(listOwnerCampaigns(fakeClient({ changeAfterFirstUserCheck: true }).client), /account changed/);
+});
+
+test("every mutation carries the validated status as a compare-and-swap guard", async () => {
+  const save = fakeClient();
+  await saveOwnerCampaign(save.client, {
+    title: "Renamed", summary: "Updated", story: "Updated", category: "community", goal_amount: "500", cover_image_url: "",
+  }, { id: DRAFT_ID, status: "draft" });
+  assert.ok(save.calls.some((c) => c.type === "eq" && c.table === "ifund_campaigns" && c.column === "status" && c.value === "draft"),
+    "the save must filter on the status it validated");
+
+  const status = fakeClient();
+  await setCampaignStatus(status.client, DRAFT_ID, "active");
+  assert.ok(status.calls.some((c) => c.type === "eq" && c.column === "status" && c.value === "draft"),
+    "the transition must filter on the status it validated");
+});
+
+test("a stale draft save loses to a concurrent publish instead of reverting it", async () => {
+  // Another tab publishes the campaign between this tab's read and its write.
+  const f = fakeClient({ rows: [campaign()], raceStatusAfterRead: "active" });
+  await assert.rejects(
+    saveOwnerCampaign(f.client, {
+      title: "Renamed", summary: "Updated", story: "Updated", category: "community", goal_amount: "500", cover_image_url: "",
+    }, { id: DRAFT_ID, status: "draft" }),
+    /changed in another session/,
+  );
+  // The concurrent publish must survive: the stale save must not have
+  // reverted the status or overwritten the published content.
+  assert.equal(f.store[0].status, "active");
+  assert.equal(f.store[0].title, "Plaza lights");
+});
+
+test("a stale publish cannot be applied twice", async () => {
+  // Two tabs both read 'draft' and both try to publish. The first wins; the
+  // second's compare-and-swap matches no row and fails closed.
+  const f = fakeClient({ rows: [campaign()], raceStatusAfterRead: "active" });
+  await assert.rejects(setCampaignStatus(f.client, DRAFT_ID, "active"), /changed in another session/);
+  assert.equal(f.store[0].status, "active");
+});
+
+test("a concurrent publish cannot be overwritten by a stale resume", async () => {
+  // Another tab resumed the campaign to active between this tab's read and its
+  // write, so this stale resume must fail closed.
+  const f = fakeClient({ rows: [campaign({ id: ACTIVE_ID, status: "paused" })], raceStatusAfterRead: "active" });
+  await assert.rejects(setCampaignStatus(f.client, ACTIVE_ID, "active"), /changed in another session/);
+  assert.equal(f.store[0].status, "active");
+});
+
+test("a write that returns a different status than requested is rejected", async () => {
+  const f = fakeClient({ rows: [campaign()], statusOverride: "paused" });
+  await assert.rejects(setCampaignStatus(f.client, DRAFT_ID, "active"), /changed in another session/);
+});
+
+test("a stale save is reported as a conflict, not as a generic save failure", async () => {
+  const f = fakeClient({ rows: [campaign()], raceStatusAfterRead: "paused" });
+  await assert.rejects(
+    saveOwnerCampaign(f.client, { title: "x", category: "community", goal_amount: "1" }, { id: DRAFT_ID, status: "draft" }),
+    /changed in another session/,
+  );
+});
+
+test("a conflict is distinguishable from a generic save failure", async () => {
+  assert.equal(isCampaignConflict(new Error(CAMPAIGN_CONFLICT_MESSAGE)), true);
+  assert.equal(isCampaignConflict(new Error("Your campaign changes were not saved.")), false);
+  assert.equal(isCampaignConflict(undefined), false);
+
+  const f = fakeClient({ rows: [campaign()], raceStatusAfterRead: "active" });
+  const cause = await setCampaignStatus(f.client, DRAFT_ID, "active").then(() => null, (e) => e);
+  assert.equal(isCampaignConflict(cause), true);
+
+  const broken = fakeClient({ rows: [campaign()], failUpdate: true });
+  const other = await setCampaignStatus(broken.client, DRAFT_ID, "active").then(() => null, (e) => e);
+  assert.equal(isCampaignConflict(other), false, "a database error is not a concurrency conflict");
+});
+
+test("both management pages resync after a concurrency conflict", () => {
+  for (const name of ["MyCampaigns", "EditCampaign"]) {
+    const page = source(`src/pages/${name}.jsx`);
+    assert.match(page, /isCampaignConflict/, `${name} must detect conflicts`);
+    assert.match(page, /if \(isCampaignConflict\(cause\)\) load\(\);/, `${name} must reload on conflict`);
+  }
 });

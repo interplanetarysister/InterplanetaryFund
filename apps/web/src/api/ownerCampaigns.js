@@ -45,6 +45,30 @@ async function assertSessionUnchanged(client, owner) {
   }
 }
 
+// A read -> check -> update sequence is not atomic: another tab or browser can
+// change the row between the read and the write. Every mutation therefore
+// carries the status it validated as a compare-and-swap condition, so a stale
+// operation matches no row and fails closed instead of overwriting newer state.
+export const CAMPAIGN_CONFLICT_MESSAGE =
+  "This campaign changed in another session. Reload before making changes.";
+
+/** True when a failure was a lost compare-and-swap rather than a generic error. */
+export function isCampaignConflict(cause) {
+  return cause?.message === CAMPAIGN_CONFLICT_MESSAGE;
+}
+
+function confirmedWrite(result, { owner, id, expectedStatus, failureMessage }) {
+  if (result.error) throw new Error(failureMessage);
+  const rows = Array.isArray(result.data) ? result.data : result.data ? [result.data] : [];
+  // Zero affected rows means the compare-and-swap condition matched nothing.
+  if (rows.length !== 1) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
+  const row = assertOwned(rows[0], owner, id);
+  // The database returns the post-write row; if it is not the status this
+  // operation validated and wrote, a concurrent change won the race.
+  if (expectedStatus !== undefined && row.status !== expectedStatus) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
+  return row;
+}
+
 export async function listOwnerCampaigns(client) {
   const owner = await verifiedOwner(client);
   const { data, error } = await client.from("ifund_campaigns")
@@ -106,14 +130,16 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
   }
+  // Compare-and-swap on the validated status so a concurrent publish or pause
+  // cannot be silently overwritten by this stale save.
   const { data, error } = await client.from("ifund_campaigns")
     .update(payload)
     .eq("id", id)
     .eq("owner_id", owner)
+    .eq("status", existing.status)
     .select(OWNER_CAMPAIGN_COLUMNS)
-    .single();
-  if (error || !data) throw new Error("Your campaign changes were not saved.");
-  const updated = assertOwned(data, owner, id);
+    .maybeSingle();
+  const updated = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "Your campaign changes were not saved." });
   await assertSessionUnchanged(client, owner);
   return updated;
 }
@@ -138,15 +164,16 @@ export async function setCampaignStatus(client, id, status) {
     const { ready, missing } = publishReadiness(current);
     if (!ready) throw new Error(missing[0] || "Complete the campaign before publishing.");
   }
+  // Compare-and-swap on the status this call validated, so two racing
+  // transitions cannot both apply and a stale one fails closed.
   const { data, error } = await client.from("ifund_campaigns")
     .update({ status })
     .eq("id", id)
     .eq("owner_id", owner)
+    .eq("status", current.status)
     .select(OWNER_CAMPAIGN_COLUMNS)
-    .single();
-  if (error || !data) throw new Error("The campaign status change was not saved.");
-  const saved = assertOwned(data, owner, id);
-  if (saved.status !== status) throw new Error("The campaign status change was not confirmed.");
+    .maybeSingle();
+  const saved = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "The campaign status change was not saved." });
   await assertSessionUnchanged(client, owner);
   return saved;
 }

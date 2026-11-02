@@ -110,3 +110,17 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 - Whether the published Pages project serves this `apps/web` bundle at all is unchanged from `DEPLOYMENT-GATES.md`: the public-site-port branch is not the deployed production branch.
 
 **Next proof:** create one test Auth user, insert one owned draft, publish it, confirm it appears in an anonymous `ifund_campaigns?status=eq.active` read, then confirm a second user cannot read or modify it. That requires owner authorization for a non-production Supabase environment. No production change was made.
+
+## B15 — Supabase runtime verification blocked: no credentials in the development environment (2026-11-02)
+
+**Cannot be executed here.** The requested Priority 2 runtime verification (registration/authentication, campaign create → edit → publish → Discover, pause/resume, owner-only permissions, cross-account RLS, persistence after refresh) requires an authenticated session against `ssibsfmtodgximseeqsv`.
+
+**Exact blocker:**
+- No Supabase credentials are available: `SUPABASE_URL`, `SUPABASE_ANON_KEY`/publishable key, `SUPABASE_SERVICE_ROLE_KEY`/`sb_secret_...`, and any database password are all unset in this environment. Only `GITHUB_TOKEN` is provided.
+- No `supabase` CLI, `psql` or `wrangler` binary is installed, so no management API or direct SQL connection can be made.
+- Only `apps/web/.env.example` and `.env.example` exist; no populated `.env` file is present.
+- Creating test Auth users requires the service-role/secret key or the dashboard, neither of which is available, and doing so is a live write to the destination project that the AGENTS.md rules gate behind explicit owner authorization.
+
+**What is verified instead (source-level):** the required schema, policies and grants are present in `supabase/migrations/20261025011400_initial.sql` — `status in ('draft','active','paused')`, the `ifund_publish_complete` check, owner-scoped insert/update/delete policies, and the column-level browser grants that cover `status`. This confirms the code is written against the intended contract; it does **not** confirm the live project matches it.
+
+**To unblock, the owner must provide one of:** a non-production Supabase project with the migrations applied plus a service-role key for creating test users; or an existing staging project with two test accounts. Per the migration rules, a separate staging environment or test credentials must be explicitly authorized. No production data or financial records were read or modified.

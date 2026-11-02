@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { loadOwnerCampaign, saveOwnerCampaign, setCampaignStatus } from "@/api/ownerCampaigns";
+import { loadOwnerCampaign, saveOwnerCampaign, setCampaignStatus, isCampaignConflict } from "@/api/ownerCampaigns";
 import {
   emptyCampaignForm, validateCampaignForm, publishReadiness,
   campaignStatusLabel, campaignStatusTone, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX,
@@ -76,6 +76,9 @@ export default function EditCampaign() {
         : "Your campaign changes were saved.");
     } catch (cause) {
       setError(cause?.message || "Your campaign changes were not saved.");
+      // Another session changed this campaign; reload its stored state rather
+      // than leaving a stale form on screen.
+      if (isCampaignConflict(cause)) load();
     } finally {
       lock.current = false; setBusy(false);
     }
@@ -94,6 +97,7 @@ export default function EditCampaign() {
         : "Your campaign is paused and hidden from Discover.");
     } catch (cause) {
       setError(cause?.message || "The campaign status change was not saved.");
+      if (isCampaignConflict(cause)) load();
     } finally {
       lock.current = false; setBusy(false);
     }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { listOwnerCampaigns, setCampaignStatus, deleteDraftCampaign } from "@/api/ownerCampaigns";
+import { listOwnerCampaigns, setCampaignStatus, deleteDraftCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
 import { campaignStatusLabel, campaignStatusTone, publishReadiness } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
@@ -61,6 +61,9 @@ export default function MyCampaigns() {
       );
     } catch (cause) {
       setError(cause?.message || "The campaign status change was not saved.");
+      // A lost race means another session already changed this campaign;
+      // reload so the list shows the current stored state.
+      if (isCampaignConflict(cause)) load();
     } finally {
       lock.current = false; setBusyId("");
     }
@@ -76,6 +79,7 @@ export default function MyCampaigns() {
       setNotice("Draft deleted.");
     } catch (cause) {
       setError(cause?.message || "The draft could not be deleted.");
+      if (isCampaignConflict(cause)) load();
     } finally {
       lock.current = false; setBusyId(""); setConfirmingId("");
     }
