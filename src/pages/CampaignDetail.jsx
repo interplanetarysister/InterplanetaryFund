@@ -80,8 +80,8 @@ function Detail() {
             <h3>Funding goal</h3>
             <strong>${Number(c.goal_amount || 0).toLocaleString()}</strong>
             <p>
-              This preview does not accept campaign donations. No payment can
-              be made from this page.
+              This preview does not accept campaign donations. No payment can be
+              made from this page.
             </p>
           </div>
           <p className="story">{c.story}</p>
