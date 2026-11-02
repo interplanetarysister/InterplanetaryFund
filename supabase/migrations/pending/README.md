@@ -18,6 +18,13 @@ Apply in filename order, after the three committed migrations in
 
 ## How these are verified
 
+`tests/client-schema-contract.test.js` (4 tests) reads the column lists out of the
+client source and asserts every one of them exists in the migrated schema. This is
+the guard that was missing: a typo'd or absent column is invisible to the
+fake-client tests (which answer any query) and only surfaces at runtime as a
+PostgREST error, which several of these paths swallow into a generic message.
+Verified non-vacuous by omitting the pending migrations and confirming it fails.
+
 `tests/pending-migration-order.test.js` (6 tests) verifies the claim that the two
 pending migrations are independent: it applies them in both orders and checks
 that each security effect survives either one.
