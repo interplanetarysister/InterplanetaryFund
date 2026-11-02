@@ -197,3 +197,52 @@ Also missing: `public.ifund_current_account_is_active()` (called by the pending 
 **Why it matters:** if the Pages project builds the repository root rather than `apps/web`, the branded application is not what visitors see, and none of the `apps/web` work is live.
 
 **Required owner action:** open Cloudflare dashboard → Workers & Pages → `interplanetaryfund-migration` → Settings → Builds & deployments, and report the configured build command and output directory. If it builds the root app, switch it to the `apps/web` build (`npm ci && npm run build` with root directory `apps/web`, output `dist`) or deploy via the workflow instead. This cannot be inspected from here: no Cloudflare credentials (B17).
+
+## B20 — Any authenticated account can publish to the official blog (2026-11-02)
+
+**Defect (exploitable, live on the deployed root app):** the committed blog
+migration's insert policy is self-referential:
+
+```sql
+create policy ifund_blog_entries_owner_insert on public.ifund_blog_entries
+  for insert to authenticated
+  with check (owner_auth_user_id = (select auth.uid()));
+```
+
+It asks whether the row claims the actor owns it, not whether the actor owns the
+blog the row is filed under. `blog_id` is never compared against
+`ifund_blogs.owner_auth_user_id`. So any authenticated account can insert a row
+with its own `owner_auth_user_id` and the official Reporter blog's `blog_id`.
+Combined with `ifund_blog_entries_read_public_or_owner`, a row inserted with
+`status = 'published'` is immediately readable by `anon`.
+
+**Reproduced, not theorised.** `tests/blog-entry-ownership.test.js` applies the
+committed migrations to PostgreSQL 16 and inserts a published entry into the
+official blog as a non-owner: the insert succeeds and an anonymous query returns
+the row. The suite keeps that as a named regression guard so the defect cannot be
+quietly forgotten.
+
+**Why this is live:** the deployed production bundle is built from the repository
+root, and the root app contains the reporter publishing workspace
+(`src/pages/MyBlog.jsx` via `src/lib/blogs.js`). The client does check the blog
+owner first, but RLS is the boundary and the boundary was missing, so PostgREST
+can be called directly.
+
+**Related gap in the same family:** the update policy's `WITH CHECK` also
+inspected only `owner_auth_user_id`, so a member holding any entry could retarget
+its `blog_id` onto the official blog.
+
+**Fix written (2026-11-02):**
+`supabase/migrations/pending/20261102_ifund_blog_entry_ownership_fix.sql`
+requires that the acting user owns the blog the entry is filed under, on insert,
+update (both `USING` and `WITH CHECK`) and delete. It depends only on
+`ifund_blogs`, which the committed set already creates, so it is independent of
+the member-schema migration and either apply order works. A legitimate owner
+keeps create, publish, edit and delete.
+
+**Not applied.** 8 tests in `tests/blog-entry-ownership.test.js` cover the hole,
+the fix, owner capability, retargeting, third-party access and idempotency. The
+file also contains a read-only remediation query to find any forged rows already
+present; it is not run automatically and no existing row is deleted.
+
+**Until applied, treat any published entry on the official blog as unverified.**

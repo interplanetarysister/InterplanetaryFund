@@ -11,16 +11,24 @@ Apply in filename order, after the three committed migrations in
 
 | Order | File | Purpose |
 |---|---|---|
-| 1 | `20261102_ifund_member_schema_completion.sql` | Creates the five tables the client already queries, adds the `ifund_profiles` account-lifecycle columns, adds `ifund_current_account_is_active()`, and closes blocker B16. |
-| 2 | `public_campaign_detail_001.sql` | Public read-only campaign detail RPC for `apps/web`. Targets the legacy project `tzehxfikoslihnclhxuz`; confirm the target before applying. |
-| — | `20261101_ifund_legal_acceptance_and_follows.sql` | **Superseded by order 1.** Its `ifund_follows` table is redefined there without the hard-coded `terms_version` dependency and without assuming `ifund_notifications` already exists. Retire this file rather than applying both. |
+| 1 | `20261102_ifund_blog_entry_ownership_fix.sql` | **Security fix (B20).** Requires an entry to be filed under a blog the actor owns. Independent of the member migration; either order works. |
+| 2 | `20261102_ifund_member_schema_completion.sql` | Creates the five tables the client already queries, adds the `ifund_profiles` account-lifecycle columns, adds `ifund_current_account_is_active()`, and closes blocker B16. |
+| 3 | `public_campaign_detail_001.sql` | Public read-only campaign detail RPC for `apps/web`. Targets the legacy project `tzehxfikoslihnclhxuz`; confirm the target before applying. |
+| — | `20261101_ifund_legal_acceptance_and_follows.sql` | **Superseded by order 2.** Its `ifund_follows` table is redefined there without the hard-coded `terms_version` dependency and without assuming `ifund_notifications` already exists. Retire this file rather than applying both. |
 
 ## How these are verified
 
-`tests/member-schema-migration.test.js` applies the committed migrations and
-then the member-schema migration to **PGlite**, which is PostgreSQL 16 compiled
-to WebAssembly, and exercises the result with three accounts: an active member,
-a second active member, and a suspended member. It asserts behavior, not text:
+Two suites apply the committed migrations and then the pending ones to
+**PGlite**, which is PostgreSQL 16 compiled to WebAssembly, and assert behavior
+rather than text.
+
+`tests/blog-entry-ownership.test.js` (8 tests) pins blocker B20: it reproduces
+the vulnerability without the fix, then proves the fix blocks a non-owner while
+leaving a legitimate owner able to create, publish, edit and delete.
+
+`tests/member-schema-migration.test.js` (11 tests) exercises the result with
+three accounts: an active member, a second active member, and a suspended
+member. It asserts:
 
 - every `ifund_*` table the client queries exists after the migration;
 - a suspended account cannot post or create a campaign, and an active one can;
