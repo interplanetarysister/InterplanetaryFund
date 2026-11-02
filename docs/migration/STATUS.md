@@ -144,3 +144,83 @@ Compared the source app (57 pages) with `apps/web` to find remaining UX gaps. Mo
 ### Deliberately rejected during this review
 - **Dark-mode "fix" for Discover/CampaignDetail hardcoded light colors:** `src/index.css` already has a global `.dark` override layer that remaps `bg-white`, `bg-stone-*`, `text-stone-*` and the light borders to theme tokens. The apparent problem is already handled; changing the pages would have been wrong.
 - **A restrictive Content-Security-Policy:** cannot be verified against a live Supabase session here, and a wrong policy white-screens the site. The `_headers` file sets only the directives that are safe without that check.
+
+## Database reconciliation: the migration set was incomplete — 2026-11-02
+
+**Code and tests only. Nothing applied to any live database.**
+
+### Finding
+
+A reconciliation of what the code queries against what the migrations create
+found the committed migration set created **six** `public.ifund_*` tables while
+`src/`, `apps/web/src/` and `worker/` query **eleven**. Missing entirely:
+`ifund_legal_acceptances`, `ifund_notifications`, `ifund_inbox_items`,
+`ifund_follows`, `ifund_official_publications`, the `ifund_profiles`
+`account_status` / `account_deletion_pending` columns, and
+`public.ifund_current_account_is_active()`.
+
+Consequence: the member agreement gate, the Universal Inbox, notifications,
+campaign follows and the account-status check each read a table or column that
+did not exist, so every one failed closed. The pending
+`20261101_ifund_legal_acceptance_and_follows.sql` also assumed two of the
+missing objects already existed, so it could not have applied as written.
+Recorded as **B18**.
+
+### Delivered
+
+`supabase/migrations/pending/20261102_ifund_member_schema_completion.sql` —
+additive and idempotent. It creates the five tables, the two profile columns,
+and the lifecycle helper; enables RLS on every table; follows the initial
+migration's least-privilege pattern (explicit `revoke all`, then column-level
+grants, with server-owned columns never granted to `anon` or `authenticated`);
+and closes **B16** by replacing the post and campaign insert policies with a
+check that calls `ifund_current_account_is_active()`.
+
+`account_status` defaults to `pending`, never `active`. A newly seen account
+does not silently acquire member access.
+
+### Verification: a real Postgres engine, not a text match
+
+`tests/member-schema-migration.test.js` applies the committed migrations and
+then this one to **PGlite** (PostgreSQL 16 in WebAssembly) and exercises the
+result with three accounts — two active members and one suspended. 11 tests:
+
+- every `ifund_*` table the code queries exists after the migration;
+- a suspended account cannot post or create a campaign, and an active one can;
+- follows need an active account **and** a published campaign, and are private;
+- consent is recorded only for the acting member and never as `false`;
+- notifications and inbox items are owner-scoped and cannot be authored by a
+  browser;
+- official publications are readable only once finalized;
+- the migration is idempotent.
+
+The suite runs in CI on any pull request to `main`, because the existing
+workflows already run `npm test`. This test found a real defect in my own first
+draft: `create policy` is not idempotent, so the migration's idempotency claim
+was false until each policy was preceded by `drop policy if exists`.
+
+### What this does not prove
+
+PGlite proves SQL syntax, constraints, triggers, RLS evaluation and column
+privileges. It does **not** prove the hosted project's configuration or its
+`auth` schema, PostgREST's translation of HTTP into the role and claims RLS
+sees, or that existing live rows satisfy the new constraints. Those need a real
+connection to `ssibsfmtodgximseeqsv`, which this environment does not have
+(**B15**). Treat the green suite as evidence about the SQL.
+
+### Ordering caution
+
+Applying this migration is behavior-changing: an account not yet reconciled to
+`account_status='active'` can no longer publish posts or create campaigns. That
+is the intended fail-closed behavior, but reconciliation must set `active` for
+verified accounts **first**, or legitimate members will be locked out of
+publishing. See `supabase/migrations/pending/README.md`.
+
+### Also recorded
+
+**B19** — this repository contains two React applications (root `src/` and
+`apps/web/`). The Pages project `interplanetaryfund-migration` predates the
+`deploy-web-pages.yml` workflow and its build configuration is not in the
+repository, so it is possible the branded `apps/web` application is not what is
+deployed. The owner needs to report the Pages build command and output
+directory.

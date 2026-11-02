@@ -150,7 +150,9 @@ with check (
 );
 ```
 
-That is a schema change to a table the AGENTS.md rules require to be independently reviewed and staging-tested before any application, and it cannot be applied here (no credentials, no CLI — see B15). It is recorded, not applied. Until it is, a suspended account can still post by bypassing the UI.
+That is a schema change to a table the AGENTS.md rules require to be independently reviewed and staging-tested before any application, and it cannot be applied here (no credentials, no CLI — see B15).
+
+**Fix written and verified against real Postgres (2026-11-02):** `supabase/migrations/pending/20261102_ifund_member_schema_completion.sql` section 8 replaces both the post and campaign insert policies with a check that calls `public.ifund_current_account_is_active()`. Verified by executing the migration on PostgreSQL 16 (PGlite) with three accounts — a suspended account's insert is now rejected and an active account's succeeds (`tests/member-schema-migration.test.js`, 11 tests). **Status: fixed in SQL, not yet applied to the live project.** Until the migration is applied, a suspended account can still post by bypassing the UI.
 
 ## B17 — Cloudflare Pages deploy cannot run here: no API token (2026-11-02)
 
@@ -164,3 +166,34 @@ That is a schema change to a table the AGENTS.md rules require to be independent
 **To unblock, the owner must add:** repository secret `CLOUDFLARE_API_TOKEN` (scoped to *Cloudflare Pages: Edit*), repository secret `CLOUDFLARE_ACCOUNT_ID`, and repository variables `VITE_SUPABASE_URL` + `VITE_SUPABASE_PUBLISHABLE_KEY`. Then run the workflow with `production: false` for a preview, and confirm the preview URL before any production run. Do not add a service-role key: it would be baked into the public bundle.
 
 **Not done here:** no DNS change. Attaching `interplanetaryfund.com` remains a dashboard action behind the cutover gate in `apps/web/DEPLOYMENT-GATES.md`.
+
+## B18 — The committed migration set created 6 tables; the code queries 11 (2026-11-02)
+
+**Defect:** a code-versus-schema reconciliation found that the committed migration set (`20261025011400_initial.sql` plus the two blog migrations) creates six `public.ifund_*` tables, while `src/`, `apps/web/src/` and `worker/` query eleven:
+
+| Table | Referenced by | Was it created? |
+|---|---|---|
+| `ifund_profiles`, `ifund_campaigns`, `ifund_posts`, `ifund_connections`, `ifund_blogs`, `ifund_blog_entries` | multiple | yes |
+| `ifund_legal_acceptances` | `apps/web/src/components/auth/MemberAccess.jsx` | **no** |
+| `ifund_notifications` | `apps/web/src/lib/inbox.js` | **no** |
+| `ifund_inbox_items` | `apps/web/src/lib/inbox.js` | **no** |
+| `ifund_follows` | `apps/web/src/lib/followedCampaigns.js` | **no** |
+| `ifund_official_publications` | `apps/web/src/lib/editorial.js` | **no** |
+
+Also missing: `public.ifund_current_account_is_active()` (called by the pending follows migration and now by the corrected write policies), and the `ifund_profiles.account_status` / `account_deletion_pending` columns that `apps/web/src/lib/accountLifecycle.js` and `MemberAccess.jsx` select.
+
+**Impact:** the member agreement gate, the Universal Inbox, notifications, campaign follows and the account-status check all read a table or column that did not exist, so each failed closed. Two of the missing objects were also assumed to exist by `supabase/migrations/pending/20261101_ifund_legal_acceptance_and_follows.sql`, which therefore could not have applied as written.
+
+**Fix written (2026-11-02):** `supabase/migrations/pending/20261102_ifund_member_schema_completion.sql` creates all of it — additive, idempotent, RLS on every table, explicit column-level grants, server-owned columns never granted to browsers, and `account_status` defaulting to `pending` (never `active`). Verified on PostgreSQL 16 by `tests/member-schema-migration.test.js`, which also asserts that every `ifund_*` table the code queries now exists.
+
+**Not applied.** This needs a staging apply and a two-account check against `ssibsfmtodgximseeqsv` (B15). Applying it changes behavior: an account not yet reconciled to `account_status='active'` can no longer publish posts or create campaigns. That is the intended fail-closed behavior, but reconciliation must set `active` for verified accounts first, or legitimate members will be locked out of publishing.
+
+## B19 — The Cloudflare Pages project may build the root frontend, not `apps/web` (2026-11-02)
+
+**Finding:** this repository contains two React applications. The root `src/` app is the earlier migration preview (routed via `src/App.jsx`: `/`, `/discover`, `/campaign/:id`, `/create`, `/edit/:id`, `/mine`, `/community`, `/blogs`, …). `apps/web/` is the branded application with the owner campaign lifecycle, share kit, mobile shell and Supabase transport. Only the root app has `_redirects`-independent SPA behavior handled by Pages defaults; `apps/web` carries `public/_redirects` and `public/_headers` added for Pages.
+
+`.github/workflows/deploy-web-pages.yml` publishes `apps/web/dist`, but the existing Pages project `interplanetaryfund-migration` was created earlier and its build configuration is not in this repository. `docs/migration/OWNER_ACTIONS.md` already asks the owner to "check whether interplanetaryfund.com currently serves the new, incomplete Cloudflare Pages app".
+
+**Why it matters:** if the Pages project builds the repository root rather than `apps/web`, the branded application is not what visitors see, and none of the `apps/web` work is live.
+
+**Required owner action:** open Cloudflare dashboard → Workers & Pages → `interplanetaryfund-migration` → Settings → Builds & deployments, and report the configured build command and output directory. If it builds the root app, switch it to the `apps/web` build (`npm ci && npm run build` with root directory `apps/web`, output `dist`) or deploy via the workflow instead. This cannot be inspected from here: no Cloudflare credentials (B17).
