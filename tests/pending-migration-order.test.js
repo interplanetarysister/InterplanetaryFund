@@ -131,3 +131,49 @@ for (const [label, order] of ORDERS) {
     },
   );
 }
+
+// The chain that the two new public-read migrations join. These five apply in
+// filename order on a fresh database built from the committed migrations, and that
+// ordering is a real dependency: the legal-acceptance repair must precede the member
+// schema, because the member schema's preflight refuses production's shape without
+// it. This asserts the whole chain, not just each file in isolation.
+const PUBLIC_READ_CHAIN = [
+  "supabase/migrations/pending/20261102_ifund_blog_entry_ownership_fix.sql",
+  "supabase/migrations/pending/20261102_ifund_legal_acceptances_repair.sql",
+  "supabase/migrations/pending/20261102_ifund_member_schema_completion.sql",
+  "supabase/migrations/pending/20261102_ifund_public_blog_entries_read.sql",
+  "supabase/migrations/pending/20261102_ifund_public_read_hardening.sql",
+];
+
+test("the public-read chain applies cleanly in filename order", { skip: SKIP }, async () => {
+  const db = await freshDb(PGlite);
+  await applyMigrations(db, COMMITTED_MIGRATIONS);
+  await applyMigrations(db, PUBLIC_READ_CHAIN);
+
+  // The two functions the chain exists to provide.
+  const { rows: fns } = await db.query(`
+    select p.proname
+      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname in ('ifund_my_post_ids', 'ifund_public_blog_entries_read')
+     order by p.proname
+  `);
+  assert.deepEqual(fns.map((r) => r.proname),
+    ["ifund_my_post_ids", "ifund_public_blog_entries_read"],
+    "both public-read functions must exist after the chain");
+
+  // And the identity columns must be withheld from anon on all four tables.
+  for (const [table, column] of [
+    ["ifund_campaigns", "owner_id"],
+    ["ifund_posts", "author_id"],
+    ["ifund_blogs", "owner_auth_user_id"],
+    ["ifund_blog_entries", "owner_auth_user_id"],
+  ]) {
+    const { rows } = await db.query(
+      `select has_column_privilege('anon', $1, $2, 'select') as readable`,
+      [table, column],
+    );
+    assert.equal(rows[0].readable, false,
+      `anon must not be able to read ${table}.${column} after the chain`);
+  }
+});

@@ -107,6 +107,25 @@ Durable facts for agents working in this repository. Details in daily logs.
 - **Production's ifund_legal_acceptances has NO PRIMARY KEY** (no `id`, no `created_at`) because it
   was created out-of-band. `create table if not exists` silently cannot repair it. Fix shipped:
   pending/20261102_ifund_legal_acceptances_repair.sql (must sort BEFORE the member schema).
+- **Base44 backend migration critical path = 68 MISSING TABLES, not handler code.** Inventory (measured):
+  184 entrypoints, 95 entity schemas, 76 entities referenced, only 8 have tables here. 54 functions
+  financial (gated). Entity->table naming is CURATED (DiscussionPost->ifund_posts, User->ifund_profiles)
+  and fields rename (user_id/created_by_id->owner_id, username->handle), so entry.ts bodies cannot be
+  ported blindly. Run `BASE44_SOURCE=/path node scripts/inventory-base44-functions.mjs`.
+- **apps/web + root src talk DIRECTLY to Supabase (RLS) + RPCs + Edge Functions; they do NOT call
+  worker/*.** The Base44 functions are a REPLACEMENT, so the frontend's own Supabase/RPC calls are the
+  real contract to satisfy — not the 184 functions.
+- **Production withholds account-uuid columns from anon** (ifund_posts.author_id, ifund_campaigns.owner_id,
+  blog owner cols) but the COMMITTED migrations grant anon table-wide select => repo was LOOSER than prod;
+  fixed in pending/20261102_ifund_public_read_hardening.sql. 401 on one column while others 200 = grant
+  denied (column exists). Column-level grants beat the row policy.
+- **Two client RPCs had no migration**: ifund_public_blog_entries_read (404 in prod => Stories broken) and
+  ifund_my_post_ids (401 in prod, absent from repo). Both now defined. A test that greps source TEXT for
+  `rpc("name")` passes even when the function is missing — tests/public-blog-entries-read.test.js now
+  compares client rpc names against supabase/**.sql definitions.
+- **`ifund-campaign-draft-preview` Edge Function EXISTS in prod** (returns its own 422 validation error)
+  even though supabase/functions/ is absent from the repo — deployed out-of-band. Don't assume "not in
+  repo" means "not deployed".
 - **No Supabase or Cloudflare credentials exist in this environment.** Live schema reconciliation,
   migration application, preview deploys and the DNS switch are all impossible from here. Verify DB
   work against PGlite (tests/helpers/pglite.js) only, and never claim live results.
