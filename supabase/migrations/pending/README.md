@@ -18,7 +18,11 @@ Apply in filename order, after the three committed migrations in
 
 ## How these are verified
 
-Two suites apply the committed migrations and then the pending ones to
+`tests/pending-migration-order.test.js` (6 tests) verifies the claim that the two
+pending migrations are independent: it applies them in both orders and checks
+that each security effect survives either one.
+
+Two further suites apply the committed migrations and then the pending ones to
 **PGlite**, which is PostgreSQL 16 compiled to WebAssembly, and assert behavior
 rather than text.
 
