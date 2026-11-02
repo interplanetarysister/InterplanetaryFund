@@ -96,6 +96,17 @@ Durable facts for agents working in this repository. Details in daily logs.
 - **Route counts: fund2=60, apps/web=33, root=19.** apps/web is the most complete MIGRATION
   frontend but is NOT full Base44 parity (no admin/*, agents, ledger, withdrawals, donors pages).
   Do not claim parity.
+- **Production schema can be reconciled WITHOUT credentials.** The Supabase URL + publishable/anon
+  key ship in the deployed bundle (`curl` the Pages site, grep the /assets/index-*.js). Use
+  `npm run reconcile` (scripts/reconcile-production-schema.mjs). PostgREST column oracle: 400
+  "does not exist" = absent, 200/401/403 = present. Trap: a POST with a bad column returns 400
+  before RLS, so it fakes "write allowed" — always use real columns.
+- **Production project is ssibsfmtodgximseeqsv and the deployed bundle targets it** (extracted from
+  the bundle). All 10 client tables exist under `ifund_` names; every client column exists; RLS is
+  clean (anon sees no non-public rows, all writes 401).
+- **Production's ifund_legal_acceptances has NO PRIMARY KEY** (no `id`, no `created_at`) because it
+  was created out-of-band. `create table if not exists` silently cannot repair it. Fix shipped:
+  pending/20261102_ifund_legal_acceptances_repair.sql (must sort BEFORE the member schema).
 - **No Supabase or Cloudflare credentials exist in this environment.** Live schema reconciliation,
   migration application, preview deploys and the DNS switch are all impossible from here. Verify DB
   work against PGlite (tests/helpers/pglite.js) only, and never claim live results.

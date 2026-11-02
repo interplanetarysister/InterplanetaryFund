@@ -2,6 +2,69 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B23 — RESOLVED IN CODE, NOT YET APPLIED: production's ifund_legal_acceptances has no primary key
+
+Measured directly against production ssibsfmtodgximseeqsv. This did not need
+credentials: the Supabase URL and publishable key ship in the deployed bundle, and
+`scripts/reconcile-production-schema.mjs` reads them from there and probes
+PostgREST exactly as an anonymous browser would. Run it any time; it exits 1 when
+it finds a divergence.
+
+Column by column, production holds:
+
+    public.ifund_legal_acceptances
+      present  owner_id, terms_version, explicit_consent, accepted_at,
+               acceptance_method, terms_path, privacy_path
+      ABSENT   id, created_at
+
+`id` absent means the table has no primary key. That is a defect in the existing
+table independent of anything this repository wants to add: a table without a
+primary key cannot be referenced by a foreign key, cannot be updated by id, and is
+excluded from logical replication.
+
+It also means the member-schema migration could not have repaired it. That file
+declares the table with `create table if not exists`, which against a table that
+already exists does nothing whatsoever. The declared primary key, the defaults and
+the unique constraint were all being silently discarded, and the migration would
+have reported success.
+
+**Resolution:** `supabase/migrations/pending/20261102_ifund_legal_acceptances_repair.sql`.
+It adds `id` (nullable, backfilled, then NOT NULL and defaulted), promotes it to
+the primary key only if the table has none, adds `created_at`, and adds the
+`(owner_id, terms_version)` unique constraint after collapsing any duplicates. It
+tests the catalog before every step, so it is idempotent, and it never drops a
+column or deletes a row. It sorts before the member schema, so the member schema's
+preflight then passes instead of refusing.
+
+Proven by `tests/legal-acceptances-repair.test.js` (11 tests), which reproduces
+production's exact shape, applies the repair, and shows the member-schema
+preflight refusing before it and passing after.
+
+**Still requires owner action:** applying it. This environment has no database
+credentials, so the migration is written, tested against a reproduction of
+production's real shape, and unapplied. Apply `..._legal_acceptances_repair.sql`
+before `..._member_schema_completion.sql`.
+
+### Everything else measured against production came back clean
+
+The same script confirms:
+
+* All ten tables the client queries exist, under the `ifund_` names the client
+  uses. There is no naming divergence.
+* Every column the client reads or writes exists. The client contract is
+  satisfied, so the member gates that previously failed closed will work.
+* `ifund_legal_acceptances` is the only table whose declared columns are missing
+  any.
+* Anon cannot read non-public rows: zero non-active campaigns, zero non-active
+  blogs, zero unpublished blog entries, zero unapproved publications.
+* Anon cannot write: POST to campaigns, profiles and notifications all return 401.
+
+One caveat on the write probe: a POST naming a column that does not exist is
+rejected by PostgREST with 400 before RLS is consulted, which looks like a failure
+to deny but proves nothing about authorization. The script uses real columns so
+the request reaches RLS. An earlier version of the script reported a false alarm
+for this reason and was corrected.
+
 ## B22 — privileged functions are outside migration control (partly unresolved)
 
 The Supabase security advisor flags privileged functions for review. Auditing what

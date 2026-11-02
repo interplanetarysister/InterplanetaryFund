@@ -161,3 +161,74 @@ test(
     );
   },
 );
+
+test("the preflight shape list covers every declared column", { skip: SKIP }, async () => {
+  // The preflight has to name every column a `create table if not exists` block
+  // declares, or a column can be silently dropped by an existing table without
+  // the guard noticing. Rather than trust the two lists to stay in step, compare
+  // them: parse the DDL, parse the preflight, and require the preflight to be a
+  // superset. This is the guard against the guard rotting.
+  const { readFileSync } = await import("node:fs");
+  const { fileURLToPath } = await import("node:url");
+  const sql = readFileSync(
+    fileURLToPath(new URL("../" + MEMBER_SCHEMA, import.meta.url)), "utf8");
+
+  // Columns declared by each `create table if not exists` block. A column line
+  // is identified by naming a SQL type, which keeps CHECK-constraint bodies out:
+  // a multi-line constraint contains lines like `and jsonb_typeof(x) = 'object'`
+  // that a looser "identifier then word" match would mistake for columns.
+  const declared = new Map();
+  const TYPES =
+    "uuid|text|boolean|jsonb|json|timestamptz|timestamp|integer|int|bigint|" +
+    "numeric|decimal|date|time|smallint|real|double precision|serial|" +
+    "bigserial|bytea|inet|varchar|character varying|char";
+  const columnRe = new RegExp(`^([a-z_][a-z0-9_]*)\\s+(?:${TYPES})\\b`, "i");
+  const createRe = /create table if not exists public\.(ifund_[a-z_]+)\s*\(([\s\S]*?)\n\);/g;
+  for (const m of sql.matchAll(createRe)) {
+    const cols = [];
+    for (const rawLine of m[2].split("\n")) {
+      const cm = columnRe.exec(rawLine.trim());
+      if (cm) cols.push(cm[1]);
+    }
+    declared.set(m[1], cols);
+  }
+  assert.ok(declared.size >= 5, `expected to parse 5 create-table blocks, found ${declared.size}`);
+
+  // Pairs named in the preflight's shape-check values list.
+  const checked = new Set();
+  const preflight = sql.slice(0, sql.indexOf("-- 1. Account lifecycle columns"));
+  for (const m of preflight.matchAll(/\('(ifund_[a-z_]+)',\s*'([a-z_]+)'\)/g)) {
+    checked.add(`${m[1]}.${m[2]}`);
+  }
+  assert.ok(checked.size > 20, `expected the preflight to check many columns, found ${checked.size}`);
+
+  const uncovered = [];
+  for (const [table, cols] of declared) {
+    for (const col of cols) {
+      if (!checked.has(`${table}.${col}`)) uncovered.push(`${table}.${col}`);
+    }
+  }
+  assert.deepEqual(uncovered, [],
+    `these declared columns are not covered by the preflight shape check:\n  ${uncovered.join("\n  ")}`);
+});
+
+test("the guard fires on production's real ifund_legal_acceptances shape", { skip: SKIP }, async () => {
+  // Reproduces what production actually holds, discovered by probing
+  // ssibsfmtodgximseeqsv with the public anon key: the table exists with
+  // owner_id, terms_version, explicit_consent and accepted_at, and WITHOUT id or
+  // created_at. `create table if not exists` would silently skip it, discarding
+  // the primary key, the defaults and the unique constraint. The preflight must
+  // refuse instead.
+  const db = await freshDb(PGlite);
+  await applyMigrations(db, BASE);
+  await db.exec(`create table public.ifund_legal_acceptances (
+    owner_id uuid not null,
+    terms_version text not null,
+    explicit_consent boolean not null,
+    accepted_at timestamptz not null default now()
+  )`);
+  const { rejected, message } = await rejectionOf(db, MEMBER_SCHEMA);
+  assert.equal(rejected, true, "production's actual shape must be refused");
+  assert.match(message, /SHAPE/, "the failure must be reported as a shape divergence");
+  assert.match(message, /"id"/, "the missing primary key must be named");
+});

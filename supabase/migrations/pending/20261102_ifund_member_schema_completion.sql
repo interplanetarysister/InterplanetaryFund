@@ -78,22 +78,74 @@ begin
     end if;
   end loop;
 
-  -- (b) Shape detection: for every table this file may create, if it already
-  --     exists it must already carry the columns the file depends on.
+  -- (b) Shape detection. For every table this file declares with
+  --     `create table if not exists`, if the table already exists it must already
+  --     carry EVERY column the declaration names. Not just the columns the
+  --     client reads: the declaration also carries the primary key, the defaults
+  --     and the unique constraints, and against an existing table all of those
+  --     are silently discarded. A table that exists without `id` is a table with
+  --     no primary key, which is a defect in its own right.
+  --
+  --     This list must therefore stay in step with the DDL below.
+  --     tests/preflight-divergence.test.js fails if any column declared in a
+  --     `create table if not exists` block is absent from this list, so the two
+  --     cannot drift apart.
+  --
+  --     Verified against production ssibsfmtodgximseeqsv: ifund_legal_acceptances
+  --     exists WITHOUT `id` and WITHOUT `created_at`, so this check fires there.
   for required in
     select * from (values
+      ('ifund_legal_acceptances', 'id'),
       ('ifund_legal_acceptances', 'owner_id'),
       ('ifund_legal_acceptances', 'terms_version'),
       ('ifund_legal_acceptances', 'explicit_consent'),
+      ('ifund_legal_acceptances', 'accepted_at'),
+      ('ifund_legal_acceptances', 'acceptance_method'),
+      ('ifund_legal_acceptances', 'terms_path'),
+      ('ifund_legal_acceptances', 'privacy_path'),
+      ('ifund_legal_acceptances', 'created_at'),
+      ('ifund_notifications',     'id'),
       ('ifund_notifications',     'owner_id'),
+      ('ifund_notifications',     'title'),
+      ('ifund_notifications',     'body'),
+      ('ifund_notifications',     'type'),
+      ('ifund_notifications',     'link'),
       ('ifund_notifications',     'read'),
+      ('ifund_notifications',     'created_at'),
+      ('ifund_inbox_items',       'id'),
       ('ifund_inbox_items',       'owner_id'),
+      ('ifund_inbox_items',       'platform'),
+      ('ifund_inbox_items',       'type'),
+      ('ifund_inbox_items',       'author'),
+      ('ifund_inbox_items',       'content'),
+      ('ifund_inbox_items',       'link'),
+      ('ifund_inbox_items',       'campaign_id'),
+      ('ifund_inbox_items',       'campaign_title'),
       ('ifund_inbox_items',       'status'),
+      ('ifund_inbox_items',       'ai_draft'),
+      ('ifund_inbox_items',       'recipient_address'),
+      ('ifund_inbox_items',       'mailbox_priority'),
+      ('ifund_inbox_items',       'created_at'),
+      ('ifund_follows',           'id'),
       ('ifund_follows',           'owner_id'),
       ('ifund_follows',           'campaign_id'),
+      ('ifund_follows',           'pinned'),
+      ('ifund_follows',           'archived'),
       ('ifund_follows',           'notification_prefs'),
+      ('ifund_follows',           'last_viewed'),
+      ('ifund_follows',           'created_at'),
+      ('ifund_official_publications', 'id'),
+      ('ifund_official_publications', 'kind'),
+      ('ifund_official_publications', 'title'),
+      ('ifund_official_publications', 'summary'),
+      ('ifund_official_publications', 'body'),
+      ('ifund_official_publications', 'pdf_url'),
+      ('ifund_official_publications', 'file_label'),
       ('ifund_official_publications', 'status'),
       ('ifund_official_publications', 'final_approved'),
+      ('ifund_official_publications', 'published_at'),
+      ('ifund_official_publications', 'updated_at'),
+      ('ifund_official_publications', 'created_at'),
       ('ifund_profiles',          'id')
     ) as cols(tbl, col)
   loop
