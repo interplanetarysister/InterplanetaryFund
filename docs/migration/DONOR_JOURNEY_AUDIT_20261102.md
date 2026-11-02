@@ -133,6 +133,11 @@ Cloudflare dashboard confirmation is still required before any publication.
 2. The branded frontend declared `/my-blog` as both a real member publication
    route and a Coming Soon route. The duplicate placeholder entry is removed,
    with a regression test protecting the implemented route.
+3. The branded homepage hardcoded `isAuthenticated = false` and `user = null`,
+   so signed-in members always saw guest calls to action. It now reads the shared
+   Supabase session hook, displays a loading status while the session resolves,
+   and shows member or guest actions only for the matching session state. A
+   focused static regression test protects this contract.
 
 Branch: `fix/campaign-detail-terminal-states-20261102`.
 

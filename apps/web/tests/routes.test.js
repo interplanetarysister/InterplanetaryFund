@@ -36,3 +36,12 @@ test("the implemented reporter workspace route is not duplicated as Coming Soon"
  const comingSoon = app.slice(start, end);
  assert.equal(comingSoon.includes('"/my-blog"'), false);
 });
+
+test("home page derives member actions from the shared Supabase auth session", () => {
+ const home = file("../src/pages/Home.jsx");
+ assert.match(home, /useAuthSession/);
+ assert.match(home, /authStatus === "signed-in"/);
+ assert.match(home, /authStatus === "loading"/);
+ assert.match(home, /authStatus === "signed-out"/);
+ assert.doesNotMatch(home, /const isAuthenticated = false/);
+});
