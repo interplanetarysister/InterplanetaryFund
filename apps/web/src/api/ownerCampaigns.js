@@ -83,6 +83,15 @@ export async function listOwnerCampaigns(client) {
   return data;
 }
 
+/**
+ * Owner campaign list shaped for CampaignCard. The public campaign schema has
+ * no funding totals, so those stay null rather than being shown as zero.
+ */
+export async function listMyCampaigns(client) {
+  const rows = await listOwnerCampaigns(client);
+  return rows.map((row) => ({ ...row, raised_amount: null, donor_count: null }));
+}
+
 export async function loadOwnerCampaign(client, id) {
   if (!UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   const owner = await verifiedOwner(client);

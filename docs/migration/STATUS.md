@@ -82,3 +82,17 @@ The PR #186 review found a real race: `saveOwnerCampaign` and `setCampaignStatus
 - **Tests:** 12 new cases in two suites — `tests/campaign-share.test.js` (8, pure logic and wiring) and `tests/campaign-share-render.test.js` (4, real server-side renders of the component). `apps/web` is now **78/78 pass**; root `npm test` still 96/96; `apps/web` build succeeds; preview server resolves `/campaign/:id` and fails closed with no Supabase env.
 - **Note:** `tests/campaign-share-render.test.js` introduces the first real component-render harness in `apps/web`, bundling a single component with the already-installed `esbuild` and rendering it through `react-dom/server`. No new dependency was added.
 - **UNVERIFIED:** the share panel has not been exercised in a real browser against a live published campaign (no Supabase credentials in this environment — see B15). Browser clipboard and `navigator.share` behaviour on real devices is unproven here.
+
+## Two owner-surface defects fixed — 2026-11-02
+
+**Code only. Nothing deployed, no SQL applied, no DNS or payment change.**
+
+- **Defect 1 — Dashboard bypassed the verified owner transport.** `Dashboard.jsx` ran its own inline `client.from("ifund_campaigns").select(...).eq("owner_id", …)` query. That skipped everything `listOwnerCampaigns` enforces: the provider-confirmed-email check, `verifyAccountLifecycle`, owner-scoped row validation, UUID validation and the session-changed re-check. A member whose account was suspended or scheduled for deletion could still enumerate their campaign rows from the dashboard, and a row returned for a different owner was rendered unchecked.
+  - **Fix:** added `listMyCampaigns(client)` to `apps/web/src/api/ownerCampaigns.js` — it delegates to `listOwnerCampaigns` and only reshapes rows for `CampaignCard` (funding totals stay `null`, never `0`, because this schema carries no totals). `Dashboard.jsx` now calls it and has no direct campaign query left.
+- **Defect 2 — a paused campaign's card linked to a dead public page.** `CampaignCard` sent every non-draft campaign to `/campaign/:id`, but the public detail read only serves `status = 'active'` rows and Discover hides paused ones. An owner viewing a paused campaign was sent to "We couldn't load this campaign."
+  - **Fix:** `CampaignCard` now routes a paused campaign to `/campaigns` (owner management) and labels it "Paused · Hidden from Discover". Drafts still open the editor; active campaigns still open the public page.
+- **Tests:** `apps/web` is now **84/84 pass**; root `npm test` still 96/96; build succeeds.
+  - `tests/owner-campaigns.test.js` +2: the dashboard list keeps the verified transport, rejects unverified email / suspended accounts, and returns no fabricated funding totals; and `Dashboard.jsx` no longer queries the campaign table inline.
+  - `tests/campaign-card-render.test.js` (new, 4 cases) renders the card for real through the shared harness. The paused case was verified to **fail before the fix** and pass after.
+  - `tests/helpers/render.js` (new) is a shared component-render harness built on the already-installed `esbuild` + `react-dom/server`; it stubs the few `window` globals that presentational modules read at import time. No new dependency.
+- **UNVERIFIED:** neither fix has been exercised against live data (no Supabase credentials in this environment — see B15). The Dashboard change is only proven at the transport and source level, not in a signed-in browser session.

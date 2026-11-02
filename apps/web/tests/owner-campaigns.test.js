@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
-  listOwnerCampaigns, loadOwnerCampaign, saveOwnerCampaign,
+  listOwnerCampaigns, listMyCampaigns, loadOwnerCampaign, saveOwnerCampaign,
   setCampaignStatus, deleteDraftCampaign, isCampaignConflict, CAMPAIGN_CONFLICT_MESSAGE,
 } from "../src/api/ownerCampaigns.js";
 
@@ -330,4 +330,28 @@ test("both management pages resync after a concurrency conflict", () => {
     assert.match(page, /isCampaignConflict/, `${name} must detect conflicts`);
     assert.match(page, /if \(isCampaignConflict\(cause\)\) load\(\);/, `${name} must reload on conflict`);
   }
+});
+
+test("the dashboard list keeps the verified transport and adds no funding totals", async () => {
+  const f = fakeClient({ rows: [campaign(), campaign({ id: ACTIVE_ID, status: "active" })] });
+  const rows = await listMyCampaigns(f.client);
+  assert.equal(rows.length, 2);
+  // Same verification path as every other owner read.
+  assert.ok(f.calls.some((call) => call.table === "ifund_profiles"), "must verify the account lifecycle");
+  assert.ok(f.calls.some((call) => call.type === "eq" && call.column === "owner_id" && call.value === OWNER));
+  // Funding totals are unknown in this schema, so they stay null rather than 0.
+  for (const row of rows) {
+    assert.equal(row.raised_amount, null);
+    assert.equal(row.donor_count, null);
+  }
+  await assert.rejects(listMyCampaigns(fakeClient({ unverifiedEmail: true }).client), /confirmed email/);
+  await assert.rejects(listMyCampaigns(fakeClient({ profileActive: false }).client), /no longer available/);
+  await assert.rejects(listMyCampaigns(fakeClient({ failSelect: true }).client), /could not be loaded/);
+});
+
+test("Dashboard no longer queries the campaign table inline", () => {
+  const page = source("src/pages/Dashboard.jsx");
+  assert.match(page, /import \{ listMyCampaigns \} from "@\/api\/ownerCampaigns"/);
+  assert.match(page, /listMyCampaigns\(client\)/);
+  assert.doesNotMatch(page, /from\("ifund_campaigns"\)/);
 });
