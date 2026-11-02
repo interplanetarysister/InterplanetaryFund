@@ -2,6 +2,71 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B29 — OPEN: publishing main's frontend to production is blocked by a failing security guard on the production branch
+
+Owner authorized publishing to the live build on 2026-11-02. The live site could not be updated, and
+the reason is concrete rather than procedural.
+
+**Established facts (all verified, not inferred):**
+* `interplanetaryfund.com` and `interplanetaryfund-migration.pages.dev` serve the **same build**
+  (`/assets/index-or7R9T2l.js`), i.e. the Cloudflare Pages project's production branch.
+* That production branch is **`migration/phase7-offline-cutover-gate`** (tip `ffc11734`). Its
+  `index.html` title matches the live page exactly, it has no `apps/web/`, and it builds the **root**
+  app. It is **129 commits behind `main`**.
+* `main`'s root app is strictly newer for the same title (`Interplanetary Fund · What if?`), and both
+  branches read the same four tables (`ifund_campaigns`, `ifund_posts`, `ifund_blogs`,
+  `ifund_blog_entries`). `main`'s only RPC call, `ifund_my_post_ids`, degrades gracefully when missing.
+* Legal copy in `src/lib/legalPolicy.js` is **byte-identical** between the branches (0 paragraphs differ).
+  Only comments and Tailwind classes differ in the `Privacy`/`Terms`/`About` pages.
+* `deploy-web-pages.yml` exists only on `main`/`#186`, **not** on the production branch, and it deploys
+  `apps/web` — a *different* app from the one live. It defaulted to a preview branch, refused to run
+  without `VITE_SUPABASE_URL`, and published nothing.
+
+**The blocker.** Merging `main` into the production branch produces 10 conflicts, resolvable, but the
+merged tree fails a security test that exists **only on the production branch**:
+
+```
+tests/function-security.test.js:76
+  every SECURITY DEFINER function is a read-only lookup
+  supabase/migrations/pending/phase3_owner_link_proposal.sql:
+  ifund_identity.claim_verified_owner is SECURITY DEFINER but not marked stable sql
+```
+
+This is a **real guard violation, not a false positive**. `claim_verified_owner` is
+`SECURITY DEFINER`, `LANGUAGE plpgsql`, and genuinely writes: it `UPDATE`s
+`ifund_identity.owner_matches` and `ifund_identity.link_challenges` and `INSERT`s into
+`ifund_identity.link_consent_audit`. The guard's own comment says it accepts "either `language sql
+stable` or contain no write keyword", but its implementation only tests `/language sql/ || /stable/`
+— so it demands a `stable` marker on a function that provably writes. It is callable only by
+`service_role` (REVOKE from PUBLIC/anon/authenticated), which is why the test passes on the branch
+that owns the file and only fails once the newer guard from `main` is merged in.
+
+The file is **phase7-only** (0 occurrences on `main`). Neither the file nor the guard is applied to
+production.
+
+**Why nothing was published:** pushing the merge would have made a required check fail on the
+production branch, and the correct response to a failing security guard is not to resolve it away
+silently. The `migration/phase7-offline-cutover-gate` ref is unchanged at `ffc11734` and the live
+bundle is unchanged at `index-or7R9T2l.js`.
+
+**Two separate blockers to resolve, either of which is an owner/engineering decision:**
+1. The guard and `claim_verified_owner` disagree. Either the function should not be `SECURITY DEFINER`
+   (move the privileged write behind a `service_role`-only path), or the guard's rule needs to state
+   what it actually enforces and exclude a `service_role`-only writer explicitly. A reviewer must
+   decide which; this is security policy, not a lint fix.
+2. Cloudflare Pages' production branch must be confirmed in the dashboard. The repository documents
+   the *cutover gate*, not the current production branch, and `apps/web/DEPLOYMENT-GATES.md` still
+   describes `migration/phase7-offline-cutover-gate` as current. The plan to serve `apps/web` from
+   `interplanetaryfund.com` requires a deliberate branch/build-setting change there.
+
+**Also still required before any live update:** the repository Actions variables `VITE_SUPABASE_URL`
+and `VITE_SUPABASE_PUBLISHABLE_KEY` are unset (this is what stopped the deploy workflow), and the
+`CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` secrets are not readable from here. Setting Actions
+variables is not permitted with the current token (403).
+
+**Rollback target if a production update is later made:** `ffc117349756c95cbe661d9e05ccc6fdcf63d6ae`
+(the current production tip, preserved).
+
 ## B28 — OPEN: three open PRs propose changes to the same `ifund_campaigns` grant surface
 
 Found while reviewing everything awaiting merge to `main`. Three open PRs each change, or depend on, the
