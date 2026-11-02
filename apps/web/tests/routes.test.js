@@ -10,7 +10,7 @@ test("independent user-facing routes are explicitly implemented", () => {
 });
 test("implemented pages do not import Base44 client", () => {
  for (const name of ["AuthPage","ResetPassword","Dashboard","Profile","Connections","SocialFeedPage","CreateCampaign"]) {
-  assert.doesNotMatch(file(`../src/pages/${name}.jsx`), /base44Client|base44\\.functions|base44\\.entities/, name);
+  assert.doesNotMatch(file(`../src/pages/${name}.jsx`), /base44Client|base44\.functions|base44\.entities/, name);
  }
 });
 test("auth client targets one canonical Supabase project", () => {

@@ -71,8 +71,14 @@ rendering:
 
 - Read-only Base44 source `interplanetary-fund2/src/App.jsx`: **58 explicit
   routes**, plus wildcard.
-- Current production-root candidate `src/App.jsx`: **18 explicit routes**,
+- Current `main`-branch root app `src/App.jsx`: **18 explicit routes**,
   plus wildcard.
+- The last measured Cloudflare Pages production-branch candidate,
+  `migration/phase7-offline-cutover-gate` at `ffc117349756c95cbe661d9e05ccc6fdcf63d6ae`,
+  has only **12 explicit root routes**, plus wildcard. Its `src/pages/CampaignDetail.jsx`
+  still uses `.select("*")` and has no rejection handler or terminal error state.
+  The campaign-detail repair in PR #191 is on a branch targeting `main`; it does
+  **not** repair that production-branch candidate.
 - Branded `apps/web/src/App.jsx`: **32 directly declared route patterns**,
   plus 24 entries generated from its two Coming Soon arrays. One array entry
   duplicates the implemented `/my-blog` route, so there are **23 unique
@@ -91,6 +97,15 @@ The 23 unique `apps/web` placeholder paths are:
 The route totals are not a parity score: aliases and wildcard grouping differ,
 and page content, authorization, data, links and behavior still require
 route-by-route evidence.
+
+The production-branch candidate and `main` have diverged: `main` is 131 commits
+ ahead of that branch and 48 commits behind it; their merge base is
+`d835fac80e548c3bd679087e60ee7b071aa85074`. PR #190 previously recorded ten
+resolvable conflicts when reconciling `main` into that branch, followed by a
+failure in `tests/function-security.test.js` involving the phase-7
+`ifund_identity.claim_verified_owner` SECURITY DEFINER function. Do not merge
+`main` wholesale or assume a `main`-targeted PR will update the live build.
+Cloudflare dashboard confirmation is still required before any publication.
 
 ## Campaign page comparison
 
@@ -123,17 +138,21 @@ Branch: `fix/campaign-detail-terminal-states-20261102`.
 
 These are narrow UI reliability and route-definition repairs. They do not enable
 payments, change permissions, or claim a live-site fix. They have not been merged
-or deployed.
+or deployed. PR #191 targets `main`, not the last measured production-branch
+candidate; the production branch still contains the original indefinite-spinner
+implementation.
 
 ## CI and deployment evidence
 
-- PR #191's final CI set passed:
-  - [Main release candidate checks — 41514787694](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787694):
+- At PR #191 head `7cd493758c49fe4ac33c6bb862bc5bf0582b6ea3`, the following CI set passed:
+  - [Main release candidate checks — 41515124364](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41515124364):
     214/214 root tests, root build, lockfile reproducibility and the targeted
-    Prettier check passed.
-  - [Frontend production build and tests — 41514787692](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787692):
+    targeted Prettier check passed. The separate full-source Prettier scan reports
+    20 pre-existing files as unformatted; that reporting step is explicitly
+    `continue-on-error` and does not block the job.
+  - [Frontend production build and tests — 41515124466](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41515124466):
     214/214 root tests, 134/134 `apps/web` tests, and both frontend builds passed.
-  - [Reporter blog migration checks — 41514787701](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787701):
+  - [Reporter blog migration checks — 41515124497](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41515124497):
     214/214 root tests and root build passed.
 - PR #190's `Main release candidate checks` run
   [41402106624](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41402106624)
@@ -170,7 +189,8 @@ or deployed.
    objects before any activation.
 4. **Authenticated site session:** authorized member and admin sessions to
    test protected routes, OAuth, return-to behavior, account lifecycle,
-   ownership, donor history, admin gates and mobile navigation.
+   ownership, donor history, admin gates and mobile navigation. No signed-in
+   browser profile could be inspected in this non-interactive run.
 5. **Payment provider verification:** authorized PayPal business-account
    access to verify the platform-support hosted link and, separately, the
    campaign checkout/webhook/ledger design. No real payment or financial
