@@ -16,6 +16,7 @@ function Feed() {
   const [campaignError, setCampaignError] = useState(false);
   const [postError, setPostError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     let active = true;
     setCampaigns(null);
@@ -23,6 +24,7 @@ function Feed() {
     setMessage("");
     setCampaignError(false);
     setPostError(false);
+
     if (!db) {
       const state = publicFeedFailure();
       setCampaigns(state.campaigns);
@@ -30,8 +32,11 @@ function Feed() {
       setCampaignError(state.campaignError);
       setPostError(state.postError);
       setMessage(state.message);
-      return () => { active = false; };
+      return () => {
+        active = false;
+      };
     }
+
     Promise.all([
       db
         .from("ifund_campaigns")
@@ -44,25 +49,31 @@ function Feed() {
         .select(PUBLIC_POST_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(20),
-    ]).then(([a, b]) => {
-      if (!active) return;
-      const state = publicFeedState(a, b);
-      setCampaigns(state.campaigns);
-      setPosts(state.posts);
-      setCampaignError(state.campaignError);
-      setPostError(state.postError);
-      setMessage(state.message);
-    }).catch(() => {
-      if (!active) return;
-      const state = publicFeedFailure();
-      setCampaigns(state.campaigns);
-      setPosts(state.posts);
-      setCampaignError(state.campaignError);
-      setPostError(state.postError);
-      setMessage(state.message);
-    });
-    return () => { active = false; };
+    ])
+      .then(([a, b]) => {
+        if (!active) return;
+        const state = publicFeedState(a, b);
+        setCampaigns(state.campaigns);
+        setPosts(state.posts);
+        setCampaignError(state.campaignError);
+        setPostError(state.postError);
+        setMessage(state.message);
+      })
+      .catch(() => {
+        if (!active) return;
+        const state = publicFeedFailure();
+        setCampaigns(state.campaigns);
+        setPosts(state.posts);
+        setCampaignError(state.campaignError);
+        setPostError(state.postError);
+        setMessage(state.message);
+      });
+
+    return () => {
+      active = false;
+    };
   }, [attempt]);
+
   return (
     <div className="stack">
       <section className="hero">
@@ -114,7 +125,15 @@ function Feed() {
       {message && (
         <div className="actions">
           <Message error>{message}</Message>
-          {db && <button className="secondary" type="button" onClick={() => setAttempt((value) => value + 1)}>Try again</button>}
+          {db && (
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setAttempt((value) => value + 1)}
+            >
+              Try again
+            </button>
+          )}
         </div>
       )}
     </div>

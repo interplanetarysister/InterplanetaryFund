@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { publicFeedFailure, publicFeedState } from "../src/lib/publicFeedState.js";
+import {
+  publicFeedFailure,
+  publicFeedState,
+} from "../src/lib/publicFeedState.js";
 
 test("public feed preserves successful public campaign and post results", () => {
   const campaigns = [{ id: "campaign-1" }];
@@ -17,7 +20,10 @@ test("public feed preserves successful public campaign and post results", () => 
 test("public feed query errors are isolated and never expose provider details", () => {
   const posts = [{ id: "post-1" }];
   const result = publicFeedState(
-    { data: null, error: new Error("permission denied for table ifund_campaigns") },
+    {
+      data: null,
+      error: new Error("permission denied for table ifund_campaigns"),
+    },
     { data: posts, error: null },
   );
   assert.deepEqual(result.campaigns, []);
@@ -26,6 +32,13 @@ test("public feed query errors are isolated and never expose provider details", 
   assert.equal(result.postError, false);
   assert.match(result.message, /temporarily unavailable/);
   assert.doesNotMatch(result.message, /permission denied/);
+});
+
+test("malformed query results do not masquerade as empty success", () => {
+  const result = publicFeedState({}, { data: [] });
+  assert.equal(result.campaignError, true);
+  assert.equal(result.postError, false);
+  assert.match(result.message, /temporarily unavailable/);
 });
 
 test("rejected or unconfigured public feed requests resolve to finite error state", () => {

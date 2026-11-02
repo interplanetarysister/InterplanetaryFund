@@ -1,11 +1,15 @@
-const PUBLIC_FEED_ERROR = "Public content is temporarily unavailable. Please try again.";
+const PUBLIC_FEED_ERROR =
+  "Public content is temporarily unavailable. Please try again.";
 
 export function publicFeedState(campaignResult, postResult) {
-  const campaignError = Boolean(campaignResult?.error);
-  const postError = Boolean(postResult?.error);
+  const campaignError =
+    Boolean(campaignResult?.error) || !Array.isArray(campaignResult?.data);
+  const postError =
+    Boolean(postResult?.error) || !Array.isArray(postResult?.data);
+
   return {
-    campaigns: campaignError || !Array.isArray(campaignResult?.data) ? [] : campaignResult.data,
-    posts: postError || !Array.isArray(postResult?.data) ? [] : postResult.data,
+    campaigns: campaignError ? [] : campaignResult.data,
+    posts: postError ? [] : postResult.data,
     campaignError,
     postError,
     message: campaignError || postError ? PUBLIC_FEED_ERROR : "",
