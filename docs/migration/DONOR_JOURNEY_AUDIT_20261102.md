@@ -138,6 +138,11 @@ Cloudflare dashboard confirmation is still required before any publication.
    Supabase session hook, displays a loading status while the session resolves,
    and shows member or guest actions only for the matching session state. A
    focused static regression test protects this contract.
+4. The root app's global auth bootstrap could leave every route on its loading
+   screen forever if `auth.getUser()` rejected. A tested helper now resolves
+   failed lookups to a fail-closed signed-out UI state, guards against updates
+   after unmount, and prevents a late initial lookup from overwriting a newer
+   auth-state event. Server-side RLS remains authoritative.
 
 Branch: `fix/campaign-detail-terminal-states-20261102`.
 
