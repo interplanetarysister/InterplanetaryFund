@@ -129,7 +129,9 @@ The app shipped an `/embed/campaign/:id` route and `EmbedCampaign.jsx` renders a
 
 `CampaignShareButton.jsx` gained an "Embed this campaign" section: the snippet is shown in a read-only, selectable textarea (so a browser that blocks the clipboard is not a dead end) plus a copy button. The snippet always uses the canonical origin, so a preview or hostile origin can never be pasted as the embed source.
 
-**Tests:** 6 new cases in `tests/campaign-share.test.js`, including that a `"><script>` title is escaped and cannot inject markup. `apps/web` is now **104/104 pass**; root 96/96; build succeeds; the embed strings ship in the built `CampaignDetail` chunk.
+The same kit is now on the owner dashboard: an active row in `MyCampaigns.jsx` renders the share/embed kit in place, so an owner can share or embed a published campaign without opening its public page. Draft and paused rows do not get it, because they have no public page.
+
+**Tests:** 7 new cases in `tests/campaign-share.test.js`, including that a `"><script>` title is escaped and cannot inject markup, and that only an active row on the owner dashboard is shareable. `apps/web` is now **105/105 pass**; root 96/96; build succeeds; the embed strings ship in the built `CampaignDetail` chunk.
 
 ### Source review: `interplanetarysister/interplanetary-fund2` (read-only)
 Compared the source app (57 pages) with `apps/web` to find remaining UX gaps. Most navigation targets are already ported or reach a branded Coming Soon page; the mobile shell (drawer, bottom tab bar, quick actions) is ported. The gaps split cleanly:

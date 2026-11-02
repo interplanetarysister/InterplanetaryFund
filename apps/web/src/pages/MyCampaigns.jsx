@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 import { listOwnerCampaigns, setCampaignStatus, deleteDraftCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
 import { campaignStatusLabel, campaignStatusTone, publishReadiness } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
+import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { Pencil, PlusCircle, Loader2, Eye, PauseCircle, PlayCircle, Trash2, Compass } from "lucide-react";
@@ -219,6 +220,11 @@ export default function MyCampaigns() {
                 ))}
               </div>
             </div>
+            {campaign.status === "active" && (
+              <div className="mt-4">
+                <CampaignShareButton campaign={campaign} />
+              </div>
+            )}
             {campaign.status !== "draft" && (
               <p className="mt-3 text-xs text-muted-foreground">
                 Published campaigns cannot be deleted here; pause it to hide it from Discover.
