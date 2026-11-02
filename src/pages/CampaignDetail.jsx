@@ -22,7 +22,9 @@ function Detail() {
     setLoading(true);
 
     if (!db) {
-      setError("Campaign data is not configured. Campaign details are unavailable.");
+      setError(
+        "Campaign data is not configured. Campaign details are unavailable.",
+      );
       setLoading(false);
       return () => {
         active = false;
