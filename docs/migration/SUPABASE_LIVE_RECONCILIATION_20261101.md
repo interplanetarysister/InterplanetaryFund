@@ -27,3 +27,10 @@ This is a read-only audit, not a migration completion or cutover approval. Produ
 Supabase advisor flags 26 RLS-enabled tables without policies (many private/server-only), six elevated function access findings, and disabled leaked-password protection. Review actual grants, function bodies, and intended access individually. Do not indiscriminately revoke the intentionally owner-scoped migration RPCs.
 
 No production SQL, financial transactions, grants, DNS, Cloudflare deployment, or external publishing was changed in this checkpoint.
+
+## Verified schema-level promotion blockers (follow-up)
+The actual `ifund_transfer.campaign_snapshots` schema has explicit CHECK constraints `source_verified = false` and `financial_authoritative = false`. The `ifund_transfer.source_inventory` schema similarly constrains `source_export_verified = false`. These constraints mean historical snapshot rows are intentionally non-authoritative and cannot simply be toggled to verified. A reviewed, independent verification mechanism and migration design are required; do not drop these constraints to accelerate import.
+
+`ifund_transfer.source_import_batches` contains source and imported counts plus a nullable source digest and status. Its historical campaign batch count of 27 must be reconciled against the 28 staged campaigns and 28 snapshots without assuming the additional record is legitimate or duplicate. No source IDs, emails, or raw payloads should be copied into public documentation.
+
+The live schema read was successful, but direct SQL execution has been intermittently blocked by safety checks. Do not claim row-level reconciliation or an import based on table metadata alone.
