@@ -25,8 +25,14 @@ test("fundraising is never represented as confirmed by draft creation", () => {
  assert.doesNotMatch(create, /status: "active"/);
 });
 test("the implemented reporter workspace route is not duplicated as Coming Soon", () => {
- assert.match(app, /<Route path="\\/my-blog" element={<MemberAccess><MyPublication \\/><\\/MemberAccess>} \\/>/);
- const comingSoon = app.match(/const LAYOUT_COMING_SOON = \\[([\\s\\S]*?)\\];/);
- assert.ok(comingSoon, "layout Coming Soon route list should be present");
- assert.doesNotMatch(comingSoon[1], /["']\\/my-blog["']/);
+ const implementedRoute =
+  '<Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />';
+ assert.ok(app.includes(implementedRoute));
+
+ const start = app.indexOf("const LAYOUT_COMING_SOON = [");
+ assert.notEqual(start, -1, "layout Coming Soon route list should be present");
+ const end = app.indexOf("];", start);
+ assert.notEqual(end, -1, "layout Coming Soon route list should be closed");
+ const comingSoon = app.slice(start, end);
+ assert.equal(comingSoon.includes('"/my-blog"'), false);
 });
