@@ -14,7 +14,8 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import {
   COMMITTED_MIGRATIONS,
   applyMigrations,
@@ -184,6 +185,82 @@ test(
         assert.ok(
           real.has(column),
           `${contract.table}.${column} is selected by ${contract.path} but is not a column of the migrated table`,
+        );
+      }
+    }
+  },
+);
+
+/** Every file under a source tree, recursively. */
+function walk(dir, out = []) {
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) walk(full, out);
+    else if (/\.(js|jsx|ts|tsx)$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
+
+const SRC_TREES = ["src", "apps/web/src"];
+
+/**
+ * Every explicit column list the codebase selects, discovered rather than
+ * hand-listed, so new code is covered without editing this test.
+ * Returns [{ table, columns, where }].
+ */
+function discoverSelects() {
+  const found = [];
+  for (const tree of SRC_TREES) {
+    let files;
+    try {
+      files = walk(new URL("../" + tree + "/", import.meta.url).pathname);
+    } catch {
+      continue; // tree absent
+    }
+    for (const file of files) {
+      const text = readFileSync(file, "utf8");
+      const pattern =
+        /from\(\s*"(ifund_[a-z_]+)"\s*\)[\s\S]{0,160}?\.select\(\s*"([^"]+)"\s*\)/g;
+      for (const match of text.matchAll(pattern)) {
+        const columns = match[2]
+          .split(",")
+          .map((c) => c.trim())
+          .filter(Boolean);
+        // `*` and embedded relations are not plain column lists.
+        if (columns.includes("*") || columns.some((c) => c.includes("(")))
+          continue;
+        found.push({
+          table: match[1],
+          columns,
+          where: file.replace(/^.*\/(src|apps)\//, "$1/"),
+        });
+      }
+    }
+  }
+  return found;
+}
+
+test(
+  "every discovered select in the codebase resolves against the schema",
+  { skip: SKIP },
+  async () => {
+    const columns = await realColumns(await getDb());
+    const discovered = discoverSelects();
+    // The scanner must find real contracts, or this passes for the wrong reason.
+    assert.ok(
+      discovered.length >= 5,
+      `expected to discover several explicit selects, found ${discovered.length}`,
+    );
+    for (const { table, columns: selected, where } of discovered) {
+      const real = columns.get(table);
+      assert.ok(
+        real,
+        `${table} is queried by ${where} but does not exist in the schema`,
+      );
+      for (const column of selected) {
+        assert.ok(
+          real.has(column),
+          `${table}.${column} is selected by ${where} but is not a column of the migrated table`,
         );
       }
     }
