@@ -181,8 +181,13 @@ implementation.
 - The exact Cloudflare Pages production source branch, root directory and
   current deployment commit still require dashboard/API confirmation. The
   Cloudflare connector required interactive input in this automation run, and
-  no usable Cloudflare credential was available here. Do not infer those
-  settings from a matching bundle alone.
+  no usable Cloudflare API session was available here. The checked-in deploy
+  workflow builds `apps/web`, defaults to project `interplanetaryfund-migration`,
+  and selects branch `main` for its production input; that does not match the
+  last measured production-branch candidate `migration/phase7-offline-cutover-gate`.
+  The separate `interplanetaryfund-migration-preview` project is documented as
+  connected to `main`. Do not use this workflow for live publication until the
+  Cloudflare project and production branch are confirmed.
 
 ## Blockers requiring external access
 
@@ -199,8 +204,9 @@ implementation.
    objects before any activation.
 4. **Authenticated site session:** authorized member and admin sessions to
    test protected routes, OAuth, return-to behavior, account lifecycle,
-   ownership, donor history, admin gates and mobile navigation. No signed-in
-   browser profile could be inspected in this non-interactive run.
+   ownership, donor history, admin gates and mobile navigation. The available
+   saved browser profiles list Google, Facebook and GitHub sign-ins, but none
+   lists `interplanetaryfund.com`; no IFund member/admin session was available.
 5. **Payment provider verification:** authorized PayPal business-account
    access to verify the platform-support hosted link and, separately, the
    campaign checkout/webhook/ledger design. No real payment or financial
@@ -215,3 +221,23 @@ deployment workflow is blocked before build/publish by a missing public
 Supabase URL variable. Authenticated parity, hosted Supabase behavior,
 source-data ownership, workflows, agents, integrations, mobile parity and
 live post-deployment verification remain unproven.
+
+
+### Follow-up validation and zero-cost boundary — 2026-11-02
+
+On branch head `1838270b19b1a31eecd4433a324367dba90326f1`, all three public-repository
+standard-runner workflows completed successfully:
+
+- [Main release candidate checks — 41516491733](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491733)
+- [Reporter migration checks — 41516491831](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491831)
+- [Frontend production build and tests — 41516491757](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41516491757)
+
+The repository is public and these workflows use standard `ubuntu-latest` runners;
+GitHub documents standard hosted runners for public repositories as free. No larger
+runner, paid CI service or protected credit was used. Cloudflare Pages' published
+Free limit is 500 builds per month and one concurrent build, but the account's
+remaining allowance could not be inspected. No Cloudflare Pages build or deployment
+was started.
+
+The saved-profile inventory was read-only. No login, OAuth flow, PayPal checkout,
+payment, database write, DNS change or deployment was performed.
