@@ -2,6 +2,67 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B27 — RESOLVED IN CODE, NOT YET APPLIED: the 66 missing entity tables
+
+The storage gap recorded above is now closed. `scripts/generate-entity-tables.mjs`
+reads the reference entity schemas and emits
+`supabase/migrations/pending/20261102_ifund_base44_entity_tables.sql`, plus
+`docs/migration/base44-entity-tables.json` as the machine-readable form.
+
+Measured result, not estimated:
+
+    referenced entities            76
+    already had a table            10
+    tables created here            66
+    declared columns               736
+    enum check constraints          97
+
+All 76 entities the backend references are now backed by a table, so every one of the
+184 functions has storage to read and write.
+
+What the generator does, and why each choice was made:
+
+* Types follow the declared schema: `string` to `text`, `number` to `numeric`,
+  `boolean` to `boolean`, `integer` to `integer`, and every `object` or `array` to
+  `jsonb`. Objects and arrays are not narrowed because the reference stores free-form
+  structured values in them and narrowing would reject data the application already
+  accepts. A union such as `["string","null"]` becomes the non-null member and stays
+  nullable.
+* A declared `enum` becomes a check constraint, but only when every member is a usable
+  string literal. 97 of the 150 declared enums qualify; the rest are left permissive
+  rather than given a wrong constraint.
+* A `default` is emitted only for booleans and numbers. String defaults are omitted,
+  because they encode business choices that belong to the handler and a wrong default
+  is harder to notice than a missing one.
+* Every table carries Base44's implicit columns. They are not declared as properties
+  but every record has them and the backend reads them: 75 of 184 functions reference
+  `created_by_id` and 53 reference `created_date`. `created_at` and `updated_at` are
+  also emitted here because 16 and 12 entities declare them as properties, and emitting
+  the declarations would collide with the implicit pair and fail the migration.
+* `id` is `text`, matching the original record identifiers. The existing blog tables
+  already use this convention, and keeping the original id preserves the identity that
+  cross-references inside the functions rely on.
+
+Access: every generated table is deny-by-default. RLS is enabled, no privilege is
+granted to `anon` or `authenticated`, and no policy is created, so nothing can read or
+write these tables through a browser key until an access rule is written deliberately.
+The ported handlers are expected to use a service-role client. This is asserted for
+every table, both by reading the catalog and by exercising the denial.
+
+The file is purely additive: it only contains `create table`, `enable row level
+security` and `revoke all` against tables it creates itself, so applying it cannot
+change a table it does not own. A test asserts that too.
+
+Proven by `tests/entity-tables.test.js` (20 tests): coverage against the inventory,
+agreement between the committed SQL and the committed manifest including the exact
+column lists, text primary keys, RLS enabled everywhere, no browser privileges
+anywhere, enforcement of declared enums, tolerance of null enums, numeric and boolean
+fidelity, jsonb round-tripping, idempotency, and composition with the rest of the
+pending chain.
+
+**Still requires owner action:** applying it, and then the data import. This
+environment has no database credentials.
+
 ## B24 — RESOLVED IN CODE, NOT YET APPLIED: the public Stories RPC does not exist in production
 
 `apps/web/src/lib/editorial.js` calls `rpc("ifund_public_blog_entries_read", ...)`
