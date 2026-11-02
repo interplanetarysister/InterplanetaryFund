@@ -2,6 +2,51 @@
 Updated: 2026-10-24. Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137).
 **Status vocabulary:** VERIFIED = observed in connected source; SUPPORTED = documented capability without IFund production trial; UNKNOWN = requires authorized runtime/provider verification. No production changes are authorized by this file.
 
+## B22 — privileged functions are outside migration control (partly unresolved)
+
+The Supabase security advisor flags privileged functions for review. Auditing what
+this repository can see:
+
+* Three functions are defined across all migrations. All three are safe.
+  `ifund_touch_updated_at` is a trigger and security invoker.
+  `ifund_current_account_is_active()` and `ifund_public_campaign_detail(text)` are
+  SECURITY DEFINER, and both pin `search_path = public, pg_temp`, which is the
+  property that makes a definer function safe. Both also revoke execute from
+  PUBLIC before granting to specific roles, and both are read-only.
+  `tests/function-security.test.js` asserts all of this and fails if a future
+  function is added as a definer without a pinned path.
+
+* The unresolved part. `public.ifund_public_campaign_detail(text)` is SECURITY
+  DEFINER and calls
+  `public.ifund_migration_active_campaign_preview(p_after_source_id, p_limit)`.
+  **No migration in this repository defines that function.** It exists in the live
+  database, created by a path this repository does not contain. Because the outer
+  function runs as its owner, the inner function's privileges and its own
+  `search_path` are not reviewable from source, and the advisor's finding may be
+  about exactly this function.
+
+  This is not inherently a defect. A definer function calling another definer
+  function is normal. It is a gap in what can be verified: the security of
+  `ifund_public_campaign_detail` depends on a function nobody here can read.
+
+  **Next proof:** run query 7 and 7b in
+  docs/migration/PRODUCTION_RECONCILIATION.sql against
+  ssibsfmtodgximseeqsv. Query 7 reports, for every function in `public` and
+  `ifund_ops`, whether it is SECURITY DEFINER and whether its `search_path` is
+  pinned, and flags any definer without one. Query 7b reports who may execute it.
+  If `ifund_migration_active_campaign_preview` is reported as a definer with no
+  pinned path, it needs the same `set search_path = public, pg_temp` treatment the
+  other two have. Do not apply that change blind: the function's body is unknown,
+  and pinning a path can break a function that relies on a different one.
+
+  **Blocks:** independent verification of the public campaign detail path. Not a
+  blocker for anything else, since that function is read-only and exposes only
+  fields the preview already marks public.
+
+A second, related observation: because these functions were created outside this
+repository's migrations, `supabase db push` would not reproduce the live schema.
+The reconciliation report's migration-history section is what establishes the gap.
+
 ## B21 — react-router advisories in the deployed root app (fixed)
 
 `npm audit` on the root app reported two moderate advisories against
