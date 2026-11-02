@@ -127,11 +127,19 @@ or deployed.
 
 ## CI and deployment evidence
 
+- PR #191's final CI set passed:
+  - [Main release candidate checks — 41514787694](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787694):
+    214/214 root tests, root build, lockfile reproducibility and the targeted
+    Prettier check passed.
+  - [Frontend production build and tests — 41514787692](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787692):
+    214/214 root tests, 134/134 `apps/web` tests, and both frontend builds passed.
+  - [Reporter blog migration checks — 41514787701](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41514787701):
+    214/214 root tests and root build passed.
 - PR #190's `Main release candidate checks` run
   [41402106624](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41402106624)
-  passed dependency installation, lockfile verification, root tests, root
-  production build and the configured formatting checks. This validates that
-  PR's head, not the live runtime.
+  also passed dependency installation, lockfile verification, root tests, root
+  production build and the configured formatting checks. This validates CI
+  artifacts, not live runtime behavior.
 - The branded frontend deployment workflow failed twice:
   - [41398882334](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41398882334)
   - [41398960349](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41398960349)
