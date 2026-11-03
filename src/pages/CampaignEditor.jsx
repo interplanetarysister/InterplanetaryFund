@@ -118,8 +118,14 @@ function Editor({ user }) {
     setMessage("");
     try {
       const suggestion = await generateCampaignDraft(db, {
-        details: ("Rewrite only this section, preserving the supplied facts: " +
-          storyParts[index] + ". Campaign context: " + draftDescription).slice(0, 1500),
+        details: (() => {
+          const section = String(storyParts[index] || "");
+          const instruction = "Rewrite this section, preserving its facts: ";
+          const primary = instruction + section;
+          const context = ". Campaign context: " + draftDescription;
+          // Never let optional context truncate the section being regenerated.
+          return (primary.length + context.length <= 1500 ? primary + context : primary).slice(0, 1500);
+        })(),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
