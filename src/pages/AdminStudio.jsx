@@ -35,7 +35,8 @@ const starter = () => ({
 function blockDefaults(type) {
   const base = { id: crypto.randomUUID(), type, heading: "", body: "" };
   if (type === "button") return { ...base, label: "Learn more", url: "/" };
-  if (type === "image") return { ...base, imageUrl: "", body: "Add an image URL." };
+  if (type === "image")
+    return { ...base, imageUrl: "", body: "Add an image URL." };
   return base;
 }
 
@@ -179,10 +180,7 @@ export default function AdminStudio() {
     setNotice("");
   };
 
-  const previewClass = useMemo(
-    () => "studio-preview " + preview,
-    [preview],
-  );
+  const previewClass = useMemo(() => "studio-preview " + preview, [preview]);
 
   if (loading && !page) {
     return (
@@ -254,8 +252,7 @@ export default function AdminStudio() {
               type="button"
               key={entry.id}
               className={
-                "studio-page-link " +
-                (page?.id === entry.id ? "selected" : "")
+                "studio-page-link " + (page?.id === entry.id ? "selected" : "")
               }
               onClick={() => selectPage(entry)}
             >
@@ -263,9 +260,7 @@ export default function AdminStudio() {
               <small>{entry.status}</small>
             </button>
           ))}
-          {!pages.length && (
-            <p className="studio-muted">No saved pages yet.</p>
-          )}
+          {!pages.length && <p className="studio-muted">No saved pages yet.</p>}
           <button
             type="button"
             className="secondary studio-refresh"
@@ -313,7 +308,8 @@ export default function AdminStudio() {
                   />
                 </label>
                 <span className="studio-status">
-                  {page.status || "draft"} {dirty ? "· unsaved changes" : "· saved"}
+                  {page.status || "draft"}{" "}
+                  {dirty ? "· unsaved changes" : "· saved"}
                 </span>
               </div>
 
@@ -339,8 +335,8 @@ export default function AdminStudio() {
                     >
                       <div className="studio-block-head">
                         <strong>
-                          {TYPES.find((item) => item.type === block.type)?.label ||
-                            block.type}
+                          {TYPES.find((item) => item.type === block.type)
+                            ?.label || block.type}
                         </strong>
                         <div>
                           <button
@@ -471,10 +467,7 @@ export default function AdminStudio() {
                         className={"studio-render studio-render-" + block.type}
                       >
                         {block.type === "image" && block.imageUrl && (
-                          <img
-                            src={block.imageUrl}
-                            alt={block.heading || ""}
-                          />
+                          <img src={block.imageUrl} alt={block.heading || ""} />
                         )}
                         {block.heading && <h2>{block.heading}</h2>}
                         {block.body && <p>{block.body}</p>}
@@ -502,10 +495,10 @@ export default function AdminStudio() {
       </div>
 
       <p className="studio-footnote">
-        Studio saves structured page drafts to Supabase. Marking a page published
-        records its Studio status; it does not deploy code or create a live site
-        route. AI code generation and GitHub publishing are separate capabilities
-        and are not enabled in this first package.
+        Studio saves structured page drafts to Supabase. Marking a page
+        published records its Studio status; it does not deploy code or create a
+        live site route. AI code generation and GitHub publishing are separate
+        capabilities and are not enabled in this first package.
       </p>
     </main>
   );
