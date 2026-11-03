@@ -28,7 +28,7 @@ create table if not exists public.ifund_studio_pages (
 create index if not exists ifund_studio_pages_status_updated on public.ifund_studio_pages(status, updated_at desc);
 alter table public.ifund_studio_pages enable row level security;
 revoke all privileges on table public.ifund_studio_pages from public, anon, authenticated;
-grant select, insert, update, delete on public.ifund_studio_pages to authenticated;
+grant select on public.ifund_studio_pages to anon, authenticated;\ngrant insert, update, delete on public.ifund_studio_pages to authenticated;
 drop policy if exists ifund_studio_admin_all on public.ifund_studio_pages;
 create policy ifund_studio_admin_all on public.ifund_studio_pages for all to authenticated
   using (public.ifund_is_studio_admin()) with check (public.ifund_is_studio_admin());
