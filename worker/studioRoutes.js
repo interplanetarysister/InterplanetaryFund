@@ -256,7 +256,7 @@ export async function routeStudioStatusRequest(request, env, fetcher = fetch) {
 export async function routeStudioVersionRequest(request, env, fetcher = fetch) {
   if (!migrationReady(env)) return response(503, { error: 'IFund Studio API is not enabled.' });
   const path = new URL(request.url).pathname;
-  const match = /^\\/api\\/studio\\/pages\\/([0-9a-f-]+)\\/versions(?:\\/([0-9]+)\\/restore)?$/i.exec(path);
+  const match = /^\/api\/studio\/pages\/([0-9a-f-]+)\/versions(?:\/([0-9]+)\/restore)?$/i.exec(path);
   if (!match || !UUID.test(match[1])) return response(404, { error: 'Not found.' });
   const restore = Boolean(match[2]);
   if (request.method !== (restore ? 'POST' : 'GET')) return response(405, { error: 'Method not allowed.' });
