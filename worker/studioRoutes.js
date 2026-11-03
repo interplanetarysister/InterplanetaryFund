@@ -92,7 +92,7 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
     const denied = accountGuardResponse(account);
     if (denied) return denied;
-    if (account.role !== 'admin') return response(403, { error: 'Administrator access required.' });
+    if (account.role !== 'super_admin') return response(403, { error: 'Verified super-administrator access required.' });
     const headers = apiHeaders(env, account.jwt, request.method !== 'GET');
     if (request.method === 'GET') {
       const pageUrl = new URL(request.url);

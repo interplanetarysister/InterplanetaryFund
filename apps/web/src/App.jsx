@@ -6,6 +6,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MemberAccess from "@/components/auth/MemberAccess";
 import AdminAccess from "@/components/auth/AdminAccess";
+import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
@@ -75,7 +76,7 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
-      <Route path="/admin/studio" element={<MemberAccess><AdminAccess><AdminStudio /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />

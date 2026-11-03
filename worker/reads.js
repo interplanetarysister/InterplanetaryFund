@@ -59,7 +59,7 @@ export async function authenticatedStudioUser(request, env, fetcher = fetch) {
   if (!account) return null;
   if (account.accountError) return { ...account, role: null };
   const verified = await fetcher(
-    env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_admin',
+    env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_super_admin',
     {
       method: 'POST',
       headers: { ...providerHeaders(env, account.jwt), 'Content-Type': 'application/json' },
@@ -67,7 +67,7 @@ export async function authenticatedStudioUser(request, env, fetcher = fetch) {
     },
   );
   if (!verified.ok) throw new Error('Verified administrator check unavailable.');
-  return { ...account, role: (await verified.json()) === true ? 'admin' : null };
+  return { ...account, role: (await verified.json()) === true ? 'super_admin' : null };
 }
 
 /** Shared read-only PostgREST request, with user JWT for user-scoped RLS. */

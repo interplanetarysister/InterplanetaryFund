@@ -35,19 +35,19 @@ test('studio rejects ordinary members without a verified owner mapping or admin 
   const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 403);
   assert.equal(api.calls.length, 2);
-  assert.match(api.calls[1].url, /rpc\/ifund_current_user_is_verified_admin/);
+  assert.match(api.calls[1].url, /rpc\/ifund_current_user_is_verified_super_admin/);
 });
 test('studio allows a verified legacy owner mapping without an app_metadata role', async () => {
   const calls = [];
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: {} });
-    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_admin')) return Response.json(true);
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     return Response.json([]);
   };
   const r = await routeStudioRequest(request('/api/studio/pages'), env, fetcher);
   assert.equal(r.status, 200);
-  assert.match(calls[1].url, /rpc\/ifund_current_user_is_verified_admin/);
+  assert.match(calls[1].url, /rpc\/ifund_current_user_is_verified_super_admin/);
   assert.equal(calls[1].options.headers.Authorization, 'Bearer verified.test.jwt');
   assert.match(calls[2].url, /ifund_studio_pages/);
 });
