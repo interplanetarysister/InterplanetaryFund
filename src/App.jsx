@@ -12,15 +12,23 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
+import AdminStudio from "./pages/AdminStudio";
+import StudioPublishedPage from "./pages/StudioPublishedPage";
+
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
+  const [studioAccess, setStudioAccess] = useState(null);
+  const canUseStudio = studioAccess === true;
+
   useEffect(() => {
     if (!db) {
       setUser(null);
       return;
     }
-    db.auth.getUser().then(({ data }) => setUser(data.user || null));
+    db.auth.getUser().then(({ data, error }) => {
+      setUser(error ? null : data.user || null);
+    });
     const {
       data: { subscription },
     } = db.auth.onAuthStateChange((event, session) =>
@@ -28,9 +36,32 @@ function App() {
     );
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!user || !db) {
+      setStudioAccess(false);
+      return () => {
+        active = false;
+      };
+    }
+    setStudioAccess(null);
+    db.rpc("ifund_current_user_is_verified_admin")
+      .then(({ data, error }) => {
+        if (active) setStudioAccess(!error && data === true);
+      })
+      .catch(() => {
+        if (active) setStudioAccess(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
+
   return (
     <div className="app">
       <header>
@@ -51,6 +82,7 @@ function App() {
           <NavLink to="/community">Community</NavLink>
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
+          {canUseStudio && <NavLink to="/admin/studio">Studio</NavLink>}
         </nav>
         <div className="actions top-actions">
           <button
@@ -130,6 +162,30 @@ function App() {
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/p/:slug" element={<StudioPublishedPage />} />
+          <Route
+            path="/admin/studio"
+            element={
+              !user ? (
+                <main>
+                  <h1>Administrator sign-in required</h1>
+                  <Link to="/login">Sign in</Link>
+                </main>
+              ) : studioAccess === null ? (
+                <Loading />
+              ) : canUseStudio ? (
+                <AdminStudio />
+              ) : (
+                <main>
+                  <h1>Administrator access required</h1>
+                  <p>
+                    This area is restricted to verified administrator accounts.
+                  </p>
+                  <Link to="/">Return home</Link>
+                </main>
+              )
+            }
+          />
           <Route
             path="*"
             element={
