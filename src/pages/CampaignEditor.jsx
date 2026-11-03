@@ -65,7 +65,6 @@ function Editor({ user }) {
   useEffect(() => {
     if (!id) {
       setLoadedId(null);
-      setForm(empty);
       setLoadState("ready");
       return;
     }
