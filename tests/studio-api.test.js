@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest } from '../worker/studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const env = { MIGRATION_API_PREVIEW: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
@@ -201,4 +201,21 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
   );
   assert.equal(short.status, 422);
   assert.equal(calls, 1);
+});
+
+test('Studio status is admin-only and reports AI disabled until explicitly enabled', async () => {
+  const api = remote('admin');
+  const r = await routeStudioStatusRequest(request('/api/studio/status'), env, api.fetcher);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), {
+    pageBuilderEnabled: true,
+    aiEnabled: false,
+    aiDailyLimit: 2,
+  });
+  const member = await routeStudioStatusRequest(
+    request('/api/studio/status'),
+    env,
+    remote('member').fetcher,
+  );
+  assert.equal(member.status, 403);
 });
