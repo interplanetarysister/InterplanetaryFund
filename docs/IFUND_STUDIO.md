@@ -33,3 +33,17 @@ Add an owner-approved, audited server-side publishing adapter that translates St
 - The Supabase Studio migration has not been applied. The Supabase preview branch integration is disabled, so this PR does not have an isolated Supabase preview database.
 
 These are release and account-provisioning blockers, not reasons to weaken role checks or switch live traffic.
+
+## AI-assisted layout generation
+
+- The Worker includes a Cloudflare Workers AI layout-generation endpoint using GLM-4.7-Flash. It returns structured page sections only; it does not execute or generate application code.
+- Generated content is schema-validated and returned as an unsaved draft. An administrator must review and explicitly save it.
+- A private database quota function limits generation to two requests per platform per UTC day.
+- The AI binding is present in Wrangler configuration, but IFUND_STUDIO_AI_ENABLED is deliberately set to disabled. Do not enable it until the account's Workers plan and free allocation are confirmed.
+- Cloudflare documents a 10,000-Neuron daily free allocation for Workers AI. Workers Free requests fail after the free allocation; Workers Paid usage above the allocation is billed at $0.011 per 1,000 Neurons. This project must not upgrade or incur AI charges without explicit owner approval.
+- GLM-4.7-Flash is listed among models available on Workers Free. The generation endpoint uses prompt-constrained JSON and validates the returned structure because this model is not listed in Cloudflare's JSON Mode supported-model list.
+
+References:
+- https://developers.cloudflare.com/workers-ai/platform/pricing/
+- https://developers.cloudflare.com/changelog/product/workers-ai/
+- https://developers.cloudflare.com/workers-ai/features/json-mode/
