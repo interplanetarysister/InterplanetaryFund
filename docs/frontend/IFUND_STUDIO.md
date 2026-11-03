@@ -25,3 +25,8 @@ The Website Studio is the super-admin page builder for Interplanetary Fund.
 - Published pages are public-read only. Drafts and revision history are administrator-only.
 - Page deletion is intentionally unavailable so published URLs and history are not destroyed.
 - Publishing a page is an explicit content action, but routine save, versioning, and build checks do not require a second human approval.
+
+## Release checks
+
+- Preview build runs the changed Studio API test file plus the complete `apps/web` production build. The full legacy repository suite is already independently verified and is too long to repeat inside the Pages build timeout.
+- Pages Functions route `/api/*` through the same Worker router used by the migration API, with the migration preview gate remaining disabled.
