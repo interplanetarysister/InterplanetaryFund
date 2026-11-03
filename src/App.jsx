@@ -25,9 +25,9 @@ function App() {
       setUser(null);
       return;
     }
-    db.auth
-      .getUser()
-      .then(({ data, error }) => setUser(error ? null : data.user || null));
+    db.auth.getUser().then(({ data, error }) => {
+      setUser(error ? null : data.user || null);
+    });
     const {
       data: { subscription },
     } = db.auth.onAuthStateChange((event, session) =>
@@ -35,6 +35,7 @@ function App() {
     );
     return () => subscription.unsubscribe();
   }, []);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
@@ -65,7 +66,9 @@ function App() {
           <button
             aria-label="Toggle theme"
             title="Toggle theme"
-            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+            onClick={() =>
+              setTheme((t) => (t === "dark" ? "light" : "dark"))
+            }
           >
             ◐
           </button>
