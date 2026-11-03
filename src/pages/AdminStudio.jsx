@@ -132,13 +132,16 @@ export default function AdminStudio() {
     setNotice("");
     try {
       const restored = await api(
-        "/api/studio/pages/" + encodeURIComponent(page.id) +
-          "/versions/" + version + "/restore",
+        "/api/studio/pages/" +
+          encodeURIComponent(page.id) +
+          "/versions/" +
+          version +
+          "/restore",
         "POST",
       );
       setPage(restored);
       setPages((current) =>
-        current.map((entry) => entry.id === restored.id ? restored : entry),
+        current.map((entry) => (entry.id === restored.id ? restored : entry)),
       );
       setDirty(false);
       setNotice("Version " + version + " restored as a new draft revision.");
@@ -431,12 +434,17 @@ export default function AdminStudio() {
                       <li key={entry.id}>
                         <span>
                           <strong>Version {entry.version}</strong>
-                          <small>{new Date(entry.created_at).toLocaleString()}</small>
+                          <small>
+                            {new Date(entry.created_at).toLocaleString()}
+                          </small>
                         </span>
                         <button
                           type="button"
                           onClick={() => restoreVersion(entry.version)}
-                          disabled={restoringVersion || entry.version === versions[0]?.version}
+                          disabled={
+                            restoringVersion ||
+                            entry.version === versions[0]?.version
+                          }
                         >
                           {restoringVersion ? "Restoring…" : "Restore as draft"}
                         </button>
