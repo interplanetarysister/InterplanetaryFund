@@ -8,6 +8,12 @@ export function response(status, payload) {
   return new Response(JSON.stringify(payload), { status, headers: JSON_HEADERS });
 }
 
+/** Convert an upstream authorization-state failure into a fail-closed response. */
+export function accountGuardResponse(account) {
+  if (account?.accountError) return response(503, { error: 'Administrator verification unavailable.' });
+  return null;
+}
+
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Require independent migration-preview enablement and public Supabase configuration. */
