@@ -180,7 +180,9 @@ export default function AdminStudio() {
       });
       setPage((current) => ({ ...current, content: generated.content }));
       setDirty(true);
-      setNotice("AI layout generated. Review the sections and save your draft.");
+      setNotice(
+        "AI layout generated. Review the sections and save your draft.",
+      );
     } catch (err) {
       setError(err.message);
     } finally {
@@ -360,7 +362,10 @@ export default function AdminStudio() {
                   >
                     {generating ? "Generating…" : "Generate with AI"}
                   </button>
-                  <span>2 generations per day across the platform · free-tier quota protected</span>
+                  <span>
+                    2 generations per day across the platform · free-tier quota
+                    protected
+                  </span>
                 </div>
               </div>
 
