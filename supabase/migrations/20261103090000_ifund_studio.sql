@@ -43,16 +43,18 @@ returns trigger language plpgsql security invoker set search_path = ''
 as $$
 begin
   new.updated_at := now();
-  if new.status = 'published' and old.status is distinct from 'published' then
-    new.published_at := now();
-  elsif new.status = 'draft' then
+  if new.status = 'published' then
+    if tg_op = 'INSERT' or old.status is distinct from 'published' or new.published_at is null then
+      new.published_at := now();
+    end if;
+  else
     new.published_at := null;
   end if;
   return new;
 end;
 $$;
 drop trigger if exists ifund_studio_pages_touch_updated_at on public.ifund_studio_pages;
-create trigger ifund_studio_pages_touch_updated_at before update on public.ifund_studio_pages
+create trigger ifund_studio_pages_touch_updated_at before insert or update on public.ifund_studio_pages
   for each row execute function public.ifund_studio_touch_updated_at();
 -- Migration artifact only: this file has not been applied to the connected project.
 
