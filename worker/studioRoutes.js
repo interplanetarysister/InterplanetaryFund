@@ -124,3 +124,29 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
     return response(503, { error: 'Studio service unavailable.' });
   }
 }
+
+/** Public read-only renderer endpoint. RLS exposes published pages only. */
+export async function routePublicStudioPage(request, env, fetcher = fetch) {
+  if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+  if (!migrationReady(env)) return response(503, { error: 'Studio pages are not available.' });
+  const match = /^\\/api\\/public\\/studio\\/pages\\/([a-z0-9]+(?:-[a-z0-9]+)*)$/i.exec(new URL(request.url).pathname);
+  if (!match || match[1].length > 60) return response(404, { error: 'Page not found.' });
+  try {
+    const query = new URLSearchParams({
+      select: 'id,slug,title,content,status,updated_at',
+      slug: 'eq.' + match[1].toLowerCase(),
+      status: 'eq.published',
+      limit: '1',
+    });
+    const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_studio_pages?' + query, {
+      headers: { apikey: env.SUPABASE_PUBLISHABLE_KEY, Accept: 'application/json' },
+    });
+    if (!upstream.ok) return response(503, { error: 'Studio page is unavailable.' });
+    const rows = await upstream.json();
+    if (!Array.isArray(rows) || rows.length > 1) return response(503, { error: 'Studio page is unavailable.' });
+    if (!rows.length || rows[0]?.status !== 'published') return response(404, { error: 'Page not found.' });
+    return response(200, rows[0]);
+  } catch {
+    return response(503, { error: 'Studio page is unavailable.' });
+  }
+}
