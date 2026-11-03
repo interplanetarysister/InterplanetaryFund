@@ -12,7 +12,8 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
-import AdminStudio from "./pages/AdminStudio";\nimport StudioPublishedPage from "./pages/StudioPublishedPage";
+import AdminStudio from "./pages/AdminStudio";
+import StudioPublishedPage from "./pages/StudioPublishedPage";
 
 function App() {
   const [user, setUser] = useState(undefined);
@@ -140,6 +141,7 @@ function App() {
           <Route path="/login" element={<Auth user={user} />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
+          <Route path="/p/:slug" element={<StudioPublishedPage />} />
           <Route
             path="/admin/studio"
             element={
