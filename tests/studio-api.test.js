@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import worker from '../worker/index.js';
+import { routeStudioRequest } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const env = { MIGRATION_API_PREVIEW: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
@@ -26,19 +26,19 @@ const page = { slug: 'welcome-page', title: 'Welcome', content: { blocks: [
 ] }, status: 'draft' };
 
 test('studio rejects anonymous requests before database access', async () => {
-  const r = await worker.fetch(request('/api/studio/pages', 'GET', undefined, false), env);
+  const r = await routeStudioRequest(request('/api/studio/pages', 'GET', undefined, false), env);
   assert.equal(r.status, 401);
 });
 test('studio rejects ordinary members using server-verified app_metadata role', async () => {
   const api = remote('member');
-  const r = await worker.fetch(request('/api/studio/pages'), env, api.fetcher);
+  const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 403);
   assert.equal(api.calls.length, 1);
 });
 test('studio allows admin and reads page data through the member JWT', async () => {
   const row = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...page, created_by: uid, updated_by: uid };
   const api = remote('admin', [row]);
-  const r = await worker.fetch(request('/api/studio/pages'), env, api.fetcher);
+  const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), [row]);
   assert.match(api.calls[1].url, /ifund_studio_pages/);
@@ -46,7 +46,7 @@ test('studio allows admin and reads page data through the member JWT', async () 
 });
 test('studio allows super_admin', async () => {
   const api = remote('super_admin', []);
-  const r = await worker.fetch(request('/api/studio/pages'), env, api.fetcher);
+  const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 200);
 });
 test('studio rejects malformed blocks, script types, duplicate IDs and privileged fields', async () => {
@@ -59,7 +59,7 @@ test('studio rejects malformed blocks, script types, duplicate IDs and privilege
   ];
   for (const input of attempts) {
     const api = remote('admin');
-    const r = await worker.fetch(request('/api/studio/pages', 'POST', input), env, api.fetcher);
+    const r = await routeStudioRequest(request('/api/studio/pages', 'POST', input), env, api.fetcher);
     assert.equal(r.status, 422);
     assert.equal(api.calls.length, 1);
   }
@@ -67,7 +67,7 @@ test('studio rejects malformed blocks, script types, duplicate IDs and privilege
 test('studio creates records with server-derived actor IDs and verifies returned row', async () => {
   const saved = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...page, created_by: uid, updated_by: uid };
   const api = remote('admin', [saved]);
-  const r = await worker.fetch(request('/api/studio/pages', 'POST', page), env, api.fetcher);
+  const r = await routeStudioRequest(request('/api/studio/pages', 'POST', page), env, api.fetcher);
   assert.equal(r.status, 201);
   const sent = JSON.parse(api.calls[1].options.body);
   assert.equal(sent.created_by, uid);
@@ -75,6 +75,6 @@ test('studio creates records with server-derived actor IDs and verifies returned
   assert.equal(sent.status, 'draft');
 });
 test('studio rejects invalid IDs and unsupported methods', async () => {
-  assert.equal((await worker.fetch(request('/api/studio/pages/not-a-uuid', 'PATCH', page), env)).status, 400);
-  assert.equal((await worker.fetch(request('/api/studio/pages', 'DELETE'), env)).status, 405);
+  assert.equal((await routeStudioRequest(request('/api/studio/pages/not-a-uuid', 'PATCH', page), env)).status, 400);
+  assert.equal((await routeStudioRequest(request('/api/studio/pages', 'DELETE'), env)).status, 405);
 });
