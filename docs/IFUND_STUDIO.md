@@ -4,7 +4,7 @@ This branch adds the first independent Studio foundation to the migration integr
 
 ## Included
 - Admin-only frontend entry at /admin/studio.
-- Server-side role verification against Supabase Auth app_metadata.role for admin and super_admin.
+- Server-side role verification against protected Supabase `app_metadata.role` or the existing `public.ifund_current_user_is_verified_admin()` function, which validates the original IFund owner identity mapping.
 - Cloudflare Worker API for structured page documents.
 - Supabase migration defining Studio page storage and matching RLS policy.
 - Section editing, drag/drop reordering, accessible move controls, responsive preview, draft persistence, immutable revision history, and safe restore-as-draft.
@@ -18,7 +18,7 @@ This branch adds the first independent Studio foundation to the migration integr
 - No production deployment, DNS change, payment change, or live data operation is performed by this branch.
 
 ## Administrator provisioning
-The account must already have a trusted Supabase Auth app_metadata.role value of admin or super_admin. This role must be set through a trusted administrative process, never through browser profile fields or a client request. The frontend hides the entry point for other roles; the Worker and Postgres RLS independently enforce access.
+Studio reuses IFund's existing verified-admin authorization. The account must either have a protected Supabase Auth `app_metadata.role` of `admin` or `super_admin`, or pass `public.ifund_current_user_is_verified_admin()` through the verified legacy-owner mapping. The mapping checks source ownership, active admin status, verified email, account lifecycle, and uniqueness. The frontend calls this function for navigation; the Worker calls it with the authenticated user's JWT; Postgres RLS calls the same trusted function. Do not set roles through browser profile fields or create a second owner identity system.
 
 ## Next package
 Add an owner-approved, audited server-side publishing adapter that translates Studio documents into reviewed application changes. Keep GitHub credentials server-side, require preview and review, and preserve branch protections and release gates.
@@ -26,10 +26,10 @@ Add an owner-approved, audited server-side publishing adapter that translates St
 
 ## Verified deployment and access blockers (2026-11-03)
 
-- The Cloudflare Pages project that owns interplanetaryfund.com currently has production and preview deployments disabled. Its stored Git source configuration names interplanetary-fund2, while the latest recorded deployment was built from InterplanetaryFund main. Do not assume a new branch will deploy automatically.
+- The Cloudflare Pages project that owns `interplanetaryfund.com` is `interplanetaryfund-migration`. Its stored Git source points to `interplanetary-fund2`, and production and preview deployments are disabled. The independent-repository projects are separate `pages.dev` projects and do not own the custom domain. Do not assume a new branch will deploy automatically.
 - Existing domain Worker routes still point to the legacy interplanetary-fund2 Worker and a separate catch-all Worker. The migration API Worker is not routed for /api/studio/* yet.
 - The existing migration API Worker has the preview flag and publishable-key binding, but its current settings do not include the required SUPABASE_URL binding. Its readiness check therefore cannot pass. No route or binding was changed.
-- A read-only check of the currently configured Supabase Auth project found three accounts and no account with app_metadata.role set. No role was assigned. The owner must identify which existing sign-in account should receive the admin role before Studio can be opened by that account.
+- A read-only check found three authenticated accounts with three distinct, fully verified active-admin mappings to the original IFund source identity. None needs a new `app_metadata.role` assignment for Studio access. The Studio Worker and RLS now reuse the existing verified-admin function; no role or identity mapping was changed.
 - The Supabase Studio migration has not been applied. The Supabase preview branch integration is disabled, so this PR does not have an isolated Supabase preview database.
 
 These are release and account-provisioning blockers, not reasons to weaken role checks or switch live traffic.
