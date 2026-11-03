@@ -58,8 +58,8 @@ test('studio allows admin and reads page data through the member JWT', async () 
   const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), [row]);
-  assert.match(api.calls[1].url, /ifund_studio_pages/);
-  assert.equal(api.calls[1].options.headers.Authorization, 'Bearer verified.test.jwt');
+  assert.match(api.calls[2].url, /ifund_studio_pages/);
+  assert.equal(api.calls[2].options.headers.Authorization, 'Bearer verified.test.jwt');
 });
 test('studio allows super_admin', async () => {
   const api = remote('super_admin', []);
@@ -78,7 +78,7 @@ test('studio rejects malformed blocks, script types, duplicate IDs and privilege
     const api = remote('super_admin');
     const r = await routeStudioRequest(request('/api/studio/pages', 'POST', input), env, api.fetcher);
     assert.equal(r.status, 422);
-    assert.equal(api.calls.length, 1);
+    assert.equal(api.calls.length, 2);
   }
 });
 test('studio creates records with server-derived actor IDs and verifies returned row', async () => {
@@ -86,7 +86,7 @@ test('studio creates records with server-derived actor IDs and verifies returned
   const api = remote('super_admin', [saved]);
   const r = await routeStudioRequest(request('/api/studio/pages', 'POST', page), env, api.fetcher);
   assert.equal(r.status, 201);
-  const sent = JSON.parse(api.calls[1].options.body);
+  const sent = JSON.parse(api.calls[2].options.body);
   assert.equal(sent.created_by, uid);
   assert.equal(sent.updated_by, uid);
   assert.equal(sent.status, 'draft');
@@ -203,7 +203,7 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   assert.equal(result.content.blocks[0].id, 'ai-1');
   assert.equal(result.content.blocks[1].url, '/');
   assert.equal(aiCalls, 1);
-  assert.equal(calls, 2);
+  assert.equal(calls, 3);
 });
 test('Studio AI rejects short or oversized prompts before consuming quota', async () => {
   let calls = 0;
@@ -220,7 +220,7 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
     fetcher,
   );
   assert.equal(short.status, 422);
-  assert.equal(calls, 1);
+  assert.equal(calls, 2);
 });
 
 test('Studio status is admin-only and reports AI disabled until explicitly enabled', async () => {
@@ -247,8 +247,8 @@ test('Studio version history is admin-only and returns recent immutable revision
   const r = await routeStudioVersionRequest(request('/api/studio/pages/' + pageId + '/versions'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), revisions);
-  assert.match(api.calls[1].url, /ifund_studio_page_versions/);
-  assert.equal(api.calls[1].options.headers.Authorization, 'Bearer verified.test.jwt');
+  assert.match(api.calls[2].url, /ifund_studio_page_versions/);
+  assert.equal(api.calls[2].options.headers.Authorization, 'Bearer verified.test.jwt');
 
   const denied = await routeStudioVersionRequest(
     request('/api/studio/pages/' + pageId + '/versions'),
@@ -277,7 +277,7 @@ test('Studio revision restore creates a draft from a verified snapshot', async (
   );
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), restored);
-  const sent = JSON.parse(calls[2].options.body);
+  const sent = JSON.parse(calls[4].options.body);
   assert.equal(sent.status, 'draft');
   assert.equal(sent.published_at, null);
   assert.equal(sent.updated_by, uid);
