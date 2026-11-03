@@ -242,7 +242,11 @@ test("every client RPC is migration-defined or recorded as a verified production
     }
   }
 
-  const missing = [...called].filter((name) => !defined.has(name));
+  const blockers = readFileSync(join(root, "docs/migration/BLOCKERS.md"), "utf8");
+  const documentedProductionDependencies = new Set([
+    "ifund_current_user_is_verified_admin",
+  ].filter((name) => blockers.includes("## B29 — VERIFIED PRODUCTION DEPENDENCY: public." + name)));
+  const missing = [...called].filter((name) => !defined.has(name) && !documentedProductionDependencies.has(name));
   assert.deepEqual(missing, [],
-    `these rpcs are called by the client but defined by no migration:\n  ${missing.join("\n  ")}`);
+    `these client rpcs are neither migration-defined nor documented production dependencies:\\n  ${missing.join("\\n  ")}`);
 });
