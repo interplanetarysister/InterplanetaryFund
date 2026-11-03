@@ -1,33 +1,55 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = path => readFileSync(new URL('../' + path, import.meta.url), 'utf8');
+const workflowDirectory = new URL('../.github/workflows/', import.meta.url);
+const workflowFiles = readdirSync(workflowDirectory).filter(name => /\.ya?ml$/i.test(name));
 
-test('CI workflows may compile repairs but do not deploy production', () => {
-  const forbidden = [
-    'wrangler deploy',
-    'wrangler pages deploy',
-    'pages deploy',
-  ];
-  for (const path of [
-    '.github/workflows/ifund-migration-tests.yml',
-    '.github/workflows/migration-phase1-checks.yml',
-  ]) {
-    const workflow = read(path).toLowerCase();
-    for (const command of forbidden) {
-      assert.equal(workflow.includes(command), false, path + ' contains ' + command);
+const forbiddenBuildOrDeployCommands = [
+  /\bnpm(?:\s+--prefix\s+\S+)?\s+(?:run\s+)?build\b/i,
+  /\bvite\s+build\b/i,
+  /\bwrangler(?:\s+pages)?\s+deploy\b/i,
+  /\bpages\s+deploy\b/i,
+  /\bcloudflare\s+pages\s+build\b/i,
+  /\bgradlew?\s+(?:assemble|bundle|build)\b/i,
+  /\bnpx\s+cap\s+sync\b/i,
+];
+
+test('GitHub Actions workflows do not invoke build, package, or deploy commands', () => {
+  assert.ok(workflowFiles.length > 0, 'expected checked-in GitHub Actions workflows');
+  for (const file of workflowFiles) {
+    const workflow = readFileSync(new URL('../.github/workflows/' + file, import.meta.url), 'utf8');
+    for (const pattern of forbiddenBuildOrDeployCommands) {
+      assert.equal(pattern.test(workflow), false, file + ' contains forbidden command ' + pattern);
     }
   }
 });
 
-test('test workflow installs dependencies and compiles the independent web app', () => {
+test('migration workflow contains static tests and audits only', () => {
   const workflow = read('.github/workflows/ifund-migration-tests.yml');
-  assert.ok(workflow.includes('npm ci --ignore-scripts'));
-  assert.ok(workflow.includes('npm --prefix apps/web ci --ignore-scripts'));
   assert.ok(workflow.includes('node --test tests/*.test.js'));
   assert.ok(workflow.includes('npm --prefix apps/web test'));
-  const webTests = workflow.indexOf('npm --prefix apps/web test');
-  const webBuild = workflow.indexOf('npm --prefix apps/web exec -- vite build');
-  assert.ok(webBuild > webTests, 'web compilation must run after regression tests');
+  assert.ok(workflow.includes('node --check'));
+  assert.equal(workflow.includes('vite build'), false);
+  assert.equal(workflow.includes('npm run build'), false);
+});
+
+test('all staged Worker Wrangler configs fail closed and expose no routes', () => {
+  const paths = [
+    'wrangler.jsonc',
+    'wrangler.automations.jsonc',
+    'wrangler.notifications.jsonc',
+  ];
+  const configs = Object.fromEntries(paths.map(path => [path, JSON.parse(read(path))]));
+  for (const [path, config] of Object.entries(configs)) {
+    assert.equal(config.workers_dev, false, path + ' must not expose a workers.dev endpoint');
+    assert.equal(config.keep_vars, false, path + ' must not preserve conflicting dashboard variables');
+    assert.equal(Object.hasOwn(config, 'routes'), false, path + ' must not attach production routes');
+  }
+  assert.equal(configs['wrangler.automations.jsonc'].vars.IFUND_AUTOMATIONS_ENABLED, 'disabled');
+  assert.equal(configs['wrangler.automations.jsonc'].vars.IFUND_SCHEDULES_ENABLED, 'disabled');
+  assert.equal(configs['wrangler.automations.jsonc'].vars.IFUND_AUTOMATION_RELEASE_APPROVED, 'false');
+  assert.equal(configs['wrangler.notifications.jsonc'].vars.MIGRATION_API_PREVIEW, 'disabled');
+  assert.equal(configs['wrangler.notifications.jsonc'].vars.IFUND_NOTIFICATIONS_ENABLED, 'disabled');
 });

@@ -3,6 +3,8 @@
   "name": "ifund-independent-automations",
   "main": "./worker/nativeAutomationWorker.js",
   "compatibility_date": "2026-10-29",
+  "workers_dev": false,
+  "keep_vars": false,
   "observability": {
     "enabled": true
   },

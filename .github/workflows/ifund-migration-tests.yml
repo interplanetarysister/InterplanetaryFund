@@ -1,4 +1,4 @@
-name: IFund migration tests
+name: IFund migration static checks (no build or deployment)
 
 on:
   pull_request:
@@ -13,14 +13,19 @@ on:
       - "scripts/**"
       - "docs/migration/**"
       - "supabase/migrations/**"
+      - "supabase/functions/**"
+      - "supabase/schema.sql"
       - "functions/**"
       - "d1/**"
       - "wrangler.automations.jsonc"
+      - "wrangler.notifications.jsonc"
       - "wrangler.jsonc"
       - "wrangler.toml"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/ifund-migration-tests.yml"
+      - "apps/web/package.json"
+      - "apps/web/package-lock.json"
+      - ".github/workflows/**"
   push:
     branches: [migration/build-completeness-gates-20261029, migration/supabase-cloudflare]
     paths:
@@ -33,19 +38,27 @@ on:
       - "scripts/**"
       - "docs/migration/**"
       - "supabase/migrations/**"
+      - "supabase/functions/**"
+      - "supabase/schema.sql"
       - "functions/**"
       - "d1/**"
       - "wrangler.automations.jsonc"
+      - "wrangler.notifications.jsonc"
+      - "wrangler.jsonc"
+      - "wrangler.toml"
       - "package.json"
       - "package-lock.json"
-      - ".github/workflows/ifund-migration-tests.yml"
+      - "apps/web/package.json"
+      - "apps/web/package-lock.json"
+      - ".github/workflows/**"
 
 permissions:
   contents: read
 
 jobs:
-  migration-tests:
+  migration-static-checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,9 +68,12 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Run independent worker and contract tests
         run: node --test tests/*.test.js
-      - name: Install locked independent web app dependencies without lifecycle scripts
+      - name: Install locked independent web test dependencies without lifecycle scripts
         run: npm --prefix apps/web ci --ignore-scripts --no-audit --no-fund
       - name: Run web regression tests and offline coverage audits
         run: npm --prefix apps/web test
-      - name: Compile the independent web app for repair verification
-        run: npm --prefix apps/web exec -- vite build
+      - name: Syntax-check Worker JavaScript without compiling
+        run: |
+          for file in worker/*.js; do
+            node --check "$file"
+          done
