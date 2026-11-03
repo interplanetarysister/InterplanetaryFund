@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";\nimport { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Message, Loading } from "../components/UI";
 
