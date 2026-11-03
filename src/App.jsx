@@ -12,7 +12,7 @@ import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
-import AdminStudio from "./pages/AdminStudio";
+import AdminStudio from "./pages/AdminStudio";\nimport StudioPublishedPage from "./pages/StudioPublishedPage";
 
 function App() {
   const [user, setUser] = useState(undefined);
