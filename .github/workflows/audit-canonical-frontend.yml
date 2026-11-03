@@ -1,0 +1,34 @@
+name: Canonical frontend source parity audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '18 */6 * * *'
+permissions:
+  contents: read
+jobs:
+  audit-original-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout deployable repository
+        uses: actions/checkout@v4
+      - name: Checkout original frontend source
+        uses: actions/checkout@v4
+        with:
+          repository: interplanetarysister/interplanetary-fund2
+          ref: main
+          path: original-frontend
+          token: ${{ secrets.IFUND_SOURCE_READ_TOKEN || github.token }}
+      - name: Audit original frontend inventory and runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f original-frontend/src/App.jsx
+          test -f original-frontend/package.json
+          echo "## Canonical frontend inventory" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Source: interplanetarysister/interplanetary-fund2@main" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Pages: $(find original-frontend/src/pages -type f | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Components: $(find original-frontend/src/components -type f | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Base44 imports/usages: $(grep -RIlE 'base44Client|@base44/sdk' original-frontend/src | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Source commit: $(git -C original-frontend rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source checkout is an audit only. Do not promote until UI and runtime parity are verified." >> "$GITHUB_STEP_SUMMARY"
