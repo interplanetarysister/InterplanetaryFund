@@ -1,14 +1,8 @@
 // Function security guard.
 //
-// The Supabase security advisor flags privileged functions for review. The
-// specific defect it looks for is a SECURITY DEFINER function without a pinned
-// search_path: the function executes with its owner's privileges, and any name it
-// resolves unqualified goes through the caller's search_path. A caller who can
-// put a schema earlier in the path than the intended one can then have the
-// definer function call their object instead of the real one.
-//
-// These tests read the migration SQL as text rather than a database, so they run
-// everywhere and cannot be skipped by a missing local Postgres.
+// SECURITY DEFINER functions must pin search_path. Stateful definer functions
+// are permitted only through a narrow, explicit allowlist and remain subject to
+// the pinned-path and explicit-revoke checks below.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -29,33 +23,32 @@ function walkSql(dir, out = []) {
 
 const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 
-// These two functions intentionally mutate state: one atomically consumes the
+// These functions intentionally mutate state: one atomically consumes the
 // tightly capped Studio AI quota; the other records immutable page-version
-// snapshots from a database trigger. Both pin search_path and revoke public
-// execution in their migration. Keep this allowlist narrow and explicit.
+// snapshots from a database trigger. Keep this allowlist narrow and explicit.
 const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_studio_consume_ai_quota",
   "ifund_private.ifund_studio_capture_page_version",
 ]);
 
-/** Every `create [or replace] function` header, with its body terminator. */
+/** Every create [or replace] function header, with its body terminator. */
 function functionHeaders() {
   const found = [];
   for (const file of SQL_FILES) {
     const text = readFileSync(file, "utf8");
     const pattern =
-      /create\\s+(?:or\\s+replace\\s+)?function\\s+([a-zA-Z0-9_.]+)\\s*\\([^)]*\\)/gi;
+      /create\s+(?:or\s+replace\s+)?function\s+([a-zA-Z0-9_.]+)\s*\([^)]*\)/gi;
     for (const match of text.matchAll(pattern)) {
       const after = text.slice(match.index + match[0].length);
-      const terminator = after.search(/\\bas\\s+\\$\\$/i);
+      const terminator = after.search(/\bas\s+\$\$/i);
       const header =
         terminator === -1 ? after.slice(0, 800) : after.slice(0, terminator);
       found.push({
         name: match[1],
         file: file.slice(repoRoot.length),
         header,
-        definer: /security\\s+definer/i.test(header),
-        pinned: /set\\s+search_path/i.test(header),
+        definer: /security\s+definer/i.test(header),
+        pinned: /set\s+search_path/i.test(header),
       });
     }
   }
@@ -66,43 +59,46 @@ test("the migration set defines functions at all", () => {
   const functions = functionHeaders();
   assert.ok(
     functions.length >= 3,
-    `expected to find functions, found ${functions.length}`,
+    "expected to find functions, found " + functions.length,
   );
 });
 
 test("every SECURITY DEFINER function pins its search_path", () => {
   const offenders = functionHeaders()
     .filter((f) => f.definer && !f.pinned)
-    .map((f) => `${f.file}: ${f.name}`);
+    .map((f) => f.file + ": " + f.name);
   assert.deepEqual(
     offenders,
     [],
-    `these SECURITY DEFINER functions resolve names through the caller's search_path:\\n  ${offenders.join("\\n  ")}`,
+    "these SECURITY DEFINER functions resolve names through the caller's search_path:\n  " +
+      offenders.join("\n  "),
   );
 });
 
 test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", () => {
   for (const fn of functionHeaders().filter((f) => f.definer)) {
     const readOnly =
-      /language\\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
+      /language\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
     assert.ok(
       readOnly || MUTATING_DEFINER_FUNCTIONS.has(fn.name),
-      `${fn.file}: ${fn.name} is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry`,
+      fn.file + ": " + fn.name +
+        " is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry",
     );
   }
 });
 
 test("execute on a definer function is revoked from public before being granted", () => {
-  const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\\n");
+  const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\n");
   for (const fn of functionHeaders().filter((f) => f.definer)) {
-    const bare = fn.name.replace(/^[a-zA-Z0-9_]+\\./, "");
+    const bare = fn.name.replace(/^[a-zA-Z0-9_]+\./, "");
     const revoked = new RegExp(
-      `revoke\\\\s+all\\\\s+on\\\\s+function\\\\s+(?:[a-zA-Z0-9_]+\\\\.)?${bare}\\\\s*\\\\(`,
+      "revoke\\s+all\\s+on\\s+function\\s+(?:[a-zA-Z0-9_]+\\.)?" +
+        bare + "\\s*\\(",
       "i",
     ).test(grants);
     assert.ok(
       revoked,
-      `${fn.name} is SECURITY DEFINER but never has execute revoked from public`,
+      fn.name + " is SECURITY DEFINER but never has execute revoked from public",
     );
   }
 });
@@ -115,7 +111,7 @@ test("functions this repository calls but does not define are recorded", () => {
   for (const file of SQL_FILES) {
     const text = readFileSync(file, "utf8");
     for (const m of text.matchAll(
-      /(?:from|join)\\s+(?:public\\.)?(ifund_[a-z_]+)\\s*\\(/gi,
+      /(?:from|join)\s+(?:public\.)?(ifund_[a-z_]+)\s*\(/gi,
     )) {
       called.add(m[1].toLowerCase());
     }
@@ -128,11 +124,12 @@ test("functions this repository calls but does not define are recorded", () => {
   for (const name of undocumented) {
     assert.ok(
       doc.includes(name),
-      `${name} is called but not defined in any migration, and is not recorded in BLOCKERS.md`,
+      name + " is called but not defined in any migration, and is not recorded in BLOCKERS.md",
     );
   }
   assert.ok(
     undocumented.length <= 1,
-    `expected at most 1 externally-defined function dependency, found ${undocumented.length}: ${undocumented.join(", ")}`,
+    "expected at most 1 externally-defined function dependency, found " +
+      undocumented.length + ": " + undocumented.join(", "),
   );
 });
