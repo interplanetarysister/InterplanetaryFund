@@ -57,7 +57,7 @@ export function studioReady(env) {
 export async function authenticatedStudioUser(request, env, fetcher = fetch) {
   const account = await authenticatedUser(request, env, fetcher);
   if (!account) return null;
-  if (['admin', 'super_admin'].includes(account.role)) return account;
+  if (account.accountError) return { ...account, role: null };
   const verified = await fetcher(
     env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_admin',
     {

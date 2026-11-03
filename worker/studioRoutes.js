@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedStudioUser, studioReady, response } from './reads.js';
+import { authenticatedStudioUser, accountGuardResponse, studioReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -90,7 +90,9 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
-    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const denied = accountGuardResponse(account);
+    if (denied) return denied;
+    if (account.role !== 'admin') return response(403, { error: 'Administrator access required.' });
     const headers = apiHeaders(env, account.jwt, request.method !== 'GET');
     if (request.method === 'GET') {
       const pageUrl = new URL(request.url);
@@ -196,7 +198,9 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
   try {
     const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
-    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const denied = accountGuardResponse(account);
+    if (denied) return denied;
+    if (account.role !== 'admin') return response(403, { error: 'Administrator access required.' });
     const input = await readJsonBody(request, 6_000);
     if (!input || typeof input !== 'object' || Array.isArray(input) ||
         Object.keys(input).some((key) => key !== 'prompt') ||
@@ -264,7 +268,9 @@ export async function routeStudioStatusRequest(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
-    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const denied = accountGuardResponse(account);
+    if (denied) return denied;
+    if (account.role !== 'admin') return response(403, { error: 'Administrator access required.' });
     return response(200, {
       pageBuilderEnabled: true,
       aiEnabled: env.IFUND_STUDIO_AI_ENABLED === 'enabled' && typeof env.AI?.run === 'function',
@@ -291,7 +297,9 @@ export async function routeStudioVersionRequest(request, env, fetcher = fetch) {
   try {
     const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
-    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const denied = accountGuardResponse(account);
+    if (denied) return denied;
+    if (account.role !== 'admin') return response(403, { error: 'Administrator access required.' });
     const headers = apiHeaders(env, account.jwt, restore);
     if (!restore) {
       const query = new URLSearchParams({
