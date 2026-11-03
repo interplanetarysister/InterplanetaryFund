@@ -649,3 +649,7 @@ The current feature preview branch passed both GitHub workflows on commit
 `c9c8777a6b746aabb3aaf542d2002fe3ad1cc659`: Frontend production build and tests,
 and Main release candidate checks. This verifies the current candidate branch
 only; it does not certify the separate open migration drafts listed in GitHub.
+
+Cloudflare Pages preview automation was re-enabled on 2026-11-03 for this
+feature branch only. Production-branch deployments remain disabled. The next
+push is the explicit preview trigger for this validated candidate.
