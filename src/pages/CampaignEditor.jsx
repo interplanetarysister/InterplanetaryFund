@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../lib/supabase";
 import {
   saveCampaignThroughWorker,
@@ -7,6 +7,7 @@ import {
 } from "../lib/campaignApi";
 import { validateCampaign, canSaveCampaign } from "../lib/validation";
 import { generateCampaignDraft } from "../lib/campaignDraft";
+import { loginPathFor } from "../lib/authReturnTo";
 import { Message } from "../components/UI";
 const empty = {
   title: "",
@@ -22,6 +23,7 @@ const OWNER_CAMPAIGN_COLUMNS =
 function Editor({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -37,6 +39,29 @@ function Editor({ user }) {
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
   const [loadedId, setLoadedId] = useState(null);
   const accountId = user?.id;
+  const guestDraftKey = "ifund:guest-campaign-draft:v1";
+  useEffect(() => {
+    if (id) return;
+    try {
+      const stored = window.sessionStorage.getItem(guestDraftKey);
+      if (stored) {
+        const draft = JSON.parse(stored);
+        if (draft && typeof draft === "object") {
+          setForm((current) => ({
+            ...current,
+            ...Object.fromEntries(Object.keys(empty)
+              .filter((key) => typeof draft[key] === "string")
+              .map((key) => [key, draft[key]])),
+          }));
+        }
+      }
+    } catch { /* Storage may be unavailable. */ }
+  }, [id]);
+  useEffect(() => {
+    if (id) return;
+    try { window.sessionStorage.setItem(guestDraftKey, JSON.stringify(form)); }
+    catch { /* Storage is optional. */ }
+  }, [form, id]);
   useEffect(() => {
     if (!id) {
       setLoadedId(null);
@@ -148,7 +173,7 @@ function Editor({ user }) {
       return;
     }
     if (!user) {
-      navigate("/login");
+      navigate(loginPathFor(location));
       return;
     }
     const missing = validateCampaign(form, status === "active");
@@ -196,6 +221,7 @@ function Editor({ user }) {
         savedId = data.id;
       }
       setMessage(status === "active" ? "Campaign published." : "Draft saved.");
+      try { window.sessionStorage.removeItem(guestDraftKey); } catch {}
       navigate("/edit/" + savedId, { replace: true });
     } catch (saveError) {
       setError(true);
@@ -212,11 +238,12 @@ function Editor({ user }) {
     <main className="editor">
       <h1>{id ? "Edit campaign" : "Create campaign"}</h1>
       <p>
-        Save an incomplete draft at any time. Publishing validates the required
+        Write without signing in. Sign in to save or publish. Publishing validates the required
         fields.
       </p>
       <section className="card" aria-label="Campaign writing assistant">
         <h2>Campaign writing assistant</h2>
+        {!user && <p role="status">You can write without an account. Sign in to generate suggestions or save. Your draft stays in this browser tab during sign-in.</p>}
         <p>Describe your fundraiser and get editable story ideas. This uses the existing Supabase drafting service, not paid AI. Suggestions are never published automatically.</p>
         <label>
           What is happening, and why is support needed?
