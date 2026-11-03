@@ -20,10 +20,10 @@ jobs:
       - name: Install original frontend dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Build original frontend, retaining Base44 runtime
-        run: npm run --ignore-scripts build
+        run: npm run build --ignore-scripts
         env:
-          VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
-          VITE_APP_ID: ${{ vars.VITE_APP_ID }}
+          VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
+          VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
