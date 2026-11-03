@@ -189,6 +189,7 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   const fetcher = async (url, options = {}) => {
     calls += 1;
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     assert.match(String(url), /rpc\/ifund_studio_consume_ai_quota/);
     return Response.json(true);
   };
