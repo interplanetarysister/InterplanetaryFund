@@ -62,7 +62,7 @@ create trigger ifund_studio_pages_touch_updated_at before insert or update on pu
 -- The counter is private and can only be consumed through the trusted RPC.
 create table if not exists public.ifund_studio_ai_usage (
   user_id uuid not null references auth.users(id) on delete cascade,
-  usage_date date not null default current_date,
+  usage_date date not null default ((now() at time zone 'UTC')::date),
   request_count integer not null default 0 check (request_count between 0 and 2),
   primary key (user_id, usage_date)
 );
@@ -79,6 +79,7 @@ declare
   v_user uuid := auth.uid();
   v_total integer := 0;
   v_user_count integer := 0;
+  v_usage_date date := (now() at time zone 'UTC')::date;
 begin
   if v_user is null or not public.ifund_is_studio_admin() then
     return false;
@@ -87,16 +88,16 @@ begin
   select coalesce(sum(request_count), 0)::integer
     into v_total
     from public.ifund_studio_ai_usage
-    where usage_date = current_date;
+    where usage_date = v_usage_date;
   select coalesce(request_count, 0)::integer
     into v_user_count
     from public.ifund_studio_ai_usage
-    where user_id = v_user and usage_date = current_date;
+    where user_id = v_user and usage_date = v_usage_date;
   if v_total >= 2 or v_user_count >= 2 then
     return false;
   end if;
   insert into public.ifund_studio_ai_usage(user_id, usage_date, request_count)
-    values (v_user, current_date, 1)
+    values (v_user, v_usage_date, 1)
     on conflict (user_id, usage_date)
     do update set request_count = public.ifund_studio_ai_usage.request_count + 1;
   return true;
