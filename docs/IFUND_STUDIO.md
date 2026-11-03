@@ -7,7 +7,8 @@ This branch adds the first independent Studio foundation to the migration integr
 - Server-side role verification against Supabase Auth app_metadata.role for admin and super_admin.
 - Cloudflare Worker API for structured page documents.
 - Supabase migration defining Studio page storage and matching RLS policy.
-- Section editing, drag/drop reordering, accessible move controls, responsive preview, and draft persistence.\n- Public renderer at /p/:slug for published documents; public API and RLS expose published rows only.
+- Section editing, drag/drop reordering, accessible move controls, responsive preview, and draft persistence.
+- Public renderer at /p/:slug for published documents; public API and RLS expose published rows only.
 - Strict block validation; no arbitrary HTML or script execution.
 
 ## Deliberate boundaries
