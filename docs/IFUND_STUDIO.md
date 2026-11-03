@@ -28,7 +28,7 @@ Add an owner-approved, audited server-side publishing adapter that translates St
 
 - The Cloudflare Pages project that owns interplanetaryfund.com currently has production and preview deployments disabled. Its stored Git source configuration names interplanetary-fund2, while the latest recorded deployment was built from InterplanetaryFund main. Do not assume a new branch will deploy automatically.
 - Existing domain Worker routes still point to the legacy interplanetary-fund2 Worker and a separate catch-all Worker. The migration API Worker is not routed for /api/studio/* yet.
-- The migration API Worker needs the configured Supabase URL and publishable key bindings before its API can pass its readiness gate. No route or binding was changed.
+- The existing migration API Worker has the preview flag and publishable-key binding, but its current settings do not include the required SUPABASE_URL binding. Its readiness check therefore cannot pass. No route or binding was changed.
 - A read-only check of the currently configured Supabase Auth project found three accounts and no account with app_metadata.role set. No role was assigned. The owner must identify which existing sign-in account should receive the admin role before Studio can be opened by that account.
 - The Supabase Studio migration has not been applied. The Supabase preview branch integration is disabled, so this PR does not have an isolated Supabase preview database.
 
