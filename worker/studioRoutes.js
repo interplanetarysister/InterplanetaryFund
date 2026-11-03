@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from './bodyLimit.js';
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedStudioUser, migrationReady, response } from './reads.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -88,7 +88,7 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
     return response(415, { error: 'JSON request body required.' });
   }
   try {
-    const account = await authenticatedUser(request, env, fetcher);
+    const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
     if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
     const headers = apiHeaders(env, account.jwt, request.method !== 'GET');
@@ -170,7 +170,7 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
     return response(415, { error: 'JSON request body required.' });
   }
   try {
-    const account = await authenticatedUser(request, env, fetcher);
+    const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
     if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
     const input = await readJsonBody(request, 6_000);
@@ -238,7 +238,7 @@ export async function routeStudioStatusRequest(request, env, fetcher = fetch) {
   if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
   if (!migrationReady(env)) return response(503, { error: 'IFund Studio API is not enabled.' });
   try {
-    const account = await authenticatedUser(request, env, fetcher);
+    const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
     if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
     return response(200, {
@@ -265,7 +265,7 @@ export async function routeStudioVersionRequest(request, env, fetcher = fetch) {
     return response(400, { error: 'Invalid page version.' });
   }
   try {
-    const account = await authenticatedUser(request, env, fetcher);
+    const account = await authenticatedStudioUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in with an administrator account.' });
     if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
     const headers = apiHeaders(env, account.jwt, restore);
