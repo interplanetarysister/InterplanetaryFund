@@ -29,11 +29,26 @@ test('studio rejects anonymous requests before database access', async () => {
   const r = await routeStudioRequest(request('/api/studio/pages', 'GET', undefined, false), env);
   assert.equal(r.status, 401);
 });
-test('studio rejects ordinary members using server-verified app_metadata role', async () => {
+test('studio rejects ordinary members without a verified owner mapping or admin role', async () => {
   const api = remote('member');
   const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 403);
-  assert.equal(api.calls.length, 1);
+  assert.equal(api.calls.length, 2);
+  assert.match(api.calls[1].url, /rpc\/ifund_current_user_is_verified_admin/);
+});
+test('studio allows a verified legacy owner mapping without an app_metadata role', async () => {
+  const calls = [];
+  const fetcher = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: {} });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_admin')) return Response.json(true);
+    return Response.json([]);
+  };
+  const r = await routeStudioRequest(request('/api/studio/pages'), env, fetcher);
+  assert.equal(r.status, 200);
+  assert.match(calls[1].url, /rpc\/ifund_current_user_is_verified_admin/);
+  assert.equal(calls[1].options.headers.Authorization, 'Bearer verified.test.jwt');
+  assert.match(calls[2].url, /ifund_studio_pages/);
 });
 test('studio allows admin and reads page data through the member JWT', async () => {
   const row = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...page, created_by: uid, updated_by: uid };
