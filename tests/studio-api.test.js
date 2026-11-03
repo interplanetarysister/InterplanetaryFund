@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest } from '../worker/studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const env = { MIGRATION_API_PREVIEW: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
@@ -218,4 +218,46 @@ test('Studio status is admin-only and reports AI disabled until explicitly enabl
     remote('member').fetcher,
   );
   assert.equal(member.status, 403);
+});
+
+test('Studio version history is admin-only and returns recent immutable revisions', async () => {
+  const pageId = '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61';
+  const revisions = [{ id: 'rev-2', page_id: pageId, version: 2, ...page, created_at: '2026-11-03T12:00:00Z' }];
+  const api = remote('admin', revisions);
+  const r = await routeStudioVersionRequest(request('/api/studio/pages/' + pageId + '/versions'), env, api.fetcher);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), revisions);
+  assert.match(api.calls[1].url, /ifund_studio_page_versions/);
+  assert.equal(api.calls[1].options.headers.Authorization, 'Bearer verified.test.jwt');
+
+  const denied = await routeStudioVersionRequest(
+    request('/api/studio/pages/' + pageId + '/versions'),
+    env,
+    remote('member').fetcher,
+  );
+  assert.equal(denied.status, 403);
+});
+test('Studio revision restore creates a draft from a verified snapshot', async () => {
+  const pageId = '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61';
+  const snapshot = { page_id: pageId, slug: 'older-page', title: 'Older title', content: page.content, status: 'published' };
+  const restored = { id: pageId, slug: snapshot.slug, title: snapshot.title, content: snapshot.content,
+    status: 'draft', updated_by: uid, published_at: null };
+  const calls = [];
+  const fetcher = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).includes('/ifund_studio_page_versions?')) return Response.json([snapshot]);
+    return Response.json([restored]);
+  };
+  const r = await routeStudioVersionRequest(
+    request('/api/studio/pages/' + pageId + '/versions/1/restore', 'POST'),
+    env,
+    fetcher,
+  );
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), restored);
+  const sent = JSON.parse(calls[2].options.body);
+  assert.equal(sent.status, 'draft');
+  assert.equal(sent.published_at, null);
+  assert.equal(sent.updated_by, uid);
 });
