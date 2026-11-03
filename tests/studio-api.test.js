@@ -101,3 +101,21 @@ test('public Studio renderer does not expose drafts or malformed slugs', async (
   });
   assert.equal(malformed.status, 404);
 });
+
+test('studio accepts safe relative links and rejects protocol-relative or script URLs', async () => {
+  const relativePage = {
+    slug: 'call-to-action',
+    title: 'Call to action',
+    content: { blocks: [{ id: 'cta', type: 'button', label: 'Explore', url: '/' }] },
+    status: 'draft',
+  };
+  const saved = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...relativePage, created_by: uid, updated_by: uid };
+  const api = remote('admin', [saved]);
+  const accepted = await routeStudioRequest(request('/api/studio/pages', 'POST', relativePage), env, api.fetcher);
+  assert.equal(accepted.status, 201);
+  for (const url of ['//attacker.example', 'javascript:alert(1)']) {
+    const bad = { ...relativePage, slug: 'unsafe-link', content: { blocks: [{ id: 'cta', type: 'button', label: 'Go', url }] } };
+    const rejected = await routeStudioRequest(request('/api/studio/pages', 'POST', bad), env, remote('admin').fetcher);
+    assert.equal(rejected.status, 422);
+  }
+});
