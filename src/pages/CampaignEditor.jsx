@@ -29,6 +29,9 @@ function Editor({ user }) {
   const [draftBeneficiary, setDraftBeneficiary] = useState("");
   const [draftNeed, setDraftNeed] = useState("");
   const [draftResult, setDraftResult] = useState(null);
+  const [storyParts, setStoryParts] = useState([]);
+  const [replacement, setReplacement] = useState(null);
+  const [sectionBusy, setSectionBusy] = useState(-1);
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
@@ -98,12 +101,38 @@ function Editor({ user }) {
         goal: form.goal_amount,
       });
       setDraftResult(suggestion);
+      setStoryParts(String(suggestion.story || "").split(/\n\s*\n/).filter(Boolean));
+      setReplacement(null);
       setMessage("Draft ready. Choose which suggestions to use; nothing has been saved.");
     } catch (e) {
       setError(true);
       setMessage(e.message || "Unable to prepare draft.");
     } finally {
       setDraftBusy(false);
+    }
+  }
+  async function regenerateSection(index) {
+    if (!db || !user || sectionBusy !== -1 || editorDisabled || draftBusy) return;
+    setSectionBusy(index);
+    setReplacement(null);
+    setMessage("");
+    try {
+      const suggestion = await generateCampaignDraft(db, {
+        details: ("Rewrite only this section, preserving the supplied facts: " +
+          storyParts[index] + ". Campaign context: " + draftDescription).slice(0, 1500),
+        beneficiary: draftBeneficiary,
+        need: draftNeed,
+        cause: form.category,
+        goal: form.goal_amount,
+      });
+      const proposed = String(suggestion.story || "").split(/\n\s*\n/).find(Boolean);
+      if (!proposed) throw new Error("No replacement was returned.");
+      setReplacement({ index, text: proposed });
+    } catch (e) {
+      setError(true);
+      setMessage(e.message || "Unable to regenerate section.");
+    } finally {
+      setSectionBusy(-1);
     }
   }
   async function save(status) {
@@ -230,6 +259,40 @@ function Editor({ user }) {
             <p style={{ whiteSpace: "pre-wrap" }}>{draftResult.story}</p>
             <button type="button" disabled={editorDisabled}
               onClick={() => setForm((f) => ({ ...f, story: draftResult.story }))}>Use story</button>
+            {storyParts.length > 0 && (
+              <div aria-label="Story section editor">
+                <h3>Refine your story, one section at a time</h3>
+                {storyParts.map((part, index) => (
+                  <div className="card" key={index}>
+                    <label>Section {index + 1}
+                      <textarea rows="5" value={part} disabled={editorDisabled || sectionBusy !== -1}
+                        onChange={(e) => {
+                          setStoryParts((previous) => previous.map((value, i) => i === index ? e.target.value : value));
+                          setReplacement(null);
+                        }} />
+                    </label>
+                    <button type="button" disabled={editorDisabled || sectionBusy !== -1 || draftBusy}
+                      onClick={() => regenerateSection(index)}>
+                      {sectionBusy === index ? "Regenerating…" : "Regenerate this section"}
+                    </button>
+                    {replacement?.index === index && (
+                      <div aria-live="polite">
+                        <p style={{ whiteSpace: "pre-wrap" }}>{replacement.text}</p>
+                        <button type="button" onClick={() => {
+                          setStoryParts((previous) => previous.map((value, i) => i === index ? replacement.text : value));
+                          setReplacement(null);
+                        }}>Accept replacement</button>
+                        <button type="button" onClick={() => setReplacement(null)}>Discard</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button type="button" disabled={editorDisabled || sectionBusy !== -1}
+                  onClick={() => setForm((f) => ({ ...f, story: storyParts.join("\\n\\n") }))}>
+                  Use edited story
+                </button>
+              </div>
+            )}
             {draftResult.imagePrompt && (
               <details><summary>Illustration idea (no image generated)</summary>
                 <p>{draftResult.imagePrompt}</p>
