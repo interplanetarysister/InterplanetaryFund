@@ -559,9 +559,10 @@ export default function AdminStudio() {
 
       <p className="studio-footnote">
         Studio saves structured page drafts to Supabase. Marking a page
-        published records its Studio status; it does not deploy code or create a
-        live site route. AI code generation and GitHub publishing are separate
-        capabilities and are not enabled in this first package.
+        published makes the structured page available at /p/:slug after the
+        Worker, frontend, and database migration are deployed. It does not
+        deploy application code. AI layout generation is implemented but stays
+        disabled until its free-tier quota and Worker bindings are enabled.
       </p>
     </main>
   );
