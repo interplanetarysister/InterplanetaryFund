@@ -12,7 +12,7 @@ export default {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, { status: 'ok', service: 'ifund-migration-api', production: false });
     }
-    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
+    if (/^\\/api\\/public\\/studio\\/pages\\//.test(pathname)) {\n      return routePublicStudioPage(request, env);\n    }\n    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
       return routeStudioRequest(request, env);
     }
     if (pathname === '/api/community/feed' || pathname === '/api/campaigns/public' ||
