@@ -2,16 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { requestCampaignDraft } from "@/api/campaignDraft";
-
-// The five entry paths describe the user's intent, not the AI-generated titles.
-// Keep actual campaign categories separate from this guided writing preference.
-const WRITING_PATHS = [
-  { id: "creative", title: "Creative project", guidance: "a creative project or artistic idea" },
-  { id: "community", title: "My community", guidance: "helping a community and the people in it" },
-  { id: "launch", title: "Launching a project", guidance: "launching a new project and explaining its purpose" },
-  { id: "inspiring", title: "Inspiring", guidance: "a personal or inspiring cause told with care" },
-  { id: "write", title: "Write it for me", guidance: "writing the campaign from the facts supplied by the user" },
-];
+import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
@@ -87,7 +78,7 @@ export default function CreateCampaign() {
     setSuggesting(true); setSuggestionError(""); setSuggestions(null);
     try {
       const result = await requestCampaignDraft(authClient(), {
-        details: (`Campaign writing approach: ${WRITING_PATHS.find(p => p.id === writingPath)?.guidance || "the supplied facts"}. ${draftDetails}`).slice(0, 1500),
+        details: guidedCampaignDetails(writingPath, draftDetails),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
@@ -137,7 +128,7 @@ export default function CreateCampaign() {
       <fieldset className="space-y-3">
         <legend className="font-semibold">What kind of campaign are you creating?</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
+          {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
             <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => setWritingPath(path.id)} disabled={suggesting || busy || loadingDraft} />
             <span>{path.title}</span>
           </label>)}
