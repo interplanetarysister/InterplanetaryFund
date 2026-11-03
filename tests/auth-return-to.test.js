@@ -51,7 +51,7 @@ test("email sign-in uses the current domain callback and supports link or code t
   assert.match(auth, /db\.auth\.signInWithPassword/);
   assert.match(auth, /type="password"/);
   assert.match(auth, /autoComplete="current-password"/);
-  assert.match(auth, /setAuthMode\("password"\)/);
+  assert.match(auth, /switchAuthMode\("password"\)/);
   assert.doesNotMatch(auth, /db\.auth\.signUp/);
   assert.match(auth, /if \(signOutError\) throw signOutError/);
   assert.match(auth, /We could not complete sign-out/);
