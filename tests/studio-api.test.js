@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { routeStudioRequest } from '../worker/studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const env = { MIGRATION_API_PREVIEW: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
@@ -77,4 +77,27 @@ test('studio creates records with server-derived actor IDs and verifies returned
 test('studio rejects invalid IDs and unsupported methods', async () => {
   assert.equal((await routeStudioRequest(request('/api/studio/pages/not-a-uuid', 'PATCH', page), env)).status, 400);
   assert.equal((await routeStudioRequest(request('/api/studio/pages', 'DELETE'), env)).status, 405);
+});
+
+test('public Studio renderer returns only published page content without a user JWT', async () => {
+  const published = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', slug: 'welcome-page', title: 'Welcome', content: page.content, status: 'published' };
+  const calls = [];
+  const fetcher = async (url, options = {}) => {
+    calls.push({ url: String(url), options });
+    return Response.json([published]);
+  };
+  const r = await routePublicStudioPage(request('/api/public/studio/pages/welcome-page', 'GET', undefined, false), env, fetcher);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), published);
+  assert.match(calls[0].url, /status=eq.published/);
+  assert.match(calls[0].url, /slug=eq.welcome-page/);
+  assert.equal(calls[0].options.headers.Authorization, undefined);
+});
+test('public Studio renderer does not expose drafts or malformed slugs', async () => {
+  const missing = await routePublicStudioPage(request('/api/public/studio/pages/not-published', 'GET', undefined, false), env, async () => Response.json([]));
+  assert.equal(missing.status, 404);
+  const malformed = await routePublicStudioPage(request('/api/public/studio/pages/../secret', 'GET', undefined, false), env, async () => {
+    throw new Error('must not fetch malformed slugs');
+  });
+  assert.equal(malformed.status, 404);
 });
