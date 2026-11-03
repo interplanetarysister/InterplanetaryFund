@@ -5,7 +5,7 @@
 - Every active campaign keeps a visible Donate action on desktop and mobile.
 - The donation dialog accepts a campaign gift, optional 10% IFund support added on top, and a separate estimated PayPal processing amount.
 - The donor's entered gift is never reduced by optional support or processing.
-- The 3% IFund platform fee is not charged to the donor; it is assessed at withdrawal.
+- The 7% IFund platform fee is not charged to the donor; it is deducted from the campaign owner's withdrawal. The fee must be calculated and enforced by the authorized server-side withdrawal ledger, never by the browser.
 - Campaign totals use only verified captured gift cents. Optional support and processor fees are excluded.
 - Payment success is shown only after the server confirms a canonical financial operation.
 
