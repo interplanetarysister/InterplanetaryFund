@@ -158,3 +158,77 @@ export async function routePublicStudioPage(request, env, fetcher = fetch) {
     return response(503, { error: 'Studio page is unavailable.' });
   }
 }
+
+
+/** Generate a validated visual layout draft using the Cloudflare Workers Free AI allocation. */
+export async function routeStudioGenerateRequest(request, env, fetcher = fetch) {
+  if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
+  if (!migrationReady(env) || env.IFUND_STUDIO_AI_ENABLED !== 'enabled' || typeof env.AI?.run !== 'function') {
+    return response(503, { error: 'Studio AI generation is not enabled.' });
+  }
+  if (!/^application\\/json(?:\\s*;|\\s*$)/i.test(request.headers.get('content-type') || '')) {
+    return response(415, { error: 'JSON request body required.' });
+  }
+  try {
+    const account = await authenticatedUser(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in with an administrator account.' });
+    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const input = await readJsonBody(request, 6_000);
+    if (!input || typeof input !== 'object' || Array.isArray(input) ||
+        Object.keys(input).some((key) => key !== 'prompt') ||
+        typeof input.prompt !== 'string' || input.prompt.trim().length < 8 || input.prompt.length > 1_200) {
+      return response(422, { error: 'Describe the page you want in 8–1,200 characters.' });
+    }
+
+    const quota = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_studio_consume_ai_quota', {
+      method: 'POST',
+      headers: apiHeaders(env, account.jwt, true),
+      body: '{}',
+    });
+    if (!quota.ok) return response(503, { error: 'Studio AI quota service is unavailable.' });
+    if (await quota.json() !== true) {
+      return response(429, { error: 'The shared Studio AI limit of two generations per day has been reached.' });
+    }
+
+    const result = await env.AI.run('@cf/zai-org/glm-4.7-flash', {
+      messages: [
+        {
+          role: 'system',
+          content: 'You design accessible Interplanetary Fund page layouts. Return one JSON object only, with a blocks array of 2 to 8 blocks. Each block must use only type hero, text, card, button, or image; and may contain heading, body, label, url, imageUrl. Do not return HTML, CSS, JavaScript, scripts, arbitrary properties, or markdown. Use concise, useful copy. Use relative internal paths for buttons where possible. For images, leave imageUrl empty unless the user provided a specific HTTPS URL. Never invent facts, testimonials, people, metrics, or donation claims.',
+        },
+        { role: 'user', content: input.prompt.trim() },
+      ],
+      max_tokens: 700,
+      temperature: 0.35,
+    });
+
+    let generated = result?.response ?? result?.result?.response ?? result?.output_text ?? result;
+    if (typeof generated === 'string') {
+      const cleaned = generated.trim().replace(/^\u0060{3}(?:json)?/i, '').replace(/\u0060{3}$/i, '').trim();
+      const start = cleaned.indexOf('{');
+      const end = cleaned.lastIndexOf('}');
+      if (start < 0 || end <= start) return response(502, { error: 'Studio AI returned an invalid layout. Try a shorter instruction.' });
+      generated = JSON.parse(cleaned.slice(start, end + 1));
+    }
+    const rawBlocks = Array.isArray(generated?.blocks) ? generated.blocks.slice(0, 8) : [];
+    const blocks = rawBlocks.map((block, index) => {
+      if (!block || typeof block !== 'object' || Array.isArray(block)) return block;
+      const clean = { id: 'ai-' + (index + 1), type: block.type };
+      for (const field of ['heading', 'body', 'label', 'url', 'imageUrl']) {
+        if (typeof block[field] === 'string') clean[field] = block[field].slice(0, 4_000);
+      }
+      return clean;
+    });
+    const validated = validatePage({
+      slug: 'ai-generated-draft',
+      title: 'AI generated draft',
+      content: { blocks },
+      status: 'draft',
+    });
+    if (!validated) return response(502, { error: 'Studio AI returned an unsupported layout. Try a more specific instruction.' });
+    return response(200, { content: validated.content, dailyLimit: 2 });
+  } catch (error) {
+    if (error instanceof BodyError) return response(error.status, { error: error.message });
+    return response(502, { error: 'Studio AI could not generate a safe layout. Try again later.' });
+  }
+}
