@@ -14,6 +14,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
@@ -22,7 +23,7 @@ const PAGE_TITLES = {
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/subscriptions": "Plans", "/withdrawals": "Withdrawals",
-  "/admin/founding-members": "Founding Members", "/platform": "Platform", "/create": "New Campaign", "/profile": "Profile", "/notifications": "Notifications",
+  "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
   "/social": "Social", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
@@ -94,6 +95,7 @@ const navSections = [
     label: "Administration",
     items: [
       { to: "/ops", label: "Ops Center", icon: Satellite },
+      { to: "/admin/studio", label: "Website Studio", icon: Sparkles },
       { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/platform", label: "Platform", icon: Server },
       { to: "/admin/integrations", label: "Admin Integrations", icon: Plug },
@@ -141,7 +143,7 @@ export default function Layout() {
   // Session-aware navigation. The status is a client hint only; every
   // protected read and write is still enforced by Supabase row level security.
   const { status: sessionStatus, user } = useAuthSession();
-  const isAdmin = false;
+  const isAdmin = useAdminAccess(user) === "admin";
   const hasAiAgents = false;
   const { pathname } = useLocation();
   const title = pageTitle(pathname);
