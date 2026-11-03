@@ -2,11 +2,17 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
+import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
+    if (pathname === '/api/studio/generate') return routeStudioGenerateRequest(request, env);
+    if (pathname === '/api/studio/status') return routeStudioStatusRequest(request, env);
+    if (/^\/api\/studio\/pages\/[0-9a-f-]+\/versions(?:\/[0-9]+\/restore)?$/i.test(pathname)) return routeStudioVersionRequest(request, env);
+    if (/^\/api\/public\/studio\/pages\/[a-z0-9-]+$/i.test(pathname)) return routePublicStudioPage(request, env);
     if (pathname === '/api/health') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, { status: 'ok', service: 'ifund-migration-api', production: false });

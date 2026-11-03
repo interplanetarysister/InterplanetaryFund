@@ -40,7 +40,34 @@ export async function authenticatedUser(request, env, fetcher = fetch) {
   if (!res.ok) return null;
   const account = await res.json();
   if (!uuid.test(account?.id || '')) return null;
-  return { uid: account.id, jwt };
+  const role = typeof account?.app_metadata?.role === 'string' ? account.app_metadata.role : null;
+  return { uid: account.id, jwt, role };
+}
+
+
+/** Independent gate for the Website Studio; does not enable migration API routes. */
+export function studioReady(env) {
+  return env?.IFUND_STUDIO_ENABLED === 'enabled' &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
+    typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
+    env.SUPABASE_PUBLISHABLE_KEY.length > 0;
+}
+
+/** Resolve Studio access through protected app_metadata or the verified-admin RPC. */
+export async function authenticatedStudioUser(request, env, fetcher = fetch) {
+  const account = await authenticatedUser(request, env, fetcher);
+  if (!account) return null;
+  if (['admin', 'super_admin'].includes(account.role)) return account;
+  const verified = await fetcher(
+    env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_admin',
+    {
+      method: 'POST',
+      headers: { ...providerHeaders(env, account.jwt), 'Content-Type': 'application/json' },
+      body: '{}',
+    },
+  );
+  if (!verified.ok) throw new Error('Verified administrator check unavailable.');
+  return { ...account, role: (await verified.json()) === true ? 'admin' : null };
 }
 
 /** Shared read-only PostgREST request, with user JWT for user-scoped RLS. */
