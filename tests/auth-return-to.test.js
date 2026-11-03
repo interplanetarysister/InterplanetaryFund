@@ -42,12 +42,21 @@ test("private routes do not bypass sign-in and the original destination is prese
   assert.match(app, /path="\/my-blog" element=\{user \?/);
 });
 
-test("OTP and OAuth preserve safe destination, and failed sign-out is not reported as success", () => {
+test("email sign-in uses the current domain callback and supports link or code templates", () => {
   const auth = source("src/pages/Auth.jsx");
   assert.match(auth, /safeReturnTo\(params\.get\("returnTo"\)\)/);
-  assert.match(auth, /encodeURIComponent\(returnTo\)/);
+  assert.match(auth, /emailRedirectTo:[\s\S]*window\.location\.origin[\s\S]*encodeURIComponent\(returnTo\)/);
+  assert.match(auth, /sign-in link or one-time code/);
   assert.match(auth, /navigate\(returnTo, \{ replace: true \}\)/);
   assert.match(auth, /if \(signOutError\) throw signOutError/);
   assert.match(auth, /We could not complete sign-out/);
   assert.doesNotMatch(auth, /window\.location\.assign\(params\.get\(/);
+});
+
+test("OAuth buttons are hidden unless a provider is explicitly enabled for the deployment", () => {
+  const auth = source("src/pages/Auth.jsx");
+  assert.match(auth, /VITE_SUPABASE_OAUTH_PROVIDERS/);
+  assert.match(auth, /Object\.hasOwn\(PROVIDER_LABELS, provider\)/);
+  assert.match(auth, /SIGN_IN_PROVIDERS\.map/);
+  assert.doesNotMatch(auth, /id:.*instagram/);
 });
