@@ -250,3 +250,75 @@ export async function routeStudioStatusRequest(request, env, fetcher = fetch) {
     return response(503, { error: 'Studio status is unavailable.' });
   }
 }
+
+
+/** Read immutable revisions or restore one revision as a new current revision. */
+export async function routeStudioVersionRequest(request, env, fetcher = fetch) {
+  if (!migrationReady(env)) return response(503, { error: 'IFund Studio API is not enabled.' });
+  const path = new URL(request.url).pathname;
+  const match = /^\\/api\\/studio\\/pages\\/([0-9a-f-]+)\\/versions(?:\\/([0-9]+)\\/restore)?$/i.exec(path);
+  if (!match || !UUID.test(match[1])) return response(404, { error: 'Not found.' });
+  const restore = Boolean(match[2]);
+  if (request.method !== (restore ? 'POST' : 'GET')) return response(405, { error: 'Method not allowed.' });
+  const version = restore ? Number(match[2]) : null;
+  if (restore && (!Number.isSafeInteger(version) || version < 1 || version > 2_147_483_647)) {
+    return response(400, { error: 'Invalid page version.' });
+  }
+  try {
+    const account = await authenticatedUser(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in with an administrator account.' });
+    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    const headers = apiHeaders(env, account.jwt, restore);
+    if (!restore) {
+      const query = new URLSearchParams({
+        select: 'id,page_id,version,slug,title,content,status,changed_by,created_at',
+        page_id: 'eq.' + match[1],
+        order: 'version.desc',
+        limit: '30',
+      });
+      const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_studio_page_versions?' + query, { headers });
+      if (!upstream.ok) return response(503, { error: 'Page history is unavailable.' });
+      const rows = await upstream.json();
+      if (!Array.isArray(rows) || rows.length > 30) return response(503, { error: 'Page history is unavailable.' });
+      return response(200, rows);
+    }
+
+    const versionQuery = new URLSearchParams({
+      select: 'page_id,slug,title,content,status',
+      page_id: 'eq.' + match[1],
+      version: 'eq.' + version,
+      limit: '1',
+    });
+    const versionResponse = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_studio_page_versions?' + versionQuery, {
+      headers: apiHeaders(env, account.jwt),
+    });
+    if (!versionResponse.ok) return response(503, { error: 'Page version could not be loaded.' });
+    const snapshots = await versionResponse.json();
+    if (!Array.isArray(snapshots) || snapshots.length !== 1 || snapshots[0].page_id?.toLowerCase() !== match[1].toLowerCase()) {
+      return response(404, { error: 'Page version not found.' });
+    }
+    const snapshot = snapshots[0];
+    const updateQuery = new URLSearchParams({ select: PAGE_SELECT, id: 'eq.' + match[1] });
+    const updated = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_studio_pages?' + updateQuery, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        slug: snapshot.slug,
+        title: snapshot.title,
+        content: snapshot.content,
+        status: 'draft',
+        published_at: null,
+        updated_by: account.uid,
+      }),
+    });
+    if (!updated.ok) return response(503, { error: 'Page version could not be restored.' });
+    const rows = await updated.json();
+    if (!Array.isArray(rows) || rows.length !== 1 || rows[0]?.id?.toLowerCase() !== match[1].toLowerCase() ||
+        rows[0]?.updated_by !== account.uid || rows[0]?.status !== 'draft') {
+      return response(503, { error: 'Page restore could not be verified.' });
+    }
+    return response(200, rows[0]);
+  } catch {
+    return response(503, { error: 'Studio version service unavailable.' });
+  }
+}
