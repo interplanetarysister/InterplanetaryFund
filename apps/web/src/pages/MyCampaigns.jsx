@@ -85,6 +85,5 @@ export default function MyCampaigns() {
         </section>}
       </li>)}
     </ul>}
-    <p className="text-sm text-muted-foreground">Campaign donations, withdrawals, and external distribution are paused until independent provider and accounting checks pass.</p>
   </main>;
 }

@@ -48,11 +48,30 @@ export function mapCampaign(row = {}) {
     location: "",
     status: row.status || "active",
     preview_only: false,
-    raised_amount: null,
+    raised_amount: numOrNull(row.raised_amount),
     goal_amount: numOrNull(row.goal_amount),
-    donor_count: null,
+    donor_count: numOrNull(row.donor_count),
     end_date: null,
   };
+}
+
+async function mapCampaignsWithFundingTotals(rows) {
+  const source = Array.isArray(rows) ? rows : [];
+  if (!source.length) return [];
+  const ids = source
+    .map((row) => String(row?.id || ""))
+    .filter((id) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+  if (!ids.length) return source.map(mapCampaign);
+  try {
+    const { data, error } = await supabase().rpc("ifund_public_campaign_funding_totals", { p_campaign_ids: ids });
+    if (error || !Array.isArray(data)) return source.map(mapCampaign);
+    const totals = new Map(data.map((row) => [String(row.campaign_id), row]));
+    return source.map((row) => mapCampaign({ ...row, ...(totals.get(String(row.id)) || {}) }));
+  } catch {
+    // Discovery remains available if the aggregate function is not installed.
+    // Never invent totals or infer them from campaign goals.
+    return source.map(mapCampaign);
+  }
 }
 
 export async function listActiveCampaigns({ limit = 100 } = {}) {
@@ -65,7 +84,7 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
     .order("id", { ascending: false })
     .limit(max);
   if (error) throw error;
-  return (data || []).map(mapCampaign);
+  return mapCampaignsWithFundingTotals(data || []);
 }
 
 export async function getCampaignDetail(id) {
@@ -78,7 +97,7 @@ export async function getCampaignDetail(id) {
     .eq("status", "active")
     .maybeSingle();
   if (error) throw error;
-  return data ? mapCampaign(data) : null;
+  return data ? (await mapCampaignsWithFundingTotals([data]))[0] : null;
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
