@@ -48,6 +48,11 @@ test("email sign-in uses the current domain callback and supports link or code t
   assert.match(auth, /emailRedirectTo:[\s\S]*window\.location\.origin[\s\S]*encodeURIComponent\(returnTo\)/);
   assert.match(auth, /sign-in link or one-time code/);
   assert.match(auth, /navigate\(returnTo, \{ replace: true \}\)/);
+  assert.match(auth, /db\.auth\.signInWithPassword/);
+  assert.match(auth, /type="password"/);
+  assert.match(auth, /autoComplete="current-password"/);
+  assert.match(auth, /setAuthMode\("password"\)/);
+  assert.doesNotMatch(auth, /db\.auth\.signUp/);
   assert.match(auth, /if \(signOutError\) throw signOutError/);
   assert.match(auth, /We could not complete sign-out/);
   assert.doesNotMatch(auth, /window\.location\.assign\(params\.get\(/);
