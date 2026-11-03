@@ -1,18 +1,18 @@
 -- IFund Studio: additive page-builder tables, restricted to verified administrators.
 create schema if not exists ifund_private;
 revoke all on schema ifund_private from public, anon, authenticated;
-do $
+do $$
 begin
   if to_regprocedure('public.ifund_current_user_is_verified_admin()') is null then
     raise exception 'public.ifund_current_user_is_verified_admin() must exist before IFund Studio can be installed';
   end if;
 end;
-$;
+$$;
 create or replace function public.ifund_is_studio_admin()
 returns boolean language sql stable security invoker set search_path = ''
-as $
+as $$
   select coalesce(public.ifund_current_user_is_verified_admin(), false);
-$;
+$$;
 revoke all on function public.ifund_is_studio_admin() from public, anon;
 grant execute on function public.ifund_is_studio_admin() to authenticated;
 
