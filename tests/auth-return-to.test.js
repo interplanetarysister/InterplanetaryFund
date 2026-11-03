@@ -58,4 +58,5 @@ test("OAuth buttons are hidden unless a provider is explicitly enabled for the d
   assert.match(auth, /VITE_SUPABASE_OAUTH_PROVIDERS/);
   assert.match(auth, /Object\.hasOwn\(PROVIDER_LABELS, provider\)/);
   assert.match(auth, /SIGN_IN_PROVIDERS\.map/);
+  assert.doesNotMatch(auth, /id:.*instagram/);
 });
