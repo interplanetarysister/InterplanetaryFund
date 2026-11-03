@@ -641,3 +641,11 @@ rather than pretending the preview branch is independently bootstrappable. Befor
 a fresh-project cutover, include the verified function and its prerequisite
 schemas/tables in the ordered migration chain and validate it against production.
 No production SQL was changed during this verification.
+
+
+## Preview candidate validation — 2026-11-03
+
+The current feature preview branch passed both GitHub workflows on commit
+`c9c8777a6b746aabb3aaf542d2002fe3ad1cc659`: Frontend production build and tests,
+and Main release candidate checks. This verifies the current candidate branch
+only; it does not certify the separate open migration drafts listed in GitHub.
