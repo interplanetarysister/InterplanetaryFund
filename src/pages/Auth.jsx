@@ -168,8 +168,8 @@ export default function Auth({ user }) {
       <h1>Sign in to Interplanetary Fund</h1>
       <p>
         {SIGN_IN_PROVIDERS.length
-          ? "Use a connected identity, your password, or a one-time email sign-in link/code."
-          : "Use your password or a one-time email sign-in link/code."}
+          ? "Use a connected identity, your password, or a one-time email sign-in link or one-time code."
+          : "Use your password or a one-time email sign-in link or one-time code."}
       </p>
       <div className="form">
         {SIGN_IN_PROVIDERS.map((provider) => (
