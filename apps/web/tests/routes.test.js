@@ -24,3 +24,24 @@ test("fundraising is never represented as confirmed by draft creation", () => {
  assert.match(create, /status: "draft"/);
  assert.doesNotMatch(create, /status: "active"/);
 });
+test("the implemented reporter workspace route is not duplicated as Coming Soon", () => {
+ const implementedRoute =
+  '<Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />';
+ assert.ok(app.includes(implementedRoute));
+
+ const start = app.indexOf("const LAYOUT_COMING_SOON = [");
+ assert.notEqual(start, -1, "layout Coming Soon route list should be present");
+ const end = app.indexOf("];", start);
+ assert.notEqual(end, -1, "layout Coming Soon route list should be closed");
+ const comingSoon = app.slice(start, end);
+ assert.equal(comingSoon.includes('"/my-blog"'), false);
+});
+
+test("home page derives member actions from the shared Supabase auth session", () => {
+ const home = file("../src/pages/Home.jsx");
+ assert.match(home, /useAuthSession/);
+ assert.match(home, /authStatus === "signed-in"/);
+ assert.match(home, /authStatus === "loading"/);
+ assert.match(home, /authStatus === "signed-out"/);
+ assert.doesNotMatch(home, /const isAuthenticated = false/);
+});

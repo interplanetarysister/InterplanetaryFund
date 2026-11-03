@@ -30,9 +30,3 @@ jobs:
         run: npm run build
       - name: Formatting check for baseline-clean public read surfaces
         run: npx --no-install prettier --check src/pages/Discover.jsx src/pages/Feed.jsx src/pages/CampaignDetail.jsx src/pages/MyCampaigns.jsx
-      # Eight existing source files are not Prettier-clean on the current baseline.
-      # Continue reporting them without treating unrelated formatting debt as a
-      # failed authorization or production-build regression.
-      - name: Report pre-existing repository formatting debt
-        continue-on-error: true
-        run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"

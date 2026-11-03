@@ -46,7 +46,7 @@ const STANDALONE_COMING_SOON = [
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
   "/giving", "/communications", "/mission", "/ai-images",
-  "/institutions", "/institutions/:id", "/my-blog", "/devices",
+  "/institutions", "/institutions/:id", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];

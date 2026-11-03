@@ -5,6 +5,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
 import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
@@ -37,8 +38,8 @@ const STORY = [
 
 export default function Home() {
   const platformOnlyMode = !usePublicCampaignFundraising();
-  const isAuthenticated = false;
-  const user = null;
+  const { status: authStatus, user } = useAuthSession();
+  const isAuthenticated = authStatus === "signed-in";
   const [heroOk, setHeroOk] = useState(true);
   const [expanded, setExpanded] = useState(false);
 
@@ -64,7 +65,9 @@ export default function Home() {
           </h1>
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
-            {isAuthenticated ? (
+            {authStatus === "loading" ? (
+              <p role="status" className="text-sm text-slate-400">Checking your account…</p>
+            ) : isAuthenticated ? (
               <Link to="/dashboard"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
             ) : (
               <>
@@ -78,7 +81,7 @@ export default function Home() {
             <p className="mt-1 mb-4 text-sm text-slate-300">Join the free InterplanetaryFund founding community and get early-access updates.</p>
             <Link to="/founding-members" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Join Founding Members <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </div>
-          {!isAuthenticated && (
+          {authStatus === "signed-out" && (
             <p className="mt-8 text-sm text-slate-400">Already have an account? <Link to="/login" className="text-cyan-300 hover:text-cyan-200 font-medium">Log in</Link> · <Link to="/register" className="text-cyan-300 hover:text-cyan-200 font-medium">Create one</Link></p>
           )}
         </div>

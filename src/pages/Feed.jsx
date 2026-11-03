@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { SLOGAN, TAGLINE } from "../lib/brand";
 import { Loading, Message, CampaignCard } from "../components/UI";
+import { publicFeedFailure, publicFeedState } from "../lib/publicFeedState";
 
 const PUBLIC_CAMPAIGN_COLUMNS =
   "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
@@ -12,8 +13,30 @@ function Feed() {
   const [campaigns, setCampaigns] = useState(null);
   const [posts, setPosts] = useState(null);
   const [message, setMessage] = useState("");
+  const [campaignError, setCampaignError] = useState(false);
+  const [postError, setPostError] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
-    if (!db) return;
+    let active = true;
+    setCampaigns(null);
+    setPosts(null);
+    setMessage("");
+    setCampaignError(false);
+    setPostError(false);
+
+    if (!db) {
+      const state = publicFeedFailure();
+      setCampaigns(state.campaigns);
+      setPosts(state.posts);
+      setCampaignError(state.campaignError);
+      setPostError(state.postError);
+      setMessage(state.message);
+      return () => {
+        active = false;
+      };
+    }
+
     Promise.all([
       db
         .from("ifund_campaigns")
@@ -26,12 +49,31 @@ function Feed() {
         .select(PUBLIC_POST_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(20),
-    ]).then(([a, b]) => {
-      setCampaigns(a.data || []);
-      setPosts(b.data || []);
-      setMessage(a.error?.message || b.error?.message || "");
-    });
-  }, []);
+    ])
+      .then(([a, b]) => {
+        if (!active) return;
+        const state = publicFeedState(a, b);
+        setCampaigns(state.campaigns);
+        setPosts(state.posts);
+        setCampaignError(state.campaignError);
+        setPostError(state.postError);
+        setMessage(state.message);
+      })
+      .catch(() => {
+        if (!active) return;
+        const state = publicFeedFailure();
+        setCampaigns(state.campaigns);
+        setPosts(state.posts);
+        setCampaignError(state.campaignError);
+        setPostError(state.postError);
+        setMessage(state.message);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [attempt]);
+
   return (
     <div className="stack">
       <section className="hero">
@@ -61,6 +103,8 @@ function Feed() {
                 <p>{p.body}</p>
               </article>
             ))
+          ) : postError ? (
+            <p>Community updates are temporarily unavailable.</p>
           ) : (
             <p>No posts yet. Community updates will appear here.</p>
           )}
@@ -71,12 +115,27 @@ function Feed() {
             <Loading />
           ) : campaigns.length ? (
             campaigns.slice(0, 8).map((c) => <CampaignCard key={c.id} c={c} />)
+          ) : campaignError ? (
+            <p>Campaigns are temporarily unavailable.</p>
           ) : (
             <p>There are no published campaigns yet.</p>
           )}
         </section>
       </div>
-      <Message error>{message}</Message>
+      {message && (
+        <div className="actions">
+          <Message error>{message}</Message>
+          {db && (
+            <button
+              className="secondary"
+              type="button"
+              onClick={() => setAttempt((value) => value + 1)}
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

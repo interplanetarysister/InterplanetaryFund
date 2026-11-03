@@ -4,6 +4,7 @@ import { db, configured } from "./lib/supabase";
 import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
 import { loginPathFor } from "./lib/authReturnTo";
+import { resolveInitialUser } from "./lib/authBootstrap";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
 import Discover from "./pages/Discover";
@@ -32,13 +33,21 @@ function App() {
       setUser(null);
       return;
     }
-    db.auth.getUser().then(({ data }) => setUser(data.user || null));
+    let active = true;
+    let authEventReceived = false;
+    resolveInitialUser(() => db.auth.getUser()).then((initialUser) => {
+      if (active && !authEventReceived) setUser(initialUser);
+    });
     const {
       data: { subscription },
-    } = db.auth.onAuthStateChange((event, session) =>
-      setUser(session?.user || null),
-    );
-    return () => subscription.unsubscribe();
+    } = db.auth.onAuthStateChange((_event, session) => {
+      authEventReceived = true;
+      if (active) setUser(session?.user || null);
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
