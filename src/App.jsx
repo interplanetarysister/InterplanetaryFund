@@ -18,8 +18,8 @@ import StudioPublishedPage from "./pages/StudioPublishedPage";
 function App() {
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
-  const role = user?.app_metadata?.role;
-  const canUseStudio = role === "admin" || role === "super_admin";
+  const [studioAccess, setStudioAccess] = useState(null);
+  const canUseStudio = studioAccess === true;
 
   useEffect(() => {
     if (!db) {
@@ -36,6 +36,27 @@ function App() {
     );
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    if (!user || !db) {
+      setStudioAccess(false);
+      return () => {
+        active = false;
+      };
+    }
+    setStudioAccess(null);
+    db.rpc("ifund_current_user_is_verified_admin")
+      .then(({ data, error }) => {
+        if (active) setStudioAccess(!error && data === true);
+      })
+      .catch(() => {
+        if (active) setStudioAccess(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -150,6 +171,8 @@ function App() {
                   <h1>Administrator sign-in required</h1>
                   <Link to="/login">Sign in</Link>
                 </main>
+              ) : studioAccess === null ? (
+                <Loading />
               ) : canUseStudio ? (
                 <AdminStudio />
               ) : (
