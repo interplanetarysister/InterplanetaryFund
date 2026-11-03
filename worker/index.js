@@ -15,7 +15,10 @@ export default {
     if (/^\/api\/public\/studio\/pages\//.test(pathname)) {
       return routePublicStudioPage(request, env);
     }
-    if (pathname === '/api/studio/generate') {\n      return routeStudioGenerateRequest(request, env);\n    }\n    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
+    if (pathname === '/api/studio/generate') {
+      return routeStudioGenerateRequest(request, env);
+    }
+    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
       return routeStudioRequest(request, env);
     }
     if (pathname === '/api/community/feed' || pathname === '/api/campaigns/public' ||
