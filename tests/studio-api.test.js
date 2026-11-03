@@ -269,6 +269,7 @@ test('Studio revision restore creates a draft from a verified snapshot', async (
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     if (String(url).includes('/ifund_studio_page_versions?')) return Response.json([snapshot]);
+    if (String(url).includes('slug=eq.older-page')) return Response.json([]);
     return Response.json([restored]);
   };
   const r = await routeStudioVersionRequest(

@@ -198,7 +198,7 @@ test("replacing the function is safe to re-run", { skip: SKIP }, async () => {
   assert.equal((await call(db, [null, null, null, 100])).length, 2);
 });
 
-test("every rpc the client calls is defined by a migration", { skip: SKIP }, async () => {
+test("every client RPC is migration-defined or recorded as a verified production dependency", { skip: SKIP }, async () => {
   // The gap this whole file exists to close was not a wrong call, it was a call
   // with nothing behind it: editorial.js said rpc("ifund_public_blog_entries_read")
   // and no migration defined that function, while the parity test checked only the
