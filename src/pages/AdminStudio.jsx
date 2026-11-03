@@ -51,6 +51,8 @@ export default function AdminStudio() {
   const [preview, setPreview] = useState("desktop");
   const [dragged, setDragged] = useState(null);
   const [dirty, setDirty] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
   const blocks = page?.content?.blocks || [];
 
   const api = useCallback(async (path, method = "GET", body) => {
@@ -164,6 +166,25 @@ export default function AdminStudio() {
       setError(err.message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  const generateLayout = async () => {
+    if (!page || generating || !aiPrompt.trim()) return;
+    setGenerating(true);
+    setError("");
+    setNotice("");
+    try {
+      const generated = await api("/api/studio/generate", "POST", {
+        prompt: aiPrompt.trim(),
+      });
+      setPage((current) => ({ ...current, content: generated.content }));
+      setDirty(true);
+      setNotice("AI layout generated. Review the sections and save your draft.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -317,6 +338,30 @@ export default function AdminStudio() {
                     Open published page
                   </Link>
                 )}
+              </div>
+
+              <div className="studio-ai-panel">
+                <label>
+                  Describe the page you want
+                  <textarea
+                    rows={3}
+                    maxLength={1200}
+                    value={aiPrompt}
+                    onChange={(event) => setAiPrompt(event.target.value)}
+                    placeholder="Create a welcoming campaign landing page with a hero, impact cards, and a clear call to action…"
+                  />
+                </label>
+                <div>
+                  <button
+                    type="button"
+                    className="primary"
+                    onClick={generateLayout}
+                    disabled={!aiPrompt.trim() || generating}
+                  >
+                    {generating ? "Generating…" : "Generate with AI"}
+                  </button>
+                  <span>2 generations per day across the platform · free-tier quota protected</span>
+                </div>
               </div>
 
               <div className="studio-builder">
