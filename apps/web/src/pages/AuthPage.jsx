@@ -33,7 +33,7 @@ export default function AuthPage({ mode = "login" }) {
         });
         if (err) throw err;
         setRecoveryCodeSent(true);
-        setMessage("If this address is registered, a recovery code has been sent. Enter it below with your new password.");
+        setMessage("If this address is registered, check your email. Enter the recovery code below, or open the secure recovery link if your email contains a link instead.");
       } else if (isReset) {
         const { error: verifyError } = await auth.verifyOtp({ email: email.trim(), token: recoveryCode.trim(), type: "recovery" });
         if (verifyError) throw verifyError;
@@ -44,12 +44,12 @@ export default function AuthPage({ mode = "login" }) {
         setRecoveryCode("");
         setNewPassword("");
         setMessage("Your password has been updated. Sign in with your new password.");
-        navigate("/login", { replace: true });
+        navigate("/login?returnTo=" + encodeURIComponent(afterLogin), { replace: true });
       } else if (isRegister) {
         const { data, error: err } = await auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/dashboard" },
+          options: { emailRedirectTo: window.location.origin + "/login?returnTo=" + encodeURIComponent(afterLogin) },
         });
         if (err) throw err;
         if (data.session) navigate(afterLogin, { replace: true });
@@ -160,17 +160,17 @@ export default function AuthPage({ mode = "login" }) {
           )}
           <nav className="mt-5 flex flex-wrap gap-4 text-sm text-cyan-200">
             {!isRegister && (
-              <Link to="/register" className="underline">
+              <Link to={"/register?returnTo=" + encodeURIComponent(afterLogin)} className="underline">
                 Create an account
               </Link>
             )}
             {mode !== "login" && (
-              <Link to="/login" className="underline">
+              <Link to={"/login?returnTo=" + encodeURIComponent(afterLogin)} className="underline">
                 Sign in
               </Link>
             )}
             {!isReset && (
-              <Link to="/forgot-password" className="underline">
+              <Link to={"/forgot-password?returnTo=" + encodeURIComponent(afterLogin)} className="underline">
                 Forgot password?
               </Link>
             )}
