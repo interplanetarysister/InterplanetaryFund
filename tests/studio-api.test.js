@@ -18,6 +18,7 @@ function remote(role, rows = []) {
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role } });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(role === 'super_admin');
     return Response.json(rows);
   };
   return { calls, fetcher };
@@ -53,7 +54,7 @@ test('studio allows a verified legacy owner mapping without an app_metadata role
 });
 test('studio allows admin and reads page data through the member JWT', async () => {
   const row = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...page, created_by: uid, updated_by: uid };
-  const api = remote('admin', [row]);
+  const api = remote('super_admin', [row]);
   const r = await routeStudioRequest(request('/api/studio/pages'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), [row]);
@@ -74,7 +75,7 @@ test('studio rejects malformed blocks, script types, duplicate IDs and privilege
     { ...page, slug: '../admin' }, { ...page, status: 'live' },
   ];
   for (const input of attempts) {
-    const api = remote('admin');
+    const api = remote('super_admin');
     const r = await routeStudioRequest(request('/api/studio/pages', 'POST', input), env, api.fetcher);
     assert.equal(r.status, 422);
     assert.equal(api.calls.length, 1);
@@ -82,7 +83,7 @@ test('studio rejects malformed blocks, script types, duplicate IDs and privilege
 });
 test('studio creates records with server-derived actor IDs and verifies returned row', async () => {
   const saved = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...page, created_by: uid, updated_by: uid };
-  const api = remote('admin', [saved]);
+  const api = remote('super_admin', [saved]);
   const r = await routeStudioRequest(request('/api/studio/pages', 'POST', page), env, api.fetcher);
   assert.equal(r.status, 201);
   const sent = JSON.parse(api.calls[1].options.body);
@@ -126,12 +127,12 @@ test('studio accepts safe relative links and rejects protocol-relative or script
     status: 'draft',
   };
   const saved = { id: '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61', ...relativePage, created_by: uid, updated_by: uid };
-  const api = remote('admin', [saved]);
+  const api = remote('super_admin', [saved]);
   const accepted = await routeStudioRequest(request('/api/studio/pages', 'POST', relativePage), env, api.fetcher);
   assert.equal(accepted.status, 201);
   for (const url of ['//attacker.example', 'javascript:alert(1)']) {
     const bad = { ...relativePage, slug: 'unsafe-link', content: { blocks: [{ id: 'cta', type: 'button', label: 'Go', url }] } };
-    const rejected = await routeStudioRequest(request('/api/studio/pages', 'POST', bad), env, remote('admin').fetcher);
+    const rejected = await routeStudioRequest(request('/api/studio/pages', 'POST', bad), env, remote('super_admin').fetcher);
     assert.equal(rejected.status, 422);
   }
 });
@@ -156,7 +157,8 @@ test('Studio AI enforces admin role and the shared daily quota before inference'
   assert.equal(denied.status, 403);
 
   const exhaustedFetcher = async (url) => {
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     return Response.json(false);
   };
   const limited = await routeStudioGenerateRequest(
@@ -186,7 +188,7 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   };
   const fetcher = async (url, options = {}) => {
     calls += 1;
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
     assert.match(String(url), /rpc\/ifund_studio_consume_ai_quota/);
     return Response.json(true);
   };
@@ -207,7 +209,8 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
   let calls = 0;
   const fetcher = async () => {
     calls += 1;
-    return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+    if (String(arguments[0] || '').endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
+    return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
   };
   const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => ({ response: '{}' }) } };
   const short = await routeStudioGenerateRequest(
@@ -220,7 +223,7 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
 });
 
 test('Studio status is admin-only and reports AI disabled until explicitly enabled', async () => {
-  const api = remote('admin');
+  const api = remote('super_admin');
   const r = await routeStudioStatusRequest(request('/api/studio/status'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), {
@@ -239,7 +242,7 @@ test('Studio status is admin-only and reports AI disabled until explicitly enabl
 test('Studio version history is admin-only and returns recent immutable revisions', async () => {
   const pageId = '2e5a4d65-4c8f-45d0-89d9-2f2b1bfe0c61';
   const revisions = [{ id: 'rev-2', page_id: pageId, version: 2, ...page, created_at: '2026-11-03T12:00:00Z' }];
-  const api = remote('admin', revisions);
+  const api = remote('super_admin', revisions);
   const r = await routeStudioVersionRequest(request('/api/studio/pages/' + pageId + '/versions'), env, api.fetcher);
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), revisions);
@@ -262,6 +265,7 @@ test('Studio revision restore creates a draft from a verified snapshot', async (
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     if (String(url).includes('/ifund_studio_page_versions?')) return Response.json([snapshot]);
     return Response.json([restored]);
   };
