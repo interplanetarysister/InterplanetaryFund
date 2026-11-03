@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";\nimport { Link } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Message, Loading } from "../components/UI";
 
@@ -311,6 +312,11 @@ export default function AdminStudio() {
                   {page.status || "draft"}{" "}
                   {dirty ? "· unsaved changes" : "· saved"}
                 </span>
+                {page.status === "published" && page.id && (
+                  <Link to={"/p/" + page.slug} target="_blank" rel="noreferrer">
+                    Open published page
+                  </Link>
+                )}
               </div>
 
               <div className="studio-builder">
