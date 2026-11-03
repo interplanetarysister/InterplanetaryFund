@@ -39,6 +39,31 @@ export async function authenticatedUser(request, env, fetcher = fetch) {
   return { uid: account.id, jwt, role };
 }
 
+/**
+ * Resolve Studio access through IFund's existing verified-owner authorization
+ * function as well as protected app_metadata roles. This preserves the
+ * production owner mapping without copying identity rules into the Worker.
+ */
+export async function authenticatedStudioUser(request, env, fetcher = fetch) {
+  const account = await authenticatedUser(request, env, fetcher);
+  if (!account) return null;
+  if (['admin', 'super_admin'].includes(account.role)) return account;
+
+  const verified = await fetcher(
+    env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_admin',
+    {
+      method: 'POST',
+      headers: {
+        ...providerHeaders(env, account.jwt),
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    },
+  );
+  if (!verified.ok) return { ...account, role: null };
+  return { ...account, role: (await verified.json()) === true ? 'admin' : null };
+}
+
 /** Shared read-only PostgREST request, with user JWT for user-scoped RLS. */
 async function readOnly(env, relative, jwt, fetcher) {
   const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/' + relative, {
