@@ -1,9 +1,9 @@
 -- IFund Studio foundation. Review and test in staging before applying anywhere.
 create or replace function public.ifund_is_studio_admin()
 returns boolean language sql stable security invoker set search_path = ''
-as $$
-  select coalesce((auth.jwt() -> 'app_metadata' ->> 'role') in ('admin', 'super_admin'), false);
-$$;
+as $
+  select coalesce(public.ifund_current_user_is_verified_admin(), false);
+$;
 revoke all on function public.ifund_is_studio_admin() from public, anon;
 grant execute on function public.ifund_is_studio_admin() to authenticated;
 
