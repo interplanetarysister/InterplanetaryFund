@@ -4,14 +4,20 @@ import { safeReturnTo } from "../lib/authReturnTo";
 import { db } from "../lib/supabase";
 import { Message } from "../components/UI";
 
-const SIGN_IN_PROVIDERS = [
-  { id: "google", label: "Continue with Google" },
-  { id: "facebook", label: "Continue with Facebook" },
-];
+const PROVIDER_LABELS = {
+  google: "Continue with Google",
+  facebook: "Continue with Facebook",
+};
+const SIGN_IN_PROVIDERS = (import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS || "")
+  .split(",")
+  .map((provider) => provider.trim().toLowerCase())
+  .filter((provider) => Object.hasOwn(PROVIDER_LABELS, provider))
+  .map((id) => ({ id, label: PROVIDER_LABELS[id] }));
 
 /**
- * Passwordless sign-in preview. Provider configuration, consent and the email
- * template containing {{ .Token }} must be approved before production use.
+ * Passwordless sign-in. Supabase email templates may deliver a magic link or
+ * numeric token; both return to this same-origin callback. OAuth buttons are
+ * shown only for providers explicitly enabled in the deployment environment.
  * Instagram remains a post-sign-in social connection, not a sign-in provider.
  */
 export default function Auth({ user }) {
@@ -80,13 +86,21 @@ export default function Auth({ user }) {
     try {
       const { error: authError } = await db.auth.signInWithOtp({
         email: email.trim(),
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo:
+            window.location.origin +
+            "/login?returnTo=" +
+            encodeURIComponent(returnTo),
+        },
       });
       if (authError) throw authError;
       setCodeRequested(true);
-      setMessage("Check your inbox for your sign-in code.");
+      setMessage(
+        "Check your email for a sign-in link or one-time code. Open the link, or enter the code below.",
+      );
     } catch (authError) {
-      setError(authError?.message || "Unable to request a sign-in code.");
+      setError(authError?.message || "Unable to request a sign-in link or code.");
     } finally {
       setBusy(false);
     }
@@ -116,8 +130,9 @@ export default function Auth({ user }) {
     <main className="editor">
       <h1>Sign in to Interplanetary Fund</h1>
       <p>
-        Use your connected identity or a one-time email code. Passwords are not
-        required.
+        {SIGN_IN_PROVIDERS.length
+          ? "Use your connected identity or a one-time email code or sign-in link. Passwords are not required."
+          : "Use a one-time email code or sign-in link. Passwords are not required."}
       </p>
       <div className="form">
         {SIGN_IN_PROVIDERS.map((provider) => (
@@ -158,7 +173,7 @@ export default function Auth({ user }) {
             </label>
           )}
           <button type="submit" disabled={!db || busy}>
-            {codeRequested ? "Verify code" : "Email me a sign-in code"}
+            {codeRequested ? "Verify code" : "Email me a sign-in link or code"}
           </button>
         </form>
         <Message error={Boolean(error)}>
