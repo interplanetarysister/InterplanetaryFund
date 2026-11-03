@@ -11,6 +11,9 @@ export default function AuthPage({ mode = "login" }) {
   const afterLogin = safeReturnTo(searchParams.get("returnTo"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [recoveryCodeSent, setRecoveryCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -24,14 +27,24 @@ export default function AuthPage({ mode = "login" }) {
     setMessage("");
     try {
       const auth = authClient().auth;
-      if (isReset) {
-        const { error: err } = await auth.resetPasswordForEmail(email, {
+      if (isReset && !recoveryCodeSent) {
+        const { error: err } = await auth.resetPasswordForEmail(email.trim(), {
           redirectTo: window.location.origin + "/reset-password",
         });
         if (err) throw err;
-        setMessage(
-          "If this address is registered, a password reset email will arrive.",
-        );
+        setRecoveryCodeSent(true);
+        setMessage("If this address is registered, a recovery code has been sent. Enter it below with your new password.");
+      } else if (isReset) {
+        const { error: verifyError } = await auth.verifyOtp({ email: email.trim(), token: recoveryCode.trim(), type: "recovery" });
+        if (verifyError) throw verifyError;
+        const { error: updateError } = await auth.updateUser({ password: newPassword });
+        if (updateError) throw updateError;
+        await auth.signOut();
+        setRecoveryCodeSent(false);
+        setRecoveryCode("");
+        setNewPassword("");
+        setMessage("Your password has been updated. Sign in with your new password.");
+        navigate("/login", { replace: true });
       } else if (isRegister) {
         const { data, error: err } = await auth.signUp({
           email,
@@ -83,7 +96,7 @@ export default function AuthPage({ mode = "login" }) {
                 autoComplete="email"
                 maxLength={254}
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => { setEmail(e.target.value); setRecoveryCodeSent(false); setRecoveryCode(""); }}
                 className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"
               />
             </label>
@@ -103,6 +116,16 @@ export default function AuthPage({ mode = "login" }) {
                 />
               </label>
             )}
+            {isReset && recoveryCodeSent && (
+              <>
+                <label className="block text-sm font-medium">Email recovery code
+                  <input required inputMode="numeric" autoComplete="one-time-code" maxLength={12} value={recoveryCode} onChange={(e) => setRecoveryCode(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950" />
+                </label>
+                <label className="block text-sm font-medium">New password
+                  <input required minLength={8} type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950" />
+                </label>
+              </>
+            )}
             {error && (
               <p role="alert" className="text-sm text-red-200">
                 {error}
@@ -121,7 +144,7 @@ export default function AuthPage({ mode = "login" }) {
               {busy
                 ? "Please wait…"
                 : isReset
-                  ? "Email reset link"
+                  ? (recoveryCodeSent ? "Verify code and update password" : "Email recovery code")
                   : isRegister
                     ? "Create account"
                     : "Sign in"}

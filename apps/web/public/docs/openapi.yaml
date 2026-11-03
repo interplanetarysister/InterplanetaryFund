@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: Interplanetary Fund Preview API
+  version: 0.1.0-preview
+  description: >-
+    Source-level route inventory for the independent IFund preview Worker.
+    These routes are not deployed. Complete payload schemas are intentionally
+    omitted where the route matrix does not define them. See API-ENDPOINTS.md
+    and the repository's docs/migration/INDEPENDENT_API_ROUTE_MATRIX.md.
+servers:
+  - url: https://{host}
+    description: Host must be an explicitly configured preview origin.
+    variables:
+      host:
+        default: preview.example.invalid
+        description: Replace only with the verified preview hostname.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CampaignUuid:
+      name: uuid
+      in: path
+      required: true
+      description: Campaign UUID.
+      schema:
+        type: string
+        format: uuid
+    PostUuid:
+      name: uuid
+      in: path
+      required: true
+      description: Post UUID.
+      schema:
+        type: string
+        format: uuid
+paths:
+  /api/health:
+    get:
+      summary: Preview API health
+      description: Health only; response reports production=false.
+      responses:
+        '200': { description: Health response }
+  /api/community/feed:
+    get:
+      summary: Read public community feed
+      description: Bounded list of recent public posts.
+      responses:
+        '200': { description: Public feed response }
+  /api/community/posts:
+    post:
+      summary: Create an authenticated community post
+      description: Owner post; body is limited to 1–2000 characters.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Post created or accepted }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Owner or policy check failed }
+  /api/community/posts/{uuid}:
+    delete:
+      summary: Delete an owned community post
+      security: [{ bearerAuth: [] }]
+      parameters: [{$ref: '#/components/parameters/PostUuid'}]
+      responses:
+        '200': { description: Deletion result }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Ownership check failed }
+  /api/campaigns/public:
+    get:
+      summary: Read public campaigns
+      description: Bounded list of recently published campaigns.
+      responses:
+        '200': { description: Public campaign list }
+  /api/campaigns/{uuid}:
+    get:
+      summary: Read an active public campaign
+      parameters: [{$ref: '#/components/parameters/CampaignUuid'}]
+      responses:
+        '200': { description: Public campaign detail }
+        '404': { description: Campaign not found or not public }
+    patch:
+      summary: Update an owned campaign
+      security: [{ bearerAuth: [] }]
+      parameters: [{$ref: '#/components/parameters/CampaignUuid'}]
+      responses:
+        '200': { description: Update result }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Ownership or policy check failed }
+    delete:
+      summary: Delete an owned draft campaign
+      description: Published records are protected from deletion.
+      security: [{ bearerAuth: [] }]
+      parameters: [{$ref: '#/components/parameters/CampaignUuid'}]
+      responses:
+        '200': { description: Deletion result }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Ownership or draft-only check failed }
+  /api/campaigns/mine:
+    get:
+      summary: List the authenticated owner's campaigns
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Owner campaign list }
+        '401': { description: Missing or invalid authentication }
+  /api/campaigns/{uuid}/draft:
+    get:
+      summary: Read an owned campaign draft
+      security: [{ bearerAuth: [] }]
+      parameters: [{$ref: '#/components/parameters/CampaignUuid'}]
+      responses:
+        '200': { description: Owner draft }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Ownership check failed }
+  /api/campaigns:
+    post:
+      summary: Create an owner campaign draft or validated publish
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Campaign creation result }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Owner or policy check failed }
+  /api/account/me:
+    get:
+      summary: Read verified account identity
+      description: Returns Supabase-verified account UUID; makes no role assertion.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Verified account identity }
+        '401': { description: Missing or invalid authentication }
+  /api/account/profile:
+    get:
+      summary: Read own account profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Owner profile }
+        '401': { description: Missing or invalid authentication }
+    put:
+      summary: Update own profile handle and display name
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Profile update result }
+        '401': { description: Missing or invalid authentication }
+        '403': { description: Owner or policy check failed }
+  /api/account/connections:
+    get:
+      summary: Read own provider connection statuses
+      description: Reading statuses does not mark a provider connected.
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Owner connection statuses }
+        '401': { description: Missing or invalid authentication }

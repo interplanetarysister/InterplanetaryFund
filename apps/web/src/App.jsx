@@ -5,6 +5,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MemberAccess from "@/components/auth/MemberAccess";
+import AdminAccess from "@/components/auth/AdminAccess";
+import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
@@ -36,6 +38,8 @@ const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
 const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
+const AdminStudio = lazy(() => import("./pages/AdminStudio"));
+const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
@@ -66,11 +70,13 @@ function AppRoutes() {
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
+    <Route path="/p/:slug" element={<StudioPublishedPage />} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
+      <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />

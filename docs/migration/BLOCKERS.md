@@ -617,3 +617,39 @@ file also contains a read-only remediation query to find any forged rows already
 present; it is not run automatically and no existing row is deleted.
 
 **Until applied, treat any published entry on the official blog as unverified.**
+
+
+## B29 — VERIFIED PRODUCTION DEPENDENCY: public.ifund_current_user_is_verified_admin
+
+The Studio Worker calls `public.ifund_current_user_is_verified_admin()` indirectly
+through `public.ifund_current_user_is_verified_super_admin()`. A read-only
+inspection of the intended production project on 2026-11-03 confirmed that both
+functions exist, are SQL/STABLE SECURITY DEFINER functions with an empty pinned
+search_path, deny execution to `anon` and `PUBLIC`, and grant execution to
+`authenticated`.
+
+The verified-admin function also checks protected `app_metadata.role` values or
+a verified legacy-owner mapping against the source owner, active account,
+confirmed email, and unique destination mapping. Its dependencies include the
+existing `ifund_transfer.owner_identity_map`, `ifund_stage."user"`, and
+`public.ifund_profiles` objects.
+
+**Migration parity is still outstanding:** this function is present in the
+production database but is not defined in the current preview branch's committed
+migration set. The test suite records it as a documented production dependency
+rather than pretending the preview branch is independently bootstrappable. Before
+a fresh-project cutover, include the verified function and its prerequisite
+schemas/tables in the ordered migration chain and validate it against production.
+No production SQL was changed during this verification.
+
+
+## Preview candidate validation — 2026-11-03
+
+The current feature preview branch passed both GitHub workflows on commit
+`c9c8777a6b746aabb3aaf542d2002fe3ad1cc659`: Frontend production build and tests,
+and Main release candidate checks. This verifies the current candidate branch
+only; it does not certify the separate open migration drafts listed in GitHub.
+
+Cloudflare Pages preview automation was re-enabled on 2026-11-03 for this
+feature branch only. Production-branch deployments remain disabled. The next
+push is the explicit preview trigger for this validated candidate.

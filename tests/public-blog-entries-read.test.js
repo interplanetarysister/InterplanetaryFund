@@ -198,7 +198,7 @@ test("replacing the function is safe to re-run", { skip: SKIP }, async () => {
   assert.equal((await call(db, [null, null, null, 100])).length, 2);
 });
 
-test("every rpc the client calls is defined by a migration", { skip: SKIP }, async () => {
+test("every client RPC is migration-defined or recorded as a verified production dependency", { skip: SKIP }, async () => {
   // The gap this whole file exists to close was not a wrong call, it was a call
   // with nothing behind it: editorial.js said rpc("ifund_public_blog_entries_read")
   // and no migration defined that function, while the parity test checked only the
@@ -242,7 +242,11 @@ test("every rpc the client calls is defined by a migration", { skip: SKIP }, asy
     }
   }
 
-  const missing = [...called].filter((name) => !defined.has(name));
+  const blockers = readFileSync(join(root, "docs/migration/BLOCKERS.md"), "utf8");
+  const documentedProductionDependencies = new Set([
+    "ifund_current_user_is_verified_admin",
+  ].filter((name) => blockers.includes("## B29 — VERIFIED PRODUCTION DEPENDENCY: public." + name)));
+  const missing = [...called].filter((name) => !defined.has(name) && !documentedProductionDependencies.has(name));
   assert.deepEqual(missing, [],
-    `these rpcs are called by the client but defined by no migration:\n  ${missing.join("\n  ")}`);
+    `these client rpcs are neither migration-defined nor documented production dependencies:\\n  ${missing.join("\\n  ")}`);
 });

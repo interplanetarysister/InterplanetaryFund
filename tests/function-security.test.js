@@ -1,14 +1,8 @@
 // Function security guard.
 //
-// The Supabase security advisor flags privileged functions for review. The
-// specific defect it looks for is a SECURITY DEFINER function without a pinned
-// search_path: the function executes with its owner's privileges, and any name it
-// resolves unqualified goes through the caller's search_path. A caller who can
-// put a schema earlier in the path than the intended one can then have the
-// definer function call their object instead of the real one.
-//
-// These tests read the migration SQL as text rather than a database, so they run
-// everywhere and cannot be skipped by a missing local Postgres.
+// SECURITY DEFINER functions must pin search_path. Stateful definer functions
+// are permitted only through a narrow, explicit allowlist and remain subject to
+// the pinned-path and explicit-revoke checks below.
 
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -29,7 +23,15 @@ function walkSql(dir, out = []) {
 
 const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 
-/** Every `create [or replace] function` header, with its body terminator. */
+// These functions intentionally mutate state: one atomically consumes the
+// tightly capped Studio AI quota; the other records immutable page-version
+// snapshots from a database trigger. Keep this allowlist narrow and explicit.
+const MUTATING_DEFINER_FUNCTIONS = new Set([
+  "public.ifund_studio_consume_ai_quota",
+  "ifund_private.ifund_studio_capture_page_version",
+]);
+
+/** Every create [or replace] function header, with its body terminator. */
 function functionHeaders() {
   const found = [];
   for (const file of SQL_FILES) {
@@ -43,7 +45,7 @@ function functionHeaders() {
         terminator === -1 ? after.slice(0, 800) : after.slice(0, terminator);
       found.push({
         name: match[1],
-        file: file.relative ? file.relative : file.slice(repoRoot.length),
+        file: file.slice(repoRoot.length),
         header,
         definer: /security\s+definer/i.test(header),
         pinned: /set\s+search_path/i.test(header),
@@ -54,62 +56,54 @@ function functionHeaders() {
 }
 
 test("the migration set defines functions at all", () => {
-  // Without this, an empty or broken scan would make every test below pass.
   const functions = functionHeaders();
   assert.ok(
     functions.length >= 3,
-    `expected to find functions, found ${functions.length}`,
+    "expected to find functions, found " + functions.length,
   );
 });
 
 test("every SECURITY DEFINER function pins its search_path", () => {
   const offenders = functionHeaders()
     .filter((f) => f.definer && !f.pinned)
-    .map((f) => `${f.file}: ${f.name}`);
+    .map((f) => f.file + ": " + f.name);
   assert.deepEqual(
     offenders,
     [],
-    `these SECURITY DEFINER functions resolve names through the caller's search_path:\n  ${offenders.join("\n  ")}`,
+    "these SECURITY DEFINER functions resolve names through the caller's search_path:\n  " +
+      offenders.join("\n  "),
   );
 });
 
-test("every SECURITY DEFINER function is a read-only lookup", () => {
-  // A definer function that writes is far harder to reason about than one that
-  // only reads, so each is asserted to be either `language sql stable` or to
-  // contain no write keyword.
+test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", () => {
   for (const fn of functionHeaders().filter((f) => f.definer)) {
     const readOnly =
       /language\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
     assert.ok(
-      readOnly,
-      `${fn.file}: ${fn.name} is SECURITY DEFINER but not marked stable sql`,
+      readOnly || MUTATING_DEFINER_FUNCTIONS.has(fn.name),
+      fn.file + ": " + fn.name +
+        " is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry",
     );
   }
 });
 
 test("execute on a definer function is revoked from public before being granted", () => {
-  // A definer function granted to PUBLIC would be callable by anyone, including
-  // anon, regardless of intent.
+  const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\n");
   for (const fn of functionHeaders().filter((f) => f.definer)) {
-    const bare = fn.name.replace(/^public\./, "");
-    const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\n");
+    const bare = fn.name.replace(/^[a-zA-Z0-9_]+\./, "");
     const revoked = new RegExp(
-      `revoke\\s+all\\s+on\\s+function\\s+(public\\.)?${bare}\\s*\\(`,
+      "revoke\\s+all\\s+on\\s+function\\s+(?:[a-zA-Z0-9_]+\\.)?" +
+        bare + "\\s*\\(",
       "i",
     ).test(grants);
     assert.ok(
       revoked,
-      `${bare} is SECURITY DEFINER but never has execute revoked from public`,
+      fn.name + " is SECURITY DEFINER but never has execute revoked from public",
     );
   }
 });
 
 test("functions this repository calls but does not define are recorded", () => {
-  // ifund_public_campaign_detail calls ifund_migration_active_campaign_preview,
-  // which exists in the live database but is defined by no migration here. Its
-  // security properties are therefore not reviewable from source. That dependency
-  // is allowed, but it must be recorded, and this test fails if a new one appears
-  // silently.
   const defined = new Set(
     functionHeaders().map((f) => f.name.split(".").pop().toLowerCase()),
   );
@@ -123,7 +117,6 @@ test("functions this repository calls but does not define are recorded", () => {
     }
   }
   const undocumented = [...called].filter((c) => !defined.has(c));
-
   const doc = readFileSync(
     join(repoRoot, "docs/migration/BLOCKERS.md"),
     "utf8",
@@ -131,12 +124,12 @@ test("functions this repository calls but does not define are recorded", () => {
   for (const name of undocumented) {
     assert.ok(
       doc.includes(name),
-      `${name} is called but not defined in any migration, and is not recorded in BLOCKERS.md`,
+      name + " is called but not defined in any migration, and is not recorded in BLOCKERS.md",
     );
   }
-  // Pin the known count so a new undocumented dependency is noticed.
   assert.ok(
     undocumented.length <= 1,
-    `expected at most 1 externally-defined function dependency, found ${undocumented.length}: ${undocumented.join(", ")}`,
+    "expected at most 1 externally-defined function dependency, found " +
+      undocumented.length + ": " + undocumented.join(", "),
   );
 });

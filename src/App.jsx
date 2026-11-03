@@ -16,6 +16,8 @@ import Community from "./pages/Community";
 import Blogs from "./pages/Blogs";
 import BlogArticle from "./pages/BlogArticle";
 import MyBlog from "./pages/MyBlog";
+import AdminStudio from "./pages/AdminStudio";
+import StudioPublishedPage from "./pages/StudioPublishedPage";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Help from "./pages/Help";
@@ -27,6 +29,7 @@ function App() {
   const loginPath = loginPathFor(location);
   const [user, setUser] = useState(undefined);
   const [theme, setTheme] = useState("dark");
+  const [studioAccess, setStudioAccess] = useState(null);
   useEffect(() => {
     if (!db) {
       setUser(null);
@@ -40,6 +43,27 @@ function App() {
     );
     return () => subscription.unsubscribe();
   }, []);
+  useEffect(() => {
+    let active = true;
+    if (!user || !db) {
+      setStudioAccess(false);
+      return () => {
+        active = false;
+      };
+    }
+    setStudioAccess(null);
+    db.rpc("ifund_current_user_is_verified_super_admin")
+      .then(({ data, error }) => {
+        if (active) setStudioAccess(!error && data === true);
+      })
+      .catch(() => {
+        if (active) setStudioAccess(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
@@ -66,6 +90,7 @@ function App() {
           <NavLink to="/help">Help</NavLink>
           <NavLink to="/connections">Connections</NavLink>
           <NavLink to="/mine">My campaigns</NavLink>
+          {studioAccess === true && <NavLink to="/admin/studio">Studio</NavLink>}
         </nav>
         <div className="actions top-actions">
           <button
@@ -154,6 +179,28 @@ function App() {
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/blogs/:id" element={<BlogArticle />} />
           <Route path="/my-blog" element={user ? <MyBlog user={user} /> : <main><h1>Sign in to manage your publication</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/p/:slug" element={<StudioPublishedPage />} />
+          <Route
+            path="/admin/studio"
+            element={
+              !user ? (
+                <main>
+                  <h1>Administrator sign-in required</h1>
+                  <Link to={loginPath}>Sign in</Link>
+                </main>
+              ) : studioAccess === null ? (
+                <Loading />
+              ) : studioAccess === true ? (
+                <AdminStudio />
+              ) : (
+                <main>
+                  <h1>Verified super-administrator access required</h1>
+                  <p>This area is restricted to verified IFund super-administrator accounts.</p>
+                  <Link to="/">Return home</Link>
+                </main>
+              )
+            }
+          />
           <Route
             path="*"
             element={

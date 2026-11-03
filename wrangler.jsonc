@@ -3,5 +3,6 @@
   "name": "interplanetary-fund-api-migration",
   "main": "./worker/index.js",
   "compatibility_date": "2026-10-23",
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  "ai": { "binding": "AI" }
 }
