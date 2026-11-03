@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Rocket, Compass } from "lucide-react";
 import { db } from "../lib/supabase";
 import { SLOGAN, TAGLINE } from "../lib/brand";
 import { Loading, Message, CampaignCard } from "../components/UI";
@@ -13,7 +14,12 @@ function Feed() {
   const [posts, setPosts] = useState(null);
   const [message, setMessage] = useState("");
   useEffect(() => {
-    if (!db) return;
+    if (!db) {
+      setCampaigns([]);
+      setPosts([]);
+      setMessage("Live community updates are not connected yet.");
+      return;
+    }
     Promise.all([
       db
         .from("ifund_campaigns")
@@ -30,26 +36,31 @@ function Feed() {
       setCampaigns(a.data || []);
       setPosts(b.data || []);
       setMessage(a.error?.message || b.error?.message || "");
+    }).catch(() => {
+      setCampaigns([]);
+      setPosts([]);
+      setMessage("Community updates could not be loaded. Please try again later.");
     });
   }, []);
   return (
     <div className="stack">
       <section className="hero">
         <p className="eyebrow">ONE UNIVERSE OF FUNDING</p>
-        <h1>{SLOGAN}</h1>
+        <h1>Launchpad</h1>
+        <p className="ifund-launchpad-slogan">{SLOGAN}</p>
         <p>{TAGLINE}</p>
         <div className="actions">
           <Link className="primary" to="/create">
-            Start a campaign
+            <Rocket size={20} aria-hidden="true" /> Launch a Mission
           </Link>
           <Link className="secondary" to="/discover">
-            Explore campaigns
+            <Compass size={20} aria-hidden="true" /> Explore Universe
           </Link>
         </div>
       </section>
       <div className="split">
         <section>
-          <h2>Community live feed</h2>
+          <h2>Community Signals</h2>
           {!posts ? (
             <Loading />
           ) : posts.length ? (
@@ -66,7 +77,7 @@ function Feed() {
           )}
         </section>
         <section>
-          <h2>Campaigns</h2>
+          <h2>Fundraising Missions</h2>
           {!campaigns ? (
             <Loading />
           ) : campaigns.length ? (

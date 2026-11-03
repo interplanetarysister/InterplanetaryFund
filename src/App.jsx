@@ -1,12 +1,23 @@
+import "./navigation.css";
+import { Bot, UserRound, Radio, Users, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, NavLink, Route, Routes, useLocation } from "react-router-dom";
+import { Link, NavLink, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { db, configured } from "./lib/supabase";
-import { platforms } from "./lib/platforms";
 import { SLOGAN } from "./lib/brand";
 import { loginPathFor } from "./lib/authReturnTo";
 import { Planet, Loading } from "./components/UI";
 import Feed from "./pages/Feed";
+import Dashboard from "./pages/Dashboard";
+import VisualWorkspace from "./pages/VisualWorkspace";
+import Following from "./pages/Following";
+import MissionControl from "./pages/MissionControl";
+import SignalAlerts from "./pages/SignalAlerts";
+import CommsCenter from "./pages/CommsCenter";
+import CosmicImageStudio from "./pages/CosmicImageStudio";
+import AgentsPreview from "./pages/AgentsPreview";
+import InboxPreview from "./pages/InboxPreview";
 import Discover from "./pages/Discover";
+import PlanetaryAtlas from "./pages/PlanetaryAtlas";
 import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
 import MyCampaigns from "./pages/MyCampaigns";
@@ -26,13 +37,15 @@ function App() {
   const location = useLocation();
   const loginPath = loginPathFor(location);
   const [user, setUser] = useState(undefined);
-  const [theme, setTheme] = useState("dark");
+  const [theme, setTheme] = useState(() => { try { return localStorage.getItem("ifund-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); } catch { return "dark"; } });
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => setMenuOpen(false), [location.pathname]);
   useEffect(() => {
     if (!db) {
       setUser(null);
       return;
     }
-    db.auth.getUser().then(({ data }) => setUser(data.user || null));
+    db.auth.getUser().then(({ data }) => setUser(data?.user || null)).catch(() => setUser(null));
     const {
       data: { subscription },
     } = db.auth.onAuthStateChange((event, session) =>
@@ -42,6 +55,7 @@ function App() {
   }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    try { localStorage.setItem("ifund-theme", theme); } catch {}
   }, [theme]);
   return (
     <div className="app">
@@ -55,17 +69,11 @@ function App() {
             <small>{SLOGAN}</small>
           </div>
         </div>
-        <nav>
-          <NavLink end to="/">
-            Home
-          </NavLink>
-          <NavLink to="/discover">Explore</NavLink>
-          <NavLink to="/community">Community</NavLink>
-          <NavLink to="/blogs">Reporter</NavLink>
-          <NavLink to="/about">About</NavLink>
-          <NavLink to="/help">Help</NavLink>
-          <NavLink to="/connections">Connections</NavLink>
-          <NavLink to="/mine">My campaigns</NavLink>
+        <button type="button" className="ifund-menu-toggle" aria-expanded={menuOpen} aria-controls="ifund-primary-nav" onClick={() => setMenuOpen(v => !v)}>{menuOpen ? <><X size={18}/> Close</> : <><Menu size={18}/> Menu</>}</button>
+        <nav id="ifund-primary-nav" className={menuOpen ? "ifund-primary-nav is-open" : "ifund-primary-nav"} aria-label="Main navigation">
+          <div className="ifund-nav-group"><span>Explore</span><NavLink end to="/">Launchpad</NavLink><NavLink to="/discover">Explore Universe</NavLink><NavLink to="/globe">Planetary Atlas</NavLink><NavLink to="/community">Community Hub</NavLink><NavLink to="/blogs">Star Stories</NavLink></div>
+          <div className="ifund-nav-group"><span>Campaigns & Giving</span><NavLink to="/create">Launch a Mission</NavLink><NavLink to="/dashboard">Mission Dashboard</NavLink><NavLink to="/mine">My Missions</NavLink><NavLink to="/following">Orbiting Causes</NavLink></div>
+          <div className="ifund-nav-group"><span>Account & Help</span><NavLink to="/connections">Mission Links</NavLink><NavLink to="/help">Help Center</NavLink><NavLink to="/about">About</NavLink></div>
         </nav>
         <div className="actions top-actions">
           <button
@@ -75,24 +83,12 @@ function App() {
           >
             ◐
           </button>
-          <Link to="/login">{user ? "Account" : "Sign in"}</Link>
+          <Link to={user ? "/dashboard" : "/login"}>{user ? "My dashboard" : "Sign in"}</Link>
         </div>
       </header>
-      <div className="platform-strip" aria-label="Connection destinations">
-        {platforms.map((p) => (
-          <Link
-            key={p.id}
-            to="/connections"
-            title={p.name + " connection status"}
-          >
-            {p.name}
-          </Link>
-        ))}
-      </div>
       {!configured && (
         <p className="setup-warning">
-          Setup needed: configure the Supabase publishable key and apply the
-          schema migration before the app can load live data.
+          Some account and campaign services are temporarily unavailable. Please try again later.
         </p>
       )}
       {user === undefined && configured ? (
@@ -107,6 +103,22 @@ function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
+          <Route path="/globe" element={<PlanetaryAtlas />} />
+          <Route path="/agents" element={user ? <AgentsPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/mission" element={user ? <MissionControl user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ai-images" element={user ? <CosmicImageStudio /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/inbox" element={user ? <InboxPreview /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/following" element={user ? <Following user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/giving" element={user ? <VisualWorkspace path="/giving" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/ledger" element={user ? <VisualWorkspace path="/ledger" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/withdrawals" element={user ? <VisualWorkspace path="/withdrawals" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/notifications" element={user ? <SignalAlerts user={user} /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/communications" element={user ? <CommsCenter /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/institutions" element={user ? <VisualWorkspace path="/institutions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/subscriptions" element={user ? <VisualWorkspace path="/subscriptions" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/donors" element={user ? <VisualWorkspace path="/donors" /> : <main><h1>Sign in to continue</h1><Link to={loginPath}>Sign in</Link></main>} />
+          <Route path="/profile" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+          <Route path="/social" element={<Community user={user} />} />
           <Route path="/campaign/:id" element={<Detail />} />
           <Route
             path="/create"
@@ -149,6 +161,7 @@ function App() {
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
+          <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <main><h1>Dashboard</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/connections" element={user ? <Connections /> : <main><h1>Sign in to manage your connections</h1><Link to={loginPath}>Sign in</Link></main>} />
           <Route path="/community" element={<Community user={user} />} />
           <Route path="/blogs" element={<Blogs />} />
@@ -165,6 +178,12 @@ function App() {
           />
         </Routes>
       )}
+      <nav className="ifund-bottom-nav" aria-label="Mobile navigation">
+        <NavLink to={user ? "/agents" : loginPath} aria-label="AI Team"><Bot size={21}/><span>AI Team</span></NavLink>
+        <NavLink to={user ? "/dashboard" : loginPath} aria-label="Dashboard"><UserRound size={21}/><span>Dashboard</span></NavLink>
+        <NavLink to="/social" aria-label="IFund Social"><Radio size={21}/><span>IFund Social</span></NavLink>
+        <NavLink to="/community" aria-label="Forums"><Users size={21}/><span>Forums</span></NavLink>
+      </nav>
       <footer>
         <strong>Interplanetary Fund</strong>
         <p>What if? · Build with care, give with purpose.</p>

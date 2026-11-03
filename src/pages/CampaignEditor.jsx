@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Sparkles, PenLine, Target, Image as ImageIcon, Save, Rocket } from "lucide-react";
 import { db } from "../lib/supabase";
 import {
   saveCampaignThroughWorker,
@@ -22,6 +23,7 @@ const OWNER_CAMPAIGN_COLUMNS =
 function Editor({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
   const [draftBusy, setDraftBusy] = useState(false);
@@ -29,6 +31,8 @@ function Editor({ user }) {
   const [draftBeneficiary, setDraftBeneficiary] = useState("");
   const [draftNeed, setDraftNeed] = useState("");
   const [draftResult, setDraftResult] = useState(null);
+  const [imageTheme, setImageTheme] = useState(() => location.state?.imageTheme || "Hopeful and warm");
+  const [imageBrief, setImageBrief] = useState(() => (location.state?.imageBrief || "").slice(0,1800));
   const [message, setMessage] = useState("");
   const [error, setError] = useState(false);
   const [loadState, setLoadState] = useState(id ? "loading" : "ready");
@@ -161,7 +165,7 @@ function Editor({ user }) {
         savedId = data.id;
       }
       setMessage(status === "active" ? "Campaign published." : "Draft saved.");
-      navigate("/edit/" + savedId, { replace: true });
+      navigate("/edit/" + savedId, { replace: true, state: { imageTheme, imageBrief } });
     } catch (saveError) {
       setError(true);
       setMessage(
@@ -175,13 +179,13 @@ function Editor({ user }) {
   }
   return (
     <main className="editor">
-      <h1>{id ? "Edit campaign" : "Create campaign"}</h1>
+      <div className="ifund-editor-hero"><p className="eyebrow">YOUR FUNDRAISING MISSION</p><h1>{id ? "Edit Your Mission" : "Launch a Mission"}</h1><p>Tell your story. Choose your goal. Share your cause.</p></div>
       <p>
         Save an incomplete draft at any time. Publishing validates the required
         fields.
       </p>
-      <section className="card" aria-label="Campaign writing assistant">
-        <h2>Campaign writing assistant</h2>
+      <section className="card ifund-editor-section" aria-label="Campaign writing assistant">
+        <h2><Sparkles size={22}/> 1. Tell us about your cause</h2>
         <p>Describe your fundraiser and get editable story ideas. This uses the existing Supabase drafting service, not paid AI. Suggestions are never published automatically.</p>
         <label>
           What is happening, and why is support needed?
@@ -233,12 +237,14 @@ function Editor({ user }) {
             {draftResult.imagePrompt && (
               <details><summary>Illustration idea (no image generated)</summary>
                 <p>{draftResult.imagePrompt}</p>
+                <p>Suggested artwork theme: {imageTheme}</p>
               </details>
             )}
           </div>
         )}
       </section>
-      <div className="form">
+      <div className="form ifund-editor-form">
+        <h2><PenLine size={22}/> 2. Describe your campaign</h2>
         <label>
           Title
           <input
@@ -286,6 +292,7 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
+        <h2><Target size={22}/> 3. Set your goal</h2>
         <label>
           Funding goal (USD)
           <input
@@ -298,6 +305,16 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
+        <h2><ImageIcon size={22}/> 4. Add a picture</h2>
+        <label>Artwork theme
+          <select value={imageTheme} onChange={e => setImageTheme(e.target.value)} disabled={editorDisabled}>
+            {["Hopeful and warm","Futuristic and cosmic","Community focused","Clean and professional","Playful and colorful"].map(t => <option key={t}>{t}</option>)}
+          </select>
+        </label>
+        <p>Need an illustration idea? <Link to="/ai-images" state={{theme:imageTheme,cause:form.summary || form.title || "",returnTo:id ? "/edit/"+id : "/create"}}>Open Cosmic Image Studio</Link> to prepare an image brief. Images are not generated automatically.</p>
+        <label>Image brief (planning only; not included in the published campaign)
+          <textarea rows="4" value={imageBrief} onChange={e => setImageBrief(e.target.value)} maxLength={1800} disabled={editorDisabled} placeholder="Your creative brief will appear here when you return from Cosmic Image Studio."/>
+        </label>
         <label>
           Cover image URL (optional)
           <input
@@ -308,13 +325,14 @@ function Editor({ user }) {
             onChange={change}
           />
         </label>
-        <div className="actions">
+        <h2><Rocket size={22}/> 5. Save or publish</h2>
+        <div className="actions ifund-editor-save">
           <button
             type="button"
             disabled={!canSaveCampaign({ id, loadedId, loadState, busy })}
             onClick={() => save("draft")}
           >
-            Save draft
+            <Save size={18}/> Save draft
           </button>
           <button
             type="button"
