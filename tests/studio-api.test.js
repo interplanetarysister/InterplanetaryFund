@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { routeStudioRequest, routePublicStudioPage } from '../worker/studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest } from '../worker/studioRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const env = { MIGRATION_API_PREVIEW: 'enabled', SUPABASE_URL: 'https://example.supabase.co', SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only' };
@@ -118,4 +118,87 @@ test('studio accepts safe relative links and rejects protocol-relative or script
     const rejected = await routeStudioRequest(request('/api/studio/pages', 'POST', bad), env, remote('admin').fetcher);
     assert.equal(rejected.status, 422);
   }
+});
+
+test('Studio AI is disabled unless explicitly enabled with a Workers AI binding', async () => {
+  const disabled = await routeStudioGenerateRequest(
+    request('/api/studio/generate', 'POST', { prompt: 'Create a campaign landing page' }),
+    env,
+  );
+  assert.equal(disabled.status, 503);
+});
+test('Studio AI enforces admin role and the shared daily quota before inference', async () => {
+  const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => {
+    throw new Error('AI must not run when quota is exhausted');
+  } } };
+  const memberFetcher = async (url) => Response.json({ id: uid, app_metadata: { role: 'member' } });
+  const denied = await routeStudioGenerateRequest(
+    request('/api/studio/generate', 'POST', { prompt: 'Create a campaign landing page' }),
+    aiEnv,
+    memberFetcher,
+  );
+  assert.equal(denied.status, 403);
+
+  const exhaustedFetcher = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+    return Response.json(false);
+  };
+  const limited = await routeStudioGenerateRequest(
+    request('/api/studio/generate', 'POST', { prompt: 'Create a campaign landing page' }),
+    aiEnv,
+    exhaustedFetcher,
+  );
+  assert.equal(limited.status, 429);
+});
+test('Studio AI returns a validated visual draft and never saves it automatically', async () => {
+  let calls = 0;
+  let aiCalls = 0;
+  const aiEnv = {
+    ...env,
+    IFUND_STUDIO_AI_ENABLED: 'enabled',
+    AI: {
+      run: async (model, input) => {
+        aiCalls += 1;
+        assert.equal(model, '@cf/zai-org/glm-4.7-flash');
+        assert.equal(input.max_tokens, 700);
+        return { response: JSON.stringify({ blocks: [
+          { type: 'hero', heading: 'A better future', body: 'Help make it happen.' },
+          { type: 'button', heading: 'Take action', label: 'Explore', url: '/' },
+        ] }) };
+      },
+    },
+  };
+  const fetcher = async (url, options = {}) => {
+    calls += 1;
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+    assert.match(String(url), /rpc\/ifund_studio_consume_ai_quota/);
+    return Response.json(true);
+  };
+  const r = await routeStudioGenerateRequest(
+    request('/api/studio/generate', 'POST', { prompt: 'Create a campaign landing page with a clear action' }),
+    aiEnv,
+    fetcher,
+  );
+  assert.equal(r.status, 200);
+  const result = await r.json();
+  assert.equal(result.content.blocks.length, 2);
+  assert.equal(result.content.blocks[0].id, 'ai-1');
+  assert.equal(result.content.blocks[1].url, '/');
+  assert.equal(aiCalls, 1);
+  assert.equal(calls, 2);
+});
+test('Studio AI rejects short or oversized prompts before consuming quota', async () => {
+  let calls = 0;
+  const fetcher = async () => {
+    calls += 1;
+    return Response.json({ id: uid, app_metadata: { role: 'admin' } });
+  };
+  const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => ({ response: '{}' }) } };
+  const short = await routeStudioGenerateRequest(
+    request('/api/studio/generate', 'POST', { prompt: 'short' }),
+    aiEnv,
+    fetcher,
+  );
+  assert.equal(short.status, 422);
+  assert.equal(calls, 1);
 });
