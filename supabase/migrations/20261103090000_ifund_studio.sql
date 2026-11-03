@@ -1,4 +1,6 @@
 -- IFund Studio: additive page-builder tables, restricted to verified administrators.
+create schema if not exists ifund_private;
+revoke all on schema ifund_private from public, anon, authenticated;
 do $
 begin
   if to_regprocedure('public.ifund_current_user_is_verified_admin()') is null then
@@ -45,7 +47,7 @@ drop policy if exists ifund_studio_published_read on public.ifund_studio_pages;
 create policy ifund_studio_published_read on public.ifund_studio_pages
   for select to anon, authenticated using (status = 'published');
 
-create or replace function public.ifund_studio_touch_updated_at()
+create or replace function ifund_private.ifund_studio_touch_updated_at()
 returns trigger language plpgsql security invoker set search_path = ''
 as $$
 begin
@@ -63,8 +65,9 @@ begin
 end;
 $$;
 drop trigger if exists ifund_studio_pages_touch_updated_at on public.ifund_studio_pages;
+revoke all on function ifund_private.ifund_studio_touch_updated_at() from public, anon, authenticated;
 create trigger ifund_studio_pages_touch_updated_at before insert or update on public.ifund_studio_pages
-  for each row execute function public.ifund_studio_touch_updated_at();
+  for each row execute function ifund_private.ifund_studio_touch_updated_at();
 -- Page deletion is intentionally unavailable; published pages are versioned on every edit.
 
 -- Very small global AI budget: at most two layout generations per UTC day.
@@ -138,7 +141,7 @@ drop policy if exists ifund_studio_versions_admin_read on public.ifund_studio_pa
 create policy ifund_studio_versions_admin_read on public.ifund_studio_page_versions
   for select to authenticated using (public.ifund_is_studio_admin());
 
-create or replace function public.ifund_studio_capture_page_version()
+create or replace function ifund_private.ifund_studio_capture_page_version()
 returns trigger
 language plpgsql
 security definer
@@ -169,6 +172,7 @@ begin
 end;
 $$;
 drop trigger if exists ifund_studio_pages_capture_version on public.ifund_studio_pages;
+revoke all on function ifund_private.ifund_studio_capture_page_version() from public, anon, authenticated;
 create trigger ifund_studio_pages_capture_version
   after insert or update on public.ifund_studio_pages
-  for each row execute function public.ifund_studio_capture_page_version();
+  for each row execute function ifund_private.ifund_studio_capture_page_version();
