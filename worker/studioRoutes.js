@@ -232,3 +232,21 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
     return response(502, { error: 'Studio AI could not generate a safe layout. Try again later.' });
   }
 }
+
+
+export async function routeStudioStatusRequest(request, env, fetcher = fetch) {
+  if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+  if (!migrationReady(env)) return response(503, { error: 'IFund Studio API is not enabled.' });
+  try {
+    const account = await authenticatedUser(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in with an administrator account.' });
+    if (!['admin', 'super_admin'].includes(account.role)) return response(403, { error: 'Administrator access required.' });
+    return response(200, {
+      pageBuilderEnabled: true,
+      aiEnabled: env.IFUND_STUDIO_AI_ENABLED === 'enabled' && typeof env.AI?.run === 'function',
+      aiDailyLimit: 2,
+    });
+  } catch {
+    return response(503, { error: 'Studio status is unavailable.' });
+  }
+}
