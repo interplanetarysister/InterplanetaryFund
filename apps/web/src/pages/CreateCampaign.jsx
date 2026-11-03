@@ -28,7 +28,17 @@ export default function CreateCampaign() {
     })();
     return () => { active = false; };
   }, [draftId,navigate]);
-  const [form, setForm] = useState({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" });
+  const [form, setForm] = useState(() => {
+    try {
+      const stored = JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1") || "null");
+      if (stored && typeof stored === "object" && !draftId) return {
+        title: String(stored.title || ""), summary: String(stored.summary || ""),
+        story: String(stored.story || ""), category: String(stored.category || "community"),
+        goal_amount: String(stored.goal_amount || ""), cover_image_url: String(stored.cover_image_url || ""),
+      };
+    } catch { /* private browsing or malformed draft */ }
+    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -91,6 +101,11 @@ export default function CreateCampaign() {
       setSuggesting(false);
     }
   }
+  useEffect(() => {
+    if (draftId) return;
+    try { sessionStorage.setItem("ifund-guest-campaign-v1", JSON.stringify(form)); }
+    catch { /* storage unavailable; no server-side guest persistence */ }
+  }, [form, draftId]);
   function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
@@ -112,13 +127,13 @@ export default function CreateCampaign() {
         : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw insertError;
-      setSaved(data.id);
+      setSaved(data.id);\n      try { sessionStorage.removeItem("ifund-guest-campaign-v1"); } catch { /* ignore */ }
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }
   }
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Save your campaign story as a private draft. Publishing and donations remain unavailable until independently verified.</p></header>
+    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore and write without an account. Sign up only when you save or publish. Your work stays in this browser during sign-up.</p></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
