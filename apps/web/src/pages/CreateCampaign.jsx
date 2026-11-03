@@ -38,6 +38,39 @@ export default function CreateCampaign() {
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
+  const [storySections, setStorySections] = useState([]);
+  const [sectionProposals, setSectionProposals] = useState({});
+  const [regeneratingSection, setRegeneratingSection] = useState(-1);
+  const [sectionError, setSectionError] = useState("");
+  function splitStory(story) {
+    return String(story || "").split(/\n\s*\n/).map(part => part.trim()).filter(Boolean);
+  }
+  function editSection(index, value) {
+    setStorySections(previous => previous.map((part, i) => i === index ? value : part));
+  }
+  async function regenerateSection(index) {
+    if (regeneratingSection !== -1 || suggesting || busy) return;
+    setRegeneratingSection(index);
+    setSectionError("");
+    try {
+      const original = storySections[index];
+      const result = await requestCampaignDraft(authClient(), {
+        details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
+        beneficiary: draftBeneficiary,
+        need: draftNeed,
+        cause: form.category,
+        goal: form.goal_amount,
+      });
+      const proposed = splitStory(result.story)[0];
+      if (!proposed) throw new Error("No replacement section returned.");
+      setSectionProposals(previous => ({ ...previous, [index]: proposed }));
+    } catch (err) {
+      setSectionError(err?.message || "Unable to regenerate section.");
+    } finally {
+      setRegeneratingSection(-1);
+    }
+  }
+
   async function suggestDraft() {
     if (busy || suggesting || loadingDraft || draftLoadError) return;
     setSuggesting(true); setSuggestionError(""); setSuggestions(null);
@@ -50,6 +83,8 @@ export default function CreateCampaign() {
         goal: form.goal_amount,
       });
       setSuggestions(result);
+      setStorySections(splitStory(result.story));
+      setSectionProposals({});
     } catch (error) {
       setSuggestionError(error?.message || "Could not prepare your draft.");
     } finally {
@@ -125,7 +160,26 @@ export default function CreateCampaign() {
         <h3 className="font-semibold">Story idea</h3>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
-          onClick={() => change("story",suggestions.story)}>Use story</button>
+          onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
+        <div className="space-y-4" aria-label="Story section editor">
+          <p className="text-sm text-muted-foreground">Edit each section separately. Regeneration produces a suggestion for your review and never overwrites other sections.</p>
+          {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
+            <label className="block font-semibold">Section {index + 1}
+              <textarea rows={5} value={part} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
+            </label>
+            <button type="button" disabled={regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
+              {regeneratingSection === index ? "Generating…" : "Regenerate this section"}
+            </button>
+            {sectionProposals[index] && <div className="space-y-2 rounded-xl border border-primary/30 p-3">
+              <p className="font-semibold">Suggested replacement</p>
+              <p className="whitespace-pre-wrap">{sectionProposals[index]}</p>
+              <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => { editSection(index,sectionProposals[index]); setSectionProposals(previous => { const next = {...previous}; delete next[index]; return next; }); }}>Accept</button>
+              <button type="button" className="ml-2 rounded-xl border border-border px-4 py-2" onClick={() => setSectionProposals(previous => { const next = {...previous}; delete next[index]; return next; })}>Discard</button>
+            </div>}
+          </div>)}
+          {sectionError && <p role="alert">{sectionError}</p>}
+          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
+        </div>
         {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
           <p>{suggestions.imagePrompt}</p>
         </details>}
