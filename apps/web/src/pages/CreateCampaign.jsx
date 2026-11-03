@@ -178,7 +178,7 @@ export default function CreateCampaign() {
             </div>}
           </div>)}
           {sectionError && <p role="alert">{sectionError}</p>}
-          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\\n\\n"))}>Use edited story sections</button>
+          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
         </div>
         {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
           <p>{suggestions.imagePrompt}</p>
