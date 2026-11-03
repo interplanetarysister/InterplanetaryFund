@@ -11,7 +11,9 @@ import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
-// Preserve the original Base44 homepage hero while the canonical frontend is restored.\n// Keep this working asset URL until the identical image is copied and verified on Pages.\nconst HERO_IMAGE = "https://media.base44.com/images/public/6a67a778342a8fe05ee79cba/b8b47ec6a_generated_image.png";
+// Preserve the original Base44 homepage hero while the canonical frontend is restored.
+// Keep this working asset URL until the identical image is copied and verified on Pages.
+const HERO_IMAGE = "https://media.base44.com/images/public/6a67a778342a8fe05ee79cba/b8b47ec6a_generated_image.png";
 
 // "Who is Interplanetary Fund?" — the opening of our story shows directly; the
 // full letter expands behind "Read more · Our Story".
