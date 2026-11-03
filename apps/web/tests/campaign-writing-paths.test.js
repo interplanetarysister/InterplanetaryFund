@@ -23,3 +23,11 @@ test("guided writing maintains request bounds and handles unknown choices", () =
   assert.equal(guidedCampaignDetails("unknown", "Needs funding").includes("the supplied facts"), true);
   assert.equal(guidedCampaignDetails("creative", "x".repeat(2000)).length, 1500);
 });
+
+
+test("full-length user facts take priority over optional guidance", () => {
+  const facts = "A".repeat(1500);
+  assert.equal(guidedCampaignDetails("community", facts), facts);
+  const shorter = "B".repeat(1490);
+  assert.equal(guidedCampaignDetails("creative", shorter), shorter);
+});
