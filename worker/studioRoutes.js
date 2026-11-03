@@ -166,7 +166,7 @@ export async function routeStudioGenerateRequest(request, env, fetcher = fetch) 
   if (!migrationReady(env) || env.IFUND_STUDIO_AI_ENABLED !== 'enabled' || typeof env.AI?.run !== 'function') {
     return response(503, { error: 'Studio AI generation is not enabled.' });
   }
-  if (!/^application\\/json(?:\\s*;|\\s*$)/i.test(request.headers.get('content-type') || '')) {
+  if (!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || '')) {
     return response(415, { error: 'JSON request body required.' });
   }
   try {
