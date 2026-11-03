@@ -53,6 +53,7 @@ export default function AdminStudio() {
   const [dirty, setDirty] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
   const blocks = page?.content?.blocks || [];
 
   const api = useCallback(async (path, method = "GET", body) => {
@@ -83,6 +84,12 @@ export default function AdminStudio() {
     try {
       const rows = await api("/api/studio/pages");
       setPages(rows);
+      try {
+        const status = await api("/api/studio/status");
+        setAiEnabled(status.aiEnabled === true);
+      } catch {
+        setAiEnabled(false);
+      }
       if (page?.id) {
         const fresh = rows.find((row) => row.id === page.id);
         if (fresh) setPage(fresh);
@@ -358,7 +365,7 @@ export default function AdminStudio() {
                     type="button"
                     className="primary"
                     onClick={generateLayout}
-                    disabled={!aiPrompt.trim() || generating}
+                    disabled={!aiEnabled || !aiPrompt.trim() || generating}
                   >
                     {generating ? "Generating…" : "Generate with AI"}
                   </button>
