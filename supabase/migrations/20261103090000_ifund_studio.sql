@@ -104,3 +104,61 @@ end;
 $$;
 revoke all on function public.ifund_studio_consume_ai_quota() from public, anon;
 grant execute on function public.ifund_studio_consume_ai_quota() to authenticated;
+
+
+-- Immutable snapshots for administrator-visible page version history.
+create table if not exists public.ifund_studio_page_versions (
+  id uuid primary key default gen_random_uuid(),
+  page_id uuid not null references public.ifund_studio_pages(id) on delete cascade,
+  version integer not null check (version > 0),
+  slug text not null,
+  title text not null,
+  content jsonb not null,
+  status text not null check (status in ('draft', 'published')),
+  changed_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  unique (page_id, version)
+);
+create index if not exists ifund_studio_page_versions_recent
+  on public.ifund_studio_page_versions(page_id, version desc);
+alter table public.ifund_studio_page_versions enable row level security;
+revoke all privileges on table public.ifund_studio_page_versions from public, anon, authenticated;
+grant select on public.ifund_studio_page_versions to authenticated;
+drop policy if exists ifund_studio_versions_admin_read on public.ifund_studio_page_versions;
+create policy ifund_studio_versions_admin_read on public.ifund_studio_page_versions
+  for select to authenticated using (public.ifund_is_studio_admin());
+
+create or replace function public.ifund_studio_capture_page_version()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_next integer;
+begin
+  if tg_op = 'UPDATE'
+    and old.slug is not distinct from new.slug
+    and old.title is not distinct from new.title
+    and old.content is not distinct from new.content
+    and old.status is not distinct from new.status then
+    return new;
+  end if;
+
+  select coalesce(max(version), 0) + 1
+    into v_next
+    from public.ifund_studio_page_versions
+    where page_id = new.id;
+
+  insert into public.ifund_studio_page_versions(
+    page_id, version, slug, title, content, status, changed_by
+  ) values (
+    new.id, v_next, new.slug, new.title, new.content, new.status, auth.uid()
+  );
+  return new;
+end;
+$$;
+drop trigger if exists ifund_studio_pages_capture_version on public.ifund_studio_pages;
+create trigger ifund_studio_pages_capture_version
+  after insert or update on public.ifund_studio_pages
+  for each row execute function public.ifund_studio_capture_page_version();
