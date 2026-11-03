@@ -54,6 +54,8 @@ export default function AdminStudio() {
   const [aiPrompt, setAiPrompt] = useState("");
   const [generating, setGenerating] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [restoringVersion, setRestoringVersion] = useState(false);
   const blocks = page?.content?.blocks || [];
 
   const api = useCallback(async (path, method = "GET", body) => {
@@ -104,6 +106,48 @@ export default function AdminStudio() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    if (!page?.id) {
+      setVersions([]);
+      return undefined;
+    }
+    let active = true;
+    api("/api/studio/pages/" + encodeURIComponent(page.id) + "/versions")
+      .then((rows) => {
+        if (active) setVersions(rows);
+      })
+      .catch(() => {
+        if (active) setVersions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, [api, page?.id, page?.updated_at]);
+
+  const restoreVersion = async (version) => {
+    if (!page?.id || restoringVersion) return;
+    setRestoringVersion(true);
+    setError("");
+    setNotice("");
+    try {
+      const restored = await api(
+        "/api/studio/pages/" + encodeURIComponent(page.id) +
+          "/versions/" + version + "/restore",
+        "POST",
+      );
+      setPage(restored);
+      setPages((current) =>
+        current.map((entry) => entry.id === restored.id ? restored : entry),
+      );
+      setDirty(false);
+      setNotice("Version " + version + " restored as a new draft revision.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setRestoringVersion(false);
+    }
+  };
 
   const updatePage = (patch) => {
     setPage((current) => ({ ...current, ...patch }));
@@ -374,6 +418,34 @@ export default function AdminStudio() {
                     protected
                   </span>
                 </div>
+              </div>
+
+              <div className="studio-history-panel">
+                <div>
+                  <h3>Version history</h3>
+                  <span>{versions.length} recent revisions</span>
+                </div>
+                {versions.length ? (
+                  <ul>
+                    {versions.map((entry) => (
+                      <li key={entry.id}>
+                        <span>
+                          <strong>Version {entry.version}</strong>
+                          <small>{new Date(entry.created_at).toLocaleString()}</small>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => restoreVersion(entry.version)}
+                          disabled={restoringVersion || entry.version === versions[0]?.version}
+                        >
+                          {restoringVersion ? "Restoring…" : "Restore as draft"}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Save this page to start its version history.</p>
+                )}
               </div>
 
               <div className="studio-builder">
