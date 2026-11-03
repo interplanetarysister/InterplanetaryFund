@@ -66,9 +66,7 @@ function App() {
           <button
             aria-label="Toggle theme"
             title="Toggle theme"
-            onClick={() =>
-              setTheme((t) => (t === "dark" ? "light" : "dark"))
-            }
+            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
           >
             ◐
           </button>
