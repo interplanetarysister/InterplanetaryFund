@@ -43,12 +43,20 @@ function validatePage(input, partial = false) {
           clean[field] = block[field].trim();
         }
       }
-      for (const field of ['url', 'imageUrl']) {
-        if (!clean[field]) continue;
+      if (clean.url) {
+        if (clean.url.startsWith('/')) {
+          if (clean.url.startsWith('//') || clean.url.includes('\\\\')) return null;
+        } else {
+          try {
+            const parsed = new URL(clean.url);
+            if (!['https:', 'http:'].includes(parsed.protocol) || parsed.username || parsed.password) return null;
+          } catch { return null; }
+        }
+      }
+      if (clean.imageUrl) {
         try {
-          const parsed = new URL(clean[field]);
-          if (parsed.username || parsed.password ||
-              (field === 'imageUrl' ? parsed.protocol !== 'https:' : !['https:', 'http:'].includes(parsed.protocol))) return null;
+          const parsed = new URL(clean.imageUrl);
+          if (parsed.protocol !== 'https:' || parsed.username || parsed.password) return null;
         } catch { return null; }
       }
       blocks.push(clean);
