@@ -45,7 +45,7 @@ function validatePage(input, partial = false) {
       }
       if (clean.url) {
         if (clean.url.startsWith('/')) {
-          if (clean.url.startsWith('//') || clean.url.includes('\\\\')) return null;
+          if (clean.url.startsWith('//') || clean.url.includes('\\')) return null;
         } else {
           try {
             const parsed = new URL(clean.url);
