@@ -129,7 +129,7 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
 export async function routePublicStudioPage(request, env, fetcher = fetch) {
   if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
   if (!migrationReady(env)) return response(503, { error: 'Studio pages are not available.' });
-  const match = /^\\/api\\/public\\/studio\\/pages\\/([a-z0-9]+(?:-[a-z0-9]+)*)$/i.exec(new URL(request.url).pathname);
+  const match = /^\/api\/public\/studio\/pages\/([a-z0-9]+(?:-[a-z0-9]+)*)$/i.exec(new URL(request.url).pathname);
   if (!match || match[1].length > 60) return response(404, { error: 'Page not found.' });
   try {
     const query = new URLSearchParams({
