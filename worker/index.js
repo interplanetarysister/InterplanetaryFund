@@ -2,7 +2,7 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
-import { routeStudioRequest } from './studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
@@ -12,7 +12,7 @@ export default {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
       return response(200, { status: 'ok', service: 'ifund-migration-api', production: false });
     }
-    if (/^\\/api\\/public\\/studio\\/pages\\//.test(pathname)) {
+    if (/^\/api\/public\/studio\/pages\//.test(pathname)) {
       return routePublicStudioPage(request, env);
     }
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
