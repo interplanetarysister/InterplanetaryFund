@@ -588,3 +588,38 @@ html[data-theme="light"] .studio-footnote {
     flex-direction: column;
   }
 }
+
+.studio-ai-panel {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid #667294;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background: #202743;
+}
+.studio-ai-panel label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+.studio-ai-panel textarea {
+  resize: vertical;
+}
+.studio-ai-panel > div {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+.studio-ai-panel span {
+  color: #aebbd4;
+  font-size: 0.82rem;
+}
+html[data-theme="light"] .studio-ai-panel {
+  background: #f5f7ff;
+  border-color: #c2cae4;
+}
+html[data-theme="light"] .studio-ai-panel span {
+  color: #52617c;
+}
