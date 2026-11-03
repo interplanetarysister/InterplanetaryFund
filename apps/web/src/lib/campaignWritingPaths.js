@@ -14,5 +14,7 @@ export function guidedCampaignDetails(pathId, userDetails) {
   const path = CAMPAIGN_WRITING_PATHS.find(item => item.id === pathId);
   const guidance = path?.guidance || "the supplied facts";
   // Keep the existing Edge Function's 1,500-character request contract.
-  return (`Campaign writing approach: ${guidance}. ${details}`).slice(0, 1500);
+  const prefix = `Campaign writing approach: ${guidance}. `;
+  // Preserve the user’s facts: omit optional guidance if it would exceed the API limit.
+  return prefix.length + details.length <= 1500 ? prefix + details : details.slice(0, 1500);
 }
