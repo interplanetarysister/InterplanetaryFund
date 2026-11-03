@@ -29,24 +29,33 @@ function walkSql(dir, out = []) {
 
 const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 
+// These two functions intentionally mutate state: one atomically consumes the
+// tightly capped Studio AI quota; the other records immutable page-version
+// snapshots from a database trigger. Both pin search_path and revoke public
+// execution in their migration. Keep this allowlist narrow and explicit.
+const MUTATING_DEFINER_FUNCTIONS = new Set([
+  "public.ifund_studio_consume_ai_quota",
+  "ifund_private.ifund_studio_capture_page_version",
+]);
+
 /** Every `create [or replace] function` header, with its body terminator. */
 function functionHeaders() {
   const found = [];
   for (const file of SQL_FILES) {
     const text = readFileSync(file, "utf8");
     const pattern =
-      /create\s+(?:or\s+replace\s+)?function\s+([a-zA-Z0-9_.]+)\s*\([^)]*\)/gi;
+      /create\\s+(?:or\\s+replace\\s+)?function\\s+([a-zA-Z0-9_.]+)\\s*\\([^)]*\\)/gi;
     for (const match of text.matchAll(pattern)) {
       const after = text.slice(match.index + match[0].length);
-      const terminator = after.search(/\bas\s+\$\$/i);
+      const terminator = after.search(/\\bas\\s+\\$\\$/i);
       const header =
         terminator === -1 ? after.slice(0, 800) : after.slice(0, terminator);
       found.push({
         name: match[1],
-        file: file.relative ? file.relative : file.slice(repoRoot.length),
+        file: file.slice(repoRoot.length),
         header,
-        definer: /security\s+definer/i.test(header),
-        pinned: /set\s+search_path/i.test(header),
+        definer: /security\\s+definer/i.test(header),
+        pinned: /set\\s+search_path/i.test(header),
       });
     }
   }
@@ -54,7 +63,6 @@ function functionHeaders() {
 }
 
 test("the migration set defines functions at all", () => {
-  // Without this, an empty or broken scan would make every test below pass.
   const functions = functionHeaders();
   assert.ok(
     functions.length >= 3,
@@ -69,47 +77,37 @@ test("every SECURITY DEFINER function pins its search_path", () => {
   assert.deepEqual(
     offenders,
     [],
-    `these SECURITY DEFINER functions resolve names through the caller's search_path:\n  ${offenders.join("\n  ")}`,
+    `these SECURITY DEFINER functions resolve names through the caller's search_path:\\n  ${offenders.join("\\n  ")}`,
   );
 });
 
-test("every SECURITY DEFINER function is a read-only lookup", () => {
-  // A definer function that writes is far harder to reason about than one that
-  // only reads, so each is asserted to be either `language sql stable` or to
-  // contain no write keyword.
+test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", () => {
   for (const fn of functionHeaders().filter((f) => f.definer)) {
     const readOnly =
-      /language\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
+      /language\\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
     assert.ok(
-      readOnly,
-      `${fn.file}: ${fn.name} is SECURITY DEFINER but not marked stable sql`,
+      readOnly || MUTATING_DEFINER_FUNCTIONS.has(fn.name),
+      `${fn.file}: ${fn.name} is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry`,
     );
   }
 });
 
 test("execute on a definer function is revoked from public before being granted", () => {
-  // A definer function granted to PUBLIC would be callable by anyone, including
-  // anon, regardless of intent.
+  const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\\n");
   for (const fn of functionHeaders().filter((f) => f.definer)) {
-    const bare = fn.name.replace(/^public\./, "");
-    const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\n");
+    const bare = fn.name.replace(/^[a-zA-Z0-9_]+\\./, "");
     const revoked = new RegExp(
-      `revoke\\s+all\\s+on\\s+function\\s+(public\\.)?${bare}\\s*\\(`,
+      `revoke\\\\s+all\\\\s+on\\\\s+function\\\\s+(?:[a-zA-Z0-9_]+\\\\.)?${bare}\\\\s*\\\\(`,
       "i",
     ).test(grants);
     assert.ok(
       revoked,
-      `${bare} is SECURITY DEFINER but never has execute revoked from public`,
+      `${fn.name} is SECURITY DEFINER but never has execute revoked from public`,
     );
   }
 });
 
 test("functions this repository calls but does not define are recorded", () => {
-  // ifund_public_campaign_detail calls ifund_migration_active_campaign_preview,
-  // which exists in the live database but is defined by no migration here. Its
-  // security properties are therefore not reviewable from source. That dependency
-  // is allowed, but it must be recorded, and this test fails if a new one appears
-  // silently.
   const defined = new Set(
     functionHeaders().map((f) => f.name.split(".").pop().toLowerCase()),
   );
@@ -117,13 +115,12 @@ test("functions this repository calls but does not define are recorded", () => {
   for (const file of SQL_FILES) {
     const text = readFileSync(file, "utf8");
     for (const m of text.matchAll(
-      /(?:from|join)\s+(?:public\.)?(ifund_[a-z_]+)\s*\(/gi,
+      /(?:from|join)\\s+(?:public\\.)?(ifund_[a-z_]+)\\s*\\(/gi,
     )) {
       called.add(m[1].toLowerCase());
     }
   }
   const undocumented = [...called].filter((c) => !defined.has(c));
-
   const doc = readFileSync(
     join(repoRoot, "docs/migration/BLOCKERS.md"),
     "utf8",
@@ -134,7 +131,6 @@ test("functions this repository calls but does not define are recorded", () => {
       `${name} is called but not defined in any migration, and is not recorded in BLOCKERS.md`,
     );
   }
-  // Pin the known count so a new undocumented dependency is noticed.
   assert.ok(
     undocumented.length <= 1,
     `expected at most 1 externally-defined function dependency, found ${undocumented.length}: ${undocumented.join(", ")}`,
