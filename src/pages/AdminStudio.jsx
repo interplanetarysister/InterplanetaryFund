@@ -9,6 +9,7 @@ const TYPES = [
   { type: "button", label: "Call to action" },
   { type: "image", label: "Image section" },
 ];
+
 const starter = () => ({
   slug: "new-page-" + Math.random().toString(36).slice(2, 7),
   title: "New page",
@@ -30,11 +31,11 @@ const starter = () => ({
     ],
   },
 });
+
 function blockDefaults(type) {
   const base = { id: crypto.randomUUID(), type, heading: "", body: "" };
   if (type === "button") return { ...base, label: "Learn more", url: "/" };
-  if (type === "image")
-    return { ...base, imageUrl: "", body: "Add an image URL." };
+  if (type === "image") return { ...base, imageUrl: "", body: "Add an image URL." };
   return base;
 }
 
@@ -54,8 +55,9 @@ export default function AdminStudio() {
     if (!db) throw new Error("Supabase is not configured.");
     const { data, error: sessionError } = await db.auth.getSession();
     const token = data?.session?.access_token;
-    if (sessionError || !token)
+    if (sessionError || !token) {
       throw new Error("Your administrator session has expired. Sign in again.");
+    }
     const response = await fetch(path, {
       method,
       headers: {
@@ -65,8 +67,9 @@ export default function AdminStudio() {
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
     const result = await response.json().catch(() => null);
-    if (!response.ok)
+    if (!response.ok) {
       throw new Error(result?.error || "Studio request failed.");
+    }
     return result;
   }, []);
 
@@ -86,6 +89,7 @@ export default function AdminStudio() {
       setLoading(false);
     }
   }, [api, page?.id]);
+
   useEffect(() => {
     load();
   }, [load]);
@@ -95,7 +99,8 @@ export default function AdminStudio() {
     setDirty(true);
     setNotice("");
   };
-  const updateBlock = (id, patch) =>
+
+  const updateBlock = (id, patch) => {
     updatePage({
       content: {
         blocks: blocks.map((block) =>
@@ -103,6 +108,8 @@ export default function AdminStudio() {
         ),
       },
     });
+  };
+
   const moveBlock = (from, to) => {
     if (to < 0 || to >= blocks.length || from === to) return;
     const next = [...blocks];
@@ -110,12 +117,17 @@ export default function AdminStudio() {
     next.splice(to, 0, moved);
     updatePage({ content: { blocks: next } });
   };
-  const addBlock = (type) =>
+
+  const addBlock = (type) => {
     updatePage({ content: { blocks: [...blocks, blockDefaults(type)] } });
-  const removeBlock = (id) =>
+  };
+
+  const removeBlock = (id) => {
     updatePage({
       content: { blocks: blocks.filter((block) => block.id !== id) },
     });
+  };
+
   const save = async (status = "draft") => {
     if (!page || busy) return;
     setBusy(true);
@@ -152,26 +164,34 @@ export default function AdminStudio() {
       setBusy(false);
     }
   };
+
   const startNew = () => {
     setPage(starter());
     setDirty(true);
     setError("");
     setNotice("");
   };
+
   const selectPage = (entry) => {
     setPage(entry);
     setDirty(false);
     setError("");
     setNotice("");
   };
-  const previewClass = useMemo(() => "studio-preview " + preview, [preview]);
 
-  if (loading && !page)
+  const previewClass = useMemo(
+    () => "studio-preview " + preview,
+    [preview],
+  );
+
+  if (loading && !page) {
     return (
       <main className="studio-shell">
         <Loading />
       </main>
     );
+  }
+
   return (
     <main className="studio-shell">
       <div className="studio-heading">
@@ -217,8 +237,10 @@ export default function AdminStudio() {
           </button>
         </div>
       </div>
+
       <Message error={Boolean(error)}>{error}</Message>
       <Message>{notice}</Message>
+
       <div className="studio-layout">
         <aside className="studio-sidebar">
           <div className="studio-sidebar-head">
@@ -232,7 +254,8 @@ export default function AdminStudio() {
               type="button"
               key={entry.id}
               className={
-                "studio-page-link " + (page?.id === entry.id ? "selected" : "")
+                "studio-page-link " +
+                (page?.id === entry.id ? "selected" : "")
               }
               onClick={() => selectPage(entry)}
             >
@@ -240,7 +263,9 @@ export default function AdminStudio() {
               <small>{entry.status}</small>
             </button>
           ))}
-          {!pages.length && <p className="studio-muted">No saved pages yet.</p>}
+          {!pages.length && (
+            <p className="studio-muted">No saved pages yet.</p>
+          )}
           <button
             type="button"
             className="secondary studio-refresh"
@@ -250,6 +275,7 @@ export default function AdminStudio() {
             Refresh pages
           </button>
         </aside>
+
         <section className="studio-editor">
           {!page ? (
             <div className="studio-empty">
@@ -287,16 +313,17 @@ export default function AdminStudio() {
                   />
                 </label>
                 <span className="studio-status">
-                  {page.status || "draft"}{" "}
-                  {dirty ? "· unsaved changes" : "· saved"}
+                  {page.status || "draft"} {dirty ? "· unsaved changes" : "· saved"}
                 </span>
               </div>
+
               <div className="studio-builder">
                 <div className="studio-blocks">
                   <div className="studio-section-title">
                     <h2>Page sections</h2>
                     <span>{blocks.length}/40</span>
                   </div>
+
                   {blocks.map((block, index) => (
                     <article
                       key={block.id}
@@ -312,8 +339,8 @@ export default function AdminStudio() {
                     >
                       <div className="studio-block-head">
                         <strong>
-                          {TYPES.find((item) => item.type === block.type)
-                            ?.label || block.type}
+                          {TYPES.find((item) => item.type === block.type)?.label ||
+                            block.type}
                         </strong>
                         <div>
                           <button
@@ -341,6 +368,7 @@ export default function AdminStudio() {
                           </button>
                         </div>
                       </div>
+
                       <label>
                         Heading
                         <input
@@ -353,6 +381,7 @@ export default function AdminStudio() {
                           }
                         />
                       </label>
+
                       {block.type === "image" && (
                         <label>
                           Image URL
@@ -368,6 +397,7 @@ export default function AdminStudio() {
                           />
                         </label>
                       )}
+
                       {block.type === "button" && (
                         <>
                           <label>
@@ -396,6 +426,7 @@ export default function AdminStudio() {
                           </label>
                         </>
                       )}
+
                       <label>
                         Body
                         <textarea
@@ -409,6 +440,7 @@ export default function AdminStudio() {
                       </label>
                     </article>
                   ))}
+
                   <div className="studio-add-block">
                     <strong>Add a section</strong>
                     <div>
@@ -426,6 +458,7 @@ export default function AdminStudio() {
                     </div>
                   </div>
                 </div>
+
                 <div className={previewClass}>
                   <div className="studio-preview-top">
                     <span>Live preview</span>
@@ -438,7 +471,10 @@ export default function AdminStudio() {
                         className={"studio-render studio-render-" + block.type}
                       >
                         {block.type === "image" && block.imageUrl && (
-                          <img src={block.imageUrl} alt={block.heading || ""} />
+                          <img
+                            src={block.imageUrl}
+                            alt={block.heading || ""}
+                          />
                         )}
                         {block.heading && <h2>{block.heading}</h2>}
                         {block.body && <p>{block.body}</p>}
@@ -447,8 +483,9 @@ export default function AdminStudio() {
                             className="primary"
                             href={block.url || "#"}
                             onClick={(event) => {
-                              if (!block.url || block.url.startsWith("/"))
+                              if (!block.url || block.url.startsWith("/")) {
                                 event.preventDefault();
+                              }
                             }}
                           >
                             {block.label || "Learn more"}
@@ -463,11 +500,12 @@ export default function AdminStudio() {
           )}
         </section>
       </div>
+
       <p className="studio-footnote">
-        Studio saves structured page drafts to Supabase. Marking a page
-        published records its Studio status; it does not deploy code or create a
-        live site route. AI code generation and GitHub publishing are separate
-        capabilities and are not enabled in this first package.
+        Studio saves structured page drafts to Supabase. Marking a page published
+        records its Studio status; it does not deploy code or create a live site
+        route. AI code generation and GitHub publishing are separate capabilities
+        and are not enabled in this first package.
       </p>
     </main>
   );
