@@ -1,0 +1,36 @@
+name: Original frontend Cloudflare preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: interplanetarysister/interplanetary-fund2
+          ref: main
+          token: ${{ secrets.IFUND_SOURCE_READ_TOKEN || github.token }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install original frontend dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Build original frontend, retaining Base44 runtime
+        run: npm run --ignore-scripts build
+        env:
+          VITE_APP_BASE_URL: ${{ vars.VITE_APP_BASE_URL }}
+          VITE_APP_ID: ${{ vars.VITE_APP_ID }}
+      - name: Verify frontend artifact
+        run: |
+          test -s dist/index.html
+          test -d dist/assets
+      - name: Publish isolated Cloudflare preview
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@3 pages deploy dist --project-name interplanetaryfund-migration --branch original-frontend-preview --commit-dirty=true
