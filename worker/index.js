@@ -15,7 +15,7 @@ export default {
     if (/^\/api\/public\/studio\/pages\//.test(pathname)) {
       return routePublicStudioPage(request, env);
     }
-    if (/^\\/api\\/studio\\/pages\\/[0-9a-f-]+\\/versions(?:\\/[0-9]+\\/restore)?$/i.test(pathname)) {\n      return routeStudioVersionRequest(request, env);\n    }\n    if (pathname === '/api/studio/status') {
+    if (/^\/api\/studio\/pages\/[0-9a-f-]+\/versions(?:\/[0-9]+\/restore)?$/i.test(pathname)) {\n      return routeStudioVersionRequest(request, env);\n    }\n    if (pathname === '/api/studio/status') {
       return routeStudioStatusRequest(request, env);
     }
     if (pathname === '/api/studio/generate') {
