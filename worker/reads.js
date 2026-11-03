@@ -19,17 +19,12 @@ export function migrationReady(env) {
 }
 
 function providerHeaders(env, jwt) {
-  // Modern sb_publishable_ keys are API identifiers, NOT bearer JWTs.
-  // Anonymous reads use only apikey. User-scoped reads forward the verified JWT.
-  const headers = {
-    apikey: env.SUPABASE_PUBLISHABLE_KEY,
-    Accept: 'application/json',
-  };
+  const headers = { apikey: env.SUPABASE_PUBLISHABLE_KEY, Accept: 'application/json' };
   if (jwt) headers.Authorization = 'Bearer ' + jwt;
   return headers;
 }
 
-/** Verify the supplied bearer with Supabase Auth; never trust unsigned JWT claims. */
+/** Verify the bearer with Supabase Auth; roles come only from protected app_metadata. */
 export async function authenticatedUser(request, env, fetcher = fetch) {
   const value = request.headers.get('authorization') || '';
   if (!/^Bearer [A-Za-z0-9._~-]+$/.test(value)) return null;
@@ -40,7 +35,8 @@ export async function authenticatedUser(request, env, fetcher = fetch) {
   if (!res.ok) return null;
   const account = await res.json();
   if (!uuid.test(account?.id || '')) return null;
-  return { uid: account.id, jwt };
+  const role = typeof account?.app_metadata?.role === 'string' ? account.app_metadata.role : null;
+  return { uid: account.id, jwt, role };
 }
 
 /** Shared read-only PostgREST request, with user JWT for user-scoped RLS. */
@@ -53,47 +49,28 @@ async function readOnly(env, relative, jwt, fetcher) {
   return response(200, await upstream.json());
 }
 
-/**
- * Ported read subset from Base44 getCommunityFeed, getCampaignDraft and
- * campaign discovery. The preview flag defaults disabled. No financial writes.
- */
+/** Ported read subset from Base44 getCommunityFeed, getCampaignDraft and campaign discovery. */
 export async function routeReadRequest(request, env, fetcher = fetch) {
   if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
   if (!migrationReady(env)) return response(503, { error: 'Independent migration API not enabled.' });
-
   const path = new URL(request.url).pathname;
   try {
     if (path === '/api/community/feed') {
-      return await readOnly(
-        env, 'ifund_posts?select=id,author_id,body,created_at&order=created_at.desc&limit=30',
-        null, fetcher,
-      );
+      return await readOnly(env, 'ifund_posts?select=id,author_id,body,created_at&order=created_at.desc&limit=30', null, fetcher);
     }
     if (path === '/api/campaigns/public') {
-      return await readOnly(
-        env, 'ifund_campaigns?select=id,title,summary,category,goal_amount,cover_image_url,created_at&status=eq.active&order=created_at.desc&limit=30',
-        null, fetcher,
-      );
+      return await readOnly(env, 'ifund_campaigns?select=id,title,summary,category,goal_amount,cover_image_url,created_at&status=eq.active&order=created_at.desc&limit=30', null, fetcher);
     }
-
     if (path === '/api/campaigns/mine') {
       const member = await authenticatedUser(request, env, fetcher);
       if (!member) return response(401, { error: 'Sign in to view your campaigns.' });
-      const params = new URLSearchParams({
-        select: 'id,title,summary,category,goal_amount,cover_image_url,status,created_at,updated_at',
-        owner_id: 'eq.' + member.uid,
-        order: 'created_at.desc',
-        limit: '50',
-      });
+      const params = new URLSearchParams({ select: 'id,title,summary,category,goal_amount,cover_image_url,status,created_at,updated_at', owner_id: 'eq.' + member.uid, order: 'created_at.desc', limit: '50' });
       return await readOnly(env, 'ifund_campaigns?' + params.toString(), member.jwt, fetcher);
     }
     const publicMatch = /^\/api\/campaigns\/([a-f0-9-]+)$/i.exec(path);
     if (publicMatch) {
       if (!uuid.test(publicMatch[1])) return response(400, { error: 'Invalid campaign ID.' });
-      const params = new URLSearchParams({
-        select: 'id,title,summary,story,category,goal_amount,cover_image_url,created_at,updated_at',
-        id: 'eq.' + publicMatch[1], status: 'eq.active', limit: '1',
-      });
+      const params = new URLSearchParams({ select: 'id,title,summary,story,category,goal_amount,cover_image_url,created_at,updated_at', id: 'eq.' + publicMatch[1], status: 'eq.active', limit: '1' });
       return await readOnly(env, 'ifund_campaigns?' + params.toString(), null, fetcher);
     }
     const match = /^\/api\/campaigns\/([a-f0-9-]+)\/draft$/i.exec(path);
@@ -101,12 +78,7 @@ export async function routeReadRequest(request, env, fetcher = fetch) {
       if (!uuid.test(match[1])) return response(400, { error: 'Invalid campaign ID.' });
       const member = await authenticatedUser(request, env, fetcher);
       if (!member) return response(401, { error: 'Sign in to view this draft.' });
-      const params = new URLSearchParams({
-        select: 'id,title,summary,story,category,goal_amount,cover_image_url,status',
-        id: 'eq.' + match[1],
-        owner_id: 'eq.' + member.uid,
-        limit: '1',
-      });
+      const params = new URLSearchParams({ select: 'id,title,summary,story,category,goal_amount,cover_image_url,status', id: 'eq.' + match[1], owner_id: 'eq.' + member.uid, limit: '1' });
       return await readOnly(env, 'ifund_campaigns?' + params.toString(), member.jwt, fetcher);
     }
     return response(404, { error: 'Not found.' });
