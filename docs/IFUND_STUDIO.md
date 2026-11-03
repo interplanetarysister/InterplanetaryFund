@@ -13,7 +13,7 @@ This branch adds the first independent Studio foundation to the migration integr
 
 ## Deliberate boundaries
 - Published Studio documents render at /p/:slug once the frontend and Worker are deployed and the Studio migration is applied. This publishes structured content, not application code, and does not modify existing application routes.
-- AI code generation and GitHub publishing are not enabled in this first package.
+- AI-assisted layout generation is implemented as an optional Worker capability but remains disabled by default; AI code generation and GitHub publishing are not included.
 - The Worker preview gate remains disabled by default. The SQL file is a migration artifact only and has not been applied to the connected Supabase project.
 - No production deployment, DNS change, payment change, or live data operation is performed by this branch.
 
