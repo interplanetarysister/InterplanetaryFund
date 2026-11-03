@@ -2,7 +2,7 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
-import { routeStudioRequest, routePublicStudioPage } from './studioRoutes.js';
+import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
@@ -15,7 +15,7 @@ export default {
     if (/^\/api\/public\/studio\/pages\//.test(pathname)) {
       return routePublicStudioPage(request, env);
     }
-    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
+    if (pathname === '/api/studio/generate') {\n      return routeStudioGenerateRequest(request, env);\n    }\n    if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\//.test(pathname)) {
       return routeStudioRequest(request, env);
     }
     if (pathname === '/api/community/feed' || pathname === '/api/campaigns/public' ||
