@@ -28,6 +28,19 @@ jobs:
         run: |
           test -s dist/index.html
           test -d dist/assets
+          grep -q 'viewport-fit=cover' dist/index.html
+          grep -q 'Interplanetary Fund' dist/index.html
+          test -s dist/manifest.json
+          test -s dist/favicon.jpg
+          test -s dist/apple-touch-icon.jpg
+          find dist/assets -type f -name '*.js' -size +0c | grep -q .
+      - name: Verify Base44 preview configuration is present
+        env:
+          VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
+          VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
+        run: |
+          test -n "$VITE_BASE44_APP_BASE_URL" || { echo 'Missing VITE_BASE44_APP_BASE_URL'; exit 1; }
+          test -n "$VITE_BASE44_APP_ID" || { echo 'Missing VITE_BASE44_APP_ID'; exit 1; }
       - name: Publish isolated Cloudflare preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
