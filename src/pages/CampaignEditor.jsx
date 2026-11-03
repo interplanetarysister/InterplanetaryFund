@@ -288,7 +288,7 @@ function Editor({ user }) {
                   </div>
                 ))}
                 <button type="button" disabled={editorDisabled || sectionBusy !== -1}
-                  onClick={() => setForm((f) => ({ ...f, story: storyParts.join("\\n\\n") }))}>
+                  onClick={() => setForm((f) => ({ ...f, story: storyParts.join("\n\n") }))}>
                   Use edited story
                 </button>
               </div>
