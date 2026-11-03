@@ -207,10 +207,11 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
 });
 test('Studio AI rejects short or oversized prompts before consuming quota', async () => {
   let calls = 0;
-  const fetcher = async () => {
+  const fetcher = async (url) => {
     calls += 1;
-    if (String(arguments[0] || '').endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
-    return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
+    return Response.json(false);
   };
   const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => ({ response: '{}' }) } };
   const short = await routeStudioGenerateRequest(
