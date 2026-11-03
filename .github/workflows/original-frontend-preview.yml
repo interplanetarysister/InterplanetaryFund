@@ -18,9 +18,9 @@ jobs:
           node-version: '22'
           cache: npm
       - name: Install original frontend dependencies
-        run: npm ci --ignore-scripts --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Build original frontend, retaining Base44 runtime
-        run: npm run build --ignore-scripts
+        run: npm run build
         env:
           VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
           VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
