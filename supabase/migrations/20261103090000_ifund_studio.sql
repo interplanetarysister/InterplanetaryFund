@@ -33,6 +33,10 @@ grant insert, update, delete on public.ifund_studio_pages to authenticated;
 drop policy if exists ifund_studio_admin_all on public.ifund_studio_pages;
 create policy ifund_studio_admin_all on public.ifund_studio_pages for all to authenticated
   using (public.ifund_is_studio_admin()) with check (public.ifund_is_studio_admin());
+-- Visitors may read published page documents only; drafts remain administrator-only.
+drop policy if exists ifund_studio_published_read on public.ifund_studio_pages;
+create policy ifund_studio_published_read on public.ifund_studio_pages
+  for select to anon, authenticated using (status = 'published');
 
 create or replace function public.ifund_studio_touch_updated_at()
 returns trigger language plpgsql security invoker set search_path = ''
