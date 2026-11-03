@@ -71,7 +71,7 @@ export async function routeStudioRequest(request, env, fetcher = fetch) {
   if (!migrationReady(env)) return response(503, { error: 'IFund Studio API is not enabled.' });
   const path = new URL(request.url).pathname;
   const collection = path === '/api/studio/pages';
-  const item = /^\/api\/studio\/pages\/([0-9a-f-]+)$/i.exec(path);
+  const item = /^\/api\/studio\/pages\/([^/]+)$/i.exec(path);
   if (!collection && !item) return response(404, { error: 'Not found.' });
   if (!['GET', 'POST', 'PATCH'].includes(request.method)) return response(405, { error: 'Method not allowed.' });
   if (request.method === 'POST' && !collection) return response(405, { error: 'Method not allowed.' });
