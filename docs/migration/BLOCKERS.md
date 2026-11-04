@@ -119,3 +119,16 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 **Actions blocking safe Base44 shutdown:** Securely migrate verified Supabase users and campaign ownership with explicit consent, reconcile source content/media and donations, audit RLS and browser column grants with actual two-account negative tests, review/merge remaining source phases and PayPal/finance/webhooks, deploy independent Worker and Pages to a nonproduction route, prove Base44-free HTTP response parity and rollback, then separately authorize production cutover. Data import must not be faked by relabeling the private legacy snapshot tables.
 
 **Merge queue:** #139–#143 currently have conflicts after #138 landed and unresolved review findings. Resolve their conflicts and review findings one at a time rather than force-merging old stacked changes; #141/#142 contain API/UI implementations already extracted cleanly to merged #150/#151. #144/#146/#147/#148 are draft/review-gated; #145 platform-support payments alone are not campaign donations and withdrawals. Obsolete #136 must never be merged.
+
+
+## B13 — Password recovery must deliver an email code (owner preference)
+
+**Current project constraint verified 2026-11-03:** the designated InterplanetaryFund Supabase organization is on the Free plan. Supabase's June 3, 2026 breaking change says new Free projects using Supabase's default SMTP cannot customize authentication email templates; custom templates remain available on existing Free projects created before that date, paid plans, or Free projects configured with their own SMTP provider. The target project was created 2026-10-24, so do not assume its default SMTP can be changed to send the required 6-digit recovery code.
+
+- The UI can implement password login and a recovery-code entry/verification flow using Supabase Auth.
+- Supabase supports recovery OTP verification with verifyOtp({ email, token, type: "recovery" }); the recovery template must include {{ .Token }} rather than only {{ .ConfirmationURL }} for a code-first email.
+- Existing PR #207 preserves PKCE/token_hash link recovery as a compatible fallback, but a link is not the owner's preferred recovery experience.
+- **Blocked external action:** owner must choose and provision an approved custom SMTP sender/provider (free-tier-first) or confirm that the current project already has a code-enabled recovery template. Keep credentials server-side; never request or commit the secret value.
+- Do not claim code recovery works until a real email is received, the OTP is verified, password update succeeds, the old password is rejected, and the new password signs in.
+- Source: https://supabase.com/changelog/46599-changes-to-email-template-customisation-on-free-tier and https://supabase.com/docs/guides/auth/auth-email-templates
+
