@@ -147,9 +147,9 @@ jobs:
           PREVIEW_URL="$PREVIEW_URL" node --input-type=module -e '
             import fs from "node:fs";
             const html = fs.readFileSync("/tmp/ifund-live-home.html", "utf8");
-            const links = [...html.matchAll(/<link\\b[^>]*>/gi)].map(m => m[0]);
-            const css = links.filter(tag => /\\brel=["\\x27]stylesheet["\\x27]/i.test(tag))
-              .map(tag => tag.match(/\\bhref=["\\x27]([^"\\x27]+)["\\x27]/i)?.[1])
+            const links = [...html.matchAll(/<link\b[^>]*>/gi)].map(m => m[0]);
+            const css = links.filter(tag => /\brel=["\x27]stylesheet["\x27]/i.test(tag))
+              .map(tag => tag.match(/\bhref=["\x27]([^"\x27]+)["\x27]/i)?.[1])
               .filter(Boolean);
             if (!css.length) throw Error("No stylesheet assets in deployed homepage");
             const origin = new URL(process.env.PREVIEW_URL);
@@ -157,7 +157,7 @@ jobs:
               const url = new URL(asset, origin);
               if (url.origin !== origin.origin) throw Error("Unexpected external stylesheet: " + url);
             }
-            fs.writeFileSync("/tmp/ifund-live-styles.txt", css.join("\\n") + "\\n");
+            fs.writeFileSync("/tmp/ifund-live-styles.txt", css.join("\n") + "\n");
           '
           while IFS= read -r asset; do
             test -n "$asset" || continue
