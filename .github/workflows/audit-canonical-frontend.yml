@@ -46,6 +46,22 @@ jobs:
             fi
             comm -23 "audit-evidence/original-$kind-basenames.txt" "audit-evidence/destination-$kind-basenames.txt" > "audit-evidence/unmatched-original-$kind.txt"
           done
+          # Exact public-asset paths and content hashes are stronger evidence than filenames.
+          # Missing/different assets are actionable; matching hashes still do not prove rendered parity.
+          if test -d original-frontend/public; then
+            (cd original-frontend/public && find . -type f -print0 | sort -z | xargs -0 -r sha256sum) > audit-evidence/original-public-sha256.txt
+          else
+            : > audit-evidence/original-public-sha256.txt
+          fi
+          if test -d apps/web/public; then
+            (cd apps/web/public && find . -type f -print0 | sort -z | xargs -0 -r sha256sum) > audit-evidence/destination-public-sha256.txt
+          else
+            : > audit-evidence/destination-public-sha256.txt
+          fi
+          cut -c 67- audit-evidence/original-public-sha256.txt | sort > audit-evidence/original-public-paths.txt
+          cut -c 67- audit-evidence/destination-public-sha256.txt | sort > audit-evidence/destination-public-paths.txt
+          comm -23 audit-evidence/original-public-paths.txt audit-evidence/destination-public-paths.txt > audit-evidence/missing-original-public-assets.txt
+          join -j 2 <(sort -k2 audit-evidence/original-public-sha256.txt) <(sort -k2 audit-evidence/destination-public-sha256.txt) | awk '$2 != $3 {print $1}' > audit-evidence/changed-original-public-assets.txt
           git rev-parse HEAD > audit-evidence/deployable-checkout-sha.txt
           cp original-frontend/package.json audit-evidence/original-package.json
           printf '%s\n' "$source_sha" > audit-evidence/original-source-sha.txt
@@ -56,6 +72,8 @@ jobs:
             echo "- Pages: $(wc -l < audit-evidence/original-pages.txt)"
             echo "- Components: $(wc -l < audit-evidence/original-components.txt)"
             echo "- Public assets: $(wc -l < audit-evidence/original-public-assets.txt)"
+            echo "- Missing original public asset paths: $(wc -l < audit-evidence/missing-original-public-assets.txt)"
+            echo "- Same-path public assets with different SHA-256: $(wc -l < audit-evidence/changed-original-public-assets.txt)"
             echo "- Original page filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-pages.txt)"
             echo "- Original component filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-components.txt)"
             echo "- Filename differences are triage only; they do not establish missing functionality or visual parity."
