@@ -162,7 +162,7 @@ The first two CI attempts failed before build because the new API client exposed
 | `.agents/skills/wix-base44-connector/SKILL.md` | 443 | Base44 app context, Base44 server function path, Base44 service-role Wix token retrieval, Base44 preview/published domains and Wix/Base44 app handoff (e.g. L13, L88, L138, L298, L314, L372–392). | Retain legitimate Wix API knowledge only if the Wix marketing site still needs it; remove Base44 app assumptions and route Wix credentials through an independent server-side integration. This skill is not an IFund runtime dependency. |
 | `.agents/skills/wix-base44-connector/utils.cjs` | 464 | The helper is explicitly a Base44 sandbox/Wix docs tool; it uses a Base44-specific scratch path and instructions (L1–8, L21, L295). | Replace with a generic Wix documentation helper if still needed, or archive it as source-only tooling. Never copy its scratch files or credentials into the app runtime. |
 
-**Batch result:** 13 files reviewed in this batch (11 agent guides plus the two Wix connector files); together with the first five, 18 distinct skill files have been reviewed. Four additional reference-guide files are exact duplicates of earlier files, so 22 physical files have been inspected. 8 current IFund skill guides contain explicit Base44 runtime/agent format dependencies; 3 legacy agent references do not contain Base44 naming; the Wix connector is a separate 907-line Base44-contextual tool that needs its own disposition. The 39-line content-writes guide has a direct Base44 registration dependency despite having only one literal mention.
+**Batch result:** 13 files reviewed in this batch (11 agent guides plus the two Wix connector files); together with the first five, 19 unique skill files have been reviewed. Seven reference-guide files are exact duplicates of earlier files, so 26 physical files have been inspected. 8 current IFund skill guides contain explicit Base44 runtime/agent format dependencies; 3 legacy agent references do not contain Base44 naming; the Wix connector is a separate 907-line Base44-contextual tool that needs its own disposition. The 39-line content-writes guide has a direct Base44 registration dependency despite having only one literal mention.
 
 **Important distinction:** Wix is a real external site/platform and must not be erased from the platform integration map. Only the Base44-hosted Wix connector path and assumptions are removed; any separate Wix marketing site or authorized Wix APIs remain independently configurable.
 
@@ -252,7 +252,7 @@ The Wix connector's `references/CAPABILITY_MAP.md` is 87 lines. Its only Base44 
 
 `.github/` contains 9 files, all previously inspected in full: FUNDING.yml, copilot-instructions.md, the code-review skill, and six workflows. The workflow replacement mapping is recorded in the prior `.github` audit section.
 
-**Directory audit totals so far:** `.agents/` 26/26 files; `.ci/` 1/1; `.github/` 9/9. Together with 21/21 root-level text files, the first three path groups are inspected. No source files were modified.
+**Directory audit totals so far:** `.agents/` 26/26 files; `.ci/` 1/1; `.github/` 9/9. Together with 23/23 root-level files, the root path group is inspected. No source files were modified.
 
 ### Required source directives read before continuing
 
@@ -825,7 +825,7 @@ All 23 root-level files in the source repository were fetched and reviewed, incl
 
 **Source instruction reconciliation:** source `AGENTS.md` is not an authorization to leave Base44 as the permanent production host; it is a safeguard against premature deletion during a reversible cutover. The independent destination branch should continue to implement the alternate path without mutating the source. A final cutover should be a separate explicit production operation after data, auth, financial, integrations, agents, workflows, media, mobile and rollback gates pass.
 
-**Source root status:** 23/23 root files reviewed. The source recursive tree has 1,249 tracked files total: 367 `src/`, 373 `base44/`, 182 `scripts/`, 85 `docs/`, 74 `host/`, 55 `android/`, 50 `public/`, 26 `.agents/`, 9 `.github/`, 23 root files, 2 `tools/`, 1 `.ci/`, 1 `audits/`, and 1 `supabase/` migration. The next remaining source audit targets are the 17 workflow definitions, 11 connectors, 10 agent definitions, 95 entity schemas (already inventoried), then host/scripts/docs/public/android and the rest of the root-level build artifacts.
+**Source root status:** 23/23 root files reviewed. The source recursive tree has 1,249 tracked files total: 367 `src/`, 373 `base44/`, 182 `scripts/`, 85 `docs/`, 74 `host/`, 55 `android/`, 50 `public/`, 26 `.agents/`, 9 `.github/`, 23 root files, 2 `tools/`, 1 `.ci/`, 1 `audits/`, and 1 `supabase/` migration. The Base44 subtree, frontend, scripts, docs, agents, connectors, workflows, host runtime, root build files, Android text/config and public SVGs have now been traversed; remaining closure work is final binary-artifact inspection and destination parity/implementation, not another source-directory inventory.
 
 
 ### Agent, connector and workflow configuration audit
@@ -933,7 +933,7 @@ Do not set any worker `ready:true` or enable any schedule until the underlying r
 
 ### Script/test inventory — all 181 script files reviewed
 
-All **181 files** under `scripts/` were fetched and reviewed (182 directory entries include the `fixtures/` folder). The 419-line `scripts/fixtures/ifund-agent-access-baseline.json` was also inspected. The scripts are primarily source-contract tests and migration diagnostics; they are not proof of production execution or provider parity.
+All **182 files** under `scripts/` were accounted for: 181 executable scripts and one fixture file. The 419-line `scripts/fixtures/ifund-agent-access-baseline.json` was also inspected. The scripts are primarily source-contract tests and migration diagnostics; they are not proof of production execution or provider parity.
 
 #### Scripts that are explicitly Base44-bound and must be retired or rewritten for the independent destination
 
@@ -967,7 +967,7 @@ A large number of tests are static source assertions or mocked handler tests tha
 **Scripts status:** 181/181 script files reviewed. No source scripts were changed. The source scripts contain a substantial Base44-only release/test framework that must be split into (a) historical source validation, (b) portable behavioral acceptance tests and (c) destination integration/live tests.
 
 
-### Documentation and runbook traversal — 77 root docs + 14 nested docs reviewed
+### Documentation and runbook traversal — 71 root docs + 14 nested docs reviewed
 
 The source `docs/` tree has been reviewed, including the 71 root-level files and 14 files in `admin/`, `checkpoints/`, `integrations/`, `migration/`, `operations/` and `security/`. These are historical operating records; several are mutually contradictory and must not be treated as a single current policy.
 
@@ -1015,7 +1015,7 @@ The source `docs/` tree has been reviewed, including the 71 root-level files and
 
 ### Source-wide inventory checkpoint
 
-The source repository's top-level inventory has been reconciled: 1,249 tracked files, including 367 frontend files, 373 Base44 runtime/config files, 181 scripts plus one fixture, 85 docs files (71 root files + 14 nested files), 74 host files, 55 Android files, 50 public assets, 26 agent-skill files, 9 GitHub files, 23 root files and 2 tool-package files. The Base44 subtree, `src/`, scripts and docs have been traversed as described above. Host snapshot copies, remaining Android binary assets and remaining repository directories still need exact duplicate/hash and line-level closure checks before the entire 1,249-file request can be called exhaustive.
+The source repository's top-level inventory has been reconciled: 1,249 tracked files, including 367 frontend files, 373 Base44 runtime/config files, 181 scripts plus one fixture, 85 docs files (71 root files + 14 nested files), 74 host files, 55 Android files, 50 public assets, 26 agent-skill files, 9 GitHub files, 23 root files and 2 tool-package files. The Base44 subtree, `src/`, scripts and docs have been traversed as described above. The 17 workflow snapshots, 26 skill snapshots and 10 agent snapshots were SHA-compared with their canonical sources; all 53 matched. Android binary assets and public raster assets are inventoried but not visually decoded. `.ci/`, `audits/` and `supabase/` were also inspected.
 
 
 ### Host snapshot parity and standalone OAuth/email worker review
