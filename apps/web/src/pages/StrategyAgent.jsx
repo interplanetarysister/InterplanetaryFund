@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 
 const button = "min-h-11 rounded-lg border px-4 py-2 disabled:opacity-50";
-async function api(path, body) {
+async function planningApi(agent, path, body) {
   const { data, error } = await authClient().auth.getSession();
   if (error || !data?.session?.access_token)
     throw Error("Please sign in again.");
-  const res = await fetch("/api/agents/strategy/" + path, {
+  const res = await fetch("/api/agents/" + agent + "/" + path, {
     method: body ? "POST" : "GET",
     headers: {
       Authorization: "Bearer " + data.session.access_token,
@@ -26,7 +26,13 @@ async function api(path, body) {
     );
   return result;
 }
-export default function StrategyAgent() {
+export default function StrategyAgent({ agent = "strategy" }) {
+  const api = (path, body) => planningApi(agent, path, body);
+  const growth = agent === "growth";
+  const reportTitle = growth ? "Your growth report" : "Your Mission Brief";
+  const prepareLabel = growth
+    ? "Prepare growth report"
+    : "Prepare my Mission Brief";
   const [workspace, setWorkspace] = useState(null),
     [eligible, setEligible] = useState(null),
     [loading, setLoading] = useState(true),
@@ -99,9 +105,7 @@ export default function StrategyAgent() {
       setWorkspace(result.replayed ? await api("workspace") : result);
       setSelected([]);
       requestRef.current = null;
-      setNotice(
-        "Your Mission Brief is saved. Review the recommendations below.",
-      );
+      setNotice("Your report is saved. Review the recommendations below.");
     } catch (e) {
       if (e.code === "new_request_required") requestRef.current = null;
       setError(e.message);
@@ -158,16 +162,31 @@ export default function StrategyAgent() {
         <Link className="min-h-11 underline" to="/agents">
           Story
         </Link>
-        <span aria-current="page">Strategy</span>
+        <Link
+          className="min-h-11 underline"
+          to="/agents/strategy"
+          aria-current={!growth ? "page" : undefined}
+        >
+          Strategy
+        </Link>
+        <Link
+          className="min-h-11 underline"
+          to="/agents/growth"
+          aria-current={growth ? "page" : undefined}
+        >
+          Growth
+        </Link>
       </nav>
       <header>
-        <h1 className="text-3xl font-semibold">Mission Control</h1>
+        <h1 className="text-3xl font-semibold">
+          {growth ? "Growth Lab" : "Mission Control"}
+        </h1>
         <p className="mt-3 text-muted-foreground">
           A clear plan for your campaigns, with priorities you can review and
           choose.
         </p>
       </header>
-      {loading && <p role="status">Loading your Mission Brief…</p>}
+      {loading && <p role="status">Loading your report…</p>}
       {error && (
         <p role="alert" className="rounded-xl border border-destructive p-4">
           {error}
@@ -232,11 +251,11 @@ export default function StrategyAgent() {
               className={button}
               disabled={loading || busy || !!confirmation || !objective.trim()}
             >
-              {busy ? "Working…" : "Prepare my Mission Brief"}
+              {busy ? "Working…" : prepareLabel}
             </button>
           </form>
           <p className="text-sm text-muted-foreground">
-            New briefs replace open suggestions. Accepted and dismissed
+            New reports replace open suggestions. Accepted and dismissed
             recommendations stay saved. Recommendations never change campaigns
             or publish content.
           </p>
@@ -244,14 +263,14 @@ export default function StrategyAgent() {
             Reload saved plan
           </button>
           {workspace && !workspace.brief && (
-            <p>No Mission Brief yet. Create a campaign, then ask for a plan.</p>
+            <p>No report yet. Create a campaign, then ask for a plan.</p>
           )}
           {workspace?.brief && (
             <section
               aria-label="Mission Brief"
               className="space-y-5 rounded-xl border p-4"
             >
-              <h2 className="text-2xl font-semibold">Your Mission Brief</h2>
+              <h2 className="text-2xl font-semibold">{reportTitle}</h2>
               <p className="whitespace-pre-wrap break-words">
                 {workspace.brief.summary}
               </p>
