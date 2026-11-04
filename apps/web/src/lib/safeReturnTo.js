@@ -1,9 +1,27 @@
 export function safeReturnTo(value) {
-  if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')) return '/dashboard';
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    /[\s\\]/.test(value)
+  )
+    return "/dashboard";
   try {
     const decoded = decodeURIComponent(value);
-    if (decoded.startsWith('//') || decoded.includes('\\')) return '/dashboard';
-    if (['/login', '/register', '/forgot-password', '/reset-password'].includes(decoded.split('?')[0])) return '/dashboard';
-  } catch { return '/dashboard'; }
+    if (decoded.startsWith("//") || /[\u0000-\u0020\\]/.test(decoded))
+      return "/dashboard";
+    if (
+      [
+        "/login",
+        "/register",
+        "/forgot-password",
+        "/reset-password",
+        "/auth/callback",
+      ].includes(decoded.split(/[?#]/)[0])
+    )
+      return "/dashboard";
+  } catch {
+    return "/dashboard";
+  }
   return value;
 }

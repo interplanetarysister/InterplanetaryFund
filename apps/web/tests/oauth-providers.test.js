@@ -50,21 +50,21 @@ test("configuration selects providers, dropping unknown and duplicate entries", 
 test("the redirect target is canonical and carries the post-login path", () => {
   assert.equal(
     oauthRedirectUrl("https://interplanetaryfund.com", "/dashboard"),
-    "https://interplanetaryfund.com/login?returnTo=%2Fdashboard",
+    "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
   );
   // A preview origin is allowed through so preview deploys can be tested.
   assert.equal(
     oauthRedirectUrl("https://preview.pages.dev", "/inbox"),
-    "https://preview.pages.dev/login?returnTo=%2Finbox",
+    "https://preview.pages.dev/auth/callback?returnTo=%2Finbox",
   );
   // No returnTo, and an unsafe one, both yield a clean redirect with no parameter.
   assert.equal(
     oauthRedirectUrl("https://interplanetaryfund.com", ""),
-    "https://interplanetaryfund.com/login",
+    "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
   );
   assert.equal(
     oauthRedirectUrl("https://interplanetaryfund.com", "https://evil.example"),
-    "https://interplanetaryfund.com/login",
+    "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
   );
 });
 
@@ -77,13 +77,13 @@ test("a hostile origin cannot become the OAuth redirect target", () => {
   ]) {
     assert.equal(
       oauthRedirectUrl(bad, "/dashboard"),
-      "https://interplanetaryfund.com/login?returnTo=%2Fdashboard",
+      "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
     );
   }
   // http is refused off-localhost; the redirect must not be downgraded.
   assert.equal(
     oauthRedirectUrl("http://interplanetaryfund.com", "/dashboard"),
-    "https://interplanetaryfund.com/login?returnTo=%2Fdashboard",
+    "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
   );
 });
 
@@ -98,7 +98,7 @@ test("an auth route is never used as the post-login destination", () => {
   ]) {
     assert.equal(
       oauthRedirectUrl("https://interplanetaryfund.com", loop),
-      "https://interplanetaryfund.com/login",
+      "https://interplanetaryfund.com/auth/callback?returnTo=%2Fdashboard",
     );
   }
 });
@@ -123,7 +123,8 @@ test("starting a sign-in passes the provider through and reports the redirect", 
     {
       provider: "google",
       options: {
-        redirectTo: "https://interplanetaryfund.com/login?returnTo=%2Finbox",
+        redirectTo:
+          "https://interplanetaryfund.com/auth/callback?returnTo=%2Finbox",
       },
     },
   ]);

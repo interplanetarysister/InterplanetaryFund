@@ -1,0 +1,18 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ifund-story-agent-preview",
+  "main": "story.js",
+  "compatibility_date": "2026-11-03",
+  "workers_dev": true,
+  "ai": { "binding": "AI" },
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "IFUND_STORY_ENABLED": "disabled",
+    "IFUND_STORY_AI_ENABLED": "disabled",
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 0,
+    "logs": { "invocation_logs": false },
+  },
+}

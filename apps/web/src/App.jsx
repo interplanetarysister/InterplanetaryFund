@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { legacyAuthCallbackUrl } from "./lib/authFlow";
 import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import BrandLogo from "@/components/brand/BrandLogo";
@@ -17,6 +18,8 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
+const StoryAgent = lazy(() => import("./pages/StoryAgent"));
+const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
@@ -51,23 +54,27 @@ const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
   "/giving", "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices",
-  "/donors", "/ledger", "/subscriptions", "/withdrawals", "/agents",
+  "/donors", "/ledger", "/subscriptions", "/withdrawals",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
 function AppRoutes() {
+  const location = useLocation();
+  const legacy = legacyAuthCallbackUrl(window.location.origin + location.pathname + location.search + location.hash);
+  if (legacy) return <Navigate to={legacy} replace />;
   return <Suspense fallback={<Loading />}><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/about" element={<About />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/contact" element={<Contact />} />
-    <Route path="/login" element={<AuthPage mode="login" />} />
-    <Route path="/register" element={<AuthPage mode="register" />} />
-    <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
+    <Route path="/login" element={<AuthPage key="login" mode="login" />} />
+    <Route path="/register" element={<AuthPage key="register" mode="register" />} />
+    <Route path="/forgot-password" element={<AuthPage key="forgot-password" mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
@@ -75,6 +82,7 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
+      <Route path="/agents" element={<MemberAccess><StoryAgent /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
