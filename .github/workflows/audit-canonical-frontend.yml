@@ -83,7 +83,7 @@ jobs:
               )),
           ):
               (output / filename).write_text(
-                  "".join(path + "\\n" for path in paths), encoding="utf-8"
+                  "".join(path + "\n" for path in paths), encoding="utf-8"
               )
           PY
           # Compare original source paths and exact bytes against both deployable frontend trees.
