@@ -53,7 +53,12 @@ export function createApiClient({
       if (token) headers.set("authorization", `Bearer ${token}`);
 
       let body = options.body;
-      if (body !== undefined && body !== null && typeof body !== "string" && !(typeof FormData !== "undefined" && body instanceof FormData)) {
+      if (
+        body !== undefined &&
+        body !== null &&
+        typeof body !== "string" &&
+        !(typeof FormData !== "undefined" && body instanceof FormData)
+      ) {
         headers.set("content-type", "application/json");
         body = JSON.stringify(body);
       }
