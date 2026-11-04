@@ -196,3 +196,44 @@ This is a verified duplicate group, not four independent behavior definitions. T
 | `.github/workflows/terms-liability.yml` | 27 | No literal Base44 references. | Keep generic legal/terms workflow; verify deployment target separately. |
 
 **CI result for the new adapter:** GitHub Actions run [41751234251](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41751234251) on the PR head with the temporary diagnostic step removed completed successfully: real `npm ci`, lockfile reproducibility, **82/82 tests**, Vite production build, and Prettier check all passed. The temporary formatter diagnostic step was removed from the workflow before this final successful run. No production deploy was triggered.
+
+
+### Source traversal — root-level files, first deterministic pass
+
+Source order is the GitHub root directory's alphabetical path order. This pass fetched complete contents of 21 root-level text files and inspected every line. The source repository remains read-only.
+
+| Source file | Lines | Finding | Replacement / disposition |
+|---|---:|---|---|
+| `.env.example` | 8 | L2–3 require `VITE_BASE44_APP_ID` and `VITE_BASE44_APP_BASE_URL`. | Replace with optional `VITE_API_BASE_URL`; app identity is not a browser runtime requirement. Keep privileged credentials server-only. The neutral variable is already present in the migration branch. |
+| `.gitignore` | 35 | L32 ignores generated `base44/.app.jsonc`. | Remove the generated vendor config from the independent app. Keep source-only ignore rules only if the archived source tree still needs them; never copy generated vendor config to the replacement. |
+| `.node-version` | 2 | No Base44 reference; Node 22 pin. | Keep runtime policy independent of hosting vendor. |
+| `.npmrc` | 8 | No Base44 reference; 7-day package release cooldown and strict engine checks. | Keep. |
+| `.nvmrc` | 2 | No Base44 reference; Node 22 pin. | Keep runtime policy independent of hosting vendor. |
+| `AGENTS.md` | 181 | L5–10 identify Base44 as authoritative application/backend owner; L32 forbids metered Base44 operations; L52 and L57–106 prescribe a Base44-preservation freeze; L114–135 call Base44 the application boundary and list Base44 SDK/Vite plugin/runtime assumptions; L171–180 preserve the Base44-published APK. These are mutually coherent for the *historical source*, but conflict with the requested independent target if copied unchanged. | In the independent repository, rewrite authority to Supabase (identity/data) + Cloudflare (Worker/API/hosting) and retain the no-paid-operations, preserve-financial-integrity, explicit-release and Android signing safeguards. Source AGENTS.md stays historical evidence and must not govern the new repo. |
+| `BUILD_AGENT_RULES.md` | 94 | L3, L7, L14, L16, L28, L32, L42–44, L77 and L93 bind implementation/build/validation to Base44. | Replace the builder-specific language with IFund-owned build/test/release contracts. Keep the provider-neutral connection-consent, publishing authorization, no-guessing and financial invariants. |
+| `CLAUDE.md` | 4 | No Base44 reference; delegates to AGENTS.md. | Keep as a generic instruction pointer only after the independent AGENTS.md is rewritten. |
+| `LICENSE` | 706 | No Base44 references. | Keep license and attribution unchanged; no provider substitution applies. |
+| `README.md` | 95 | L1–9 correctly labels this as legacy source, but L13–89 then instructs users to install/run Base44 CLI, publish through Base44, and configure Base44 environment values. | Preserve the historical README in the source repository. The independent repo needs its own README describing Vite, Supabase, Cloudflare and neutral `VITE_API_BASE_URL`; never direct replacement-app operators to Base44 CLI or dashboard. |
+| `capacitor.config.json` | 14 | No Base44 text. App ID `com.base6a67a778342a8fe05ee79cba.app` contains a legacy project identifier, not an active SDK dependency. | Preserve the installed Android application ID for upgrade/signature continuity unless a separately authorized package migration is planned. Do not rename this identifier merely to remove a substring. |
+| `components.json` | 21 | No Base44 reference; generic shadcn/ui aliases. | Keep. |
+| `eslint.config.js` | 63 | No Base44 reference. | Keep; existing exclusions are build-output hygiene, not hosting dependencies. |
+| `index.html` | 23 | No Base44 reference; public canonical URL and IFund metadata. | Keep. |
+| `jsconfig.json` | 21 | No Base44 reference; path aliases and compiler scope. | Keep, then reconcile exclusions with the actual replacement source tree. |
+| `package.json` | 215 | L2 names the app `base44-app`; L67/L89 expose Base44 sync/release scripts; L111–112 install `@base44/sdk` and `@base44/vite-plugin`; other scripts assert Base44 auth/runtime/release assumptions. | New package name: `interplanetary-fund` (or canonical npm-safe `interplanetary-fund`); replace vendor sync/release scripts with IFund API/schema/edge-function/Worker contract tests. Remove Base44 packages only after all imports/callsites are ported and tests prove parity. |
+| `postcss.config.js` | 7 | No Base44 reference. | Keep. |
+| `requirements.txt` | 6 | No Base44 reference. | Keep only dependencies actually used by retained build/test tools; audit separately. |
+| `tailwind.config.js` | 96 | No Base44 reference. | Keep; formatting/cleanup is unrelated to provider decoupling. |
+| `vite.config.js` | 105 | L1 imports Base44 Vite plugin; L5 ties production build to Base44; L40–49 registers the plugin and legacy SDK import rewriting; HMR/navigation/analytics/visual-edit notifiers are enabled. | Replace with standard Vite + React plugins and IFund-owned dev tooling. Remove SDK import rewriting, vendor notifiers and visual-edit hooks. The neutral API client already makes backend origin replaceable; the Vite config must stop injecting a provider runtime. |
+| `wrangler.toml` | 115 | L87 requires `IFUND_BASE44_ORIGIN`; L90 includes the Base44 app domain in allowed browser origins. The Worker uses that origin for MCP proxying. | Replace the variable with an explicit optional `IFUND_LEGACY_API_ORIGIN` only during a temporary data/API bridge, or remove the bridge once Supabase/IFund routes are authoritative. Do not keep Base44 in the allowed-origin list after the legacy domain is no longer a legitimate frontend. Current code also labels the MCP proxy as Base44 and forwards requests to that origin; this is a real backend dependency, not a cosmetic name. |
+
+### Root-level dependency consumers verified by repository code search
+
+- `IFUND_BASE44_ORIGIN` is consumed by `host/gateway/worker.js`, documented in `host/gateway/README.md`, asserted by `scripts/verify-cloudflare-runtime-contract.mjs`, and exercised by `scripts/test-cloudflare-mcp-proxy.mjs`. Rename alone is unsafe: the Worker still forwards MCP requests to the old backend and returns a Base44-specific proxy marker.
+- `VITE_BASE44_APP_BASE_URL` is read by `src/lib/app-params.js` and `src/lib/runtimeContract.js`; required by `scripts/publish-ifund-cloudflare.sh`; asserted by `scripts/verify-host-portability-contract.mjs` and `scripts/verify-cloudflare-runtime-contract.mjs`; and injected by `.github/workflows/deploy-cloudflare.yml`. All these consumers must move together to `VITE_API_BASE_URL` or same-origin `/api`.
+- `@base44/sdk` is imported by `src/api/base44Client.js` and multiple `base44/functions/**/entry.ts` modules. Removing the npm dependency without migrating both browser and server entrypoints will break the app.
+- `@base44/vite-plugin` is imported in `vite.config.js`; the plugin also injects compatibility imports and dev/visual-edit behavior. A plain package rename cannot replace those capabilities.
+- The repository package scripts contain Base44 sync/release checks and the workflow files invoke them. CI contracts must be updated in the same migration increment or they will keep enforcing the old platform.
+
+**Root pass status:** 21/21 root text files inspected (1,? lines; exact per-file counts above). No files in `interplanetary-fund2/main` were modified. The replacement API origin is implemented in the independent repository; package, Vite, Worker, MCP and application SDK decoupling remain open work. The source README is intentionally legacy documentation, not the operator guide for the independent product.
+
+**Critical design rule:** use neutral names only where the underlying behavior is genuinely provider-neutral. A temporary legacy bridge may be named `IFUND_LEGACY_API_ORIGIN`, but must have a retirement condition. Never disguise a still-required Base44 backend as `IFUND_API_URL` and call the platform independent; actual data, auth, permissions, webhooks, agents and workflows must be moved to IFund-owned Supabase/Cloudflare implementations before Base44 can be removed.
