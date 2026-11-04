@@ -76,6 +76,10 @@ export async function invokeImplementation(implementation, env, input) {
 /** The database rechecks this plan atomically with quota, ownership and assignment. */
 export async function beginStoryAssignment(env, rpc, input, hash, messages) {
   const snapshot = await rpc("ifund_workforce_snapshot", {});
+  if (
+    snapshot?.environment !== (env.IFUND_WORKFORCE_ENVIRONMENT || "production")
+  )
+    throw failure("Writing suggestions are temporarily unavailable.");
   if (snapshot?.policy?.enabled !== true)
     throw failure("Writing suggestions are temporarily unavailable.");
   const bytes = new TextEncoder().encode(JSON.stringify(messages)).byteLength;

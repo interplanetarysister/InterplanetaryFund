@@ -328,10 +328,18 @@ export async function storyRoute(request, env, fetcher = fetch) {
         fetcher,
       );
     };
+    const scopedQueue = (rows) =>
+      rows.map((row) => ({
+        ...row,
+        can_resume:
+          row.can_resume === true &&
+          (row.environment || "production") ===
+            (env.IFUND_WORKFORCE_ENVIRONMENT || "production"),
+      }));
     if (request.method === "GET") {
       if (path.endsWith("/queued-requests"))
         return json(200, {
-          queued_requests: await rpc("ifund_workforce_queued", {}),
+          queued_requests: scopedQueue(await rpc("ifund_workforce_queued", {})),
         });
       if (path.endsWith("/workforce-status"))
         return json(200, await rpc("ifund_workforce_admin_status", {}));
@@ -360,7 +368,11 @@ export async function storyRoute(request, env, fetcher = fetch) {
       return json(200, {
         drafts: await rpc("ifund_story_drafts", {}),
         ...(env.IFUND_WORKFORCE_ENABLED === "enabled"
-          ? { queued_requests: await rpc("ifund_workforce_queued", {}) }
+          ? {
+              queued_requests: scopedQueue(
+                await rpc("ifund_workforce_queued", {}),
+              ),
+            }
           : {}),
       });
     }

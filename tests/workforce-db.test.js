@@ -29,6 +29,15 @@ async function setup({ enabled = true, tested = true } = {}) {
       "utf8",
     ),
   );
+  await db.exec(
+    readFileSync(
+      new URL(
+        "../supabase/migrations/20261104060720_ifund_preview_workforce_isolation.sql",
+        import.meta.url,
+      ),
+      "utf8",
+    ),
+  );
   assert.equal(
     (await db.query("select count(*) n from ifund_ops.service_positions"))
       .rows[0].n,
@@ -431,6 +440,91 @@ test("erasing unexecuted queue requests does not consume inference capacity", as
       ).rows[0].reserved_units,
       1200,
     );
+  } finally {
+    await db.close();
+  }
+});
+
+test("preview-only authorization never enables production or permits cross-environment task reuse", async () => {
+  const db = await setup();
+  const previewSecret = "f".repeat(64);
+  try {
+    const production = await begin(db);
+    assert.equal(production.state, "claimed");
+    await db.exec("reset role");
+    await db.query(
+      "update ifund_ops.workforce_control set enabled=false,preview_enabled=true,preview_worker_secret_sha256=encode(sha256(convert_to($1,'UTF8')),'hex')",
+      [previewSecret],
+    );
+    await actor(db, uid, secret);
+    assert.equal((await begin(db, rid2)).state, "unavailable");
+    const productionSnapshot = (
+      await db.query("select public.ifund_workforce_snapshot() r")
+    ).rows[0].r;
+    assert.equal(productionSnapshot.environment, "production");
+    assert.equal(productionSnapshot.policy.enabled, false);
+    await actor(db, uid, previewSecret);
+    assert.equal((await begin(db)).state, "conflict");
+    await assert.rejects(start(db, rid, production.lease), /environment/);
+    await assert.rejects(finish(db, rid, production.lease), /environment/);
+    const preview = await begin(db, rid2);
+    assert.equal(preview.state, "claimed");
+    await start(db, rid2, preview.lease);
+    await finish(db, rid2, preview.lease);
+    assert.equal((await begin(db, rid3)).state, "queued");
+    await db.exec(
+      "reset role;update ifund_ops.workforce_control set enabled=true,preview_enabled=false",
+    );
+    await actor(db, uid, secret);
+    assert.equal((await begin(db, rid3)).state, "conflict");
+    await actor(db, uid, previewSecret);
+    const blocked = (
+      await db.query("select public.ifund_workforce_snapshot() r")
+    ).rows[0].r;
+    assert.equal(blocked.environment, "preview");
+    assert.equal(blocked.policy.enabled, false);
+    await db.exec("reset role");
+    assert.deepEqual(
+      (
+        await db.query(
+          "select environment from ifund_ops.workforce_assignments order by id",
+        )
+      ).rows.map((r) => r.environment),
+      ["production", "preview"],
+    );
+    await assert.rejects(
+      db.exec(
+        "update ifund_ops.workforce_control set preview_worker_secret_sha256=worker_secret_sha256",
+      ),
+      /check constraint/,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test("untagged historical jobs are production and cannot be replayed by a preview executor", async () => {
+  const db = await setup();
+  const previewSecret = "f".repeat(64);
+  try {
+    const legacy = (
+      await db.query("select public.ifund_story_begin($1,$2,null) r", [
+        rid,
+        hash,
+      ])
+    ).rows[0].r;
+    await db.query("select public.ifund_story_finish($1,$2,$3)", [
+      rid,
+      legacy.lease,
+      result,
+    ]);
+    await db.exec("reset role");
+    await db.query(
+      "update ifund_ops.workforce_control set enabled=false,preview_enabled=true,preview_worker_secret_sha256=encode(sha256(convert_to($1,'UTF8')),'hex')",
+      [previewSecret],
+    );
+    await actor(db, uid, previewSecret);
+    assert.equal((await begin(db)).state, "conflict");
   } finally {
     await db.close();
   }

@@ -34,7 +34,7 @@ Reviewed the current Supabase changelog and PostgreSQL 17.11 breaking changes. T
 
 ## Verification and release gates
 
-- Local: seven procurement cases, ten actual PGlite database scenarios, six runtime/gateway cases, three queue-access/expiry cases, existing Story regression suite, all 33 root test files in isolated processes, frontend tests and production build passed before release preparation. Re-run relevant checks after final edits.
+- Local: seven procurement cases, twelve actual PGlite database scenarios, seven runtime/gateway cases, three queue-access/expiry cases, existing Story regression suite, all 33 root test files in isolated processes, frontend tests and production build passed before release preparation. Re-run relevant checks after final edits.
 - Independent Reviewer 2 found and helped correct a trigger row-type bug, member-forged performance records, and capability-blind candidate pruning. Auditor 3 independently checks parity and verification.
 - Local Node 24 combined `--test-isolation=none` contaminates PGlite with pre-existing browser `window` mocks. Separate direct `node <test-file>` processes exercise the real cases. Do not describe that combined failure as a product regression or a runner summary as a substitute for per-case evidence.
 - Live: schema application, secure key provisioning, preview, authenticated member request, native provider receipt, queue/replacement, and production release remain separate explicit gates until their actual results are recorded. No live success is inferred from this document.
@@ -56,3 +56,9 @@ Preview Worker source `6cdd6ac` is deployed at `https://ifund-story-agent-previe
 One bounded native-provider synthetic full-JSON test returned the promised five titles, two summaries, story and image direction and passed the actual Story output validator. Provider-reported usage was 27.091936 neurons. This proves that model contract only; it does not prove a member request, a fundraising outcome, or full collective operation. Real member JWT/header transport and browser recovery remain NOT TESTED. PR #212 carries the reviewed source; later release evidence must update these statuses.
 
 The section-only native JSON contract also passed the actual Story validator, using 10.031223 neurons. Both exact capabilities are now registered as tested/available with expiring evidence; successful member-task count remains zero. A conservative 1,200-unit diagnostic reservation covers these 37.123159 total reported neurons. No inference failure or capacity limit triggers a paid fallback.
+
+## Preview authorization isolation
+
+Automatic approval review rejected enabling the shared production control before a real signed-in request had been verified. That rejected UPDATE was not applied, and production procurement remains disabled. The follow-up preview-isolation migration adds a separate preview flag and distinct private executor-key digest. The channel is determined from the key, never a client-supplied environment label. Production credentials remain subject to the production flag even when preview is enabled.
+
+Snapshot, claim, replay, resume, dispatch and completion respect the authenticated channel. Untagged historical work is production work. Preview cannot take over production jobs; jobs and assignments retain their environment. Both channels share the original account-wide quota lock and capacity budget. Owners may still read or erase their held private text after eligibility expires; cross-channel items are not presented as resumable. The initial follow-up migration leaves both enablement controls unchanged/default-disabled. Real member verification remains pending.

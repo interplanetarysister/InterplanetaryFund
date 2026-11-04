@@ -93,6 +93,7 @@ function fetcher(calls, overrides = {}) {
       return Response.json({ campaign: null, research: null });
     if (name === "ifund_workforce_snapshot")
       return Response.json({
+        environment: "production",
         policy: { enabled: true, remaining_units: 5000 },
         implementations: [candidate],
       });
@@ -157,6 +158,7 @@ test("missing proof, free attestation, tested capability or native binding never
       overrides: {
         ifund_workforce_snapshot: () =>
           Response.json({
+            environment: "production",
             policy: { enabled: false },
             implementations: [candidate],
           }),
@@ -166,6 +168,7 @@ test("missing proof, free attestation, tested capability or native binding never
       overrides: {
         ifund_workforce_snapshot: () =>
           Response.json({
+            environment: "production",
             policy: { enabled: true, remaining_units: 5000 },
             implementations: [{ ...candidate, tested: false }],
           }),
@@ -267,6 +270,7 @@ test("interchangeable service-binding adapter receives bounded task input withou
     fetcher([], {
       ifund_workforce_snapshot: () =>
         Response.json({
+          environment: "production",
           policy: { enabled: true, remaining_units: 5000 },
           implementations: [local],
         }),
@@ -377,4 +381,48 @@ test("queue erasure remains authenticated without inference, execution enablemen
   );
   assert.equal(response.status, 200);
   assert.equal(called, true);
+});
+
+test("deployment-channel mismatch cannot dispatch and held requests cannot be resumed across environments", async () => {
+  const mismatch = await storyRoute(
+    request(),
+    { ...env, AI: { run: () => assert.fail("cross-environment inference") } },
+    fetcher([], {
+      ifund_workforce_snapshot: () =>
+        Response.json({
+          environment: "preview",
+          policy: { enabled: true, remaining_units: 5000 },
+          implementations: [candidate],
+        }),
+    }),
+  );
+  assert.equal(mismatch.status, 503);
+  const queued = new Request(
+    "https://ifund.test/api/agents/story/queued-requests",
+    { headers: { authorization: "Bearer owner.jwt" } },
+  );
+  const result = await storyRoute(
+    queued,
+    { ...env, IFUND_WORKFORCE_ENVIRONMENT: "preview" },
+    fetcher([], {
+      ifund_workforce_queued: () =>
+        Response.json([
+          {
+            request_id: "production-request",
+            environment: "production",
+            can_resume: true,
+          },
+          {
+            request_id: "preview-request",
+            environment: "preview",
+            can_resume: true,
+          },
+        ]),
+    }),
+  );
+  assert.equal(result.status, 200);
+  assert.deepEqual(
+    (await result.json()).queued_requests.map((item) => item.can_resume),
+    [false, true],
+  );
 });

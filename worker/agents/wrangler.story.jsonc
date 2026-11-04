@@ -10,6 +10,7 @@
     "IFUND_STORY_ENABLED": "disabled",
     "IFUND_STORY_AI_ENABLED": "disabled",
     "IFUND_WORKFORCE_ENABLED": "disabled",
+    "IFUND_WORKFORCE_ENVIRONMENT": "preview",
   },
   "observability": {
     "enabled": true,

@@ -1023,8 +1023,8 @@
     "local_verification": {
       "root_test_files": 33,
       "new_procurement_cases": 7,
-      "new_database_cases": 10,
-      "new_runtime_cases": 6,
+      "new_database_cases": 12,
+      "new_runtime_cases": 7,
       "frontend_build": "pass",
       "queue_access_cases": 3
     },
@@ -1055,6 +1055,13 @@
       "native_section_json_contract": "pass, 10.031223 neurons, synthetic input only",
       "native_provider_implementation": "registered, available, tested; no verified member task yet",
       "diagnostic_capacity_reserved_units": 1200
+    },
+    "preview_isolation": {
+      "source_migration": "20261104060720_ifund_preview_workforce_isolation.sql",
+      "status": "verified_local_not_applied",
+      "production_control": "disabled",
+      "design": "Independent secret-derived channels and preview enablement; shared account budget; cross-channel replay/resume/start/finish denied",
+      "reason": "Automatic approval review rejected global production activation before real member verification; no rejected action was applied."
     }
   }
 }
