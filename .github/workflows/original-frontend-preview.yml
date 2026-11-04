@@ -69,6 +69,12 @@ jobs:
           test -s dist/favicon.jpg
           test -s dist/apple-touch-icon.jpg
           find dist/assets -type f -name '*.js' -size +0c | grep -q .
+      - name: Stamp immutable preview provenance
+        env:
+          SOURCE_REF: ${{ inputs.source_ref }}
+        run: |
+          printf '{"source_repository":"interplanetarysister/interplanetary-fund2","source_commit":"%s","runtime":"base44-preserved","release":"preview-only"}\n' "$SOURCE_REF" > dist/ifund-source.json
+          test -s dist/ifund-source.json
       - name: Publish isolated Cloudflare preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
