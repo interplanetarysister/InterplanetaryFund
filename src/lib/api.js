@@ -44,7 +44,7 @@ export function resolveApiUrl(path, baseUrl = configuredApiBase) {
   ) {
     throw new TypeError("Non-local API base URLs must use HTTPS.");
   }
-  const prefix = base.pathname.replace(/\\/+$/, "");
+  const prefix = base.pathname.replace(/\/+$/, "");
   return new URL(`${prefix}${path}`, base.origin).toString();
 }
 
