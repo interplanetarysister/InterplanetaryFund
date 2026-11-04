@@ -120,3 +120,8 @@ Continue/reconcile rather than discard: #138 merged; #139 schema; #140 auth; #14
 3. Continue PR #208's line-by-line source audit and API facade migration without touching the read-only source repo.
 4. Implement and verify the real agent/workflow handlers and owner-only coding builder.
 5. Finish one route at a time using the existing 59-route role/platform evidence matrix. Do not count a mounted or limited route as complete.
+
+
+### Password recovery delivery blocker (2026-11-03)
+
+The connected Supabase organization is Free and the designated target project was created 2026-10-24. Supabase's June 3, 2026 change prevents new Free projects using default SMTP from customizing Auth email templates. The required code-first recovery UI can be implemented, but code delivery is not proven until the target uses an approved custom SMTP sender or its current recovery template is verified to contain the OTP. Track as B13 in BLOCKERS.md; retain PR #207's link callback support as a compatibility path, not as a substitute for the requested email code. No email-provider credentials or settings were changed.
