@@ -112,14 +112,14 @@ jobs:
           PREVIEW_URL="$PREVIEW_URL" node --input-type=module -e '
             import fs from "node:fs";
             const html = fs.readFileSync("/tmp/ifund-live-home.html", "utf8");
-            const scripts = [...html.matchAll(/<script\\b[^>]*\\bsrc=["\x27]([^"\x27]+)["\x27]/gi)].map(m => m[1]);
+            const scripts = [...html.matchAll(/<script\b[^>]*\bsrc=["\x27]([^"\x27]+)["\x27]/gi)].map(m => m[1]);
             if (!scripts.length) throw Error("No script assets in deployed homepage");
             const origin = new URL(process.env.PREVIEW_URL);
             for (const script of scripts) {
               const url = new URL(script, origin);
               if (url.origin !== origin.origin) throw Error("Unexpected external entrypoint: " + url);
             }
-            fs.writeFileSync("/tmp/ifund-live-scripts.txt", scripts.join("\\n") + "\\n");
+            fs.writeFileSync("/tmp/ifund-live-scripts.txt", scripts.join("\n") + "\n");
           '
           while IFS= read -r asset; do
             test -n "$asset" || continue
