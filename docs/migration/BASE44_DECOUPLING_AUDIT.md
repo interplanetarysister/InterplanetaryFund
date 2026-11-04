@@ -121,3 +121,24 @@ A rename is complete only when the new name is consumed by working code and all 
 - Base44 auth token -> Supabase Auth session JWT (the client reads it from the existing Supabase client; no URL token is accepted).
 
 **Verification status:** test cases are committed but not yet executed in this environment. CI must run `npm test` on the PR head before this contract is marked verified. No runtime route was enabled, no production data was changed, and no Base44 source code was edited.
+
+
+### Source traversal — first `.agents/skills` batch
+
+Reviewed complete contents of the first five text files in Git-tree path order:
+
+| Source file | Lines | Exact Base44-specific lines / findings | Replacement / disposition |
+|---|---:|---|---|
+| `.agents/skills/chief_of_staff.md` | 137 | L105 requires `base44.auth.me()`; L121 anchors fee rules to `base44/shared/fees.js`. | Change auth check to the IFund Supabase Auth adapter and fee source to the canonical IFund-owned fee module. Preserve the user/admin boundary and exact financial invariants. |
+| `.agents/skills/communications_agent.md` | 157 | No literal Base44 references in the complete file. | No provider-name edit required in this file; its explicit approval, anti-spam and user-scope rules still require backend parity tests. |
+| `.agents/skills/finance_agent.md` | 132 | L52 points to `base44/shared/fees.js`. | Replace with an IFund-owned fee contract/module; preserve historical fee attribution and do not change amounts or accounting rules during provider migration. |
+| `.agents/skills/growth_agent.md` | 136 | No literal Base44 references in the complete file. | No provider-name edit required in this file; its PlatformConnection and consent semantics remain in the migration mapping. |
+| `.agents/skills/ifund-admin-builder/SKILL.md` | 23 | L3, L9, L16 and L19 explicitly depend on the Base44 builder, Base44-authenticated identity, and `base44/shared/approvedBuilderBridge.ts`. | Retire the Base44 builder execution capability. Preserve only IFund-owned issue triage, reviewed task queue, authorization, audit, tests, preview and release controls; do not redirect builder credentials or pretend a new provider is equivalent. |
+
+**Classification:** 3 files contain direct Base44 runtime/builder/fee references; 2 files contain none. This batch shows why a global text replacement is unsafe: authentication, canonical financial logic and privileged builder execution require different replacements, while files with no provider coupling should remain unchanged.
+
+**Next source path:** `.agents/skills/ifund-chief-of-staff/SKILL.md`, then continue lexicographically through the remaining `.agents/skills/**` tree, including mirrored workforce-source copies. Record file, exact line, current behavior, replacement and verification per batch.
+
+### CI correction log
+
+The first two CI attempts failed before build because the new API client exposed an existing source issue in the test runner: Node ESM does not resolve the extensionless `./supabase` import, and the existing Supabase module dereferenced `import.meta.env` when running under plain Node. The client import was changed to `./supabase.js`, and Supabase environment reads now use optional chaining. The third run is underway; do not mark tests as passing until it completes.
