@@ -165,3 +165,17 @@ The first two CI attempts failed before build because the new API client exposed
 **Batch result:** 14 files reviewed (including the previous 5-file batch, now 19 agent-skill files in total). 8 current IFund skill guides contain explicit Base44 runtime/agent format dependencies; 3 legacy agent references do not contain Base44 naming; the Wix connector is a separate 907-line Base44-contextual tool that needs its own disposition. The 39-line content-writes guide has a direct Base44 registration dependency despite having only one literal mention.
 
 **Important distinction:** Wix is a real external site/platform and must not be erased from the platform integration map. Only the Base44-hosted Wix connector path and assumptions are removed; any separate Wix marketing site or authorized Wix APIs remain independently configurable.
+
+
+### Source traversal — duplicated agent-guide references
+
+The four reference guides under the IFund skill directories were fetched in full and compared by Git blob SHA to the first legacy skill files:
+
+| Reference file | Lines | SHA equality | Disposition |
+|---|---:|---|---|
+| `.agents/skills/ifund-chief-of-staff/references/agent-guide.md` | 137 | Exact duplicate of `.agents/skills/chief_of_staff.md` | One semantic source record; update both copies or replace the reference with a canonical IFund-owned guide. |
+| `.agents/skills/ifund-communications/references/agent-guide.md` | 157 | Exact duplicate of `.agents/skills/communications_agent.md` | No extra Base44 coupling; keep both synchronized or de-duplicate. |
+| `.agents/skills/ifund-finance/references/agent-guide.md` | 132 | Exact duplicate of `.agents/skills/finance_agent.md` | Update both copies when replacing the Base44 fee-module reference. |
+| `.agents/skills/ifund-growth/references/agent-guide.md` | 136 | Exact duplicate of `.agents/skills/growth_agent.md` | No extra Base44 coupling; keep both synchronized or de-duplicate. |
+
+This is a verified duplicate group, not four independent behavior definitions. The Base44-specific references in the chief-of-staff and finance guides are therefore duplicated in the two reference copies. Do not count duplicate copies as new capabilities or silently change only one copy.
