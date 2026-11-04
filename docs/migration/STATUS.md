@@ -73,3 +73,6 @@ A new line-by-line replacement register was started in [BASE44_DECOUPLING_AUDIT.
 
 
 **Pass 2 update:** The branch now includes the first replaceable runtime boundary: `src/lib/api.js` uses same-origin `/api/` routes by default and optional `VITE_API_BASE_URL`, obtains bearer identity from Supabase Auth, and normalizes API errors. Added `tests/api-client.test.js` and the optional variable to `.env.example`. These tests are committed but await CI execution; existing pages are not yet migrated to this facade. This is an initial decoupling primitive, not Base44 parity.
+
+
+**Neutral API client verification — PASS:** GitHub Actions run [41751234251](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41751234251) on the PR head passed real `npm ci`, lockfile reproducibility, **82/82 Node tests**, Vite production build, and Prettier. The new API client tests cover same-origin routing, replaceable HTTPS API origin, URL validation, Supabase session bearer propagation, JSON request handling and structured HTTP errors. This verifies the adapter primitive only; current UI pages are not all routed through it, and the source's 95 entities / 184 functions / agents / workflows are not yet ported. The independent app remains a preview scaffold, not a production cutover.
