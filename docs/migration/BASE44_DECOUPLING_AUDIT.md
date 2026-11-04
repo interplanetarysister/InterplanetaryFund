@@ -1016,3 +1016,34 @@ The source `docs/` tree has been reviewed, including the 77 root-level files and
 ### Source-wide inventory checkpoint
 
 The source repository's top-level inventory has been reconciled: 1,249 tracked files, including 367 frontend files, 373 Base44 runtime/config files, 181 scripts plus one fixture, 85 docs entries (77 root files + 14 nested files plus their directory entries), 74 host files, 55 Android files, 50 public assets, 26 agent-skill files, 9 GitHub files, 23 root files and 2 tool-package files. The Base44 subtree, `src/`, scripts and docs have been traversed as described above. Host snapshot copies, remaining Android binary assets and remaining repository directories still need exact duplicate/hash and line-level closure checks before the entire 1,249-file request can be called exhaustive.
+
+
+### Host snapshot parity and standalone OAuth/email worker review
+
+- The 17 files in `host/workflows/source/` are **byte-identical** to the corresponding `base44/workflows/` files by Git blob SHA (17/17 matches).
+- The 26 skill files in `host/workforce/source/.agents/skills/` are **byte-identical** to their `.agents/skills/` source paths (26/26 matches).
+- The 10 agent JSONC files in `host/workforce/source/base44/agents/` are **byte-identical** to `base44/agents/` (10/10 matches).
+- These 53 files are preservation snapshots, not independent executable copies. Keep the snapshots for audit/reproducibility, but do not claim they run on Cloudflare. A migration must transform the runtime contracts and preserve the source hashes as evidence.
+
+#### Standalone OAuth Worker (`host/oauth/worker.js`)
+
+- It is a D1-backed OAuth 2.0 authorization server for one narrow external agent use case (`campaigns:read`), not a replacement for the 11 Base44 connector declarations or 24+ user-facing provider connections.
+- It is disabled unless `OAUTH_ENABLED=true` and D1 is bound. Its fixed callback is Make/Integromat (`https://www.integromat.com/oauth/cb/oauth2`), and its only supported scope is `campaigns:read`.
+- Access tokens are stored as hashes, access tokens expire after 15 minutes, refresh tokens rotate and are revoked on reuse, client secrets are hashed, client disable revokes tokens, and introspection is protected by an internal secret. These are useful controls to retain.
+- **PKCE is optional in the current authorization-code flow**, because a missing challenge is accepted. For a public client, destination OAuth should require S256 PKCE, one-time state binding, exact redirect URI, short-lived one-time authorization code, atomic consume, client authentication appropriate to client type, token rotation and revocation. Do not treat this narrow Make API as the general provider connection vault.
+- Its admin authorization can accept a static `IFUND_OAUTH_ADMIN_BRIDGE_SECRET` header; if retained, that bridge must be restricted to a trusted internal caller, compared safely, rotated, and supplemented by current Supabase super-admin identity rather than becoming a general-purpose admin bypass.
+- Its campaign feed proxies to `IFUND_AGENT_CAMPAIGNS_URL` using `IFUND_OAUTH_AGENT_KEY`, which the source docs set to the Base44 `externalAgentCampaigns` endpoint. Replace that upstream with an IFund-owned, owner-scoped Supabase query route before removing Base44.
+
+#### Inbound email Worker (`host/email/worker.js`)
+
+- Uses ECDSA P-256/SHA-256 signatures with timestamped payloads to deliver inbound messages to independent Supabase endpoints. Verification aliases are separately recognized and require an active paid mailbox before routing; no fallback to Gmail, Base44 InboxItem or general notifications is intended.
+- Organization mail and member verification mail use separate routes. Preserve that separation; never put one-time verification content into ordinary agent context or the general inbox.
+- `host/email/README.md` has contradictory legacy setup instructions about a Base44 secret, while the Worker reads the signing key from Cloudflare Worker secrets. Destination setup documentation must use only Cloudflare/Supabase secrets and should remove the stale Base44 provisioning step.
+
+#### Gateway details
+
+- `host/gateway/worker.js` has a Supabase Auth validation preview and a private owner-campaign RPC preview, but both return disabled/503 unless the preview flags are enabled. The health/readiness endpoint explicitly reports `ready:false` and three Base44 blockers. Its ordinary MCP route still proxies Base44 and tags responses `x-ifund-mcp-proxy: base44`.
+- Admin agent message/status endpoints still call Base44 `verifyAdminGateway`, `executeAdminAgentRequest` and `auditAdminAgentGateway`; `/api/v1/agent/content` and `/api/v1/agent/campaigns` also forward to Base44 function URLs. The Worker is a transitional gateway, not an independent backend.
+- `host/gateway/campaign-assistant.js` uses Cloudflare Workers AI for generation, but reads user identity and feature availability from Base44 `/entities/User/me` and `/functions/getFeatureAvailability`. It is therefore an AI-provider extraction only, not independent auth or application hosting.
+
+**Host file closure:** all 74 host paths inventoried. Runtime workers, README/config files, manifests and eligibility reports reviewed; 53 staged workflow/agent/skill snapshots were SHA-compared against canonical source. The separate OAuth worker and email worker were inspected. Host package-lock and binary/runtime artifact checks remain to be included in the final source-wide closure report.
