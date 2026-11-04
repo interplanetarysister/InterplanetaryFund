@@ -89,6 +89,19 @@ jobs:
           PY
           git rev-parse HEAD > audit-evidence/deployable-checkout-sha.txt
           cp original-frontend/package.json audit-evidence/original-package.json
+          # Capture reproducible dependency/build configuration fingerprints without secrets.
+          # This is source provenance evidence, not proof of a successful deployment.
+          for config in package-lock.json pnpm-lock.yaml yarn.lock vite.config.js vite.config.ts; do
+            if test -f "original-frontend/$config"; then
+              sha256sum "original-frontend/$config" >> audit-evidence/original-build-config-sha256.txt
+            fi
+          done
+          touch audit-evidence/original-build-config-sha256.txt
+          git -C original-frontend status --porcelain > audit-evidence/original-checkout-status.txt
+          if test -s audit-evidence/original-checkout-status.txt; then
+            echo "Original source checkout was modified during audit" >&2
+            exit 1
+          fi
           printf '%s\n' "$source_sha" > audit-evidence/original-source-sha.txt
           {
             echo "## Canonical frontend inventory"
