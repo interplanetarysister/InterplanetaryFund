@@ -431,3 +431,25 @@ The next 30 files were fetched in full, including the two helper modules in the 
 The source contains a Stripe Connect status/readiness path in `getConnectedPayoutAccount` and Stripe imports/cleanup in account deletion. This is not permission to reactivate Stripe. In the independent implementation, Stripe donation/checkout/payout execution remains retired; preserve historical reversal and reconciliation records only where needed. The source also has a fail-closed crypto readiness response: wallet connection is not payment acceptance and no campaign credit should occur without verified on-chain settlement.
 
 **Progress:** 50/184 entrypoints inspected in full (27.2%). The next source-order batch begins at `getPayPalConfig`. Source repository remains read-only; no live payments, OAuth or production database changes were made.
+
+
+### Source traversal — backend function entrypoints, batch 5 (60/184)
+
+The next ten read/administrative endpoints were fetched and inspected in full.
+
+| Handler | Dependency and destination |
+|---|---|
+| `getPayPalConfig` | Reads PayPal runtime secrets and returns only public client ID plus readiness/account metadata. Replace secret access with Worker environment bindings; never return client secret. Keep donation-link readiness separate from REST checkout readiness. |
+| `getPayPalPayoutReadiness` | Obtains PayPal OAuth token and performs a deliberately nonexistent payout-batch read-only probe. Port as an admin-only server-side readiness check; preserve the no-money-movement guarantee and don't expose token/scope values. |
+| `getPayPalSubscriptionOptions` | Authenticates user, checks eligibility/nonprofit approval, live plan mapping and remote webhook event coverage. Port to PayPal REST + Supabase; only provider-verified live plans are offered. |
+| `getPaymentCapabilities` | Public-safe PayPal donation/API/payout capability snapshot. Rebuild from server-side secret bindings and live PayPal verification. |
+| `getSharedConnectorStatus` | Verifies platform-managed Slack bot and Wix integrations through provider API calls. Replace Base44 shared-connector storage with IFund-owned Cloudflare secrets/OAuth credentials and retain read-only verification. |
+| `getStripeIntegrationAudit`, `getStripeReadiness` | Stripe-only read-only readiness/audit code; one embeds the Base44 webhook URL. These are not needed for live payments under the standing PayPal-only policy. Do not port as an enabled integration; retain historical reconciliation evidence only, or return a retired/disabled status. |
+| `getStripeSubscriptionOptions` | Already a retired compatibility response; keep disabled. |
+| `getUnifiedInbox` | Read-only user-scoped conversations/messages and inbox items; no send, provider sync or cross-account search. Port to Supabase with strict per-user RLS and sanitized responses. |
+| `getVerifiedIFundIntegrationContext` | Read-only, redacted connection/recipe context for agents; explicitly does not grant mutations. Port with owner/super-admin authorization and no secrets. |
+| `getWritingResearchBrief` | Subscription-gated read-only research brief, only verified-source status. Port to Supabase read with user entitlement enforcement and source provenance. |
+
+**Provider-policy note:** `getStripeIntegrationAudit` explicitly enumerates the historical Base44 webhook endpoint and Stripe account/price metadata. This endpoint must not be confused with PayPal readiness or used to re-enable Stripe checkout. The independent platform's neutral provider status model should show Stripe as retired, not as an actionable setup requirement.
+
+**Progress:** 60/184 backend entrypoints inspected in full (32.6%). Next source-order batch begins at `importExternalCampaign`. No live provider settings or production data changed.
