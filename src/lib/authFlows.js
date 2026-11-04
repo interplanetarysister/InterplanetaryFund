@@ -5,12 +5,22 @@ function normalizeEmail(value) {
 }
 
 export function safeReturnTo(value, origin, fallback = DEFAULT_RETURN_TO) {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//") ||
-      value.includes("\\") || /[\u0000-\u001f\u007f]/.test(value)) return fallback;
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes("\\") ||
+    /[\u0000-\u001f\u007f]/.test(value)
+  ) {
+    return fallback;
+  }
+
   try {
     const base = new URL(origin);
     const target = new URL(value, base);
-    if (target.origin !== base.origin || target.username || target.password) return fallback;
+    if (target.origin !== base.origin || target.username || target.password) {
+      return fallback;
+    }
     return target.pathname + target.search + target.hash;
   } catch {
     return fallback;
@@ -22,6 +32,7 @@ export async function signInWithPassword(auth, email, password) {
   if (!address || typeof password !== "string" || !password) {
     throw new TypeError("Enter your email address and password.");
   }
+
   const { data, error } = await auth.signInWithPassword({
     email: address,
     password,
@@ -35,9 +46,13 @@ export async function signInWithPassword(auth, email, password) {
 
 export async function requestPasswordRecovery(auth, email, redirectTo) {
   const address = normalizeEmail(email);
-  if (!address) throw new TypeError("Enter the email address for your account.");
+  if (!address) {
+    throw new TypeError("Enter the email address for your account.");
+  }
+
   const { error } = await auth.resetPasswordForEmail(address, { redirectTo });
   if (error) throw error;
+
   // Deliberately return the same success result for known and unknown addresses.
   return { requested: true };
 }
@@ -61,7 +76,11 @@ export async function establishRecoverySession(auth, href) {
 
   const { data, error } = await auth.getSession();
   if (error) throw error;
-  return { ready: Boolean(data?.session), hasCallbackCredentials: Boolean(code || tokenHash) };
+
+  return {
+    ready: Boolean(data?.session),
+    hasCallbackCredentials: Boolean(code || tokenHash),
+  };
 }
 
 export async function completePasswordRecovery(auth, {
@@ -85,6 +104,7 @@ export async function completePasswordRecovery(auth, {
     if (!address || !/^\d{6}$/.test(code)) {
       throw new TypeError("Enter the email address and six-digit recovery code.");
     }
+
     const { data, error } = await auth.verifyOtp({
       email: address,
       token: code,
@@ -93,7 +113,10 @@ export async function completePasswordRecovery(auth, {
     if (error) throw error;
     verified = Boolean(data?.session);
   }
-  if (!verified) throw new Error("The recovery session could not be verified.");
+
+  if (!verified) {
+    throw new Error("The recovery session could not be verified.");
+  }
 
   const { error: updateError } = await auth.updateUser({ password });
   if (updateError) throw updateError;
