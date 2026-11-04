@@ -179,3 +179,20 @@ The four reference guides under the IFund skill directories were fetched in full
 | `.agents/skills/ifund-growth/references/agent-guide.md` | 136 | Exact duplicate of `.agents/skills/growth_agent.md` | No extra Base44 coupling; keep both synchronized or de-duplicate. |
 
 This is a verified duplicate group, not four independent behavior definitions. The Base44-specific references in the chief-of-staff and finance guides are therefore duplicated in the two reference copies. Do not count duplicate copies as new capabilities or silently change only one copy.
+
+
+### Source traversal — `.github` instructions and workflows
+
+| Source file | Lines | Findings | Replacement / disposition |
+|---|---:|---|---|
+| `.github/FUNDING.yml` | 16 | No Base44 references; template sponsorship placeholders only. | No decoupling edit required. |
+| `.github/copilot-instructions.md` | 19 | L7 blocks Base44 builder/agent/workflow/API/deploy operations under the zero-credit policy; L10 calls the source repository the authoritative Base44-hosted implementation target. | Rewrite the target-side policy to identify `InterplanetaryFund` + Supabase/Cloudflare as the independent target and `interplanetary-fund2` as read-only evidence. No Base44 operations should be required. |
+| `.github/skills/code-review/SKILL.md` | 246 | No literal Base44 references; generic security, data integrity, payments and verification review policy. | Keep as generic review guidance. |
+| `.github/workflows/android-debug-apk.yml` | 172 | No literal Base44 references. | Review native build/runtime URL settings in the Android app config separately; this workflow alone is not provider-coupled. |
+| `.github/workflows/connect-dialog-safe-errors.yml` | 36 | L12–20 trigger on changes under `base44/functions/**` and `base44/entities/**`. | Replace triggers with IFund Worker/Edge Function and schema paths in the target CI; source-only workflow should not remain a required check. |
+| `.github/workflows/deploy-cloudflare.yml` | 101 | L32–37 inject and require `VITE_BASE44_APP_ID` / `VITE_BASE44_APP_BASE_URL`; L77 and L85 require an MCP proxy header identifying Base44. | Build using neutral `VITE_API_BASE_URL` (or same-origin default) and Supabase publishable configuration; verify the independent API health/route contract, not a Base44 MCP proxy. |
+| `.github/workflows/quality-gates.yml` | 236 | L24/L203/L217 special-case `base44-builder[bot]`; L25 names a Base44 release build; L62–63 runs the Base44 sync contract script. | Replace with independent PR/preview/release checks; remove the builder actor condition and source-sync gate; test IFund-owned route/schema contracts instead. |
+| `.github/workflows/service-health-safe-errors.yml` | 22 | No literal Base44 references. | Keep generic service health workflow; confirm its target endpoints are the independent API. |
+| `.github/workflows/terms-liability.yml` | 27 | No literal Base44 references. | Keep generic legal/terms workflow; verify deployment target separately. |
+
+**CI result for the new adapter:** GitHub Actions run [41751234251](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41751234251) on the PR head with the temporary diagnostic step removed completed successfully: real `npm ci`, lockfile reproducibility, **82/82 tests**, Vite production build, and Prettier check all passed. The temporary formatter diagnostic step was removed from the workflow before this final successful run. No production deploy was triggered.
