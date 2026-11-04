@@ -561,3 +561,58 @@ The source implements:
 - `runBrowserConnection` is intentionally a no-op and must stay that way until safe browser automation is deliberately implemented and budgeted.
 
 **Backend audit status:** 184/184 entrypoint files inspected; four additional helper files inspected; 188/188 files in the `base44/functions/` tree accounted for. This completes the backend source-code traversal. It does **not** mean the 184 endpoints have been ported: the independent Worker currently implements only its documented small route set, and the initial Supabase schema still contains four tables. The next audit layer is `src/` frontend call sites and shared runtime helpers, followed by the complete data/agent/workflow migration.
+
+
+### Source traversal — all 48 shared backend modules complete
+
+**48/48 files under `base44/shared/` fetched and inspected in full.** This closes the shared-runtime helper layer. Source files remain read-only.
+
+#### Hard Base44 runtime and data-plane dependencies
+
+| Source helper | Finding | Independent replacement |
+|---|---|---|
+| `accountGuard.ts` | Calls Base44 auth + service-role User read to detect pending deletion/disabled accounts. | Verify Supabase JWT and fresh account status from Supabase before every protected operation. |
+| `activityEvent.ts`, `auditLog.ts` | Writes ActivityEvent/AuditLog through Base44 service role; audit metadata has recursive secret redaction. | Supabase insert/RPC with server-only writes, append-only audit policy and same redaction. |
+| `approvedBuilderBridge.ts` | Hard dependency on `app.base44.com`, `IFUND_BASE44_PLATFORM_TOKEN`, workspace ID, app ID and Base44 deploy API. | Delete from independent runtime; replace with GitHub PR + CI + Cloudflare deploy approval. |
+| `base44Financial.ts` | Name is provider-specific, but logic defines canonical donation allocation, external observations, withdrawal reservations, duplicate convergence and campaign projection. | Reimplement as Supabase SQL functions/transactions with unique operation keys, immutable financial allocation and idempotent ledger writes. Do not just rename the file. |
+| `connectionCrypto.ts`, `verificationEmailCrypto.ts` | Read AES keys through Base44 runtime secret store; encrypted connection secrets and verification mail. | Cloudflare Worker secret bindings or a dedicated vault/KMS; versioned ciphertext, key rotation and no plaintext fallback. |
+| `connectionVerification.ts` | Uses Deno env OAuth connector IDs and Base44 app-user connector tokens; contains one Base44-specific Mastodon SSRF comment. | IFund OAuth service/token vault and explicit provider probes; retain DNS-pinned/redirect-safe outbound policy. |
+| `crossPost.ts` | Uses Base44 Core InvokeLLM, entities and service role to create drafts/publish records. | AI provider adapter + Supabase draft/queue tables + Cloudflare queue/worker; keep owner approval and manual fallback. |
+| `featureFlagGate.ts`, `fundraisingMode.ts`, `prelaunchPayments.ts` | Feature gates read Base44 FeatureFlag entity. | Supabase server-side feature flags with fail-closed unique/scope checks. Never let a flag grant user consent or provider capability. |
+| `financialMirrors.ts` | Explicitly calls Base44 FinancialOperation authoritative and maintains Donation/Notification/InboxItem mirrors. | Supabase canonical ledger first; projections are rebuildable and never authoritative. |
+| `integrationRegistry.ts`, `providerCapabilities.ts`, `liveProviderReadiness.ts` | Registry/capabilities stored in Base44 entities; runtime secrets from `base44:runtime`; OAuth through Base44 connector APIs. | Supabase provider registry + Worker secret bindings + live provider checks. Capability config is not provider proof. |
+| `liveProviderReadiness.ts` | Includes Stripe as a retired provider, but also checks NOWPayments/Reown/OpenAI config presence. | Preserve PayPal live readiness. Stripe stays disabled. Crypto and AI remain unavailable until actual end-to-end provider verification. |
+| `readEntityPages.ts` | Generic pagination wrapper, but explicitly uses Base44 entity filter API and Base44 error wording. | Supabase cursor pagination using stable primary-key order and explicit truncated-scan result. |
+| `sendDonationReceipt.ts` | Uses Base44 Core SendEmail; comments still list Stripe webhook as a receipt source. | IFund email provider adapter. Only provider-verified donations may trigger receipts; remove Stripe from new-payment path. |
+| `serverImagePolicy.ts` | Hardcoded Base44 media CDN/app host and Core UploadFile, with server-side watermark transformation. | R2 object store + `MEDIA_PUBLIC_BASE_URL` + signed upload; preserve watermark rules and server-side paid entitlement check. |
+| `paypal.ts`, `paypalSubscriptions.ts` | PayPal operations use Base44 runtime secrets; checkout CORS allowlist includes Base44 app host. | Same PayPal logic with Cloudflare secret bindings; replace callback/origin with independent canonical Worker/site origin only after deployment verification. |
+| `premiumAccessCatalog.ts`, `stripeCryptoReadiness.ts`, `stripeSubscriptionCatalog.ts` | Legacy Stripe premium products, stablecoin readiness and recurring plan lookup. | Do not migrate as active billing. PayPal is the designated subscription/payment provider; keep Stripe data only as historical reconciliation evidence. |
+| `platformConnectionRecipes.ts`, `aiConnectionScope.ts`, `verifiedConnectionCapabilities.ts`, `socialPublishingPolicy.ts` | Mostly provider-neutral policy and capability data. | Retain semantics; change execution to IFund runtime. Do not infer capabilities from requested scopes or prose. |
+| `browserbaseSecrets.ts` | Separate Browserbase API/keypair and secret vault integration, not Base44. | Treat Browserbase as a separate vendor decision. Do not silently fold it into the Base44 rename; browser execution currently remains fail-closed. |
+
+#### Exact Base44 wording and naming corrections
+
+- `connectionCrypto.ts:2`: "Base44 backend secrets" → "Cloudflare Worker secret bindings / IFund secret manager".
+- `connectionVerification.ts:237`: "Until Base44 provides a DNS-pinned..." → "Until IFund provides a DNS-pinned...".
+- `financialMirrors.ts:3–4`: "Base44 FinancialOperation is the financial authority" and "Base44 rows exist..." → "IFund canonical FinancialOperation ledger is authoritative" and "projection rows exist for application read models".
+- `providerCapabilities.ts:7,33`: "Base44 build" → "IFund Worker/runtime"; stored research must still not invent implementations.
+- `readEntityPages.ts:1,11,20`: "Base44 entity pagination" / "Base44 pagination..." → "IFund database pagination" / "database cursor pagination...".
+- `serverImagePolicy.ts:19–20,25`: Base44 media URLs and redirect behavior → R2/IFund media host and signed object URLs.
+- `socialPublish.ts:7,55`: "Base44 OAuth connector" / "Until the Base44 runtime provides..." → "IFund OAuth adapter" / "Until IFund provides...".
+- `approvedBuilderBridge.ts`: remove entirely from independent branch; it is a real Base44 builder integration, not wording.
+- `paypalSubscriptions.ts:93`: Base44 app origin in allowed checkout origins → remove once the independent canonical origin is deployed and verified.
+- `liveProviderReadiness.ts:1`, `paypal.ts:1`, `paypalSubscriptions.ts:1`, `stripeCryptoReadiness.ts:2`, `stripeSubscriptionCatalog.ts:2`, `verificationEmailCrypto.ts:1`: `base44:runtime` secret import → Cloudflare Worker environment binding adapter.
+- `accountGuard.ts`, `activityEvent.ts`, `auditLog.ts`, `crossPost.ts`, `featureFlagGate.ts`, `fundraisingMode.ts`, `prelaunchPayments.ts`, `socialPublish.ts` and many others use a parameter named `base44` even where the business logic is neutral. Rename to a neutral `ctx`/repository interface only after the adapter contract is defined and all callers are migrated.
+
+#### Additional architecture defects that a superficial rename would preserve
+
+1. **Financial authority:** the old helper calls Base44 FinancialOperation the source of truth. The destination must instead use Postgres transactions/constraints as the single authority. A mirror-only Supabase port would preserve the same single-provider lock-in.
+2. **Runtime secrets:** Base44 secret imports are used by PayPal, verification email, Stripe, live readiness and connection encryption. Each must be moved to a server-only binding; no secret may be sent to frontend or committed to config.
+3. **Image storage:** both `renderInterplanetaryPhoto` and `serverImagePolicy` accept only Base44 media paths and upload via Base44. R2 is already available on the migration target; use one neutral media service contract and a controlled legacy import path for old images.
+4. **AI:** Base44 Core InvokeLLM appears in shared cross-posting and multiple agents. A neutral AI adapter must support structured JSON validation, budget/rate limits, source provenance and a truthful unavailable fallback.
+5. **OAuth:** app-user and shared connectors are Base44-hosted token stores. Supabase Auth does not replace external-provider OAuth. The independent OAuth service/token vault is a distinct component.
+6. **Stripe policy conflict:** the shared source still contains Stripe premium products, crypto readiness and subscription catalog helpers, even though live payments are designated PayPal-only. These must remain retired; don't accidentally make them operational during decoupling.
+7. **External sync safety:** `externalSyncRequest.ts` implements a global lease/mutex, rate slots, request fingerprint, fenced claims, stale retry and explicit authenticated requests. Port its concurrency guarantees using database uniqueness/transactions or durable Cloudflare workflows, not process-local locks.
+8. **Browserbase:** this is a separate third-party credential service; it should remain explicitly unconfigured/fail-closed until a user-approved browser automation design exists.
+
+**Shared-helper audit status:** 48/48 files inspected. Together with the completed 184/184 function entrypoints and 95/95 entity schemas, all primary Base44 backend code/config directories reviewed to date are accounted for. Next: complete frontend `src/` traversal, then the remaining `base44/` agents, connectors, workflows, and UI-specific Base44 SDK usage.
