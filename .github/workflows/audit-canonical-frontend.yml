@@ -35,6 +35,18 @@ jobs:
             : > audit-evidence/original-public-assets.txt
           fi
           grep -RInE 'base44Client|@base44/sdk|base44\.entities|base44\.functions' original-frontend/src --include='*.js' --include='*.jsx' --include='*.ts' --include='*.tsx' > audit-evidence/base44-runtime-usages.txt || test "$?" -eq 1
+          # Compare page/component basenames as a triage inventory, not proof of parity.
+          # Original and reconstructed routes may have different names or behavior.
+          for kind in pages components; do
+            find "original-frontend/src/$kind" -type f -printf '%f\n' | sort -u > "audit-evidence/original-$kind-basenames.txt"
+            if test -d "apps/web/src/$kind"; then
+              find "apps/web/src/$kind" -type f -printf '%f\n' | sort -u > "audit-evidence/destination-$kind-basenames.txt"
+            else
+              : > "audit-evidence/destination-$kind-basenames.txt"
+            fi
+            comm -23 "audit-evidence/original-$kind-basenames.txt" "audit-evidence/destination-$kind-basenames.txt" > "audit-evidence/unmatched-original-$kind.txt"
+          done
+          git rev-parse HEAD > audit-evidence/deployable-checkout-sha.txt
           cp original-frontend/package.json audit-evidence/original-package.json
           printf '%s\n' "$source_sha" > audit-evidence/original-source-sha.txt
           {
@@ -44,6 +56,9 @@ jobs:
             echo "- Pages: $(wc -l < audit-evidence/original-pages.txt)"
             echo "- Components: $(wc -l < audit-evidence/original-components.txt)"
             echo "- Public assets: $(wc -l < audit-evidence/original-public-assets.txt)"
+            echo "- Original page filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-pages.txt)"
+            echo "- Original component filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-components.txt)"
+            echo "- Filename differences are triage only; they do not establish missing functionality or visual parity."
             echo "- Base44 runtime usage lines: $(wc -l < audit-evidence/base44-runtime-usages.txt)"
             echo "- Download the audit-evidence artifact for exact paths and integration inventory."
             echo "- This audit does not certify preview, visual parity, or backend readiness."
