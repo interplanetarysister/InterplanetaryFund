@@ -76,3 +76,47 @@ A new line-by-line replacement register was started in [BASE44_DECOUPLING_AUDIT.
 
 
 **Neutral API client verification — PASS:** GitHub Actions run [41751234251](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41751234251) on the PR head passed real `npm ci`, lockfile reproducibility, **82/82 Node tests**, Vite production build, and Prettier. The new API client tests cover same-origin routing, replaceable HTTPS API origin, URL validation, Supabase session bearer propagation, JSON request handling and structured HTTP errors. This verifies the adapter primitive only; current UI pages are not all routed through it, and the source's 95 entities / 184 functions / agents / workflows are not yet ported. The independent app remains a preview scaffold, not a production cutover.
+
+
+---
+
+## Owner incremental implementation directive — 2026-11-03 (current evidence supersedes earlier phase labels)
+
+The owner requires one shared service, agent, or page at a time, preserving all earlier work. The 59 historically coded routes remain the acceptance baseline. A page is complete only when every feature-description promise and every visible action works end-to-end with the correct identity/permission, persisted data, responsive presentation, accessibility and production evidence. Coherent production pushes may be incremental; temporary disconnects must be identified, safe, reversible and never disguised as working functionality.
+
+### Current connected Supabase state (read-only check, 2026-11-03)
+
+| Item | Designated target InterplanetaryFund | Older Ifund |
+|---|---:|---:|
+| Project reference | ssibsfmtodgximseeqsv | tzehxfikoslihnclhxuz |
+| Applied migrations | 73 (latest 20261103192435) | legacy history; not target |
+| Tables | 88 | legacy subset |
+| Tables with RLS enabled | 88/88 | legacy policies remain |
+| Active Edge Functions | 4 | 3 |
+| Role | retain as target | preserve until dependencies are safely moved |
+
+Target functions observed active: ifund-member-mail-ingress v2, ifund-admin-mail-ingest v1, ifund-admin-mailbox v1, and ifund-campaign-draft-preview v2. The 88/88 RLS-enabled result proves RLS is enabled, not that every policy has correct semantics. The target has real application records, but complete source row counts, user ownership claims, media hashes and financial reconciliation are still outstanding. Prior 768/768 private snapshot hash matches remain valid but do not prove public/financial parity.
+
+Important source-of-truth drift: the connected target has 73 applied migrations, while the current integration branch does not yet contain a matching complete migration history. Reconcile this before further DDL; never reapply existing migrations or treat a dashboard catalog as a substitute for version-controlled migration source.
+
+### Seven-category progress
+
+1. Authentication and identity — partial. Supabase Auth/profile lifecycle and verified-admin migrations exist; Phase 3 PR #140 and recovery callback PR #207 are prior work. Current Auth preview uses email OTP and Google/Facebook; password login plus the owner-required email recovery code flow is not complete. Finish verified owner linking, role/entitlement checks, session lifecycle and recovery end-to-end before protected pages.
+2. Database entities and permissions — substantial foundation, incomplete parity. Preserve PR #139, #148 and #158; map all 95 entity contracts, all policies and all source data. The live target's 88 tables/73 migrations must be reconciled to Git. 768 cached snapshot records match hashes, but full users/campaigns/media/donations/ledger reconciliation is not complete.
+3. Backend functions — partial. Preserve PR #141's 184-function manifest, existing Worker read/write routes, PR #178 geocodeCity, and PR #208 API facade. Four target Edge Functions are active; most of the 184 source operations are not ported. Map each entrypoint and consumer; test one function contract at a time.
+4. AI agents and workflows — staged, not operational. Preserve PR #157's 10-agent/17-workflow/11-connector registry, durable workflow class, signed event intake and audit scaffolding. Its handler adapter map is empty and all source workflows remain unported. Build actual tool executors, scoped memory, Chief of Staff delegation, and owner-only coding builder; no workflow activation until its real handler, authorization, idempotency and audit are verified.
+5. External integrations and credentials — partial. Preserve 11 connector definitions, OBO/consent, PR #145 PayPal slice and PR #158 mail schema work. Secret names are inventoried; secret values/provider handshakes remain. Keep PayPal as the approved rail and do not introduce Stripe as a substitute. A configured credential is not a verified connection.
+6. Media storage and uploads — partial. Cloudflare R2 is available. Complete byte/hash inventory, transfer, access control, URL remapping and image-quality parity remain. Preserve watermark, original quality, responsive sizes, crop/focal point, WebP, SVG and GIF animation.
+7. Deployment and build configuration — partial. Preserve merged Phase 1 #138, deployment gate #146, preview #206, API facade #208, Node 22 baseline and rollback work. The old domain Worker still has Base44 routes and custom-domain Pages ownership/production settings need verified reconciliation. Do not claim cutover based on a build or preview alone.
+
+### Existing PRs are cumulative project work
+
+Continue/reconcile rather than discard: #138 merged; #139 schema; #140 auth; #141 function inventory; #142/#155/#156/#159 page/layout restoration; #145 PayPal; #146 cutover gate; #147 ZIP intake; #148 private snapshot transfer; #157 agents/workflows; #158 single-Supabase consolidation; #178 geocodeCity; #192 visual Studio builder; #199 campaign story editor; #204/#205/#206 visual parity and preview; #207 auth recovery; #208 decoupling audit/API facade. Each branch must be checked against current integration head before merge; no wholesale merging of stale or conflicting stacked branches.
+
+### Next exact work
+
+1. Reconcile 73 live target migrations with version-controlled SQL and the existing PR #158 consolidation record.
+2. Finish password login + email recovery code and complete identity/role/session tests.
+3. Continue PR #208's line-by-line source audit and API facade migration without touching the read-only source repo.
+4. Implement and verify the real agent/workflow handlers and owner-only coding builder.
+5. Finish one route at a time using the existing 59-route role/platform evidence matrix. Do not count a mounted or limited route as complete.
