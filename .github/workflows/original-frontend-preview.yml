@@ -39,7 +39,7 @@ jobs:
         run: |
           # Original source has no public/_redirects. Preserve its code and
           # generate a Pages-only fallback for client-side routes.
-          printf '/* /index.html 200\\n' > dist/_redirects
+          printf '/* /index.html 200\n' > dist/_redirects
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
@@ -58,5 +58,5 @@ jobs:
         run: |
           npx --yes wrangler@3 pages deploy dist --project-name interplanetaryfund-migration --branch original-frontend-preview --commit-dirty=true | tee /tmp/ifund-pages-deploy.log
           echo "Original-source Cloudflare preview deployment output:" >> "$GITHUB_STEP_SUMMARY"
-          grep -Eo 'https://[[:alnum:].-]+\\.pages\\.dev' /tmp/ifund-pages-deploy.log | sort -u >> "$GITHUB_STEP_SUMMARY" || true
+          grep -Eo 'https://[[:alnum:].-]+\.pages\.dev' /tmp/ifund-pages-deploy.log | sort -u >> "$GITHUB_STEP_SUMMARY" || true
           echo "Deployment success does not establish visual or Base44 runtime parity; browser QA is still required." >> "$GITHUB_STEP_SUMMARY"
