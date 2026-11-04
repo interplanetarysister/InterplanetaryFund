@@ -24,3 +24,7 @@ Scope: lead-architecture coordination only. Source of truth for UI is `interplan
 ## Current release decision
 
 **HOLD** production and Base44 replacement. A successful build or HTTP 200 cannot close gates A–G. Avoid merging finance PR #200 until issue #201 is resolved. Do not force-push, reset, rebase or edit other agents' branches. Frontend owner should first publish source-pinned isolated preview evidence; integration should then run its probe and browser tests. Backend changes remain separately staged until the owner authorizes each complete dependency unit.
+
+## 2026-11-04 audit execution caveat
+
+The `audit-canonical-frontend.yml` workflow is currently added only on `agent/lead-architecture`, not the default branch. GitHub Actions scheduled workflows execute from the default branch, so its six-hour cron **does not run this branch's audit automatically**. Integration must review/merge the audit workflow to the default branch (only after checking ownership and CI), or manually dispatch the workflow against the feature branch where GitHub exposes it. Do not count the presence of the YAML or its cron as executed parity evidence. The workflow's generated inventory is advisory, not a substitute for the original-frontend deployed preview and mobile/browser verification.
