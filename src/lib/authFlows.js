@@ -83,13 +83,16 @@ export async function establishRecoverySession(auth, href) {
   };
 }
 
-export async function completePasswordRecovery(auth, {
-  email,
-  token,
-  password,
-  confirmPassword,
-  hasRecoverySession = false,
-}) {
+export async function completePasswordRecovery(
+  auth,
+  {
+    email,
+    token,
+    password,
+    confirmPassword,
+    hasRecoverySession = false,
+  },
+) {
   if (typeof password !== "string" || password.length < 8) {
     throw new TypeError("Choose a password with at least 8 characters.");
   }
