@@ -29,6 +29,17 @@ const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_studio_consume_ai_quota",
   "ifund_private.ifund_studio_capture_page_version",
+  // Story contracts reviewed independently in PR #210. These private functions
+  // enforce confirmed identity, current membership/consent, owner scope and
+  // leases or revisions. Executable Postgres tests cover their denial paths;
+  // none grants publication, campaign mutation or financial authority.
+  "ifund_story_runtime.begin_request",
+  "ifund_story_runtime.finish_request",
+  "ifund_story_runtime.cancel_draft",
+  "ifund_story_runtime.select_suggestion",
+  "ifund_story_runtime.revise_wording",
+  "ifund_story_runtime.save_preferences",
+  "ifund_story_runtime.clear_preferences",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
@@ -49,6 +60,8 @@ function functionHeaders() {
         header,
         definer: /security\s+definer/i.test(header),
         pinned: /set\s+search_path/i.test(header),
+        source: text,
+        offset: match.index,
       });
     }
   }
@@ -81,7 +94,9 @@ test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", (
       /language\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
     assert.ok(
       readOnly || MUTATING_DEFINER_FUNCTIONS.has(fn.name),
-      fn.file + ": " + fn.name +
+      fn.file +
+        ": " +
+        fn.name +
         " is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry",
     );
   }
@@ -91,14 +106,25 @@ test("execute on a definer function is revoked from public before being granted"
   const grants = SQL_FILES.map((f) => readFileSync(f, "utf8")).join("\n");
   for (const fn of functionHeaders().filter((f) => f.definer)) {
     const bare = fn.name.replace(/^[a-zA-Z0-9_]+\./, "");
-    const revoked = new RegExp(
+    const explicitRevoke = new RegExp(
       "revoke\\s+all\\s+on\\s+function\\s+(?:[a-zA-Z0-9_]+\\.)?" +
-        bare + "\\s*\\(",
+        bare +
+        "\\s*\\(",
       "i",
     ).test(grants);
+    const schema = fn.name.includes(".") ? fn.name.split(".")[0] : "public";
+    // A schema-wide revoke must follow this definition in the same migration.
+    // A revoke in an earlier migration cannot protect a future new function.
+    const schemaRevoke = new RegExp(
+      "revoke\\s+all\\s+on\\s+all\\s+functions\\s+in\\s+schema\\s+" +
+        schema +
+        "\\s+from\\s+[^;]*\\bpublic\\b",
+      "i",
+    ).test(fn.source.slice(fn.offset));
     assert.ok(
-      revoked,
-      fn.name + " is SECURITY DEFINER but never has execute revoked from public",
+      explicitRevoke || schemaRevoke,
+      fn.name +
+        " is SECURITY DEFINER but never has execute revoked from public",
     );
   }
 });
@@ -124,12 +150,15 @@ test("functions this repository calls but does not define are recorded", () => {
   for (const name of undocumented) {
     assert.ok(
       doc.includes(name),
-      name + " is called but not defined in any migration, and is not recorded in BLOCKERS.md",
+      name +
+        " is called but not defined in any migration, and is not recorded in BLOCKERS.md",
     );
   }
   assert.ok(
     undocumented.length <= 1,
     "expected at most 1 externally-defined function dependency, found " +
-      undocumented.length + ": " + undocumented.join(", "),
+      undocumented.length +
+      ": " +
+      undocumented.join(", "),
   );
 });
