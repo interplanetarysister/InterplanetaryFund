@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../lib/supabase";
 import { Message } from "../components/UI";
-import { completePasswordRecovery, establishRecoverySession } from "../lib/authFlows";
+import {
+  completePasswordRecovery,
+  establishRecoverySession,
+} from "../lib/authFlows";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -17,6 +20,7 @@ export default function ResetPassword() {
 
   useEffect(() => {
     let active = true;
+
     async function initialize() {
       if (!db) {
         if (active) {
@@ -25,21 +29,33 @@ export default function ResetPassword() {
         }
         return;
       }
+
       try {
-        const result = await establishRecoverySession(db.auth, window.location.href);
+        const result = await establishRecoverySession(
+          db.auth,
+          window.location.href,
+        );
         if (!active) return;
+
         setLinkSession(result.ready);
         if (result.hasCallbackCredentials && result.ready) {
           window.history.replaceState({}, "", "/reset-password");
         }
       } catch {
-        if (active) setError("The recovery link could not be verified. Request a new recovery email.");
+        if (active) {
+          setError(
+            "The recovery link could not be verified. Request a new recovery email.",
+          );
+        }
       } finally {
         if (active) setChecking(false);
       }
     }
+
     initialize();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   async function submit(event) {
@@ -47,6 +63,7 @@ export default function ResetPassword() {
     if (!db || busy || checking) return;
     setBusy(true);
     setError("");
+
     try {
       await completePasswordRecovery(db.auth, {
         email,
@@ -57,8 +74,13 @@ export default function ResetPassword() {
       });
       navigate("/login", { replace: true });
     } catch (failure) {
-      if (failure instanceof TypeError) setError(failure.message);
-      else setError("The recovery code or link could not be verified, or the password could not be updated. Request a new recovery email and try again.");
+      if (failure instanceof TypeError) {
+        setError(failure.message);
+      } else {
+        setError(
+          "The recovery code or link could not be verified, or the password could not be updated. Request a new recovery email and try again.",
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -67,32 +89,59 @@ export default function ResetPassword() {
   return (
     <main className="editor">
       <h1>Choose a new password</h1>
-      {checking ? <p role="status">Checking your recovery link…</p> : (
+      {checking ? (
+        <p role="status">Checking your recovery link…</p>
+      ) : (
         <form className="form" onSubmit={submit}>
           {!linkSession && (
             <>
               <label>
                 Email address
-                <input required type="email" autoComplete="email" value={email}
-                  onChange={(event) => setEmail(event.target.value)} />
+                <input
+                  required
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
               </label>
               <label>
                 Six-digit recovery code
-                <input required inputMode="numeric" autoComplete="one-time-code"
-                  pattern="[0-9]{6}" maxLength={6} value={code}
-                  onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} />
+                <input
+                  required
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  pattern="[0-9]{6}"
+                  maxLength={6}
+                  value={code}
+                  onChange={(event) =>
+                    setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                />
               </label>
             </>
           )}
           <label>
             New password
-            <input required type="password" autoComplete="new-password" minLength={8}
-              value={password} onChange={(event) => setPassword(event.target.value)} />
+            <input
+              required
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </label>
           <label>
             Confirm new password
-            <input required type="password" autoComplete="new-password" minLength={8}
-              value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
+            <input
+              required
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+            />
           </label>
           <button type="submit" disabled={!db || busy || checking}>
             {busy ? "Updating…" : "Update password"}
