@@ -1,9 +1,14 @@
 import { db } from "./supabase.js";
 
-const configuredApiBase = String(import.meta.env?.VITE_API_BASE_URL || "").trim();
+const configuredApiBase = String(
+  import.meta.env?.VITE_API_BASE_URL || "",
+).trim();
 
 export class ApiError extends Error {
-  constructor(message, { status = 0, code = "api_error", details = null } = {}) {
+  constructor(
+    message,
+    { status = 0, code = "api_error", details = null } = {},
+  ) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -24,13 +29,22 @@ export function resolveApiUrl(path, baseUrl = configuredApiBase) {
   } catch {
     throw new TypeError("VITE_API_BASE_URL must be a valid absolute URL.");
   }
-  if (!["https:", "http:"].includes(base.protocol) || base.username || base.password) {
-    throw new TypeError("API base URL must use HTTP(S) and contain no credentials.");
+  if (
+    !["https:", "http:"].includes(base.protocol) ||
+    base.username ||
+    base.password
+  ) {
+    throw new TypeError(
+      "API base URL must use HTTP(S) and contain no credentials.",
+    );
   }
-  if (base.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(base.hostname)) {
+  if (
+    base.protocol !== "https:" &&
+    !["localhost", "127.0.0.1"].includes(base.hostname)
+  ) {
     throw new TypeError("Non-local API base URLs must use HTTPS.");
   }
-  const prefix = base.pathname.replace(/\/+$/, "");
+  const prefix = base.pathname.replace(/\\/+$/, "");
   return new URL(`${prefix}${path}`, base.origin).toString();
 }
 
@@ -69,13 +83,19 @@ export function createApiClient({
         ...(body === undefined || body === null ? {} : { body }),
         signal: options.signal,
       });
-      const payload = response.status === 204 ? null : await response.json().catch(() => null);
+      const payload =
+        response.status === 204
+          ? null
+          : await response.json().catch(() => null);
       if (!response.ok) {
-        throw new ApiError(payload?.error || payload?.message || "The API request failed.", {
-          status: response.status,
-          code: payload?.code || "api_error",
-          details: payload?.details || null,
-        });
+        throw new ApiError(
+          payload?.error || payload?.message || "The API request failed.",
+          {
+            status: response.status,
+            code: payload?.code || "api_error",
+            details: payload?.details || null,
+          },
+        );
       }
       return payload;
     },
