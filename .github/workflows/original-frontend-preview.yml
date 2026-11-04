@@ -107,6 +107,27 @@ jobs:
           '
           curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/" -o /tmp/ifund-live-home.html
           grep -qi '<html' /tmp/ifund-live-home.html
+          # A Pages fallback can return index.html for missing assets. Confirm the
+          # deployed HTML points to actual JavaScript, not a 200 HTML fallback.
+          PREVIEW_URL="$PREVIEW_URL" node --input-type=module -e '
+            import fs from "node:fs";
+            const html = fs.readFileSync("/tmp/ifund-live-home.html", "utf8");
+            const scripts = [...html.matchAll(/<script\\b[^>]*\\bsrc=["\x27]([^"\x27]+)["\x27]/gi)].map(m => m[1]);
+            if (!scripts.length) throw Error("No script assets in deployed homepage");
+            const origin = new URL(process.env.PREVIEW_URL);
+            for (const script of scripts) {
+              const url = new URL(script, origin);
+              if (url.origin !== origin.origin) throw Error("Unexpected external entrypoint: " + url);
+            }
+            fs.writeFileSync("/tmp/ifund-live-scripts.txt", scripts.join("\\n") + "\\n");
+          '
+          while IFS= read -r asset; do
+            test -n "$asset" || continue
+            ASSET_URL="$(PREVIEW_URL="$PREVIEW_URL" ASSET="$asset" node -e 'console.log(new URL(process.env.ASSET, process.env.PREVIEW_URL).href)')"
+            curl --fail --silent --show-error --location --max-time 20 "$ASSET_URL" -o /tmp/ifund-live-asset.js
+            head -c 256 /tmp/ifund-live-asset.js | grep -Eiq '<!doctype|<html' && { echo "Script returned HTML fallback: $ASSET_URL" >&2; exit 1; }
+            test -s /tmp/ifund-live-asset.js
+          done < /tmp/ifund-live-scripts.txt
           curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/login" -o /tmp/ifund-live-login.html
           grep -qi '<html' /tmp/ifund-live-login.html
           echo "Verified deployed source provenance and SPA login deep-link at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
