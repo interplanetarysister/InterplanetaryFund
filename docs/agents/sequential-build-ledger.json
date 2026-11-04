@@ -1,0 +1,993 @@
+{
+  "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
+  "implementation_ref": "interplanetarysister/InterplanetaryFund@d4caa4b",
+  "rule": "Owner authorized tested Story production activation, then beginning Strategy. Preserve explicit source-parity limits and never claim missing functionality is complete.",
+  "current_agent": "story_agent",
+  "agents": [
+    {
+      "order": 1,
+      "id": "story_agent",
+      "source": "base44/agents/story_agent.jsonc",
+      "sha256": "1436b2557ba1b88dc9c7c7dffc3e4e2312d033af2b45aed8f974df5ab67e6f10",
+      "status": "in_progress",
+      "tools": [
+        "Campaign",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false,
+      "verified_subcontracts": [
+        "source-equivalent server eligibility with no unverified subscription imports",
+        "canonical current owner context with explicit unavailable sources",
+        "reviewed-source research reads",
+        "idempotent canonical wording selection and CAS edits without campaign mutation",
+        "explicit owner/campaign preferences with correction and deletion-generation protection",
+        "bounded schema-mode inference smoke on confirmed free plan"
+      ],
+      "remaining_gates": [
+        "full source member chat and specialist tool parity",
+        "historical memory/skill migration",
+        "live two-owner runtime acceptance",
+        "production activation and live endpoint/identity acceptance"
+      ],
+      "migration_version": "20261104043420"
+    },
+    {
+      "order": 2,
+      "id": "strategy_agent",
+      "source": "base44/agents/strategy_agent.jsonc",
+      "sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Recommendation",
+        "generateIntelligence",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 3,
+      "id": "growth_agent",
+      "source": "base44/agents/growth_agent.jsonc",
+      "sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Donation",
+        "PlatformConnection",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 4,
+      "id": "communications_agent",
+      "source": "base44/agents/communications_agent.jsonc",
+      "sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Message",
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 5,
+      "id": "managed_connection_agent",
+      "source": "base44/agents/managed_connection_agent.jsonc",
+      "sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "requestManagedConnectionAction",
+        "listConnections",
+        "resolveConnectionStatus",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask",
+        "getVerifiedIFundIntegrationContext",
+        "discoverConnectionMethods"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 6,
+      "id": "connection_discovery_agent",
+      "source": "base44/agents/connection_discovery_agent.jsonc",
+      "sha256": "91bf743522f36e43d8bbb33758459a29be9451f2eb290a16fe9a75aaa2ad572d",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "FundraisingProviderCapability",
+        "PlatformConnection",
+        "Campaign",
+        "AgentActivity",
+        "listFundraisingProviderCapabilities",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 7,
+      "id": "outreach_agent",
+      "source": "base44/agents/outreach_agent.jsonc",
+      "sha256": "f6c60968fcf1771ea2ad64265469364cb82de33fabbbdb6c5665e8c8162b1caa",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Recommendation",
+        "AgentActivity",
+        "runBrowserConnection",
+        "getStripeIntegrationAudit",
+        "repairStripeWebhookEvents",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 8,
+      "id": "finance_agent",
+      "source": "base44/agents/finance_agent.jsonc",
+      "sha256": "a298ff7136566786af2d78d80dff6e8f6561af0982bac0adee2fd5dea9d66c43",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Donation",
+        "Withdrawal",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 9,
+      "id": "chief_of_staff",
+      "source": "base44/agents/chief_of_staff.jsonc",
+      "sha256": "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313",
+      "status": "blocked_by_previous_agent",
+      "tools": [
+        "Campaign",
+        "Donation",
+        "Recommendation",
+        "AgentDelegation",
+        "MissionBrief",
+        "FollowedCampaign",
+        "Notification",
+        "InboxItem",
+        "generateIntelligence",
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask",
+        "getVerifiedIFundIntegrationContext",
+        "discoverConnectionMethods"
+      ],
+      "allow_anonymous_access": false
+    },
+    {
+      "order": 10,
+      "id": "admin_builder_agent",
+      "source": "base44/agents/admin_builder_agent.jsonc",
+      "sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
+      "status": "blocked_by_previous_agent",
+      "tools": ["managePlatformIncidents", "manageAdminBuilderWork"],
+      "allow_anonymous_access": false
+    }
+  ],
+  "workflows": [
+    {
+      "name": "AI Outreach Agent",
+      "source": "base44/workflows/AI Outreach Agent.jsonc",
+      "sha256": "3b0a808449690aab22ef3c38a179245480048095c85cb271c26cdf2d8adcba0d",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 */6 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "ai_outreach_agent",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "run_agent": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "runOutreachAgent",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Run outreach agent",
+                "description": "Analyze opted-in campaigns"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Admin Action Conversation Router",
+      "source": "base44/workflows/Admin Action Conversation Router.jsonc",
+      "sha256": "052a155f66510f394a35490704db3e2c09b8e7bb34a84c559313857ce18c37d0",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "*/15 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "admin_action_conversation_router",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "route_questions": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "processAdminActionInbox",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Route admin questions",
+                "description": "Return verified agent information to the same admin action thread"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Campaign Protocol",
+      "source": "base44/workflows/Campaign Protocol.jsonc",
+      "sha256": "d4ced4ff6f16df2b78dbd286fbfbc2668d05128ca45dc82f23470813b7c43151",
+      "trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "Campaign",
+          "events": ["create", "update"]
+        },
+        "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "campaign_protocol",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "enforce": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "enforceCampaignProtocol",
+                "args": {
+                  "campaign_id": "${ .trigger.entity_id }"
+                }
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Enforce Campaign Protocol",
+                "description": "Outreach default, active gate, AI profile check"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Campaign Sync on Create",
+      "source": "base44/workflows/Campaign Sync on Create.jsonc",
+      "sha256": "bd24cf81f6ce767f35b78754ba969827d7d971edb8f3bb0b38d1179b76c898e4",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": ["create"],
+          "entity_name": "Campaign"
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "campaign_sync_on_create",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "sync": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "syncConnections",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Sync connections",
+                "description": "Initialize distribution"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Campaign Sync on Update",
+      "source": "base44/workflows/Campaign Sync on Update.jsonc",
+      "sha256": "28c9eb7ee3f5f77714dff29ddf9d4510bf322788c94aaac42bfd09ef9f93af46",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": ["create"],
+          "entity_name": "CampaignUpdate"
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "campaign_sync_on_update",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "sync": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "syncConnections",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Sync connections",
+                "description": "Distribute the new update"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Connection Sync Engine",
+      "source": "base44/workflows/Connection Sync Engine.jsonc",
+      "sha256": "e37d2bb91a3df60427e7d05fbc14aacc878c1da5b7cc2ccef19310d9ae93c462",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "connection_sync_engine",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "sync_connections": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "syncConnections",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Sync connections",
+                "description": "Publish due posts, retry failures, check health"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "External Feed Mirroring",
+      "source": "base44/workflows/External Feed Mirroring.jsonc",
+      "sha256": "e2db560f8d07827cf9ce5cee40a701985b2edf2c03594c6e0b70a1d6390ac818",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "external_feed_mirroring",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "mirror_posts": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "mirrorExternalPosts",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Mirror external posts",
+                "description": "Sync external feeds into Interplanetary Social"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Feature Discovery on Completion",
+      "source": "base44/workflows/Feature Discovery on Completion.jsonc",
+      "sha256": "1a7d6553012d930752f571be47b6a4d8ab088395a1eb2a84484787dbb0798023",
+      "trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "Campaign",
+          "events": ["update"]
+        },
+        "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "feature_discovery_on_completion",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "discover": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "discoverFeatures",
+                "args": {
+                  "user_id": "${ .trigger.data.created_by_id }"
+                }
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Discover features",
+                "description": "Scan account for unused features"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Grant Application Review",
+      "source": "base44/workflows/Grant Application Review.jsonc",
+      "sha256": "1fe70165189307b5bdbd150085eb94ec4a60e5eb0022c2c7dadffb18ee7f77bd",
+      "trigger": {
+        "config": {
+          "trigger_type": "entity",
+          "entity_name": "GrantApplication",
+          "events": ["create"]
+        },
+        "condition": "${ .trigger.data.status == \"submitted\" }"
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "grant_application_review",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "analyze": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "analyzeGrantApplication",
+                "args": {
+                  "application_id": "${ .trigger.entity_id }"
+                }
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Analyze application",
+                "description": "Strategy Agent recommends a decision"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "IFund Official Social Editor",
+      "source": "base44/workflows/IFund Official Social Editor.jsonc",
+      "sha256": "d0bc7ecc351762f8f712f359a7fd6fadf4dac7e4109c7bc9a19925352a7d4ff8",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 */4 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "ifund_official_social_editor",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "prepare_official_posts": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "runOfficialSocialPromotion",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Prepare official social editorials",
+                "description": "Use current brand research to prepare official platform-first promotions and moderation drafts"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "IFund Reporter Daily Diary",
+      "source": "base44/workflows/IFund Reporter Daily Diary.jsonc",
+      "sha256": "37c969fda09936c5b56d0611acbbf711dbe56701b7d4a6e2e117f402df889c7a",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 17 * * *",
+          "timezone": "America/Los_Angeles",
+          "one_time_date": null,
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "ifund_reporter_daily_diary",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "publish_reporter_story": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "runReporterDiary",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Publish IFund reporter diary",
+                "description": "Create a single source-constrained public newsletter issue and show it in Community Stories"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Integration Health Check",
+      "source": "base44/workflows/Integration Health Check.jsonc",
+      "sha256": "3ab1dec8f0541053aa289fca89af377ab7e6af36616b3075690be690af978ade",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 */6 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "integration_health_check",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "validate_integrations": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "validateIntegrationHealth",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Validate integrations",
+                "description": "Run non-destructive provider health checks and surface unhealthy connections"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "PayPal Holding Settlement Reconciliation",
+      "source": "base44/workflows/PayPal Holding Settlement Reconciliation.jsonc",
+      "sha256": "4b316fd436db203e599e28ef19f22f69532a7f5fd6d254635397b61c8e426f41",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 * * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "paypal_holding_settlement_reconciliation",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "discover_and_reconcile": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "discoverPayPalHoldingSettlements",
+                "args": {
+                  "lookback_hours": 24
+                }
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Reconcile PayPal holding receipts",
+                "description": "Verify recent PayPal receipts and allocate only unique exterior-fund matches"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Platform Account Steward",
+      "source": "base44/workflows/Platform Account Steward.jsonc",
+      "sha256": "5e52b82e6b5d742698be8f85edef58f73cf58f5bc5a0ad39e66956482b0c708d",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "30 15 * * *",
+          "one_time_date": null,
+          "timezone": "America/Los_Angeles",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "platform_account_steward",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "maintain_accounts": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "maintainPlatformOwnedAccounts",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Maintain official accounts",
+                "description": "Check account health, setup needs, and weekly posts"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Social Media Autopilot",
+      "source": "base44/workflows/Social Media Autopilot.jsonc",
+      "sha256": "9c9d104bdc6de60623e7386167e4bcf6df331d4570bf3a2315f8b0c8b9a15db8",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 14 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "social_media_autopilot",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "run_autopilot": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "runSocialAutopilot",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Run social autopilot",
+                "description": "Generate and stage cross-platform posts"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Volunteer Welcome Follow-up",
+      "source": "base44/workflows/Volunteer Welcome Follow-up.jsonc",
+      "sha256": "29d63512363938a2838b4211c55d7de86ffd6b55bc2311aac0141014d2a69e3d",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "entity",
+          "events": ["create"],
+          "entity_name": "VolunteerSignup"
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "volunteer_welcome_followup",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "welcome": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "welcomeVolunteer",
+                "args": {
+                  "signup_id": "${ .trigger.entity_id }"
+                }
+              },
+              "then": "wait_period",
+              "x-base44": {
+                "title": "Send welcome",
+                "description": "Email + in-app welcome"
+              }
+            }
+          },
+          {
+            "wait_period": {
+              "wait": "P3D",
+              "then": "follow_up"
+            }
+          },
+          {
+            "follow_up": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "volunteerFollowUp",
+                "args": {
+                  "signup_id": "${ .trigger.entity_id }"
+                }
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Follow up",
+                "description": "Invite to complete profile"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    },
+    {
+      "name": "Weekly Writing Psychology & Social Trends Training",
+      "source": "base44/workflows/Weekly Writing Psychology & Social Trends Training.jsonc",
+      "sha256": "76536741dfea982480d41770a4289d320afe6ee7fcacb872300cdb10dd6a5a87",
+      "trigger": {
+        "condition": null,
+        "config": {
+          "trigger_type": "scheduled",
+          "events": [],
+          "schedule_mode": "recurring",
+          "cron_expression": "0 16 * * *",
+          "one_time_date": null,
+          "timezone": "UTC",
+          "interval_value": null,
+          "interval_unit": null,
+          "interval_anchor": null,
+          "ends_type": "never",
+          "ends_on_date": null,
+          "ends_after_count": null
+        }
+      },
+      "definition": {
+        "document": {
+          "dsl": "1.0.0",
+          "name": "weekly_writing_psychology_training",
+          "version": "1.0",
+          "namespace": "base44"
+        },
+        "do": [
+          {
+            "study_sources": {
+              "call": "invoke_backend_function",
+              "with": {
+                "function_name": "refreshWritingResearch",
+                "args": {}
+              },
+              "then": "end",
+              "x-base44": {
+                "title": "Review donation psychology and social trends",
+                "description": "Research real studies and current culture; update sourced writing guidance"
+              }
+            }
+          }
+        ]
+      },
+      "status": "pending",
+      "executing": false
+    }
+  ],
+  "activation_authorized": true
+}

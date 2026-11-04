@@ -11,6 +11,8 @@
 // gate is build-time configuration, not a claim about the live project: the
 // actual authorization decision is still made server-side by Supabase.
 
+import { authRedirectUrl } from "./authFlow.js";
+
 export const OAUTH_PROVIDERS = Object.freeze([
   { id: "google", label: "Continue with Google" },
   { id: "facebook", label: "Continue with Facebook" },
@@ -41,7 +43,7 @@ export function configuredProviders(value) {
  * open-redirect and a redirect-mismatch failure.
  */
 export function oauthRedirectUrl(origin, returnTo) {
-  const target = new URL("/login", canonicalOrigin(origin));
+  const target = new URL(authRedirectUrl(canonicalOrigin(origin), returnTo));
   const safe = safeReturnToPath(returnTo);
   if (safe) target.searchParams.set("returnTo", safe);
   return target.toString();
