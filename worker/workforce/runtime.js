@@ -97,6 +97,7 @@ export async function beginStoryAssignment(env, rpc, input, hash, messages) {
     position_id: "story_agent",
     capabilities: [input.section ? "story.section.v1" : "story.draft.v1"],
     allowed_permissions: ["owner_context"],
+    required_permissions: ["owner_context"],
     complexity: 2,
     input_bytes: bytes,
     max_output_tokens: 2200,

@@ -22,6 +22,7 @@ function eligible(candidate, task, now) {
     strings(c.tested_capabilities) &&
     strings(c.permissions) &&
     c.permissions.every((p) => task.allowed_permissions.includes(p)) &&
+    (task.required_permissions || []).every((p) => c.permissions.includes(p)) &&
     c.security === "supabase_owner_scoped_v1" &&
     finite(c.max_complexity) &&
     c.max_complexity >= task.complexity &&
@@ -68,6 +69,8 @@ export function procureTeam(
     !strings(task.capabilities, 16) ||
     task.capabilities.length === 0 ||
     !strings(task.allowed_permissions, 16) ||
+    (task.required_permissions !== undefined &&
+      !strings(task.required_permissions, 16)) ||
     typeof task.position_id !== "string" ||
     !finite(task.complexity) ||
     !finite(task.input_bytes) ||

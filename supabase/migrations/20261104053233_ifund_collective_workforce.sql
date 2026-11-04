@@ -89,7 +89,7 @@ create or replace function ifund_workforce_runtime.eligible(i ifund_ops.workforc
 language sql stable security invoker set search_path='' as $$
   select i.registered and i.available and i.tested and i.security='supabase_owner_scoped_v1'
     and 'story_agent'=any(i.assigned_positions) and capability=any(i.capabilities) and capability=any(i.tested_capabilities)
-    and i.permissions <@ array['owner_context']::text[] and i.max_complexity>=2
+    and i.permissions <@ array['owner_context']::text[] and 'owner_context'=any(i.permissions) and i.max_complexity>=2
     and i.max_output_tokens>=2200 and i.cost->>'verified'='true' and i.cost->>'additional_cost'='0'
     and i.cost->>'trial'='false' and i.cost->>'hard_stop'='true' and length(i.cost->>'evidence')>0
     and (i.cost->>'expires_at')::timestamptz>now()
