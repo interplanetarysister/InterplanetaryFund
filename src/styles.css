@@ -61,6 +61,22 @@ button:hover,
   color: #9fdafe;
   padding: 0.4rem;
 }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #aab5d0;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #ffffff30;
+}
 .app {
   min-height: 100vh;
   display: flex;
