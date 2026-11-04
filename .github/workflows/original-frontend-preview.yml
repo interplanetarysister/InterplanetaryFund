@@ -84,3 +84,30 @@ jobs:
           echo "Original-source Cloudflare preview deployment output:" >> "$GITHUB_STEP_SUMMARY"
           grep -Eo 'https://[[:alnum:].-]+\.pages\.dev' /tmp/ifund-pages-deploy.log | sort -u >> "$GITHUB_STEP_SUMMARY" || true
           echo "Deployment success does not establish visual or Base44 runtime parity; browser QA is still required." >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify live preview provenance and deep links
+        run: |
+          set -euo pipefail
+          PREVIEW_URL="$(grep -Eo 'https://[[:alnum:].-]+\\.pages\\.dev' /tmp/ifund-pages-deploy.log | head -n 1 || true)"
+          test -n "$PREVIEW_URL" || { echo 'Cloudflare returned no preview URL' >&2; exit 1; }
+          echo "Checking deployed preview at $PREVIEW_URL"
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/ifund-source.json" -o /tmp/ifund-live-source.json; then
+              break
+            fi
+            sleep 5
+          done
+          SOURCE_REF="${{ inputs.source_ref }}" node --input-type=module -e '
+            import fs from "node:fs";
+            const p = JSON.parse(fs.readFileSync("/tmp/ifund-live-source.json", "utf8"));
+            if (p.source_repository !== "interplanetarysister/interplanetary-fund2" ||
+                p.source_commit.toLowerCase() !== process.env.SOURCE_REF.toLowerCase() ||
+                p.runtime !== "base44-preserved" || p.release !== "preview-only") {
+              throw Error("Live preview provenance mismatch");
+            }
+          '
+          curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/" -o /tmp/ifund-live-home.html
+          grep -qi '<html' /tmp/ifund-live-home.html
+          curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/login" -o /tmp/ifund-live-login.html
+          grep -qi '<html' /tmp/ifund-live-login.html
+          echo "Verified deployed source provenance and SPA login deep-link at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Browser visual parity, login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
