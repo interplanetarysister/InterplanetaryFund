@@ -656,3 +656,35 @@ The recursive tree contains **367 files** under `src/`: 243 component files, 57 
 - `src/pages/OAuthConsent.jsx` refers to `base44/mcp/config.json`; the independent OAuth consent page needs a new server-owned MCP/OAuth route, not a Base44 config path.
 
 **Frontend audit status:** source tree inventory complete; search-discovered Base44 candidate files: 171/367. Full file-by-file line review and endpoint replacement mapping is ongoing. No source files were modified.
+
+
+### Frontend library audit — `src/lib/` complete (56/56)
+
+All **56/56** files under `src/lib/` were fetched and inspected in full. The following explicit dependencies and wording require destination changes:
+
+| File | Source finding | Replacement |
+|---|---|---|
+| `AuthContext.jsx` | Base44 SDK auth methods; private SDK Axios helper; Base44 app public-settings endpoint; Base44 token storage/redirect assumptions. | Supabase Auth session/user APIs, neutral public-config endpoint and Supabase refresh/recovery flow. |
+| `adminAgentGateway.js` | Base44 is the authoritative admin backend; external gateway optional; fake long-lived native admin session ID. | Require Cloudflare IFund admin gateway; short-lived server-issued session, every action revalidates super-admin owner; remove native fallback. |
+| `androidFirebaseFeatures.js` | FCM push token register/revoke uses Base44 function endpoint. | IFund Worker push-device endpoints, Supabase RLS/admin-only mutation; preserve consent and device limit. Firebase itself remains a separate provider. |
+| `app-params.js` | Base44 native URL, app ID, function version, localStorage keys. | Neutral API base URL; remove vendor app ID and function version; Supabase session only. |
+| `campaignAssistantProvider.js` | Comment warns not to fall back to Base44 credits. | Retain no-fallback behavior; wording becomes "IFund-owned or explicitly configured AI provider". |
+| `campaignSharing.js` | Comment names Base44/IFund X-Frame-Options behavior. | Describe the actual IFund production response/security header; remove Base44-specific mention after header is tested on Cloudflare. |
+| `chatgptBuilderHandoff.js` | Handoff explicitly instructs use of Base44 connector, app ID, Base44-hosted authority and Base44 checkpoint. | Rewrite to IFund-owned GitHub PR, Cloudflare preview/deploy, Supabase state; no Base44 connector, ID or checkpoint. |
+| `creditFreeGenerators.js` | Protective documentation says it intentionally avoids Base44 AI, hosted LLM, Browserbase and metered inference. | Keep deterministic generators and no-metered-fallback rule; replace the negative Base44 wording with "does not call external or metered inference providers". |
+| `fees.js` | Frontend fee calculation mirror points at `base44/shared/fees.js`. | Change to the IFund shared fee contract; tests must keep the exact gift-first / withdrawal-fee policy and historical allocation behavior. |
+| `helpCenter.js` | Article bodies are fetched from Base44. | IFund-owned Help API / Supabase HelpArticle table. |
+| `ifundImageBranding.js` | Uses Base44 Auth to check paid watermark entitlement and Base44 Core UploadFile/UploadPublicFile. | Server-verified entitlement endpoint + R2 signed uploads. Watermark removal is decided server-side, never from client subscription claims. |
+| `ifundPhotoService.js` | Accepts a Base44 client and calls Base44 photo render function. | Neutral `apiClient.post('/media/photo-treatment')` and R2 output URL. |
+| `integrationRegistryUi.js` | UI registry mirrors `base44/shared/integrationRegistry.ts`. | Mirror IFund-owned provider registry schema, ideally generated/shared from a versioned contract. |
+| `legalPolicy.js` | Comment points to `base44/functions/recordLegalAcceptance/entry.ts`. | Point to IFund legal-acceptance API and immutable policy versioning; changing terms still requires explicit re-acceptance. |
+| `platformErrorReporter.js` | Sends errors to Base44 `managePlatformIncidents`. | Neutral IFund incident-report endpoint; bounded, redacted, no sensitive payloads. |
+| `recordAgentInteraction.js` | Sends agent event to Base44 and labels source `base44_agent_chat`. | IFund agent-run endpoint and source `ifund_agent_chat`. |
+| `runtimeContract.js` | `dataPlane: "base44"`; mandatory Base44 app ID and Base44 URL. | Replace with `dataPlane: "supabase-cloudflare"`; optional `VITE_API_BASE_URL` defaults same-origin. Supabase public URL/key config only when client SDK requires it. |
+| `secureLLM.js` | Frontend calls Base44 InvokeLLM directly after feature check. | Remove direct provider invocation; send task to IFund server AI adapter. The backend performs auth, quota, feature, prompt-injection and output validation. |
+| `useFeatureEnabled.js`, `useFundraisingMode.js` | Feature availability is fetched through Base44 functions. | IFund public feature snapshot endpoint; protected mutations still enforce flags server-side. |
+| `campaignSharing.js`, `legalPolicy.js`, `integrationRegistryUi.js` | Additional source-path wording. | Update references to IFund-owned API/schema modules; no historical source path should be presented as active runtime authority. |
+
+**Library results:** 56/56 files inspected; 18 contain direct Base44 SDK/runtime/config references or explicit Base44 wording. The remaining 38 are provider-neutral utilities or other integrations (Firebase, Reown, browser haptics, local security/prompt logic, fee arithmetic, routing, and UI state) and should be retained unchanged unless a separate capability migration requires edits.
+
+**Notable security rule:** no client code should call a metered LLM/image provider or hold any provider secret. Current `secureLLM.js` and `ifundImageBranding.js` violate the desired independent service boundary because they invoke Base44 Core APIs from the browser. Move those calls to Cloudflare Worker endpoints before the old SDK is removed.
