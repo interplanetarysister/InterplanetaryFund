@@ -87,7 +87,7 @@ jobs:
       - name: Verify live preview provenance and deep links
         run: |
           set -euo pipefail
-          PREVIEW_URL="$(grep -Eo 'https://[[:alnum:].-]+\\.pages\\.dev' /tmp/ifund-pages-deploy.log | head -n 1 || true)"
+          PREVIEW_URL="$(grep -Eo 'https://[[:alnum:].-]+\.pages\.dev' /tmp/ifund-pages-deploy.log | head -n 1 || true)"
           test -n "$PREVIEW_URL" || { echo 'Cloudflare returned no preview URL' >&2; exit 1; }
           echo "Checking deployed preview at $PREVIEW_URL"
           for attempt in 1 2 3 4 5; do
