@@ -85,7 +85,7 @@ jobs:
                       identical.append(str(rel))
               for category, paths in (("missing", missing), ("changed", changed), ("identical", identical)):
                   (output / f"{target_name}-original-src-{category}.txt").write_text(
-                      "".join(p + "\\n" for p in paths), encoding="utf-8")
+                      "".join(p + "\n" for p in paths), encoding="utf-8")
           PY
           git rev-parse HEAD > audit-evidence/deployable-checkout-sha.txt
           cp original-frontend/package.json audit-evidence/original-package.json
