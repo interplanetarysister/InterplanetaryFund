@@ -61,7 +61,7 @@ export function createApiClient({
   return Object.freeze({
     async request(path, options = {}) {
       const url = resolveApiUrl(path, baseUrl);
-      const token = options.accessToken ?? await getAccessToken();
+      const token = options.accessToken ?? (await getAccessToken());
       const headers = new Headers(options.headers || {});
       headers.set("accept", "application/json");
       if (token) headers.set("authorization", `Bearer ${token}`);
