@@ -63,3 +63,10 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+
+## Base44 decoupling audit — 2026-11-03
+
+A new line-by-line replacement register was started in [BASE44_DECOUPLING_AUDIT.md](BASE44_DECOUPLING_AUDIT.md). The read-only source Git tree at `interplanetary-fund2/main` commit `fb2afc64d72194c51c552bc7b5260a479d7566eb` contains 1,249 files and 346 directories (`truncated: false`). This pass verified the frontend SDK/client, runtime contract, app parameter handling, Vite plugin, package metadata, Base44 CLI config/docs, selected backend runtime bridges, media policy, PayPal callback origin, builder bridge, and agent-skill duplication.
+
+**Important:** the source-side 95-entity / 184-function / 11-connector / 10-agent / 17-workflow / 364-frontend-file inventory is static evidence, not proof of replacement parity. The migration branch already has a Supabase client and no Base44 dependencies in its root package manifest, but the branch remains a partial scaffold. This audit is **IN PROGRESS**; no claim of full decoupling, complete line-by-line review, production readiness, or Base44 retirement is made. No source repo, production data, DNS, provider settings, credentials, or deployments were changed.
