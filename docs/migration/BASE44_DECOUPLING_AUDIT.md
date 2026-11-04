@@ -393,3 +393,41 @@ The recursive tree contains 188 files under `base44/functions/`: **184 `entry.ts
 - AI content application and external publishing are separate actions; preserve the human approval boundary.
 
 **Progress:** 20/184 backend entrypoints inspected in full (10.9%). Next source-order batch begins at `createDiscussionPost`. No source repo edits, production DB changes, OAuth registrations or live payments were performed.
+
+
+### Source traversal — backend function entrypoints, batches 2–4 (50/184)
+
+The next 30 files were fetched in full, including the two helper modules in the `discoverExternalCampaignSnapshot` directory. The handlers reveal several important replacement constraints:
+
+| Handler(s) | Behavior to preserve / replacement |
+|---|---|
+| `createDiscussionPost`, `createCommunity`, `createVolunteerOpportunity`, `createSupportTicket`, `createInstitution`, `createKnowledgeArticle` | Authenticated user creation with membership/manager/admin checks and bounded inputs. Move to Worker + Supabase constraints/RLS; use transactions for community + owner membership. |
+| `createDistributedPost`, `createSocialPost`, `draftSharePost`, `generateDistributionContent` | Content drafting and publishing are distinct. Persist owner-bound drafts, verified connection ownership, selected donation destination, human review, and no external publish until separately approved. LLM adapter must have a clearly labeled template fallback and no fabricated claims. |
+| `createDonationCheckout`, `createPremiumDayPassCheckout`, `createSubscriptionCheckout` | These are explicit retired Stripe tombstones returning HTTP 410. Preserve retirement; do not re-enable Stripe. |
+| `createPayPalOrder`, `createPayPalSubscriptionCheckout`, `cancelPayPalSubscription`, `confirmPayPalSubscription`, `capturePayPalOrder` | PayPal is the designated payment provider. Move provider calls and secret access to Cloudflare Worker; persist intents and canonical operations in Supabase; verify webhook/capture with PayPal; preserve donor gift-first accounting and idempotency. |
+| `decideGrantApplication` | Institution owner makes the decision; awards are canonical PENDING financial operations until receipt is verified, not withdrawable donations. Preserve this distinction. |
+| `deleteAccount` | Retry-safe staged deletion/anonymization with financial obligations blocking deletion, provider billing cleanup, and retention of the audit/ledger trail. The source contains Stripe-specific subscription cleanup and a statement that Base44's built-in identity fields cannot be cleared. Replacement must use Supabase Auth deletion/anonymization APIs and preserve ledger obligations; Stripe cleanup must not become an active billing path. |
+| `deleteCampaign` | Campaign deletion requires server-side ownership and should preserve/reject deletion when financial records, linked posts or external sync obligations exist. Confirm exact source conditions during its dedicated implementation. |
+| `deviceAuthorization` | Device-code authorization flow with hashed device/user/access codes, expiry, polling and admin review. Port to Worker with hashed one-time codes, rate limits, and Supabase transaction/unique constraints. |
+| `disconnectPlatformConnection`, `completeOAuthConnection`, `finalizeAppUserOAuthConnection`, `getAppUserConnector` | Base44 app-user connector tokens are a hard runtime dependency. Replace with IFund OAuth callback/token vault, token refresh and provider-side revocation; locally revoke OBO/automation before attempting remote disconnect. |
+| `discoverConnectionMethods` | Returns candidate transports, not proof of capability; keep route discovery separate from provider verification. |
+| `discoverExternalCampaignSnapshot` + `publicCampaignSnapshot.ts` | Explicit, authenticated, rate-limited/idempotent discovery of public campaign metadata from an allowlisted set of provider domains. Preserve strict HTTPS host allowlist, redirect revalidation, response-size/time limits, request claims and audit events. |
+
+#### Read/query and feature-control handlers
+
+- `discoverFeatures`: service-side scan of a user's own campaigns, connections, memberships, institutions and activity; deduplicates recommendations. Must be authenticated to a user or trusted workflow; do not expose arbitrary user-ID scanning to unauthenticated callers.
+- `getCampaignDonations`: server filters verified donations; public output is sanitized and confirmed-only; owner/admin may request pending rows. This is a privacy and financial-truth boundary.
+- `getCampaignDraft`: only owner/admin may load a draft; keep drafts hidden from public API.
+- `getCampaignWithdrawalBalance`: source uses a 7-day clearing period, distinguishes verified donations from settled external holdings, and excludes institutional awards until verified. Preserve until an explicit financial-policy change.
+- `getCommunityFeed`: public visitors receive public events only; signed-in users additionally receive follower events; service-side filtering and sanitized pagination are required.
+- `getFeatureAvailability` and `getFundraisingMode`: public display hints only; backend must independently enforce feature flags and fundraising mode on protected operations.
+- `getLiveProviderStatus`, `getBufferReadiness`: admin-only, read-only provider readiness checks. A configured secret/reference is not proof of a live integration; never expose secret values.
+- `getMyGiving`: owner-scoped, provider-verified gifts only; separates campaign gift, optional platform support, processor fee and total charged.
+- `getOwnerDonorDirectory`: campaign-owner-only aggregation, verified gifts only, anonymized donors not contactable.
+- `getOwnerFinancialLedger`: owner-scoped view joining canonical FinancialOperation and HoldingLedgerEntry; operations and custody must remain separate entry types.
+
+#### Provider-policy finding
+
+The source contains a Stripe Connect status/readiness path in `getConnectedPayoutAccount` and Stripe imports/cleanup in account deletion. This is not permission to reactivate Stripe. In the independent implementation, Stripe donation/checkout/payout execution remains retired; preserve historical reversal and reconciliation records only where needed. The source also has a fail-closed crypto readiness response: wallet connection is not payment acceptance and no campaign credit should occur without verified on-chain settlement.
+
+**Progress:** 50/184 entrypoints inspected in full (27.2%). The next source-order batch begins at `getPayPalConfig`. Source repository remains read-only; no live payments, OAuth or production database changes were made.
