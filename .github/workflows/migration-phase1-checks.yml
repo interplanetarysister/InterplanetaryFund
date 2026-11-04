@@ -29,5 +29,7 @@ jobs:
         run: npm test
       - name: Vite production build
         run: npm run build
+      - name: Print normalized API client (temporary audit)
+        run: npx --no-install prettier src/lib/api.js
       - name: Prettier check
         run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
