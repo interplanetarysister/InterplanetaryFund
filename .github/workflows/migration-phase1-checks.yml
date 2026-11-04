@@ -29,5 +29,9 @@ jobs:
         run: npm test
       - name: Vite production build
         run: npm run build
+      - name: TEMP inspect auth formatter output
+        run: |
+          npx --no-install prettier --write src/lib/authFlows.js
+          git diff -- src/lib/authFlows.js
       - name: Prettier check
         run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
