@@ -1,3 +1,4 @@
+// Safe destination after sign-in when no valid return path was requested.
 const DEFAULT_RETURN_TO = "/mine";
 
 function normalizeEmail(value) {
