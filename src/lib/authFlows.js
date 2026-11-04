@@ -85,13 +85,7 @@ export async function establishRecoverySession(auth, href) {
 
 export async function completePasswordRecovery(
   auth,
-  {
-    email,
-    token,
-    password,
-    confirmPassword,
-    hasRecoverySession = false,
-  },
+  { email, token, password, confirmPassword, hasRecoverySession = false },
 ) {
   if (typeof password !== "string" || password.length < 8) {
     throw new TypeError("Choose a password with at least 8 characters.");
@@ -105,7 +99,9 @@ export async function completePasswordRecovery(
     const address = normalizeEmail(email);
     const code = typeof token === "string" ? token.trim() : "";
     if (!address || !/^\d{6}$/.test(code)) {
-      throw new TypeError("Enter the email address and six-digit recovery code.");
+      throw new TypeError(
+        "Enter the email address and six-digit recovery code.",
+      );
     }
 
     const { data, error } = await auth.verifyOtp({
