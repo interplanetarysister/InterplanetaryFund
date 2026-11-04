@@ -1064,3 +1064,89 @@ The source repository's top-level inventory has been reconciled: 1,249 tracked f
 
 
 **Agent-skill inventory correction:** the three remaining references `ifund-outreach/references/agent-guide.md`, `ifund-story/references/agent-guide.md` and `ifund-strategy/references/agent-guide.md` were fetched and SHA-compared with their legacy role guides; all three are exact duplicates. Together with the previously checked Chief of Staff, Communications, Finance and Growth references, this makes 7/7 duplicate guide copies. `.agents/skills/wix-base44-connector/references/CAPABILITY_MAP.md` was also fetched (87 lines): it points to Wix's remote `base44-connector` skill manifest and tarball, so it is a Base44-specific skill package rather than a generic Wix API contract. Replace it with a direct Wix API capability map in the destination, while preserving legitimate Wix API knowledge from the helper where still needed. Correct total: 26/26 files in `.agents/`, 19 unique content files and 7 byte-identical reference duplicates.
+
+---
+
+## Owner directive — incremental page/agent migration without lost work (2026-11-03)
+
+The owner requires implementation one shared service, one agent, or one page at a time. All prior implementation and evidence are cumulative: preserve existing merged work, open PRs, migration artifacts, applied Supabase migrations, cached data, source page/agent definitions, and verified test results. Do not restart or replace working work because the migration plan is clarified. Before each next task, inspect the current integration branch, the relevant source implementation, canonical issue, open PRs, and the last exact verification; continue only with the remaining work.
+
+### Seven categories — ownership and current status
+
+| Category | Independent implementation | Existing work to preserve | Current status |
+|---|---|---|---|
+| Authentication and identity | Supabase Auth with password login; email one-time-code account recovery; OAuth callback/PKCE; session refresh/revocation; stable source-to-Supabase identity mapping; profile lifecycle; protected role claims; server-verified admin and super_admin checks. | Phase 3 owner-link proposal PR #140; recovery callback PR #207; verified-owner mapping/RPCs; auth profile creation/backfill, lifecycle and admin-gate migrations already applied to the designated target project. | **PARTIAL.** Current independent Auth preview is passwordless email OTP + Google/Facebook OAuth; password login is not complete. Recovery callback handling exists in an open PR, but the owner-required password-login + emailed recovery-code experience and its end-to-end proof remain to be completed. Do not infer admin from email or browser metadata. |
+| Database entities and permissions | Full reviewed Postgres mapping for all 95 entities; foreign keys, indexes, constraints, grants, table-specific RLS, column-level write boundaries, private credential/financial schemas, stable ID mapping and reconciliation. | Phase 2 PR #139 (95 typed private entity contracts); consolidation PR #158; applied target migrations; 768/768 cached snapshot payload SHA-256 matches; existing private workflow, migration, source shadow and financial staging structures. | **SUBSTANTIAL FOUNDATION / PARITY INCOMPLETE.** The designated target InterplanetaryFund Supabase project (ssibsfmtodgximseeqsv) currently has 88 tables with RLS enabled and 73 applied migrations through 2026-11-03. This does not prove every RLS policy is correct or all 95 source entities/data are reconciled. The old Ifund project (tzehxfikoslihnclhxuz) remains active until all dependencies are moved; PR #158 is the existing consolidation path. Do not create a separate test database or delete the old project prematurely. |
+| Backend functions | Port each of the 184 source entrypoints to a real Edge Function/Worker service with matching contracts, auth, side effects, idempotency, audit, rate limits and tests. | Phase 4 function inventory PR #141; existing independent read/write Worker routes; provider-neutral src/lib/api.js and tests in PR #208; active Supabase mail and campaign-preview Edge Functions. | **PARTIAL.** PR #141 recorded two partial read prototypes and 182 unported entrypoints. The current independent API route matrix covers a limited preview subset only. Four Edge Functions are currently active in the designated target: member-mail ingress, admin-mail ingest, admin-mailbox and campaign-draft preview. These are not full function parity. |
+| AI agents and workflows | Independent agent runtime with scoped memory, secure tool registry, delegation, Chief of Staff orchestration, owner-only coding builder, and durable event/scheduled workflow execution. | Phase 4 PR #157 contains the 10-agent/17-workflow/11-connector registry, schedule/event contracts, Cloudflare WorkflowEntrypoint skeleton, signed event intake, audit scaffolding and fail-closed gates. Existing 26 skill/guide files and source agent definitions remain reference. | **STAGED / EXECUTION NOT VERIFIED.** The workflow engine's adapter registry is empty and every source workflow remains ported=false; no live source handler can execute. Agent roster/skills are not a running agent workforce. The current admin_builder_agent only queues audited work. |
+| External integrations and credentials | Provider-specific OAuth/OBO adapters, token refresh/revoke, encrypted credential storage, scoped capabilities, signed webhooks, replay protection and verified health. | 11 connector definitions; secret-name inventory; existing connection/OAuth/consent implementations; PR #145 PayPal platform-support donation slice; PR #158 mail/workflow schema consolidation; existing provider-specific approval and ledger boundaries. | **PARTIAL / CREDENTIALS AND PROVIDER PROOFS REMAIN.** Secret names are inventoried, but values are not transferred. Provider support is not equivalent to live authorization. PayPal platform-support donations are only one payment slice; campaign donations, subscriptions, withdrawal and settlement parity remain separate. Stripe is not an approved replacement payment rail. |
+| Media storage and uploads | Use IFund-controlled object storage and a verified image pipeline preserving original bytes, access policy, crop/focal point, responsive DPR, quality, WebP, SVG, GIF animation, generated media and watermark entitlements. | Original asset references and media upload behavior; Cloudflare R2 activation; existing media policy and upload inventories; source visual baselines and page asset PRs. | **PARTIAL / MIGRATION NOT VERIFIED.** R2 is available, but a complete original-media byte/hash inventory, transfer, URL rewrite, private/public access verification and equivalent image transformations are not yet proven. Do not replace image optimization with plain img or a generic placeholder. |
+| Deployment and build configuration | Cloudflare Pages frontend + Workers API + one authoritative Supabase project, with coherent incremental releases, Node 22 build checks, environment cohesion, rollback and domain/mail preservation. | Phase 1 PR #138 merged; phase 7 cutover PR #146; preview workflow PR #206; Supabase cohesion PR #158; current Vite/Worker/CI contracts and exact-head test history. | **PARTIAL / NO INDEPENDENT CUTOVER.** Existing custom-domain Pages configuration and Worker routes still require reconciliation; the legacy Worker has Base44 proxy paths. Pages production/preview deployment settings were previously found disabled or attached to the source repository. A successful source build or isolated preview is not proof that the custom domain is independently served. |
+
+### Supabase project continuity and reconciliation
+
+A read-only connected-project check on 2026-11-03 confirmed:
+- InterplanetaryFund (ssibsfmtodgximseeqsv) is the designated target named by PR #158. It has 88 tables, all with RLS enabled, 73 applied migrations through 20261103192435, and four active Edge Functions.
+- The target contains real migrated application records, including profile, campaign, post, notification, blog and legal-acceptance records. Counts are not evidence of complete source-data reconciliation.
+- The older Ifund (tzehxfikoslihnclhxuz) project is also still active. PR #158 explicitly says retain InterplanetaryFund and retire Ifund only after verified switchover. Its existing mail/workflow structures and deployed mail functions must not be abandoned.
+- The Git integration branch's checked-in migration history is not yet reconciled to all 73 migrations observed in the target project. This source-of-truth drift must be resolved before further schema changes; do not replay already-applied migrations or invent a second schema.
+- Previously recorded private cache transfer: 768/768 payload SHA-256 matches. It did not claim user ownership, public content publication, or financial authority; full data/media/identity/ledger parity remains incomplete.
+
+### Agent and builder distinction
+
+Preserve the existing agent responsibilities:
+- Chief of Staff: primary executive conversation and delegation/orchestration.
+- Strategy: grants and institutional strategy; humans retain award decisions.
+- Growth: campaign growth and verified recommendations.
+- Communications: inbox and communications.
+- Story: campaign narrative and creative writing.
+- Finance: scoped analysis/reconciliation; no autonomous transfer or withdrawal authority.
+- Outreach: creator-consented outreach and distribution.
+- Discovery / Connection Discovery: verified provider capability discovery.
+- Managed Connections: consent- and entitlement-bounded setup/health operations.
+- Super-admin Builder: separate owner-only coding executive, not a replacement for the visual page editor.
+
+PR #192's IFund Studio is a visual page/content builder with structured blocks, draft/publish and revision history. It is not the requested autonomous coding builder. The existing source admin_builder_agent is a coordinator that queues work; it does not edit repository files, run builds, repair code or deploy. The coding builder still needs an independently secured execution adapter: repository context, task planning, patch/file edits, branch/PR operations, tests/builds, review evidence, incident repair, and progress reporting. It must be owner-only, use a least-privilege GitHub App or equivalent server credential, never expose secrets to prompts/browser, and require explicit approval for production promotion or other consequential actions. Queueing a task is not implementation.
+
+### Page-by-page acceptance and incremental releases
+
+The binding route baseline is the union of 59 historically coded URL routes documented by issue #137. The existing Phase 5 route PR #156 and its 59-row role/platform evidence matrix are the starting point; do not replace them with a smaller route list. The source has 57 main-branch page components, but route count and component count are different measures. PRs #155/#156/#159/#199/#204/#205/#206 and their source/visual work must be reconciled, not discarded or wholesale merged.
+
+For each page, continue from its existing route/component and prior PR. Record:
+1. exact source route, source page/component and feature-description promises;
+2. previous implementation/PR/commit and current independent target files;
+3. each visible control and its actual backend/API operation;
+4. tables, functions, agent/workflow, integration and media dependencies;
+5. guest/member/admin/super_admin allowed and denied behavior;
+6. loading, empty, success, error, retry and persistence states;
+7. 390px mobile, 768px tablet, 1440px desktop, light/dark, keyboard/screen-reader and Android/WebView proof;
+8. automated contract tests plus real end-to-end evidence;
+9. release batch, production smoke result and rollback reference;
+10. exact unfinished tasks and the next owner/agent action.
+
+A page is complete only when every advertised function and interaction works end-to-end on the independent stack, permissions are enforced server-side, data persists correctly, its presentation matches the source feature description, accessibility/mobile behavior is preserved, and production smoke tests pass. A route mount, screenshot, disabled button, mock, static test, or generic Limited placeholder is not completion.
+
+The owner permits coherent incremental production releases rather than one platform-wide push. Each release must have a dependency checklist, tested build, data/API compatibility plan, explicit list of temporarily affected pages, user-safe unavailable state where needed, and rollback. Do not fake functionality or expose unsafe routes merely to avoid temporary disconnection. Do not perform a single final cutover until the required route and capability matrix passes.
+
+### Existing work queue — preserve and continue
+
+- Already merged: Phase 1 scaffold/inventory PR #138.
+- Current decoupling audit/API facade: PR #208 (migration/base44-decoupling-audit) — continue line-by-line source traversal and route page operations through the neutral API facade.
+- Auth: PR #140 owner-link identity plan; PR #207 recovery callback fix; password-login + email recovery-code parity remains.
+- Schema and one-project consolidation: PR #139 typed entity/RLS work; PR #148 snapshot transfer; PR #158 single-Supabase consolidation. Resolve current live migration history vs checked-in SQL before schema edits.
+- Functions: PR #141 inventory/partial Worker prototypes; PR #178 geocodeCity first independent function; remaining 182 source entrypoints require mapping/port/retirement decisions.
+- Agents/workflows: PR #157 registry, signed event and durable workflow skeleton; real handler adapters and live agent runtime remain.
+- Pages: PRs #142, #155, #156, #159, #199, #204, #205 and #206 are prior page/layout/preview work. Reconcile in dependency order and complete one route at a time.
+- Studio/builder: PR #192 is the visual page builder; the owner-only AI coding builder is a separate unfinished capability.
+- Payments: PR #145 is platform-support PayPal only; do not treat it as campaign/subscription/withdrawal completion.
+- Release/cutover: PR #146 and #206 are evidence/runbook/preview work, not proof of independent custom-domain production cutover.
+
+### Current next implementation order
+
+1. Reconcile the existing Supabase target project/migration history and preserve the current identity/RLS work.
+2. Complete authentication: password login, email recovery code, signup, OAuth, return routing, session lifecycle and verified role resolution.
+3. Complete the secure API/permission foundation and map the 95 entities / 184 functions to existing independent implementations; avoid duplicating already ported functions.
+4. Complete the real agent runtime and durable workflow handlers, including the owner-only coding builder, before relying on them in pages.
+5. Finish provider credentials/adapters and R2 media delivery without weakening quality.
+6. Complete the deployment/release pathway for independent incremental pushes.
+7. Then accept pages one by one using the existing 59-route matrix, starting with account creation/login/recovery and the super-admin builder access surface once the foundations are live.
