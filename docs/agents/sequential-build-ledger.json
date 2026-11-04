@@ -1009,9 +1009,9 @@
   "collective_network": {
     "component": "permanent services and replaceable workforce procurement",
     "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
-    "implementation_status": "verified_local_pending_release",
-    "production_status": "not_deployed",
-    "migration": "20261104053233_ifund_collective_workforce.sql",
+    "implementation_status": "preview_worker_deployed_database_installed",
+    "production_status": "database_installed_disabled_existing_story_unchanged",
+    "migration": "20261104055345_ifund_collective_workforce.sql",
     "preserved": {
       "selectable_positions": 9,
       "private_builder_positions": 1,
@@ -1038,6 +1038,23 @@
       "full historical memory/chat migration",
       "all workflow and connector runtime parity"
     ],
-    "authority": "Full implementation directive received; production increments authorized. Workers Free confirmed by owner in current session."
+    "authority": "Full implementation directive received; production increments authorized. Workers Free confirmed by owner in current session.",
+    "pull_request": "https://github.com/interplanetarysister/InterplanetaryFund/pull/212",
+    "applied_migration_version": "20261104055345",
+    "hosted_verification": {
+      "preview_worker": "https://ifund-story-agent-preview.interplanetary-fund.workers.dev",
+      "source_commit": "6cdd6ac",
+      "preview_code_etag": "2e4b6610e5726356e12c564bf79c6a0965ad5121889b569be5f588b179bda81c",
+      "health": "200",
+      "anonymous_draft_queue_admin_status": "401 denied",
+      "invalid_jwt": "403 denied",
+      "registry_rls": "all five tables enabled; anon/authenticated direct reads denied",
+      "native_full_json_contract": "pass, 27.091936 neurons, synthetic input only",
+      "real_member_request": "NOT TESTED",
+      "procurement_enabled": false,
+      "native_section_json_contract": "pass, 10.031223 neurons, synthetic input only",
+      "native_provider_implementation": "registered, available, tested; no verified member task yet",
+      "diagnostic_capacity_reserved_units": 1200
+    }
   }
 }
