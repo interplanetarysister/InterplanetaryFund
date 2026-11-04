@@ -726,3 +726,39 @@ All **57/57** page files were fetched and inspected in full. 52 contain direct B
 - `FoundingMembers.jsx` and `AdminFoundingWaitlist.jsx` rely on Base44 waitlist table; port with unique normalized email, explicit marketing consent and admin-only review.
 
 **Page audit status:** 57/57 files inspected. The page layer is not yet migrated; the independent app currently has only the replacement scaffold and API contract. This remains a substantial feature-parity workstream.
+
+
+### Frontend page traversal — all 57/57 page modules reviewed
+
+All **57/57** files under `src/pages/` have now been fetched and inspected. This includes page modules with no Base44 text (such as About, Communications, Connect, Privacy and Terms), not just search hits. The 52 page modules with Base44 references or runtime calls are recorded below as functional migration groups; the other five are content/UI-only and do not require provider substitution based on this review.
+
+| Page group | Files | Required independent replacement |
+|---|---|---|
+| Authentication/account | `Login.jsx`, `Register.jsx`, `ForgotPassword.jsx`, `ResetPassword.jsx`, `Profile.jsx`, `Onboarding.jsx`, `Platform.jsx` | Supabase email/password, email OTP confirmation, recovery code/email reset, profile row updates and explicit consent RPC. Login must not post to `interplanetaryfund.base44.app` or set a Base44 token. |
+| Campaign creation/management | `CreateCampaign.jsx`, `CampaignDetail.jsx`, `Dashboard.jsx`, `Discover.jsx`, `EmbedCampaign.jsx`, `GlobalGlobe.jsx`, `FollowedCampaigns.jsx` | IFund campaign API + Supabase tables/RPC. Preserve draft, publish, campaign import, geocoding, image upload, follow/pin/archive/view state and public read/embed behavior. |
+| Campaign financial views | `Analytics.jsx`, `Donors.jsx`, `FinancialLedger.jsx`, `MyGiving.jsx`, `Withdrawals.jsx` | Server-owned financial queries. Do not expose full ledger or donor PII to client; maintain PayPal-only settlement and withdrawal rules. |
+| Community/social | `Community.jsx`, `CommunityDetail.jsx`, `Social.jsx`, `Connections.jsx`, `ExternalAccounts.jsx`, `PublicProfile.jsx`, `FoundingMembers.jsx` | IFund APIs for membership, profiles, OAuth connections, content and explicit user-initiated external sync. No browser-side entity access or automatic publishing. |
+| Admin/operations | `AdminAgentApi.jsx`, `AdminFoundingWaitlist.jsx`, `AuditLogAdmin.jsx`, `IntegrationsAdmin.jsx`, `OpsCenter.jsx`, `SustainabilityAdmin.jsx`, `HelpAdmin.jsx` | IFund super-admin gateway; Supabase audit/feature/integration tables; Cloudflare release status. Remove Base44 release widget and Base44-native operational claims. Every admin mutation rechecks owner authorization server-side. |
+| Help/content/inbox | `Help.jsx`, `HelpArticle.jsx`, `HelpAdmin.jsx`, `BlogArticle.jsx`, `Blogs.jsx`, `MyBlog.jsx`, `PublicationArticle.jsx`, `Inbox.jsx`, `Notifications.jsx` | IFund Help/Blog/Publication APIs, user-scoped inbox/notifications and RLS-safe realtime. Keep verification mailbox separate from user inbox. |
+| Agent/mission | `Agents.jsx`, `MissionControlPage.jsx`, `AIImageStudio.jsx` | IFund-owned agent runtime and server AI/media routes; no Base44 agents or Core LLM/image calls. |
+| Connections/devices | `ConnectedDevices.jsx`, `DeviceActivation.jsx`, `Connections.jsx`, `ExternalAccounts.jsx` | IFund Worker device-authorization and OAuth endpoints. Preserve short-lived user codes, single-use approval, device revocation, provider verification and consent scope. |
+| Institution/volunteer | `InstitutionDetail.jsx`, `Institutions.jsx`, `SustainabilityAdmin.jsx` | IFund institution/application/volunteer APIs and transactional counters; keep grant awards pending until verified receipt. |
+| Legal/contact | `Contact.jsx`, `OAuthConsent.jsx`, `Onboarding.jsx` | IFund public-contact endpoint, IFund-owned OAuth/MCP consent route and immutable legal assent. `OAuthConsent.jsx` references a retired Base44 MCP config path and Base44 auth comment; replace with an independent server-side authorization contract. |
+
+#### Specific frontend defects and exact corrections
+
+- `Login.jsx:39–41`: Android native login calls `https://interplanetaryfund.base44.app` and `/api/apps/<app-id>/auth/login`. Replace with the deployed IFund auth/API route or Supabase Auth native flow; only configure the endpoint after live route verification.
+- `Notifications.jsx:151`: text says "Your existing IFund account stays on Base44." This is directly contradictory to the migration; update to explain Supabase authentication and explicitly state Firebase is only push delivery.
+- `IntegrationsAdmin.jsx:10,210`: imports and renders `Base44ReleaseStatus`. Replace with IFund Cloudflare/GitHub deployment status; remove the component after its replacement is tested.
+- `OpsCenter.jsx:14–15,139`: labels the view Base44-native and Base44 live data. Replace with "IFund operations" only once the Supabase/Worker API is actually the live source; do not relabel while it still reads Base44 entities.
+- `OAuthConsent.jsx:8,48`: references `base44/mcp/config.json` and `base44.auth.isAuthenticated()`; use server-issued OAuth authorization context, PKCE/state validation and Supabase identity.
+- `Home.jsx:15`: hard-coded hero image at `media.base44.com`; migrate approved asset to R2/static asset bucket and validate image hash/dimensions before changing URL.
+- `CreateCampaign.jsx:120–123`, `AIImageStudio.jsx:29–32`: generated campaign cover is invoked through Base44 Core and uploaded via Base44 media. Port generation and storage separately to IFund AI adapter + R2.
+- `Connections.jsx:152–155`: calls all Wix sync endpoints together. The replacement must preserve explicit user/admin initiation, per-provider scope and idempotency; don't turn these into scheduled auto-sync.
+- `Subscriptions.jsx:114–144`: owner setup flow calls PayPal plan verification, webhook registration, checkout activation and catalog sync. Replace Base44 callback URL registration with IFund Worker callback only after the endpoint is deployed and signature-tested. This is a setup workflow, not permission to modify the PayPal ledger.
+- `Withdrawals.jsx`: current client reads campaign/withdrawal entities and invokes approval action. The independent endpoint must enforce owner/super-admin authorization and 3% withdrawal-only platform fee, with PayPal settlement and immutable ledger.
+- `Notifications.jsx:104`: Base44 `updateMany` is used to mark notifications read. Replace with a user-scoped bulk update RPC; never accept arbitrary user IDs from the browser.
+- `Analytics.jsx`: client fetches multiple entity collections and fans out one donations request per campaign. Replace with a bounded aggregate API to avoid N+1 calls and avoid disclosing unrelated users' data.
+- `FollowedCampaigns.jsx`: user-owned pin/archive/view/delete state is mutated directly through Base44 entities. Replace with RLS-protected Supabase operations or authenticated Worker endpoints.
+
+**Frontend source traversal status:** `src/lib/` 56/56 and `src/pages/` 57/57 complete. `src/` has 367 files total; component review remains in progress (243 component files), plus five hooks and root entry/style files already checked for Base44 hits. The full app is not yet Base44-free and PR #208 remains an audit/adapter increment, not a completed migration.
