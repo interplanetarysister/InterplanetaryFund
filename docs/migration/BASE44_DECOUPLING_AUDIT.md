@@ -896,3 +896,36 @@ All 17 JSONC workflows use Base44 workflow DSL namespace, Base44 scheduler/entit
 - `base44/mcp/config.json`: Base44-hosted MCP server/tool exposure. Replace with an IFund-owned MCP endpoint, Supabase JWT validation, PKCE/OAuth scope, owner-only tool gates, and explicit user approval for consequential actions. Do not copy Base44 app identifiers or credentials.
 
 **Base44 configuration status:** 10/10 agent definitions, 11/11 connector declarations and 17/17 workflows reviewed. These represent 38 files plus the config/runtime files above. All are still source-side definitions; none has been migrated to the destination merely by being documented.
+
+
+### Existing Cloudflare host layer — reviewed; not yet independent production runtime
+
+The source already contains Cloudflare Worker projects under `host/`. This is useful migration scaffolding, but it must not be mistaken for a completed Base44 replacement.
+
+| Host component | Current observed behavior | Required next step |
+|---|---|---|
+| `host/gateway/worker.js` (479 lines) | Has health/readiness, campaign-assistant, migration auth/session, migration campaigns, admin-agent, agent-content and MCP routes. Still proxies `/api/mcp` and OAuth discovery to `https://interplanetaryfund.base44.app`; uses Base44 auth/campaign authority for admin/agent context; readiness reports blockers `base44_mcp_proxy`, `base44_auth_authority`, `base44_campaign_authority`. | Replace every remaining Base44 authority/proxy path with Supabase JWT validation, IFund RLS/RPC and IFund-owned MCP route. Preserve fail-closed behavior when the destination is not ready. |
+| `host/gateway/campaign-assistant.js` (110 lines) | Calls `https://base44.app/api/apps/${APP_ID}`; auth and feature configuration explicitly remain Base44 reads. | Move feature/auth and campaign context to Supabase/IFund Worker. No Base44 upstream fallback. |
+| `host/email/worker.js` (91 lines) | Has inbound email routing; comments say the Base44 inbox mirror is authenticated/tested, but explicitly avoids forwarding mail to Gmail/Base44 InboxItem/internal notifications in one path. | Inspect actual routing and provider contract; make IFund inbox storage independent and ensure private verification mail remains isolated. |
+| `host/oauth/worker.js` (144 lines) | Independent OAuth worker exists as a separate component. | Verify state/PKCE, token exchange, callback origin, persistence, refresh/revocation and provider scope before connecting UI. Its presence alone does not prove the user-facing connection flow is live. |
+| `host/workflows/worker.js` (14 lines) | Health/catalog only; explicitly `ready:false`, `execution:"disabled"`; workflow execution endpoint returns 503 `workflow_execution_not_ready`. | Runtime is a stub, not a scheduler. Implement only approved workflows after the external-sync/publish consent policy and idempotency gates are encoded. |
+| `host/workforce/worker.js` (15 lines) | Health/catalog only; explicitly `ready:false`, `execution:"disabled"`; reason is unverified tool/memory/auth adapters. | Runtime is a stub, not an agent engine. Implement registry, model adapter, tool gateway, run state, quotas, approvals and durable orchestration before agent activation. |
+| `host/migration/frontend-dependency-audit.json` | Historical audit generated 2026-10-23; covers 363 source files, 1,038 static call-site matches, 46 referenced entities and 124 referenced functions. Its own scope excludes dynamic invocation, server-side use and production traffic. | Treat as a useful historical index, not current exhaustive proof; compare against current 367-file source audit and update only after the current endpoint contracts are settled. |
+| `host/migration/source-inventory.json` | Historical inventory of 95 entities and 184 function directories. Most entries are marked `requires_live_dependency_review` and `unassigned_pending_verification`. | Use as a migration checklist; do not treat unassigned entities as migrated. |
+| `host/workflows/manifest.json` and `eligibility.json` | Manifest declares execution disabled. Eligibility audit dated 2026-10-22 marks every workflow HOLD because live enabled state/last execution, independent Worker implementation, idempotency or entity event source/replay cursor are unverified. It identifies the "Campaign Sync on Update" trigger mismatch (named Update but listens to create). | Preserve disabled status until all gates pass. Fix trigger semantics in destination and require a replay-safe event source before enabling. |
+| `host/workforce/manifest.json` | Captures source agent/skill file hashes and marks runtime unverified. | Keep as immutable source evidence; build the actual IFund runtime and revalidate prompt/tool hashes before release. |
+
+#### Critical correction to migration status
+
+The Cloudflare Worker directory is not yet a functioning independent replacement for Base44. The gateway still has Base44 upstream routes; the workflow and workforce workers explicitly report disabled execution; and the historical eligibility report marks all workflows HOLD. The previously passing frontend build and API-client tests prove only that the new neutral API client compiles and behaves as tested. They do not prove Supabase auth parity, all 184 endpoint replacements, live financial parity, agent execution, scheduled workflow parity or production cutover.
+
+The destination migration should therefore be delivered in layers:
+1. Supabase schema/RLS/auth and financial ledger authority.
+2. Worker API routes and typed frontend repositories.
+3. OAuth/connection vault and provider capability verification.
+4. R2/media migration and public asset parity.
+5. Agent runtime + reviewed tool gateway.
+6. Workflow scheduler/queues with current request-only sync/publish policy.
+7. Mobile/API endpoint cutover and rollback-tested production release.
+
+Do not set any worker `ready:true` or enable any schedule until the underlying runtime and its acceptance tests actually exist.
