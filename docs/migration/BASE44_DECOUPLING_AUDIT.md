@@ -1,0 +1,107 @@
+# Base44 decoupling audit and replacement register
+
+**Audit target:** `interplanetarysister/interplanetary-fund2` `main`  
+**Observed source commit:** `fb2afc64d72194c51c552bc7b5260a479d7566eb`  
+**Read-only rule:** The source repository is evidence only. All implementation changes belong in `interplanetarysister/InterplanetaryFund`.  
+**Purpose:** Remove Base44 as a runtime, build, configuration, identity, persistence, and deployment requirement while preserving IFund behavior through replaceable provider-neutral contracts.
+
+## 1. Scope and evidence
+
+The recursive Git tree for the source commit reported **1,249 files**, **346 directories**, and `truncated: false`. This is the complete Git tree inventory, including binary assets and generated files. It is not a claim that every file's bytes and every line have already been semantically reviewed.
+
+The existing source-side static inventory records:
+- 95 entity definitions;
+- 184 backend function entrypoints;
+- 11 connector definitions;
+- 10 agent definitions;
+- 17 workflow definitions;
+- 1 MCP definition;
+- 364 frontend JavaScript/TypeScript/JSX/TSX files scanned for direct Base44 API calls.
+
+The existing inventory is useful but explicitly incomplete for indirect aliases, computed calls, runtime behavior, detailed authorization, provider side effects, and full parity. This audit extends it; it does not relabel static scans as runtime proof.
+
+### Initial top-level file order / repository structure findings
+
+The tree begins with agent instructions and skills, CI configuration, environment/build configuration, GitHub workflows, repository policy files, then `base44/`, `docs/`, `host/`, `scripts/`, `src/`, `supabase/`, and deployment configuration. The largest portability risks are not only in frontend call sites: they also exist in agent skills, duplicated workforce source, Base44 function runtimes, secret access, provider callbacks, workflow definitions, generated configuration, and deployment proxies.
+
+## 2. Verified high-impact source findings
+
+| Source path / symbol | Current coupling observed | Required replacement |
+|---|---|---|
+| `src/api/base44Client.js` | Imports `@base44/sdk`, constructs the Base44 client, chooses Base44 app ID and app URL, and applies a Base44-host-specific branch. | Provider-neutral API client facade backed by the IFund API contract; implementation calls Supabase Auth/Postgres and Cloudflare Worker/Edge Function routes. |
+| `src/lib/runtimeContract.js` | Exposes `dataPlane: "base44"`, `VITE_BASE44_APP_ID`, and `VITE_BASE44_APP_BASE_URL`; startup assertion requires both Base44 values. | Neutral runtime contract. Use `VITE_API_BASE_URL` for the API origin when cross-origin routing is required; use `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for the Supabase client. Do not require a vendor app ID. |
+| `src/lib/app-params.js` | Hard-codes the Base44 Android URL and app ID; persists `base44_*` query/storage keys; accepts Base44 access-token and function-version parameters. | Supabase Auth callback/deep-link handling and neutral `ifund_*` keys. Remove legacy token ingestion after migration parity is verified; never treat URL-provided identity as authorization. |
+| `vite.config.js` | Imports and registers `@base44/vite-plugin`; retains a Base44 legacy SDK import switch and Base44-specific build comments. | Vite React plugin only plus IFund-owned build checks. Remove Base44 plugin package and all plugin-only configuration after proving no required feature depends on it. |
+| `.env.example` | Requires `VITE_BASE44_APP_ID` and `VITE_BASE44_APP_BASE_URL`. | Publishable-only neutral values; `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Server secrets remain server-side. |
+| `package.json` | Package identity is `base44-app`; runtime dependencies include `@base44/sdk` and `@base44/vite-plugin`. | IFund package identity and no Base44 SDK/plugin dependency. Keep the lockfile synchronized and prove a clean install/build. |
+| `base44/config.jsonc` | Base44 CLI install/build/dev configuration. | No replacement runtime config is needed; Cloudflare Pages owns the Vite build. Keep only as read-only source evidence. |
+| `base44/functions/**` | 184 Base44-hosted function entrypoints depend on `createClientFromRequest`, Base44 auth, service-role entity access, and Base44 runtime imports. | Port each function to a Supabase Edge Function or Cloudflare Worker route with explicit request/response schemas, verified JWT identity, role checks, service-only operations, idempotency, audit, and rate limits. |
+| `base44/entities/**` | 95 JSONC entity contracts and Base44 row-access declarations. | Typed Postgres schema, constraints, indexes, foreign keys, and explicit RLS. Financial/credential writes remain server-only. |
+| `base44/agents/**`, `base44/workflows/**`, `base44/mcp/**` | Agent definitions, tools, and workflow schedules/triggers are packaged in Base44-specific directories. | IFund-owned agent/tool contracts plus durable Supabase workflow queue and Cloudflare Worker/Edge Function execution. Preserve consent, budgets, audit, retry, and idempotency. |
+| `.agents/skills/wix-base44-connector/**` and mirrored `host/workforce/source/.agents/skills/wix-base44-connector/**` | Operational instructions and utilities assume a Wix/Base44 connector workflow. | Replace with provider-neutral integration operations documentation, or retire if Wix/Base44-specific capability is not part of IFund's product. Keep unrelated Wix marketing-site requirements separate. |
+| `src/components/admin/Base44ReleaseStatus.jsx` | User-facing admin status component describes Base44 publication/release. | Replace with IFund deployment/release status based on Cloudflare deployment evidence, not a renamed Base44 status. |
+| `docs/deferred-base44-workflows.md`, `scripts/verify-base44-sync-contract.mjs` | Preserve and verify Base44-native source synchronization. | Retire from active build/release requirements; retain only a clearly marked historical migration record if useful. |
+
+Additional source evidence includes:
+- `base44/shared/approvedBuilderBridge.ts` calls `https://app.base44.com`, uses `IFUND_BASE44_*` credentials, and can submit/publish builder work. This is a separate, privileged builder integration—not the general application API. It must be disabled/retired for production runtime and must never be silently redirected to another provider.
+- `base44/shared/verificationEmailCrypto.ts` imports `base44:runtime` secrets.
+- `base44/shared/connectionCrypto.ts` describes secret provisioning in Base44 backend secrets.
+- `base44/shared/serverImagePolicy.ts` explicitly allowlists Base44 media hosts and paths.
+- `base44/shared/paypalSubscriptions.ts` includes the old Base44 app origin in callback/return URL handling.
+- `base44/functions/wixWebhook/entry.ts` and `base44/functions/syncGitHub/entry.ts` instantiate the Base44 SDK in server functions.
+- The original README tells developers to install the Base44 CLI, run `base44 dev`, and publish through the Base44 dashboard. It is historical documentation, not a valid setup guide for the replacement app.
+
+## 3. Stable replacement naming and configuration
+
+Use provider-neutral names for IFund-owned interfaces. Provider identity belongs inside an adapter implementation, not in every caller or environment variable.
+
+| Old name / coupling | Stable replacement | Notes |
+|---|---|---|
+| `VITE_BASE44_APP_BASE_URL` | `VITE_API_BASE_URL` | Optional API origin; prefer same-origin `/api` routing where possible. |
+| `VITE_BASE44_APP_ID` | No equivalent required | Supabase JWT identifies the authenticated user; product identity is a constant, not a vendor app ID. |
+| `VITE_BASE44_FUNCTIONS_VERSION` | Versioned IFund API contract/routes | API version is owned by IFund, not the hosting vendor. |
+| `base44Client` | `ifundApi` / `apiClient` | Stable facade with typed operations; no provider SDK objects leak into pages. |
+| `base44.auth` | Supabase Auth adapter | Session, recovery, OAuth callback, and role resolution are explicit. |
+| `base44.entities.*` | Repository/data-access modules | Typed queries against Postgres with RLS; privileged writes through server functions only. |
+| `base44.functions.invoke` | IFund API route / Edge Function client | Stable endpoint contract; server validates JWT and authorization. |
+| `base44.integrations.Core.*` | Server-side AI/media/email provider adapters | Model/provider keys are server secrets and replaceable independently. |
+| `base44.asServiceRole` | Server-only Supabase service client | Never available in browser bundles; least-privilege operations only. |
+| `base44:runtime` | Cloudflare Worker secrets / Supabase Edge Function secrets | Secret names and consumers documented; values never committed. |
+| Base44 media URLs | Supabase Storage object keys/URLs | Preserve privacy, signed access, watermark behavior, and byte/hash verification. |
+| Base44 scheduled workflows | `ifund_ops` durable queue + scheduled Worker | Preserve leases, retries, deduplication, and execution logs. |
+
+## 4. What must not be blindly renamed
+
+- PayPal, Stripe, Google, Facebook, Wix, Browserbase, and other external providers remain named where the platform genuinely integrates with those services. The goal is to remove Base44 as the hidden host/runtime—not erase legitimate third-party integration names.
+- Existing user-visible product terminology, data fields, and historical audit records must not be mass-renamed without schema compatibility and data migration.
+- The term `base` in wallet/blockchain code is unrelated to Base44 and must not be changed.
+- A Base44 source snapshot, URL, webhook, or secret name may remain in a migration-only manifest to preserve provenance. It must not be imported as an active runtime dependency.
+
+## 5. Replacement verification gates
+
+A rename is complete only when the new name is consumed by working code and all old references are either removed from active paths or explicitly classified as historical.
+
+1. **Build/config:** no Base44 SDK, Vite plugin, CLI, runtime imports, Base44 environment variables, or Base44-required startup assertions in the replacement app.
+2. **Frontend API:** every original frontend operation maps to a typed IFund API/data contract; no page depends on a Base44 SDK object.
+3. **Auth:** sign-in, email-code recovery, OAuth callback, session refresh, account linking, role resolution, logout, and revoked-session behavior pass against Supabase Auth.
+4. **Data:** all 95 entities have reviewed schema mappings, ownership rules, indexes, constraints, and RLS tests; no browser service-role access.
+5. **Functions:** all 184 entrypoints are mapped to a port, retirement decision, or explicit blocker; request/response semantics and side effects are tested.
+6. **Agents/workflows/connectors:** every agent, tool, connector and workflow has a replacement or retirement record, including secrets, consent, budget, retries, and audit behavior.
+7. **Media:** every Base44 media URL and upload path has a verified storage migration/read path; hashes and access policy match.
+8. **Payments:** PayPal/Stripe callbacks, ledger authority, idempotency, settlement, withdrawal and fee behavior are independently verified before activation.
+9. **Operations:** Cloudflare Pages/Workers build and deploy without Base44; DNS/mail preservation and rollback are tested separately.
+10. **Residual scan:** scan all tracked text files (including docs, scripts, CI, mobile configuration and duplicated workforce source) for Base44 identifiers, URLs, package names, environment names, and wording. Every hit must be classified.
+
+## 6. Work log
+
+### Audit pass 1 — repository and root/runtime boundary
+
+**Inspected:** recursive source Git tree; `README.md`; `AGENTS.md`; zero-credit and source-of-truth guidance; feature reconciliation baseline; source `.env.example`; source `package.json`; `src/api/base44Client.js`; `src/lib/runtimeContract.js`; `src/lib/app-params.js`; `vite.config.js`; `base44/config.jsonc`; `src/components/admin/Base44ReleaseStatus.jsx`; `docs/deferred-base44-workflows.md`; `scripts/verify-base44-sync-contract.mjs`; selected backend functions and shared modules.
+
+**Verified outcome:** the source has a Base44-specific frontend SDK/client, app identity and URL environment contract, Base44 Android fallback, Base44 Vite plugin, Base44 package dependencies, Base44 CLI instructions, 95 entity definitions, 184 function entrypoints, and Base44-hosted agent/workflow configuration. The independent migration branch already has a Supabase client and no Base44 packages in its root `package.json`; this is only a scaffold/preview subset and not full behavior parity.
+
+**Changes made in this pass:** this audit register only. No source repository files, production data, DNS, provider settings, credentials, or deployments were changed.
+
+**Still to inspect:** every tracked text file and every source function/entity/agent/workflow/connector in line-level batches; all direct and indirect frontend callsites; exact per-function caller/auth/side-effect mapping; duplicated source under `host/workforce/source`; all docs, scripts, CI, Android configuration, and static assets with embedded provider URLs/text. Continue from the first unreviewed path in the source tree and append exact file/line findings to this register.
+
+**Status:** IN PROGRESS. No claim of complete Base44 removal or full parity.
