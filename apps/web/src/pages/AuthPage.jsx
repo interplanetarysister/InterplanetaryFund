@@ -29,11 +29,11 @@ export default function AuthPage({ mode = "login" }) {
       const auth = authClient().auth;
       if (isReset && !recoveryCodeSent) {
         const { error: err } = await auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: window.location.origin + "/reset-password",
+          redirectTo: new URL("/reset-password", window.location.origin).toString(),
         });
         if (err) throw err;
         setRecoveryCodeSent(true);
-        setMessage("If this address is registered, a recovery code has been sent. Enter it below with your new password.");
+        setMessage("If this address is registered, check your email for a password recovery link or code. Open the link to choose a new password, or enter the code below.");
       } else if (isReset) {
         const { error: verifyError } = await auth.verifyOtp({ email: email.trim(), token: recoveryCode.trim(), type: "recovery" });
         if (verifyError) throw verifyError;
@@ -49,7 +49,7 @@ export default function AuthPage({ mode = "login" }) {
         const { data, error: err } = await auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin + "/dashboard" },
+          options: { emailRedirectTo: new URL(afterLogin, window.location.origin).toString() },
         });
         if (err) throw err;
         if (data.session) navigate(afterLogin, { replace: true });
