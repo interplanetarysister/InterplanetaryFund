@@ -58,10 +58,34 @@ jobs:
           else
             : > audit-evidence/destination-public-sha256.txt
           fi
-          cut -c 67- audit-evidence/original-public-sha256.txt | sort > audit-evidence/original-public-paths.txt
-          cut -c 67- audit-evidence/destination-public-sha256.txt | sort > audit-evidence/destination-public-paths.txt
-          comm -23 audit-evidence/original-public-paths.txt audit-evidence/destination-public-paths.txt > audit-evidence/missing-original-public-assets.txt
-          join -j 2 <(sort -k2 audit-evidence/original-public-sha256.txt) <(sort -k2 audit-evidence/destination-public-sha256.txt) | awk '$2 != $3 {print $1}' > audit-evidence/changed-original-public-assets.txt
+          # Compare paths as structured values; sha256sum/join whitespace parsing
+          # misidentifies assets whose filenames contain spaces or tabs.
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          output = Path("audit-evidence")
+          def inventory(directory):
+              if not directory.is_dir():
+                  return {}
+              return {
+                  path.relative_to(directory).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in directory.rglob("*") if path.is_file()
+              }
+          original = inventory(Path("original-frontend/public"))
+          destination = inventory(Path("apps/web/public"))
+          for filename, paths in (
+              ("original-public-paths.txt", sorted(original)),
+              ("destination-public-paths.txt", sorted(destination)),
+              ("missing-original-public-assets.txt", sorted(original.keys() - destination.keys())),
+              ("changed-original-public-assets.txt", sorted(
+                  path for path in original.keys() & destination.keys()
+                  if original[path] != destination[path]
+              )),
+          ):
+              (output / filename).write_text(
+                  "".join(path + "\\n" for path in paths), encoding="utf-8"
+              )
+          PY
           # Compare original source paths and exact bytes against both deployable frontend trees.
           # A basename match alone is not a source port; this report is advisory, not a release gate.
           python3 - <<'PY'
