@@ -124,8 +124,17 @@ jobs:
           while IFS= read -r asset; do
             test -n "$asset" || continue
             ASSET_URL="$(PREVIEW_URL="$PREVIEW_URL" ASSET="$asset" node -e 'console.log(new URL(process.env.ASSET, process.env.PREVIEW_URL).href)')"
-            curl --fail --silent --show-error --location --max-time 20 "$ASSET_URL" -o /tmp/ifund-live-asset.js
-            head -c 256 /tmp/ifund-live-asset.js | grep -Eiq '<!doctype|<html' && { echo "Script returned HTML fallback: $ASSET_URL" >&2; exit 1; }
+            # Cloudflare SPA fallback can return 200 text/html for a missing
+            # script. Reject it using response headers as well as body content.
+            curl --fail --silent --show-error --location --max-time 20 -D /tmp/ifund-live-asset.headers "$ASSET_URL" -o /tmp/ifund-live-asset.js
+            if ! grep -Eiq '^content-type:[[:space:]]*(application|text)/(javascript|x-javascript|ecmascript)' /tmp/ifund-live-asset.headers; then
+              echo "Script did not return a JavaScript Content-Type: $ASSET_URL" >&2
+              exit 1
+            fi
+            if head -c 256 /tmp/ifund-live-asset.js | grep -Eiq '<!doctype|<html'; then
+              echo "Script returned HTML fallback: $ASSET_URL" >&2
+              exit 1
+            fi
             test -s /tmp/ifund-live-asset.js
           done < /tmp/ifund-live-scripts.txt
           curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/login" -o /tmp/ifund-live-login.html
