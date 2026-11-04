@@ -1,7 +1,7 @@
 {
   "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
-  "implementation_ref": "interplanetarysister/InterplanetaryFund@d4caa4b",
-  "rule": "Owner authorized tested Story production activation, then beginning Strategy. Preserve explicit source-parity limits and never claim missing functionality is complete.",
+  "implementation_ref": "interplanetarysister/InterplanetaryFund@af3acb935e577f7fd9ff021822debc5bc5f43969",
+  "rule": "Owner directed Strategy preview then Growth, and Growth preview then Communications. Preserve explicit source-parity limits and never claim missing functionality is complete.",
   "current_agent": "strategy_agent",
   "agents": [
     {
@@ -39,7 +39,7 @@
       "id": "strategy_agent",
       "source": "base44/agents/strategy_agent.jsonc",
       "sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
-      "status": "in_progress",
+      "status": "reviewed_preview_candidate",
       "tools": [
         "Campaign",
         "Recommendation",
@@ -52,29 +52,35 @@
       "allow_anonymous_access": false,
       "implementation_files": [
         "worker/agents/strategy.js",
-        "tests/strategy-agent.test.js"
+        "apps/web/src/pages/StrategyAgent.jsx",
+        "apps/web/functions/api/agents/strategy/[[path]].js",
+        "supabase/migrations/20261104061736_ifund_strategy_agent_contracts.sql",
+        "tests/strategy-agent.test.js",
+        "tests/strategy-agent-db.test.js"
       ],
       "verified_subcontracts": [
-        "bounded Mission Brief JSON schema",
-        "current owned-campaign scope",
-        "unknown metrics remain unavailable",
-        "foreign campaign and unauthorized role rejection",
-        "no inferred publication/approval/handoff receipts"
+        "bounded Mission Brief schema and exact supplied fact evidence",
+        "current owned campaign selection and commit-time scope revalidation",
+        "canonical living brief, ranked recommendations and atomic audit receipt",
+        "leased idempotent inference with capped Free-plan usage",
+        "selected owner-only revision-checked atomic bulk accept/dismiss/reopen",
+        "independent Builder/Reviewer/Auditor core checks",
+        "private tables and authenticated invoker RPCs verified live"
       ],
       "remaining_gates": [
-        "canonical Mission Brief and recommendation storage",
-        "authenticated request/lease/idempotency transport",
-        "member UI and error states",
-        "independent review",
-        "live acceptance"
-      ]
+        "hosted preview acceptance and activation",
+        "full source conversational context/memory and general draft tools",
+        "actual specialist execution and verified external opportunity discovery",
+        "real consenting-member end-to-end acceptance"
+      ],
+      "migration_version": "20261104061736"
     },
     {
       "order": 3,
       "id": "growth_agent",
       "source": "base44/agents/growth_agent.jsonc",
       "sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
-      "status": "blocked_by_previous_agent",
+      "status": "pending_strategy_preview",
       "tools": [
         "Campaign",
         "Donation",
@@ -207,7 +213,10 @@
       "source": "base44/agents/admin_builder_agent.jsonc",
       "sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
       "status": "blocked_by_previous_agent",
-      "tools": ["managePlatformIncidents", "manageAdminBuilderWork"],
+      "tools": [
+        "managePlatformIncidents",
+        "manageAdminBuilderWork"
+      ],
       "allow_anonymous_access": false
     }
   ],
@@ -316,7 +325,10 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["create", "update"]
+          "events": [
+            "create",
+            "update"
+          ]
         },
         "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
       },
@@ -357,7 +369,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "Campaign"
         }
       },
@@ -396,7 +410,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "CampaignUpdate"
         }
       },
@@ -531,7 +547,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["update"]
+          "events": [
+            "update"
+          ]
         },
         "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
       },
@@ -572,7 +590,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "GrantApplication",
-          "events": ["create"]
+          "events": [
+            "create"
+          ]
         },
         "condition": "${ .trigger.data.status == \"submitted\" }"
       },
@@ -903,7 +923,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "VolunteerSignup"
         }
       },
