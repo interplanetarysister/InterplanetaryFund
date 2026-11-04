@@ -142,3 +142,26 @@ Reviewed complete contents of the first five text files in Git-tree path order:
 ### CI correction log
 
 The first two CI attempts failed before build because the new API client exposed an existing source issue in the test runner: Node ESM does not resolve the extensionless `./supabase` import, and the existing Supabase module dereferenced `import.meta.env` when running under plain Node. The client import was changed to `./supabase.js`, and Supabase environment reads now use optional chaining. The third run is underway; do not mark tests as passing until it completes.
+
+
+### Source traversal — next `.agents/skills` batch
+
+| Source file | Lines | Base44-specific findings | Replacement / disposition |
+|---|---:|---|---|
+| `.agents/skills/ifund-chief-of-staff/SKILL.md` | 20 | L9, L13 and L19 describe Base44 runtime registration, agent JSONC under `base44/agents`, and preserving Base44 formats. | Rewrite as IFund-owned agent configuration and runtime contract; source JSONC remains migration evidence only. |
+| `.agents/skills/ifund-communications/SKILL.md` | 20 | L9, L13 and L19 repeat the Base44 agent registration/source path/preservation assumptions. | Port tool definitions and approval behavior to the IFund agent registry and backend contracts. |
+| `.agents/skills/ifund-content-writes/SKILL.md` | 39 | L31 states live Base44 agent tool registration determines tool availability. | Replace with the independent IFund agent registry and server-enforced permissions; preserve owner approval and external publishing consent. |
+| `.agents/skills/ifund-finance/SKILL.md` | 20 | L9, L13 and L19 point to Base44 agent definitions and `base44/shared/fees.js`. | IFund agent registry + IFund-owned fee module; no changes to fee arithmetic without separate financial review. |
+| `.agents/skills/ifund-growth/SKILL.md` | 20 | L9, L13 and L19 point to Base44 agent definitions and preserve Base44 format. | IFund agent registry and explicit provider capability/consent checks. |
+| `.agents/skills/ifund-outreach/SKILL.md` | 20 | L9, L13 and L19 repeat Base44 runtime/definition/preservation references. | IFund agent registry and verified Worker/Edge Function operations. |
+| `.agents/skills/ifund-story/SKILL.md` | 20 | L9, L13 and L19 repeat Base44 runtime/definition/preservation references. | IFund agent registry and provider-neutral story-generation contract. |
+| `.agents/skills/ifund-strategy/SKILL.md` | 20 | L9, L13 and L19 repeat Base44 runtime/definition/preservation references. | IFund agent registry and provider-neutral campaign strategy data contracts. |
+| `.agents/skills/outreach_agent.md` | 158 | No literal Base44 references in the complete file. | No provider-name edit required; verify tool permissions and agent behavior independently. |
+| `.agents/skills/story_agent.md` | 158 | No literal Base44 references in the complete file. | No provider-name edit required; verify generation provider and content-safety contract separately. |
+| `.agents/skills/strategy_agent.md` | 134 | No literal Base44 references in the complete file. | No provider-name edit required; verify tool/data mappings separately. |
+| `.agents/skills/wix-base44-connector/SKILL.md` | 443 | Base44 app context, Base44 server function path, Base44 service-role Wix token retrieval, Base44 preview/published domains and Wix/Base44 app handoff (e.g. L13, L88, L138, L298, L314, L372–392). | Retain legitimate Wix API knowledge only if the Wix marketing site still needs it; remove Base44 app assumptions and route Wix credentials through an independent server-side integration. This skill is not an IFund runtime dependency. |
+| `.agents/skills/wix-base44-connector/utils.cjs` | 464 | The helper is explicitly a Base44 sandbox/Wix docs tool; it uses a Base44-specific scratch path and instructions (L1–8, L21, L295). | Replace with a generic Wix documentation helper if still needed, or archive it as source-only tooling. Never copy its scratch files or credentials into the app runtime. |
+
+**Batch result:** 14 files reviewed (including the previous 5-file batch, now 19 agent-skill files in total). 8 current IFund skill guides contain explicit Base44 runtime/agent format dependencies; 3 legacy agent references do not contain Base44 naming; the Wix connector is a separate 907-line Base44-contextual tool that needs its own disposition. The 39-line content-writes guide has a direct Base44 registration dependency despite having only one literal mention.
+
+**Important distinction:** Wix is a real external site/platform and must not be erased from the platform integration map. Only the Base44-hosted Wix connector path and assumptions are removed; any separate Wix marketing site or authorized Wix APIs remain independently configurable.
