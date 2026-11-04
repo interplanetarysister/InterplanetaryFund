@@ -139,5 +139,30 @@ jobs:
           done < /tmp/ifund-live-scripts.txt
           curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/login" -o /tmp/ifund-live-login.html
           grep -qi '<html' /tmp/ifund-live-login.html
+          # Confirm original install assets are served as files, not SPA HTML fallbacks.
+          for asset in manifest.json favicon.jpg apple-touch-icon.jpg; do
+            curl --fail --silent --show-error --location --max-time 20 \
+              -D /tmp/ifund-install.headers "$PREVIEW_URL/$asset" \
+              -o /tmp/ifund-install.asset
+            test -s /tmp/ifund-install.asset
+            if head -c 256 /tmp/ifund-install.asset | grep -Eiq '<!doctype|<html'; then
+              echo "Install asset returned SPA HTML fallback: $asset" >&2
+              exit 1
+            fi
+            case "$asset" in
+              manifest.json)
+                node -e 'JSON.parse(require("node:fs").readFileSync("/tmp/ifund-install.asset","utf8"))'
+                ;;
+              *.jpg)
+                node -e '
+                  const fs = require("node:fs");
+                  const b = fs.readFileSync("/tmp/ifund-install.asset");
+                  if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8 || b[2] !== 0xff) {
+                    throw Error("Original JPEG install asset has invalid bytes");
+                  }
+                '
+                ;;
+            esac
+          done
           echo "Verified deployed source provenance and SPA login deep-link at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Browser visual parity, login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
