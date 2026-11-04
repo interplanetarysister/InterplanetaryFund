@@ -105,3 +105,19 @@ A rename is complete only when the new name is consumed by working code and all 
 **Still to inspect:** every tracked text file and every source function/entity/agent/workflow/connector in line-level batches; all direct and indirect frontend callsites; exact per-function caller/auth/side-effect mapping; duplicated source under `host/workforce/source`; all docs, scripts, CI, Android configuration, and static assets with embedded provider URLs/text. Continue from the first unreviewed path in the source tree and append exact file/line findings to this register.
 
 **Status:** IN PROGRESS. No claim of complete Base44 removal or full parity.
+
+
+### Audit pass 2 — first provider-neutral API boundary implemented
+
+**Implemented in the independent migration branch:**
+- Added `src/lib/api.js`, a provider-neutral HTTP client that accepts only IFund `/api/` routes, defaults to same-origin routing, and optionally uses `VITE_API_BASE_URL` as the replaceable API origin.
+- The client obtains the current Supabase Auth access token through the existing Supabase client, sends it as a bearer token, supports JSON and FormData requests, and returns structured `ApiError` values with HTTP status and server error code.
+- Added `VITE_API_BASE_URL` to `.env.example`; it is optional and blank by default so Cloudflare same-origin routes need no host-specific URL setting.
+- Added `tests/api-client.test.js` covering same-origin routing, replaceable HTTPS origin/path prefix, malformed/insecure URL rejection, Supabase bearer propagation, JSON serialization, and structured HTTP errors.
+
+**Old -> new, verified in source mapping:**
+- `VITE_BASE44_APP_BASE_URL` -> optional `VITE_API_BASE_URL` (the generic name now exists in the replacement app).
+- Direct vendor SDK invocation boundary -> `api.request('/api/...')` (new shared transport). Existing page migration is still required; this helper does not magically port the 364 source frontend files.
+- Base44 auth token -> Supabase Auth session JWT (the client reads it from the existing Supabase client; no URL token is accepted).
+
+**Verification status:** test cases are committed but not yet executed in this environment. CI must run `npm test` on the PR head before this contract is marked verified. No runtime route was enabled, no production data was changed, and no Base44 source code was edited.
