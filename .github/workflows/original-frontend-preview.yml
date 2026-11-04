@@ -80,6 +80,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          set -euo pipefail
           npx --yes wrangler@3 pages deploy dist --project-name interplanetaryfund-migration --branch original-frontend-preview --commit-dirty=true | tee /tmp/ifund-pages-deploy.log
           echo "Original-source Cloudflare preview deployment output:" >> "$GITHUB_STEP_SUMMARY"
           grep -Eo 'https://[[:alnum:].-]+\.pages\.dev' /tmp/ifund-pages-deploy.log | sort -u >> "$GITHUB_STEP_SUMMARY" || true
