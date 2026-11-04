@@ -237,3 +237,38 @@ Source order is the GitHub root directory's alphabetical path order. This pass f
 **Root pass status:** 21/21 root text files inspected (1,821 lines; exact per-file counts above). No files in `interplanetary-fund2/main` were modified. The replacement API origin is implemented in the independent repository; package, Vite, Worker, MCP and application SDK decoupling remain open work. The source README is intentionally legacy documentation, not the operator guide for the independent product.
 
 **Critical design rule:** use neutral names only where the underlying behavior is genuinely provider-neutral. A temporary legacy bridge may be named `IFUND_LEGACY_API_ORIGIN`, but must have a retirement condition. Never disguise a still-required Base44 backend as `IFUND_API_URL` and call the platform independent; actual data, auth, permissions, webhooks, agents and workflows must be moved to IFund-owned Supabase/Cloudflare implementations before Base44 can be removed.
+
+
+### Completion of first source instruction directories: `.agents`, `.ci`, `.github`
+
+The recursive Git tree confirms **26 files under `.agents/`**. All 26 have now been fetched and inspected in full. The remaining three mirrored reference guides are:
+- `.agents/skills/ifund-outreach/references/agent-guide.md` — 158 lines, no Base44 references.
+- `.agents/skills/ifund-story/references/agent-guide.md` — 158 lines, no Base44 references.
+- `.agents/skills/ifund-strategy/references/agent-guide.md` — 134 lines, no Base44 references.
+
+The Wix connector's `references/CAPABILITY_MAP.md` is 87 lines. Its only Base44 wording is in the third-party Wix skill's download/install instructions (L4–5); its capability map describes Wix products and remains useful as Wix-specific reference material. It should be retained only if the independent platform still uses Wix integrations, with the connector wrapper separated from Base44-specific setup.
+
+`.ci/last-batch-check.txt` (4 lines) names Base44 auth/data-plane initialization as part of a prior source audit scope. This is historical checkpoint wording, not executable runtime configuration. It should not be copied into new CI as a requirement.
+
+`.github/` contains 9 files, all previously inspected in full: FUNDING.yml, copilot-instructions.md, the code-review skill, and six workflows. The workflow replacement mapping is recorded in the prior `.github` audit section.
+
+**Directory audit totals so far:** `.agents/` 26/26 files; `.ci/` 1/1; `.github/` 9/9. Together with 21/21 root-level text files, the first three path groups are inspected. No source files were modified.
+
+### Required source directives read before continuing
+
+The source repository's mandatory first-read documents were fetched and read:
+- `docs/ZERO_CREDIT_CONTINUOUS_WORK.md` (48 lines): its zero-credit and resumable-work rules remain applicable to safe development process, but L34's claim that this repository is being prepared for Base44 hosting is historical and superseded for the independent target.
+- `docs/REPOSITORY_SOURCE_OF_TRUTH.md` (80 lines): L9–10, L25 and L55–57 explicitly define Base44 as the current app runtime and the older Convex backend as historical evidence. This is a material source-era architecture statement; it cannot be treated as proof that Supabase already contains equivalent user identity, agent memory, outcomes, permissions or persistent state.
+- `docs/IF_FEATURE_RECONCILIATION_2026-08-21.md` (147 lines): its repository ownership, agent bridge, social publishing, user schema and feature matrix are an older baseline. Its evidence remains valuable for behavior requirements, but its Base44/Convex runtime ownership statements must be reconciled against the current Supabase migration before feature parity is claimed.
+
+### Independent destination branch sanity check
+
+The current migration PR branch was checked separately:
+- `package.json` is already named `interplanetaryfund`, depends on Supabase/React/Vite, and contains no Base44 package dependency or vendor-specific script.
+- `src/lib/api.js` uses `VITE_API_BASE_URL` and Supabase Auth JWT; no Base44 string is present.
+- `src/lib/supabase.js` initializes Supabase Auth from `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+- `worker/index.js` exposes independent IFund API routes; it has no Base44 proxy. Its only Base44 occurrence is a truthful comment explicitly stating that no proxy/payment functionality exists.
+- `wrangler.jsonc` names the independent API Worker and has no Base44 variable.
+- The route matrix explicitly marks unmigrated payment, ledger, OAuth, media and historical MCP routes as fail-closed 404, and warns that the deployed legacy Worker is separate. That is correct: a green scaffold is not feature parity.
+
+**Result:** the replacement branch's root app identity/configuration are already provider-neutral. Remaining Base44 text in the migration repo is largely source provenance/audit context and must be retained where it explains what is being migrated; it must not be allowed to become a runtime dependency or release prerequisite.
