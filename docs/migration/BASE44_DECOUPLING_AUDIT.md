@@ -304,3 +304,53 @@ The recursive tree contains **55 Android files**: 28 text/config/code files, 26 
 **Connector replacement rule:** a provider name and scopes are not the provider integration. Each provider requires its own verified client registration, callback, exact scopes, consent, refresh/revocation path and action-specific test. Some providers may not support every requested operation or may require review/approval. Unsupported capabilities remain unavailable/manual rather than being represented as connected.
 
 No source files were changed. The independent target branch's package is already vendor-neutral, but it does not yet contain the ten agent runtimes or these eleven working provider OAuth registrations.
+
+
+### Source traversal — all 95 Base44 entity schemas
+
+**Entity directory inspection is complete: 95/95 JSONC schemas fetched and parsed in full.** Each file was checked for every line containing Base44 wording, its entity name, required fields, property list, and declared access rules. The source files remain read-only.
+
+#### Entity families and replacement treatment
+
+| Domain family | Source entities | Independent destination |
+|---|---|---|
+| Identity, profile and consent | User, PublicProfile, Agent, AuthorizationGrant, LegalAcceptance, Friendship, FollowedCampaign, CommunityMember, UserCredentialVault, VerificationMailbox, VerificationMail, DeviceAuthorization | Supabase Auth is the identity authority; normalized profile/consent/grant tables with explicit RLS. Never recreate Base44's implicit `{{user.id}}` / `user_condition` evaluator in the browser. |
+| Campaigns, content and community | Campaign, CampaignTranslation, CampaignUpdate, BlogEntry, UserBlog, DiscussionPost, DiscussionReply, Community, SocialPost, PostInterest, ActivityEvent, Message, Notification, InboxItem, PublicProfile | Supabase relational tables, views and storage references; preserve publish/draft visibility and ownership policies. |
+| Donations, payout and ledger | Donation, FinancialOperation, HoldingLedgerEntry, Withdrawal, TreasurySnapshot, ConnectedPayoutAccount, PayPalBillingWebhook, PayPalSubscriptionIntent, SubscriptionPlanMapping, WebhookEvent, StripeReversalHold | Server-only financial RPCs/Edge Functions, immutable ledger entries, unique idempotency constraints, reconciliation and PayPal-only live money flow. Stripe entity is historical/reversal evidence, not authorization to activate Stripe. |
+| External platforms and OAuth | PlatformConnection, PlatformConnectionRecipe, PlatformAccessRegistry, PlatformOwnedAccount, ExternalPlatformRecord, ExternalConversation, ExternalConversationMessage, DistributedPost, ScheduledAutoPostPermit, ExternalCampaignImport, ExternalCampaignImportOperation, ExternalCampaignPublication, ExternalCollectionAuthorization, ExternalFundObservation, ExternalFundMigrationRecord, ExternalSyncClaim, ExternalSyncEvent, IntegrationChangeRequest, FundraisingProviderCapability, PayPalBillingWebhook | IFund-owned OAuth broker and provider adapters, encrypted token vault, explicit consent, durable sync jobs/claims, provider capability registry and request-only external sync policy. |
+| Agents and operations | AgentActivity, AgentContentDraft, AgentConversationRun, AgentDelegation, AdminActionMessage, AdminApproval, ExecutiveReport, MissionBrief, Recommendation, Opportunity, WritingResearchBrief, HelpArticle, HelpDraft, HelpFeedback, KnowledgeArticle, OfficialPublication, ProtocolReport, SustainabilityAudit, PlatformIncident, PlatformEvent, AuditLog, SyncRun, GitHubSyncCheckpoint | Supabase tables plus Cloudflare Queue/Workflow/Worker execution, auditable run state, approval gates, and owner/admin scoping. |
+| Admin and secrets | AdminApiConnectionIntake, AdminCredentialReference, AdminCredentialVault, ExternalAgentApiKey, FeatureFlag, RateLimitBucket, SupportTicket, FoundingWaitlist, NonprofitSubscriptionApproval, PushDevice, PlatformAccessRegistry | Admin-only tables and secrets managed by Cloudflare secrets or a dedicated vault. Secret material must never be exposed via ordinary table reads or client-side service-role credentials. |
+| Grants and volunteering | Institution, InstitutionOpportunity, GrantApplication, VolunteerOpportunity, VolunteerSignup, MonitoredCampaign | Supabase tables with public/private visibility and user/administrator policy enforcement. |
+
+#### Exact Base44-specific entity wording found
+
+The following source descriptions directly name Base44 and must be changed in destination-side schema comments/docs. Their data semantics remain; only the vendor attribution changes:
+
+- `AdminCredentialReference.jsonc:4`: "Base44 entities" → "application database records"; secrets remain external in a server-side secret manager.
+- `AgentConversationRun.jsonc:11,15`: "Base44 specialist / Base44 agent conversation reference" → "IFund agent / IFund agent run reference"; preserve conversation/run IDs and authorization scope.
+- `ExternalConversationMessage.jsonc:23`: "not a Base44 record ID" → "not an IFund internal record ID"; provider-supplied IDs remain external identifiers.
+- `GitHubSyncCheckpoint.jsonc:75`: "Base44–GitHub synchronization" → "IFund–GitHub synchronization".
+- `InboxItem.jsonc:21`: "canonical Base44 financial/external-observation id" → "canonical IFund financial-operation/external-observation id".
+- `MonitoredCampaign.jsonc:7`: "Interplanetary Fund Base44 campaign id" → "IFund campaign ID".
+- `Notification.jsonc:35`: "canonical Base44 FinancialOperation id" → "canonical IFund financial-operation ID".
+- `PlatformConnectionRecipe.jsonc:80`: "Base44 connector type" → "IFund provider adapter / OAuth connector type"; transport is provider capability, not a Base44 dependency.
+- `ProtocolReport.jsonc:23`: "stored by Base44" → "stored by IFund".
+- `TreasurySnapshot.jsonc:21`: "Base44 treasury ledger" → "IFund authoritative treasury ledger".
+- `WebhookEvent.jsonc:11`: "Base44 FinancialOperation" → "IFund FinancialOperation".
+- `Withdrawal.jsonc:39,66,70,74`: four references to Base44 donation records, idempotency key, payout reservation and ledger entry → corresponding IFund-owned records/keys/reservations/ledger entry.
+
+Other provider references (Browserbase, Stripe, PayPal, GitHub, etc.) are distinct services and should not be blindly renamed. Browserbase is currently a separate credential/browser service and needs its own replacement decision; Stripe fields and `StripeReversalHold` are historical schema fields only and must not cause Stripe live payments to be enabled.
+
+#### Critical parity finding — destination schema is not yet equivalent
+
+The independent branch's initial Supabase migration currently creates only four tables: `ifund_profiles`, `ifund_campaigns`, `ifund_posts`, and `ifund_connections`. It does **not** yet implement the 95 source entities, their relationships, constraints, indexes, triggers, or the full row-level security rules. The initial schema also uses simplified campaign/post shapes and cannot be described as a full entity migration.
+
+This is a substantive blocker to claiming Base44 independence for existing user data/features. The next implementation must produce a reviewed entity-to-table mapping and migration set, then test:
+1. every source property/type/required/default/enum;
+2. foreign keys, uniqueness, indexes and deletion semantics;
+3. row-level access for owner, other user, anonymous visitor and admin;
+4. service-only mutations for payments, credentials, approvals, webhooks and provider verification;
+5. financial idempotency, immutable ledger/reconciliation and PayPal payout invariants;
+6. data export/import counts and referential integrity before any production cutover.
+
+**Entity audit result:** 95/95 schemas inspected; 12 entity files contain 17 explicit Base44 wording hits (including repeated mentions in AgentConversationRun and Withdrawal). The independent destination is intentionally not declared feature-parity complete. No production database was modified.
