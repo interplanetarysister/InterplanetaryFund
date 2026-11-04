@@ -453,3 +453,66 @@ The next ten read/administrative endpoints were fetched and inspected in full.
 **Provider-policy note:** `getStripeIntegrationAudit` explicitly enumerates the historical Base44 webhook endpoint and Stripe account/price metadata. This endpoint must not be confused with PayPal readiness or used to re-enable Stripe checkout. The independent platform's neutral provider status model should show Stripe as retired, not as an actionable setup requirement.
 
 **Progress:** 60/184 backend entrypoints inspected in full (32.6%). Next source-order batch begins at `importExternalCampaign`. No live provider settings or production data changed.
+
+
+### Source traversal — backend function entrypoints, batches 6–8 (120/184)
+
+Another 30 handlers were fetched and inspected. Three files in this range are particularly important: the 470-line `requestWithdrawal`, the photo service with Base44-only media URL assumptions, and the agent chat bulk-approval route.
+
+| Handler(s) | Behavior and replacement contract |
+|---|---|
+| `manageVerificationMailbox` | User-owned verification aliases/messages, encrypted mail body decryption, expiry and no general-inbox exposure. Port encrypted mail storage and key management to a dedicated server-side secret/key service; do not expose verification codes to agents. |
+| `markNotificationRead` | User or admin can mark own notification read; simple Worker + RLS update. |
+| `matchExternalPayPalSettlement`, `reconcileExternalPayPalSettlement` | Admin verifies a settled receiving PayPal transaction, uniquely matches one provider-verified external observation, then records settled holding ledger. Preserve zero/multiple match fail-closed behavior and idempotency. |
+| `mirrorExternalPosts` | Scheduled owner-scoped external feed mirroring. Only Bluesky read adapter is implemented; unsupported providers must remain explicit skipped states. Preserve owner authorization, no shared-connector fan-out and deduplication. |
+| `ownerAgentChatActions` | User chat command can approve at most 12 of their own eligible drafts/posts; exact explicit instruction required. Applies IFund content, then separately calls publishing route for external posts. Preserve user-owned scope, explicit instruction parsing, per-item outcomes, no hidden broad approval, and partial-result reconciliation. |
+| `payPalSubscriptionWebhook` | PayPal subscription lifecycle webhook; verify provider signature, idempotently apply events and reconcile plan access. |
+| `postCampaignUpdate` | Owner publishes a campaign update; optional cross-post is a separate owner-triggered action; followers receive notifications and public activity event. Preserve the explicit cross-post choice and consent model. |
+| `postDiscussionReply` | Authenticated reply creation plus atomic reply-count increment. Use a DB transaction/RPC and community access checks. |
+| `prepareCollectAndWithdraw`, `authorizeCollectAndWithdraw`, `executeCollectAndWithdraw` | Three-stage external collection process: prepare a 15-minute expiring consent snapshot; owner confirms; only provider-supported transfer adapters may execute. The source currently requires Stripe Connect payout readiness in the prepare path even though live Stripe is retired. Replace this dependency with the IFund PayPal business holding/payout architecture or leave external collection disabled; never advertise an executable route until it exists and is independently verified. |
+| `processAdminActionInbox` | Reads admin approval conversation and asks LLM for missing information, excluding submitted credentials. This source workflow currently trusts internal scheduled invocation; replacement must enforce service-to-service authorization and sanitize secrets before model context. |
+| `publishInstitutionOpportunity` | Institution owner/admin publication, atomically increments opportunity count. Supabase transaction. |
+| `publishLinkedCampaignToConnection` | First campaign launch post after verified connection; direct publish only if verified adapter supports it, otherwise creates manual handoff. Crowdfunding link does not imply IFund created an external fundraiser. |
+| `publishPost` | External post publishing. Requires owner chain, approval, active feature, capability verification, subscription and consent for automation; unsupported/media paths return manual approval rather than fake success. |
+| `receiveCloudflareEmail` | Cloudflare Email Routing inbound endpoint. Port to Cloudflare Email Worker, authenticate/validate provider event and store only allowed mail categories. |
+| `recordAgentInteraction` | Records interaction only; must not accept client-asserted approval or external execution. Destination IFund agent run/audit record. |
+| `recordCampaignCreated` | Ensures campaign identity in canonical financial store, emits public activity event and prepares cross-post drafts. Replace old canonical-store registration with Supabase campaign identity; analytics becomes an optional provider adapter. |
+| `recordDonation` | Supporter-reported PayPal/Cash App gifts are PENDING only, not verified, not counted in campaign totals and not withdrawable until admin confirms receipt. Preserve gift-first amount and idempotency. |
+| `recordExternalFundMigration` | Admin-only reported external amount record with prospective 3% fee; explicitly not provider verification, IFund custody, or withdrawal eligibility. Preserve as reconciliation intake only. |
+| `recordLegalAcceptance` | Versioned explicit checkbox/button assent; server records user, version and timestamp. Port to immutable Supabase legal acceptance row; no inferred consent. |
+| `refreshWritingResearch` | Scheduled weekly public-source fetch + LLM synthesis, source provenance, retry spacing and verified/partial status. Port with cost/rate caps and untrusted-source isolation; no provider-specific Base44 LLM dependency. |
+| `registerPushDevice` | FCM token registration/revocation tied to verified user, max six active devices. Replace Base44 user guard and entity writes; FCM token never becomes an authentication credential. |
+| `renderInterplanetaryPhoto` | Uses Base44-only media CDN and app-scoped upload URL validation, then OpenAI image edit and Base44 UploadFile fallback. Replace accepted media host with IFund R2 public/custom domain, signed upload and ownership checks; keep OpenAI key server-side and preserve honest fallback when image edit unavailable. |
+| `repairStripeWebhookEvents` | Stripe-specific repair mutates Stripe webhook subscriptions and includes Base44 webhook URL. Do not port; retired Stripe must not remain an active setup/repair workflow. |
+| `requestWithdrawal` | Critical 470-line PayPal payout state machine. See detailed invariants below. |
+| `resolveConnectionStatus`, `resolvePlatformConnectionRecipe` | Compose shared/app-user connector, OAuth transport, connection record, capability, recipe and OBO into one lifecycle state. Replace Base44 connector/token access with IFund OAuth service; recipes are candidates, not proof; caller-submitted success is rejected as evidence. |
+| `reviewAgentActivity` | Owner/admin may approve/reject pending agent activity; this is a review status, not proof that an action executed. Preserve separation. |
+
+#### `requestWithdrawal` — financial invariants that must not be weakened
+
+The source implements:
+- Seven-day clearing window and a $1,000 review threshold.
+- Daily withdrawal limit unless subscription entitlement is active.
+- Campaign owner-only request, verified PayPal payout readiness, valid matching PayPal email.
+- Canonical financial reservation before PayPal payout; linked donation and settled external-holding rows are reserved together.
+- PayPal payout sender-batch idempotency; unknown provider outcome retains reservation.
+- On confirmed PayPal success, canonical ledger is completed and a PayPal holding outflow is recorded.
+- On ambiguous result, state becomes `provider_status_unknown`; funds are not released.
+- If PayPal accepted but canonical completion failed, state becomes `reconciliation_pending`; funds remain reserved.
+- Release requires admin-confirmed provider non-payment and explicit confirmation.
+- Admin can reconcile provider-paid payout without sending money again.
+- Admin can clear manual PayPal/Cash App reports only after explicit receipt verification.
+- New payout requests are blocked unless outbound payout feature and live PayPal payout readiness both pass.
+
+**Old backend-specific coupling:** `operationKeyFor` prefixes `base44-withdrawal:`; the handler imports `base44Financial.ts` for reserve/complete/cancel; it reads the Base44 service role for every ledger and withdrawal mutation. In the independent system use `ifund-withdrawal:<id>` and a Supabase Postgres RPC/transaction as the only canonical reservation authority. PayPal remains the payout processor. Stripe subscription entitlement logic in this source is legacy and must be replaced with PayPal subscription state, not carried over.
+
+#### Additional explicit Base44-to-IFund wording mappings
+
+- `recordAgentInteraction` result `stored_in: 'base44'` → `stored_in: 'ifund'` (or remove storage-provider claim and return a neutral record reference).
+- `recordCampaignCreated` comment "canonical Base44 financial store" → "canonical IFund financial ledger".
+- `recordCampaignCreated` comment "Base44 preserves canonical financial values" → "Supabase canonical ledger preserves verified financial values".
+- `registerPushDevice` comment "verified Base44 user" → "verified IFund user".
+- `renderInterplanetaryPhoto` URL allowlist `media.base44.com`, `base44.app/api/apps/<app-id>/files`, hardcoded app ID and Base44 UploadFile → IFund R2/custom media domain + signed object upload; old Base44 URL support only in a temporary, explicit legacy-import adapter if historical images still require it.
+- `requestWithdrawal` key prefix `base44-withdrawal:` → `ifund-withdrawal:`.
+
+**Progress:** 120/184 backend entrypoints inspected in full (65.2%). Next source-order batch begins at `revokeConnectionAiConsent`. No live payouts, Stripe modifications, OAuth changes, or production DB writes were performed.
