@@ -7,6 +7,7 @@ export default function StoryAgent() {
   const [campaignId, setCampaignId] = useState("");
   const [campaigns, setCampaigns] = useState([]);
   const [drafts, setDrafts] = useState([]);
+  const [queuedRequests, setQueuedRequests] = useState([]);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [eligible, setEligible] = useState(null);
@@ -51,6 +52,11 @@ export default function StoryAgent() {
       const access = await api("subscription");
       if (!active) return;
       setEligible(access.active === true && access.level >= 1);
+      const savedQueue = await api("queued-requests").catch(() => ({
+        queued_requests: [],
+      }));
+      if (!active) return;
+      setQueuedRequests(savedQueue.queued_requests || []);
       if (!access.active || access.level < 1) return;
       const [result, owned] = await Promise.all([
         api("drafts"),
@@ -74,6 +80,7 @@ export default function StoryAgent() {
       ]);
       if (active) {
         setDrafts(result.drafts);
+        if (result.queued_requests) setQueuedRequests(result.queued_requests);
         setCampaigns(owned);
       }
     })()
@@ -106,6 +113,12 @@ export default function StoryAgent() {
         ...input,
         request_id: requestRef.current.id,
       });
+      if (result.state === "queued") {
+        setNotice(result.message);
+        const saved = await api("drafts");
+        setQueuedRequests(saved.queued_requests || []);
+        return;
+      }
       setDrafts((current) => [
         result.draft,
         ...current.filter((d) => d.id !== result.draft.id),
@@ -113,7 +126,11 @@ export default function StoryAgent() {
       setNotice(
         "Your private suggestion is saved below. Review it before using any text.",
       );
+      const completedRequestId = requestRef.current?.id;
       requestRef.current = null;
+      setQueuedRequests((current) =>
+        current.filter((item) => item.request_id !== completedRequestId),
+      );
     } catch (err) {
       if (err.code === "new_request_required") requestRef.current = null;
       setError(err.message);
@@ -191,6 +208,7 @@ export default function StoryAgent() {
     try {
       const result = await api("drafts");
       setDrafts(result.drafts);
+      setQueuedRequests(result.queued_requests || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -216,6 +234,76 @@ export default function StoryAgent() {
         <p role="status" className="rounded-xl border p-4">
           {notice}
         </p>
+      )}
+      {queuedRequests.length > 0 && (
+        <section
+          className="rounded-xl border p-4"
+          aria-label="Saved writing requests"
+        >
+          <h2 className="font-semibold">Saved writing requests</h2>
+          <p className="my-2 text-sm text-muted-foreground">
+            Your text is saved while free capacity is busy. Load a request to
+            resume it when capacity is available.
+          </p>
+          {queuedRequests.map((item) => (
+            <div
+              key={item.request_id}
+              className="flex flex-wrap items-center gap-3"
+            >
+              <button
+                disabled={
+                  busy || item.can_resume === false || eligible === false
+                }
+                className="my-1 block rounded-lg border px-3 py-2"
+                onClick={() => {
+                  const restored = {
+                    details: item.task.details,
+                    campaign_id: item.campaign_id || null,
+                    section: item.task.section || null,
+                  };
+                  setDetails(restored.details);
+                  setCampaignId(restored.campaign_id || "");
+                  setSection(restored.section || "");
+                  requestRef.current = {
+                    id: item.request_id,
+                    fingerprint: JSON.stringify(restored),
+                  };
+                  setNotice(
+                    "Your saved text is loaded. Request a suggestion below to resume it.",
+                  );
+                }}
+              >
+                Load saved request
+              </button>
+              <button
+                disabled={busy}
+                className="rounded-lg border px-3 py-2"
+                onClick={async () => {
+                  if (busy) return;
+                  setBusy(true);
+                  setError("");
+                  try {
+                    await api("cancel-queued", { request_id: item.request_id });
+                    setQueuedRequests((current) =>
+                      current.filter(
+                        (saved) => saved.request_id !== item.request_id,
+                      ),
+                    );
+                    if (requestRef.current?.id === item.request_id)
+                      requestRef.current = null;
+                    setNotice("The saved request has been removed.");
+                  } catch (err) {
+                    setError(err.message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Remove saved request
+              </button>
+            </div>
+          ))}
+        </section>
       )}
       {eligible === false && (
         <p role="status">

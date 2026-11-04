@@ -27,6 +27,11 @@ const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 // tightly capped Studio AI quota; the other records immutable page-version
 // snapshots from a database trigger. Keep this allowlist narrow and explicit.
 const MUTATING_DEFINER_FUNCTIONS = new Set([
+  // Owner JWT plus private Worker key; no direct table or financial authority.
+  "ifund_workforce_runtime.begin_story",
+  "ifund_workforce_runtime.started",
+  "ifund_workforce_runtime.finish",
+  "ifund_workforce_runtime.cancel_queued",
   "public.ifund_studio_consume_ai_quota",
   "ifund_private.ifund_studio_capture_page_version",
   // Story contracts reviewed independently in PR #210. These private functions

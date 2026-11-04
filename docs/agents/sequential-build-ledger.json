@@ -189,7 +189,10 @@
       "source": "base44/agents/admin_builder_agent.jsonc",
       "sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
       "status": "blocked_by_previous_agent",
-      "tools": ["managePlatformIncidents", "manageAdminBuilderWork"],
+      "tools": [
+        "managePlatformIncidents",
+        "manageAdminBuilderWork"
+      ],
       "allow_anonymous_access": false
     }
   ],
@@ -298,7 +301,10 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["create", "update"]
+          "events": [
+            "create",
+            "update"
+          ]
         },
         "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
       },
@@ -339,7 +345,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "Campaign"
         }
       },
@@ -378,7 +386,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "CampaignUpdate"
         }
       },
@@ -513,7 +523,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["update"]
+          "events": [
+            "update"
+          ]
         },
         "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
       },
@@ -554,7 +566,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "GrantApplication",
-          "events": ["create"]
+          "events": [
+            "create"
+          ]
         },
         "condition": "${ .trigger.data.status == \"submitted\" }"
       },
@@ -885,7 +899,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "VolunteerSignup"
         }
       },
@@ -989,5 +1005,38 @@
       "executing": false
     }
   ],
-  "activation_authorized": true
+  "activation_authorized": true,
+  "collective_network": {
+    "component": "permanent services and replaceable workforce procurement",
+    "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
+    "implementation_status": "verified_local_pending_release",
+    "production_status": "not_deployed",
+    "migration": "20261104053233_ifund_collective_workforce.sql",
+    "preserved": {
+      "selectable_positions": 9,
+      "private_builder_positions": 1,
+      "workflows": 17,
+      "connectors": 11,
+      "queue": "ifund_ops.workflow_jobs",
+      "memory": "existing owner-scoped Story preferences and verified research"
+    },
+    "local_verification": {
+      "root_test_files": 33,
+      "new_procurement_cases": 7,
+      "new_database_cases": 9,
+      "new_runtime_cases": 6,
+      "frontend_build": "pass"
+    },
+    "remaining": [
+      "authenticated production member request and provider receipt",
+      "production preview/release verification",
+      "actual multi-service collaborative task executor and checkpoints",
+      "other specialist adapters including existing Strategy PR #211",
+      "shared approved knowledge contribution/review/retrieval beyond current verified research",
+      "verified campaign outcome learning and review",
+      "full historical memory/chat migration",
+      "all workflow and connector runtime parity"
+    ],
+    "authority": "Full implementation directive received; production increments authorized. Workers Free confirmed by owner in current session."
+  }
 }
