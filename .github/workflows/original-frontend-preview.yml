@@ -35,9 +35,15 @@ jobs:
         env:
           VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
           VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
+      - name: Add Cloudflare SPA deep-link fallback
+        run: |
+          # Original source has no public/_redirects. Preserve its code and
+          # generate a Pages-only fallback for client-side routes.
+          printf '/* /index.html 200\\n' > dist/_redirects
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
+          grep -Fxq '/* /index.html 200' dist/_redirects
           test -d dist/assets
           grep -q 'viewport-fit=cover' dist/index.html
           grep -q 'Interplanetary Fund' dist/index.html
