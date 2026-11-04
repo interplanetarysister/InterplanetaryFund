@@ -10,6 +10,8 @@ import Detail from "./pages/CampaignDetail";
 import Editor from "./pages/CampaignEditor";
 import MyCampaigns from "./pages/MyCampaigns";
 import Auth from "./pages/Auth";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import Connections from "./pages/Connections";
 import Community from "./pages/Community";
 function App() {
@@ -128,6 +130,8 @@ function App() {
             }
           />
           <Route path="/login" element={<Auth user={user} />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/connections" element={<Connections />} />
           <Route path="/community" element={<Community user={user} />} />
           <Route
