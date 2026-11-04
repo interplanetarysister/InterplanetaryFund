@@ -826,3 +826,73 @@ All 23 root-level files in the source repository were fetched and reviewed, incl
 **Source instruction reconciliation:** source `AGENTS.md` is not an authorization to leave Base44 as the permanent production host; it is a safeguard against premature deletion during a reversible cutover. The independent destination branch should continue to implement the alternate path without mutating the source. A final cutover should be a separate explicit production operation after data, auth, financial, integrations, agents, workflows, media, mobile and rollback gates pass.
 
 **Source root status:** 23/23 root files reviewed. The source recursive tree has 1,249 files total; primary groups include 367 `src/`, 373 `base44/`, 182 `scripts/`, 85 `docs/`, 74 `host/`, 55 `android/`, 50 `public/`, 26 `.agents/`, and 9 `.github/` files. The next remaining source audit targets are the 17 workflow definitions, 11 connectors, 10 agent definitions, 95 entity schemas (already inventoried), then host/scripts/docs/public/android and the rest of the root-level build artifacts.
+
+
+### Agent, connector and workflow configuration audit
+
+#### Agents — 10/10 definitions reviewed
+
+The ten JSONC agent definitions are Base44-native registry entries, not standalone prompts. They bind agent names to Base44 entities and function tools, and their execution model depends on Base44 conversations, backend invocation, and service-role access.
+
+- `admin_builder_agent.jsonc`: calls `manageAdminBuilderWork` and `managePlatformIncidents`; the latter dispatches a real Base44 builder REST task when separately authorized and metered credits are enabled. Replace with IFund GitHub PR/CI/Cloudflare release orchestration; no Base44 builder API or credits.
+- `chief_of_staff.jsonc`: delegates via `routeAgentTask`, reads owner context and saved drafts, uses Base44 agent conversation routing. Preserve specialist routing, user scope, consent, approval and verification receipts; replace runtime with IFund registry + durable run store.
+- `communications_agent.jsonc`, `finance_agent.jsonc`, `growth_agent.jsonc`, `outreach_agent.jsonc`, `story_agent.jsonc`, `strategy_agent.jsonc`: specialist prompt/tool definitions reference Base44 entities/functions and the Base44 agent runtime. Port prompts only after each named tool has a verified IFund equivalent; don't treat copied prompt text as a functioning agent.
+- `connection_discovery_agent.jsonc`, `managed_connection_agent.jsonc`: provider discovery, OAuth setup and delegated connection repair. Keep separate from the ordinary specialist agent runtime; provider scopes and authorization must be verified against each platform. No user-facing request may expose Base44 workspace setup.
+- The existing agent policy repeatedly says "AI recommends, human approves", protects credentials, and distinguishes queued work from verified completion. Preserve these as server-enforced rules, not just prompt instructions.
+
+**Replacement:** a versioned IFund agent registry (Supabase) with explicit agent ID, prompt version, allowed tools, data scope, consent requirements, run quota, model/provider policy and human-approval policy. Durable execution uses Cloudflare Queues/Workflows plus Supabase run/conversation records. Tool authorization is enforced by the Worker on every call. Never expose secret values to model context. A prompt/JSONC port alone is not an agent migration.
+
+#### Connectors — 11/11 definitions reviewed
+
+These files are minimal provider type + OAuth scope declarations; they are not live client registrations or proof of an enabled provider connection.
+
+| Connector | Declared scopes / review |
+|---|---|
+| Discord | identity, guilds, member reads, messages read, email; verify whether each scope is needed for the requested Discord capability. |
+| Facebook Pages | page list, engagement read, manage posts; preserve separate Page/Business account permissions. |
+| GitHub | `repo`, `workflow`, `read:org`, `read:user`, `user:email`; very broad. Split read-only status/repository access from workflow/write scopes and use GitHub App installation permissions where possible. |
+| Google Workspace | identity, Drive file, Gmail send, Calendar events, Docs, Sheets; separate each product capability and request only the scopes used. |
+| Gumroad | profile, sales, edit products; product edit is a consequential permission and should not be bundled with read-only account linking. |
+| Instagram | business basic, content publish, comments, messages, insights; keep publishing/message scopes separately consented and verify Meta app review/capability availability. |
+| LinkedIn | OpenID/profile/email and member social publishing; verify approved product tier and user/org role before enabling publish. |
+| OneDrive | user read, files read/write, offline access; split read/write and use the minimum file scopes. |
+| Slack | chat write, channel read, mentions read, custom/public posting; avoid broad channel access when a single destination is selected. |
+| Wix | offline access; preserve Wix as a separate optional integration, not an identity or hosting dependency. |
+| WordPress.com | global scope; overly broad for least privilege. Request narrower scopes if provider supports them, otherwise keep the integration disabled until explicit review. |
+
+**Replacement:** each provider receives an IFund-owned OAuth client registration and callback route, PKCE/state validation, encrypted server-side refresh-token storage, provider-specific scope mapping, revocation and capability probes. Supabase Auth handles IFund user identity; it does not replace provider OAuth. Do not copy Base44 connector IDs or Base44 app-user token records as if they were provider tokens.
+
+#### Workflows — 17/17 definitions reviewed
+
+All 17 JSONC workflows use Base44 workflow DSL namespace, Base44 scheduler/entity triggers, and `invoke_backend_function` calls. These are executable behavior, not documentation. The destination requires an explicit workflow registry and a real scheduler/queue runtime.
+
+| Workflow | Existing behavior | Migration treatment |
+|---|---|---|
+| AI Outreach Agent | Every 6 hours; autonomous outreach for opted-in campaigns. | Keep disabled until IFund schedule, quota, active entitlement, consent, review queue and idempotency are verified. |
+| Admin Action Conversation Router | Every 15 minutes; routes admin questions to agent threads. | IFund durable queue; owner-only, bounded polling and same-thread audit. |
+| Campaign Protocol | Entity create/update trigger validates required fields and outreach defaults. | Supabase transaction/RPC or database trigger; never let a background workflow silently override explicit user choices. |
+| Campaign Sync on Create | Campaign creation invokes connection sync. | Remove automatic external sync; create a local pending-distribution state only. |
+| Campaign Sync on Update | Campaign update invokes connection sync. | Remove automatic external sync; publish/sync only on explicit user request or an independently consented, verified action. |
+| Connection Sync Engine | Hourly publishes due posts, retries failures, monitors connection health. | Split read-only health probes from publishing. External sync is request-only under the current product rule; no background publish/retry without explicit scoped authorization. |
+| External Feed Mirroring | Hourly pulls connected social posts into IFund feed. | Keep disabled until explicitly approved; external account sync must be request-only. |
+| Feature Discovery on Completion | On campaign completion, recommends unused features. | Optional low-cost event-triggered job; idempotent, user-scoped, no external calls. |
+| Grant Application Review | AI analyzes new grant applications and recommends; human decides. | Port with privacy controls, evidence/provenance, human decision boundary and transactional award state. |
+| IFund Official Social Editor | Every four hours prepares official branded posts. | Draft-only queue; no external publish without explicit admin approval and provider receipt. |
+| IFund Reporter Daily Diary | Daily publishes a factual IFund Reporter blog issue. | Draft/review workflow first; public publishing requires source verification and explicit approved policy. |
+| Integration Health Check | Every six hours runs non-destructive provider checks. | May become a bounded low-cost Worker Cron after verified provider adapters exist; no sync/write side effects. |
+| PayPal Holding Settlement Reconciliation | Hourly discovers PayPal receipts and uniquely matches external-fund observations. | Preserve as a guarded financial reconciliation job only after PayPal webhooks/transactions and ledger are ported; no speculative allocation. |
+| Platform Account Steward | Daily checks official accounts and queues setup/weekly post work. | Read-only health + admin review queue; no automatic external account creation or posting. |
+| Social Media Autopilot | Daily generates/stages posts, may schedule/publish for auto connections. | Disable during migration. Current external sync/publishing policy is request-only; any future automation needs explicit opt-in, destination scope, limits and revocation. |
+| Volunteer Welcome Follow-up | Signup event sends welcome, waits 3 days, sends follow-up. | IFund durable delayed job with email consent, idempotency, cancellation on opt-out and delivery receipts. |
+| Weekly Writing Psychology & Social Trends Training | Weekly research/LLM workflow with deduplication. | Optional IFund research job only with a configured provider, strict cost cap, source provenance and deduplication; no Base44 metered LLM dependency. |
+
+**Critical scheduling rule:** moving a Base44 cron to Cloudflare Cron does not authorize running it. Preserve schedules only after behavior, consent, cost and data contracts are verified. In particular, do not enable Campaign Sync on Create/Update, hourly Connection Sync, External Feed Mirroring or Social Media Autopilot as a default migration side effect.
+
+#### Remaining Base44 config/runtime files
+
+- `base44/config.jsonc`: Base44 app/build configuration; source-only. Destination uses Vite/Cloudflare configuration and explicit route contracts.
+- `base44/lib/browserCapabilities.ts`: inspect/port only capability detection that remains needed; browser capability checks do not authorize a browser automation action.
+- `base44/lib/platformConnectionRecipes.ts`: provider-neutral connection method catalogue; retain content but move into IFund-owned registry and verify current provider methods.
+- `base44/mcp/config.json`: Base44-hosted MCP server/tool exposure. Replace with an IFund-owned MCP endpoint, Supabase JWT validation, PKCE/OAuth scope, owner-only tool gates, and explicit user approval for consequential actions. Do not copy Base44 app identifiers or credentials.
+
+**Base44 configuration status:** 10/10 agent definitions, 11/11 connector declarations and 17/17 workflows reviewed. These represent 38 files plus the config/runtime files above. All are still source-side definitions; none has been migrated to the destination merely by being documented.
