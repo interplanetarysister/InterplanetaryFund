@@ -354,3 +354,42 @@ This is a substantive blocker to claiming Base44 independence for existing user 
 6. data export/import counts and referential integrity before any production cutover.
 
 **Entity audit result:** 95/95 schemas inspected; 12 entity files contain 17 explicit Base44 wording hits (including repeated mentions in AgentConversationRun and Withdrawal). The independent destination is intentionally not declared feature-parity complete. No production database was modified.
+
+
+### Source traversal — backend function entrypoints, batch 1 (20/184)
+
+The recursive tree contains 188 files under `base44/functions/`: **184 `entry.ts` handlers and four shared/helper TypeScript files**. This batch fetched and inspected the complete source of the first 20 entrypoints in alphabetical path order. No source code was edited.
+
+| Handler | Key behavior / Base44 dependency | Replacement target |
+|---|---|---|
+| `acknowledgeConnectionIssue` | Admin-only connection history update; SDK auth + service-role entity write. | Worker route + server-side admin role check + Supabase transaction. |
+| `activateSubscriptionCheckout` | Checks PayPal plan catalog, verifies live webhook endpoint/event subscriptions, then enables feature flag. | Keep PayPal-only; implement server-side PayPal REST verification, webhook signature verification and atomic feature flag update. |
+| `adminApiConnectionIntake` | Super-admin intake; deterministic URL/secret screening, optional LLM classification, draft storage, allowlisted host reachability check. | Cloudflare Worker + Supabase admin-only intake; secrets go only to Cloudflare secrets/vault; never save credentials in notes. |
+| `adminCampaignControl` | Admin pause/restore campaign + audit event. | Worker + admin authorization + transactional update/audit record. |
+| `adminOAuthProviderReadiness` | Inventories configured OAuth registration env vars; explicitly warns presence is not proof of working OAuth. | Worker reads server-side env and returns the same non-secret readiness inventory. |
+| `adminUpdateUserRole` | Super-admin role management. | Supabase Auth app_metadata/role table via tightly scoped server-only function; immutable audit, no client role writes. |
+| `analyzeGrantApplication` | AI analysis of application; updates grant status and writes recommendation/notification. | Worker + chosen LLM provider adapter + transactional Supabase records; retain human decision gate. |
+| `applyAgentContentDraft` | Owner-confirmed application of a draft to one of several IFund content destinations; explicitly not agent-callable; handles partial failures and audit. | Worker with per-destination authorization and idempotency; owner confirmation remains mandatory. |
+| `applyInstitutionOpportunity` | Feature-gated grant application; checks campaign ownership, dedupes applications and atomically increments application count. | Supabase RPC transaction with unique (opportunity, applicant) constraint and RLS. |
+| `auditAdminAgentGateway` | Super-admin audit record for admin-agent gateway. | Server-only audit insert with super-admin authorization. |
+| `authorizeCollectAndWithdraw` | Owner confirms external collection authorization; checks ownership/state/expiry; logs that no unsupported transfer is claimed complete. | Worker + one-use/expiring authorization record; no transfer until provider adapter supports it. |
+| `authorizeConnectionAi` | Owner explicitly grants agent access to a previously connected platform, bounded by OBO consent, scope version and verified provider capabilities. | Worker enforces consent + scope on every action; preserve revocation and permission-version checks. |
+| `broadcastPosts` | Campaign-owner publishing across platforms; checks subscription, consent, platform access and capability verification; falls back to manual when direct publish isn't proven. | Queue/Worker provider adapters with owner-bound OAuth, consent, capability evidence and per-post idempotency. Never infer publishing support from connector presence. |
+| `cancelPayPalSubscription` | Authenticated owner cancellation through PayPal billing API and subscription reconciliation. | PayPal REST adapter + webhook reconciliation; retain user ownership check. |
+| `capturePayPalOrder` | PayPal capture verification, canonical financial operation, holding ledger, donation/notification mirrors, receipts and analytics. | Critical payment Worker + atomic Supabase RPC; verify PayPal capture with PayPal, unique operation keys, exactly-once ledger effects, reconciliation. No client-supplied payment truth. |
+| `checkUsernameAvailability` | Rate-limited username lookup through User entity. | Worker + Supabase unique constraint; avoid user enumeration and keep rate limit. |
+| `communityMembership` | Join/leave community; validates membership/owner and atomically increments/decrements counts. | Supabase transaction/RPC with uniqueness and count consistency. |
+| `completeOAuthConnection` | Compatibility endpoint; reads current app-user OAuth token from Base44 connector, syncs unified OBO consent, marks connection unverified pending live verification. | IFund OAuth callback/token vault + provider verification; don't set connected status until token and scopes are verified. |
+| `confirmPayPalSubscription` | Reconciles a supplied PayPal subscription ID against PayPal and owner. | PayPal REST verification + DB transaction; paid access only after provider confirmation. |
+| `createCommunity` | Feature-gated community creation plus owner membership; compensates by deleting community if membership creation fails. | Supabase transaction creates community + owner membership atomically. |
+
+**Cross-cutting SDK contract:** these handlers rely on `createClientFromRequest`, `auth.me()`, `asServiceRole`, entity CRUD/filter/list/upsert/updateMany, connector OAuth token access, LLM invocation, analytics, and Base44-managed runtime secrets. The replacement needs an explicit server request context with validated Supabase JWT, user/app metadata, service-role DB client confined to the Worker, provider adapter registry, queue/LLM adapters and audit context. Merely swapping the import path or renaming the `base44` variable will not preserve these semantics.
+
+**Critical implementation notes discovered in this batch:**
+- PayPal capture and withdrawal must share one canonical IFund financial-operation ledger. The source deliberately separates the holding ledger, donation mirror and notification mirror; duplicate/retry behavior must be idempotent.
+- `broadcastPosts` has meaningful manual fallback paths and does not imply every platform has a working API. Preserve these distinctions.
+- OAuth completion is not itself provider verification. Connection status must remain unverified until the provider adapter proves access.
+- Admin builder/admin gateway handlers require explicit super-admin checks; ordinary `admin` status is not enough for owner-only operations.
+- AI content application and external publishing are separate actions; preserve the human approval boundary.
+
+**Progress:** 20/184 backend entrypoints inspected in full (10.9%). Next source-order batch begins at `createDiscussionPost`. No source repo edits, production DB changes, OAuth registrations or live payments were performed.
