@@ -125,3 +125,12 @@ Continue/reconcile rather than discard: #138 merged; #139 schema; #140 auth; #14
 ### Password recovery delivery blocker (2026-11-03)
 
 The connected Supabase organization is Free and the designated target project was created 2026-10-24. Supabase's June 3, 2026 change prevents new Free projects using default SMTP from customizing Auth email templates. The required code-first recovery UI can be implemented, but code delivery is not proven until the target uses an approved custom SMTP sender or its current recovery template is verified to contain the OTP. Track as B13 in BLOCKERS.md; retain PR #207's link callback support as a compatibility path, not as a substitute for the requested email code. No email-provider credentials or settings were changed.
+
+
+### Phase 3 authentication slice — PR #209 (2026-11-04)
+
+PR #209 continues the existing Phase 3 work without replacing PR #140 or #207. It adds password-first sign-in on /login while retaining the previous email OTP and Google/Facebook paths, plus /forgot-password and /reset-password pages. The reset page supports the six-digit recovery OTP flow and the existing Supabase PKCE/token_hash callback route. Return destinations are same-origin constrained; recovery responses do not disclose whether an email is registered.
+
+**Exact-head CI verification:** GitHub Actions run 41766718964 on commit 330700b68e99a8a6c8acee67277eddb8690f8205 passed reproducible npm lock resolution, **88/88 tests**, Vite production build, and Prettier. This verifies the code/test/build layer only.
+
+**Still not complete or production-ready:** no real member password sign-in has been tested against the target project; legacy Base44 identity ownership linking remains pending; no SMTP configuration or email template was changed. The connected Supabase organization is Free and the target project is newer than the June 3, 2026 default-SMTP template restriction. Therefore code-based password recovery remains externally blocked under B13 until the target's recovery template is confirmed code-enabled or an approved custom SMTP sender is provisioned. PR #209 remains draft and the auth routes are classified implemented_unverified, not verified_parity or cutover_ready.
