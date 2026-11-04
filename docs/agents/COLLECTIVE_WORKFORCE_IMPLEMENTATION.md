@@ -34,7 +34,7 @@ Reviewed the current Supabase changelog and PostgreSQL 17.11 breaking changes. T
 
 ## Verification and release gates
 
-- Local: seven procurement cases, nine actual PGlite database scenarios, six runtime/gateway cases, existing Story regression suite, all 33 root test files in isolated processes, frontend tests and production build passed before release preparation. Re-run relevant checks after final edits.
+- Local: seven procurement cases, ten actual PGlite database scenarios, six runtime/gateway cases, three queue-access/expiry cases, existing Story regression suite, all 33 root test files in isolated processes, frontend tests and production build passed before release preparation. Re-run relevant checks after final edits.
 - Independent Reviewer 2 found and helped correct a trigger row-type bug, member-forged performance records, and capability-blind candidate pruning. Auditor 3 independently checks parity and verification.
 - Local Node 24 combined `--test-isolation=none` contaminates PGlite with pre-existing browser `window` mocks. Separate direct `node <test-file>` processes exercise the real cases. Do not describe that combined failure as a product regression or a runner summary as a substitute for per-case evidence.
 - Live: schema application, secure key provisioning, preview, authenticated member request, native provider receipt, queue/replacement, and production release remain separate explicit gates until their actual results are recorded. No live success is inferred from this document.

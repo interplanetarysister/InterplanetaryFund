@@ -1023,9 +1023,10 @@
     "local_verification": {
       "root_test_files": 33,
       "new_procurement_cases": 7,
-      "new_database_cases": 9,
+      "new_database_cases": 10,
       "new_runtime_cases": 6,
-      "frontend_build": "pass"
+      "frontend_build": "pass",
+      "queue_access_cases": 3
     },
     "remaining": [
       "authenticated production member request and provider receipt",

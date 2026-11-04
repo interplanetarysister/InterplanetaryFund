@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/api/auth";
+import { loadWritingWorkspaceAccess } from "@/lib/writingWorkspace";
 
 export default function StoryAgent() {
   const [details, setDetails] = useState("");
@@ -49,14 +50,17 @@ export default function StoryAgent() {
   useEffect(() => {
     let active = true;
     (async () => {
-      const access = await api("subscription");
+      const workspace = await loadWritingWorkspaceAccess(api);
       if (!active) return;
+      setQueuedRequests(workspace.queued_requests);
+      const access = workspace.access;
+      if (!access) {
+        setEligible(false);
+        throw Error(
+          "Writing suggestions are temporarily unavailable. You can still remove your saved requests.",
+        );
+      }
       setEligible(access.active === true && access.level >= 1);
-      const savedQueue = await api("queued-requests").catch(() => ({
-        queued_requests: [],
-      }));
-      if (!active) return;
-      setQueuedRequests(savedQueue.queued_requests || []);
       if (!access.active || access.level < 1) return;
       const [result, owned] = await Promise.all([
         api("drafts"),

@@ -154,7 +154,7 @@ begin
   select reserved_units into used from ifund_ops.workforce_capacity_days where day=today for update;
   -- Legacy runs keep their 1,200-neuron conservative reservation; failed calls also count.
   select count(*) into requests from ifund_ops.workflow_jobs j where j.workflow_key='story_agent_v1' and j.created_at>=today::timestamp at time zone 'UTC'
-    and j.status<>'paused' and not exists(select 1 from ifund_ops.workforce_assignments a where a.job_id=j.id);
+    and j.status<>'paused' and j.payload->>'queue_owner' is distinct from 'workforce_v1' and not exists(select 1 from ifund_ops.workforce_assignments a where a.job_id=j.id);
   used:=used+requests*1200;
   requests:=requests+(select count(*) from ifund_ops.workforce_assignments where assigned_at>=today::timestamp at time zone 'UTC');
   if reason is null and (requests>=policy.max_requests_per_day or used+impl.reservation_units>policy.daily_limit_units-policy.critical_reserve_units) then reason:='free_capacity'; end if;

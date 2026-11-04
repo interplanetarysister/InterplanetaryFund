@@ -408,3 +408,30 @@ test("queued requests cannot disable the legacy path, while resumed assignments 
     await db.close();
   }
 });
+
+test("erasing unexecuted queue requests does not consume inference capacity", async () => {
+  const db = await setup();
+  try {
+    for (const id of [rid, rid2]) {
+      assert.equal((await begin(db, id, null)).state, "queued");
+      await db.query("select public.ifund_workforce_cancel_queued($1)", [id]);
+    }
+    assert.equal((await begin(db, rid3)).state, "claimed");
+    await db.exec("reset role");
+    assert.equal(
+      (await db.query("select count(*) n from ifund_ops.workforce_assignments"))
+        .rows[0].n,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select reserved_units from ifund_ops.workforce_capacity_days",
+        )
+      ).rows[0].reserved_units,
+      1200,
+    );
+  } finally {
+    await db.close();
+  }
+});
