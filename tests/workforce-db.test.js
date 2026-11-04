@@ -32,7 +32,7 @@ async function setup({ enabled = true, tested = true } = {}) {
   await db.exec(
     readFileSync(
       new URL(
-        "../supabase/migrations/20261104060720_ifund_preview_workforce_isolation.sql",
+        "../supabase/migrations/20261104062233_ifund_preview_workforce_isolation.sql",
         import.meta.url,
       ),
       "utf8",

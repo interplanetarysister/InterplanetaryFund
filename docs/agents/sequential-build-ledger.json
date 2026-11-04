@@ -1009,8 +1009,8 @@
   "collective_network": {
     "component": "permanent services and replaceable workforce procurement",
     "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
-    "implementation_status": "preview_worker_deployed_database_installed",
-    "production_status": "database_installed_disabled_existing_story_unchanged",
+    "implementation_status": "preview_ready_awaiting_signed_in_test",
+    "production_status": "procurement_disabled_legacy_story_unchanged",
     "migration": "20261104055345_ifund_collective_workforce.sql",
     "preserved": {
       "selectable_positions": 9,
@@ -1057,11 +1057,19 @@
       "diagnostic_capacity_reserved_units": 1200
     },
     "preview_isolation": {
-      "source_migration": "20261104060720_ifund_preview_workforce_isolation.sql",
-      "status": "verified_local_not_applied",
+      "source_migration": "20261104062233_ifund_preview_workforce_isolation.sql",
+      "status": "installed_preview_enabled_production_disabled",
       "production_control": "disabled",
       "design": "Independent secret-derived channels and preview enablement; shared account budget; cross-channel replay/resume/start/finish denied",
-      "reason": "Automatic approval review rejected global production activation before real member verification; no rejected action was applied."
+      "reason": "Automatic approval review rejected global production activation before real member verification; no rejected action was applied.",
+      "applied_version": "20261104062233",
+      "preview_url": "https://5dced974.interplanetaryfund-migration.pages.dev/agents",
+      "preview_worker_source": "397542d1de0eed110635e879c4481d59db6e4e75",
+      "preview_code_etag": "593b311b8b08657273767d73f8edbfa256c48213763ffe2d2085913c9dbff979",
+      "live_permissions": "helper execute denied to anon/authenticated; owner erasure grant retained; private keys are distinct",
+      "preview_enabled": true,
+      "production_enabled": false,
+      "real_member_verification": "pending owner signed-in preview test"
     }
   }
 }
