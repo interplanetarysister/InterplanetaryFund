@@ -825,7 +825,7 @@ All 23 root-level files in the source repository were fetched and reviewed, incl
 
 **Source instruction reconciliation:** source `AGENTS.md` is not an authorization to leave Base44 as the permanent production host; it is a safeguard against premature deletion during a reversible cutover. The independent destination branch should continue to implement the alternate path without mutating the source. A final cutover should be a separate explicit production operation after data, auth, financial, integrations, agents, workflows, media, mobile and rollback gates pass.
 
-**Source root status:** 23/23 root files reviewed. The source recursive tree has 1,249 files total; primary groups include 367 `src/`, 373 `base44/`, 182 `scripts/`, 85 `docs/`, 74 `host/`, 55 `android/`, 50 `public/`, 26 `.agents/`, and 9 `.github/` files. The next remaining source audit targets are the 17 workflow definitions, 11 connectors, 10 agent definitions, 95 entity schemas (already inventoried), then host/scripts/docs/public/android and the rest of the root-level build artifacts.
+**Source root status:** 23/23 root files reviewed. The source recursive tree has 1,249 tracked files total: 367 `src/`, 373 `base44/`, 182 `scripts/`, 85 `docs/`, 74 `host/`, 55 `android/`, 50 `public/`, 26 `.agents/`, 9 `.github/`, 23 root files, 2 `tools/`, 1 `.ci/`, 1 `audits/`, and 1 `supabase/` migration. The next remaining source audit targets are the 17 workflow definitions, 11 connectors, 10 agent definitions, 95 entity schemas (already inventoried), then host/scripts/docs/public/android and the rest of the root-level build artifacts.
 
 
 ### Agent, connector and workflow configuration audit
@@ -969,7 +969,7 @@ A large number of tests are static source assertions or mocked handler tests tha
 
 ### Documentation and runbook traversal — 77 root docs + 14 nested docs reviewed
 
-The source `docs/` tree has been reviewed, including the 77 root-level files and 14 files in `admin/`, `checkpoints/`, `integrations/`, `migration/`, `operations/` and `security/`. These are historical operating records; several are mutually contradictory and must not be treated as a single current policy.
+The source `docs/` tree has been reviewed, including the 71 root-level files and 14 files in `admin/`, `checkpoints/`, `integrations/`, `migration/`, `operations/` and `security/`. These are historical operating records; several are mutually contradictory and must not be treated as a single current policy.
 
 #### Authority conflicts that must be reconciled before destination implementation
 
@@ -999,7 +999,7 @@ The source `docs/` tree has been reviewed, including the 77 root-level files and
 - The Wix/Instagram/JustGiving runbooks: provider-specific scope and capability verification, explicit owner action, no inferred posting rights, and staging-only JustGiving until production is separately approved.
 - The zero-credit and manual Android build rules: no paid action without approval, no APK build on ordinary web changes, and no automatic deployment triggered by unrelated work.
 
-**Documentation audit status:** 77/77 root docs and 14/14 nested docs reviewed. The source docs are retained unchanged. Their stale authority, fee, Stripe, runtime and workflow statements must be reconciled in the independent destination's own canonical docs before the cutover checklist can be marked complete.
+**Documentation audit status:** 71/71 root docs and 14/14 nested docs reviewed. The source docs are retained unchanged. Their stale authority, fee, Stripe, runtime and workflow statements must be reconciled in the independent destination's own canonical docs before the cutover checklist can be marked complete.
 
 
 ### Public assets and Android source — reviewed
@@ -1015,7 +1015,7 @@ The source `docs/` tree has been reviewed, including the 77 root-level files and
 
 ### Source-wide inventory checkpoint
 
-The source repository's top-level inventory has been reconciled: 1,249 tracked files, including 367 frontend files, 373 Base44 runtime/config files, 181 scripts plus one fixture, 85 docs entries (77 root files + 14 nested files plus their directory entries), 74 host files, 55 Android files, 50 public assets, 26 agent-skill files, 9 GitHub files, 23 root files and 2 tool-package files. The Base44 subtree, `src/`, scripts and docs have been traversed as described above. Host snapshot copies, remaining Android binary assets and remaining repository directories still need exact duplicate/hash and line-level closure checks before the entire 1,249-file request can be called exhaustive.
+The source repository's top-level inventory has been reconciled: 1,249 tracked files, including 367 frontend files, 373 Base44 runtime/config files, 181 scripts plus one fixture, 85 docs files (71 root files + 14 nested files), 74 host files, 55 Android files, 50 public assets, 26 agent-skill files, 9 GitHub files, 23 root files and 2 tool-package files. The Base44 subtree, `src/`, scripts and docs have been traversed as described above. Host snapshot copies, remaining Android binary assets and remaining repository directories still need exact duplicate/hash and line-level closure checks before the entire 1,249-file request can be called exhaustive.
 
 
 ### Host snapshot parity and standalone OAuth/email worker review
@@ -1050,3 +1050,14 @@ The source repository's top-level inventory has been reconciled: 1,249 tracked f
 
 
 **Asset follow-through:** all 37 SVG files under `public/` (the planet mark plus 36 platform logos) were fetched and scanned. None contains Base44 references, external hrefs, script elements or foreignObject content. The remaining 11 raster assets (5 JPG + 6 PNG) are static image assets; their Git blob identities are recorded in the source tree. The complete public directory is 50/50 files, with two JSON manifests, 37 SVGs, five JPGs and six PNGs. No public asset contains a runtime credential or API URL in the reviewed text manifests.
+
+
+### Final small-directory closure: `.ci/`, `audits/`, `supabase/`, and tool lockfiles
+
+- `.ci/last-batch-check.txt` is a four-line historical checkpoint describing a 2026-10-03 Base44 startup/auth/data-plane audit. It is evidence of what was checked then, not current runtime status.
+- `audits/2026-10-09-public-experience-readiness.md` is a 35-line historical readiness report. It explicitly says the public experience, provider sign-in, managed connections, reporter workflow, paid subscription checkout and financial reconciliation were not all production-verified. Its final gate still points to Base44 main; keep it as historical evidence and replace the release gates in the destination.
+- `supabase/migrations/20261022_ifund_private_workflow_queue_initial.sql` is a nine-line source reference for an already-applied private `ifund_ops` migration creating `workflow_jobs`, `workflow_control` and `workflow_execution_log`. It explicitly says it is not a second migration to apply automatically, all tables are RLS-protected with public/anon/authenticated privileges revoked, all jobs default paused, and no schedules were activated. Reconcile the live Supabase migration history before any schema operation; do not replay this source file blindly.
+- `tools/capacitor/package.json` and its 1,148-line lockfile are a separate, exact-pinned Capacitor 8.4.3 toolchain with Node `>=24`, isolated from the normal web install. Keep this separate Android lane if required; it does not change the primary destination Node 22 release contract.
+- `host/email/package.json` and its 1,557-line lockfile pin `postal-mime` 2.7.6 and Wrangler 4.x with Node `>=20`. No Base44 package appears in this isolated Worker dependency graph.
+
+**Corrected source-wide inventory:** 1,249/1,249 tracked files accounted for by top-level group. `src/` (367), `base44/` (373), `scripts/` (182), `docs/` (85), `.agents/` (26), `.github/` (9), `host/` (74), `android/` (55), `public/` (50), root (23), `tools/` (2), `.ci/` (1), `audits/` (1), `supabase/` (1). The `scripts/` count includes 181 executable scripts plus the agent-access fixture. This reconciles the total but does not mean every binary has been decoded or every runtime capability has been migrated.
