@@ -34,6 +34,10 @@ export async function readJsonBody(request, byteLimit) {
       }
       parts.push(value);
     }
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    if (error instanceof BodyError) throw error;
+    throw new BodyError(400, 'Invalid JSON.');
   } finally {
     reader.releaseLock();
   }
