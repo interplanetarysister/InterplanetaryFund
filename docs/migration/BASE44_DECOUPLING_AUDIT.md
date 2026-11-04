@@ -929,3 +929,39 @@ The destination migration should therefore be delivered in layers:
 7. Mobile/API endpoint cutover and rollback-tested production release.
 
 Do not set any worker `ready:true` or enable any schedule until the underlying runtime and its acceptance tests actually exist.
+
+
+### Script/test inventory — all 181 script files reviewed
+
+All **181 files** under `scripts/` were fetched and reviewed (182 directory entries include the `fixtures/` folder). The 419-line `scripts/fixtures/ifund-agent-access-baseline.json` was also inspected. The scripts are primarily source-contract tests and migration diagnostics; they are not proof of production execution or provider parity.
+
+#### Scripts that are explicitly Base44-bound and must be retired or rewritten for the independent destination
+
+- `publish-ifund-safe.sh`: calls `base44 whoami` and `base44 site deploy`; it is a Base44 publishing script and must never be used to claim Cloudflare production deployment.
+- `publish-ifund-cloudflare.sh`: only supports validation or an explicit Cloudflare preview deploy, but currently requires `VITE_BASE44_APP_ID` and `VITE_BASE44_APP_BASE_URL`. It is not an independent runtime deployment path yet.
+- `provision-ifund-verification-email-key.mjs`: provisions `IFUND_VERIFICATION_EMAIL_KEY` into Base44 project secrets via Base44 CLI. Destination must provision a Cloudflare Worker secret or approved secret manager key; never run the Base44 CLI path for destination setup.
+- `verify-android-firebase.mjs` and `test-ifund-login-recovery.mjs`: explicitly require Android login to use `interplanetaryfund.base44.app`, Base44 registration and `base44_access_token`. Rewrite to verify Supabase Auth password/OTP/recovery and the independent Worker/API URL. Firebase remains push-only.
+- `verify-cloudflare-runtime-contract.mjs`, `test-cloudflare-mcp-proxy.mjs`, `test-ifund-cutover-readiness.mjs`, `verify-live-cloudflare-pathway.mjs`: currently assert Base44 MCP proxy headers, Base44 origin and Base44 auth/campaign blockers. The destination must assert no Base44 upstream, Supabase identity, Worker routes and readiness based on real checks.
+- `verify-host-portability-contract.mjs`: currently asserts that alternate hosts send API/auth requests back to the canonical Base44 backend. Replace with the opposite invariant: same-origin IFund API or explicitly configured `VITE_API_BASE_URL`, with no Base44 fallback.
+- `test-base44-release.mjs`, `verify-base44-sync-contract.mjs`: test Base44 release markers, Base44 native publication and GitHub sync descriptions. Keep source-only; destination should use GitHub commit/build/Cloudflare release evidence.
+- `verify-ifund-skill-migration.mjs`, `verify-agent-runtime-dependencies.mjs`, `verify-agent-conversation-execution.mjs`, `test-managed-agent-runtime.mjs`: read Base44 agent definitions/functions and assert Base44 conversation execution. Port the security invariants, not the runtime-specific assertions.
+- `verify-cloudflare-workflows.mjs`, `test-cloudflare-workflows.mjs`, `verify-cloudflare-workforce-stage.mjs`, `test-cloudflare-workforce-bootstrap.mjs`: verify byte-for-byte staging and disabled execution only. These tests correctly confirm the current Workers are not ready; they do not test an operational agent/workflow runtime.
+- `test-campaign-assistant-gateway.mjs`, `test-campaign-save-publish.mjs`, `test-campaign-drafts-and-generated-media.mjs`, `test-generate-campaign-cover.mjs`, `verify-server-media-policy.mjs`, `test-ifund-image-style.mjs`: mock Base44 SDK, Base44 image URLs, Base44 Core and Base44 media. Port tests to Supabase/Worker/R2 and test actual R2 URL allowlisting.
+- `verify-connection-link-routing.mjs`, `verify-one-link-provider-connections.mjs`, `test-oauth-delegation-flow.mjs`, `verify-admin-provider-readiness.mjs`, `verify-managed-connections-contract.mjs`: currently require `base44.connectors.connectAppUser`. Retain PKCE/state, per-user authorization, scope and provider verification tests; replace the connector handoff with IFund OAuth start/callback.
+- `verify-help-center-scaffold.mjs`, `verify-public-legal-help-and-platform-support.mjs`, `verify-terms-liability.mjs`, `verify-audit-log-contract.mjs`, `verify-owner-financial-ledger.mjs`, `verify-donor-directory.mjs`, `verify-live-community-institutions.mjs`: assert Base44 entities/functions. Port the public/private RLS, legal assent, append-only audit and financial boundaries to Supabase tests.
+- `verify-wix-campaign-sync-contract.mjs`, `verify-wix-connector-contract.mjs`, `verify-wix-data-sync-contract.mjs`, `verify-wix-webhook-contract.mjs`: Wix integration contracts are provider-specific and should remain, but their storage/credentials must move off Base44. Preserve signed webhook validation and explicit request-only sync.
+
+#### Source tests that should remain as behavioral acceptance tests
+
+- `test-fee-calc.mjs`, `test-financial-integrity.mjs`, `test-paypal-financial-recovery.mjs`, `test-paypal-checkout-recovery.mjs`, `test-paypal-receipt-paging.mjs`, `test-paypal-scanner-classification.mjs`, `test-paypal-wallet-readiness.mjs`, `verify-paypal-business-account-contract.mjs`, `verify-paypal-checkout-contract.mjs`, `verify-owner-paypal-basic-plan.mjs`: preserve gift-first allocation, 10% optional support on top, 3% withdrawal-only platform fee, PayPal idempotency, provider receipt verification and holding-ledger reconciliation. Update only the implementation paths and keep all financial invariants.
+- `test-request-triggered-external-sync.mjs`, `verify-request-triggered-external-sync.mjs`, `verify-external-fund-network-contract.mjs`, `verify-external-fund-migration-contract.mjs`: preserve request ID, claim lease, fencing, retry, provenance and no automatic external sync.
+- `test-ifund-device-authorization.mjs`, `test-ifund-device-browser-flow.mjs`, `test-ifund-permissions-private-mail.mjs`, `verify-independent-admin-mailbox-client.mjs`, `verify-independent-mailbox-cors-live.mjs`: preserve one-time device codes, no browser secret persistence, private verification mailbox separation, no-store responses and admin authorization.
+- `verify-social-publishing-truth.mjs`, `verify-outreach-execution.mjs`, `verify-agent-write-capabilities.mjs`, `verify-agent-chat-resilience.mjs`, `verify-ai-action-status-contract.mjs`, `verify-agent-member-language.mjs`: retain human approval, consent revocation, actual provider receipts, no fake completion, and member-safe language.
+- `verify-production-build-output.mjs`, `verify-ifund-browser-render.mjs`, `verify-ifund-studio-pages.mjs`, `verify-route-code-splitting.mjs`, `verify-mobile-layout-contract.mjs`, `verify-text-contrast-contract.mjs`: retain UI, accessibility, bundle and responsive acceptance tests.
+- `verify-manual-android-build-contract.mjs`: keep Android builds manual-only; ordinary web source pushes must not trigger APK builds or signing.
+
+#### Test coverage caveat
+
+A large number of tests are static source assertions or mocked handler tests that import `base44/functions` and `base44/shared`. They can pass while the independent Worker remains a stub or while production traffic still reaches Base44. For the destination, these tests must be ported to exercise the real Supabase schema/RLS, Worker routes, R2 uploads, PayPal webhooks, OAuth callbacks, durable queues and actual provider receipts. No test may use real payment capture or production data unless the relevant owner-approved live test protocol explicitly allows it.
+
+**Scripts status:** 181/181 script files reviewed. No source scripts were changed. The source scripts contain a substantial Base44-only release/test framework that must be split into (a) historical source validation, (b) portable behavioral acceptance tests and (c) destination integration/live tests.
