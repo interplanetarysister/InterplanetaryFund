@@ -616,3 +616,43 @@ The source implements:
 8. **Browserbase:** this is a separate third-party credential service; it should remain explicitly unconfigured/fail-closed until a user-approved browser automation design exists.
 
 **Shared-helper audit status:** 48/48 files inspected. Together with the completed 184/184 function entrypoints and 95/95 entity schemas, all primary Base44 backend code/config directories reviewed to date are accounted for. Next: complete frontend `src/` traversal, then the remaining `base44/` agents, connectors, workflows, and UI-specific Base44 SDK usage.
+
+
+### Source traversal — frontend `src/` inventory and first-pass dependency map
+
+The recursive tree contains **367 files** under `src/`: 243 component files, 57 page files, 56 `src/lib` files, 5 hooks, and the application/root CSS/entry files. GitHub code search was partitioned by source folder to avoid the 100-result cap. It identified **171 files with explicit Base44 wording or SDK/runtime call sites**: 100 component files, 52 page files and 19 library files; no Base44 hits in `src/hooks/`, `src/App.jsx`, `src/main.jsx`, `src/index.css` or `src/styles-ifund-studio.css`. These are search-discovered candidates; detailed per-file source traversal is continuing.
+
+#### Frontend replacement contract
+
+| Legacy surface | Current dependency | Destination contract |
+|---|---|---|
+| `src/api/base44Client.js` | `@base44/sdk`, app ID, functions version, SDK host selection, automatic auth redirect. | Replace with IFund `apiClient` that calls same-origin `/api/*` or `VITE_API_BASE_URL`; no vendor SDK or hidden host selection. |
+| `src/lib/app-params.js` | `VITE_BASE44_APP_ID`, `VITE_BASE44_FUNCTIONS_VERSION`, `VITE_BASE44_APP_BASE_URL`, `base44_*_token` localStorage keys, Android hardcoded Base44 URL. | Remove app ID/functions version as client runtime requirements. Use Supabase session storage and optional neutral API origin. Migrate/clear old token keys only through a controlled sign-out/session migration; never reinterpret Base44 tokens as Supabase JWTs. |
+| `src/lib/runtimeContract.js` | `dataPlane: "base44"` and Base44-specific mandatory environment assertions. | `dataPlane: "supabase-cloudflare"` or a neutral capability contract; API origin may be same-origin by default. Supabase public URL/key are explicit config; server secrets are never VITE variables. |
+| `src/lib/AuthContext.jsx` | Base44 `auth.me/logout/redirectToLogin`, SDK internal Axios client, Base44 public app settings endpoint, provider-specific errors. | Supabase Auth session + `getUser()`, profile bootstrap, standard recovery/OAuth flows and neutral error mapping. Remove Base44 public settings request; move app public settings into a safe IFund config route. |
+| `src/pages/Login/Register/ForgotPassword/ResetPassword.jsx` and `SocialButtons.jsx` | Base44 auth registration, OTP, password reset, OAuth provider login, token setter; Android login posts to `interplanetaryfund.base44.app/api/apps/<id>/auth/login`. | Supabase email/password + email OTP/verification and password recovery; OAuth callback to Supabase. Android Capacitor uses the same neutral API origin or Supabase Auth SDK; never hardcode Base44 host or reuse its bearer token. |
+| `src/lib/adminAgentGateway.js` | Native admin chat defaults to Base44; Base44 SDK invokes admin endpoints; external Cloudflare gateway is optional. | Make IFund-owned Cloudflare admin gateway the only route. Verify Supabase JWT + super-admin owner on server for every operation; no native Base44 fallback or session marker. |
+| `base44.auth.me()`, `base44.entities.*`, `base44.functions.invoke()`, `base44.integrations.Core.*` throughout pages/components | Direct data and function calls bypass a neutral frontend service layer. Entities support Base44 filters, list, get, create, update, delete and subscribe. | Route every operation through named IFund API functions/typed repository calls. Keep database access server-side for sensitive operations; use Supabase client directly only for explicitly RLS-safe read/write contracts. Replace realtime `.subscribe()` with Supabase Realtime only after table publication/RLS is verified. |
+| `src/lib/secureLLM.js`, `src/components/social/PostComposer.jsx`, image generator flows | Browser invokes Base44 Core InvokeLLM / GenerateImage directly. | Server-side IFund AI adapter with structured output validation, consent, quota/cost limits and provider-neutral env. No provider keys in browser. |
+| `src/lib/ifundImageBranding.js`, `src/components/media/MediaUpload.jsx`, `src/components/social/OfficialPublications.jsx`, `src/components/ui/image.jsx` | Base44 Core UploadFile/UploadPublicFile and media CDN; Wix transform host list includes `media.base44.com`. | R2 signed uploads + public/custom media origin + ownership checks. For legacy media, retain a controlled read-only import path; all new uploads go to R2. |
+| `src/components/brand/BrandLogo.jsx`, `BrandHero.jsx`, `src/pages/Home.jsx` | Hard-coded public assets under `media.base44.com/images/public/<app-id>/...`. | Copy approved source assets to R2/static owned assets and update URLs/checksums. Do not hotlink Base44 media as a permanent production dependency. |
+| `src/components/admin/Base44ReleaseStatus.jsx`, `src/pages/OpsCenter.jsx`, `src/components/platform/blueprint.js`, `BlueprintPanel.jsx` | UI says Base44 publication is required and Base44 is managed infrastructure. | Replace with Cloudflare release/deployment status, GitHub commit/build checks and Supabase migration state. Remove vendor-specific UI; never tell operators to publish through Base44. |
+| `src/lib/helpCenter.js` | Help articles fetched from Base44 at runtime. | IFund Help API/Supabase records; retain the public taxonomy and stable article URLs. |
+| `src/lib/integrationRegistryUi.js`, `AdminOAuthProviderReadiness.jsx`, `src/pages/AdminAgentApi.jsx` | Admin UX frames personal OAuth app registration as a Base44 workspace setup. | IFund OAuth client registry, provider callback URLs and encrypted client secret management. Provider-specific review requirements remain distinct. |
+| `src/lib/creditFreeGenerators.js`, `campaignAssistantProvider.js` | Already designed to avoid Base44 metered AI and to fail closed rather than silently fall back. | Keep deterministic owned generators. Neutralize only historical Base44 wording; no metered AI should be introduced by this migration. |
+| `src/lib/fees.js` | Frontend mirror references `base44/shared/fees.js`. | Point to IFund-owned shared fee contract or generated typed schema; preserve historic allocation and PayPal gift-first accounting. |
+
+#### First-pass critical findings
+
+- `src/lib/runtimeContract.js` still makes Base44 app ID and Base44 app URL mandatory. This is the exact kind of false configuration requirement the requested neutral contract must eliminate.
+- `src/lib/AuthContext.jsx` imports an internal, non-public path `@base44/sdk/dist/utils/axios-client`. This is both a vendor lock-in and a brittle dependency on SDK internals.
+- Android login is hardcoded to the Base44 domain and uses the Base44 app ID. This would keep the APK dependent on Base44 even if the web deployment moved to Cloudflare.
+- Frontend pages/components directly call Base44 entity CRUD and real-time subscriptions; this is the largest application-wide dependency surface. A single API base URL does not migrate those data contracts.
+- Admin builder chat is currently Base44-first, with Cloudflare optional. It must be reversed: IFund-owned gateway first, no Base44 fallback.
+- Branding/logo/hero images are Base44-hosted. They must be copied to R2 or another IFund-controlled static host before the old media CDN can be retired.
+- `src/components/ui/image.jsx` has an image transformer described as "Wix Media Platform support" while including Base44 media CDN as a host. Wix is a distinct service; retain Wix transformation only for actual Wix URLs and remove Base44 from that host list after asset migration.
+- `src/components/platform/StripeIntegrationPanel.jsx` and the Stripe readiness screens should be retired/hidden under the existing PayPal-only payment policy. Do not re-enable Stripe by porting its UI.
+- `src/lib/chatgptBuilderHandoff.js` instructs the user/agent to use a Base44 connector. Replace with GitHub/Cloudflare/IFund-owned tooling instructions and no Base44 access requirement.
+- `src/pages/OAuthConsent.jsx` refers to `base44/mcp/config.json`; the independent OAuth consent page needs a new server-owned MCP/OAuth route, not a Base44 config path.
+
+**Frontend audit status:** source tree inventory complete; search-discovered Base44 candidate files: 171/367. Full file-by-file line review and endpoint replacement mapping is ongoing. No source files were modified.
