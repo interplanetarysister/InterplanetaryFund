@@ -1,4 +1,4 @@
-import { db } from "./supabase";
+import { db } from "./supabase.js";
 
 const configuredApiBase = String(import.meta.env?.VITE_API_BASE_URL || "").trim();
 
