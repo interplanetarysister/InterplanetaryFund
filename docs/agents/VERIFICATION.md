@@ -10,9 +10,9 @@ Baseline: destination `d4caa4bfc68e43c68bf40f5efc13930927132940`; read-only sour
 - Signup/login/recovery code adds explicit callbacks, confirmation/resend/code handling, safe return routes, password confirmation, provider-verified email state and old-link rescue. Auth route keys prevent signup state leaking into login.
 - Member guard invalidates stale async work on identity changes, removes the previous member's private child state, and preserves unsaved text on same-user refresh/tab-focus events.
 
-Focused execution: **12 Story Worker cases, 4 Postgres scenarios, 5 auth-helper cases** pass. The Postgres scenarios execute the actual candidate SQL and source-generated entity constraints using PGlite. They cover owner separation, account lifecycle/consent, anonymous denial, duplicate and mismatched requests, malformed output, lease theft/expiry, global quota, audit receipt, cancellation and disabled database control. PGlite is not a hosted PostgREST or real Supabase login test.
+Focused execution: **18 Story Worker cases, 9 Postgres scenarios, 5 auth-helper cases** pass. The Postgres scenarios execute the actual candidate SQL and source-generated entity constraints using PGlite. They cover owner separation, account lifecycle/consent, anonymous denial, duplicate and mismatched requests, malformed output, lease theft/expiry, global quota, audit receipt, cancellation and disabled database control. PGlite is not a hosted PostgREST or real Supabase login test.
 
-The final available root suite passed all 30 test files (including the 12 Worker cases and 4 SQL scenarios). The canonical web test suite passed all **23 test files**. The canonical Vite frontend and standalone bundled Story Worker build pass. Existing dependencies were used; no new paid services or dependencies were purchased.
+The final available root suite passed all 30 test files (including the 18 Worker cases and 9 SQL scenarios). The canonical web test suite passed all **23 test files**. The canonical Vite frontend and standalone bundled Story Worker build pass. Existing dependencies were used; no new paid services or dependencies were purchased.
 
 ## Mocked browser evidence
 
@@ -33,16 +33,28 @@ Reviewer 2 identified and the builder corrected account-switch disclosure, old-l
 
 ## Explicitly incomplete; do not start agent 2
 
-- Subscription entitlement reconciliation for the full original agent service.
-- Complete verified owner account/connection context, writing research and historical scoped memory/correction/deletion.
-- Canonical conversion of accepted multi-option preview suggestions into `campaign_changes` payloads. Preview records are distinctly tagged `ifund_story_v1` and must never flow through generic apply/publish handlers.
+- Provider ingestion of future subscription receipts remains unimplemented. The server-owned eligibility contract is now implemented: the existing verified-admin check grants the source-equivalent enterprise level; otherwise only typed, unexpired provider-verified entitlement records can grant AI access. Staged subscription strings and browser metadata grant no access.
+- Historical memory and legacy connection-capability migration remain unverified. Current canonical owner/campaign/profile/post/connection context and verified-source research reads are implemented. Explicit owner/campaign preferences support scoped overrides, correction, deletion after plan expiry and a deletion generation guard that rejects delayed stale saves.
+- Campaign application/publication remains unimplemented. Explicit title/summary selection now creates an idempotent canonical `campaign_changes` draft containing only title/summary/story. Wording edits use compare-and-set revisions; no campaign is changed. The source suggestion stays distinctly tagged.
 - Complete source tool parity, specialist routing and original member chat behavior.
-- Hosted SQL/PostgREST execution, live two-owner identity checks and real Workers AI inference. AI remains disabled until account free allocation is verified.
-- Supabase Auth URL allowlist/templates/SMTP/social-provider settings and real signup/recovery mailbox verification. The connected Supabase tools do not expose Auth settings management. A read-only live settings check confirmed email auth/signup enabled, email auto-confirm disabled, and Google/Facebook disabled. The owner-authorized existing-address email-login request was accepted; mailbox receipt and link completion are pending. Live Auth logs show invalid-credentials failures, which require real account verification rather than weakened checks.
+- Hosted SQL/PostgREST and live two-owner acceptance remain unverified. The owner confirmed all service plans are Free except Codex Pro. A real, synthetic Workers AI inference passed using JSON-Schema-capable `@cf/meta/llama-3.3-70b-instruct-fp8-fast`: 317 prompt tokens, 189 completion tokens, about 47.16 neurons. The previous llama-3.1-FP8 model rejected schema mode; it was replaced and object responses are validated. Total prompt input is bounded before reserving platform allowance.
+- Supabase Auth URL allowlist/templates/SMTP/social-provider settings and real signup/recovery mailbox verification. The connected Supabase tools do not expose Auth settings management. A read-only live settings check confirmed email auth/signup enabled, email auto-confirm disabled, and Google/Facebook disabled. The previous increment verified real email-link login through the deployed preview and reached its agreement gate; the temporary session was revoked locally. No legal consent was submitted. Live Auth logs show invalid-credentials failures, which require real account verification rather than weakened checks.
 - Mobile/Android parity beyond the mocked viewport and release/cutover gates.
 
-The SQL remains **UNAPPLIED**. No production frontend promotion, domain/mail changes, legacy retirement, payment activation or financial mutation was performed. A disabled isolated Worker deployment, if created, is catalogued separately with its exact version and health result. It does not complete the Story Agent.
+The reviewed SQL is applied as **20261104043420_ifund_story_preview_contracts.sql**, initially with execution disabled. Live catalog checks confirm public wrappers are security-invoker, anon has no execute grant, and browser roles have no direct private-table grants. No production frontend promotion, domain/mail changes, legacy retirement, payment activation or financial mutation was performed. A disabled isolated Worker deployment, if created, is catalogued separately with its exact version and health result. It does not complete the Story Agent.
 
 ## Resume and rollback
 
 Complete the missing Story contracts and independent live acceptance first. Only then mark Story complete and begin Strategy. Keep the database and Worker controls disabled until their own acceptance gates pass. A preview rollback disables the isolated Worker or removes its preview binding; there is no production route to restore. Do not apply the SQL with a guessed migration filename: generate it with the installed Supabase CLI after reconciliation, or use the connected migration tool and persist its returned migration version.
+
+## Follow-up installation and verification status
+
+The follow-up adds server-owned plan eligibility, reviewed research, current owner context, explicit saved preferences, canonical wording selection/editing, total model-prompt bounds and multilingual request-body support. Independent review passed the additive SQL for installation with control=false. No next platform agent was started.
+
+Two Supabase apply_migration calls returned `status=expired`: their required tool confirmations expired. A live read after both attempts confirmed no Story schema or migration history entry. No alternate SQL channel was used to bypass that confirmation. The subsequent owner-authorized attempt succeeded: migration 20261104043420 is installed and its disabled-state privileges are verified. The owner then explicitly authorized enabling and deploying Story to production, followed by beginning agent 2. Production activation must be verified separately below.
+
+Browser regression now covers explicit title/summary selection, canonical wording edits, separate owner/campaign preferences, serialized pending save/clear actions, delayed read invalidation, same-user refresh preservation, account switching and privacy deletion when the agent is disabled, in addition to the auth flows. All remain mocked except the separately recorded prior live email login.
+
+## Production authorization and rollback target
+
+The owner explicitly instructed: enable execution, push live production, then begin the second agent. This authorizes Story runtime and canonical frontend production activation; it does not authorize paid plan upgrades, payments, DNS/mail changes or Base44 shutdown. The prior production Pages deployment is `321ccced-05bf-4c3b-bd3d-dd15401df69d` from commit `68bcbb4f8e7d6f1f665e3eb7056395841058dbf9`. Preserve it for rollback. The canonical Supabase project remains `ssibsfmtodgximseeqsv`; Cloudflare account remains `c95db4f2c901f32776471b85f1eda15d`.

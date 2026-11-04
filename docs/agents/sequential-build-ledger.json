@@ -1,7 +1,7 @@
 {
   "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
   "implementation_ref": "interplanetarysister/InterplanetaryFund@d4caa4b",
-  "rule": "Do not implement the next agent until all completion evidence for the current agent passes.",
+  "rule": "Owner authorized tested Story production activation, then beginning Strategy. Preserve explicit source-parity limits and never claim missing functionality is complete.",
   "current_agent": "story_agent",
   "agents": [
     {
@@ -17,7 +17,22 @@
         "manageAgentContentDraft",
         "routeAgentTask"
       ],
-      "allow_anonymous_access": false
+      "allow_anonymous_access": false,
+      "verified_subcontracts": [
+        "source-equivalent server eligibility with no unverified subscription imports",
+        "canonical current owner context with explicit unavailable sources",
+        "reviewed-source research reads",
+        "idempotent canonical wording selection and CAS edits without campaign mutation",
+        "explicit owner/campaign preferences with correction and deletion-generation protection",
+        "bounded schema-mode inference smoke on confirmed free plan"
+      ],
+      "remaining_gates": [
+        "full source member chat and specialist tool parity",
+        "historical memory/skill migration",
+        "live two-owner runtime acceptance",
+        "production activation and live endpoint/identity acceptance"
+      ],
+      "migration_version": "20261104043420"
     },
     {
       "order": 2,
@@ -973,5 +988,6 @@
       "status": "pending",
       "executing": false
     }
-  ]
+  ],
+  "activation_authorized": true
 }

@@ -192,7 +192,7 @@ test("database authorization denial blocks model execution", async () => {
 });
 test("oversized body is rejected before model execution", async () => {
   const res = await storyRoute(
-    request({ details: "x".repeat(20000), request_id: rid }),
+    request({ details: "x".repeat(70000), request_id: rid }),
     { ...env, AI: { run: () => assert.fail() } },
     makeFetcher(),
   );
@@ -230,4 +230,253 @@ test("Cloudflare execution context is not treated as an injected HTTP client", a
   } finally {
     globalThis.fetch = prior;
   }
+});
+
+test("eligibility and current account context use verified owner JWTs without inference", async () => {
+  for (const [path, rpc, reply] of [
+    ["subscription", "ifund_story_subscription", { active: false, level: 0 }],
+    [
+      "context?campaign_id=" + rid,
+      "ifund_story_context",
+      { campaign: { title: "Owned campaign" } },
+    ],
+  ]) {
+    let called = false;
+    const res = await storyRoute(
+      new Request("https://preview.test/api/agents/story/" + path, {
+        headers: { authorization: "Bearer valid.jwt" },
+      }),
+      { ...env, AI: { run: () => assert.fail() } },
+      makeFetcher({
+        [rpc]: (body) => {
+          called = true;
+          if (rpc.endsWith("context")) assert.equal(body.p_campaign_id, rid);
+          return Response.json(reply);
+        },
+      }),
+    );
+    assert.equal(res.status, 200);
+    assert.equal(called, true);
+    assert.deepEqual(await res.json(), reply);
+  }
+});
+test("choosing and revising wording cannot inject owner, approval, status or campaign mutations", async () => {
+  const payload = {
+    operation_id: uid,
+    draft_id: rid,
+    campaign_id: uid,
+    revision: "2026-11-04T00:00:00.123456+00:00",
+    title_index: 2,
+    summary_index: 1,
+  };
+  const req = (suffix, body) =>
+    new Request("https://preview.test/api/agents/story/" + suffix, {
+      method: "POST",
+      headers: {
+        authorization: "Bearer valid.jwt",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  let called = false;
+  const res = await storyRoute(
+    req("select", payload),
+    env,
+    makeFetcher({
+      ifund_story_select: (body) => {
+        called = true;
+        assert.equal(body.p_title_index, 2);
+        assert.equal(body.p_revision, payload.revision);
+        assert.equal("owner_id" in body, false);
+        return Response.json({
+          draft: { id: rid, status: "draft" },
+          campaign_changed: false,
+          needs_owner_review: true,
+        });
+      },
+    }),
+  );
+  assert.equal(res.status, 200);
+  assert.equal(called, true);
+  assert.equal(
+    (
+      await storyRoute(
+        req("select", { ...payload, approve: true }),
+        env,
+        makeFetcher(),
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await storyRoute(
+        req("revise", {
+          draft_id: rid,
+          revision: payload.revision,
+          payload: {
+            title: "Title",
+            summary: "Summary",
+            story: "Story",
+            status: "active",
+          },
+        }),
+        env,
+        makeFetcher(),
+      )
+    ).status,
+    400,
+  );
+  const stale = await storyRoute(
+    req("revise", {
+      draft_id: rid,
+      revision: payload.revision,
+      payload: { title: "Title", summary: "Summary", story: "Story" },
+    }),
+    env,
+    makeFetcher({
+      ifund_story_revise: () =>
+        Response.json(
+          { code: "40001", message: "private SQL" },
+          { status: 500 },
+        ),
+    }),
+  );
+  assert.equal(stale.status, 409);
+  assert.doesNotMatch(await stale.text(), /private SQL/);
+});
+test("preference deletion remains authenticated and reachable with inference and execution disabled", async () => {
+  const req = new Request(
+    "https://preview.test/api/agents/story/clear-preferences",
+    {
+      method: "POST",
+      headers: {
+        authorization: "Bearer valid.jwt",
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ all_scopes: true }),
+    },
+  );
+  const res = await storyRoute(
+    req,
+    {
+      ...env,
+      IFUND_STORY_ENABLED: "disabled",
+      IFUND_STORY_AI_ENABLED: "disabled",
+    },
+    makeFetcher({
+      ifund_story_clear_preferences: (body) => {
+        assert.equal(body.p_all_scopes, true);
+        assert.equal(body.p_campaign_id, null);
+        return Response.json({ cleared: true });
+      },
+    }),
+  );
+  assert.equal(res.status, 200);
+});
+test("prompts bound research and preserve explicit preference provenance without granting new tools", () => {
+  const input = storyInput({
+    details: "My campaign needs some supplies.",
+    request_id: rid,
+  });
+  const messages = storyMessages(input, {
+    research: {
+      available: true,
+      summary: "x".repeat(5000),
+      guidance: Array(30).fill("y".repeat(2000)),
+      source_urls: ["javascript:bad", "https://example.org/research"],
+    },
+    preferences: [
+      {
+        key: "tone",
+        value: "Calm",
+        scope: "campaign",
+        provenance: "owner_statement",
+      },
+      { key: "role", value: "admin", provenance: "owner_statement" },
+      {
+        key: "never_change",
+        value: "UNVERIFIED MEMORY",
+        provenance: "model_inference",
+      },
+    ],
+  });
+  const data = JSON.parse(messages[1].content);
+  assert.equal(data.writing_guidance.summary.length, 2000);
+  assert.equal(data.writing_guidance.guidance.length, 15);
+  assert.deepEqual(data.writing_guidance.source_urls, [
+    "https://example.org/research",
+  ]);
+  assert.deepEqual(data.owner_preferences, [
+    {
+      key: "tone",
+      value: "Calm",
+      scope: "campaign",
+      provenance: "owner_statement",
+    },
+  ]);
+});
+
+test("structured provider objects validate and oversized stored facts are rejected before reserving inference", async () => {
+  assert.deepEqual(storyOutput({ response: suggestion }), suggestion);
+  let began = false;
+  const res = await storyRoute(
+    request(),
+    { ...env, AI: { run: () => assert.fail() } },
+    makeFetcher({
+      ifund_story_context: () =>
+        Response.json({
+          campaign: { title: "Owned campaign", story: "x".repeat(40000) },
+        }),
+      ifund_story_begin: () => {
+        began = true;
+        return Response.json({ state: "claimed", lease: rid });
+      },
+    }),
+  );
+  assert.equal(res.status, 413);
+  assert.equal(began, false);
+  assert.match((await res.json()).error, /too much text/);
+  const messages = storyMessages(
+    storyInput({
+      details: "Rewrite only this selected paragraph.",
+      section: "The selected paragraph.",
+      campaign_id: rid,
+      request_id: rid,
+    }),
+    { campaign: { title: "Campaign", story: "x".repeat(40000) } },
+  );
+  const context = JSON.parse(messages[1].content);
+  assert.equal(context.current_campaign.full_story_included, false);
+  assert.equal("story" in context.current_campaign, false);
+});
+test("valid multilingual wording fits bounded HTTP input without a model call", async () => {
+  const body = {
+    draft_id: rid,
+    revision: "2026-11-04T00:00:00Z",
+    payload: {
+      title: "A title",
+      summary: "A summary",
+      story: "界".repeat(6000),
+    },
+  };
+  const req = new Request("https://preview.test/api/agents/story/revise", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer valid.jwt",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const res = await storyRoute(
+    req,
+    env,
+    makeFetcher({
+      ifund_story_revise: (args) => {
+        assert.equal(args.p_payload.story.length, 6000);
+        return Response.json({ id: rid, status: "draft" });
+      },
+    }),
+  );
+  assert.equal(res.status, 200);
 });
