@@ -2,14 +2,14 @@
   "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
   "implementation_ref": "interplanetarysister/InterplanetaryFund@d4caa4b",
   "rule": "Owner authorized tested Story production activation, then beginning Strategy. Preserve explicit source-parity limits and never claim missing functionality is complete.",
-  "current_agent": "story_agent",
+  "current_agent": "strategy_agent",
   "agents": [
     {
       "order": 1,
       "id": "story_agent",
       "source": "base44/agents/story_agent.jsonc",
       "sha256": "1436b2557ba1b88dc9c7c7dffc3e4e2312d033af2b45aed8f974df5ab67e6f10",
-      "status": "in_progress",
+      "status": "live_drafting_capabilities",
       "tools": [
         "Campaign",
         "getWritingResearchBrief",
@@ -29,17 +29,17 @@
       "remaining_gates": [
         "full source member chat and specialist tool parity",
         "historical memory/skill migration",
-        "live two-owner runtime acceptance",
-        "production activation and live endpoint/identity acceptance"
+        "live two-owner runtime acceptance"
       ],
-      "migration_version": "20261104043420"
+      "migration_version": "20261104043420",
+      "production_commit": "af3acb935e577f7fd9ff021822debc5bc5f43969"
     },
     {
       "order": 2,
       "id": "strategy_agent",
       "source": "base44/agents/strategy_agent.jsonc",
       "sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
-      "status": "blocked_by_previous_agent",
+      "status": "in_progress",
       "tools": [
         "Campaign",
         "Recommendation",
@@ -49,7 +49,25 @@
         "manageAgentContentDraft",
         "routeAgentTask"
       ],
-      "allow_anonymous_access": false
+      "allow_anonymous_access": false,
+      "implementation_files": [
+        "worker/agents/strategy.js",
+        "tests/strategy-agent.test.js"
+      ],
+      "verified_subcontracts": [
+        "bounded Mission Brief JSON schema",
+        "current owned-campaign scope",
+        "unknown metrics remain unavailable",
+        "foreign campaign and unauthorized role rejection",
+        "no inferred publication/approval/handoff receipts"
+      ],
+      "remaining_gates": [
+        "canonical Mission Brief and recommendation storage",
+        "authenticated request/lease/idempotency transport",
+        "member UI and error states",
+        "independent review",
+        "live acceptance"
+      ]
     },
     {
       "order": 3,
