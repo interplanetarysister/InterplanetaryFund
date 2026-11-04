@@ -19,6 +19,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const StoryAgent = lazy(() => import("./pages/StoryAgent"));
+const GrowthAgent = lazy(() => import("./pages/GrowthAgent"));
 const StrategyAgent = lazy(() => import("./pages/StrategyAgent"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/discover" element={<Discover />} />
       <Route path="/agents" element={<MemberAccess><StoryAgent /></MemberAccess>} />
       <Route path="/agents/strategy" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
+      <Route path="/agents/growth" element={<MemberAccess><GrowthAgent /></MemberAccess>} />
       <Route path="/mission" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />

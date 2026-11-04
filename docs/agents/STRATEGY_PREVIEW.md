@@ -33,6 +33,16 @@ This is the core planning/recommendation release. Full source conversational his
 
 The owner directed beginning Growth once Strategy is pushed to preview, and beginning Communications once Growth is pushed to preview. Preserve these limits when advancing the sequential ledger; do not mark full source parity complete.
 
+## Verified preview release
+
+Preview: https://4f82134e.interplanetaryfund-migration.pages.dev/agents/strategy . Pages deployment `4f82134e-f700-44b3-8047-d073c569b91e` succeeded at commit `d5e4fbccadf8e8ad61232a189e6956a724f21c3c`. Worker `ifund-strategy-agent-preview` deployment `fc82ec1e40854028b166a12754ad3f46` has runtime and AI enabled; SQL control is enabled.
+
+Actual hosted Chromium verified signup password confirmation, member guard, same-origin service binding returning 401 without identity, enabled Worker health and no horizontal overflow at390×844. Plain Python HTTP requests received Cloudflare1010; browser checks succeeded through the environment's configured proxy.
+
+The optional hosted rollback-only synthetic positive-auth test encountered two expired connector confirmations and did not execute. Read-only verification found zero remaining synthetic users and zero Strategy jobs. Positive hosted consenting-member execution remains NOT TESTED; local PostgreSQL and mocked browser coverage must not be relabeled as that check.
+
+User subsequently authorized Growth after this preview, Communications after Growth preview, then production promotion of all three after Communications preview acceptance. Production promotion remains pending that sequence.
+
 ## Rollback
 
 Disable the Strategy Worker/SQL execution switch and restore the prior Pages preview artifact. Preserve applied migration history, canonical owner decisions and unrelated jobs. Story production remains PR210's release.

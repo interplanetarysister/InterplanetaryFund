@@ -1,8 +1,8 @@
 {
   "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
-  "implementation_ref": "interplanetarysister/InterplanetaryFund@af3acb935e577f7fd9ff021822debc5bc5f43969",
-  "rule": "Owner directed Strategy preview then Growth, and Growth preview then Communications. Preserve explicit source-parity limits and never claim missing functionality is complete.",
-  "current_agent": "strategy_agent",
+  "implementation_ref": "interplanetarysister/InterplanetaryFund@d5e4fbccadf8e8ad61232a189e6956a724f21c3c",
+  "rule": "Owner directed Strategy preview -> Growth preview -> Communications preview -> promote all three verified releases to production -> following agent. Preserve explicit source-parity limits; no financial/provider activation, DNS/mail cutover or false completion.",
+  "current_agent": "growth_agent",
   "agents": [
     {
       "order": 1,
@@ -39,7 +39,7 @@
       "id": "strategy_agent",
       "source": "base44/agents/strategy_agent.jsonc",
       "sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
-      "status": "reviewed_preview_candidate",
+      "status": "enabled_preview_core",
       "tools": [
         "Campaign",
         "Recommendation",
@@ -68,19 +68,21 @@
         "private tables and authenticated invoker RPCs verified live"
       ],
       "remaining_gates": [
-        "hosted preview acceptance and activation",
         "full source conversational context/memory and general draft tools",
         "actual specialist execution and verified external opportunity discovery",
-        "real consenting-member end-to-end acceptance"
+        "real consenting-member end-to-end acceptance",
+        "production promotion after Communications preview"
       ],
-      "migration_version": "20261104061736"
+      "migration_version": "20261104061736",
+      "preview_url": "https://4f82134e.interplanetaryfund-migration.pages.dev/agents/strategy",
+      "preview_commit": "d5e4fbccadf8e8ad61232a189e6956a724f21c3c"
     },
     {
       "order": 3,
       "id": "growth_agent",
       "source": "base44/agents/growth_agent.jsonc",
       "sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
-      "status": "pending_strategy_preview",
+      "status": "reviewed_preview_candidate",
       "tools": [
         "Campaign",
         "Donation",
@@ -90,14 +92,37 @@
         "manageAgentContentDraft",
         "routeAgentTask"
       ],
-      "allow_anonymous_access": false
+      "allow_anonymous_access": false,
+      "migration_version": "20261104063945",
+      "implementation_files": [
+        "worker/agents/growth.js",
+        "apps/web/src/pages/GrowthAgent.jsx",
+        "supabase/migrations/20261104063945_ifund_growth_agent_contracts.sql",
+        "tests/growth-agent.test.js",
+        "tests/growth-agent-db.test.js"
+      ],
+      "verified_subcontracts": [
+        "independent verified eligibility/consent/owner guard",
+        "redacted canonical connection metadata and captured gift evidence with explicit availability",
+        "campaign anchored exact-fact AI evidence",
+        "atomic private operational report, canonical recommendations/run/activity/job receipt",
+        "owner-only selected bulk decisions with revisions/idempotency",
+        "5 Worker,10 executable SQL,8 mocked browser cases; Strategy regressions",
+        "real free-plan AI smoke1257tokens138.8neurons"
+      ],
+      "remaining_gates": [
+        "hosted preview acceptance and activation",
+        "real consenting-member end-to-end acceptance",
+        "verified time-window/usage analytics, historical memory, general draft tools and actual specialist execution",
+        "production promotion after Communications preview"
+      ]
     },
     {
       "order": 4,
       "id": "communications_agent",
       "source": "base44/agents/communications_agent.jsonc",
       "sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
-      "status": "blocked_by_previous_agent",
+      "status": "pending_growth_preview",
       "tools": [
         "Campaign",
         "Message",

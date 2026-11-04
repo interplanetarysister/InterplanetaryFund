@@ -142,9 +142,28 @@ export function strategyMessages(input, context) {
         campaigns,
         evidence_facts: strategyEvidence(context),
         campaigns_truncated: context.campaigns_truncated === true,
-        verified_donation_activity: context.verified_donation_activity ?? {
-          available: false,
-        },
+        verified_donation_activity:
+          context.verified_donation_activity?.available === true
+            ? {
+                available: true,
+                scope: String(
+                  context.verified_donation_activity.scope ||
+                    "Canonical captured gifts only; legacy gifts unavailable",
+                ).slice(0, 200),
+                by_campaign_currency: (
+                  context.verified_donation_activity.by_campaign_currency || []
+                )
+                  .filter((x) => campaigns.some((c) => c.id === x.campaign_id))
+                  .slice(0, 60)
+                  .map((x) => ({
+                    campaign_id: x.campaign_id,
+                    currency: x.currency,
+                    captured_gifts: x.captured_gifts,
+                    gift_cents: x.gift_cents,
+                    last_captured_at: x.last_captured_at,
+                  })),
+              }
+            : { available: false },
         communications: context.communications ?? { available: false },
         existing_recommendations: context.recommendations ?? [],
         research:
@@ -316,12 +335,18 @@ export function strategyBulk(raw) {
     p_status: raw.status,
   };
 }
-export async function strategyRoute(request, env, fetcher = fetch) {
+export async function strategyRoute(request, env, fetcher = fetch, agent = {}) {
+  const agentId = agent.id || "strategy";
+  if (!["strategy", "growth"].includes(agentId))
+    return json(404, { error: "Not found." });
+  const flag = "IFUND_" + agentId.toUpperCase();
+  const makeMessages = agent.messages || strategyMessages;
+  const makeEvidence = agent.evidence || strategyEvidence;
   const path = new URL(request.url).pathname;
   if (path === "/health")
     return json(200, {
-      service: "ifund-strategy-agent",
-      enabled: env.IFUND_STRATEGY_ENABLED === "enabled",
+      service: "ifund-" + agentId + "-agent",
+      enabled: env[flag + "_ENABLED"] === "enabled",
       publishing: false,
     });
   if (
@@ -330,7 +355,9 @@ export async function strategyRoute(request, env, fetcher = fetch) {
       "/api/agents/strategy/brief",
       "/api/agents/strategy/bulk",
       "/api/agents/strategy/subscription",
-    ].includes(path)
+    ]
+      .map((p) => p.replace("/strategy/", "/" + agentId + "/"))
+      .includes(path)
   )
     return json(404, { error: "Not found." });
   const expected =
@@ -338,17 +365,17 @@ export async function strategyRoute(request, env, fetcher = fetch) {
   if (request.method !== expected)
     return json(405, { error: "Method not allowed." });
   if (
-    env.IFUND_STRATEGY_ENABLED !== "enabled" ||
+    env[flag + "_ENABLED"] !== "enabled" ||
     env.SUPABASE_URL !== ORIGIN ||
     !env.SUPABASE_PUBLISHABLE_KEY
   )
     return json(503, {
-      error: "Your strategy assistant is not available yet.",
+      error: "Your assistant is not available yet.",
     });
   try {
     const bearer = request.headers.get("authorization") || "";
     if (!/^Bearer [A-Za-z0-9._~-]+$/.test(bearer))
-      fail(401, "Sign in to use your strategy assistant.");
+      fail(401, "Sign in to use your assistant.");
     async function upstream(path, body) {
       const res = await fetcher(ORIGIN + path, {
         method: body ? "POST" : "GET",
@@ -375,14 +402,19 @@ export async function strategyRoute(request, env, fetcher = fetch) {
             400,
             "These planning options could not be accepted. Check your campaigns and try again.",
           );
-        fail(503, "Your strategy assistant is temporarily unavailable.");
+        fail(503, "Your assistant is temporarily unavailable.");
       }
       return data;
     }
     const user = await upstream("/auth/v1/user");
     if (!UUID.test(user?.id || "") || !user.email_confirmed_at)
       fail(401, "Confirm your email before using this assistant.");
-    const rpc = (name, body = {}) => upstream("/rest/v1/rpc/" + name, body);
+    const rpc = (name, body = {}) =>
+      upstream(
+        "/rest/v1/rpc/" +
+          name.replace(/^ifund_strategy_/, "ifund_" + agentId + "_"),
+        body,
+      );
     if (path.endsWith("/subscription"))
       return json(200, await rpc("ifund_story_subscription"));
     if (path.endsWith("/workspace"))
@@ -396,14 +428,14 @@ export async function strategyRoute(request, env, fetcher = fetch) {
     } catch (error) {
       fail(400, error.message);
     }
-    if (!env.AI || env.IFUND_STRATEGY_AI_ENABLED !== "enabled")
+    if (!env.AI || env[flag + "_AI_ENABLED"] !== "enabled")
       fail(503, "New plans are not available yet. Your saved brief is safe.");
     const context = await rpc("ifund_strategy_context", {
       p_campaign_ids: input.campaign_ids || null,
     });
     let messages;
     try {
-      messages = strategyMessages(input, context);
+      messages = makeMessages(input, context);
     } catch (error) {
       fail(400, error.message);
     }
@@ -432,7 +464,7 @@ export async function strategyRoute(request, env, fetcher = fetch) {
     if (claim.state === "limited")
       return json(429, {
         error:
-          "The strategy assistant has reached its daily allowance. Try again tomorrow.",
+          "The assistant has reached its daily allowance. Try again tomorrow.",
       });
     if (claim.state === "failed")
       fail(
@@ -452,12 +484,12 @@ export async function strategyRoute(request, env, fetcher = fetch) {
       const output = await env.AI.run(MODEL, {
         messages,
         max_tokens: 3000,
-        response_format: strategyResponseFormat(strategyEvidence(context)),
+        response_format: strategyResponseFormat(makeEvidence(context)),
       });
       plan = strategyOutput(
         output,
         context.campaigns.map((x) => x.id),
-        strategyEvidence(context),
+        makeEvidence(context),
       );
     } catch {
       await rpc("ifund_strategy_finish", {
@@ -483,7 +515,7 @@ export async function strategyRoute(request, env, fetcher = fetch) {
       {
         error: error.status
           ? error.message
-          : "Your strategy assistant is temporarily unavailable. Your campaigns have not changed.",
+          : "Your assistant is temporarily unavailable. Your campaigns have not changed.",
         ...(error.code ? { code: error.code } : {}),
       },
     );
