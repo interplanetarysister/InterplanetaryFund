@@ -272,3 +272,20 @@ The current migration PR branch was checked separately:
 - The route matrix explicitly marks unmigrated payment, ledger, OAuth, media and historical MCP routes as fail-closed 404, and warns that the deployed legacy Worker is separate. That is correct: a green scaffold is not feature parity.
 
 **Result:** the replacement branch's root app identity/configuration are already provider-neutral. Remaining Base44 text in the migration repo is largely source provenance/audit context and must be retained where it explains what is being migrated; it must not be allowed to become a runtime dependency or release prerequisite.
+
+
+### Source traversal — `android/` directory
+
+The recursive tree contains **55 Android files**: 28 text/config/code files, 26 PNG assets, and the Gradle wrapper JAR. All 28 text/config/code files were fetched and inspected; all binary assets were inventoried by path, size and Git blob SHA (their pixel/binary contents are not line-oriented code and were not decoded in this pass).
+
+| File group | Findings | Replacement / disposition |
+|---|---|---|
+| `android/app/build.gradle` | L10 comment says Base44 uses the default version code; the build itself uses the stable package namespace/application ID `com.base6a67a778342a8fe05ee79cba.app`. | Remove the vendor-specific comment in the independent Android build pipeline. Keep the existing application ID, namespace, signing identity and URL scheme for installed-app upgrade compatibility unless a separately planned package migration is authorized. |
+| `android/app/src/main/res/values/strings.xml` | `package_name` and `custom_url_scheme` retain the same generated package identifier. | Preserve for Android deep-link and upgrade compatibility; this identifier is not itself a live Base44 SDK dependency. |
+| `android/app/google-services.json` | Firebase project is `interplanetary-fund`; Android package name matches the stable app ID; no Base44 references. | Keep the existing Firebase app identity if Firebase diagnostics/push are still used. Firebase is a separate integration and must not be removed as part of Base44 decoupling. |
+| `android/app/src/main/java/**/MainActivity.java` and `IfundDiagnosticsPlugin.java` | Capacitor bridge registration and opt-in Crashlytics diagnostics; no Base44 calls. | Keep; later verify native plugin registration and consent behavior in the independent APK. |
+| Gradle files, wrapper scripts, manifest, tests, ProGuard, Capacitor config and resource XML | No Base44 runtime references; generic Android/Capacitor build/runtime configuration. | Keep as native app infrastructure. Fix unrelated package/test namespace mismatch only in a dedicated Android QA change. |
+| 26 PNG splash/icon assets | No line-oriented provider wording; files inventoried by SHA and size. | Preserve the brand assets; no Base44 naming replacement required. |
+| Gradle wrapper JAR | Binary build tool artifact; not decoded. | Keep the pinned wrapper distribution and verify supply-chain provenance separately. |
+
+**Android result:** 28/28 text/config/code files inspected, 26/26 PNG assets inventoried, and 1/1 binary wrapper JAR inventoried. Only one Base44-specific wording hit was found in the Android text files: `android/app/build.gradle:10`. The package identifier contains a legacy generated project string but must not be renamed casually because it is the Android app identity used for updates and deep links. The migration repository currently does not carry the Android project; Android parity remains a later, explicit migration workstream.
