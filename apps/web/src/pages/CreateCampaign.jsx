@@ -50,6 +50,7 @@ export default function CreateCampaign() {
   const [suggesting, setSuggesting] = useState(false);
   // Invalidate in-flight AI suggestions when their campaign context changes.
   const suggestionRevision = useRef(0);
+  const sectionRevision = useRef(0);
   const [suggestionError, setSuggestionError] = useState("");
   const [storySections, setStorySections] = useState([]);
   const storySectionsRef = useRef([]);
@@ -66,6 +67,7 @@ export default function CreateCampaign() {
   }
   function editSection(index, value) {
     const updated = storySectionsRef.current.map((part, i) => i === index ? value : part);
+    sectionRevision.current += 1;
     storySectionsRef.current = updated;
     setStorySections(updated);
     // Persist section edits immediately; saving must never use an older story.
@@ -84,7 +86,9 @@ export default function CreateCampaign() {
     setRegeneratingSection(index);
     setSectionError("");
     try {
-      const original = storySections[index];
+      const original = storySectionsRef.current[index];
+      const revision = sectionRevision.current;
+      const contextRevision = suggestionRevision.current;
       const result = await requestCampaignDraft(authClient(), {
         details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
         beneficiary: draftBeneficiary,
@@ -94,7 +98,7 @@ export default function CreateCampaign() {
       });
       // Discard an asynchronous response if the organizer edited its source
       // while generation was in flight; never surface an obsolete proposal.
-      if (storySectionsRef.current[index] !== original) return;
+      if (sectionRevision.current !== revision || suggestionRevision.current !== contextRevision || storySectionsRef.current[index] !== original) return;
       const proposed = splitStory(result.story)[0];
       if (!proposed) throw new Error("No replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
@@ -119,6 +123,7 @@ export default function CreateCampaign() {
       });
       if (revision !== suggestionRevision.current) return;
       setSuggestions(result);
+      sectionRevision.current += 1;
       storySectionsRef.current = splitStory(result.story);
       setStorySections(storySectionsRef.current);
       setSectionProposals({});
@@ -135,6 +140,7 @@ export default function CreateCampaign() {
       // The full-story textarea and section editor must share one source of
       // truth. Otherwise an old section edit can overwrite newer story text.
       const sections = splitStory(value);
+      sectionRevision.current += 1;
       storySectionsRef.current = sections;
       setStorySections(sections);
       setSectionProposals({});
