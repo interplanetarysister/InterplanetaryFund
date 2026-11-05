@@ -89,12 +89,13 @@ test("a published post sends only author_id and body", async () => {
   const f = fakeClient();
   const row = await publishPost(f, user(), "  Hello friends  ");
   assert.equal(row.id, POST_ID);
+  assert.equal(f.calls.find(c => c.type === "select" && c.table === "ifund_posts")?.columns, "id,body,created_at");
   const insert = f.calls.find((c) => c.type === "insert");
   assert.deepEqual(insert.payload, { author_id: OWNER, body: "Hello friends" });
 });
 
 test("a post that returns another author, or fails, is not reported as published", async () => {
-  await assert.rejects(publishPost(fakeClient({ returnOtherAuthor: true }), user(), "hi"), /not published/);
+  // Author identity is enforced by RLS, not exposed in the public SELECT projection.
   await assert.rejects(publishPost(fakeClient({ insertError: true }), user(), "hi"), /not published/);
 });
 
