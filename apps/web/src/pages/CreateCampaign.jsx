@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { requestCampaignDraft } from "@/api/campaignDraft";
+import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 
 export default function CreateCampaign() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function CreateCampaign() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
+  const [writingPath, setWritingPath] = useState("write");
   const [draftDetails, setDraftDetails] = useState("");
   const [draftBeneficiary, setDraftBeneficiary] = useState("");
   const [draftNeed, setDraftNeed] = useState("");
@@ -76,7 +78,7 @@ export default function CreateCampaign() {
     setSuggesting(true); setSuggestionError(""); setSuggestions(null);
     try {
       const result = await requestCampaignDraft(authClient(), {
-        details: draftDetails,
+        details: guidedCampaignDetails(writingPath, draftDetails),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
@@ -123,6 +125,16 @@ export default function CreateCampaign() {
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError}</p>}
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
+      <fieldset className="space-y-3">
+        <legend className="font-semibold">What kind of campaign are you creating?</legend>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
+            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => setWritingPath(path.id)} disabled={suggesting || busy || loadingDraft} />
+            <span>{path.title}</span>
+          </label>)}
+        </div>
+        <p className="text-sm text-muted-foreground">Choose a starting direction. Generate five title ideas, two short descriptions and one editable story.</p>
+      </fieldset>
       <p className="text-sm text-muted-foreground">Get editable wording suggestions using the existing Supabase service. No paid AI, automatic saving, or publishing.</p>
       <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
