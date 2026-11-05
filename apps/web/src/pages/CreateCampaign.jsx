@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { requestCampaignDraft } from "@/api/campaignDraft";
@@ -50,6 +50,7 @@ export default function CreateCampaign() {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
   const [storySections, setStorySections] = useState([]);
+  const storySectionsRef = useRef([]);
   const [sectionProposals, setSectionProposals] = useState({});
   const [regeneratingSection, setRegeneratingSection] = useState(-1);
   const [sectionError, setSectionError] = useState("");
@@ -62,7 +63,11 @@ export default function CreateCampaign() {
     return String(story || "").split(/\n\s*\n/).map(part => part.trim()).filter(Boolean);
   }
   function editSection(index, value) {
-    setStorySections(previous => previous.map((part, i) => i === index ? value : part));
+    setStorySections(previous => {
+      const updated = previous.map((part, i) => i === index ? value : part);
+      storySectionsRef.current = updated;
+      return updated;
+    });
     // A proposal was generated against the previous text; never offer a stale
     // replacement after the organizer edits that section.
     setSectionProposals(previous => {
@@ -85,6 +90,9 @@ export default function CreateCampaign() {
         cause: form.category,
         goal: form.goal_amount,
       });
+      // Discard an asynchronous response if the organizer edited its source
+      // while generation was in flight; never surface an obsolete proposal.
+      if (storySectionsRef.current[index] !== original) return;
       const proposed = splitStory(result.story)[0];
       if (!proposed) throw new Error("No replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
@@ -107,7 +115,8 @@ export default function CreateCampaign() {
         goal: form.goal_amount,
       });
       setSuggestions(result);
-      setStorySections(splitStory(result.story));
+      storySectionsRef.current = splitStory(result.story);
+      setStorySections(storySectionsRef.current);
       setSectionProposals({});
     } catch (error) {
       setSuggestionError(error?.message || "Could not prepare your draft.");
@@ -185,7 +194,7 @@ export default function CreateCampaign() {
         <h3 className="font-semibold">Story idea</h3>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
-          onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
+          onClick={() => { change("story",suggestions.story); storySectionsRef.current = splitStory(suggestions.story); setStorySections(storySectionsRef.current); }}>Use story</button>
         <div className="space-y-4" aria-label="Story section editor">
           <p className="text-sm text-muted-foreground">Edit each section separately. Regeneration produces a suggestion for your review and never overwrites other sections.</p>
           {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
