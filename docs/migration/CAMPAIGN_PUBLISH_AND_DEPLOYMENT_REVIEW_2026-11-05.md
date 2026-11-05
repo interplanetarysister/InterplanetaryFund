@@ -103,7 +103,19 @@ It does not claim full platform, agent, payment or migration parity.
   This preview is **superseded** by the additional account-isolation correction.
 - GitHub release-candidate checks on `01e8dc6` passed:
   [run 41976633959](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41976633959).
-- Replacement preview: pending push/deployment of the reviewed privacy fix.
+- Replacement preview: **PASS**, deployment
+  `d53211ab-7f2b-4761-89d3-b810e01d7aac`, source
+  `755183795d91417adb8c8c941b82f17cd9680933`, URL
+  `https://d53211ab.interplanetaryfund-migration.pages.dev`.
+  Auditor 3 confirmed compiled ownership guards, seven clean mobile route
+  renders, desktop layout, all five writing choices/eleven categories, guest
+  edit→reload→sign-in return→back persistence, public campaign rendering and
+  authentication denials. No service writes or inference were performed.
+  Builder separately verified the deployed main asset SHA-256
+  `ab5029052ec7fa841e083bf89145c1f416bdf6a9aaf1c9d75f7546d89ec22783`,
+  explicit publish action, scoped draft storage and expected draft state.
+- Reviewer 2 rechecked the privacy correction: no remaining blocker; the
+  legacy archive write runs during persistence, not the render initializer.
 - Production promotion: pending preview/release review. Rollback target is
   existing production deployment `8b0e1e4a`.
 - After fixed preview review, reconcile the release and production source refs,
