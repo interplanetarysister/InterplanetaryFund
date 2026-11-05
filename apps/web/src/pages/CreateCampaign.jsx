@@ -137,9 +137,17 @@ export default function CreateCampaign() {
       setSuggesting(false);
     }
   }
+  function invalidateCampaignIdeas() {
+    suggestionRevision.current += 1;
+    sectionRevision.current += 1;
+    setSuggestions(null);
+    setSuggestionError("");
+    setSectionProposals({});
+    setSectionError("");
+  }
   function change(key, value) {
     if (key === "category" || key === "goal_amount") {
-      suggestionRevision.current += 1;
+      invalidateCampaignIdeas();
       // A proposed rewrite is tied to the previous fundraising context.
       // Never let it be accepted after the goal or cause has changed.
       sectionRevision.current += 1;
@@ -192,16 +200,16 @@ export default function CreateCampaign() {
       <p className="text-sm text-muted-foreground">Get editable wording suggestions using the existing Supabase service. No paid AI, automatic saving, or publishing.</p>
       <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
-          onChange={e => { suggestionRevision.current += 1; setDraftDetails(e.target.value); }} placeholder="Describe the situation and how funds would help."
+          onChange={e => { invalidateCampaignIdeas(); setDraftDetails(e.target.value); }} placeholder="Describe the situation and how funds would help."
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Who benefits? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
-          onChange={e => { suggestionRevision.current += 1; setDraftBeneficiary(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => { invalidateCampaignIdeas(); setDraftBeneficiary(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <label className="block font-semibold">What is needed? (optional)
         <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
-          onChange={e => { suggestionRevision.current += 1; setDraftNeed(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => { invalidateCampaignIdeas(); setDraftNeed(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <button type="button" onClick={suggestDraft}
         disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
