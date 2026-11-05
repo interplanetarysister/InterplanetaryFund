@@ -5,6 +5,7 @@ import {
   listOwnerCampaigns, listMyCampaigns, loadOwnerCampaign, saveOwnerCampaign,
   setCampaignStatus, deleteDraftCampaign, isCampaignConflict, CAMPAIGN_CONFLICT_MESSAGE,
 } from "../src/api/ownerCampaigns.js";
+import { TERMS_VERSION } from "../src/lib/legalPolicy.js";
 
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
@@ -34,6 +35,11 @@ function fakeClient({
   failDelete = false,
   returnOtherOwner = false,
   statusOverride = null,
+  insertStatusOverride = null,
+  legalAccepted = true,
+  legalReadError = false,
+  acceptanceOwner = OWNER,
+  acceptanceVersion = TERMS_VERSION,
   // Simulates another browser session changing the row *between* this
   // operation's pre-read and its write, which is the real race window.
   raceStatusAfterRead = null,
@@ -83,6 +89,10 @@ function fakeClient({
             error: null,
           };
         }
+        if (table === "ifund_legal_acceptances") {
+          return { data: legalAccepted ? { owner_id: acceptanceOwner, terms_version: acceptanceVersion, explicit_consent: true } : null,
+            error: legalReadError ? { message: "unavailable" } : null };
+        }
         if (table !== "ifund_campaigns") return { data: null, error: { message: "unexpected table" } };
         const byId = query.filters.find(([column]) => column === "id")?.[1];
         const byOwner = query.filters.find(([column]) => column === "owner_id")?.[1];
@@ -107,6 +117,7 @@ function fakeClient({
           lastInsert = query.payload;
           if (failInsert) return { data: null, error: { message: "insert failed" } };
           const created = { id: ACTIVE_ID, created_at: "2026-11-01T10:00:00Z", ...query.payload };
+          if (insertStatusOverride !== null) created.status = insertStatusOverride;
           store.push(created);
           return singleRow ? { data: { ...created }, error: null } : { data: [{ ...created }], error: null };
         }
@@ -194,6 +205,53 @@ test("creating a campaign sets owner_id from the verified session, never the for
   assert.equal(saved.owner_id, OWNER);
   assert.equal("created_at" in f.lastInsert, false);
   assert.equal("updated_at" in f.lastInsert, false);
+});
+
+test("explicit creator publishing saves reviewed content and confirms the published receipt", async () => {
+  const form = { ...campaign(), title: "Reviewed campaign", owner_id: OTHER };
+  const create = fakeClient({ rows: [] });
+  const published = await saveOwnerCampaign(create.client, form, { status: "active", expectedStatus: "draft" });
+  assert.equal(published.status, "active");
+  assert.equal(published.owner_id, OWNER);
+  assert.equal(create.lastInsert.title, "Reviewed campaign");
+  const existing = fakeClient();
+  assert.equal((await saveOwnerCampaign(existing.client, form, { id: DRAFT_ID, status: "active", expectedStatus: "draft" })).id, DRAFT_ID);
+  assert.equal(existing.lastUpdate.status, "active");
+  assert.equal(existing.store.length, 1);
+});
+
+test("creator publishing refuses a campaign already changed before the write begins", async () => {
+  for (const status of ["active", "paused"]) {
+    const f = fakeClient({ rows: [campaign({ status })] });
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { id: DRAFT_ID, status: "active", expectedStatus: "draft" }), /changed in another session/);
+    assert.equal(f.calls.some(c => c.type === "update"), false);
+    assert.equal(f.store[0].status, status);
+  }
+});
+
+test("saving or publishing requires confirmed current consent and valid content", async () => {
+  for (const options of [{ legalAccepted: false }, { legalReadError: true }, { acceptanceOwner: OTHER }, { acceptanceVersion: "old" }]) {
+    const f = fakeClient(options);
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { status: "active" }), /member agreement/);
+    assert.equal(f.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  }
+  const incomplete = fakeClient();
+  await assert.rejects(saveOwnerCampaign(incomplete.client, { ...campaign(), story: "" }, { status: "active" }), /story before publishing/);
+  assert.equal(incomplete.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  const draft = fakeClient({ rows: [] });
+  assert.equal((await saveOwnerCampaign(draft.client, { title: "Work in progress", category: "animals" })).status, "draft");
+});
+
+test("creator publishing rejects unauthenticated, suspended and other-owner writes", async () => {
+  for (const options of [{ authenticatedUserId: null }, { unverifiedEmail: true }, { profileActive: false }, { rows: [campaign({ owner_id: OTHER })] }]) {
+    const f = fakeClient(options);
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { id: DRAFT_ID, status: "active", expectedStatus: "draft" }));
+    assert.equal(f.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  }
+});
+
+test("a create receipt with an unexpected status is never reported as a publication", async () => {
+  await assert.rejects(saveOwnerCampaign(fakeClient({ rows: [], insertStatusOverride: "draft" }).client, campaign(), { status: "active" }), /saved status could not be confirmed/);
 });
 
 test("publishing is refused client-side when the campaign is incomplete", async () => {
