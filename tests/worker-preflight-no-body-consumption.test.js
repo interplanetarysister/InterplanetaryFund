@@ -10,7 +10,7 @@ function guardedRequest(headers) {
       controller.enqueue(new TextEncoder().encode('{"shouldNotRead":true}'));
       controller.close();
     },
-  });
+  }, { highWaterMark: 0 });
   return {
     request: { headers: new Headers(headers), body },
     get reads() { return reads; },
