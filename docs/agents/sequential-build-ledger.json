@@ -1009,8 +1009,8 @@
   "collective_network": {
     "component": "permanent services and replaceable workforce procurement",
     "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
-    "implementation_status": "gateway_reconciled_with_publishing_release_verification_in_progress",
-    "production_status": "procurement_disabled_legacy_story_unchanged",
+    "implementation_status": "gateway_released_pending_live_member_procurement_verification",
+    "production_status": "gateway_and_compatible_story_released_procurement_disabled",
     "migration": "20261104055345_ifund_collective_workforce.sql",
     "preserved": {
       "selectable_positions": 9,
@@ -1078,7 +1078,7 @@
       "frontend_service_address": "/api/services/story_agent",
       "legacy_address_retained": "/api/agents/story",
       "production_procurement_enabled": false,
-      "production_runtime_status": "pending_compatibility_deploy_with_flags_preserved",
+      "production_runtime_status": "deployed_compatible_with_procurement_disabled",
       "legacy_compatibility_cases": 18,
       "gateway_runtime_cases": 8,
       "web_test_files": 28,
@@ -1090,7 +1090,36 @@
         "source": "69cb1e1",
         "status": "deployed_and_public_route_audit_passed",
         "signed_in_publish_test": "NOT TESTED by builder/auditor"
+      },
+      "production_pages": {
+        "id": "92822be7-2340-4d76-a554-19d197bafb3a",
+        "source": "721a7902ef0f6203273863ed9967b4f614694155",
+        "audit": "pass within documented public/unauthenticated scope"
+      },
+      "production_worker": {
+        "version": "cfaef544-560d-40da-8292-12d0ee142c63",
+        "etag": "601eabad4f9f25c609b72f18e8500b470d2e53b91598d0c1c8b3d4f95d303d71",
+        "bindings": "original bindings inherited strictly",
+        "procurement_flag": "absent",
+        "rollback_version": "0d0ac5a4-dd68-489e-bcab-a939b8a617e3"
       }
+    },
+    "campaign_writing_service": {
+      "status": "local_verified_pending_preview",
+      "source_baseline": "721a790",
+      "endpoint": "/api/services/story_agent/campaign-preview",
+      "existing_entitlements_preserved": true,
+      "free_outline_inference": false,
+      "new_sql_or_paid_provider": false,
+      "local_cases": {
+        "server": 10,
+        "client": 8,
+        "scoped_storage": 5,
+        "browser_transport": 15,
+        "root_files": 34,
+        "web_files": 28
+      },
+      "hosted_signed_in_generation": "NOT TESTED"
     }
   }
 }

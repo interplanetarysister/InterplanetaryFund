@@ -102,3 +102,29 @@ evidence and zero assignments/successful member runs. The currently released
 production Worker was backed up; it is the legacy code without procurement.
 Updating that Worker must inherit its bindings and keep production procurement
 absent/disabled. Do not substitute the preview Wrangler variables.
+
+## Permanent gateway compatibility release verified
+
+PR #212 merged as main `721a790`; its tree matches the reviewed `173a921`.
+GitHub CI runs `41979715703`, `41979715755` and main `41980759308` passed.
+Preview `52bae6ef` passed independent route/artifact/mobile review.
+
+Production Story code now uses source `721a790`, ETag
+`601eabad4f9f25c609b72f18e8500b470d2e53b91598d0c1c8b3d4f95d303d71`,
+active version `cfaef544-560d-40da-8292-12d0ee142c63` at 100%, deployment
+`012e0c2a-2c94-4d09-9021-d82636af4f44`. Every original binding was inherited;
+the production workforce flag remains absent. The previous version
+`0d0ac5a4-dd68-489e-bcab-a939b8a617e3` and source backup are retained.
+
+Pages production `92822be7-2340-4d76-a554-19d197bafb3a` completed successfully
+with source `721a790`. Real-domain permanent/legacy authentication checks,
+private-builder 404, deployed client URLs, publishing/privacy guards and mobile
+pages passed builder and independent Auditor 3 checks. Automatic production
+deployment remains false; production still binds only its original Story Worker.
+Database production procurement remains false, preview true and assignments zero
+at the audit. No signed-in generation or fundraising outcome is claimed.
+
+The next [campaign-writing service increment](CAMPAIGN_WRITING_SERVICE_2026-11-05.md)
+connects the creator to this gateway while preserving the zero-inference free
+outline and current native eligibility. Production procurement remains dependent
+on the separately requested real signed-in preview execution receipt.
