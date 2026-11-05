@@ -44,11 +44,11 @@ for (const path of paths) {
   }
 }
 // Verify actual referenced entry assets, not merely an HTML shell that mentions them.
-const assetRefs = [...shell.matchAll(/<(script|link)\\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi)]
+const assetRefs = [...shell.matchAll(/<(script|link)\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi)]
   .map(match => ({ tag: match[1].toLowerCase(), url: match[2] }))
-  .filter(asset => asset.tag === "script" || /\\.css(?:[?#]|$)/i.test(asset.url));
+  .filter(asset => asset.tag === "script" || /\.css(?:[?#]|$)/i.test(asset.url));
 if (!assetRefs.some(asset => asset.tag === "script") ||
-    !assetRefs.some(asset => /\\.css(?:[?#]|$)/i.test(asset.url))) {
+    !assetRefs.some(asset => /\.css(?:[?#]|$)/i.test(asset.url))) {
   failed = true;
   console.error("FAIL entry assets: expected JavaScript and CSS references in HTML shell");
 }
@@ -58,7 +58,7 @@ for (const asset of assetRefs) {
     if (url.origin !== base.origin) continue; // External SDKs are checked in browser acceptance.
     const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15000) });
     const type = (response.headers.get("content-type") || "").toLowerCase();
-    const isCss = /\\.css(?:[?#]|$)/i.test(url.pathname);
+    const isCss = /\.css(?:[?#]|$)/i.test(url.pathname);
     const valid = response.status === 200 && (isCss ? type.includes("text/css") :
       /javascript|ecmascript/.test(type));
     if (!valid) failed = true;
