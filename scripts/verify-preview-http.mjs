@@ -54,10 +54,14 @@ if (!assetRefs.some(asset => asset.tag === "script") ||
   failed = true;
   console.error("FAIL entry assets: expected JavaScript and CSS references in HTML shell");
 }
+let checkedLocalJs = 0;
+let checkedLocalCss = 0;
 for (const asset of assetRefs) {
   try {
     const url = new URL(asset.url, base);
     if (url.origin !== base.origin) continue; // External SDKs are checked in browser acceptance.
+    if (url.pathname.endsWith(".js") || url.pathname.endsWith(".mjs")) checkedLocalJs++;
+    if (/\.css$/i.test(url.pathname)) checkedLocalCss++;
     const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15000) });
     const type = (response.headers.get("content-type") || "").toLowerCase();
     const isCss = /\.css(?:[?#]|$)/i.test(url.pathname);
@@ -69,6 +73,10 @@ for (const asset of assetRefs) {
     failed = true;
     console.error(`FAIL asset ${asset.url}: ${error.message}`);
   }
+}
+if (!checkedLocalJs || !checkedLocalCss) {
+  failed = true;
+  console.error("FAIL entry assets: no same-origin JavaScript and CSS bundle pair found");
 }
 if (failed) {
   console.error("Preview HTTP smoke gate FAILED. Do not promote to production.");
