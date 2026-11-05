@@ -103,7 +103,11 @@ export default function CreateCampaign() {
       if (!proposed) throw new Error("No replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
     } catch (err) {
-      setSectionError(err?.message || "Unable to regenerate section.");
+      // An obsolete request can also fail after its source changed. Do not
+      // present that failure as an error with the organizer’s current draft.
+      if (sectionRevision.current === revision && suggestionRevision.current === contextRevision && storySectionsRef.current[index] === original) {
+        setSectionError(err?.message || "Unable to regenerate section.");
+      }
     } finally {
       setRegeneratingSection(-1);
     }
