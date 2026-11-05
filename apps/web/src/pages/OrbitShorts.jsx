@@ -33,12 +33,15 @@ export default function OrbitShorts() {
   const load = useCallback(async () => {
     setError("");
     try {
-      const [campaigns, postsResult] = await Promise.all([
+      const [campaignResult, postsResult] = await Promise.allSettled([
         listActiveCampaigns({ limit: 150 }),
         authClient().from("ifund_posts").select("id,body,created_at").order("created_at", { ascending: false }).limit(100)
       ]);
-      if (postsResult.error) throw postsResult.error;
-      setItems(collectShorts(campaigns, postsResult.data || []));
+      if (campaignResult.status === "rejected" && postsResult.status === "rejected") throw new Error("Both feeds unavailable");
+      const campaigns = campaignResult.status === "fulfilled" ? campaignResult.value : [];
+      const posts = postsResult.status === "fulfilled" && !postsResult.value.error ? postsResult.value.data || [] : [];
+      if (campaignResult.status === "rejected" && !posts.length && postsResult.status === "fulfilled" && postsResult.value.error) throw postsResult.value.error;
+      setItems(collectShorts(campaigns, posts));
     } catch { setError("Videos are unavailable right now. Try again later."); }
   }, []);
   useEffect(() => { load(); }, [load]);
