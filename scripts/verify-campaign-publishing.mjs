@@ -11,13 +11,14 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const ID = "33333333-3333-4333-8333-333333333333";
 const storageKey = "sb-ssibsfmtodgximseeqsv-auth-token";
 const user = { id: OWNER, email: "browser-test@example.invalid", email_confirmed_at: "2026-11-01T00:00:00Z", aud: "authenticated", role: "authenticated" };
-const session = { access_token: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMTExMTExMS0xMTExLTQxMTEtODExMS0xMTExMTExMTExMTEifQ.test", refresh_token: "local-test-only", expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: "bearer", user };
+const testToken = id => [Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url"), Buffer.from(JSON.stringify({ sub: id, role: "authenticated", aud: "authenticated", exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url"), Buffer.from("local-test-only").toString("base64url")].join(".");
+const session = { access_token: testToken(OWNER), refresh_token: "local-test-only", expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: "bearer", user };
 const fixture = () => ({ id: ID, owner_id: OWNER, title: "Synthetic community garden", summary: "A garden for our neighborhood.", story: "We will purchase tools and seeds for the shared garden.", category: "community", goal_amount: 250, cover_image_url: "", status: "draft", created_at: "2026-11-01T00:00:00Z" });
 const browser = await chromium.launch({ executablePath: process.env.IFUND_CHROMIUM_PATH || "/usr/bin/chromium", headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
 const results = [];
 async function scenario(name, test, options = {}) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  const state = { authenticated: true, accepted: true, active: true, rows: [], writes: [], errors: [], ...options };
+  const state = { authenticated: true, identity: OWNER, accepted: true, active: true, rows: [], writes: [], errors: [], ...options };
   await context.addInitScript(({ storageKey, session, signedIn }) => { if (signedIn) localStorage.setItem(storageKey, JSON.stringify(session)); }, { storageKey, session, signedIn: state.authenticated });
   await context.route("**/*", async route => {
     const request = route.request();
@@ -28,11 +29,11 @@ async function scenario(name, test, options = {}) {
     const json = (data, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data), headers: { "access-control-allow-origin": "*" } });
     const one = data => request.headers().accept?.includes("vnd.pgrst.object") ? data : data ? [data] : [];
     if (method === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } });
-    if (url.pathname === "/auth/v1/user") return json(state.authenticated ? user : { message: "Not signed in" }, state.authenticated ? 200 : 401);
-    if (url.pathname === "/rest/v1/ifund_profiles") return json(one({ id: OWNER, account_status: state.active ? "active" : "suspended", account_deletion_pending: false }));
+    if (url.pathname === "/auth/v1/user") return json(state.authenticated ? { ...user, id: state.identity } : { message: "Not signed in" }, state.authenticated ? 200 : 401);
+    if (url.pathname === "/rest/v1/ifund_profiles") return json(one({ id: state.identity, account_status: state.active ? "active" : "suspended", account_deletion_pending: false }));
     if (url.pathname === "/rest/v1/ifund_legal_acceptances") {
       if (method === "POST") { state.accepted = true; return json(null, 201); }
-      return json(one(state.accepted ? { owner_id: OWNER, terms_version: "2026-10-13-v3", explicit_consent: true } : null));
+      return json(one(state.accepted ? { owner_id: state.identity, terms_version: "2026-10-13-v3", explicit_consent: true } : null));
     }
     if (url.pathname === "/rest/v1/ifund_campaigns") {
       const matching = () => state.rows.filter(row => ["id", "owner_id", "status", "category"].every(key => {
@@ -166,6 +167,33 @@ try {
     await page.getByRole("heading", { name: "Account verification unavailable" }).waitFor();
     assert.equal(await page.getByLabel("Campaign title", { exact: true }).count(), 0);
   }, { rows: [fixture()], active: false });
+  await scenario("Account switches and sign-out clear unsaved member text and assistant context", async (page, state) => {
+    await page.goto(origin + "/create");
+    await page.getByRole("button", { name: "Save private draft", exact: true }).waitFor();
+    await page.getByLabel("Campaign title", { exact: true }).fill("Private owner A text");
+    await page.getByLabel("What is your fundraiser about?").fill("Private owner A assistant context.");
+    assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), OWNER);
+    state.identity = OTHER;
+    await page.evaluate(async token => {
+      const { authClient } = await import("/src/api/auth.js");
+      const { error } = await authClient().auth.setSession({ access_token: token, refresh_token: "local-test-only" });
+      if (error) throw error;
+    }, testToken(OTHER));
+    await page.waitForFunction(() => document.querySelector("#campaign-editor input")?.value === "");
+    assert.equal(await page.getByLabel("What is your fundraiser about?").inputValue(), "");
+    assert.equal(await page.getByText("Private owner A text", { exact: true }).count(), 0);
+    await page.getByLabel("Campaign title", { exact: true }).fill("Private owner B text");
+    assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), OTHER);
+    state.authenticated = false;
+    await page.evaluate(async () => {
+      const { authClient } = await import("/src/api/auth.js");
+      const { error } = await authClient().auth.signOut({ scope: "local" });
+      if (error) throw error;
+    });
+    await page.waitForFunction(() => document.querySelector("#campaign-editor input")?.value === "");
+    assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), null);
+    assert.equal(state.writes.length, 0);
+  });
 } finally { await browser.close(); }
 console.log(JSON.stringify({ transport: "intercepted Supabase; local app; no live writes", results }, null, 2));
 if (results.some(result => result.status !== "PASS")) process.exitCode = 1;

@@ -11,8 +11,9 @@ test("guest visitors can open the campaign creator without a login redirect", ()
 
 test("guest drafts survive login and are cleared only after successful save", () => {
   const creator = read("../src/pages/CreateCampaign.jsx");
-  assert.match(creator, /sessionStorage\.setItem\("ifund-guest-campaign-v1"/);
-  assert.match(creator, /sessionStorage\.removeItem\("ifund-guest-campaign-v1"/);
+  assert.match(creator, /rememberBrowserCampaign\(sessionStorage, ownerId, form\)/);
+  assert.match(creator, /forgetBrowserCampaign\(sessionStorage\)/);
+  assert.match(creator, /key=\{ownerId \|\| "guest"\}/);
   assert.match(creator, /navigate\("\/login\?returnTo="/);
   assert.match(creator, /encodeURIComponent\(window\.location\.pathname \+ window\.location\.search\)/);
 });

@@ -7,6 +7,8 @@ import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/
 import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import MemberAccess from "@/components/auth/MemberAccess";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { restoreBrowserCampaign, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
 
 export default function CreateCampaign() {
   const [params] = useSearchParams();
@@ -14,10 +16,19 @@ export default function CreateCampaign() {
   // The member gate clears private saved text when the account changes.
   return draftId
     ? <MemberAccess><CampaignComposer key={draftId} memberAccess /></MemberAccess>
-    : <CampaignComposer />;
+    : <NewCampaign />;
 }
 
-function CampaignComposer({ memberAccess = false }) {
+function NewCampaign() {
+  const session = useAuthSession();
+  if (session.status === "loading") return <main className="mx-auto max-w-3xl px-4 py-8" role="status">Opening your campaign editor…</main>;
+  const ownerId = session.user?.id || null;
+  // Reset all unsaved form and assistant state on account changes, preserving
+  // only the explicit guest-to-first-owner handoff in scoped browser storage.
+  return <CampaignComposer key={ownerId || "guest"} ownerId={ownerId} />;
+}
+
+function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const draftId = params.get("draft");
@@ -46,12 +57,7 @@ function CampaignComposer({ memberAccess = false }) {
   }, [draftId,navigate]);
   const [form, setForm] = useState(() => {
     try {
-      const stored = JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1") || "null");
-      if (stored && typeof stored === "object" && !draftId) return {
-        title: String(stored.title || ""), summary: String(stored.summary || ""),
-        story: String(stored.story || ""), category: String(stored.category || "community"),
-        goal_amount: String(stored.goal_amount || ""), cover_image_url: String(stored.cover_image_url || ""),
-      };
+      if (!draftId) return restoreBrowserCampaign(sessionStorage, ownerId);
     } catch { /* session storage unavailable */ }
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
   });
@@ -120,9 +126,9 @@ function CampaignComposer({ memberAccess = false }) {
   }
   useEffect(() => {
     if (draftId) return;
-    try { sessionStorage.setItem("ifund-guest-campaign-v1", JSON.stringify(form)); }
+    try { rememberBrowserCampaign(sessionStorage, ownerId, form); }
     catch { /* session storage unavailable */ }
-  }, [form, draftId]);
+  }, [form, draftId, ownerId]);
   const disabled = Boolean(busy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
@@ -142,7 +148,7 @@ function CampaignComposer({ memberAccess = false }) {
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
-      try { sessionStorage.removeItem("ifund-guest-campaign-v1"); } catch { /* unavailable */ }
+      try { forgetBrowserCampaign(sessionStorage); } catch { /* unavailable */ }
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
       else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) {

@@ -27,6 +27,11 @@ It does not claim full platform, agent, payment or migration parity.
 - Current verified identity, active account and member agreement are required.
   Saved private drafts use the existing member gate, which clears their editor
   on identity changes. Guest writing remains available before sign-in.
+- Unsaved new campaigns and assistant context are also reset on account change
+  or sign-out. A scoped browser record allows guest→first-owner handoff and
+  same-owner restoration; it never restores an attributed draft for another
+  identity. Old unscoped preview text is retained separately for recovery and
+  is not automatically displayed to an unverified owner.
 - The creator requires the stored state to remain `draft`. A concurrent publish
   or pause blocks the stale write. Failed requests preserve the current text;
   receipt ownership and requested status are checked before success/navigation.
@@ -37,16 +42,18 @@ It does not claim full platform, agent, payment or migration parity.
 
 - Reviewer 2 independently reviewed the diff: no blocking security finding;
   requested saved-state notice correction applied after confirmed owner load.
-- Web: all 26 test files passed; owner transport 27/27 cases passed. Shared
+- Web: all 27 test files passed; owner transport 27/27 cases and browser-draft
+  isolation 4/4 cases passed. Shared
   validation covers incomplete content, invalid/nonfinite goals and field limits.
 - Root: all 30 test files passed. Canonical web production build and root build
   passed; `git diff --check` passed. No dependency/lockfile change was required.
-- Chromium, 390×844, local app with intercepted Supabase transport: **8/8 PASS**:
+- Chromium, 390×844, local app with intercepted Supabase transport: **9/9 PASS**:
   Enter saves privately; same draft publishes once and reloads in public/Discover;
   direct publish inserts once; failure preserves text; stale state blocks before
   writing; guest text survives login without automatic publishing; consent is
   required outside the campaign form; other-owner draft access and suspended
-  account editor access are denied. No uncaught script errors or horizontal
+  account editor access are denied; an SDK account switch and sign-out clear
+  unsaved member form text and assistant context. No uncaught script errors or horizontal
   overflow. These are UI/transport tests, not a live Auth test.
 - Reproduce with the existing local Vite dev server, canonical Supabase URL and
   a dummy publishable test key. Run `scripts/verify-campaign-publishing.mjs`
@@ -89,8 +96,14 @@ It does not claim full platform, agent, payment or migration parity.
 
 ## Deployment and remaining work
 
-- Fixed preview: pending verified push/deployment; update this ledger with exact
-  commit, URL, CI and deployed checks before claiming live functionality.
+- First fixed preview: `8f12b2ff-f741-4080-a6b9-ec0ab745e407`, commit `01e8dc6`,
+  successful deployment at `https://8f12b2ff.interplanetaryfund-migration.pages.dev`.
+  Auditor 3 confirmed explicit publishing code, five choices, eleven categories,
+  seven clean mobile route renders and no server credentials in relevant chunks.
+  This preview is **superseded** by the additional account-isolation correction.
+- GitHub release-candidate checks on `01e8dc6` passed:
+  [run 41976633959](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41976633959).
+- Replacement preview: pending push/deployment of the reviewed privacy fix.
 - Production promotion: pending preview/release review. Rollback target is
   existing production deployment `8b0e1e4a`.
 - After fixed preview review, reconcile the release and production source refs,
