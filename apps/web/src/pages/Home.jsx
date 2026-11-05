@@ -11,9 +11,9 @@ import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
-// Original Base44 hero asset is retained until its identical image is bundled locally.
-// The former local path was missing, so the gradient rendered without the artwork.
-const HERO_IMAGE = "https://media.base44.com/images/public/6a67a778342a8fe05ee79cba/b8b47ec6a_generated_image.png";
+// Archived original Base44 hero artwork, bundled locally with Cloudflare Pages.
+// SHA-256 and original source are recorded in public/images/base44-archive/manifest.json.
+const HERO_IMAGE = "/images/base44-archive/19cbf6ba785409de9ac0.png";
 
 // "Who is Interplanetary Fund?" — the opening of our story shows directly; the
 // full letter expands behind "Read more · Our Story".
