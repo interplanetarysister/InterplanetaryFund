@@ -60,7 +60,7 @@ export default function AuthPage({ mode = "login" }) {
         setMessage(
           "Your password has been updated. Sign in with your new password.",
         );
-        navigate("/login", { replace: true });
+        navigate("/login?returnTo=" + encodeURIComponent(afterLogin), { replace: true });
       } else if (isRegister) {
         if (confirmationPending) {
           const { error: verifyError } = await auth.verifyOtp({
@@ -306,7 +306,7 @@ export default function AuthPage({ mode = "login" }) {
               </Link>
             )}
             {!isReset && (
-              <Link to="/forgot-password" className="underline">
+              <Link to={"/forgot-password?returnTo=" + encodeURIComponent(afterLogin)} className="underline">
                 Forgot password?
               </Link>
             )}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authClient } from "@/api/auth";
 import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
 export default function ResetPassword() {
@@ -9,9 +10,11 @@ export default function ResetPassword() {
   const [ready, setReady] = useState(false);
   const [href] = useState(() => window.location.href);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = safeReturnTo(searchParams.get("returnTo"));
   useEffect(() => {
     let active = true;
-    window.history.replaceState({}, "", "/reset-password");
+    window.history.replaceState({}, "", "/reset-password?returnTo=" + encodeURIComponent(safeReturnTo(new URL(href).searchParams.get("returnTo"))));
     Promise.resolve()
       .then(async () => {
         const auth = authClient().auth;
@@ -49,7 +52,7 @@ export default function ResetPassword() {
       if (updateError) throw updateError;
       const { error: signOutError } = await client.auth.signOut();
       if (signOutError) throw signOutError;
-      navigate("/login", { replace: true });
+      navigate("/login?returnTo=" + encodeURIComponent(returnTo), { replace: true });
     } catch (err) {
       setError(err?.message || "Password could not be changed.");
     } finally {
@@ -89,13 +92,13 @@ export default function ResetPassword() {
           </button>
         </form>
         <Link
-          to="/login"
+          to={"/login?returnTo=" + encodeURIComponent(returnTo)}
           className="mt-5 inline-block text-sm text-cyan-200 underline"
         >
           Return to sign in
         </Link>
         <Link
-          to="/forgot-password"
+          to={"/forgot-password?returnTo=" + encodeURIComponent(returnTo)}
           className="ml-5 inline-block text-sm text-cyan-200 underline"
         >
           Request another email
