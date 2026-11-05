@@ -170,8 +170,16 @@ jobs:
               exit 1
             fi
           done < /tmp/ifund-live-styles.txt
-          curl --fail --silent --show-error --location --max-time 20 "$PREVIEW_URL/login" -o /tmp/ifund-live-login.html
-          grep -qi '<html' /tmp/ifund-live-login.html
+          # Probe canonical public/deep-link routes; this is transport validation,
+          # not a substitute for rendered browser or Base44 API acceptance tests.
+          for route in login create discover; do
+            curl --fail --silent --show-error --location --max-time 20 \
+              "$PREVIEW_URL/$route" -o "/tmp/ifund-live-${route}.html"
+            grep -qi '<html' "/tmp/ifund-live-${route}.html" || {
+              echo "Missing SPA document at /$route" >&2
+              exit 1
+            }
+          done
           # Confirm original install assets are served as files, not SPA HTML fallbacks.
           for asset in manifest.json favicon.jpg apple-touch-icon.jpg; do
             curl --fail --silent --show-error --location --max-time 20 \
