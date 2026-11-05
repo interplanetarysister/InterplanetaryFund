@@ -17,6 +17,9 @@ test("shorts preserve public campaign detail and social links", () => {
   assert.match(shorts, /playsInline/);
   assert.match(shorts, /muted={muted}/);
 });
+test("campaign discovery exposes the shorts entry point", () => {
+  assert.match(read("../src/pages/Discover.jsx"), /to="\/shorts"/);
+});
 test("social feed offers video shorts discovery", () => {
   assert.match(read("../src/pages/SocialFeedPage.jsx"), /to="\/shorts"/);
 });
