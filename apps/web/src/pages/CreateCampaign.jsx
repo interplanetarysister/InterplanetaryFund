@@ -138,7 +138,14 @@ export default function CreateCampaign() {
     }
   }
   function change(key, value) {
-    if (key === "category" || key === "goal_amount") suggestionRevision.current += 1;
+    if (key === "category" || key === "goal_amount") {
+      suggestionRevision.current += 1;
+      // A proposed rewrite is tied to the previous fundraising context.
+      // Never let it be accepted after the goal or cause has changed.
+      sectionRevision.current += 1;
+      setSectionProposals({});
+      setSectionError("");
+    }
     setForm(prev => ({ ...prev, [key]: value }));
     if (key === "story") {
       // The full-story textarea and section editor must share one source of
