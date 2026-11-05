@@ -40,6 +40,11 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_story_runtime.revise_wording",
   "ifund_story_runtime.save_preferences",
   "ifund_story_runtime.clear_preferences",
+  // Strategy's private leased planning and owner-only batch decision contracts.
+  // These never grant publication, provider actions or financial writes.
+  "ifund_strategy_runtime.begin_request",
+  "ifund_strategy_runtime.finish_request",
+  "ifund_strategy_runtime.bulk_update",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
