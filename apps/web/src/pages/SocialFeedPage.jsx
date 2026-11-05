@@ -49,10 +49,10 @@ export default function SocialFeedPage({ community = false }) {
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social"}</h1>
       <p className="mt-2 text-muted-foreground">{community ? "Connect with the Interplanetary Fund community." : "Share updates and discover community conversations."}</p></header>
-    <nav className="flex gap-4 border-b border-border pb-3"><Link className="text-primary underline" to="/social">Social</Link><Link className="text-primary underline" to="/community">Community</Link></nav>
+    <nav className="flex gap-4 border-b border-border pb-3"><Link className="text-primary underline" to="/social">Social</Link><Link className="text-primary underline" to="/community">Community</Link><Link className="text-primary underline" to="/shorts">Video Shorts</Link></nav>
     {user ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
-      <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="What would you like to share?" />
+      <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="What would you like to share? Paste a public HTTPS .mp4 or .webm video URL to include it in Orbit Shorts." />
       <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{body.length}/{MAX_POST_LENGTH}</span><button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
     </form> : <p className="rounded-xl border border-border p-4"><Link className="text-primary underline" to="/login">Sign in</Link> to share a post.</p>}
     {error && <p role="alert" className="rounded-xl border border-destructive p-4">{error}</p>}
