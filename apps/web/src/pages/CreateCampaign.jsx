@@ -67,7 +67,7 @@ export default function CreateCampaign() {
     storySectionsRef.current = updated;
     setStorySections(updated);
     // Persist section edits immediately; saving must never use an older story.
-    setForm(previous => ({ ...previous, story: updated.join("\\n\\n") }));
+    setForm(previous => ({ ...previous, story: updated.join("\n\n") }));
     // A proposal was generated against the previous text; never offer a stale
     // replacement after the organizer edits that section.
     setSectionProposals(previous => {
