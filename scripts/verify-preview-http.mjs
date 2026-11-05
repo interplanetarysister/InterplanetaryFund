@@ -30,8 +30,8 @@ for (const path of paths) {
     const body = await response.text();
     const valid = response.status === 200 &&
       type.toLowerCase().includes("text/html") &&
-      /<html[\\s>]/i.test(body) &&
-      /<script\\b[^>]*src=/i.test(body) &&
+      /<html[\s>]/i.test(body) &&
+      /<script\b[^>]*src=/i.test(body) &&
       /interplanetary|ifund/i.test(body);
     if (!valid) failed = true;
     if (path === "/") shell = body;
