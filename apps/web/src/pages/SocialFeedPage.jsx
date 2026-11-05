@@ -7,6 +7,8 @@ import { videoFromText, videoFromUrl } from "@/lib/videoLinks";
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState(null);
+  const [postingBlock, setPostingBlock] = useState("");
+  const [checkingAccount, setCheckingAccount] = useState(true);
   const [body, setBody] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(true);
@@ -28,13 +30,13 @@ export default function SocialFeedPage({ community = false }) {
     try {
       authClient().auth.getUser().then(async ({ data }) => {
         if (!active) return;
-        if (!data?.user) { setUser(null); return; }
+        if (!data?.user) { setUser(null); setPostingBlock("Sign in to publish posts."); return; }
         // Posting needs a confirmed email on a live account; a bare session is
         // not enough, matching the Worker community-write rules.
         const gate = await canMemberPost(authClient(), data.user);
-        if (active) setUser(gate.ok ? data.user : null);
-      });
-    } catch { /* show configuration error through load */ }
+        if (active) { setUser(gate.ok ? data.user : null); setPostingBlock(gate.ok ? "" : gate.message); }
+      }).catch(() => { if (active) setPostingBlock("Could not verify your account. Please sign in again or retry."); }).finally(() => { if (active) setCheckingAccount(false); });
+    } catch { if (active) { setPostingBlock("Authentication is unavailable. Please retry."); setCheckingAccount(false); } }
     load();
     return () => { active = false; };
   }, [load]);
@@ -55,11 +57,11 @@ export default function SocialFeedPage({ community = false }) {
     <nav className="flex gap-4 border-b border-border pb-3"><Link className="text-primary underline" to="/social">Social</Link><Link className="text-primary underline" to="/community">Community</Link><Link className="text-primary underline" to="/shorts">Video Shorts</Link></nav>
     {user ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
-      <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="Share a story or an update…" />
+      <textarea id="ifund-post" maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="Share a story or an update…" />
       <label htmlFor="ifund-video-url" className="block text-sm font-semibold">YouTube or video link (optional)</label><input id="ifund-video-url" type="url" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" className="min-h-11 w-full rounded-xl border border-input bg-background p-3" />
       <p className="text-xs text-muted-foreground">YouTube videos, Shorts and public HTTPS MP4/WebM links will appear in Orbit Shorts.</p>
       <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{[body.trim(), videoUrl.trim()].filter(Boolean).join("\n").length}/{MAX_POST_LENGTH}</span><button disabled={busy || (!body.trim() && !videoUrl.trim()) || [body.trim(), videoUrl.trim()].filter(Boolean).join("\n").length > MAX_POST_LENGTH} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
-    </form> : <p className="rounded-xl border border-border p-4"><Link className="text-primary underline" to="/login">Sign in</Link> to share a post.</p>}
+    </form> : <p role="status" className="rounded-xl border border-border p-4">{checkingAccount ? "Checking posting access…" : postingBlock || "Posting is unavailable for this account."} <Link className="text-primary underline" to="/login?next=%2Fsocial">Sign in or switch account</Link></p>}
     {error && <p role="alert" className="rounded-xl border border-destructive p-4">{error}</p>}
     <section aria-label="Recent posts" className="space-y-4">
       <h2 className="text-xl font-semibold">Recent updates</h2>
