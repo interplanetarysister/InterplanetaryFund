@@ -63,14 +63,11 @@ export default function CreateCampaign() {
     return String(story || "").split(/\n\s*\n/).map(part => part.trim()).filter(Boolean);
   }
   function editSection(index, value) {
-    setStorySections(previous => {
-      const updated = previous.map((part, i) => i === index ? value : part);
-      storySectionsRef.current = updated;
-      // Keep the saved campaign story synchronized with section edits. A guest
-      // should not lose their latest writing by saving without a second click.
-      setForm(form => ({ ...form, story: updated.join("\\n\\n") }));
-      return updated;
-    });
+    const updated = storySectionsRef.current.map((part, i) => i === index ? value : part);
+    storySectionsRef.current = updated;
+    setStorySections(updated);
+    // Persist section edits immediately; saving must never use an older story.
+    setForm(previous => ({ ...previous, story: updated.join("\\n\\n") }));
     // A proposal was generated against the previous text; never offer a stale
     // replacement after the organizer edits that section.
     setSectionProposals(previous => {
