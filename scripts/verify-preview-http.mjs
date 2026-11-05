@@ -10,7 +10,7 @@ let base;
 try {
   base = new URL(input);
   if (base.protocol !== "https:" || base.username || base.password ||
-      !base.hostname.endsWith(".pages.dev") || base.pathname !== "/" ||
+      !(base.hostname === "interplanetaryfund-migration.pages.dev" ||\n        base.hostname.endsWith(".interplanetaryfund-migration.pages.dev")) ||\n      base.port || base.pathname !== "/" ||
       base.search || base.hash) throw new Error("expected HTTPS Cloudflare Pages preview origin");
 } catch (error) {
   console.error("Invalid preview URL:", error.message);
