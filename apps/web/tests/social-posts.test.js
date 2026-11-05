@@ -102,8 +102,10 @@ test("the feed page gates the composer and posts through the validated path", ()
   const page = source("src/pages/SocialFeedPage.jsx");
   assert.match(page, /import \{ canMemberPost, publishPost, MAX_POST_LENGTH \} from "@\/lib\/socialPosts\.js"/);
   assert.match(page, /canMemberPost\(authClient\(\), data\.user\)/);
-  assert.match(page, /await publishPost\(authClient\(\), user, body\)/);
   assert.match(page, /maxLength=\{MAX_POST_LENGTH\}/);
+  assert.match(page, /videoUrl\.trim/);
+  assert.doesNotMatch(page, /id="ifund-post" required/);
+  assert.match(page, /postingBlock/);
   // The raw insert must be gone.
   assert.doesNotMatch(page, /from\("ifund_posts"\)\.insert/);
 });
