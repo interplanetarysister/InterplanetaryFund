@@ -5,6 +5,9 @@ name: Deploy branded frontend to Cloudflare Pages
 # apps/web/DEPLOYMENT-GATES.md still applies before interplanetaryfund.com is
 # pointed at this bundle.
 #
+# Cloudflare Pages Git integration already builds pushes with its own configured
+# environment variables. Keep this separate Wrangler workflow manual-only to
+# avoid duplicate builds and misleading failures when GitHub variables are unset.
 # Default is a PREVIEW deploy (a *.pages.dev URL). A production deploy must be
 # requested explicitly, so a merge can never silently replace the live site.
 #
@@ -30,11 +33,6 @@ on:
         description: Cloudflare Pages project name
         required: false
         default: interplanetaryfund-migration
-  push:
-    branches: [main]
-    paths:
-      - "apps/web/**"
-      - ".github/workflows/deploy-web-pages.yml"
 
 permissions:
   contents: read
