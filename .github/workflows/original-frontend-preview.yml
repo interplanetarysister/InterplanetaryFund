@@ -32,6 +32,14 @@ jobs:
         run: |
           ACTUAL_SHA="$(git rev-parse HEAD)"
           test "${ACTUAL_SHA,,}" = "${SOURCE_REF,,}" || { echo 'Checked-out source does not match requested SHA' >&2; exit 1; }
+          # Require the immutable revision to match the canonical source main at dispatch time.
+          # This prevents accidentally publishing an older or unrelated revision as parity.
+          git fetch --no-tags --depth=1 origin main
+          CANONICAL_MAIN_SHA="$(git rev-parse FETCH_HEAD)"
+          test "${ACTUAL_SHA,,}" = "${CANONICAL_MAIN_SHA,,}" || {
+            echo "Source revision is not the current interplanetary-fund2/main ($CANONICAL_MAIN_SHA)" >&2
+            exit 1
+          }
           echo "Original Base44 frontend source: interplanetarysister/interplanetary-fund2@$ACTUAL_SHA" >> "$GITHUB_STEP_SUMMARY"
           echo "Preview-only: Base44 runtime retained; no production promotion." >> "$GITHUB_STEP_SUMMARY"
           if test -n "$(git status --porcelain)"; then
