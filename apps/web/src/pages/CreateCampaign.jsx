@@ -48,6 +48,8 @@ export default function CreateCampaign() {
   const [draftNeed, setDraftNeed] = useState(() => !draftId ? (readGuestDraft().need || "") : "");
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
+  // Invalidate in-flight AI suggestions when their campaign context changes.
+  const suggestionRevision = useRef(0);
   const [suggestionError, setSuggestionError] = useState("");
   const [storySections, setStorySections] = useState([]);
   const storySectionsRef = useRef([]);
@@ -105,6 +107,7 @@ export default function CreateCampaign() {
 
   async function suggestDraft() {
     if (busy || suggesting || loadingDraft || draftLoadError) return;
+    const revision = ++suggestionRevision.current;
     setSuggesting(true); setSuggestionError(""); setSuggestions(null);
     try {
       const result = await requestCampaignDraft(authClient(), {
@@ -114,17 +117,19 @@ export default function CreateCampaign() {
         cause: form.category,
         goal: form.goal_amount,
       });
+      if (revision !== suggestionRevision.current) return;
       setSuggestions(result);
       storySectionsRef.current = splitStory(result.story);
       setStorySections(storySectionsRef.current);
       setSectionProposals({});
     } catch (error) {
-      setSuggestionError(error?.message || "Could not prepare your draft.");
+      if (revision === suggestionRevision.current) setSuggestionError(error?.message || "Could not prepare your draft.");
     } finally {
       setSuggesting(false);
     }
   }
   function change(key, value) {
+    if (key === "category" || key === "goal_amount") suggestionRevision.current += 1;
     setForm(prev => ({ ...prev, [key]: value }));
     if (key === "story") {
       // The full-story textarea and section editor must share one source of
@@ -170,16 +175,16 @@ export default function CreateCampaign() {
       <p className="text-sm text-muted-foreground">Get editable wording suggestions using the existing Supabase service. No paid AI, automatic saving, or publishing.</p>
       <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
-          onChange={e => setDraftDetails(e.target.value)} placeholder="Describe the situation and how funds would help."
+          onChange={e => { suggestionRevision.current += 1; setDraftDetails(e.target.value); }} placeholder="Describe the situation and how funds would help."
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Who benefits? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
-          onChange={e => setDraftBeneficiary(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => { suggestionRevision.current += 1; setDraftBeneficiary(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <label className="block font-semibold">What is needed? (optional)
         <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
-          onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => { suggestionRevision.current += 1; setDraftNeed(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <button type="button" onClick={suggestDraft}
         disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
