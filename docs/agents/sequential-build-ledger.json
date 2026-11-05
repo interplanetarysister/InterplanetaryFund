@@ -1,8 +1,8 @@
 {
   "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
   "implementation_ref": "interplanetarysister/InterplanetaryFund@d5e4fbccadf8e8ad61232a189e6956a724f21c3c",
-  "rule": "Owner directed Strategy preview -> Growth preview -> Communications preview -> promote all three verified releases to production -> following agent. Preserve explicit source-parity limits; no financial/provider activation, DNS/mail cutover or false completion.",
-  "current_agent": "growth_agent",
+  "rule": "Owner directs sequential preview builds through all agents, complete required assets/skills/tools/workflows, and HOLD all remaining production promotions until every agent and acceptance gate is ready. Preserve existing Story production. No paid/financial/provider activation or DNS/mail cutover without its separate authorized checks.",
+  "current_agent": "communications_agent",
   "agents": [
     {
       "order": 1,
@@ -29,7 +29,8 @@
       "remaining_gates": [
         "full source member chat and specialist tool parity",
         "historical memory/skill migration",
-        "live two-owner runtime acceptance"
+        "live two-owner runtime acceptance",
+        "actual campaign-cover generation/storage in versioned IFund style using verified campaign details; owner review before use"
       ],
       "migration_version": "20261104043420",
       "production_commit": "af3acb935e577f7fd9ff021822debc5bc5f43969"
@@ -71,7 +72,7 @@
         "full source conversational context/memory and general draft tools",
         "actual specialist execution and verified external opportunity discovery",
         "real consenting-member end-to-end acceptance",
-        "production promotion after Communications preview"
+        "production held until all remaining agents and required checks are ready"
       ],
       "migration_version": "20261104061736",
       "preview_url": "https://4f82134e.interplanetaryfund-migration.pages.dev/agents/strategy",
@@ -82,7 +83,7 @@
       "id": "growth_agent",
       "source": "base44/agents/growth_agent.jsonc",
       "sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
-      "status": "reviewed_preview_candidate",
+      "status": "enabled_preview_core",
       "tools": [
         "Campaign",
         "Donation",
@@ -111,18 +112,19 @@
         "real free-plan AI smoke1257tokens138.8neurons"
       ],
       "remaining_gates": [
-        "hosted preview acceptance and activation",
         "real consenting-member end-to-end acceptance",
         "verified time-window/usage analytics, historical memory, general draft tools and actual specialist execution",
-        "production promotion after Communications preview"
-      ]
+        "production held until all remaining agents and required checks are ready"
+      ],
+      "preview_url": "https://003050ff.interplanetaryfund-migration.pages.dev/agents/growth",
+      "preview_commit": "3bcdd92fff55f0b1cb75f3dd6627abbff541ae18"
     },
     {
       "order": 4,
       "id": "communications_agent",
       "source": "base44/agents/communications_agent.jsonc",
       "sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
-      "status": "pending_growth_preview",
+      "status": "reviewed_preview_candidate",
       "tools": [
         "Campaign",
         "Message",
@@ -132,14 +134,39 @@
         "manageAgentContentDraft",
         "routeAgentTask"
       ],
-      "allow_anonymous_access": false
+      "allow_anonymous_access": false,
+      "implementation_files": [
+        "worker/agents/communications.js",
+        "worker/agents/memberApi.js",
+        "apps/web/src/pages/CommunicationsAgent.jsx",
+        "apps/web/src/components/CommunicationPreferences.jsx",
+        "supabase/migrations/pending/ifund_communications_agent_contracts.sql",
+        "tests/communications-agent-db.test.js",
+        "tests/communications-agent.test.js"
+      ],
+      "verified_subcontracts": [
+        "manual owner communications separate from AI entitlement",
+        "canonical messages/notifications with immutable selected recipient/text approval",
+        "captured donor deduplication, sender exclusion, opt-out/refund/account revalidation",
+        "atomic in-app writes/status/audit/receipt and zero-delivery draft retention",
+        "rate/capacity bounds, AI slot reservation, active-draft recovery",
+        "plan-independent preference CAS and stale-read protection",
+        "independent12SQL/11Worker/3helper/11browser cases",
+        "actual synthetic Workers AI draft417tokens24.12neurons"
+      ],
+      "remaining_gates": [
+        "hosted installation and preview acceptance",
+        "real consenting-member runtime/delivery acceptance",
+        "configured email, recurring data, general tools and historical scoped memory",
+        "production held until all remaining agents and required checks are ready"
+      ]
     },
     {
       "order": 5,
       "id": "managed_connection_agent",
       "source": "base44/agents/managed_connection_agent.jsonc",
       "sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
-      "status": "blocked_by_previous_agent",
+      "status": "pending_communications_preview",
       "tools": [
         "requestManagedConnectionAction",
         "listConnections",

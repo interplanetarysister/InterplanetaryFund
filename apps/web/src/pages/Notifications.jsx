@@ -86,9 +86,9 @@ export default function Notifications(){
         return <li key={item.id}>
           <article className={"rounded-xl border p-4 "+(item.read?"border-border bg-card":"border-primary/30 bg-primary/5")}>
             <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="font-semibold">{item.title}</h2>
-                {item.body&&<p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{item.body}</p>}
+              <div className="min-w-0">
+                <h2 className="break-words font-semibold">{item.title}</h2>
+                {item.body&&<p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{item.body}</p>}
                 <p className="mt-3 text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString()}</p>
               </div>
               {!item.read&&<span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Unread"/>}

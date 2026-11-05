@@ -20,6 +20,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const StoryAgent = lazy(() => import("./pages/StoryAgent"));
 const GrowthAgent = lazy(() => import("./pages/GrowthAgent"));
+const CommunicationsAgent = lazy(() => import("./pages/CommunicationsAgent"));
 const StrategyAgent = lazy(() => import("./pages/StrategyAgent"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
@@ -54,7 +55,7 @@ const STANDALONE_COMING_SOON = [
 ];
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
-  "/giving", "/communications", "/ai-images",
+  "/giving", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
@@ -87,6 +88,8 @@ function AppRoutes() {
       <Route path="/agents" element={<MemberAccess><StoryAgent /></MemberAccess>} />
       <Route path="/agents/strategy" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
       <Route path="/agents/growth" element={<MemberAccess><GrowthAgent /></MemberAccess>} />
+      <Route path="/agents/communications" element={<MemberAccess><CommunicationsAgent /></MemberAccess>} />
+      <Route path="/communications" element={<MemberAccess><CommunicationsAgent /></MemberAccess>} />
       <Route path="/mission" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
