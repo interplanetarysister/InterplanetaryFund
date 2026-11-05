@@ -9,6 +9,9 @@ test("preview smoke gate rejects missing and unsafe origins before any network r
   for (const candidate of [
     undefined,
     "http://example.pages.dev/",
+    "https://unrelated.pages.dev/",
+    "https://interplanetaryfund-migration.pages.dev.evil.example/",
+    "https://interplanetaryfund-migration.pages.dev:8443/",
     "https://example.com/",
     "https://example.pages.dev.evil.example/",
     "https://user:password@example.pages.dev/",
