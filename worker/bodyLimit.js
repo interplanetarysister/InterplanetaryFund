@@ -10,6 +10,11 @@ export class BodyError extends Error {
 }
 
 export async function readJsonBody(request, byteLimit) {
+  // An absent, fractional or unsafe limit must never turn a bounded parser into
+  // an unbounded request-body reader. Callers must supply a positive byte cap.
+  if (!Number.isSafeInteger(byteLimit) || byteLimit <= 0) {
+    throw new BodyError(500, 'Invalid request body limit.');
+  }
   const mime = request.headers.get('content-type') || '';
   if (!/^application\/json(?:\s*;|\s*$)/i.test(mime)) {
     throw new BodyError(415, 'JSON request body required.');
