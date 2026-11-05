@@ -57,15 +57,13 @@ jobs:
         env:
           VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
           VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
-      - name: Add Cloudflare SPA deep-link fallback
-        run: |
-          # Original source has no public/_redirects. Preserve its code and
-          # generate a Pages-only fallback for client-side routes.
-          printf '/* /index.html 200\n' > dist/_redirects
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
-          grep -Fxq '/* /index.html 200' dist/_redirects
+          # Pages serves index.html for SPA routes when no top-level 404.html exists.
+          # Never inject the catch-all rewrite that previously caused redirect loops.
+          test ! -e dist/404.html || { echo '404.html disables Pages native SPA fallback' >&2; exit 1; }
+          test ! -e dist/_redirects || { echo 'Unexpected redirect rules in original artifact' >&2; exit 1; }
           test -d dist/assets
           grep -q 'viewport-fit=cover' dist/index.html
           grep -q 'Interplanetary Fund' dist/index.html
