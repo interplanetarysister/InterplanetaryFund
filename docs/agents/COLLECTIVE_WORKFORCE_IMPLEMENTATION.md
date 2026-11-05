@@ -1,0 +1,104 @@
+# Collective workforce implementation record
+
+Tracking: [migration #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137). Baseline: upstream `main` at `af3acb935e577f7fd9ff021822debc5bc5f43969`. Inspected November 3, 2026 (Los Angeles). The owner supplied the complete network directive and explicitly authorized verified production increments. Workers Free was confirmed in this session; no paid adoption is authorized.
+
+## Current component
+
+The permanent service registry preserves the exact nine selector IDs/titles and separate Admin Builder Coordinator. Full instructions, source tool promises, memory policies, provenance and definition hashes are versioned in `worker/services/position-contracts.json`. These source promises do not grant tools. The 17 workflow and 11 connector source contracts remain evidence in `legacy-workflow-connector-contracts.json`; they are not runnable definitions.
+
+`worker/workforce` plans bounded teams from individually registered, available, tested and assigned implementations. Selection checks exact tested capabilities/revisions, complexity, data permissions, security compatibility, expiring zero-cost evidence, quality, reliability, latency and resource capacity. Paid, trial, unknown-cost and untested alternatives are ineligible. The Story integration requires one implementation satisfying the complete output contract; team fragments are not a substitute for the promised five titles, two summaries, story and image direction. The team planner is locally tested; multi-specialist collaborative execution is a remaining component.
+
+Cloudflare's central `/api/services` gateway forwards stable Story service requests through the existing `IFUND_STORY_AGENT` service binding. JWT authentication and all existing account/consent/entitlement checks remain authoritative. The private builder is excluded from member discovery. Administrative `/api/services/status` requires the existing verified-admin database gate.
+
+New execution RPCs require the same owner JWT **and** a dedicated server-only Worker key. Only its SHA-256 digest is stored in private Postgres control; the value belongs in `IFUND_WORKFORCE_EXECUTOR_KEY`, never Vite or logs. This prevents members from forging global implementation performance. Provider adapters receive only the already-authorized bounded prompt, never the JWT or executor key. The self-hosted adapter supports only explicitly configured Cloudflare service bindings; no user-supplied URLs or arbitrary network connectors exist.
+
+Assignment history and capacity reservations extend `ifund_ops`; existing `workflow_jobs`, `workflow_execution_log`, agent drafts, profile identities and scoped preferences remain the owners of their data. The existing Story begin function was compared against the live database before its daily counter was extended to ignore never-dispatched queued work and count resumed reservations. This keeps the legacy rollback path within the same two-call limit. The additive migration defaults disabled and seeds the existing model as registered, unavailable and untested. It never enables other specialists, publishing, financial authority or existing workflows.
+
+Before inference the database serializes ownership, capability validation, quota and lease acquisition under the existing Story lock. It records an immutable implementation snapshot and permanent service contract hash. Dispatch rechecks eligibility. Completion requires the lease and stored draft receipt; only the trusted Worker updates performance. Completed duplicates replay their receipt. Unknown provider completions consume the allowance and cannot automatically infer again. Queue entries retain private task text, never credentials, and resume using fresh owner/campaign checks. Owners can discover and erase saved requests after plan/feature expiry; erased text is removed while idempotency/history metadata remains. Paused entries are excluded from unrelated background execution. Recovery currently requires the owner to resume a saved request; an unattended executor with a scoped server identity is not implemented.
+
+## Verified free capacity and technology decisions
+
+| Resource | Official evidence and decision |
+| --- | --- |
+| Workers | [Pricing](https://developers.cloudflare.com/workers/platform/pricing/): use the existing Free account and Workers; no upgrade. |
+| Workers AI | [Pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/): 10,000 neurons/day on Free, resets at 00:00 UTC, further operations fail without a paid upgrade. Some models require paid billing and are ineligible. The existing llama-3.3-70b FP8 model remains eligible only after evidence checks. |
+| Native model reservation | Official model rate: 26,668 neurons/M input tokens and 204,805/M output tokens. A conservative byte-based input bound of 24,000 plus 512 framing tokens, and 2,200 output tokens, is below the 1,200-neuron reservation. The existing maximum two daily Story calls remains. Failed/unknown calls are not refunded. |
+| Supabase | [Free billing](https://supabase.com/docs/guides/platform/billing-faq): reuse canonical project `ssibsfmtodgximseeqsv`, no third project or backend. Live database size was 24 MB, with zero workflow jobs/drafts before this increment. Free projects have quotas and may pause; availability is not unlimited. |
+| R2 | [Pricing](https://developers.cloudflare.com/r2/pricing/): existing `ifund-media` bucket only. Standard storage free allowance is 10 GB-month, 1M Class A and 10M Class B operations/month; overages can bill. This component performs no R2 writes and adds no R2 dependency. |
+| AI Gateway | [Pricing](https://developers.cloudflare.com/ai-gateway/reference/pricing/): core caching/rate limiting/analytics are free; unified billing, guardrail inference and some log paths have separate charges. Not activated: current queue deduplication and stored receipts provide safe reuse without sharing private prompts. |
+| Agents SDK / Durable Objects | [Agents SDK](https://github.com/cloudflare/agents) and [DO pricing](https://developers.cloudflare.com/durable-objects/platform/pricing/) reviewed. The existing native Worker plus canonical Supabase queue already supply the required state for this component; another task/memory store would duplicate authority. No SDK/DO resource is required here. |
+
+Workers and inference quotas apply across the account. Local reservations do not measure unrelated account traffic; the verified Free plan's provider hard stop prevents overage billing. Control has a conservative 8,000-unit daily ceiling and 1,000-unit reserve for critical operations. Existing Story capacity is counted. Expired account or provider attestations stop new procurement. The queue is capped at five outstanding requests per owner and 100 globally.
+
+Reviewed the current Supabase changelog and PostgreSQL 17.11 breaking changes. This component uses built-in SHA-256, no legacy pgcrypto encryption, ltree/GiST indexes or custom estimators. No new runtime package or paid API is introduced.
+
+## Verification and release gates
+
+- Local: seven procurement cases, twelve actual PGlite database scenarios, seven runtime/gateway cases, three queue-access/expiry cases, existing Story regression suite, all 33 root test files in isolated processes, frontend tests and production build passed before release preparation. Re-run relevant checks after final edits.
+- Independent Reviewer 2 found and helped correct a trigger row-type bug, member-forged performance records, and capability-blind candidate pruning. Auditor 3 independently checks parity and verification.
+- Local Node 24 combined `--test-isolation=none` contaminates PGlite with pre-existing browser `window` mocks. Separate direct `node <test-file>` processes exercise the real cases. Do not describe that combined failure as a product regression or a runner summary as a substitute for per-case evidence.
+- Live: schema application, secure key provisioning, preview, authenticated member request, native provider receipt, queue/replacement, and production release remain separate explicit gates until their actual results are recorded. No live success is inferred from this document.
+
+Rollback disables `IFUND_WORKFORCE_ENABLED` on the Story Worker and `ifund_ops.workforce_control.enabled`, retaining the existing released Story path. Queued requests remain readable and erasable after rollback; load their text and remove the held request before requesting a new legacy suggestion. Keep assignment history, queue records and draft receipts for reconciliation; do not drop operational tables or restore Base44 calls. No DNS, mail, PayPal, donation, subscription billing, withdrawal or ledger change belongs to this release.
+
+## Remaining network work
+
+The complete platform is **not finished**. Preserve the in-progress Strategy implementation in [PR #211](https://github.com/interplanetarysister/InterplanetaryFund/pull/211). Remaining components include actual bounded collaborative execution/checkpoints, the remaining specialist adapters and promised tools, approved shared knowledge contribution/review/retrieval, outcome-based campaign learning using authorized verified measurements, historical chat/memory migration, and all scheduled workflow/connector parity. Current Story already retrieves verified research and owner-scoped preferences; those are reused, not advertised as unrestricted collective learning.
+
+See `sequential-build-ledger.json` for the canonical completion ledger and the existing per-agent order. Registration, availability, tested capabilities, assignment, dispatch, stored success and full service parity are different facts.
+
+## Hosted evidence, current increment
+
+Applied reviewed migration as Supabase version `20261104055345` and reconciled the CLI-created source filename to the actual history version. All ten exact positions exist; the model remains registered/unavailable/untested and procurement disabled at the initial catalog check. All five new tables have RLS and deny both anonymous and authenticated direct reads. Existing queue and assignment counts were zero.
+
+Preview Worker source `6cdd6ac` is deployed at `https://ifund-story-agent-preview.interplanetary-fund.workers.dev`; code ETag `2e4b6610e5726356e12c564bf79c6a0965ad5121889b569be5f588b179bda81c`. Health returned 200; anonymous draft, queue and admin-status calls returned 401; a live invalid JWT returned 403 and no execution occurred. Dedicated server-only keys were provisioned on the existing Workers; only the digest is stored in Postgres. Production code and its existing Story path have not been replaced.
+
+One bounded native-provider synthetic full-JSON test returned the promised five titles, two summaries, story and image direction and passed the actual Story output validator. Provider-reported usage was 27.091936 neurons. This proves that model contract only; it does not prove a member request, a fundraising outcome, or full collective operation. Real member JWT/header transport and browser recovery remain NOT TESTED. PR #212 carries the reviewed source; later release evidence must update these statuses.
+
+The section-only native JSON contract also passed the actual Story validator, using 10.031223 neurons. Both exact capabilities are now registered as tested/available with expiring evidence; successful member-task count remains zero. A conservative 1,200-unit diagnostic reservation covers these 37.123159 total reported neurons. No inference failure or capacity limit triggers a paid fallback.
+
+## Preview authorization isolation
+
+Automatic approval review rejected enabling the shared production control before a real signed-in request had been verified. That rejected UPDATE was not applied, and production procurement remains disabled. The follow-up preview-isolation migration adds a separate preview flag and distinct private executor-key digest. The channel is determined from the key, never a client-supplied environment label. Production credentials remain subject to the production flag even when preview is enabled.
+
+Snapshot, claim, replay, resume, dispatch and completion respect the authenticated channel. Untagged historical work is production work. Preview cannot take over production jobs; jobs and assignments retain their environment. Both channels share the original account-wide quota lock and capacity budget. Owners may still read or erase their held private text after eligibility expires; cross-channel items are not presented as resumable. The initial follow-up migration leaves both enablement controls unchanged/default-disabled. Real member verification remains pending.
+
+Preview isolation was installed as Supabase migration `20261104062233`; the source filename was reconciled to that actual history version. Live catalog checks confirm helper EXECUTE is denied to both browser roles, owner erasure remains granted, and untagged assignments default to production. A separate preview executor key was provisioned and the isolated Worker source `397542d` deployed (ETag `593b311b8b08657273767d73f8edbfa256c48213763ffe2d2085913c9dbff979`). Only `preview_enabled` was activated, with production `enabled=false` explicitly retained. This narrower operation passed automatic review.
+
+The ready test URL is https://5dced974.interplanetaryfund-migration.pages.dev/agents. A real signed-in private draft request has been requested from the owner without requesting credentials. Until its trusted assignment/provider-backed receipt and browser behavior are verified, production procurement stays off and this component is not declared end-to-end complete.
+
+## Reconciliation after campaign publishing release
+
+On November 4 Pacific / November 5 UTC, the reported missing creator publishing
+action was completed as a separate increment. PRs #219 and #218 are merged;
+production Pages deployment `e80eaf9a` serves main `69cb1e1`. Nine local browser
+transport scenarios, eight rolled-back live permission checks, current CI and
+independent preview/production audits passed. Actual signed-in hosted publication
+was not performed by the builder. Campaign financial gates remain unchanged.
+See the [publishing deployment ledger](../migration/CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
+
+The workforce branch merged that main cleanly as `dce76e9`; no role, registry,
+queue, adapter, instruction, workflow or connector contract was discarded.
+Next increment: reconcile and verify the permanent gateway and queue-compatible
+Story runtime against the current campaign release. Production procurement is
+still disabled; deployment of compatibility code must preserve the released
+legacy Story path and must not enable the rejected global activation. Preview
+procurement remains isolated. The latest live check found zero assignments, so
+the owner's saved campaign draft is not treated as an AI execution receipt.
+
+The Story workspace now calls `/api/services/story_agent/*`; existing
+`/api/agents/story/*` addresses remain compatible. All 33 backend and 28 frontend
+test files pass on the reconciled tree, as do builds. Eight direct runtime cases
+include forwarding the permanent address through the actual Story handler with
+procurement absent/disabled: exactly one existing-model call, the original
+owner/context/begin/finish RPCs, the same stored draft contract and no executor
+credential forwarded to inference. Reviewer 2 independently checked 18 legacy
+Story, 12 database, three queue-access and runtime cases, plus omitted/disabled/
+false flag modes. No blocking compatibility issue was found.
+
+Live predeployment checks reconfirm both applied migration versions, distinct
+server-key digests, preview enabled/production disabled, valid expiring Free-plan
+evidence and zero assignments/successful member runs. The currently released
+production Worker was backed up; it is the legacy code without procurement.
+Updating that Worker must inherit its bindings and keep production procurement
+absent/disabled. Do not substitute the preview Wrangler variables.

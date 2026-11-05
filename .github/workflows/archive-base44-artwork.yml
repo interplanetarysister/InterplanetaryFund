@@ -1,0 +1,33 @@
+name: Archive public Base44 artwork to repository
+on:
+  push:
+    branches:
+      - release/preview-integration-20261104
+    paths:
+      - scripts/archive_base44_artwork.py
+      - .github/workflows/archive-base44-artwork.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Archive public artwork and verify downloads
+        run: python scripts/archive_base44_artwork.py
+      - name: Commit archived image files and manifest to preview branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add apps/web/public/images/base44-archive
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: preserve public Base44 artwork in Pages bundle"
+            git push origin HEAD:release/preview-integration-20261104
+          fi

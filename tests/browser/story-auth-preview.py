@@ -19,7 +19,7 @@ async def main():
   saved_wording={}; saved_preferences={}; preference_generations={}; runtime={'enabled':True}
   save_started=asyncio.Event(); save_release=asyncio.Event(); get_started=asyncio.Event(); get_release=asyncio.Event()
   async def mock(route):
-   req=route.request; url=req.url; uid=UID_A
+   req=route.request; url=req.url.replace("/api/services/story_agent/","/api/agents/story/"); uid=UID_A
    bearer=req.headers.get('authorization','').removeprefix('Bearer ')
    try: uid=json.loads(base64.urlsafe_b64decode(bearer.split('.')[1]+'==='))['sub']
    except (ValueError,IndexError,KeyError): pass
@@ -31,6 +31,7 @@ async def main():
    elif '/rest/v1/ifund_profiles' in url:payload={'id':uid,'account_status':'active','account_deletion_pending':False}
    elif '/rest/v1/ifund_legal_acceptances' in url:payload={'owner_id':uid,'terms_version':'2026-10-13-v3','explicit_consent':True}
    elif '/rest/v1/ifund_campaigns' in url:payload=[{'id':uid,'owner_id':uid,'title':'Owned campaign','summary':'A summary','story':'A story','category':'community','goal_amount':100,'status':'draft','created_at':'2026-01-01T00:00:00Z','updated_at':'2026-01-01T00:00:00Z'}]
+   elif '/api/agents/story/queued-requests' in url:payload={'queued_requests':[]}
    elif '/api/agents/story/subscription' in url:
     if runtime['enabled']:payload={'active':True,'level':1}
     else:status=503;payload={'error':'The writing assistant is not available yet.'}
@@ -62,6 +63,7 @@ async def main():
    await route.fulfill(status=status,content_type='application/json',body=json.dumps(payload),headers={'access-control-allow-origin':'*'})
   await ctx.route('https://ssibsfmtodgximseeqsv.supabase.co/**',mock)
   await ctx.route('**/api/agents/story/**',mock)
+  await ctx.route('**/api/services/story_agent/**',mock)
   # Signup keeps safe return path and switching mode restores password login.
   await page.goto(ORIGIN+'/register?returnTo=%2Fagents')
   await page.wait_for_timeout(1000)
@@ -143,7 +145,7 @@ async def main():
   print('PASS mobile 390px layout has no horizontal overflow')
   runtime['enabled']=False
   await page.goto(ORIGIN+'/agents')
-  await page.get_by_role('alert').filter(has_text='not available yet').wait_for()
+  await page.get_by_role('alert').filter(has_text='Writing suggestions are temporarily unavailable').wait_for()
   await page.get_by_role('button',name='Clear all saved writing preferences',exact=True).click()
   await page.get_by_text('Your saved writing preferences have been cleared.',exact=True).wait_for()
   assert preference_generations.get(UID_B)==1
@@ -153,9 +155,32 @@ async def main():
   await page.get_by_role('button',name='Update password',exact=True).wait_for()
   await page.get_by_label('New password',exact=True).fill('New-test-password-123!')
   await page.get_by_role('button',name='Update password',exact=True).click()
-  await page.wait_for_url('**/login',timeout=15000)
-  assert '?' not in page.url and '#' not in page.url
+  await page.wait_for_url('**/login?returnTo=*',timeout=15000)
+  assert urlparse(page.url).path=='/login' and parse_qs(urlparse(page.url).query)=={'returnTo':['/dashboard']} and '#' not in page.url
   print('PASS token-hash recovery verifies, clears credentials and updates password')
+  await page.goto(ORIGIN+'/create')
+  await page.get_by_label('Campaign title',exact=True).fill('GUEST CAMPAIGN FACTS')
+  await page.reload()
+  assert await page.get_by_label('Campaign title',exact=True).input_value()=='GUEST CAMPAIGN FACTS'
+  await page.get_by_text('Sign in to continue',exact=True).wait_for()
+  print('PASS guest composer restores local text while save/publish stay member-gated')
+  await second.goto(ORIGIN+'/login?returnTo=%2Fcreate')
+  await second.get_by_label('Email address').fill('b@example.invalid')
+  await second.get_by_label('Password',exact=True).fill('Test-password-123!')
+  await second.get_by_role('button',name='Sign in',exact=True).click()
+  await page.wait_for_timeout(400)
+  assert await page.get_by_label('Campaign title',exact=True).input_value()=='GUEST CAMPAIGN FACTS'
+  await page.get_by_label('Campaign title',exact=True).fill('PRIVATE OWNER B CAMPAIGN')
+  print('PASS guest text transfers to first confirmed owner')
+  await second.goto(ORIGIN+'/login?returnTo=%2Fcreate')
+  await second.get_by_label('Email address').fill('a@example.invalid')
+  await second.get_by_label('Password',exact=True).fill('Test-password-123!')
+  await second.get_by_role('button',name='Sign in',exact=True).click()
+  await page.wait_for_timeout(400)
+  assert await page.get_by_label('Campaign title',exact=True).input_value()==''
+  assert 'PRIVATE OWNER B CAMPAIGN' not in await page.locator('body').inner_text()
+  assert await page.evaluate('document.documentElement.scrollWidth<=innerWidth')
+  print('PASS account switch removes prior owner campaign text; mobile fits')
   assert not errors,errors
   await browser.close()
 asyncio.run(main())

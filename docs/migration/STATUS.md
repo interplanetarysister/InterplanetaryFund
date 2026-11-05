@@ -1,6 +1,11 @@
 # Migration status — 2026-10-24
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
+Latest campaign-creator increment and current production/preview reconciliation:
+[campaign publishing and deployment review, November 4 Pacific / November 5 UTC](CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
+Historical deployment/zero-user assertions below must not override that verified
+record; unfinished agent/financial parity is not marked complete.
+
 - [ ] Phase 1 — clean scaffold, decision, complete inventory: **in progress**. 95 entity contracts, 184 function entrypoints, 11 connectors, 10 agents, 17 workflows, all 364 frontend files statically inventoried. Dynamic callers, detailed authorization maps, and dynamic cross-feature parity remain; build proof is recorded below.
 - [ ] Phase 2 — migrate 95 entities and full RLS: **not started**; 4-table illustrative staging SQL only.
 - [ ] Phase 3 — Supabase Auth identity mapping + role gates: **not started**.

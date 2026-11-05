@@ -1,0 +1,215 @@
+{
+  "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
+  "assets": [
+    {
+      "path": "apps/web/public/platform-logos/bluesky.svg",
+      "sha256": "d6677f446305fe27ab1c50d36ffd332eac148466143a31e24c01c559398a9d27",
+      "bytes": 578
+    },
+    {
+      "path": "apps/web/public/platform-logos/buymeacoffee.svg",
+      "sha256": "d7fc1494f77d95464b9802e99d0183e9ff596e7dea4e4dc509e2c99aa508ea08",
+      "bytes": 2443
+    },
+    {
+      "path": "apps/web/public/platform-logos/discord.svg",
+      "sha256": "137772c75a8f44c49c6d2d73ec4046bc33769b9c3f61c962ccc7937d16225c88",
+      "bytes": 1138
+    },
+    {
+      "path": "apps/web/public/platform-logos/dropbox.svg",
+      "sha256": "741f0652204a0cb6bc9e3ae160ea0100e058049d7fb39a9008768b6d49b05dde",
+      "bytes": 298
+    },
+    {
+      "path": "apps/web/public/platform-logos/eventbrite.svg",
+      "sha256": "f907447c7f04ed1509e81b362616f4b9a700f1e5aaea8941e56fada687a538f2",
+      "bytes": 456
+    },
+    {
+      "path": "apps/web/public/platform-logos/facebook.svg",
+      "sha256": "6dcc14a27b6f735f514fac3ae432106b4240f6ec74644a7f79439a0a05d040c0",
+      "bytes": 523
+    },
+    {
+      "path": "apps/web/public/platform-logos/fundrazr.png",
+      "sha256": "fc8de4bdb1415873d1126bd33685e9e0baa9e995dd082f22684976ac68ee64bc",
+      "bytes": 764
+    },
+    {
+      "path": "apps/web/public/platform-logos/github.svg",
+      "sha256": "2558643fec9c23f9905732ea0efd2ee326ef55943b3dc343d4660fd4a6e7b2e4",
+      "bytes": 839
+    },
+    {
+      "path": "apps/web/public/platform-logos/gitlab.svg",
+      "sha256": "d59fe020c98ffef4d18e58fc7da0d9df89b94171bac351087e1f5fb595d73e46",
+      "bytes": 500
+    },
+    {
+      "path": "apps/web/public/platform-logos/givesendgo.png",
+      "sha256": "563f806387c226c07a8b63bc9e987d803e8809d7dcf1cb56d3c46c36b608b0e8",
+      "bytes": 778
+    },
+    {
+      "path": "apps/web/public/platform-logos/gmail.svg",
+      "sha256": "d9b66d8771ba4a5a3171fde8c6f9a281c6178fab80607a94e338ab3c2e0866ed",
+      "bytes": 347
+    },
+    {
+      "path": "apps/web/public/platform-logos/gofundme.svg",
+      "sha256": "18d9ff159b97283be2d6c0c8093e16a0b042615359af632cbb33db772474e1d0",
+      "bytes": 1554
+    },
+    {
+      "path": "apps/web/public/platform-logos/google_contacts.png",
+      "sha256": "63efcfe9eeda4cc58965c7587a485886612cbf878ecd8fc3e4dd594db31a67fd",
+      "bytes": 1339
+    },
+    {
+      "path": "apps/web/public/platform-logos/google_photos.svg",
+      "sha256": "58307f7bc0afac9fd3edd46ed11810fe789dcb842d5396ca3cc56a81daf087ce",
+      "bytes": 685
+    },
+    {
+      "path": "apps/web/public/platform-logos/googlecalendar.svg",
+      "sha256": "40b04a9a988d3e5e46b9333d8f7d146154e0bf13bb3eaf51cb1d5936654bc2f8",
+      "bytes": 1011
+    },
+    {
+      "path": "apps/web/public/platform-logos/googledocs.svg",
+      "sha256": "7850425acae4700d27972b6ce66aad9e507b830356818def0a8c18c09f6b8131",
+      "bytes": 364
+    },
+    {
+      "path": "apps/web/public/platform-logos/googledrive.svg",
+      "sha256": "be4ce5d6b105148c1986764aa9a0b2e08e9cb11d4693a0f08f51d578dd909080",
+      "bytes": 605
+    },
+    {
+      "path": "apps/web/public/platform-logos/googleforms.svg",
+      "sha256": "85841803d277688eeda0253d506bebacbdfe19f4a5510a9a19c4dd7c4db9080c",
+      "bytes": 526
+    },
+    {
+      "path": "apps/web/public/platform-logos/googlesheets.svg",
+      "sha256": "e783077c672c101cc95f114ad3ab468c52b5b4d23b0f6a1b4c1c05328d0381f7",
+      "bytes": 424
+    },
+    {
+      "path": "apps/web/public/platform-logos/googletasks.svg",
+      "sha256": "66f0768b0b22288530e0704a18ee220d63b2a782fcc4c1425cc4bbc84ce60a66",
+      "bytes": 608
+    },
+    {
+      "path": "apps/web/public/platform-logos/gumroad.svg",
+      "sha256": "fd180f6cbdafeec72f6413ef6d550ab520be688756f9ba1ab748c3c342e748d0",
+      "bytes": 504
+    },
+    {
+      "path": "apps/web/public/platform-logos/indiegogo.png",
+      "sha256": "3c8a8737ae90b5ef53b774d4ab27e508f3058ef2c7686287c63a28cf741af81d",
+      "bytes": 554
+    },
+    {
+      "path": "apps/web/public/platform-logos/instagram.svg",
+      "sha256": "b1ffc524f94bed1640285aa3c667dac0789bd231c22782f40be1798be986115d",
+      "bytes": 1658
+    },
+    {
+      "path": "apps/web/public/platform-logos/justgiving.svg",
+      "sha256": "7fafde6db41e61f00e43d05d1144c91a7daeb021c189b2bb5dfa89c8796f6572",
+      "bytes": 404
+    },
+    {
+      "path": "apps/web/public/platform-logos/kickstarter.svg",
+      "sha256": "f7cab7697043718c0a74c9885e9080629ec350a93fd6d58cfc69dd16cbafd7b2",
+      "bytes": 460
+    },
+    {
+      "path": "apps/web/public/platform-logos/kofi.svg",
+      "sha256": "9157271fad75a3c9634a3f7070885fffac0c1fcd7e1e35324f7113866aa66849",
+      "bytes": 1133
+    },
+    {
+      "path": "apps/web/public/platform-logos/linkedin.svg",
+      "sha256": "c90b38156b11a3c257f1695fdf5f93779322f1ba88015962a51c42fd99dcdd66",
+      "bytes": 541
+    },
+    {
+      "path": "apps/web/public/platform-logos/mastodon.svg",
+      "sha256": "73f4d7d276c2422e9328ab4e6f6241a7f87092da971766043d7d5ec94a7b4ba8",
+      "bytes": 1189
+    },
+    {
+      "path": "apps/web/public/platform-logos/microsoft_teams.svg",
+      "sha256": "8cd3b8e96f2eece2e26e67aab197547729d7eac868bcd6b3eef4ad236a10e6d8",
+      "bytes": 1700
+    },
+    {
+      "path": "apps/web/public/platform-logos/notion.svg",
+      "sha256": "9d16a9bb07bf8114db206475281f14fd1a21be168b8ca0307fc0a5cb44b563c8",
+      "bytes": 986
+    },
+    {
+      "path": "apps/web/public/platform-logos/one_drive.png",
+      "sha256": "33a03200b71055b3eafcd46496b977612b1e28f828bdc2eaf1f8c78035ccc6ab",
+      "bytes": 177
+    },
+    {
+      "path": "apps/web/public/platform-logos/outlook.svg",
+      "sha256": "76160757232b35a787bab21ff03a71c304545c5e6faa46893d01dfbaf8280508",
+      "bytes": 1021
+    },
+    {
+      "path": "apps/web/public/platform-logos/patreon.svg",
+      "sha256": "ca21cb8246170a8244c3b64132943749b80d33ef4b20c51114c2c978939988e6",
+      "bytes": 376
+    },
+    {
+      "path": "apps/web/public/platform-logos/pinterest.svg",
+      "sha256": "0aa06f6ea1b9fd4a072246396920a26741e6d611b7bac74edcf5d66e5e45ae79",
+      "bytes": 914
+    },
+    {
+      "path": "apps/web/public/platform-logos/reddit.svg",
+      "sha256": "775a03b7c503aa1f4ff883707d20c887779eb218e7ab96b0198bb20d97ea6b54",
+      "bytes": 998
+    },
+    {
+      "path": "apps/web/public/platform-logos/slack.svg",
+      "sha256": "09df7070287df53e6d0e1cd245ba794c3a0f96b956e04fc2fa642ea6c5424a51",
+      "bytes": 1027
+    },
+    {
+      "path": "apps/web/public/platform-logos/spotfund.png",
+      "sha256": "e027787e09169849a6d4bd408ba7cc44ef4eb618ee7ad1670b31a240d393e8d1",
+      "bytes": 4452
+    },
+    {
+      "path": "apps/web/public/platform-logos/threads.svg",
+      "sha256": "4779a92a0c5077ab2abfd7c3968702c7f670317c42ec8f0ad0ba9b6adb3fab7b",
+      "bytes": 847
+    },
+    {
+      "path": "apps/web/public/platform-logos/tiktok.svg",
+      "sha256": "23f0fcdbd7b4cd34c7db9bd93ec21506dfc69406ffc8c2febaae8c46eabff383",
+      "bytes": 731
+    },
+    {
+      "path": "apps/web/public/platform-logos/wordpress_com.svg",
+      "sha256": "db0262792ae235bf8cd1f57f28903c5a444e9a43c098d180409516005592b2a4",
+      "bytes": 1053
+    },
+    {
+      "path": "apps/web/public/platform-logos/x.svg",
+      "sha256": "5750b8370a33d3894d3abb643512a6ec627e3c9282db3f4175c49cc574571600",
+      "bytes": 314
+    },
+    {
+      "path": "apps/web/public/platform-logos/youtube.svg",
+      "sha256": "bb4a6eb29b0f18bcb7a239ec9e73b3c43891940fa32c1964c34de3dc712db0df",
+      "bytes": 444
+    }
+  ]
+}

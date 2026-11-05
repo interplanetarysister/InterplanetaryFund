@@ -9,7 +9,8 @@ const sql=read("../../supabase/migrations/pending/20261101_ifund_legal_acceptanc
 
 test("source-aligned following is implemented as a real guarded route",()=>{
   assert.match(app, /path="\/following" element={<MemberAccess><FollowedCampaigns \/><\/MemberAccess>}/);
-  for(const p of ["/dashboard","/create","/profile","/connections"]) assert.match(app,new RegExp('path="'+p+'".*<MemberAccess>'));
+  for(const p of ["/dashboard","/profile","/connections"]) assert.match(app,new RegExp('path="'+p+'".*<MemberAccess>'));
+  assert.match(app, /path="\/create" element={<CreateCampaign \/>}/);
   assert.doesNotMatch(source,/base44Client|service_role|SUPABASE_SERVICE_ROLE_KEY/);
 });
 test("owner and campaign IDs are derived from auth and RLS",()=>{
