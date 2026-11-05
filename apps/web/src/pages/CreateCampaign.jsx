@@ -124,7 +124,17 @@ export default function CreateCampaign() {
       setSuggesting(false);
     }
   }
-  function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) {
+    setForm(prev => ({ ...prev, [key]: value }));
+    if (key === "story") {
+      // The full-story textarea and section editor must share one source of
+      // truth. Otherwise an old section edit can overwrite newer story text.
+      const sections = splitStory(value);
+      storySectionsRef.current = sections;
+      setStorySections(sections);
+      setSectionProposals({});
+    }
+  }
   async function save(e) {
     e.preventDefault();
     if (busy || loadingDraft || draftLoadError) return;
