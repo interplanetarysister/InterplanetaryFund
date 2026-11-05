@@ -48,6 +48,13 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_growth_runtime.begin_request",
   "ifund_growth_runtime.finish_request",
   "ifund_growth_runtime.bulk_update",
+  "ifund_communications_runtime.save_draft",
+  "ifund_communications_runtime.save_owner",
+  "ifund_communications_runtime.begin_request",
+  "ifund_communications_runtime.finish_request",
+  "ifund_communications_runtime.cancel",
+  "ifund_communications_runtime.prepare_send",
+  "ifund_communications_runtime.send",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */

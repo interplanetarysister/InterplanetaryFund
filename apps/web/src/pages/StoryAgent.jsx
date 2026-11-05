@@ -201,7 +201,7 @@ export default function StoryAgent() {
   return (
     <div className="mx-auto max-w-3xl space-y-7 p-4 pb-24 sm:p-7">
       <header>
-        <nav aria-label="AI assistants" className="mb-4 flex gap-5"><span aria-current="page">Story</span><Link className="min-h-11 underline" to="/agents/strategy">Strategy</Link></nav>
+        <nav aria-label="AI assistants" className="mb-4 flex flex-wrap gap-5"><span aria-current="page">Story</span><Link className="min-h-11 underline" to="/agents/strategy">Strategy</Link><Link className="min-h-11 underline" to="/agents/growth">Growth</Link><Link className="min-h-11 underline" to="/agents/communications">Communications</Link></nav>
         <h1 className="text-3xl font-semibold">Your writing assistant</h1>
         <p className="mt-3 text-muted-foreground">
           Tell your campaign’s story in your own voice. Suggestions are private

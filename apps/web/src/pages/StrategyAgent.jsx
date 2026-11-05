@@ -158,7 +158,7 @@ export default function StrategyAgent({ agent = "strategy" }) {
   }
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-4 pb-28 sm:p-7">
-      <nav aria-label="AI assistants" className="flex gap-5">
+      <nav aria-label="AI assistants" className="flex flex-wrap gap-5">
         <Link className="min-h-11 underline" to="/agents">
           Story
         </Link>
@@ -176,6 +176,7 @@ export default function StrategyAgent({ agent = "strategy" }) {
         >
           Growth
         </Link>
+        <Link className="min-h-11 underline" to="/agents/communications">Communications</Link>
       </nav>
       <header>
         <h1 className="text-3xl font-semibold">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import CommunicationPreferences from "@/components/CommunicationPreferences";
 export default function Profile() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -53,6 +54,7 @@ export default function Profile() {
       {message && <p role="status" className="text-primary">{message}</p>}
       <button disabled={busy} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy ? "Saving…" : "Save profile"}</button>
     </form>}
+    <CommunicationPreferences />
     <p className="text-sm text-muted-foreground">Avatar uploads, friends, and connected platforms are being migrated separately. <Link to="/connections" className="underline">Connections</Link></p>
   </main>;
 }

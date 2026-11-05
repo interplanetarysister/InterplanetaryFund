@@ -170,6 +170,18 @@ const getDb = () =>
     const db = await freshDb(PGlite);
     await applyMigrations(db, COMMITTED_MIGRATIONS);
     await applyMigrations(db, PENDING);
+    // This older fixture predates the hosted lifecycle policy reconciliation.
+    // Match the live policy inspected before applying the preference migration;
+    // keep its strict preflight intact rather than weakening that migration.
+    await db.exec(`alter policy ifund_profiles_update on public.ifund_profiles
+      to authenticated
+      using (id=(select auth.uid()) and (select public.ifund_current_account_is_active()))
+      with check (id=(select auth.uid()) and (select public.ifund_current_account_is_active()));`);
+    // This owner-only column migration is already applied in production and
+    // backs the new preference UI. Keep the executable schema fixture current.
+    await applyMigrations(db, [
+      "supabase/migrations/20261103192435_ifund_communications_preferences_20261103.sql",
+    ]);
     return db;
   })());
 
