@@ -116,7 +116,7 @@ export default function CreateCampaign() {
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
-      if (authError || !user) { navigate(`/login?next=${encodeURIComponent("/create")}`, { replace: true }); return; }
+      if (authError || !user) { navigate(`/login?next=${encodeURIComponent(draftId ? `/create?draft=${encodeURIComponent(draftId)}` : "/create")}`, { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
       if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
