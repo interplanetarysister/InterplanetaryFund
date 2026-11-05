@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "r
 import { legacyAuthCallbackUrl } from "./lib/authFlow";
 import PageNotFound from "./lib/PageNotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import PlatformSupportHostedButton from "./components/payments/PlatformSupportHostedButton";
 import BrandLogo from "@/components/brand/BrandLogo";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import MemberAccess from "@/components/auth/MemberAccess";
@@ -106,7 +107,7 @@ function AppRoutes() {
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
-  </Routes></Suspense>;
+  </Routes>{(["/", "/about", "/terms", "/privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
 }
 
 function App() {
