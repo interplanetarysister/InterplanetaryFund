@@ -98,7 +98,7 @@ export async function routeReadRequest(request, env, fetcher = fetch) {
   try {
     if (path === '/api/community/feed') {
       return await readOnly(
-        env, 'ifund_posts?select=id,author_id,body,created_at&order=created_at.desc&limit=30',
+        env, 'ifund_posts?select=id,body,created_at&order=created_at.desc&limit=30',
         null, fetcher,
       );
     }

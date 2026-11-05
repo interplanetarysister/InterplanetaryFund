@@ -13,6 +13,7 @@ const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
+const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -82,6 +83,7 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
+      <Route path="/shorts" element={<OrbitShorts />} />
       <Route path="/agents" element={<MemberAccess><StoryAgent /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />

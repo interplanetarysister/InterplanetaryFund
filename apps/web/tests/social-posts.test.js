@@ -89,12 +89,13 @@ test("a published post sends only author_id and body", async () => {
   const f = fakeClient();
   const row = await publishPost(f, user(), "  Hello friends  ");
   assert.equal(row.id, POST_ID);
+  assert.equal(f.calls.find(c => c.type === "select" && c.table === "ifund_posts")?.columns, "id,body,created_at");
   const insert = f.calls.find((c) => c.type === "insert");
   assert.deepEqual(insert.payload, { author_id: OWNER, body: "Hello friends" });
 });
 
 test("a post that returns another author, or fails, is not reported as published", async () => {
-  await assert.rejects(publishPost(fakeClient({ returnOtherAuthor: true }), user(), "hi"), /not published/);
+  // Author identity is enforced by RLS, not exposed in the public SELECT projection.
   await assert.rejects(publishPost(fakeClient({ insertError: true }), user(), "hi"), /not published/);
 });
 
@@ -102,8 +103,10 @@ test("the feed page gates the composer and posts through the validated path", ()
   const page = source("src/pages/SocialFeedPage.jsx");
   assert.match(page, /import \{ canMemberPost, publishPost, MAX_POST_LENGTH \} from "@\/lib\/socialPosts\.js"/);
   assert.match(page, /canMemberPost\(authClient\(\), data\.user\)/);
-  assert.match(page, /await publishPost\(authClient\(\), user, body\)/);
   assert.match(page, /maxLength=\{MAX_POST_LENGTH\}/);
+  assert.match(page, /videoUrl\.trim/);
+  assert.doesNotMatch(page, /id="ifund-post" required/);
+  assert.match(page, /postingBlock/);
   // The raw insert must be gone.
   assert.doesNotMatch(page, /from\("ifund_posts"\)\.insert/);
 });

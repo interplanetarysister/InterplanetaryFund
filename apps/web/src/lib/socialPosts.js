@@ -33,9 +33,9 @@ export async function publishPost(client, user, raw) {
   if (body === null) throw new Error(`Posts must be 1–${MAX_POST_LENGTH} characters.`);
   const { data, error } = await client.from("ifund_posts")
     .insert({ author_id: user.id, body })
-    .select("id,author_id,body,created_at")
+    .select("id,body,created_at")
     .single();
-  if (error || data?.author_id !== user.id || typeof data?.body !== "string") {
+  if (error || typeof data?.id !== "string" || data?.body !== body) {
     throw new Error("Your post was not published. Please try again.");
   }
   return data;
