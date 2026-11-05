@@ -87,7 +87,7 @@ function AppRoutes() {
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
-      <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />
+      <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
