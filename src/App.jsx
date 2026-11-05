@@ -133,20 +133,7 @@ function App() {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/discover" element={<Discover />} />
           <Route path="/campaign/:id" element={<Detail />} />
-          <Route
-            path="/create"
-            element={
-              user ? (
-                <Editor user={user} />
-              ) : (
-                <main>
-                  <h1>Sign in before creating a campaign</h1>
-                  <p>Sign in first so your draft is saved to your account.</p>
-                  <Link to={loginPath}>Sign in</Link>
-                </main>
-              )
-            }
-          />
+          <Route path="/create" element={<Editor user={user} />} />
           <Route
             path="/edit/:id"
             element={
