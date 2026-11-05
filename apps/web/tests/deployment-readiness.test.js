@@ -78,7 +78,7 @@ test("the deploy workflow refuses to publish a build with no backend", () => {
   const wf = readFileSync(repo(".github/workflows/deploy-web-pages.yml"), "utf8");
   assert.match(wf, /vars\.VITE_SUPABASE_URL == ''/);
   assert.match(wf, /Refusing to publish a build with no backend/);
-  // It must prove the deep-link and header files made it into the bundle.
-  assert.match(wf, /test -f dist\/_redirects/);
+  // Native SPA fallback requires no top-level 404; the headers must ship.
+  assert.match(wf, /test ! -f dist\/404\.html/);
   assert.match(wf, /test -f dist\/_headers/);
 });
