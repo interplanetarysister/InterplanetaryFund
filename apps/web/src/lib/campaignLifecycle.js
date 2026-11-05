@@ -86,7 +86,7 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   if (!CAMPAIGN_CATEGORIES.includes(value.category)) errors.push("Choose a valid campaign category.");
   if (goal && !GOAL_PATTERN.test(goal)) {
     errors.push("Enter the fundraising goal in USD with up to two decimal places.");
-  } else if (goal && !(Number(goal) > 0)) {
+  } else if (goal && (!Number.isFinite(Number(goal)) || !(Number(goal) > 0))) {
     errors.push("Enter a fundraising goal greater than zero.");
   }
   if (cover && coverUrlError(cover)) errors.push("Enter a valid http or https cover image link.");
