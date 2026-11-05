@@ -44,7 +44,7 @@ export default function SocialFeedPage({ community = false }) {
     if (videoUrl.trim() && !videoFromUrl(videoUrl.trim())) { setError("Enter a valid public YouTube or HTTPS MP4/WebM video URL."); return; }
     setBusy(true); setError("");
     try {
-      await publishPost(authClient(), user, [body.trim(), videoUrl.trim()].filter(Boolean).join("\\n"));
+      await publishPost(authClient(), user, [body.trim(), videoUrl.trim()].filter(Boolean).join("\n"));
       setBody(""); setVideoUrl(""); await load();
     } catch (cause) { setError(cause?.message || "Your post was not published. Please try again."); }
     finally { setBusy(false); }
@@ -58,7 +58,7 @@ export default function SocialFeedPage({ community = false }) {
       <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body} onChange={e=>setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" placeholder="Share a story or an update…" />
       <label htmlFor="ifund-video-url" className="block text-sm font-semibold">YouTube or video link (optional)</label><input id="ifund-video-url" type="url" value={videoUrl} onChange={e=>setVideoUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" className="min-h-11 w-full rounded-xl border border-input bg-background p-3" />
       <p className="text-xs text-muted-foreground">YouTube videos, Shorts and public HTTPS MP4/WebM links will appear in Orbit Shorts.</p>
-      <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{[body.trim(), videoUrl.trim()].filter(Boolean).join("\\n").length}/{MAX_POST_LENGTH}</span><button disabled={busy || (!body.trim() && !videoUrl.trim()) || [body.trim(), videoUrl.trim()].filter(Boolean).join("\\n").length > MAX_POST_LENGTH} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
+      <div className="flex items-center justify-between"><span className="text-xs text-muted-foreground">{[body.trim(), videoUrl.trim()].filter(Boolean).join("\n").length}/{MAX_POST_LENGTH}</span><button disabled={busy || (!body.trim() && !videoUrl.trim()) || [body.trim(), videoUrl.trim()].filter(Boolean).join("\n").length > MAX_POST_LENGTH} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button></div>
     </form> : <p className="rounded-xl border border-border p-4"><Link className="text-primary underline" to="/login">Sign in</Link> to share a post.</p>}
     {error && <p role="alert" className="rounded-xl border border-destructive p-4">{error}</p>}
     <section aria-label="Recent posts" className="space-y-4">
