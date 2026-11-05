@@ -23,7 +23,9 @@ Actual Workers AI synthetic smoke returned a valid thank-you subject/content dra
 
 The previously applied preference migration is now reconciled in source as `20261103192435_ifund_communications_preferences_20261103.sql`, exact 4,046-byte MD5 `35e938e608db6452f21243db052d362f`. It is not reapplied.
 
-The new Communications SQL remains `pending/ifund_communications_agent_contracts.sql` until the Supabase connector confirms installation and supplies the actual version. Earlier connector confirmations expired without installation. Record the actual version/checksum, hosted grants, controls, Worker/Pages commits and URLs after installation. Do not invent an applied timestamp.
+The reviewed schema is installed as `20261105111617_ifund_communications_agent_contracts.sql`: exact 31,739 bytes, MD5 `bfe70fddc94d8534d5c3442926686552`. Initial hosted inspection confirmed disabled draft/delivery controls; subsequent authorized activation enabled drafting with delivery still false. Hosted checks confirmed zero direct browser grants on private tables and eight authenticated-only security-invoker wrappers. Earlier expired confirmations caused no installation; the later confirmed call installed this exact source.
+
+Preview Pages deployment `77811625-e855-4a33-88d2-9a0761c359b7` succeeded at `c88be1555445426c280fba4ab7bc35316a9833f5`; entry https://77811625.interplanetaryfund-migration.pages.dev/communications . Worker `ifund-communications-agent-preview` deployment `feed7802a6db4cd1beed18e77b342558` has drafting/AI enabled and in-app/email sending disabled. Actual hosted Chromium verified signup, member guard, same-origin workspace401, enabled Worker health with sending off, and390px mobile overflow. Full root36 and frontend24 test files passed. Positive hosted consenting-member execution remains NOT TESTED.
 
 ## Preview and remaining gates
 

@@ -124,7 +124,7 @@
       "id": "communications_agent",
       "source": "base44/agents/communications_agent.jsonc",
       "sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
-      "status": "reviewed_preview_candidate",
+      "status": "enabled_preview_drafting",
       "tools": [
         "Campaign",
         "Message",
@@ -140,7 +140,7 @@
         "worker/agents/memberApi.js",
         "apps/web/src/pages/CommunicationsAgent.jsx",
         "apps/web/src/components/CommunicationPreferences.jsx",
-        "supabase/migrations/pending/ifund_communications_agent_contracts.sql",
+        "supabase/migrations/20261105111617_ifund_communications_agent_contracts.sql",
         "tests/communications-agent-db.test.js",
         "tests/communications-agent.test.js"
       ],
@@ -152,14 +152,18 @@
         "rate/capacity bounds, AI slot reservation, active-draft recovery",
         "plan-independent preference CAS and stale-read protection",
         "independent12SQL/11Worker/3helper/11browser cases",
-        "actual synthetic Workers AI draft417tokens24.12neurons"
+        "actual synthetic Workers AI draft417tokens24.12neurons",
+        "exact hosted migration reconciled; private browser grants denied",
+        "hosted preview signup/member guard/API401/mobile checks; delivery disabled"
       ],
       "remaining_gates": [
-        "hosted installation and preview acceptance",
         "real consenting-member runtime/delivery acceptance",
         "configured email, recurring data, general tools and historical scoped memory",
         "production held until all remaining agents and required checks are ready"
-      ]
+      ],
+      "migration_version": "20261105111617",
+      "preview_url": "https://77811625.interplanetaryfund-migration.pages.dev/communications",
+      "preview_commit": "c88be1555445426c280fba4ab7bc35316a9833f5"
     },
     {
       "order": 5,

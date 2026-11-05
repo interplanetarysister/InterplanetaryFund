@@ -32,7 +32,7 @@ export async function fixture() {
   await db.exec(
     readFileSync(
       new URL(
-        "../supabase/migrations/pending/ifund_communications_agent_contracts.sql",
+        "../supabase/migrations/20261105111617_ifund_communications_agent_contracts.sql",
         import.meta.url,
       ),
       "utf8",
