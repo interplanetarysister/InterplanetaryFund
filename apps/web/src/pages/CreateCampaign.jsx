@@ -3,6 +3,17 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { requestCampaignDraft } from "@/api/campaignDraft";
 
+// Keep an unsigned visitor's unfinished campaign on this device across sign-in.
+// This is not a server-side save and is cleared only after a confirmed draft write.
+const LOCAL_DRAFT_KEY = "ifund:guest-campaign-draft:v1";
+function readGuestDraft() {
+  try {
+    const raw = sessionStorage.getItem(LOCAL_DRAFT_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch { return {}; }
+}
+
 export default function CreateCampaign() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -28,13 +39,13 @@ export default function CreateCampaign() {
     })();
     return () => { active = false; };
   }, [draftId,navigate]);
-  const [form, setForm] = useState({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" });
+  const [form, setForm] = useState(() => ({ title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", ...(!draftId ? readGuestDraft().form : {}) }));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  const [draftDetails, setDraftDetails] = useState("");
-  const [draftBeneficiary, setDraftBeneficiary] = useState("");
-  const [draftNeed, setDraftNeed] = useState("");
+  const [draftDetails, setDraftDetails] = useState(() => !draftId ? (readGuestDraft().details || "") : "");
+  const [draftBeneficiary, setDraftBeneficiary] = useState(() => !draftId ? (readGuestDraft().beneficiary || "") : "");
+  const [draftNeed, setDraftNeed] = useState(() => !draftId ? (readGuestDraft().need || "") : "");
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -42,6 +53,11 @@ export default function CreateCampaign() {
   const [sectionProposals, setSectionProposals] = useState({});
   const [regeneratingSection, setRegeneratingSection] = useState(-1);
   const [sectionError, setSectionError] = useState("");
+  useEffect(() => {
+    if (draftId) return;
+    try { sessionStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify({ form, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed })); }
+    catch { /* Private browsing or storage restrictions must not block composing. */ }
+  }, [draftId, form, draftDetails, draftBeneficiary, draftNeed]);
   function splitStory(story) {
     return String(story || "").split(/\n\s*\n/).map(part => part.trim()).filter(Boolean);
   }
@@ -100,7 +116,7 @@ export default function CreateCampaign() {
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
-      if (authError || !user) { navigate("/login", { replace: true }); return; }
+      if (authError || !user) { navigate(`/login?next=${encodeURIComponent("/create")}`, { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
       if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
@@ -113,6 +129,7 @@ export default function CreateCampaign() {
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw insertError;
       setSaved(data.id);
+      try { sessionStorage.removeItem(LOCAL_DRAFT_KEY); } catch { /* Saved remotely; storage cleanup is best-effort. */ }
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }

@@ -73,7 +73,7 @@ jobs:
           npm ci --no-audit --no-fund
           npm test
           npm run build
-          test -f dist/_redirects || { echo "::error::dist/_redirects missing; deep links would 404"; exit 1; }
+          test ! -f dist/404.html || { echo "::error::dist/404.html disables native SPA deep-link fallback"; exit 1; }
           test -f dist/_headers || { echo "::error::dist/_headers missing"; exit 1; }
 
       - name: Choose deploy branch
