@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 // PayPal hosted button supplied by the IFund owner on November 5, 2026.
 // This is a fixed $25 platform-support payment, NOT campaign checkout.
 const HOSTED_ID = "GT3RRRVBG4E5Y";
-const CLIENT_ID = "BAAC5OeGibmx5Rq9xWFqsgzyfLx16xyCZ415fe046Giq0E-Y7xqJyf3h2KnTChXWjRMbVnsrow0RDWqJMs";
+const CLIENT_ID = "BAAC5OeGibmx5Rq9xWFqsgzyfLx16xyCz415fe046Giq0E-Y7xqJyf3h2KnTChXWjRMbVnsrowVRDWqJMs";
 const SDK_ID = "ifund-paypal-hosted-sdk";
 
 export default function PlatformSupportHostedButton() {
@@ -16,7 +16,7 @@ export default function PlatformSupportHostedButton() {
       container.current.replaceChildren();
       try {
         window.paypal.HostedButtons({ hostedButtonId: HOSTED_ID })
-          .render(container.current);
+          .render(container.current).catch(() => { if (active) setFailed(true); });
       } catch {
         if (active) setFailed(true);
       }
