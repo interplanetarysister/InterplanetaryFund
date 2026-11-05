@@ -1009,7 +1009,7 @@
   "collective_network": {
     "component": "permanent services and replaceable workforce procurement",
     "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
-    "implementation_status": "preview_ready_awaiting_signed_in_test",
+    "implementation_status": "gateway_reconciled_with_publishing_release_verification_in_progress",
     "production_status": "procurement_disabled_legacy_story_unchanged",
     "migration": "20261104055345_ifund_collective_workforce.sql",
     "preserved": {
@@ -1024,13 +1024,13 @@
       "root_test_files": 33,
       "new_procurement_cases": 7,
       "new_database_cases": 12,
-      "new_runtime_cases": 7,
+      "new_runtime_cases": 8,
       "frontend_build": "pass",
       "queue_access_cases": 3
     },
     "remaining": [
       "authenticated production member request and provider receipt",
-      "production preview/release verification",
+      "workforce gateway preview and production compatibility release verification",
       "actual multi-service collaborative task executor and checkpoints",
       "other specialist adapters including existing Strategy PR #211",
       "shared approved knowledge contribution/review/retrieval beyond current verified research",
@@ -1070,6 +1070,27 @@
       "preview_enabled": true,
       "production_enabled": false,
       "real_member_verification": "pending owner signed-in preview test"
+    },
+    "reconciled_main": "69cb1e1aa338d3a1cd71bc34552089422a18359e",
+    "gateway_release": {
+      "main_baseline": "69cb1e1aa338d3a1cd71bc34552089422a18359e",
+      "reconciliation_merge": "dce76e9",
+      "frontend_service_address": "/api/services/story_agent",
+      "legacy_address_retained": "/api/agents/story",
+      "production_procurement_enabled": false,
+      "production_runtime_status": "pending_compatibility_deploy_with_flags_preserved",
+      "legacy_compatibility_cases": 18,
+      "gateway_runtime_cases": 8,
+      "web_test_files": 28,
+      "root_test_files": 33,
+      "new_schema_changes": false,
+      "paid_services_added": false,
+      "publishing_release": {
+        "production_deployment": "e80eaf9a-6f4e-459b-8bec-71bfffa1bd14",
+        "source": "69cb1e1",
+        "status": "deployed_and_public_route_audit_passed",
+        "signed_in_publish_test": "NOT TESTED by builder/auditor"
+      }
     }
   }
 }

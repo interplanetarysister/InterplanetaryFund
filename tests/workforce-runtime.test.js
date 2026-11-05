@@ -353,6 +353,58 @@ test("central service addresses preserve authorization and never expose the priv
   );
 });
 
+test("the permanent Story address preserves released drafting when procurement is disabled", async () => {
+  for (const flag of [undefined, "disabled"]) {
+    const calls = [];
+    let inference = 0;
+    const legacyEnv = {
+      ...env,
+      IFUND_WORKFORCE_ENABLED: flag,
+      IFUND_WORKFORCE_EXECUTOR_KEY: undefined,
+      AI: {
+        run: async (model, args) => {
+          inference++;
+          assert.equal(model, candidate.model);
+          assert.ok(!JSON.stringify(args).includes("owner.jwt"));
+          return { response: suggestion };
+        },
+      },
+    };
+    const rpc = fetcher(calls, {
+      ifund_story_begin: () => Response.json({ state: "claimed", lease: rid }),
+      ifund_story_finish: (body) =>
+        Response.json({ id: rid, status: "draft", payload: body.p_result }),
+    });
+    const response = await serviceGateway(
+      new Request("https://ifund.test/api/services/story_agent/drafts", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer owner.jwt",
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(input),
+      }),
+      {
+        IFUND_STORY_AGENT: {
+          fetch: (forwarded) => storyRoute(forwarded, legacyEnv, rpc),
+        },
+      },
+    );
+    assert.equal(response.status, 201);
+    assert.deepEqual((await response.json()).draft.payload, suggestion);
+    assert.equal(inference, 1);
+    assert.deepEqual(
+      calls.map((c) => c.name),
+      [
+        "user",
+        "ifund_story_context",
+        "ifund_story_begin",
+        "ifund_story_finish",
+      ],
+    );
+  }
+});
+
 test("queue erasure remains authenticated without inference, execution enablement or executor key", async () => {
   let called = false;
   const req = new Request("https://ifund.test/api/agents/story/cancel-queued", {

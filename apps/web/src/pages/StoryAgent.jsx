@@ -21,7 +21,7 @@ export default function StoryAgent() {
     const { data, error } = await client.auth.getSession();
     if (error || !data?.session?.access_token)
       throw Error("Sign in to use your writing assistant.");
-    const res = await fetch("/api/agents/story/" + path, {
+    const res = await fetch("/api/services/story_agent/" + path, {
       method: body ? "POST" : "GET",
       headers: {
         Authorization: "Bearer " + data.session.access_token,

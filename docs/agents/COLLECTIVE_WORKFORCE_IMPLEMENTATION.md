@@ -66,3 +66,39 @@ Snapshot, claim, replay, resume, dispatch and completion respect the authenticat
 Preview isolation was installed as Supabase migration `20261104062233`; the source filename was reconciled to that actual history version. Live catalog checks confirm helper EXECUTE is denied to both browser roles, owner erasure remains granted, and untagged assignments default to production. A separate preview executor key was provisioned and the isolated Worker source `397542d` deployed (ETag `593b311b8b08657273767d73f8edbfa256c48213763ffe2d2085913c9dbff979`). Only `preview_enabled` was activated, with production `enabled=false` explicitly retained. This narrower operation passed automatic review.
 
 The ready test URL is https://5dced974.interplanetaryfund-migration.pages.dev/agents. A real signed-in private draft request has been requested from the owner without requesting credentials. Until its trusted assignment/provider-backed receipt and browser behavior are verified, production procurement stays off and this component is not declared end-to-end complete.
+
+## Reconciliation after campaign publishing release
+
+On November 4 Pacific / November 5 UTC, the reported missing creator publishing
+action was completed as a separate increment. PRs #219 and #218 are merged;
+production Pages deployment `e80eaf9a` serves main `69cb1e1`. Nine local browser
+transport scenarios, eight rolled-back live permission checks, current CI and
+independent preview/production audits passed. Actual signed-in hosted publication
+was not performed by the builder. Campaign financial gates remain unchanged.
+See the [publishing deployment ledger](../migration/CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
+
+The workforce branch merged that main cleanly as `dce76e9`; no role, registry,
+queue, adapter, instruction, workflow or connector contract was discarded.
+Next increment: reconcile and verify the permanent gateway and queue-compatible
+Story runtime against the current campaign release. Production procurement is
+still disabled; deployment of compatibility code must preserve the released
+legacy Story path and must not enable the rejected global activation. Preview
+procurement remains isolated. The latest live check found zero assignments, so
+the owner's saved campaign draft is not treated as an AI execution receipt.
+
+The Story workspace now calls `/api/services/story_agent/*`; existing
+`/api/agents/story/*` addresses remain compatible. All 33 backend and 28 frontend
+test files pass on the reconciled tree, as do builds. Eight direct runtime cases
+include forwarding the permanent address through the actual Story handler with
+procurement absent/disabled: exactly one existing-model call, the original
+owner/context/begin/finish RPCs, the same stored draft contract and no executor
+credential forwarded to inference. Reviewer 2 independently checked 18 legacy
+Story, 12 database, three queue-access and runtime cases, plus omitted/disabled/
+false flag modes. No blocking compatibility issue was found.
+
+Live predeployment checks reconfirm both applied migration versions, distinct
+server-key digests, preview enabled/production disabled, valid expiring Free-plan
+evidence and zero assignments/successful member runs. The currently released
+production Worker was backed up; it is the legacy code without procurement.
+Updating that Worker must inherit its bindings and keep production procurement
+absent/disabled. Do not substitute the preview Wrangler variables.
