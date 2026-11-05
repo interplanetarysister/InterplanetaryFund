@@ -179,6 +179,12 @@ jobs:
               echo "Missing SPA document at /$route" >&2
               exit 1
             }
+            # SPA deep links must serve the same app shell, not an unrelated
+            # error/login document that happens to contain an html tag.
+            if ! cmp -s /tmp/ifund-live-home.html "/tmp/ifund-live-${route}.html"; then
+              echo "Deep link /$route did not serve the original SPA entry document" >&2
+              exit 1
+            fi
           done
           # Confirm original install assets are served as files, not SPA HTML fallbacks.
           for asset in manifest.json favicon.jpg apple-touch-icon.jpg; do
@@ -205,5 +211,5 @@ jobs:
                 ;;
             esac
           done
-          echo "Verified deployed source provenance and SPA login deep-link at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Verified deployed source provenance and SPA login/create/discover deep links at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
           echo "Browser visual parity, login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
