@@ -1,0 +1,37 @@
+name: Backend migration QA
+on:
+  push:
+    branches:
+      - agent/backend-migration
+  pull_request:
+    branches:
+      - migration/base44-frontend-parity-20261103
+    paths:
+      - 'worker/**'
+      - 'tests/**'
+      - 'supabase/**'
+      - '.github/workflows/backend-migration-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: backend-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run repository regression suite (including Worker security)
+        run: npm test
+      - name: Build application to detect integration regressions
+        run: npm run build
