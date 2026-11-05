@@ -63,6 +63,14 @@ export default function CreateCampaign() {
   }
   function editSection(index, value) {
     setStorySections(previous => previous.map((part, i) => i === index ? value : part));
+    // A proposal was generated against the previous text; never offer a stale
+    // replacement after the organizer edits that section.
+    setSectionProposals(previous => {
+      if (!Object.prototype.hasOwnProperty.call(previous, index)) return previous;
+      const next = { ...previous };
+      delete next[index];
+      return next;
+    });
   }
   async function regenerateSection(index) {
     if (regeneratingSection !== -1 || suggesting || busy) return;
