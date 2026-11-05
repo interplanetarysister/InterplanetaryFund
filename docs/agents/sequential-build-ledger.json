@@ -189,7 +189,10 @@
       "source": "base44/agents/admin_builder_agent.jsonc",
       "sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
       "status": "blocked_by_previous_agent",
-      "tools": ["managePlatformIncidents", "manageAdminBuilderWork"],
+      "tools": [
+        "managePlatformIncidents",
+        "manageAdminBuilderWork"
+      ],
       "allow_anonymous_access": false
     }
   ],
@@ -298,7 +301,10 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["create", "update"]
+          "events": [
+            "create",
+            "update"
+          ]
         },
         "condition": "${ .trigger.event_type == \"create\" or any((.trigger.changed_fields // [])[]; IN(\"status\",\"outreach_enabled\",\"title\",\"summary\",\"story\",\"category\",\"cover_image_url\",\"end_date\",\"goal_amount\",\"ai_profile\")) }"
       },
@@ -339,7 +345,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "Campaign"
         }
       },
@@ -378,7 +386,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "CampaignUpdate"
         }
       },
@@ -513,7 +523,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "Campaign",
-          "events": ["update"]
+          "events": [
+            "update"
+          ]
         },
         "condition": "${ .trigger.data.status == \"completed\" and .trigger.old_data.status != \"completed\" }"
       },
@@ -554,7 +566,9 @@
         "config": {
           "trigger_type": "entity",
           "entity_name": "GrantApplication",
-          "events": ["create"]
+          "events": [
+            "create"
+          ]
         },
         "condition": "${ .trigger.data.status == \"submitted\" }"
       },
@@ -885,7 +899,9 @@
         "condition": null,
         "config": {
           "trigger_type": "entity",
-          "events": ["create"],
+          "events": [
+            "create"
+          ],
           "entity_name": "VolunteerSignup"
         }
       },
@@ -989,5 +1005,92 @@
       "executing": false
     }
   ],
-  "activation_authorized": true
+  "activation_authorized": true,
+  "collective_network": {
+    "component": "permanent services and replaceable workforce procurement",
+    "source_baseline": "af3acb935e577f7fd9ff021822debc5bc5f43969",
+    "implementation_status": "gateway_reconciled_with_publishing_release_verification_in_progress",
+    "production_status": "procurement_disabled_legacy_story_unchanged",
+    "migration": "20261104055345_ifund_collective_workforce.sql",
+    "preserved": {
+      "selectable_positions": 9,
+      "private_builder_positions": 1,
+      "workflows": 17,
+      "connectors": 11,
+      "queue": "ifund_ops.workflow_jobs",
+      "memory": "existing owner-scoped Story preferences and verified research"
+    },
+    "local_verification": {
+      "root_test_files": 33,
+      "new_procurement_cases": 7,
+      "new_database_cases": 12,
+      "new_runtime_cases": 8,
+      "frontend_build": "pass",
+      "queue_access_cases": 3
+    },
+    "remaining": [
+      "authenticated production member request and provider receipt",
+      "workforce gateway preview and production compatibility release verification",
+      "actual multi-service collaborative task executor and checkpoints",
+      "other specialist adapters including existing Strategy PR #211",
+      "shared approved knowledge contribution/review/retrieval beyond current verified research",
+      "verified campaign outcome learning and review",
+      "full historical memory/chat migration",
+      "all workflow and connector runtime parity"
+    ],
+    "authority": "Full implementation directive received; production increments authorized. Workers Free confirmed by owner in current session.",
+    "pull_request": "https://github.com/interplanetarysister/InterplanetaryFund/pull/212",
+    "applied_migration_version": "20261104055345",
+    "hosted_verification": {
+      "preview_worker": "https://ifund-story-agent-preview.interplanetary-fund.workers.dev",
+      "source_commit": "6cdd6ac",
+      "preview_code_etag": "2e4b6610e5726356e12c564bf79c6a0965ad5121889b569be5f588b179bda81c",
+      "health": "200",
+      "anonymous_draft_queue_admin_status": "401 denied",
+      "invalid_jwt": "403 denied",
+      "registry_rls": "all five tables enabled; anon/authenticated direct reads denied",
+      "native_full_json_contract": "pass, 27.091936 neurons, synthetic input only",
+      "real_member_request": "NOT TESTED",
+      "procurement_enabled": false,
+      "native_section_json_contract": "pass, 10.031223 neurons, synthetic input only",
+      "native_provider_implementation": "registered, available, tested; no verified member task yet",
+      "diagnostic_capacity_reserved_units": 1200
+    },
+    "preview_isolation": {
+      "source_migration": "20261104062233_ifund_preview_workforce_isolation.sql",
+      "status": "installed_preview_enabled_production_disabled",
+      "production_control": "disabled",
+      "design": "Independent secret-derived channels and preview enablement; shared account budget; cross-channel replay/resume/start/finish denied",
+      "reason": "Automatic approval review rejected global production activation before real member verification; no rejected action was applied.",
+      "applied_version": "20261104062233",
+      "preview_url": "https://5dced974.interplanetaryfund-migration.pages.dev/agents",
+      "preview_worker_source": "397542d1de0eed110635e879c4481d59db6e4e75",
+      "preview_code_etag": "593b311b8b08657273767d73f8edbfa256c48213763ffe2d2085913c9dbff979",
+      "live_permissions": "helper execute denied to anon/authenticated; owner erasure grant retained; private keys are distinct",
+      "preview_enabled": true,
+      "production_enabled": false,
+      "real_member_verification": "pending owner signed-in preview test"
+    },
+    "reconciled_main": "69cb1e1aa338d3a1cd71bc34552089422a18359e",
+    "gateway_release": {
+      "main_baseline": "69cb1e1aa338d3a1cd71bc34552089422a18359e",
+      "reconciliation_merge": "dce76e9",
+      "frontend_service_address": "/api/services/story_agent",
+      "legacy_address_retained": "/api/agents/story",
+      "production_procurement_enabled": false,
+      "production_runtime_status": "pending_compatibility_deploy_with_flags_preserved",
+      "legacy_compatibility_cases": 18,
+      "gateway_runtime_cases": 8,
+      "web_test_files": 28,
+      "root_test_files": 33,
+      "new_schema_changes": false,
+      "paid_services_added": false,
+      "publishing_release": {
+        "production_deployment": "e80eaf9a-6f4e-459b-8bec-71bfffa1bd14",
+        "source": "69cb1e1",
+        "status": "deployed_and_public_route_audit_passed",
+        "signed_in_publish_test": "NOT TESTED by builder/auditor"
+      }
+    }
+  }
 }

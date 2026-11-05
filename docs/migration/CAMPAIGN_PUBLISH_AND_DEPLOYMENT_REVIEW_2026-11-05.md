@@ -116,8 +116,29 @@ It does not claim full platform, agent, payment or migration parity.
   explicit publish action, scoped draft storage and expected draft state.
 - Reviewer 2 rechecked the privacy correction: no remaining blocker; the
   legacy archive write runs during persistence, not the render initializer.
-- Production promotion: pending preview/release review. Rollback target is
-  existing production deployment `8b0e1e4a`.
+- PR #219 merged into the existing release branch, then PR #218 merged into
+  main as `69cb1e1aa338d3a1cd71bc34552089422a18359e`. Release-head frontend
+  [CI 41977970608](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41977970608)
+  and [release checks 41977970554](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/41977970554)
+  passed. Release preview `2cf3b0b9-411d-47ff-b627-536cfc2417e6` at source
+  `424e851` served identical reviewed app assets. Main and release trees match
+  exactly (`c1330cb684a451f803728d903753fd186062eb62`).
+- **Production deployed and audited:** `e80eaf9a-6f4e-459b-8bec-71bfffa1bd14`,
+  source `69cb1e1`, completed successfully November 5 at 06:07:45 UTC.
+  `https://interplanetaryfund.com/create`, its immutable Pages deployment and
+  the current custom preview domain serve reviewed main asset
+  `index-CEEM4Y6A.js`, SHA-256
+  `ab5029052ec7fa841e083bf89145c1f416bdf6a9aaf1c9d75f7546d89ec22783`.
+  Builder verified real HTTP responses independently; Auditor 3 rechecked four
+  mobile routes/public campaign rendering without errors or overflow, five
+  writing choices/eleven categories, Story anonymous 401 and invalid-token 403.
+  Campaign donation button remains disabled. No signed-in owner mutation was
+  performed or claimed by these deployed checks.
+- Production still binds only the existing production Story Worker; automatic
+  production deployment remains false. No DNS/mail, payment, workforce
+  activation or billing setting changed. `preview.interplanetaryfund.com` still
+  points to production rather than the isolated branch preview. Rollback target
+  remains `8b0e1e4a`.
 - After fixed preview review, reconcile the release and production source refs,
   preserve PR #212's separate workforce implementation, and continue the existing
   sequential agent ledger. Multi-specialist execution, authorized shared learning

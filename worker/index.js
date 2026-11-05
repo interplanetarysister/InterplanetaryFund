@@ -2,12 +2,14 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
+import { serviceGateway } from './services/gateway.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
     if (pathname === '/api/studio/generate') return routeStudioGenerateRequest(request, env);
     if (pathname === '/api/studio/status') return routeStudioStatusRequest(request, env);
