@@ -23,7 +23,7 @@ test('rejects JSON-looking content with unsupported media types', async () => {
 test('rejects non-decimal and oversized declared content lengths', async () => {
   for (const length of ['-1', '1.5', '1e3', ' 9', '999999999999999999999']) {
     await assert.rejects(
-      readJsonBody(request('{"ok":true}', { 'content-length': length }), 64),
+      readJsonBody({ headers: { get: name => name === 'content-type' ? 'application/json' : name === 'content-length' ? length : null }, body: new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode('{"ok":true}')); controller.close(); } }) }, 64),
       error => error instanceof BodyError && error.status === 413,
       length,
     );
