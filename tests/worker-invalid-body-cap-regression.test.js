@@ -5,20 +5,14 @@ import { BodyError, readJsonBody } from '../worker/bodyLimit.js';
 // A configuration error must not consume an attacker-controlled stream.
 for (const limit of [undefined, null, 0, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
   test(`invalid byte cap ${String(limit)} fails closed before reading`, async () => {
-    let pulls = 0;
+    let bodyAccesses = 0;
     const request = {
       headers: new Headers({ 'content-type': 'application/json' }),
-      body: new ReadableStream({
-        pull(controller) {
-          pulls++;
-          controller.enqueue(new TextEncoder().encode('{}'));
-          controller.close();
-        },
-      }),
+      get body() { bodyAccesses++; throw new Error('Invalid cap must reject before accessing body'); },
     };
     await assert.rejects(readJsonBody(request, limit),
       error => error instanceof BodyError && error.status === 500);
-    assert.equal(pulls, 0);
+    assert.equal(bodyAccesses, 0);
   });
 }
 
