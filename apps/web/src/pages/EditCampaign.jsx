@@ -41,7 +41,7 @@ export default function EditCampaign() {
         summary: campaign.summary || "",
         story: campaign.story || "",
         category: campaign.category || "community",
-        goal_amount: campaign.goal_amount === null || campaign.goal_amount === undefined ? "" : String(campaign.goal_amount),
+        goal_amount: Number(campaign.goal_amount) > 0 ? String(campaign.goal_amount) : "",
         cover_image_url: campaign.cover_image_url || "",
       });
       setStatus(campaign.status);
