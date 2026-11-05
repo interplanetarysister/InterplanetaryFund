@@ -455,6 +455,13 @@ Keep `https://interplanetaryfund.base44.app/functions/payPalSubscriptionWebhook`
 
 ## B14 — Owner campaign publish flow is code-complete but runtime-unverified (2026-11-02)
 
+**November 4 Pacific / November 5 UTC update:** the creator's missing publish
+action is being closed through the existing owner transport. Canonical live
+RLS/constraint checks now pass with all synthetic writes rolled back; the local
+browser workflow passes eight scenarios. Earlier zero-user/no-credential claims
+below are historical. Exact source, deployment status and verification limits:
+[campaign publishing and deployment review](CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
+
 **VERIFIED in source and unit tests:** `apps/web` now has owner campaign management (`/campaigns`, `/campaigns/:id/edit`). Status transitions `draft → active → paused → active` are enforced client-side; publish readiness mirrors the `ifund_publish_complete` constraint from `supabase/migrations/20261025011400_initial.sql`; every query is scoped to `owner_id = auth.uid()`; returned rows are verified; deletion is limited to drafts. 18 new `node:test` cases pass (58/58 in `apps/web`), the Vite build succeeds, and the preview server renders the routes.
 
 **UNKNOWN / blocks a truthful "publishing works" claim:**

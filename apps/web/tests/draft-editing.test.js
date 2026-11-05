@@ -5,12 +5,14 @@ const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.
 test("draft links reopen and update the owned draft",()=>{
  assert.match(source,/useSearchParams/);
  assert.match(source,/params\.get\("draft"\)/);
- assert.match(source,/\.eq\("owner_id",user\.id\)/);
- assert.match(source,/\.eq\("status","draft"\)/);
- assert.match(source,/\.update\(values\)/);
- assert.match(source,/\.insert\(\{ \.\.\.values, owner_id: user\.id \}\)/);
+ assert.match(source,/loadOwnerCampaign\(authClient\(\), draftId\)/);
+ assert.match(source,/data\.status !== "draft"/);
+ assert.match(source,/saveOwnerCampaign\(client, form, \{ id: campaignId\.current, status, expectedStatus: "draft" \}\)/);
+ assert.doesNotMatch(source,/\.from\("ifund_campaigns"\)/);
 });
-test("draft save never publishes or charges donors",()=>{
- assert.match(source,/status: "draft"/);
- assert.doesNotMatch(source,/status: "active"|paypal\.capture|stripe/);
+test("form submission saves privately and publishing requires a separate explicit action",()=>{
+ assert.match(source,/onSubmit=\{event => \{ event\.preventDefault\(\); save\("draft"\); \}\}/);
+ assert.match(source,/<button type="button" onClick=\{\(\) => save\("active"\)\}/);
+ assert.match(source,/saveLock\.current/);
+ assert.doesNotMatch(source,/paypal\.capture|stripe/);
 });

@@ -9,7 +9,8 @@
 // directly by node:test, matching src/lib/inbox.js and src/lib/followedCampaigns.js.
 import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
-import { CAMPAIGN_STATUSES, canTransition, buildCampaignPayload, publishReadiness } from "../lib/campaignLifecycle.js";
+import { CAMPAIGN_STATUSES, canTransition, buildCampaignPayload, publishReadiness, validateCampaignForm } from "../lib/campaignLifecycle.js";
+import { TERMS_VERSION } from "../lib/legalPolicy.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -109,11 +110,22 @@ export async function loadOwnerCampaign(client, id) {
 /**
  * Create a new campaign (id === null) or update an existing one.
  * `status` must be a valid lifecycle value and reachable from the stored state.
+ * `expectedStatus` optionally pins the state the caller edited, so the creator
+ * cannot overwrite a campaign another session has already published or paused.
  */
-export async function saveOwnerCampaign(client, form, { id = null, status = "draft" } = {}) {
+export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus } = {}) {
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid campaign reference.");
+  if (expectedStatus !== undefined && !CAMPAIGN_STATUSES.includes(expectedStatus)) throw new Error("Invalid expected campaign status.");
   const owner = await verifiedOwner(client);
+  const { data: acceptance, error: legalError } = await client.from("ifund_legal_acceptances")
+    .select("owner_id,terms_version,explicit_consent")
+    .eq("owner_id", owner).eq("terms_version", TERMS_VERSION).maybeSingle();
+  if (legalError || acceptance?.owner_id !== owner || acceptance?.terms_version !== TERMS_VERSION || acceptance?.explicit_consent !== true) {
+    throw new Error("Review and accept the current member agreement before saving or publishing.");
+  }
+  const problems = validateCampaignForm(form, { publish: status === "active" });
+  if (problems.length) throw new Error(problems[0]);
   const payload = buildCampaignPayload(form, status);
 
   if (id === null) {
@@ -124,6 +136,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
       .single();
     if (error || !data) throw new Error("Your campaign was not saved.");
     const created = assertOwned(data, owner);
+    if (created.status !== status) throw new Error("The campaign's saved status could not be confirmed. Check My campaigns before trying again.");
     await assertSessionUnchanged(client, owner);
     return created;
   }
@@ -136,6 +149,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   if (readError || !existing || existing.owner_id !== owner) {
     throw new Error("That campaign was not found for your account.");
   }
+  if (expectedStatus !== undefined && existing.status !== expectedStatus) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
   }
