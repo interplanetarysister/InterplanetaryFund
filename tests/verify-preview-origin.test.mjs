@@ -10,6 +10,7 @@ test("preview smoke gate rejects missing and unsafe origins before any network r
     undefined,
     "http://example.pages.dev/",
     "https://unrelated.pages.dev/",
+    "https://interplanetaryfund-migration.pages.dev/", // project root may serve production
     "https://interplanetaryfund-migration.pages.dev.evil.example/",
     "https://interplanetaryfund-migration.pages.dev:8443/",
     "https://example.com/",
