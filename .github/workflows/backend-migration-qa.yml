@@ -9,6 +9,7 @@ on:
     paths:
       - 'worker/**'
       - 'tests/**'
+      - 'apps/web/**'
       - 'supabase/**'
       - '.github/workflows/backend-migration-qa.yml'
   workflow_dispatch:
