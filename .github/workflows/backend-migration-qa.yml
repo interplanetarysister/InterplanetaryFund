@@ -10,6 +10,10 @@ on:
       - 'worker/**'
       - 'tests/**'
       - 'apps/web/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.*'
       - 'supabase/**'
       - '.github/workflows/backend-migration-qa.yml'
   workflow_dispatch:
