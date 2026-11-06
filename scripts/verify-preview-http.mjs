@@ -18,7 +18,8 @@ try {
   console.error("Invalid preview URL:", error.message);
   process.exit(2);
 }
-const paths = ["/", "/discover", "/create-campaign"];
+// The original Base44 frontend uses /create; keep the migration alias too until parity is verified.
+const paths = ["/", "/discover", "/create", "/create-campaign"];
 let failed = false;
 let shell = "";
 for (const path of paths) {
