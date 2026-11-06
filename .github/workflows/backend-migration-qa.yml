@@ -5,6 +5,7 @@ on:
       - agent/backend-migration
   pull_request:
     branches:
+      - main
       - migration/base44-frontend-parity-20261103
     paths:
       - 'worker/**'
