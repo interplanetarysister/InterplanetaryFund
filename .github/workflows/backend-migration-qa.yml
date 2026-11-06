@@ -8,6 +8,7 @@ on:
       - migration/base44-frontend-parity-20261103
     paths:
       - 'worker/**'
+      - 'functions/**'
       - 'tests/**'
       - 'apps/web/**'
       - 'src/**'
