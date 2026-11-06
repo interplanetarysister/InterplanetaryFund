@@ -31,3 +31,15 @@ test('rejects external CSS even when script is local', () => {
 test('does not count preload-only links as stylesheets', () => {
   assert.throws(() => extractEntryAssets('<script src="/a.js"></script><link rel=preload href="/a.css" as=style>', origin), /Missing/);
 });
+
+test('does not accept entrypoints inside HTML comments', () => {
+  const html = '<!-- <script src="/fake.js"></script><link rel="stylesheet" href="/fake.css"> -->';
+  assert.throws(() => extractEntryAssets(html, origin), /Missing/);
+});
+test('ignores commented external assets while checking active local assets', () => {
+  const html = '<!-- <script src="https://external.example/app.js"></script> -->' +
+    '<script src="/app.js"></script><link rel="stylesheet" href="/app.css">';
+  assert.deepEqual(extractEntryAssets(html, origin), {
+    scripts: ['https://preview.pages.dev/app.js'], styles: ['https://preview.pages.dev/app.css']
+  });
+});
