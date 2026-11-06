@@ -29,7 +29,7 @@ async function drafts(db) {
   return (await db.query("select public.ifund_story_drafts() r")).rows[0].r;
 }
 test("actual SQL executes: owner-scoped draft lifecycle, receipt replay, cancellation and no campaign changes", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await as(db, uid);
     const claim = await begin(db);
@@ -76,7 +76,7 @@ test("actual SQL executes: owner-scoped draft lifecycle, receipt replay, cancell
   }
 });
 test("unconfirmed, suspended, deletion-pending and no-consent accounts cannot claim or read", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     for (const update of [
       "update auth.users set email_confirmed_at=null",
@@ -96,7 +96,7 @@ test("unconfirmed, suspended, deletion-pending and no-consent accounts cannot cl
   }
 });
 test("mismatched input, cross-owner campaign, duplicate, lease theft, malformed result and global daily cap", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await db.query(
       "insert into public.ifund_campaigns(id,owner_id) values($1,$2)",
@@ -131,7 +131,7 @@ test("mismatched input, cross-owner campaign, duplicate, lease theft, malformed 
 });
 
 test("database activation is independently fail-closed and expired inference leases cannot write", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await as(db, uid);
     const claim = await begin(db);
@@ -153,7 +153,7 @@ test("database activation is independently fail-closed and expired inference lea
 });
 
 test("eligibility is server-owned, denies stale claims, honors verified admin and expires trials and day passes", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await as(db, uid);
     assert.equal(
@@ -227,7 +227,7 @@ test("eligibility is server-owned, denies stale claims, honors verified admin an
 });
 
 test("fresh account context is owner-scoped and uses verified research only, with honest unavailable fields", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await db.query(
       "insert into public.ifund_campaigns(id,owner_id,title,status) values($1,$2,'Private other campaign','draft')",
@@ -272,7 +272,7 @@ test("fresh account context is owner-scoped and uses verified research only, wit
 });
 
 test("explicit choices produce source-compatible drafts idempotently; edits reject stale revisions, identity changes and publication fields", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await db.query(
       "insert into public.ifund_campaigns(id,owner_id,title,status) values($1,$2,'Existing campaign','draft')",
@@ -360,7 +360,7 @@ test("explicit choices produce source-compatible drafts idempotently; edits reje
 });
 
 test("explicit memory corrections are scoped, concurrency-checked and deletable after plan expiry without exposing another owner", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await db.query(
       "insert into public.ifund_campaigns(id,owner_id,title,status) values($1,$2,'First campaign','draft'),($3,$2,'Second campaign','draft')",
@@ -439,7 +439,7 @@ test("explicit memory corrections are scoped, concurrency-checked and deletable 
 });
 
 test("clear invalidates delayed first saves and campaign deletion is not blocked by a selection receipt", async () => {
-  const db = await fixture();
+  const db = await fixture({ workforce: true });
   try {
     await db.query(
       "insert into public.ifund_campaigns(id,owner_id,title,status) values($1,$1,'Delete this draft','draft')",
