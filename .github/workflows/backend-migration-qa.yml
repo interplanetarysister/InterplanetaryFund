@@ -33,5 +33,11 @@ jobs:
         run: npm ci --no-audit --no-fund
       - name: Run repository regression suite (including Worker security)
         run: npm test
-      - name: Build application to detect integration regressions
+      - name: Build root application to detect integration regressions
         run: npm run build
+      - name: Install locked mobile-first web dependencies
+        run: npm ci --prefix apps/web --no-audit --no-fund
+      - name: Run mobile-first web regression suite
+        run: npm test --prefix apps/web
+      - name: Build mobile-first web application
+        run: npm run build --prefix apps/web
