@@ -14,8 +14,7 @@ export function validatePreviewOrigin(value) {
   const url = new URL(value);
   if (url.protocol !== 'https:' || url.username || url.password || url.port ||
       url.pathname !== '/' || url.search || url.hash ||
-      !(url.hostname === 'interplanetaryfund-migration.pages.dev' ||
-        url.hostname.endsWith('.interplanetaryfund-migration.pages.dev'))) {
+      !url.hostname.endsWith('.interplanetaryfund-migration.pages.dev')) {
     throw Error('Expected isolated Cloudflare Pages preview origin');
   }
   return url;
