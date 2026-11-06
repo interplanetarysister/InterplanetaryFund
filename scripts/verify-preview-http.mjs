@@ -34,7 +34,7 @@ for (const path of paths) {
     const valid = response.status === 200 &&
       type.toLowerCase().includes("text/html") &&
       /<html[\s>]/i.test(body) &&
-      /<script\b[^>]*src=/i.test(body) &&
+      /<script\b[^>]*\bsrc\s*=\s*["\x27][^"\x27]+["\x27]/i.test(body) &&
       /interplanetary|ifund/i.test(body);
     if (!valid) failed = true;
     if (path === "/") shell = body;
