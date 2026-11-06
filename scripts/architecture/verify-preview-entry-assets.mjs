@@ -5,7 +5,9 @@ export function extractEntryAssets(html, origin) {
   const base = new URL(origin);
   const scripts = [];
   const styles = [];
-  for (const tag of html.match(/<(?:script|link)\b[^>]*>/gi) ?? []) {
+  // Commented-out tags are not loaded by browsers and must not satisfy asset checks.
+  const activeHtml = html.replace(/<!--[\s\S]*?-->/g, '');
+  for (const tag of activeHtml.match(/<(?:script|link)\b[^>]*>/gi) ?? []) {
     const tagName = /^<script\b/i.test(tag) ? 'script' : 'link';
     const attrs = Object.fromEntries([...tag.matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/g)].map(m => [m[1].toLowerCase(), m[2] ?? m[3] ?? m[4]]));
     if (tagName === 'link' && !attrs.rel?.toLowerCase().split(/\s+/).includes('stylesheet')) continue;
