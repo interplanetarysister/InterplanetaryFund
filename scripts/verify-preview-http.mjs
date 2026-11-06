@@ -12,8 +12,7 @@ let base;
 try {
   base = new URL(input);
   if (base.protocol !== "https:" || base.username || base.password ||
-      !(base.hostname === "interplanetaryfund-migration.pages.dev" ||
-        base.hostname.endsWith(".interplanetaryfund-migration.pages.dev")) ||
+      !(base.hostname.endsWith(".interplanetaryfund-migration.pages.dev")) ||
       base.port || base.pathname !== "/" ||
       base.search || base.hash) throw new Error("expected HTTPS Cloudflare Pages preview origin");
 } catch (error) {
@@ -63,7 +62,7 @@ for (const asset of assetRefs) {
     const url = new URL(asset);
     const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15000) });
     const type = (response.headers.get("content-type") || "").toLowerCase();
-    const isCss = /\\.css$/i.test(url.pathname);
+    const isCss = /\.css$/i.test(url.pathname);
     const valid = response.status === 200 && (isCss ? type.includes("text/css") :
       /javascript|ecmascript/.test(type));
     if (!valid) failed = true;
