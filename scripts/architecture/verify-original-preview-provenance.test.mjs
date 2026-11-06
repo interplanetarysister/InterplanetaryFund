@@ -11,6 +11,6 @@ test('rejects reconstructed frontend or replaced runtime', () => {
 test('requires exact source SHA', () => assert.throws(() => assertOriginalPreviewProvenance(valid,'main')));
 test('accepts isolated Pages preview only', () => {
   assert.equal(validatePreviewOrigin('https://abc.interplanetaryfund-migration.pages.dev/').hostname,'abc.interplanetaryfund-migration.pages.dev');
-  for (const url of ['https://interplanetaryfund.com/','https://evilinterplanetaryfund-migration.pages.dev/','http://abc.interplanetaryfund-migration.pages.dev/','https://abc.interplanetaryfund-migration.pages.dev/other','https://abc.interplanetaryfund-migration.pages.dev/?x=1'])
+  for (const url of ['https://interplanetaryfund-migration.pages.dev/', 'https://interplanetaryfund.com/','https://evilinterplanetaryfund-migration.pages.dev/','http://abc.interplanetaryfund-migration.pages.dev/','https://abc.interplanetaryfund-migration.pages.dev/other','https://abc.interplanetaryfund-migration.pages.dev/?x=1'])
     assert.throws(() => validatePreviewOrigin(url));
 });
