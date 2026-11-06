@@ -1029,8 +1029,7 @@
       "queue_access_cases": 3
     },
     "remaining": [
-      "authenticated production member request and provider receipt",
-      "workforce gateway preview and production compatibility release verification",
+      "authenticated preview member request and provider receipt, then production verification",
       "actual multi-service collaborative task executor and checkpoints",
       "other specialist adapters including existing Strategy PR #211",
       "shared approved knowledge contribution/review/retrieval beyond current verified research",
@@ -1058,7 +1057,7 @@
     },
     "preview_isolation": {
       "source_migration": "20261104062233_ifund_preview_workforce_isolation.sql",
-      "status": "installed_preview_enabled_production_disabled",
+      "status": "installed_currently_preview_and_production_disabled",
       "production_control": "disabled",
       "design": "Independent secret-derived channels and preview enablement; shared account budget; cross-channel replay/resume/start/finish denied",
       "reason": "Automatic approval review rejected global production activation before real member verification; no rejected action was applied.",
@@ -1067,9 +1066,11 @@
       "preview_worker_source": "397542d1de0eed110635e879c4481d59db6e4e75",
       "preview_code_etag": "593b311b8b08657273767d73f8edbfa256c48213763ffe2d2085913c9dbff979",
       "live_permissions": "helper execute denied to anon/authenticated; owner erasure grant retained; private keys are distinct",
-      "preview_enabled": true,
+      "preview_enabled": false,
       "production_enabled": false,
-      "real_member_verification": "pending owner signed-in preview test"
+      "real_member_verification": "pending current preview reconciliation and owner signed-in test",
+      "latest_control_read_utc": "2026-11-06",
+      "historical_preview_activation": "preview enabled after isolated installation; later found disabled without changing it here"
     },
     "reconciled_main": "69cb1e1aa338d3a1cd71bc34552089422a18359e",
     "gateway_release": {
@@ -1105,7 +1106,7 @@
       }
     },
     "campaign_writing_service": {
-      "status": "local_verified_pending_preview",
+      "status": "deployed_pending_hosted_signed_in_generation",
       "source_baseline": "721a790",
       "endpoint": "/api/services/story_agent/campaign-preview",
       "existing_entitlements_preserved": true,
@@ -1119,7 +1120,42 @@
         "root_files": 34,
         "web_files": 28
       },
-      "hosted_signed_in_generation": "NOT TESTED"
+      "hosted_signed_in_generation": "NOT TESTED",
+      "pull_request": "https://github.com/interplanetarysister/InterplanetaryFund/pull/222",
+      "reviewed_commit": "f866164a23c111cf92ad561ac2c3e4d6efb31d1f",
+      "merged_commit": "15b987f165217eabca21d1abba12a93018d06a0e",
+      "preview": {
+        "deployment": "d6757727-21ec-47b7-8e61-7bdb40aeff4a",
+        "source": "f866164a23c111cf92ad561ac2c3e4d6efb31d1f",
+        "auditor": "pass within public artifact, authorization and actual-response mobile scope",
+        "hosted_authorization_cases": 12
+      },
+      "production_release": {
+        "deployment": "da71bc17-318c-4bd9-8125-0dbee1375691",
+        "source": "15b987f165217eabca21d1abba12a93018d06a0e",
+        "completed_at": "2026-11-05T12:13:41.038908Z",
+        "artifact_match_to_preview": true,
+        "direct_https_authorization_cases": 11,
+        "live_campaign_or_financial_write_by_builder": false
+      },
+      "ci": [42024101322, 42024101202, 42025153722],
+      "current_production_reconciliation": {
+        "observed_date_utc": "2026-11-06",
+        "deployment": "8296ae39-8a48-4b9a-a139-cd3dcec661b1",
+        "source": "ed39a2e6cc6273c4bd7660dd3058299fadd0cad5",
+        "contains_writing_release": true,
+        "subsequent_changes": "owner-provided support footer in three files; not modified here",
+        "writing_and_publishing_contract_markers": "pass",
+        "independent_production_audit": "pass within public artifact, authorization and actual-response mobile scope",
+        "auditor_hosted_authorization_cases": 12,
+        "production_procurement": false,
+        "preview_procurement": false,
+        "assignment_count": 0,
+        "production_worker_procurement_flag": "absent",
+        "automatic_pages_production": true,
+        "settings_changed_by_this_increment": false,
+        "next_gate": "reconcile current preview controls, then obtain authenticated member/provider receipt"
+      }
     }
   }
 }

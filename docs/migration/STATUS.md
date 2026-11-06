@@ -1,8 +1,10 @@
 # Migration status — 2026-10-24
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
-Latest campaign-creator increment and current production/preview reconciliation:
-[campaign publishing and deployment review, November 4 Pacific / November 5 UTC](CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
+Latest campaign-creator increment and production/preview reconciliation:
+[writing service release, November 5 Pacific / November 6 UTC](../agents/CAMPAIGN_WRITING_SERVICE_2026-11-05.md).
+Publishing history: [campaign publishing and deployment review, November 4
+Pacific / November 5 UTC](CAMPAIGN_PUBLISH_AND_DEPLOYMENT_REVIEW_2026-11-05.md).
 Historical deployment/zero-user assertions below must not override that verified
 record; unfinished agent/financial parity is not marked complete.
 
