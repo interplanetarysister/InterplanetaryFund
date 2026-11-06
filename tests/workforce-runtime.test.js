@@ -201,6 +201,70 @@ test("missing proof, free attestation, tested capability or native binding never
   }
 });
 
+test("preview context fails before a database read when trusted executor proof is missing", async () => {
+  const calls = [];
+  const response = await storyRoute(
+    request(),
+    {
+      ...env,
+      IFUND_WORKFORCE_ENVIRONMENT: "preview",
+      IFUND_WORKFORCE_EXECUTOR_KEY: undefined,
+      AI: { run: () => assert.fail("No inference without preview proof") },
+    },
+    fetcher(calls),
+  );
+  assert.equal(response.status, 503);
+  assert.ok(!calls.some((c) => c.name === "ifund_story_context"));
+  assert.ok(!calls.some((c) => c.name === "ifund_workforce_begin"));
+});
+
+test("preview subscription, saved request recovery and owner erasure do not require the executor key", async () => {
+  for (const [path, body, rpc, result] of [
+    [
+      "subscription",
+      null,
+      "ifund_story_subscription",
+      { active: false, level: 0 },
+    ],
+    ["queued-requests", null, "ifund_workforce_queued", []],
+    [
+      "cancel-queued",
+      { request_id: rid },
+      "ifund_workforce_cancel_queued",
+      { cancelled: true },
+    ],
+    [
+      "clear-preferences",
+      { all_scopes: true },
+      "ifund_story_clear_preferences",
+      { cleared: true },
+    ],
+  ]) {
+    const calls = [];
+    const response = await storyRoute(
+      new Request("https://ifund.test/api/agents/story/" + path, {
+        method: body ? "POST" : "GET",
+        headers: {
+          authorization: "Bearer owner.jwt",
+          ...(body ? { "content-type": "application/json" } : {}),
+        },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      }),
+      {
+        ...env,
+        IFUND_WORKFORCE_ENVIRONMENT: "preview",
+        IFUND_WORKFORCE_EXECUTOR_KEY: undefined,
+      },
+      fetcher(calls, { [rpc]: () => Response.json(result) }),
+    );
+    assert.equal(response.status, 200, path);
+    assert.ok(
+      calls.some((c) => c.name === rpc),
+      path,
+    );
+  }
+});
+
 test("replayed and queued requests do not dispatch; uncertain provider failure is recorded without retry", async () => {
   for (const state of ["completed", "queued"]) {
     const response = await storyRoute(

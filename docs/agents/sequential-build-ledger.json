@@ -1105,6 +1105,22 @@
         "rollback_version": "0d0ac5a4-dd68-489e-bcab-a939b8a617e3"
       }
     },
+    "story_preview_access": {
+      "status": "reviewed_local_verified_pending_remote_apply",
+      "source_baseline": "ad9e709a2e61cbce59c6c84d161f148e61bda605",
+      "reason": "Shared Story gate also off; restore preview without activating production",
+      "source_migration": "pending/ifund_isolated_story_preview_access.sql",
+      "shared_story_enabled": false,
+      "production_procurement_enabled": false,
+      "preview_procurement_enabled": false,
+      "database_cases": 17,
+      "runtime_cases": 10,
+      "function_security_cases": 5,
+      "root_test_files": 34,
+      "root_build": "pass",
+      "rollback_probe": "local pass; no persistent data or control changes",
+      "live_member_receipt": "NOT TESTED"
+    },
     "campaign_writing_service": {
       "status": "deployed_pending_hosted_signed_in_generation",
       "source_baseline": "721a790",
