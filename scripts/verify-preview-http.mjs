@@ -46,7 +46,7 @@ for (const path of paths) {
   }
 }
 // Verify actual referenced entry assets, not merely an HTML shell that mentions them.
-const assetRefs = [...shell.matchAll(/<(script|link)\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi)]
+const assetRefs = [...shell.matchAll(/<(script|link)\b[^>]*(?:src|href)\s*=\s*["']([^"']+)["'][^>]*>/gi)]
   .map(match => ({ tag: match[1].toLowerCase(), url: match[2] }))
   .filter(asset => asset.tag === "script" || /\.css(?:[?#]|$)/i.test(asset.url));
 if (!assetRefs.some(asset => asset.tag === "script") ||
