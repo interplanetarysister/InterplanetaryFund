@@ -124,7 +124,18 @@ deployment remains false; production still binds only its original Story Worker.
 Database production procurement remains false, preview true and assignments zero
 at the audit. No signed-in generation or fundraising outcome is claimed.
 
-The next [campaign-writing service increment](CAMPAIGN_WRITING_SERVICE_2026-11-05.md)
-connects the creator to this gateway while preserving the zero-inference free
-outline and current native eligibility. Production procurement remains dependent
-on the separately requested real signed-in preview execution receipt.
+The [campaign-writing service increment](CAMPAIGN_WRITING_SERVICE_2026-11-05.md)
+is now merged as main `15b987f` and deployed as Pages `da71bc17`. The reviewed
+preview, both pull-request checks, main CI and actual HTTPS production access
+checks passed. Existing native eligibility and the accurately labeled free
+outline remain unchanged. Hosted signed-in generation is still unverified.
+
+Latest reconciliation, November 5 Pacific / November 6 UTC: canonical production
+`8296ae39` serves newer main `ed39a2e`, which contains this writing release and
+later owner-provided support-footer changes. Automatic Pages production is now
+true, while both database procurement controls are false and assignments remain
+zero. The production Story workforce flag is absent. These externally changed
+settings were inspected, not changed or reverted by this increment. Reconcile
+current preview state before requesting another procurement test; the historical
+preview-enabled records above are not current activation evidence. Production
+procurement remains dependent on the real authenticated execution receipt.

@@ -63,9 +63,49 @@ clients and has not been modified or retired.
   These are UI/transport checks, not a real signed-in provider receipt.
 - No new migration, model/provider, paid dependency, inference test, storage
   resource, billing activation or external publication was introduced.
-- Preview push/deployment and deployed audit: pending. Production rollout of
-  this component: pending preview/CI review. Actual signed-in hosted generation
-  remains separately pending; production procurement remains disabled.
+- PR [#222](https://github.com/interplanetarysister/InterplanetaryFund/pull/222)
+  merged reviewed head `f866164a23c111cf92ad561ac2c3e4d6efb31d1f` as main
+  `15b987f165217eabca21d1abba12a93018d06a0e`; the two trees match exactly.
+  Frontend CI `42024101322`, release-candidate CI `42024101202` and main CI
+  `42025153722` passed.
+- Preview `d6757727-21ec-47b7-8e61-7bdb40aeff4a` deployed reviewed head
+  `f866164` successfully. Independent Auditor 3 passed 12 actual HTTPS
+  authorization checks, deployed artifact inspection and public/mobile
+  rendering with five choices, 11 categories and scoped guest restoration.
+- Production release `da71bc17-318c-4bd9-8125-0dbee1375691` deployed main
+  `15b987f` successfully at `2026-11-05T12:13:41.038908Z`. Its inspected
+  main and creator artifacts match the reviewed preview byte for byte.
+- Follow-up inspection on November 5 Pacific / November 6 UTC found a newer
+  production deployment, `8296ae39-8a48-4b9a-a139-cd3dcec661b1`, source
+  `ed39a2e6cc6273c4bd7660dd3058299fadd0cad5`. It contains this release.
+  Subsequent commits change the owner-provided platform-support footer in
+  three other files; this increment did not modify those financial/UI changes.
+  Actual live-domain authorization checks and writing/publishing client
+  contract markers passed again. No campaign or payment action was executed.
+- Independent current-production review passed all 12 authorization checks
+  and actual-response mobile rendering with no script errors, failed reads or
+  overflow. The renderer used TLS-verified proxy responses; direct Chromium
+  networking remains unverified because of the environment's certificate trust
+  limitation. See the [durable auditor record](CAMPAIGN_WRITING_DEPLOYMENT_AUDIT_2026-11-06.md).
+- Actual signed-in hosted generation/publication and recovery remain
+  **NOT TESTED** by the builder/auditor. Production workforce procurement
+  remains disabled; no negative authorization check substitutes for a real
+  member execution receipt.
+
+## Current deployment and control reconciliation
+
+The November 6 UTC read differs from the historical November 5 preview state:
+both database procurement controls are now false, with zero assignments.
+The production Story workforce flag is still absent; Pages still binds only
+the original production Story Worker and uses canonical Supabase. The account's
+Free-plan attestation expires November 11 at `05:56:47Z`.
+
+Automatic Pages production deployment is now true, as observed after the newer
+footer releases. This component did not change that setting or either
+procurement control, and did not restore the older preview enablement.
+Reconcile current preview controls before resuming the separately pending
+authenticated procurement test. Do not treat an older preview URL or document
+as proof that procurement is currently enabled.
 
 ## Wider migration limits
 
