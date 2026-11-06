@@ -85,10 +85,12 @@ export default function CreateCampaign() {
     if (regeneratingSection !== -1 || suggesting || busy) return;
     setRegeneratingSection(index);
     setSectionError("");
+    // Capture the request context outside try so rejected requests can be
+    // checked safely in catch without throwing a ReferenceError.
+    const original = storySectionsRef.current[index];
+    const revision = sectionRevision.current;
+    const contextRevision = suggestionRevision.current;
     try {
-      const original = storySectionsRef.current[index];
-      const revision = sectionRevision.current;
-      const contextRevision = suggestionRevision.current;
       const result = await requestCampaignDraft(authClient(), {
         details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
         beneficiary: draftBeneficiary,
