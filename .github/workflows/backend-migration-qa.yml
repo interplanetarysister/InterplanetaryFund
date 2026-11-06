@@ -17,6 +17,14 @@ on:
       - 'package-lock.json'
       - 'vite.config.*'
       - 'supabase/**'
+      - 'wrangler.toml'
+      - 'wrangler.json'
+      - 'wrangler.jsonc'
+      - 'worker/wrangler.*'
+      - 'public/_redirects'
+      - 'public/_headers'
+      - 'apps/web/public/_redirects'
+      - 'apps/web/public/_headers'
       - '.github/workflows/backend-migration-qa.yml'
   workflow_dispatch:
 permissions:
