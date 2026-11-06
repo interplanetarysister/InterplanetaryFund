@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // Read-only release smoke gate. This does not establish visual or functional parity.
 // Usage: node scripts/verify-preview-http.mjs https://<deployment>.pages.dev
+import { extractEntryAssets } from './architecture/verify-preview-entry-assets.mjs';
+
 const input = process.argv[2];
 if (!input) {
   console.error("Usage: node scripts/verify-preview-http.mjs https://<deployment>.pages.dev");
@@ -46,38 +48,30 @@ for (const path of paths) {
     console.error(`FAIL ${path}: ${error.message}`);
   }
 }
-// Verify actual referenced entry assets, not merely an HTML shell that mentions them.
-const assetRefs = [...shell.matchAll(/<(script|link)\b[^>]*(?:src|href)\s*=\s*["']([^"']+)["'][^>]*>/gi)]
-  .map(match => ({ tag: match[1].toLowerCase(), url: match[2] }))
-  .filter(asset => asset.tag === "script" || /\.css(?:[?#]|$)/i.test(asset.url));
-if (!assetRefs.some(asset => asset.tag === "script") ||
-    !assetRefs.some(asset => /\.css(?:[?#]|$)/i.test(asset.url))) {
+// Reuse the independently tested entry parser: reject commented-out tags,
+// external entrypoints, and HTML that lacks a real same-origin JS/CSS pair.
+let assetRefs = [];
+try {
+  const entries = extractEntryAssets(shell, base.href);
+  assetRefs = [...entries.scripts, ...entries.styles];
+} catch (error) {
   failed = true;
-  console.error("FAIL entry assets: expected JavaScript and CSS references in HTML shell");
+  console.error(`FAIL entry assets: ${error.message}`);
 }
-let checkedLocalJs = 0;
-let checkedLocalCss = 0;
 for (const asset of assetRefs) {
   try {
-    const url = new URL(asset.url, base);
-    if (url.origin !== base.origin) continue; // External SDKs are checked in browser acceptance.
-    if (url.pathname.endsWith(".js") || url.pathname.endsWith(".mjs")) checkedLocalJs++;
-    if (/\.css$/i.test(url.pathname)) checkedLocalCss++;
+    const url = new URL(asset);
     const response = await fetch(url, { redirect: "manual", signal: AbortSignal.timeout(15000) });
     const type = (response.headers.get("content-type") || "").toLowerCase();
-    const isCss = /\.css(?:[?#]|$)/i.test(url.pathname);
+    const isCss = /\\.css$/i.test(url.pathname);
     const valid = response.status === 200 && (isCss ? type.includes("text/css") :
       /javascript|ecmascript/.test(type));
     if (!valid) failed = true;
     console.log(`${valid ? "PASS" : "FAIL"} asset ${url.pathname}: HTTP ${response.status}; content-type=${type}`);
   } catch (error) {
     failed = true;
-    console.error(`FAIL asset ${asset.url}: ${error.message}`);
+    console.error(`FAIL asset ${asset}: ${error.message}`);
   }
-}
-if (!checkedLocalJs || !checkedLocalCss) {
-  failed = true;
-  console.error("FAIL entry assets: no same-origin JavaScript and CSS bundle pair found");
 }
 if (failed) {
   console.error("Preview HTTP smoke gate FAILED. Do not promote to production.");
