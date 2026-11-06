@@ -2,6 +2,12 @@
 
 The owner requires all ten agents, their required tools/skills/assets and complete workflows, with sequential reviewed preview releases. All remaining production promotion is held until those requirements and checks are ready. A bounded report/draft endpoint is not full source parity.
 
+## Latest owner direction: unified conversation and commanded execution
+
+The November 5 evening instruction prioritizes the remaining agents and requires skills, tested tools and actual specialist handoffs in each agent from the start. Replace separate chat windows with one account/campaign-scoped conversation and designated, labelled specialist icons. Existing pages remain task workspaces. Use [the timed implementation plan](UNIFIED_AGENT_DELIVERY_PLAN_2026-11-05.md) for work order, acceptance and the midnight target.
+
+An explicit member command may authorize permitted in-platform publishing and other actions under existing identity, ownership, entitlement, audience and destination rules. "Improve this and post it" includes that bounded composition-and-publication task; planning or improvement alone does not. Implement a protected owner-command executor and immutable scoped authorization; models and delegated text cannot mint approval. No redundant routine confirmation is required once a specific valid owner command authorizes the action. External Gmail/submission work additionally requires the member's verified connection, necessary scopes, permitted transport and task-specific authorization. Google login or the assistant's engineering connectors do not supply those permissions. Financial, administrator and production-release restrictions remain in force.
+
 ## Reconciled source inventory
 
 The reference contains ten agent manifests, seventeen distinct function tools, ten local skill packages and twelve opaque remote workspace-skill IDs across thirty-seven assignments. Seven role guides are duplicated verbatim in their package reference files. Several guide statements are stale; adapt current verified policies rather than loading obsolete statements into runtime prompts.
