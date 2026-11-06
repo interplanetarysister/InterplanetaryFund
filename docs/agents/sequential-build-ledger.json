@@ -170,7 +170,7 @@
       "id": "managed_connection_agent",
       "source": "base44/agents/managed_connection_agent.jsonc",
       "sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
-      "status": "installed_scoped_preview_preparation",
+      "status": "enabled_preview_request_tracking",
       "tools": [
         "requestManagedConnectionAction",
         "listConnections",
@@ -200,17 +200,21 @@
         "campaign deletion invalidates without widening scope",
         "11SQL/8Worker/11registry/3catalog cases;10mockbrowser checks",
         "independent reviewed gateway aliases with owner auth preserved",
-        "merged main publishing/Auth behavior; full44root/29frontend files and24browser checks pass"
+        "merged main publishing/Auth behavior; full44root/29frontend files and24browser checks pass",
+        "hosted preview signup/member guards/service401/all42assets/mobile/health checks passed at source c7c4a785; provider execution false"
       ],
       "remaining_gates": [
-        "hosted migration and preview acceptance",
+        "real consenting-member and provider-backed acceptance",
         "actual supervised Managed conversation/tools on shared workforce",
         "verified provider registrations/adapters and protected credential lifecycle",
         "provider-backed capability verification and owner-step resumption",
         "historical scoped skills/memory and specialist execution",
         "production held until all remaining agents and acceptance gates are ready"
       ],
-      "migration_version": "20261105115633"
+      "migration_version": "20261105115633",
+      "preview_url": "https://9dd37798.interplanetaryfund-migration.pages.dev/connections",
+      "preview_commit": "c7c4a7855cc5b761bda4470cd12beb2a144e4d99",
+      "preview_worker_deployment": "4d49464bcf5a4c929bffd8a1bfcf6887"
     },
     {
       "order": 6,
@@ -1202,5 +1206,16 @@
       }
     },
     "production_promotion_held": true
+  },
+  "owner_directives_20261105_evening": {
+    "priority": "remaining agents first, with skills/tools/real handoffs included",
+    "conversation": "one scoped conversation; labelled specialist icons; no separate chat windows",
+    "execution": "explicit authenticated owner commands authorize bounded actions allowed by current platform rules; discussion alone grants no publication",
+    "external_submissions": "verified member connection, required provider scopes and task-specific authorization; no credentials in chat",
+    "deadline_local": "2026-11-06T00:00:00-08:00",
+    "timezone": "America/Los_Angeles",
+    "plan": "docs/agents/UNIFIED_AGENT_DELIVERY_PLAN_2026-11-05.md",
+    "production_promotion": "held until all required gates pass",
+    "deadline_is_guarantee": false
   }
 }
