@@ -25,7 +25,10 @@ function NewCampaign() {
   const ownerId = session.user?.id || null;
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
-  return <CampaignComposer key={ownerId || "guest"} ownerId={ownerId} />;
+  const composer = <CampaignComposer key={ownerId || "guest"} ownerId={ownerId} />;
+  // Guests may draft without consent. Signed-in organizers must be offered the
+  // actual member agreement before attempting a database save or publish.
+  return ownerId ? <MemberAccess>{composer}</MemberAccess> : composer;
 }
 
 function CampaignComposer({ memberAccess = false, ownerId = null }) {
