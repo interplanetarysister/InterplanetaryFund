@@ -205,16 +205,16 @@ export default function CreateCampaign() {
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
       <p className="text-sm text-muted-foreground">Get editable wording suggestions using the existing Supabase service. No paid AI, automatic saving, or publishing.</p>
       <label className="block font-semibold">What is your fundraiser about?
-        <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
+        <textarea rows={4} maxLength={1500} value={draftDetails} disabled={busy || loadingDraft || Boolean(draftLoadError)}
           onChange={e => { invalidateCampaignIdeas(); setDraftDetails(e.target.value); }} placeholder="Describe the situation and how funds would help."
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Who benefits? (optional)
-        <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
+        <input maxLength={100} value={draftBeneficiary} disabled={busy || loadingDraft || Boolean(draftLoadError)}
           onChange={e => { invalidateCampaignIdeas(); setDraftBeneficiary(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <label className="block font-semibold">What is needed? (optional)
-        <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
+        <input maxLength={100} value={draftNeed} disabled={busy || loadingDraft || Boolean(draftLoadError)}
           onChange={e => { invalidateCampaignIdeas(); setDraftNeed(e.target.value); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <button type="button" onClick={suggestDraft}
