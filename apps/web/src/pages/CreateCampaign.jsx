@@ -69,6 +69,11 @@ export default function CreateCampaign() {
   function editSection(index, value) {
     const updated = storySectionsRef.current.map((part, i) => i === index ? value : part);
     sectionRevision.current += 1;
+    // Editing the source invalidates its in-flight rewrite immediately.
+    // Unlock the section controls without waiting for a stale request to settle.
+    regenerationRequest.current += 1;
+    setRegeneratingSection(-1);
+    setSectionError("");
     storySectionsRef.current = updated;
     setStorySections(updated);
     // Persist section edits immediately; saving must never use an older story.
