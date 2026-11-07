@@ -14,3 +14,10 @@ test("in-flight AI campaign ideas are invalidated by edits to generation context
   assert.match(source, /key === "category" \|\| key === "goal_amount"/);
   assert.match(source, /revision === suggestionRevision\.current\) setSuggestionError/);
 });
+
+test("context invalidation releases the AI loading state without allowing stale requests to release a newer one", () => {
+  const invalidator = source.match(/function invalidateCampaignIdeas\(\) \{([\s\S]*?)\n  \}/)?.[1];
+  assert.ok(invalidator);
+  assert.match(invalidator, /suggestionRevision\.current \+= 1;[\s\S]*?setSuggesting\(false\)/);
+  assert.match(source, /finally \{[\s\S]*?if \(revision === suggestionRevision\.current\) setSuggesting\(false\)/);
+});
