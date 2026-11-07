@@ -51,6 +51,7 @@ export default function CreateCampaign() {
   // Invalidate in-flight AI suggestions when their campaign context changes.
   const suggestionRevision = useRef(0);
   const sectionRevision = useRef(0);
+  const regenerationRequest = useRef(0);
   const [suggestionError, setSuggestionError] = useState("");
   const [storySections, setStorySections] = useState([]);
   const storySectionsRef = useRef([]);
@@ -83,6 +84,7 @@ export default function CreateCampaign() {
   }
   async function regenerateSection(index) {
     if (regeneratingSection !== -1 || suggesting || busy) return;
+    const requestId = ++regenerationRequest.current;
     setRegeneratingSection(index);
     setSectionError("");
     // Capture the request context outside try so rejected requests can be
@@ -111,7 +113,7 @@ export default function CreateCampaign() {
         setSectionError(err?.message || "Unable to regenerate section.");
       }
     } finally {
-      setRegeneratingSection(-1);
+      if (requestId === regenerationRequest.current) setRegeneratingSection(-1);
     }
   }
 
@@ -146,6 +148,9 @@ export default function CreateCampaign() {
     // Its guarded finally block must not clear a subsequent request.
     setSuggesting(false);
     sectionRevision.current += 1;
+    // A context change makes any in-flight section rewrite obsolete.
+    regenerationRequest.current += 1;
+    setRegeneratingSection(-1);
     setSuggestions(null);
     setSuggestionError("");
     setSectionProposals({});
