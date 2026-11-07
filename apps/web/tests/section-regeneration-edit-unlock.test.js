@@ -10,6 +10,6 @@ test("editing a section immediately unlocks obsolete regeneration without showin
   assert.match(edit[1], /sectionRevision\.current \+= 1;/);
   assert.match(edit[1], /regenerationRequest\.current \+= 1;/);
   assert.match(edit[1], /setRegeneratingSection\(-1\)/);
-  assert.match(edit[1], /setSectionError\(" "\)|setSectionError\(""\)/);
+  assert.match(edit[1], /setSectionError\(""\)/);
   assert.match(source, /if \(requestId === regenerationRequest\.current\) setRegeneratingSection\(-1\)/);
 });
