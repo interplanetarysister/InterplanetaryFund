@@ -136,7 +136,8 @@ export default function CreateCampaign() {
     } catch (error) {
       if (revision === suggestionRevision.current) setSuggestionError(error?.message || "Could not prepare your draft.");
     } finally {
-      setSuggesting(false);
+      // An older request must not clear the busy state of a newer AI request.
+      if (revision === suggestionRevision.current) setSuggesting(false);
     }
   }
   function invalidateCampaignIdeas() {
