@@ -26,6 +26,7 @@ on:
       - 'apps/web/public/_redirects'
       - 'apps/web/public/_headers'
       - '.github/workflows/backend-migration-qa.yml'
+      - '.github/workflows/deploy-web-pages.yml'
   workflow_dispatch:
 permissions:
   contents: read
