@@ -142,6 +142,9 @@ export default function CreateCampaign() {
   }
   function invalidateCampaignIdeas() {
     suggestionRevision.current += 1;
+    // Context edits invalidate the active request; unlock generation immediately.
+    // Its guarded finally block must not clear a subsequent request.
+    setSuggesting(false);
     sectionRevision.current += 1;
     setSuggestions(null);
     setSuggestionError("");
