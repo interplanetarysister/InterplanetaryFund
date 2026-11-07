@@ -21,3 +21,12 @@ test("context invalidation releases the AI loading state without allowing stale 
   assert.match(invalidator, /suggestionRevision\.current \+= 1;[\s\S]*?setSuggesting\(false\)/);
   assert.match(source, /finally \{[\s\S]*?if \(revision === suggestionRevision\.current\) setSuggesting\(false\)/);
 });
+
+test("AI context fields remain editable during a pending request so edits invalidate stale suggestions", () => {
+  for (const field of ["draftDetails", "draftBeneficiary", "draftNeed"]) {
+    const tag = source.match(new RegExp("<(?:input|textarea)\\\\b[^>]*value=\\\\{" + field + "\\\\}[^>]*>"))?.[0];
+    assert.ok(tag, "editable context field exists: " + field);
+    assert.doesNotMatch(tag, /disabled=\\{suggesting/);
+    assert.match(tag, /disabled=\\{busy \\|\\| loadingDraft \\|\\| Boolean\\(draftLoadError\\)\\}/);
+  }
+});
