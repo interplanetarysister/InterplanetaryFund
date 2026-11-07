@@ -176,6 +176,11 @@ export default function CreateCampaign() {
       // truth. Otherwise an old section edit can overwrite newer story text.
       const sections = splitStory(value);
       sectionRevision.current += 1;
+      // Full-story edits invalidate any pending section rewrite immediately.
+      // Do not leave the regeneration button locked while obsolete AI work settles.
+      regenerationRequest.current += 1;
+      setRegeneratingSection(-1);
+      setSectionError("");
       storySectionsRef.current = sections;
       setStorySections(sections);
       setSectionProposals({});
