@@ -10,5 +10,5 @@ test("editing the full story invalidates pending section regeneration and unlock
   assert.match(storyBranch, /sectionRevision\.current \+= 1/);
   assert.match(storyBranch, /regenerationRequest\.current \+= 1/);
   assert.match(storyBranch, /setRegeneratingSection\(-1\)/);
-  assert.match(storyBranch, /setSectionError\(" "\)|setSectionError\(" "\)/.source ? /setSectionError\(" "\)/ : /setSectionError\(""\)/);
+  assert.match(storyBranch, /setSectionError\(""\)/);
 });
