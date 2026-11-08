@@ -39,9 +39,9 @@ export function storyInput(raw) {
     raw.section != null &&
     (typeof raw.section !== "string" ||
       !raw.section.trim() ||
-      raw.section.length > 6000)
+      raw.section.length > 4000)
   )
-    fail(400, "The story section must be 6,000 characters or fewer.");
+    fail(400, "The story section must be 4,000 characters or fewer.");
   return {
     details: raw.details.trim(),
     campaign_id: raw.campaign_id || null,
@@ -53,7 +53,7 @@ export function storyInput(raw) {
 export function storyResponseFormat(section = false) {
   const string = (maxLength) => ({ type: "string", minLength: 1, maxLength });
   const properties = section
-    ? { section: string(6000) }
+    ? { section: string(4000) }
     : {
         titles: { type: "array", minItems: 5, maxItems: 5, items: string(150) },
         summaries: {
@@ -100,7 +100,7 @@ export function storyOutput(raw, section = false) {
     v.length <= max &&
     !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(v);
   if (section) {
-    if (!valid(value?.section, 6000))
+    if (!valid(value?.section, 4000))
       fail(502, "The writing assistant returned an incomplete section.");
     return { section: value.section.trim() };
   }
