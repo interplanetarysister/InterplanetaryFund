@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { requestCampaignDraft } from "@/api/campaignDraft";
+import { requestCampaignDraft, requestCampaignSection } from "@/api/campaignDraft";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
 import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
@@ -88,19 +88,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setSectionError("");
     try {
       const original = storySections[index];
-      const sectionDetails = "Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails;
-      if (sectionDetails.length > 1500) {
-        throw new Error("This section and its campaign context exceed the 1,500-character writing limit. Shorten the section or context; nothing was removed.");
-      }
-      const result = await requestCampaignDraft(authClient(), {
-        details: sectionDetails,
-        beneficiary: draftBeneficiary,
-        need: draftNeed,
-        cause: form.category,
-        goal: form.goal_amount,
+      const context = [
+        guidedCampaignDetails(writingPath, draftDetails),
+        draftBeneficiary ? "Beneficiary: " + draftBeneficiary : "",
+        draftNeed ? "Need: " + draftNeed : "",
+        "Category: " + form.category,
+        form.goal_amount ? "Fundraising goal: " + form.goal_amount + " USD" : "",
+      ].filter(Boolean).join("\\n");
+      const result = await requestCampaignSection(authClient(), {
+        details: context,
+        section: original,
+        campaign_id: campaignId.current,
       });
-      const proposed = splitStory(result.story)[0];
-      if (!proposed) throw new Error("No replacement section returned.");
+      const proposed = result.section;
+      if (!proposed) throw new Error("No verified replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
     } catch (err) {
       setSectionError(err?.message || "Unable to regenerate section.");
