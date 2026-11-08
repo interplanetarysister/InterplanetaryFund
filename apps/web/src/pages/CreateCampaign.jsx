@@ -94,7 +94,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         draftNeed ? "Need: " + draftNeed : "",
         "Category: " + form.category,
         form.goal_amount ? "Fundraising goal: " + form.goal_amount + " USD" : "",
-      ].filter(Boolean).join("\\n");
+      ].filter(Boolean).join("\n");
       const result = await requestCampaignSection(authClient(), {
         details: context,
         section: original,
