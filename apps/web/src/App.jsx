@@ -31,6 +31,7 @@ const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
@@ -53,7 +54,7 @@ const STANDALONE_COMING_SOON = [
   "/globe", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
-  "/community/:id", "/u/:id",
+  "/community/:id",
   "/giving", "/ai-images",
   "/institutions", "/institutions/:id", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals",
@@ -100,6 +101,7 @@ function AppRoutes() {
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
+      <Route path="/u/:id" element={<PublicProfile />} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
