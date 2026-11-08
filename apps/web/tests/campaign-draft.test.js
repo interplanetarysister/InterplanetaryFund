@@ -13,7 +13,14 @@ test("draft requests reject empty details and cap user input", () => {
 });
 test("draft responses require usable story text", () => {
   assert.throws(() => validateDraftSuggestion({ titles: [], summaries: [] }), /incomplete/);
-  assert.equal(validateDraftSuggestion({ titles:["Title"], summaries:["Summary"], story:"Story" }).story, "Story");
+  const valid = validateDraftSuggestion({
+    titles: ["Title A", "Title B", "Title C", "Title D", "Title E"],
+    summaries: ["Summary A", "Summary B"],
+    story: "Story",
+  });
+  assert.equal(valid.story, "Story");
+  assert.equal(valid.titles.length, 5);
+  assert.equal(valid.summaries.length, 2);
 });
 test("draft generation requires authentication and never saves", async () => {
   await assert.rejects(requestCampaignDraft({ auth: { getSession: async () => ({ data: {} }) } }, { details: "A real detailed explanation" }), /sign in/);
@@ -23,8 +30,42 @@ test("draft generation requires authentication and never saves", async () => {
       called = true;
       assert.equal(name, "ifund-campaign-draft-preview");
       assert.ok(options.body.details);
-      return { data: {titles:["Title"],summaries:["Summary"],story:"Story"} };
+      return { data: {
+        titles: ["Title A", "Title B", "Title C", "Title D", "Title E"],
+        summaries: ["Summary A", "Summary B"],
+        story: "Story",
+      } };
     } } };
   assert.equal((await requestCampaignDraft(client, {details:"Garden community fundraising story"})).story, "Story");
   assert.equal(called, true);
+});
+
+test("section regeneration accepts the generated 6,000-character bound without mutating saved text", async () => {
+  const { requestCampaignSection } = await import("../src/api/campaignDraft.js");
+  const previousFetch = globalThis.fetch;
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url, options, body: JSON.parse(options.body) };
+    return Response.json({ draft: { payload: { section: "Replacement story section" } } }, { status: 201 });
+  };
+  try {
+    const client = {
+      auth: {
+        getSession: async () => ({
+          data: { session: { access_token: "signed-session" } },
+          error: null,
+        }),
+      },
+    };
+    const result = await requestCampaignSection(client, {
+      details: "Verified campaign facts for section regeneration",
+      section: "S".repeat(5000),
+    });
+    assert.equal(result.section, "Replacement story section");
+    assert.equal(request.url, "/api/services/story_agent/drafts");
+    assert.equal(request.body.section.length, 5000);
+    assert.match(request.body.request_id, /^[0-9a-f-]{36}$/i);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
 });
