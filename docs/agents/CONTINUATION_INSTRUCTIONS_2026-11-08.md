@@ -135,3 +135,17 @@ Cloudflare Pages deployment:
 This is a successful preview build/deployment for the current frontend branch. It is not a complete product/agent acceptance result. The app still has explicit Coming Soon routes and incomplete Managed Connections, Discovery, Outreach, Finance, Chief of Staff, Admin Builder, member My Blog, image generation, and other source-parity work. Do not merge or promote production on the strength of this build alone.
 
 The CodeRabbit responses to the two implementation requests were inspection-only: they did not create code commits or test evidence. Continue making verified code changes directly and use CodeRabbit as an additional reviewer, not as the sole implementer.
+
+
+## Deployment configuration and specialist runtime verification — 2026-11-08
+
+Correction/reconciliation from the live Cloudflare Pages project API:
+- Pages project `interplanetaryfund-migration` is configured with `root_dir: apps/web`, output `dist`, build command `npm ci --no-audit --no-fund && npm test && npm run build`.
+- The successful `efa4228` and subsequent documentation preview build therefore target the canonical `apps/web` frontend, not the historical root Vite app. Earlier concern based on reading the repository-root package file was incorrect.
+- Preview configuration binds five specialist Workers: Story, Strategy, Growth, Communications and Managed Connections. Production Pages configuration still binds only the existing Story Worker.
+- Read-only Worker settings show AI bindings on Story, Strategy, Growth and Communications preview Workers. Managed Connections preview Worker has only the feature flag and Supabase URL/publishable-key bindings: no AI binding and no workforce executor-key binding. Do not attempt model procurement or mark its conversation runtime active until the shared workforce role registration, server-only executor binding and live quota/eligibility checks are completed.
+- The deployed preview Workers are existing hosted versions, not automatically updated by a Pages source commit. A Pages deployment alone does not deploy new Worker source.
+
+The latest Pages preview build executed the configured command and emitted 154 passing TAP tests with zero failing TAP cases; its deployment stage succeeded. This verifies that exact frontend preview bundle and the configured test command. It does not verify all browser routes, database migrations, live Worker execution, provider OAuth or end-to-end member journeys.
+
+CodeRabbit's implementation attempts ended with its explicit response that the action is unavailable for this repository; it made no implementation commit. Continue direct code changes and independent checks. Do not wait for CodeRabbit to implement the remainder.
