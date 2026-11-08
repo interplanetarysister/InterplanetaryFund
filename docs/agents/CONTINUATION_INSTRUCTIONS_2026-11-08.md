@@ -114,3 +114,24 @@ The Pages deployment for commit ad7fbd30f0ba721be0239285ea509f93865a900e ran npm
 - Generalize workforce runtime and SQL only through a CLI-generated migration with RLS/grant review, then register Managed Connections under the same shared quota.
 - After Managed Connections passes its gates, advance the ledger to Discovery. Continue with Outreach, Finance, Chief of Staff and protected Admin Builder in the prescribed order.
 - Keep production procurement disabled and do not merge/promote this draft stack.
+
+
+---
+
+## Preview verification checkpoint — 2026-11-08 15:40 PST
+
+The stale Reporter route assertion was repaired in commit `efa4228b045e16c4173ceb56c4305f1f6aaf6904`. The prior assertion used over-escaped regular-expression literals; it is now an exact string assertion against the actual `App.jsx` route declarations and the Reporter page's explanatory text.
+
+Cloudflare Pages deployment:
+- Deployment ID: `d44ed485-9c05-43f0-911d-37ac7167890b`
+- Commit: `efa4228b045e16c4173ceb56c4305f1f6aaf6904`
+- Environment: `preview`
+- Branch: `feature/managed-connections-agent-20261105`
+- URL: https://d44ed485.interplanetaryfund-migration.pages.dev
+- Latest stage: `deploy / success`
+- Executed command: `npm ci --no-audit --no-fund && npm test && npm run build`
+- TAP output: 154 passing tests, 0 failing tests.
+
+This is a successful preview build/deployment for the current frontend branch. It is not a complete product/agent acceptance result. The app still has explicit Coming Soon routes and incomplete Managed Connections, Discovery, Outreach, Finance, Chief of Staff, Admin Builder, member My Blog, image generation, and other source-parity work. Do not merge or promote production on the strength of this build alone.
+
+The CodeRabbit responses to the two implementation requests were inspection-only: they did not create code commits or test evidence. Continue making verified code changes directly and use CodeRabbit as an additional reviewer, not as the sole implementer.
