@@ -35,6 +35,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
   const [loadedDraftId, setLoadedDraftId] = useState(null);
+  const [revision, setRevision] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
   useEffect(() => {
@@ -48,6 +49,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         if (active) {
           setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" });
           setLoadedDraftId(draftId);
+          setRevision(data.updated_at);
           setSaved(data.id);
         }
       } catch (err) { if (active) setDraftLoadError(err?.message || "Unable to load draft."); }
@@ -162,10 +164,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
       if (authError || !user) { navigate("/login?returnTo=" + encodeURIComponent(window.location.pathname + window.location.search), { replace: true }); return; }
-      const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status, expectedStatus: "draft" });
+      const data = await saveOwnerCampaign(client, form, {
+        id: campaignId.current,
+        status,
+        expectedStatus: campaignId.current ? "draft" : undefined,
+        expectedUpdatedAt: campaignId.current ? revision : undefined,
+      });
       // Set the receipt before routing so another click cannot insert a second
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
+      setRevision(data.updated_at);
       setSaved(data.id);
       try { forgetBrowserCampaign(sessionStorage); } catch { /* unavailable */ }
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
