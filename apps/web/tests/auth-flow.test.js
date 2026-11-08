@@ -4,6 +4,7 @@ import {
   authRedirectUrl,
   completeAuthCallback,
   confirmedUser,
+  hasAuthCallbackCredentials,
   legacyAuthCallbackUrl,
 } from "../src/lib/authFlow.js";
 const user = { id: "owner", email_confirmed_at: "2026-01-01" };
@@ -41,6 +42,11 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
   );
   assert.equal(recoveryUrl.pathname, "/reset-password");
   assert.equal(recoveryUrl.searchParams.get("returnTo"), "/campaigns?tab=mine");
+});
+test("returnTo-only recovery URLs do not masquerade as callback credentials", () => {
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password?returnTo=%2Fcampaigns"), false);
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password?returnTo=%2Fcampaigns&token_hash=abc&type=recovery"), true);
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password#access_token=abc&refresh_token=def"), true);
 });
 test("PKCE code is consumed once under duplicate callback effects", async () => {
   const auth = makeAuth();
