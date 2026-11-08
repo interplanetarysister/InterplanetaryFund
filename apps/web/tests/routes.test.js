@@ -22,6 +22,6 @@ test("auth client targets one canonical Supabase project", () => {
 test("fundraising is never represented as confirmed by draft creation", () => {
  const create = file("../src/pages/CreateCampaign.jsx");
  assert.match(create, /event\.preventDefault\(\); save\("draft"\)/);
- assert.match(create, /Campaign donations are currently paused/);
+ assert.doesNotMatch(create, /Campaign donations are currently paused/);
  assert.doesNotMatch(create, /paypal\.capture|donation.*confirmed/i);
 });
