@@ -46,11 +46,11 @@ export default function Onboarding() {
       const client=authClient();
       const {data:{user},error:authError}=await client.auth.getUser();
       if(authError||!user)throw Error("Sign in to save this profile.");
-      const {error:writeError}=await client.from("ifund_profiles").upsert({
-        id:user.id,display_name:name.trim()||null,handle:handle.trim()||null
-      },{onConflict:"id"});
+      const {data:savedProfile,error:writeError}=await client.from("ifund_profiles").update({
+        display_name:name.trim()||null,handle:handle.trim()
+      }).eq("id",user.id).select("id,display_name,handle").maybeSingle();
       if(writeError?.code==="23505")throw Error("That username is already taken. Choose another handle.");
-      if(writeError)throw Error("Profile save was not confirmed.");
+      if(writeError || savedProfile?.id!==user.id)throw Error("Profile save was not confirmed.");
       setStep(2);
     }catch(cause){setError(cause?.message||"Setup could not be saved.");}
     finally{setBusy(false);}
