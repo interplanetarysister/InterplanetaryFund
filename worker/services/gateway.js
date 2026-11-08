@@ -49,7 +49,8 @@ export async function serviceGateway(request, env) {
       return json(503, { error: "Service access could not be verified." });
     return json(200, {
       services: serviceCatalog()
-        .filter((service) => service.min_plan_level !== null &&
+        .filter((service) => entitlement.active === true &&
+          service.min_plan_level !== null &&
           entitlement.level >= service.min_plan_level)
         .map(({ id, title }) => ({ id, title })),
     });
