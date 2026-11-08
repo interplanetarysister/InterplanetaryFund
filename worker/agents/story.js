@@ -55,7 +55,7 @@ export function storyResponseFormat(section = false) {
   const properties = section
     ? { section: string(6000) }
     : {
-        titles: { type: "array", minItems: 5, maxItems: 5, items: string(160) },
+        titles: { type: "array", minItems: 5, maxItems: 5, items: string(150) },
         summaries: {
           type: "array",
           minItems: 2,
@@ -107,7 +107,7 @@ export function storyOutput(raw, section = false) {
   if (
     !Array.isArray(value?.titles) ||
     value.titles.length !== 5 ||
-    !value.titles.every((x) => valid(x, 160)) ||
+    !value.titles.every((x) => valid(x, 150)) ||
     !Array.isArray(value?.summaries) ||
     value.summaries.length !== 2 ||
     !value.summaries.every((x) => valid(x, 500)) ||
