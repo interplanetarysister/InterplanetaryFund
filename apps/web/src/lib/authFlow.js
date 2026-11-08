@@ -4,7 +4,7 @@ export function confirmedUser(user) {
   return Boolean(user?.id && user?.email_confirmed_at);
 }
 
-function canonicalAuthOrigin(origin) {
+export function canonicalAuthOrigin(origin) {
   const base = new URL(origin);
   if (base.hostname.toLowerCase() === "www.interplanetaryfund.com")
     base.hostname = "interplanetaryfund.com";
