@@ -34,10 +34,11 @@ export default function Profile() {
     try {
       const handle = profile.handle.trim();
       if (handle && !/^[A-Za-z0-9_-]{3,32}$/.test(handle)) throw new Error("Handles must be 3–32 letters, numbers, underscores, or hyphens.");
-      const { error: saveError } = await authClient().from("ifund_profiles").upsert({
-        id: user.id, handle: handle || null, display_name: profile.display_name.trim() || null
-      }, { onConflict: "id" });
+      const { data: savedProfile, error: saveError } = await authClient().from("ifund_profiles").update({
+        handle: handle || null, display_name: profile.display_name.trim() || null
+      }).eq("id", user.id).select("id").maybeSingle();
       if (saveError) throw saveError;
+      if (savedProfile?.id !== user.id) throw new Error("Profile save was not confirmed.");
       setMessage("Profile saved.");
     } catch (err) { setError(err?.message || "Unable to save profile."); }
     finally { setBusy(false); }
