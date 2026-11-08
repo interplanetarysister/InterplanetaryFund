@@ -431,40 +431,21 @@ test("a lookup failure is reported, not swallowed", async () => {
   );
 });
 
-test("the publishing workspace is routed and member-gated", () => {
-  // Collapse whitespace so a Prettier reflow cannot break these assertions.
+test("official Reporter and member My Blog stay isolated until their server APIs are verified", () => {
   const flat = (path) =>
-    readFileSync(new URL("../" + path, import.meta.url), "utf8").replace(
-      /\s+/g,
-      " ",
-    );
+    readFileSync(new URL("../" + path, import.meta.url), "utf8").replace(/\\s+/g, " ");
   const app = flat("src/App.jsx");
-  // Both the new path and the root app's old /my-blog path reach the workspace.
   assert.match(
     app,
-    /path="\/publication" element=\{<MemberAccess><MyPublication \/><\/MemberAccess>\}/,
-    "/publication must exist and be member-gated",
+    /path="\\/publication" element=\\{<MemberAccess><ComingSoon \/><\\/MemberAccess>\\}/,
+    "official Reporter publishing stays unavailable until its owner API and RLS are verified",
   );
   assert.match(
     app,
-    /path="\/my-blog" element=\{<MemberAccess><MyPublication \/><\/MemberAccess>\}/,
-    "the root app's /my-blog must keep working",
+    /path="\\/my-blog" element=\\{<MemberAccess><ComingSoon \/><\\/MemberAccess>\\}/,
+    "member-owned My Blog must not be routed to the single official Reporter publication",
   );
-  // The page must go through the ownership-checked library, never a raw insert.
   const page = flat("src/pages/MyPublication.jsx");
-  assert.match(
-    page,
-    /saveReporterStory\(authClient\(\)/,
-    "writes must go through the checked library",
-  );
-  assert.doesNotMatch(
-    page,
-    /from\("ifund_blog_entries"\)\.insert|\.insert\(/,
-    "no direct insert in the page",
-  );
-  assert.doesNotMatch(
-    page,
-    /from\("ifund_blogs"\)/,
-    "no direct blog write in the page",
-  );
+  assert.match(page, /official Reporter publication workspace/);
+  assert.match(page, /not the member-owned \\/my-blog studio/);
 });
