@@ -59,7 +59,7 @@ export default function Onboarding() {
   return <main className="mx-auto max-w-2xl space-y-6 px-4 py-10">
     <h1 className="font-display text-3xl font-bold">Welcome to Interplanetary Fund</h1>
     <p className="text-muted-foreground">Create your identity, start fundraising, and decide which connections you want to authorize.</p>
-    <p className="text-sm text-muted-foreground">Step {step+1} of 3</p>
+    <p className="text-sm text-muted-foreground">Step {step+1} of 6</p>
     {error&&<p role="alert" className="rounded-xl border border-destructive p-3 text-destructive">{error}</p>}
     {step===0&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
       <h2 className="text-xl font-semibold">Your IFund journey</h2>
@@ -75,10 +75,28 @@ export default function Onboarding() {
       <button type="button" disabled={busy} onClick={save} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground disabled:opacity-50">{busy?"Saving…":"Save identity"}</button></div>
     </section>}
     {step===2&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Meet your AI team</h2>
+      <p>IFund has specialist workspaces for campaign writing, strategy, growth, communications and connection guidance. Each specialist is available only within its verified preview capabilities.</p>
+      <Link to="/agents" className="inline-block rounded-xl border border-border px-5 py-3">Explore the AI workspace</Link>
+      <button type="button" onClick={()=>setStep(3)} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Continue</button>
+    </section>}
+    {step===3&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Connect your platforms</h2>
+      <p>Review available connection methods and their current verification status. Opening the connections page does not connect an account or grant IFund permission.</p>
+      <Link to="/connections" className="inline-block rounded-xl border border-border px-5 py-3">Review connections</Link>
+      <button type="button" onClick={()=>setStep(4)} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Continue</button>
+    </section>}
+    {step===4&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Automation stays under your control</h2>
+      <p>Onboarding does not enable delegated access, scheduled actions, external publishing or provider changes. Each consequential action must have its own current permission and owner approval.</p>
+      <p className="text-sm text-muted-foreground">You can review or revoke IFund connection-help permissions from the Connections workspace. No permission is granted by continuing this setup.</p>
+      <button type="button" onClick={()=>setStep(5)} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Continue</button>
+    </section>}
+    {step===5&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
       <h2 className="text-xl font-semibold">Your profile is saved</h2>
-      <p>Connect other platforms only when their provider consent and authorization services are verified. No AI delegation or external posting is activated by this setup.</p>
+      <p>Your account identity is ready. You can create a campaign, explore the current agent preview or review connections when you choose.</p>
       <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={()=>navigate(returnTo,{replace:true})} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Continue</button>
+        <button type="button" onClick={()=>navigate(returnTo,{replace:true})} className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Finish setup</button>
         <Link to="/create" className="rounded-xl border border-border px-5 py-3">Create campaign</Link>
         <Link to="/connections" className="rounded-xl border border-border px-5 py-3">Connections</Link>
       </div>
