@@ -65,6 +65,16 @@ jobs:
         env:
           VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
           VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
+      - name: Verify canonical campaign wizard and mobile UX contracts
+        run: |
+          npm run verify:campaign-creation
+          npm run verify:design-ux
+      - name: Install Chromium for canonical browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify original frontend mobile navigation and browser rendering
+        run: |
+          npm run verify:navigation
+          npm run verify:browser-render
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
