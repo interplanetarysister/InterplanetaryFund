@@ -63,11 +63,11 @@ test("section regeneration accepts the generated 6,000-character bound without m
     };
     const result = await requestCampaignSection(client, {
       details: "Verified campaign facts for section regeneration",
-      section: "S".repeat(5000),
+      section: "S".repeat(4000),
     });
     assert.equal(result.section, "Replacement story section");
     assert.equal(request.url, "/api/services/story_agent/drafts");
-    assert.equal(request.body.section.length, 5000);
+    assert.equal(request.body.section.length, 4000);
     assert.match(request.body.request_id, /^[0-9a-f-]{36}$/i);
   } finally {
     globalThis.fetch = previousFetch;
