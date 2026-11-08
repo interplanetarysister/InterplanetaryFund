@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authClient } from "@/api/auth";
-import { completeAuthCallback, verifiedAuthUser, canonicalAuthOrigin } from "@/lib/authFlow";
+import { completeAuthCallback, verifiedAuthUser, canonicalAuthOrigin, hasAuthCallbackCredentials } from "@/lib/authFlow";
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,15 +23,8 @@ export default function ResetPassword() {
     Promise.resolve()
       .then(async () => {
         const auth = authClient().auth;
-        const url = new URL(href);
-        const fragment = new URLSearchParams(url.hash.slice(1));
-        const hasCallbackCredentials =
-          url.searchParams.has("code") ||
-          url.searchParams.has("token_hash") ||
-          url.searchParams.has("error") ||
-          fragment.has("access_token") ||
-          fragment.has("error");
-        if (hasCallbackCredentials) await completeAuthCallback(auth, href);
+        if (hasAuthCallbackCredentials(href))
+          await completeAuthCallback(auth, href);
         else await verifiedAuthUser(auth);
         if (active) setReady(true);
       })
