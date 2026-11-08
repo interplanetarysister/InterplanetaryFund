@@ -92,6 +92,21 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to save a campaign.' });
     const deleting = request.method === 'DELETE';
+    if (!deleting) {
+      // The browser helper is not a security boundary. Enforce the same
+      // current, versioned legal acceptance on this independent Worker path.
+      const terms = await fetcher(
+        env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_has_current_terms',
+        {
+          method: 'POST',
+          headers: { ...apiHeaders(env, account.jwt), 'Content-Type': 'application/json' },
+          body: '{}',
+        },
+      );
+      if (!terms.ok) return response(503, { error: 'Campaign terms could not be verified.' });
+      if ((await terms.json()) !== true)
+        return response(403, { error: 'Review and accept the current member agreement before saving or publishing.' });
+    }
     let campaign;
     if (!deleting) {
       const body = await readJsonBody(request, MAX_BYTES);
