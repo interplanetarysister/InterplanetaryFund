@@ -44,7 +44,7 @@ test("draft generation requires authentication and never saves", async () => {
   assert.equal(called, true);
 });
 
-test("section regeneration accepts the generated 6,000-character bound without mutating saved text", async () => {
+test("section regeneration respects the workforce 4,000-character bound without mutating saved text", async () => {
   const { requestCampaignSection } = await import("../src/api/campaignDraft.js");
   const previousFetch = globalThis.fetch;
   let request;
