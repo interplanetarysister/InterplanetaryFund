@@ -7,7 +7,7 @@ import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
-import { Pencil, PlusCircle, Loader2, Eye, PauseCircle, PlayCircle, Trash2, Compass } from "lucide-react";
+import { Pencil, PlusCircle, Loader2, Eye, PlayCircle, Trash2, Compass } from "lucide-react";
 
 const money = (value) => {
   const amount = Number(value);
@@ -107,7 +107,7 @@ export default function MyCampaigns() {
       <div>
         <h1 className="font-display text-3xl font-bold sm:text-4xl">My campaigns</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Save a private draft, publish it to Discover, or pause it at any time. Publishing never enables donations, which remain paused platform-wide.
+          Save a private draft, publish it to Discover, or resume a campaign that has been paused after review. Publishing never enables donations, which remain paused platform-wide.
         </p>
       </div>
       <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
@@ -191,12 +191,6 @@ export default function MyCampaigns() {
                     <PlayCircle className="h-4 w-4" aria-hidden="true" /> {busy ? "Publishing…" : "Publish"}
                   </button>
                 )}
-                {campaign.status === "active" && (
-                  <button type="button" disabled={busy} onClick={() => changeStatus(campaign, "paused")}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold disabled:opacity-50">
-                    <PauseCircle className="h-4 w-4" aria-hidden="true" /> {busy ? "Pausing…" : "Pause"}
-                  </button>
-                )}
                 {campaign.status === "paused" && (
                   <button type="button" disabled={busy} onClick={() => changeStatus(campaign, "active")}
                     className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
@@ -227,7 +221,7 @@ export default function MyCampaigns() {
             )}
             {campaign.status !== "draft" && (
               <p className="mt-3 text-xs text-muted-foreground">
-                Published campaigns cannot be deleted here; pause it to hide it from Discover.
+                Published campaigns cannot be deleted or paused here. A pause requires a protected review.
               </p>
             )}
           </li>;
