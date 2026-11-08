@@ -16,5 +16,5 @@ export function guidedCampaignDetails(pathId, userDetails) {
   // Keep the existing Edge Function's 1,500-character request contract.
   const prefix = `Campaign writing approach: ${guidance}. `;
   // Preserve the user’s facts: omit optional guidance if it would exceed the API limit.
-  return prefix.length + details.length <= 1500 ? prefix + details : details.slice(0, 1500);
+  return prefix.length + details.length <= 1500 ? prefix + details : details;
 }
