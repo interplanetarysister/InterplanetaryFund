@@ -10,6 +10,10 @@ test("draft requests reject empty details and cap user input", () => {
   });
   assert.equal(payload.answers.need, "Garden tools");
   assert.equal(payload.goal, 600);
+  assert.throws(() => makeDraftRequest({
+    details: "A complete and useful campaign description",
+    beneficiary: "B".repeat(101),
+  }), /was not shortened/);
 });
 test("draft responses require usable story text", () => {
   assert.throws(() => validateDraftSuggestion({ titles: [], summaries: [] }), /incomplete/);
