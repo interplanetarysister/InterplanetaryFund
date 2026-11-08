@@ -39,8 +39,19 @@ export async function serviceGateway(request, env) {
       return json(verified.status === 401 ? 401 : 403, {
         error: "Confirm access to your fundraising services.",
       });
+    const entitlement = await verified.json().catch(() => null);
+    if (
+      !entitlement ||
+      !Number.isInteger(entitlement.level) ||
+      entitlement.level < 0 ||
+      typeof entitlement.active !== "boolean"
+    )
+      return json(503, { error: "Service access could not be verified." });
     return json(200, {
-      services: serviceCatalog().map(({ id, title }) => ({ id, title })),
+      services: serviceCatalog()
+        .filter((service) => service.min_plan_level !== null &&
+          entitlement.level >= service.min_plan_level)
+        .map(({ id, title }) => ({ id, title })),
     });
   }
   const story =
