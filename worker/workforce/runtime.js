@@ -105,10 +105,16 @@ export async function beginStoryAssignment(env, rpc, input, hash, messages) {
     complexity: 2,
     input_bytes: bytes,
     max_output_tokens: 2200,
-    remaining_units: snapshot.policy.remaining_units,
+    // Procurement identifies a verified implementation within the database's
+    // hard per-day ceiling. The reservation RPC then checks the live remaining
+    // balance and either claims it or persists a capacity-queued request.
+    remaining_units: 8000,
   };
   // A single complete Story contract is required. Fragmentary team output is never treated as equivalent.
   const plan = procureTeam(task, candidates, { max_members: 1 });
+  // Do not persist a misleading "capacity" queue when no tested implementation
+  // exists. The SQL reservation remains the final authority for live capacity.
+  if (plan.state !== "selected") return { state: "unavailable" };
   return rpc("ifund_workforce_begin", {
     p_request_id: input.request_id,
     p_input_hash: hash,
