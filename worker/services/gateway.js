@@ -3,6 +3,16 @@ import { serviceCatalog } from "./catalog.js";
 const json = (status, data) =>
   Response.json(data, { status, headers: { "cache-control": "no-store" } });
 
+// Only list specialists whose preview Worker is actually bound to this runtime.
+// The stable catalog also preserves future positions; a catalog entry alone is
+// not evidence that an executable service has been deployed.
+const selectableBindings = Object.freeze({
+  story_agent: "IFUND_STORY_AGENT",
+  strategy_agent: "IFUND_STRATEGY_AGENT",
+  growth_agent: "IFUND_GROWTH_AGENT",
+  communications_agent: "IFUND_COMMUNICATIONS_AGENT",
+});
+
 /** Permanent service addresses are independent of the worker/model that performs the service. */
 export async function serviceGateway(request, env) {
   const path = new URL(request.url).pathname;
@@ -49,9 +59,13 @@ export async function serviceGateway(request, env) {
       return json(503, { error: "Service access could not be verified." });
     return json(200, {
       services: serviceCatalog()
-        .filter((service) => entitlement.active === true &&
-          service.min_plan_level !== null &&
-          entitlement.level >= service.min_plan_level)
+        .filter((service) => {
+          const bindingName = selectableBindings[service.id];
+          return Boolean(bindingName && env[bindingName]?.fetch) &&
+            entitlement.active === true &&
+            service.min_plan_level !== null &&
+            entitlement.level >= service.min_plan_level;
+        })
         .map(({ id, title }) => ({ id, title })),
     });
   }
