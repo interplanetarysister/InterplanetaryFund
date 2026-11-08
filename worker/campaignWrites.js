@@ -100,13 +100,49 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
         return response(422, { error: 'Invalid or incomplete campaign fields.' });
       if (create) campaign.owner_id = account.uid;
     }
+    let existing = null;
+    if (updateMatch) {
+      const readQuery = new URLSearchParams({
+        select: SELECT,
+        id: 'eq.' + updateMatch[1],
+        owner_id: 'eq.' + account.uid,
+        limit: '1',
+      });
+      const read = await fetcher(
+        env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + readQuery,
+        { method: 'GET', headers: apiHeaders(env, account.jwt) },
+      );
+      if (!read.ok) return response(503, { error: 'Campaign save unavailable.' });
+      const rows = await read.json();
+      if (!Array.isArray(rows)) return response(503, { error: 'Campaign save unavailable.' });
+      if (!rows.length) return response(404, { error: 'Campaign not found or not editable.' });
+      if (rows.length !== 1 || rows[0]?.owner_id !== account.uid || !rows[0]?.updated_at)
+        return response(503, { error: 'Campaign save could not be verified.' });
+      existing = rows[0];
+      if (deleting && existing.status !== 'draft')
+        return response(404, { error: 'Campaign not found or not editable.' });
+      if (!deleting) {
+        const nextStatus = campaign.status ?? existing.status;
+        if (!['draft', 'active'].includes(nextStatus))
+          return response(422, { error: 'This campaign status cannot be changed here.' });
+        const merged = { ...existing, ...campaign, status: nextStatus };
+        if (nextStatus === 'active' &&
+            (!String(merged.title || '').trim() ||
+             !String(merged.summary || '').trim() ||
+             !String(merged.story || '').trim() ||
+             !(Number(merged.goal_amount) > 0)))
+          return response(422, { error: 'Complete the campaign before publishing.' });
+        campaign.status = nextStatus;
+      }
+    }
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
-      // Deletion is restricted to empty/draft records; published campaigns
-      // can have donors and must enter a separate audited archive workflow.
-      if (deleting) query.set('status', 'eq.draft');
+      query.set('status', 'eq.' + existing.status);
+      // The database touch trigger advances updated_at on every write. This
+      // prevents a stale Worker request from overwriting a newer same-status edit.
+      query.set('updated_at', 'eq.' + existing.updated_at);
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
       method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',
