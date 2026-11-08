@@ -46,6 +46,22 @@ async function assertSessionUnchanged(client, owner) {
   }
 }
 
+async function assertCurrentTerms(client, owner) {
+  const { data, error } = await client.from("ifund_legal_acceptances")
+    .select("owner_id,terms_version,explicit_consent")
+    .eq("owner_id", owner)
+    .eq("terms_version", TERMS_VERSION)
+    .maybeSingle();
+  if (
+    error ||
+    data?.owner_id !== owner ||
+    data?.terms_version !== TERMS_VERSION ||
+    data?.explicit_consent !== true
+  ) {
+    throw new Error("Review and accept the current member agreement before saving or publishing.");
+  }
+}
+
 // A read -> check -> update sequence is not atomic: another tab or browser can
 // change the row between the read and the write. Every mutation therefore
 // carries the status it validated as a compare-and-swap condition, so a stale
@@ -118,12 +134,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   if (expectedStatus !== undefined && !CAMPAIGN_STATUSES.includes(expectedStatus)) throw new Error("Invalid expected campaign status.");
   const owner = await verifiedOwner(client);
-  const { data: acceptance, error: legalError } = await client.from("ifund_legal_acceptances")
-    .select("owner_id,terms_version,explicit_consent")
-    .eq("owner_id", owner).eq("terms_version", TERMS_VERSION).maybeSingle();
-  if (legalError || acceptance?.owner_id !== owner || acceptance?.terms_version !== TERMS_VERSION || acceptance?.explicit_consent !== true) {
-    throw new Error("Review and accept the current member agreement before saving or publishing.");
-  }
+  await assertCurrentTerms(client, owner);
   const problems = validateCampaignForm(form, { publish: status === "active" });
   if (problems.length) throw new Error(problems[0]);
   const payload = buildCampaignPayload(form, status);
@@ -172,6 +183,7 @@ export async function setCampaignStatus(client, id, status) {
   if (!UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   const owner = await verifiedOwner(client);
+  if (status === "active") await assertCurrentTerms(client, owner);
   const { data: existing, error: readError } = await client.from("ifund_campaigns")
     .select(OWNER_CAMPAIGN_COLUMNS)
     .eq("id", id)
