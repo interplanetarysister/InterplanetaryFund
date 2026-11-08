@@ -108,7 +108,6 @@ function AppRoutes() {
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
       <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
-      <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
