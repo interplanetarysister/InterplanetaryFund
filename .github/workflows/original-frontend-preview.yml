@@ -228,4 +228,9 @@ jobs:
             esac
           done
           echo "Verified deployed source provenance and SPA login/create/discover deep links at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
-          echo "Browser visual parity, login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
+          # Exercise the actual deployed Pages URL in a mobile Chromium browser,
+          # not just the locally built Vite preview. This catches deployed JS
+          # initialization errors and route regressions missed by curl probes.
+          IFUND_SMOKE_URL="$PREVIEW_URL" npm run verify:browser-render
+          echo "Deployed mobile Chromium browser smoke passed at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Human visual parity, authenticated login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
