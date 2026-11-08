@@ -14,3 +14,25 @@ test('unknown specialists, private builder and unsupported actions cannot reach 
 test('gateway forwarding preserves backend authentication and permission denials',async()=>{
  const r=await serviceGateway(new Request('https://ifund.test/api/services/managed_connection_agent/workspace'),{IFUND_CONNECTIONS_AGENT:{fetch:async()=>Response.json({error:'Sign in to use your assistant.'},{status:401})}});assert.equal(r.status,401);
 });
+
+test('service directory hides future roles and preview workers without an executable binding',async()=>{
+ const calls=[];
+ const worker=(name,body)=>({fetch:async request=>{
+  calls.push({name,path:new URL(request.url).pathname});
+  return Response.json(body);
+ }});
+ const env={
+  IFUND_STORY_AGENT:worker('story',{level:2,active:true}),
+  IFUND_STRATEGY_AGENT:worker('strategy',{enabled:true}),
+  IFUND_CONNECTIONS_AGENT:worker('connections',{enabled:true}),
+ };
+ const response=await serviceGateway(new Request('https://ifund.test/api/services',{
+  headers:{authorization:'Bearer owner.jwt'},
+ }),env);
+ assert.equal(response.status,200);
+ assert.deepEqual((await response.json()).services,[
+  {id:'strategy_agent',title:'Strategy'},
+  {id:'story_agent',title:'Story'},
+ ]);
+ assert.equal(calls[0].path,'/api/agents/story/subscription');
+});
