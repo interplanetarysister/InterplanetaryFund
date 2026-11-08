@@ -13,7 +13,7 @@ export const helpArticles = Object.freeze([
     category: "Campaigns",
     question: "How do I create a campaign?",
     description: "Campaign editing and publication during the migration.",
-    answer: "Campaign creation, editing, publishing and agent-assisted artwork are being reconnected to the independent account and data system. Do not assume a campaign has been saved or published unless IFund shows a confirmed result from its independent backend. Until account migration and ownership checks finish, the new site does not offer live campaign creation."
+    answer: "You can compose a campaign draft without signing in. The independent migration composer keeps an unsigned draft in this browser session; this is not a server save. Sign in when you choose Save private draft, then return to the composer to finish saving. Only a confirmed draft reference means it was saved to the independent backend. Publishing, donations and AI artwork remain unavailable until their services pass verification. The original Base44 campaign wizard is being restored separately in preview; this migration composer is not yet equivalent to the original experience."
   },
   {
     slug: "campaign-donations",
