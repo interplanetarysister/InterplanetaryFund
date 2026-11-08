@@ -50,3 +50,57 @@ export async function requestCampaignDraft(client, input) {
   if (error) throw new Error("Campaign suggestions are unavailable. Your current text was not changed.");
   return validateDraftSuggestion(data);
 }
+
+
+/** Request one owner-reviewed story section through the authenticated Story Agent. */
+export async function requestCampaignSection(client, { details, section, campaign_id = null }) {
+  const context = String(details || "").trim();
+  const original = String(section || "").trim();
+  if (context.length < 12 || context.length > 4000) {
+    throw new Error("Provide 12 to 4,000 characters of campaign context. Nothing was changed.");
+  }
+  if (!original || original.length > 4000) {
+    throw new Error("Keep the selected story section to 4,000 characters or fewer. Nothing was changed.");
+  }
+  if (campaign_id != null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaign_id)) {
+    throw new Error("The campaign reference could not be verified.");
+  }
+  const { data: auth, error: authError } = await client.auth.getSession();
+  if (authError || !auth?.session?.access_token) {
+    throw new Error("Sign in to regenerate a story section.");
+  }
+  const requestId = globalThis.crypto?.randomUUID?.();
+  if (!requestId) throw new Error("A secure request reference could not be created.");
+  let response;
+  try {
+    response = await fetch("/api/services/story_agent/drafts", {
+      method: "POST",
+      headers: {
+        authorization: "Bearer " + auth.session.access_token,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify({
+        request_id: requestId,
+        details: context,
+        section: original,
+        campaign_id,
+      }),
+    });
+  } catch {
+    throw new Error("The Story Agent could not be reached. Your current section was not changed.");
+  }
+  const result = await response.json().catch(() => ({}));
+  const replacement = result?.draft?.payload?.section;
+  if (!response.ok || typeof replacement !== "string" || !replacement.trim()) {
+    throw new Error(
+      result?.state === "queued" || response.status === 202
+        ? "The section request is queued or unavailable. No replacement was applied."
+        : result?.error || "A verified replacement section was not returned. Your current section was not changed.",
+    );
+  }
+  if (replacement.length > 6000 || /[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]/.test(replacement)) {
+    throw new Error("The Story Agent returned an invalid section. Your current section was not changed.");
+  }
+  return { section: replacement.trim() };
+}
