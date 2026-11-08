@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { completeAuthCallback } from "@/lib/authFlow";
+import { completeAuthCallback, canonicalAuthOrigin } from "@/lib/authFlow";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 
 export default function AuthCallback() {
@@ -10,6 +10,11 @@ export default function AuthCallback() {
   const [href] = useState(() => window.location.href);
   useEffect(() => {
     let active = true;
+    const canonicalOrigin = canonicalAuthOrigin(window.location.origin);
+    if (canonicalOrigin !== window.location.origin) {
+      window.location.replace(canonicalOrigin + window.location.pathname + window.location.search + window.location.hash);
+      return () => { active = false; };
+    }
     // Strip credentials before loading any further pages or third-party assets.
     window.history.replaceState({}, "", "/auth/callback");
     Promise.resolve()
