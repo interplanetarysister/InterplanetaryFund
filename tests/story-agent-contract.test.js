@@ -14,15 +14,15 @@ test("story input accepts the complete section size returned by the output schem
   const input = storyInput({
     request_id: requestId,
     details: "Verified campaign facts and owner-provided context.",
-    section: "S".repeat(6000),
+    section: "S".repeat(4000),
   });
-  assert.equal(input.section.length, 6000);
-  assert.equal(storyResponseFormat(true).json_schema.properties.section.maxLength, 6000);
+  assert.equal(input.section.length, 4000);
+  assert.equal(storyResponseFormat(true).json_schema.properties.section.maxLength, 4000);
   assert.throws(() => storyInput({
     request_id: requestId,
     details: "Verified campaign facts and owner-provided context.",
-    section: "S".repeat(6001),
-  }), /6,000 characters/);
+    section: "S".repeat(4001),
+  }), /4,000 characters/);
 });
 
 test("generated title limits match the public campaign creator and reject invalid control characters", () => {
