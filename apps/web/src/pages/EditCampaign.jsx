@@ -102,6 +102,7 @@ export default function EditCampaign() {
     try {
       const saved = await setCampaignStatus(authClient(), id, next);
       setStatus(saved.status);
+      setRevision(saved.updated_at);
       setNotice(next === "active"
         ? "Your campaign is published and visible on Discover. Donations stay paused."
         : "Your campaign is paused and hidden from Discover.");
