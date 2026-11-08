@@ -19,6 +19,10 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
   );
   assert.equal(url.pathname, "/auth/callback");
   assert.equal(url.searchParams.get("returnTo"), "/campaigns?tab=mine");
+  assert.equal(
+    new URL(authRedirectUrl("https://www.interplanetaryfund.com", "/agents")).origin,
+    "https://interplanetaryfund.com",
+  );
   for (const target of [
     "https://evil.test",
     "//evil.test",
@@ -111,6 +115,10 @@ test("already-issued dashboard and login links are rescued before member guards"
     new URL(legacy, "https://interplanetaryfund.com").pathname,
     "/auth/callback",
   );
+  const wwwLegacy = legacyAuthCallbackUrl(
+    "https://www.interplanetaryfund.com/dashboard#access_token=access&refresh_token=refresh",
+  );
+  assert.equal(new URL(wwwLegacy, "https://interplanetaryfund.com").origin, "https://interplanetaryfund.com");
   assert.match(legacy, /returnTo=%2Fdashboard/);
   assert.match(legacy, /access_token=access/);
   assert.match(
