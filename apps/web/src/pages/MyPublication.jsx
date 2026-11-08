@@ -9,13 +9,10 @@ import {
   saveReporterStory,
 } from "@/lib/reporterWorkspace";
 
-// The reporter publishing workspace, ported from the root app's MyBlog page so
-// apps/web has every capability the root app had before it becomes canonical.
-//
-// Authorization is not decided here: loadReporterWorkspace and saveReporterStory
-// re-check blog ownership and account status, and the ifund_blog_entries RLS
-// policy enforces it again server-side (see migration
-// 20261102_ifund_blog_entry_ownership_fix.sql). This page only renders.
+// This page is only the official Reporter publication workspace.
+// It is intentionally not the member-owned /my-blog studio. The member blog
+// create/edit/publish API and its entitlement/RLS contract must be implemented
+// and verified separately before /my-blog can route here.
 const EMPTY = { id: "", title: "", summary: "", body: "", status: "draft" };
 
 export default function MyPublication() {
