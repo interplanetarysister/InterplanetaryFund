@@ -131,7 +131,7 @@ export default function EditCampaign() {
           {campaignStatusLabel(status)}
         </span>
       </div>
-      <p className="text-muted-foreground">Changes are private until you publish. Donations remain paused platform-wide.</p>
+      <p className="text-muted-foreground">{status === "active" ? "Changes to this published campaign become visible as soon as they are saved." : "Changes remain private until you publish."} Donations remain paused platform-wide.</p>
     </header>
 
     <PrelaunchNotice compact />
