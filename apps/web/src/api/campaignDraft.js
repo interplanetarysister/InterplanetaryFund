@@ -59,8 +59,8 @@ export async function requestCampaignSection(client, { details, section, campaig
   if (context.length < 12 || context.length > 4000) {
     throw new Error("Provide 12 to 4,000 characters of campaign context. Nothing was changed.");
   }
-  if (!original || original.length > 4000) {
-    throw new Error("Keep the selected story section to 4,000 characters or fewer. Nothing was changed.");
+  if (!original || original.length > 6000) {
+    throw new Error("Keep the selected story section to 6,000 characters or fewer. Nothing was changed.");
   }
   if (campaign_id != null && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(campaign_id)) {
     throw new Error("The campaign reference could not be verified.");
