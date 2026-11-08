@@ -10,13 +10,14 @@ const web = (p) => new URL("../" + p, import.meta.url);
 const read = (p) => readFileSync(web(p), "utf8");
 const repo = (p) => new URL("../../../" + p, import.meta.url);
 
-test("the SPA fallback rewrites deep links to the shell without changing the URL", () => {
-  assert.ok(existsSync(web("public/_redirects")), "public/_redirects must exist");
-  const rules = read("public/_redirects");
-  // A 200 rewrite keeps the path so React Router can resolve it; a 301/302 would
-  // move the visitor to "/" and every deep link would land on Home.
-  assert.match(rules, /^\/\*\s+\/index\.html\s+200\s*$/m, "must rewrite /* to /index.html with 200");
-  assert.doesNotMatch(rules, /\s(301|302)\s*$/, "must not redirect (only rewrite)");
+test("Cloudflare Pages uses its native SPA fallback without a looping rewrite", () => {
+  // Pages serves index.html for unknown paths when no top-level 404.html exists.
+  // An explicit /* /index.html 200 rule is rejected by Cloudflare as an infinite loop.
+  assert.ok(!existsSync(web("public/404.html")), "a top-level 404.html disables Pages native SPA fallback");
+  if (existsSync(web("public/_redirects"))) {
+    assert.doesNotMatch(read("public/_redirects"), /^\/\*\s+\/index\.html\s+200\s*$/m,
+      "Cloudflare rejects recursive SPA rewrites");
+  }
 });
 
 test("security headers are set without white-screening the app", () => {
@@ -77,7 +78,7 @@ test("the deploy workflow refuses to publish a build with no backend", () => {
   const wf = readFileSync(repo(".github/workflows/deploy-web-pages.yml"), "utf8");
   assert.match(wf, /vars\.VITE_SUPABASE_URL == ''/);
   assert.match(wf, /Refusing to publish a build with no backend/);
-  // It must prove the deep-link and header files made it into the bundle.
-  assert.match(wf, /test -f dist\/_redirects/);
+  // Native SPA fallback requires no top-level 404; the headers must ship.
+  assert.match(wf, /test ! -f dist\/404\.html/);
   assert.match(wf, /test -f dist\/_headers/);
 });
