@@ -269,6 +269,14 @@ export default function StoryAgent() {
               key={item.request_id}
               className="flex flex-wrap items-center gap-3"
             >
+              <p className="my-2 w-full whitespace-pre-wrap break-words text-sm">
+                {item.task?.details || "Saved request details are unavailable."}
+              </p>
+              {item.task?.section && (
+                <p className="my-2 w-full whitespace-pre-wrap break-words text-sm text-muted-foreground">
+                  Section to revise: {item.task.section}
+                </p>
+              )}
               <button
                 disabled={
                   busy || item.can_resume === false || eligible === false
