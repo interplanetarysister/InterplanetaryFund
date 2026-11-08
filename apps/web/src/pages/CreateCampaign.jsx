@@ -70,6 +70,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftNeed, setDraftNeed] = useState("");
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
+  const [regeneratingIdea, setRegeneratingIdea] = useState("");
   const [suggestionError, setSuggestionError] = useState("");
   const [storySections, setStorySections] = useState([]);
   const [sectionProposals, setSectionProposals] = useState({});
@@ -87,8 +88,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setSectionError("");
     try {
       const original = storySections[index];
+      const sectionDetails = "Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails;
+      if (sectionDetails.length > 1500) {
+        throw new Error("This section and its campaign context exceed the 1,500-character writing limit. Shorten the section or context; nothing was removed.");
+      }
       const result = await requestCampaignDraft(authClient(), {
-        details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
+        details: sectionDetails,
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
@@ -104,9 +109,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
   }
 
-  async function suggestDraft() {
+  async function suggestDraft(regenerateOnly = "") {
     if (busy || suggesting || loadingDraft || draftLoadError) return;
-    setSuggesting(true); setSuggestionError(""); setSuggestions(null);
+    setSuggesting(true);
+    setRegeneratingIdea(regenerateOnly);
+    setSuggestionError("");
+    if (!regenerateOnly) setSuggestions(null);
     try {
       const result = await requestCampaignDraft(authClient(), {
         details: guidedCampaignDetails(writingPath, draftDetails),
@@ -115,13 +123,23 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         cause: form.category,
         goal: form.goal_amount,
       });
-      setSuggestions(result);
-      setStorySections(splitStory(result.story));
-      setSectionProposals({});
+      if (regenerateOnly) {
+        const key = regenerateOnly === "story" ? "story" : regenerateOnly;
+        setSuggestions((previous) => previous ? { ...previous, [key]: result[key] } : result);
+        if (regenerateOnly === "story") {
+          setStorySections(splitStory(result.story));
+          setSectionProposals({});
+        }
+      } else {
+        setSuggestions(result);
+        setStorySections(splitStory(result.story));
+        setSectionProposals({});
+      }
     } catch (error) {
       setSuggestionError(error?.message || "Could not prepare your draft.");
     } finally {
       setSuggesting(false);
+      setRegeneratingIdea("");
     }
   }
   useEffect(() => {
@@ -200,19 +218,37 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {suggestionError && <p role="alert" className="text-destructive">{suggestionError}</p>}
       {suggestions && <div aria-label="Campaign ideas" className="space-y-4" role="region">
         <p role="status" className="text-sm">Suggestions are ready. Choose which ideas to apply to the form below.</p>
-        <h3 className="font-semibold">Title ideas</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-semibold">Title ideas</h3>
+          <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
+            disabled={suggesting || busy} onClick={() => suggestDraft("titles")}>
+            {regeneratingIdea === "titles" ? "Regenerating titles…" : "Regenerate titles"}
+          </button>
+        </div>
         {suggestions.titles.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
           <p className="min-w-0 flex-1">{v}</p>
           <button type="button" className="rounded-xl border border-border px-4 py-2"
             onClick={() => change("title",v)}>Use title</button>
         </div>)}
-        <h3 className="font-semibold">Short descriptions</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-semibold">Short descriptions</h3>
+          <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
+            disabled={suggesting || busy} onClick={() => suggestDraft("summaries")}>
+            {regeneratingIdea === "summaries" ? "Regenerating descriptions…" : "Regenerate descriptions"}
+          </button>
+        </div>
         {suggestions.summaries.map((v, i) => <div key={i} className="flex flex-wrap items-center justify-between gap-3">
           <p className="min-w-0 flex-1">{v}</p>
           <button type="button" className="rounded-xl border border-border px-4 py-2"
             onClick={() => change("summary",v)}>Use description</button>
         </div>)}
-        <h3 className="font-semibold">Story idea</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="font-semibold">Story idea</h3>
+          <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
+            disabled={suggesting || busy} onClick={() => suggestDraft("story")}>
+            {regeneratingIdea === "story" ? "Regenerating story…" : "Regenerate story"}
+          </button>
+        </div>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
           onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
@@ -259,7 +295,6 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>
           : <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{readiness.missing.map(item => <li key={item}>{item}</li>)}</ul>}
       </div>
-      <p className="text-sm text-muted-foreground">Campaign donations are currently paused.</p>
       {memberAccess ? actions : <MemberAccess>{actions}</MemberAccess>}
     </section>
   </main>;
