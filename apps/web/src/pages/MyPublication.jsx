@@ -72,7 +72,6 @@ export default function MyPublication() {
         ...form,
         status,
       });
-      await reload();
       setForm(
         saved.status === "published"
           ? EMPTY
@@ -85,6 +84,15 @@ export default function MyPublication() {
             },
       );
       setNotice(saved.status === "published" ? "Published." : "Draft saved.");
+      try {
+        await reload();
+      } catch {
+        setNotice(
+          saved.status === "published"
+            ? "Published. Your story is saved, but the list could not refresh. Reload to see it."
+            : "Draft saved. The list could not refresh. Reload to see it.",
+        );
+      }
     } catch (err) {
       setError(err?.message || "Your story was not saved.");
     } finally {
