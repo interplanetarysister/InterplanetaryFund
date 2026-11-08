@@ -176,9 +176,11 @@ export default function MyCampaigns() {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-2">
-                <Link to={`/campaigns/${campaign.id}/edit`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold">
-                  <Pencil className="h-4 w-4" aria-hidden="true" /> Edit
-                </Link>
+                {campaign.status !== "paused" && campaign.status !== "completed" && (
+                  <Link to={`/campaigns/${campaign.id}/edit`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold">
+                    <Pencil className="h-4 w-4" aria-hidden="true" /> Edit
+                  </Link>
+                )}
                 {campaign.status === "active" && (
                   <Link to={`/campaign/${campaign.id}`} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold">
                     <Eye className="h-4 w-4" aria-hidden="true" /> View
@@ -220,9 +222,19 @@ export default function MyCampaigns() {
                 <CampaignShareButton campaign={campaign} />
               </div>
             )}
-            {campaign.status !== "draft" && (
+            {campaign.status === "paused" && (
               <p className="mt-3 text-xs text-muted-foreground">
-                Published campaigns cannot be deleted or paused here. A pause requires a protected review.
+                This campaign is paused after review. Resume it before making content changes.
+              </p>
+            )}
+            {campaign.status === "completed" && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                This campaign is complete and read-only.
+              </p>
+            )}
+            {campaign.status === "active" && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Published campaigns cannot be deleted or paused from this page. A pause requires a protected review.
               </p>
             )}
           </li>;
