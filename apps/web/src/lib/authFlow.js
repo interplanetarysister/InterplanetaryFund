@@ -1,5 +1,18 @@
 import { safeReturnTo } from "./safeReturnTo.js";
 
+export function hasAuthCallbackCredentials(href) {
+  const url = new URL(href);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  return (
+    url.searchParams.has("code") ||
+    url.searchParams.has("token_hash") ||
+    url.searchParams.has("error") ||
+    fragment.has("access_token") ||
+    fragment.has("refresh_token") ||
+    fragment.has("error")
+  );
+}
+
 export function confirmedUser(user) {
   return Boolean(user?.id && user?.email_confirmed_at);
 }
