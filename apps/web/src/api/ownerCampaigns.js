@@ -211,6 +211,7 @@ export async function setCampaignStatus(client, id, status) {
     .eq("id", id)
     .eq("owner_id", owner)
     .eq("status", current.status)
+    .eq("updated_at", current.updated_at)
     .select(OWNER_CAMPAIGN_COLUMNS)
     .maybeSingle();
   const saved = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "The campaign status change was not saved." });
