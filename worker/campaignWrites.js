@@ -7,8 +7,8 @@ const ALLOWED = new Set([
   'title', 'summary', 'story', 'category', 'goal_amount', 'cover_image_url', 'status',
 ]);
 const CATEGORIES = new Set([
-  'community', 'medical', 'emergency', 'education', 'animals',
-  'business', 'creative', 'other',
+  'medical', 'emergency', 'education', 'community', 'animals',
+  'business', 'creative', 'memorial', 'disaster_relief', 'environment', 'other',
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
@@ -23,8 +23,8 @@ function validatePayload(raw, isCreate) {
     if (Object.hasOwn(raw, field)) {
       if (typeof raw[field] !== 'string') return null;
       const max = field === 'story' ? 15_000 :
-        field === 'cover_image_url' ? 2_048 :
-        field === 'summary' ? 600 : 120;
+        field === 'cover_image_url' ? 2_000 :
+        field === 'summary' ? 600 : 150;
       if (raw[field].length > max) return null;
       data[field] = raw[field].trim();
     }
