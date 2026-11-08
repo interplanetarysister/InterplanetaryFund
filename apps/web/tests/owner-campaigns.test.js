@@ -328,6 +328,23 @@ test("every mutation carries the validated status as a compare-and-swap guard", 
     "the transition must filter on the row revision it validated");
 });
 
+test("editor saves reject the row revision loaded by a stale editor", async () => {
+  const f = fakeClient();
+  await assert.rejects(
+    saveOwnerCampaign(f.client, {
+      title: "Old tab edit", summary: "Updated", story: "Updated", category: "community",
+      goal_amount: "500", cover_image_url: "",
+    }, {
+      id: DRAFT_ID, status: "draft", expectedStatus: "draft",
+      expectedUpdatedAt: "2026-10-31T10:00:00Z",
+    }),
+    /changed in another session/,
+  );
+  assert.equal(f.calls.some((call) => call.type === "update"), false);
+  const page = source("src/pages/EditCampaign.jsx");
+  assert.match(page, /expectedUpdatedAt: revision/);
+});
+
 test("a stale draft save loses to a concurrent publish instead of reverting it", async () => {
   // Another tab publishes the campaign between this tab's read and its write.
   const f = fakeClient({ rows: [campaign()], raceStatusAfterRead: "active" });
