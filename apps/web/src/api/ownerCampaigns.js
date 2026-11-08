@@ -196,7 +196,10 @@ export async function setCampaignStatus(client, id, status) {
   if (readError || !existing) throw new Error("That campaign was not found for your account.");
   const current = assertOwned(existing, owner, id);
   if (!current.updated_at) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
-  if (current.status === status) return current;
+  if (current.status === status) {
+    await assertSessionUnchanged(client, owner);
+    return current;
+  }
   if (!canTransition(current.status, status)) {
     throw new Error(`A ${current.status} campaign cannot be set to ${status}.`);
   }
