@@ -25,6 +25,7 @@ export default function EditCampaign() {
   const lock = useRef(false);
   const [form, setForm] = useState(emptyCampaignForm);
   const [status, setStatus] = useState("draft");
+  const [revision, setRevision] = useState(null);
   const [phase, setPhase] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
@@ -45,6 +46,7 @@ export default function EditCampaign() {
         cover_image_url: campaign.cover_image_url || "",
       });
       setStatus(campaign.status);
+      setRevision(campaign.updated_at);
       setPhase("ready");
     } catch (cause) {
       if (!alive.current) return;
@@ -70,8 +72,14 @@ export default function EditCampaign() {
     if (problems.length) { setError(problems[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
-      const saved = await saveOwnerCampaign(authClient(), form, { id, status: nextStatus });
+      const saved = await saveOwnerCampaign(authClient(), form, {
+        id,
+        status: nextStatus,
+        expectedStatus: status,
+        expectedUpdatedAt: revision,
+      });
       setStatus(saved.status);
+      setRevision(saved.updated_at);
       setNotice(nextStatus === "active"
         ? "Your campaign is published and visible on Discover. Donations stay paused."
         : "Your campaign changes were saved.");
