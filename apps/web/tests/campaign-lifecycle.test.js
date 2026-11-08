@@ -61,13 +61,13 @@ test("payloads are trimmed and never carry owner_id or server-owned columns", ()
 });
 
 test("status transitions follow the published lifecycle", () => {
-  assert.deepEqual([...CAMPAIGN_STATUSES], ["draft", "active", "paused"]);
+  assert.deepEqual([...CAMPAIGN_STATUSES], ["draft", "active", "paused", "completed"]);
   assert.equal(canTransition(null, "draft"), true);
   assert.equal(canTransition(null, "active"), true);
   assert.equal(canTransition(null, "paused"), false);
   assert.equal(canTransition("draft", "active"), true);
   assert.equal(canTransition("draft", "paused"), false);
-  assert.equal(canTransition("active", "paused"), true);
+  assert.equal(canTransition("active", "paused"), false);
   assert.equal(canTransition("paused", "active"), true);
   assert.equal(canTransition("active", "draft"), false);
   assert.equal(canTransition("paused", "draft"), false);
@@ -75,4 +75,5 @@ test("status transitions follow the published lifecycle", () => {
   assert.equal(campaignStatusLabel("active"), "Published");
   assert.equal(campaignStatusLabel("paused"), "Paused");
   assert.equal(campaignStatusLabel("draft"), "Draft");
+  assert.equal(campaignStatusLabel("completed"), "Completed");
 });
