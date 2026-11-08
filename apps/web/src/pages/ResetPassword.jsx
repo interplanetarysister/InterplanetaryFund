@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authClient } from "@/api/auth";
-import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
+import { completeAuthCallback, verifiedAuthUser, canonicalAuthOrigin } from "@/lib/authFlow";
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -14,6 +14,11 @@ export default function ResetPassword() {
   const returnTo = safeReturnTo(searchParams.get("returnTo"));
   useEffect(() => {
     let active = true;
+    const canonicalOrigin = canonicalAuthOrigin(window.location.origin);
+    if (canonicalOrigin !== window.location.origin) {
+      window.location.replace(canonicalOrigin + window.location.pathname + window.location.search + window.location.hash);
+      return () => { active = false; };
+    }
     window.history.replaceState({}, "", "/reset-password?returnTo=" + encodeURIComponent(safeReturnTo(new URL(href).searchParams.get("returnTo"))));
     Promise.resolve()
       .then(async () => {
