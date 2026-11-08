@@ -181,19 +181,24 @@ export default function EditCampaign() {
           className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">
           <Save className="h-4 w-4" aria-hidden="true" /> {busy ? "Saving…" : "Save changes"}
         </button>
-        {status !== "active" ? (
+        {status === "draft" && (
           <button type="button" onClick={toggleStatus} disabled={disabled || !readiness.ready}
             title={readiness.ready ? "Publish to Discover" : readiness.missing[0]}
             className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
             <PlayCircle className="h-4 w-4" aria-hidden="true" /> Publish
           </button>
-        ) : (
-          <>
-            
-            <Link to={`/campaign/${id}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold">
-              View public page
-            </Link>
-          </>
+        )}
+        {status === "paused" && (
+          <button type="button" onClick={toggleStatus} disabled={busy || phase !== "ready" || !readiness.ready}
+            title={readiness.ready ? "Resume on Discover" : readiness.missing[0]}
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
+            <PlayCircle className="h-4 w-4" aria-hidden="true" /> Resume
+          </button>
+        )}
+        {status === "active" && (
+          <Link to={`/campaign/${id}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold">
+            View public page
+          </Link>
         )}
       </div>
     </form>
