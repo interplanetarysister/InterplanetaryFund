@@ -16,7 +16,7 @@ const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "u
 const campaign = (over = {}) => ({
   id: DRAFT_ID, owner_id: OWNER, title: "Plaza lights", summary: "Light the plaza.",
   story: "Longer story.", category: "community", goal_amount: 1200,
-  cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", ...over,
+  cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", updated_at: "2026-11-01T10:00:00Z", ...over,
 });
 
 /**
@@ -116,7 +116,7 @@ function fakeClient({
         if (query.op === "insert") {
           lastInsert = query.payload;
           if (failInsert) return { data: null, error: { message: "insert failed" } };
-          const created = { id: ACTIVE_ID, created_at: "2026-11-01T10:00:00Z", ...query.payload };
+          const created = { id: ACTIVE_ID, created_at: "2026-11-01T10:00:00Z", updated_at: "2026-11-08T23:00:00Z", ...query.payload };
           if (insertStatusOverride !== null) created.status = insertStatusOverride;
           store.push(created);
           return singleRow ? { data: { ...created }, error: null } : { data: [{ ...created }], error: null };
@@ -127,10 +127,12 @@ function fakeClient({
           // Real PostgREST applies every filter, including a status filter, so a
           // compare-and-swap on status matches zero rows once the row moved on.
           const statusFilter = query.filters.find(([column]) => column === "status");
+          const revisionFilter = query.filters.find(([column]) => column === "updated_at");
           const index = store.findIndex((row) => row.id === byId && row.owner_id === byOwner &&
-            (statusFilter === undefined || row.status === statusFilter[1]));
+            (statusFilter === undefined || row.status === statusFilter[1]) &&
+            (revisionFilter === undefined || row.updated_at === revisionFilter[1]));
           if (index < 0) return noRows();
-          store[index] = { ...store[index], ...query.payload };
+          store[index] = { ...store[index], ...query.payload, updated_at: "2026-11-08T23:00:00Z" };
           if (statusOverride !== null) store[index].status = statusOverride;
           return singleRow ? { data: { ...store[index] }, error: null } : { data: [{ ...store[index] }], error: null };
         }
@@ -261,15 +263,15 @@ test("publishing is refused client-side when the campaign is incomplete", async 
   assert.equal(f.calls.some((c) => c.type === "update"), false, "no write may be attempted");
 });
 
-test("a draft can be published and an active campaign can be paused", async () => {
+test("a draft can be published, protected pause is refused, and reviewed pauses can be resumed", async () => {
   const publish = fakeClient();
   const published = await setCampaignStatus(publish.client, DRAFT_ID, "active");
   assert.equal(published.status, "active");
   assert.deepEqual(publish.lastUpdate, { status: "active" });
 
   const pause = fakeClient({ rows: [campaign({ id: ACTIVE_ID, status: "active" })] });
-  const paused = await setCampaignStatus(pause.client, ACTIVE_ID, "paused");
-  assert.equal(paused.status, "paused");
+  await assert.rejects(setCampaignStatus(pause.client, ACTIVE_ID, "paused"), /cannot be set to paused/);
+  assert.equal(pause.calls.some((call) => call.type === "update"), false);
 
   const resume = fakeClient({ rows: [campaign({ id: ACTIVE_ID, status: "paused" })] });
   assert.equal((await setCampaignStatus(resume.client, ACTIVE_ID, "active")).status, "active");
@@ -322,6 +324,8 @@ test("every mutation carries the validated status as a compare-and-swap guard", 
   await setCampaignStatus(status.client, DRAFT_ID, "active");
   assert.ok(status.calls.some((c) => c.type === "eq" && c.column === "status" && c.value === "draft"),
     "the transition must filter on the status it validated");
+  assert.ok(status.calls.some((c) => c.type === "eq" && c.column === "updated_at" && c.value === "2026-11-01T10:00:00Z"),
+    "the transition must filter on the row revision it validated");
 });
 
 test("a stale draft save loses to a concurrent publish instead of reverting it", async () => {
