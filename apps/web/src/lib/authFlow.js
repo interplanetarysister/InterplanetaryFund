@@ -12,7 +12,7 @@ export function authRedirectUrl(
   const url = new URL(recovery ? "/reset-password" : "/auth/callback", origin);
   if (url.protocol !== "https:" && url.hostname !== "localhost")
     throw new Error("Secure sign-in is unavailable.");
-  if (!recovery) url.searchParams.set("returnTo", safeReturnTo(returnTo));
+  url.searchParams.set("returnTo", safeReturnTo(returnTo));
   return url.toString();
 }
 
