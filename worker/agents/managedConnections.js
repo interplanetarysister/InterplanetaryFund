@@ -101,6 +101,14 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
     return reply(405, { error: "Method not allowed." });
   try {
     const api = await memberApi(request, env, fetcher);
+    // Viewing existing connection state and revoking/cancelling prior requests
+    // remains available after plan expiry. Creating a new grant or provider
+    // request requires the role's current plan entitlement.
+    if (route === "grant-help" || route === "requests") {
+      const entitlement = await api.rpc("ifund_story_subscription");
+      if (!Number.isInteger(entitlement?.level) || entitlement.level < 2)
+        return reply(403, { error: "An active Outreach plan or higher is required to request managed connection help." });
+    }
     if (route === "workspace")
       return reply(200, {
         ...(await api.rpc("ifund_connections_workspace")),
