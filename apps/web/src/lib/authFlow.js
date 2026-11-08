@@ -4,12 +4,22 @@ export function confirmedUser(user) {
   return Boolean(user?.id && user?.email_confirmed_at);
 }
 
+function canonicalAuthOrigin(origin) {
+  const base = new URL(origin);
+  if (base.hostname.toLowerCase() === "www.interplanetaryfund.com")
+    base.hostname = "interplanetaryfund.com";
+  return base.origin;
+}
+
 export function authRedirectUrl(
   origin,
   returnTo = "/dashboard",
   recovery = false,
 ) {
-  const url = new URL(recovery ? "/reset-password" : "/auth/callback", origin);
+  const url = new URL(
+    recovery ? "/reset-password" : "/auth/callback",
+    canonicalAuthOrigin(origin),
+  );
   if (url.protocol !== "https:" && url.hostname !== "localhost")
     throw new Error("Secure sign-in is unavailable.");
   url.searchParams.set("returnTo", safeReturnTo(returnTo));
@@ -36,7 +46,7 @@ export function legacyAuthCallbackUrl(href) {
     url.searchParams.has("error") ||
     fragment.has("error");
   if (!hasCredentials) return null;
-  const target = new URL("/auth/callback", url.origin);
+  const target = new URL("/auth/callback", canonicalAuthOrigin(url.origin));
   for (const key of ["code", "token_hash", "type", "error"])
     if (url.searchParams.has(key))
       target.searchParams.set(key, url.searchParams.get(key));
