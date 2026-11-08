@@ -24,7 +24,14 @@ export default function ResetPassword() {
       .then(async () => {
         const auth = authClient().auth;
         const url = new URL(href);
-        if (url.search || url.hash) await completeAuthCallback(auth, href);
+        const fragment = new URLSearchParams(url.hash.slice(1));
+        const hasCallbackCredentials =
+          url.searchParams.has("code") ||
+          url.searchParams.has("token_hash") ||
+          url.searchParams.has("error") ||
+          fragment.has("access_token") ||
+          fragment.has("error");
+        if (hasCallbackCredentials) await completeAuthCallback(auth, href);
         else await verifiedAuthUser(auth);
         if (active) setReady(true);
       })
