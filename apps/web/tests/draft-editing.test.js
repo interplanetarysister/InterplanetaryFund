@@ -18,3 +18,14 @@ test("form submission saves privately and publishing requires a separate explici
  assert.match(source,/saveLock\.current/);
  assert.doesNotMatch(source,/paypal\.capture|stripe/);
 });
+
+test("profile and onboarding updates only owner-editable columns",()=>{
+ const profile=readFileSync(new URL("../src/pages/Profile.jsx",import.meta.url),"utf8");
+ const onboarding=readFileSync(new URL("../src/pages/Onboarding.jsx",import.meta.url),"utf8");
+ for(const page of [profile,onboarding]){
+  assert.match(page,/\.from\("ifund_profiles"\)\.update\(/);
+  assert.match(page,/\.eq\("id",user\.id\)/);
+  assert.doesNotMatch(page,/\.from\("ifund_profiles"\)\.upsert\(/);
+ }
+ assert.match(profile,/maxLength=\{80\} value=\{profile\.display_name\}/);
+});
