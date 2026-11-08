@@ -435,17 +435,15 @@ test("official Reporter and member My Blog stay isolated until their server APIs
   const flat = (path) =>
     readFileSync(new URL("../" + path, import.meta.url), "utf8").replace(/\\s+/g, " ");
   const app = flat("src/App.jsx");
-  assert.match(
-    app,
-    /path="\\/publication" element=\\{<MemberAccess><ComingSoon \/><\\/MemberAccess>\\}/,
+  assert.ok(
+    app.includes('path="/publication" element={<MemberAccess><ComingSoon /></MemberAccess>}'),
     "official Reporter publishing stays unavailable until its owner API and RLS are verified",
   );
-  assert.match(
-    app,
-    /path="\\/my-blog" element=\\{<MemberAccess><ComingSoon \/><\\/MemberAccess>\\}/,
+  assert.ok(
+    app.includes('path="/my-blog" element={<MemberAccess><ComingSoon /></MemberAccess>}'),
     "member-owned My Blog must not be routed to the single official Reporter publication",
   );
   const page = flat("src/pages/MyPublication.jsx");
-  assert.match(page, /official Reporter publication workspace/);
-  assert.match(page, /not the member-owned \\/my-blog studio/);
+  assert.ok(page.includes("official Reporter publication workspace"));
+  assert.ok(page.includes("not the member-owned /my-blog studio"));
 });
