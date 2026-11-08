@@ -17,7 +17,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Only columns already used by other owner reads in this app, so a deployment
 // missing a newer column cannot break the management page.
 export const OWNER_CAMPAIGN_COLUMNS =
-  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,updated_at";
 
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
@@ -153,14 +153,17 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   }
 
   const { data: existing, error: readError } = await client.from("ifund_campaigns")
-    .select("id,owner_id,status")
+    .select("id,owner_id,status,updated_at")
     .eq("id", id)
     .eq("owner_id", owner)
     .maybeSingle();
   if (readError || !existing || existing.owner_id !== owner) {
     throw new Error("That campaign was not found for your account.");
   }
-  if (expectedStatus !== undefined && existing.status !== expectedStatus) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
+  if (
+    !existing.updated_at ||
+    (expectedStatus !== undefined && existing.status !== expectedStatus)
+  ) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
   }
@@ -171,6 +174,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
     .eq("id", id)
     .eq("owner_id", owner)
     .eq("status", existing.status)
+    .eq("updated_at", existing.updated_at)
     .select(OWNER_CAMPAIGN_COLUMNS)
     .maybeSingle();
   const updated = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "Your campaign changes were not saved." });
@@ -191,6 +195,7 @@ export async function setCampaignStatus(client, id, status) {
     .maybeSingle();
   if (readError || !existing) throw new Error("That campaign was not found for your account.");
   const current = assertOwned(existing, owner, id);
+  if (!current.updated_at) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
   if (current.status === status) return current;
   if (!canTransition(current.status, status)) {
     throw new Error(`A ${current.status} campaign cannot be set to ${status}.`);
