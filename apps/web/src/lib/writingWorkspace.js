@@ -4,9 +4,20 @@ export async function loadWritingWorkspaceAccess(api) {
     api("queued-requests"),
     api("subscription"),
   ]);
+  const queueRows =
+    queue.status === "fulfilled" && Array.isArray(queue.value?.queued_requests)
+      ? queue.value.queued_requests
+      : null;
   return {
-    queued_requests:
-      queue.status === "fulfilled" ? queue.value.queued_requests || [] : [],
+    queued_requests: queueRows,
+    queue_error:
+      queueRows === null
+        ? "Saved writing requests could not be loaded. Reload to try again."
+        : "",
     access: subscription.status === "fulfilled" ? subscription.value : null,
+    access_error:
+      subscription.status === "rejected"
+        ? "Writing access could not be verified."
+        : "",
   };
 }
