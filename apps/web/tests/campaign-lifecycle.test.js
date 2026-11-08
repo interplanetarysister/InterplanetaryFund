@@ -32,7 +32,8 @@ test("draft saving is allowed before the campaign is publishable", () => {
 });
 
 test("invalid goals, categories and cover links are rejected", () => {
-  assert.ok(validateCampaignForm({ ...complete(), goal_amount: "9".repeat(400) }).some((m) => /greater than zero/.test(m)));
+  assert.ok(validateCampaignForm({ ...complete(), goal_amount: "9".repeat(400) }).some((m) => /12 digits/.test(m)));
+  assert.ok(validateCampaignForm({ ...complete(), goal_amount: "9".repeat(13) }).some((m) => /12 digits/.test(m)));
   assert.ok(validateCampaignForm({ ...complete(), goal_amount: "0" }).some((m) => /greater than zero/.test(m)));
   assert.ok(validateCampaignForm({ ...complete(), goal_amount: "12.345" }).some((m) => /two decimal/.test(m)));
   assert.ok(validateCampaignForm({ ...complete(), goal_amount: "-5" }).some((m) => /two decimal|greater than zero/.test(m)));
