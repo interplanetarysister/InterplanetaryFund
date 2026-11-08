@@ -251,7 +251,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           </button>
         </div>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
-        <button type="button" className="rounded-xl border border-border px-4 py-2"
+        <button type="button" className="rounded-xl border border-border px-4 py-2" disabled={regeneratingSection !== -1}
           onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
         <div className="space-y-4" aria-label="Story section editor">
           <p className="text-sm text-muted-foreground">Edit each section separately. Regeneration produces a suggestion for your review and never overwrites other sections.</p>
