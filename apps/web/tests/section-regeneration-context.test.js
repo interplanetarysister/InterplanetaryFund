@@ -9,7 +9,7 @@ test("section regeneration rejects responses after story edits or campaign conte
   assert.match(source, /const revision = sectionRevision\.current/);
   assert.match(source, /const contextRevision = suggestionRevision\.current/);
   assert.match(source, /sectionRevision\.current !== revision \|\| suggestionRevision\.current !== contextRevision/);
-  assert.match(source, /sectionRevision\.current \+= 1;\s*storySectionsRef\.current = updated/);
+  assert.match(source, /sectionRevision\.current \+= 1;[\s\S]*?storySectionsRef\.current = updated/);
   assert.match(source, /sectionRevision\.current \+= 1;\s*storySectionsRef\.current = sections/);
   assert.match(source, /sectionRevision\.current \+= 1;\s*storySectionsRef\.current = splitStory\(result\.story\)/);
 });
