@@ -56,7 +56,7 @@ const STANDALONE_COMING_SOON = [
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
   "/giving", "/ai-images",
-  "/institutions", "/institutions/:id", "/my-blog", "/devices",
+  "/institutions", "/institutions/:id", "/my-blog", "/publication", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
@@ -107,7 +107,6 @@ function AppRoutes() {
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
-      <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
