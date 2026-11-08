@@ -22,13 +22,23 @@ const valid = {
 function request(data, path = '/api/campaigns', method = 'POST', h = headers) {
   return new Request(origin + path, { method, headers: h, body: JSON.stringify(data) });
 }
-function remote(calls, { owner = uid, rows = null } = {}) {
+function remote(calls, { owner = uid, rows = null, terms = true } = {}) {
   return async (target, opts) => {
     calls.push({ url: String(target), opts });
-    if (String(target).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    const url = String(target);
+    if (url.endsWith('/auth/v1/user'))
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' });
+    if (url.endsWith('/rpc/ifund_current_user_has_current_terms'))
+      return Response.json(terms);
+    if (opts.method === 'GET')
+      return Response.json(rows ?? [{
+        id: campaignId, owner_id: owner, title: 'Beach cleanup',
+        status: 'draft', updated_at: '2026-10-25T00:00:00Z',
+      }]);
+    const payload = opts.body ? JSON.parse(opts.body) : {};
     return Response.json(rows ?? [{
       id: campaignId, owner_id: owner,
-      status: JSON.parse(opts.body).status || 'draft',
+      status: payload.status || 'draft',
       updated_at: '2026-10-25T00:00:00Z',
     }]);
   };
@@ -57,13 +67,14 @@ test('new draft uses JWT authentication, publishable key and derived owner only'
   const calls = [];
   const r = await routeCampaignWrite(request({ title: 'New draft' }), env, remote(calls));
   assert.equal(r.status, 201);
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].opts.method, 'POST');
-  assert.equal(calls[1].opts.headers.Authorization, 'Bearer signed.test.jwt');
-  assert.equal(calls[1].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
-  assert.equal(calls[1].opts.headers.Prefer, 'return=representation');
-  assert.equal(JSON.parse(calls[1].opts.body).owner_id, uid);
-  assert.equal(JSON.parse(calls[1].opts.body).status, 'draft');
+  assert.equal(calls.length, 3);
+  assert.equal(calls[1].url.endsWith('/rpc/ifund_current_user_has_current_terms'), true);
+  assert.equal(calls[2].opts.method, 'POST');
+  assert.equal(calls[2].opts.headers.Authorization, 'Bearer signed.test.jwt');
+  assert.equal(calls[2].opts.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+  assert.equal(calls[2].opts.headers.Prefer, 'return=representation');
+  assert.equal(JSON.parse(calls[2].opts.body).owner_id, uid);
+  assert.equal(JSON.parse(calls[2].opts.body).status, 'draft');
   assert.deepEqual(await r.json(), {
     id: campaignId, status: 'draft', updated_at: '2026-10-25T00:00:00Z',
   });
@@ -77,6 +88,21 @@ test('publish validates complete content, while valid publish succeeds', async (
   assert.equal(calls.length, 1);
   const good = await routeCampaignWrite(request(valid), env, remote([]));
   assert.equal(good.status, 201);
+});
+
+test('campaign writes fail closed when current legal acceptance is absent or cannot be verified', async () => {
+  const deniedCalls = [];
+  const denied = await routeCampaignWrite(request(valid), env, remote(deniedCalls, { terms: false }));
+  assert.equal(denied.status, 403);
+  assert.equal(deniedCalls.some((call) => call.opts.method === 'POST' && String(call.url).includes('/ifund_campaigns')), false);
+
+  const unavailableCalls = [];
+  const unavailable = await routeCampaignWrite(request(valid), env, async (target) => {
+    if (String(target).endsWith('/auth/v1/user'))
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' });
+    return new Response('not available', { status: 503 });
+  });
+  assert.equal(unavailable.status, 503);
 });
 test('writes reject owner override, financial fields, unsafe links and invalid money', async () => {
   const invalid = [
@@ -99,11 +125,12 @@ test('PATCH must include both exact campaign id and signed-in owner filter', asy
     title: 'Updated',
   }, '/api/campaigns/' + campaignId, 'PATCH'), env, remote(calls));
   assert.equal(r.status, 200);
-  assert.equal(calls[1].opts.method, 'PATCH');
-  assert.match(calls[1].url, /owner_id=eq/);
-  assert.ok(calls[1].url.includes(uid));
-  assert.ok(calls[1].url.includes(campaignId));
-  assert.equal(JSON.parse(calls[1].opts.body).owner_id, undefined);
+  assert.equal(calls[3].opts.method, 'PATCH');
+  assert.match(calls[3].url, /owner_id=eq/);
+  assert.ok(calls[3].url.includes(uid));
+  assert.ok(calls[3].url.includes(campaignId));
+  assert.match(calls[3].url, /updated_at=eq/);
+  assert.equal(JSON.parse(calls[3].opts.body).owner_id, undefined);
 });
 test('missing or wrong-owner rows fail closed; internal errors stay private', async () => {
   const path = '/api/campaigns/' + campaignId;
@@ -112,8 +139,9 @@ test('missing or wrong-owner rows fail closed; internal errors stay private', as
   assert.equal((await routeCampaignWrite(request(valid),
     env, remote([], { owner: other }))).status, 503);
   const r = await routeCampaignWrite(request(valid), env, async (target) =>
-    String(target).endsWith('/auth/v1/user') ? Response.json({ id: uid }) :
-      new Response('sensitive-provider-error', { status: 500 }));
+    String(target).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' })
+      : new Response('sensitive-provider-error', { status: 500 }));
   assert.equal(r.status, 503);
   assert.doesNotMatch(await r.text(), /sensitive-provider-error/);
 });
@@ -138,8 +166,9 @@ test('mine route requires verified JWT and adds owner-scoped read limit', async 
   const r = await routeReadRequest(new Request(origin + '/api/campaigns/mine',
     { headers }), env, async (target, opts) => {
     calls.push({ url: String(target), opts });
-    return String(target).endsWith('/auth/v1/user') ?
-      Response.json({ id: uid }) : Response.json([{ id: campaignId }]);
+    return String(target).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' })
+      : Response.json([{ id: campaignId }]);
   });
   assert.equal(r.status, 200);
   assert.equal(calls.length, 2);
@@ -189,32 +218,36 @@ test('DELETE only removes the signed-in owner draft, never a published campaign'
   });
   const r = await routeCampaignWrite(req, env, async (url, opts) => {
     calls.push({ url: String(url), opts });
-    return String(url).endsWith('/auth/v1/user')
-      ? Response.json({ id: uid })
-      : Response.json([{ id, owner_id: uid, status: 'draft' }]);
+    if (String(url).endsWith('/auth/v1/user'))
+      return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' });
+    if (opts.method === 'GET')
+      return Response.json([{ id, owner_id: uid, status: 'draft', updated_at: '2026-10-25T00:00:00Z' }]);
+    return Response.json([{ id, owner_id: uid, status: 'draft' }]);
   });
   assert.equal(r.status, 200);
   assert.deepEqual(await r.json(), { id, deleted: true });
-  assert.equal(calls.length, 2);
-  assert.equal(calls[1].opts.method, 'DELETE');
-  assert.equal(calls[1].opts.body, undefined);
-  assert.ok(calls[1].url.includes('id=eq.'));
-  assert.ok(calls[1].url.includes('owner_id=eq.'));
-  assert.ok(calls[1].url.includes('status=eq.draft'));
+  assert.equal(calls.length, 3);
+  assert.equal(calls[2].opts.method, 'DELETE');
+  assert.equal(calls[2].opts.body, undefined);
+  assert.ok(calls[2].url.includes('id=eq.'));
+  assert.ok(calls[2].url.includes('owner_id=eq.'));
+  assert.ok(calls[2].url.includes('status=eq.draft'));
   const published = await routeCampaignWrite(
     new Request(origin + '/api/campaigns/' + id, {
       method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
-    }), env, async (url) => String(url).endsWith('/auth/v1/user')
-      ? Response.json({ id: uid })
-      : Response.json([{ id, owner_id: uid, status: 'active' }]),
+    }), env, async (url, opts) => String(url).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' })
+      : Response.json([{ id, owner_id: uid, status: 'active', updated_at: '2026-10-25T00:00:00Z' }]),
   );
-  assert.equal(published.status, 503);
+  assert.equal(published.status, 404);
 });
 test('DELETE without a matched draft is not falsely reported as successful', async () => {
   const req = new Request(origin + '/api/campaigns/' + campaignId, {
     method: 'DELETE', headers: { authorization: 'Bearer signed.test.jwt' },
   });
   const r = await routeCampaignWrite(req, env, async (url) =>
-    String(url).endsWith('/auth/v1/user') ? Response.json({ id: uid }) : Response.json([]));
+    String(url).endsWith('/auth/v1/user')
+      ? Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' })
+      : Response.json([]));
   assert.equal(r.status, 404);
 });
