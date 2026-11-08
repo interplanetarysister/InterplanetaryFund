@@ -267,7 +267,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             <label className="block font-semibold">Section {index + 1}
               <textarea rows={5} value={part} disabled={regeneratingSection !== -1} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
             </label>
-            <button type="button" disabled={regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
+            {part.length > 4000 && <p className="text-sm text-muted-foreground">This section is longer than the 4,000-character regeneration limit. Shorten it before requesting a replacement.</p>}
+            <button type="button" disabled={regeneratingSection !== -1 || suggesting || busy || part.length > 4000} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
               {regeneratingSection === index ? "Generating…" : "Regenerate this section"}
             </button>
             {sectionProposals[index] && <div className="space-y-2 rounded-xl border border-primary/30 p-3">
