@@ -39,9 +39,9 @@ export function storyInput(raw) {
     raw.section != null &&
     (typeof raw.section !== "string" ||
       !raw.section.trim() ||
-      raw.section.length > 4000)
+      raw.section.length > 6000)
   )
-    fail(400, "The story section is too long.");
+    fail(400, "The story section must be 6,000 characters or fewer.");
   return {
     details: raw.details.trim(),
     campaign_id: raw.campaign_id || null,
