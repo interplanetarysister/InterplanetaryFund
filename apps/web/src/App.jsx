@@ -41,7 +41,6 @@ const Inbox = lazy(() => import("./pages/Inbox"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
-const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
