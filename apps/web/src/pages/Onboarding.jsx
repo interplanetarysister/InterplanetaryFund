@@ -68,7 +68,7 @@ export default function Onboarding() {
     </section>}
     {step===1&&<section className="rounded-2xl border border-border bg-card p-6 space-y-4">
       <h2 className="text-xl font-semibold">Your identity</h2>
-      <label className="block">Display name<input value={name} maxLength={100} onChange={e=>setName(e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" /></label>
+      <label className="block">Display name<input value={name} maxLength={80} onChange={e=>setName(e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" /></label>
       <label className="block">Public handle<input required value={handle} maxLength={32} onChange={e=>setHandle(e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" /></label>
       <p className="text-sm text-muted-foreground">These fields are saved only to your authenticated IFund profile. Delegated AI authority is not granted by completing setup.</p>
       <div className="flex gap-3"><button type="button" onClick={()=>setStep(0)} className="rounded-xl border border-border px-4 py-2">Back</button>
