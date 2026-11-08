@@ -41,7 +41,7 @@ function validatePayload(raw, isCreate) {
     const value = raw.goal_amount;
     if (typeof value !== 'number' && typeof value !== 'string') return null;
     const str = String(value);
-    if (!/^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,2})?$/.test(str)) return null;
+    if (!/^\d{1,12}(?:\.[0-9]{1,2})?$/.test(str)) return null;
     const amount = Number(str);
     if (!Number.isFinite(amount)) return null;
     data.goal_amount = amount;
