@@ -18,3 +18,11 @@ test('rejects blank scripts', () => {
 test('rejects missing scripts object', () => {
   assert.throws(() => assertCanonicalUxScripts({}), /scripts object/);
 });
+
+test('rejects placeholder no-op UX scripts', () => {
+  for (const placeholder of ['echo passed', 'true', 'exit 0', ':']) {
+    const scripts = Object.fromEntries(requiredUxScripts.map(name => [name, 'node scripts/check.mjs']));
+    scripts['verify:navigation'] = placeholder;
+    assert.throws(() => assertCanonicalUxScripts({ scripts }), /no-op: verify:navigation/);
+  }
+});
