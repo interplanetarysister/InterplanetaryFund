@@ -1,7 +1,7 @@
 // Owner campaign lifecycle rules for the independent IFund frontend.
 //
 // The database is authoritative, not this file:
-//   * public.ifund_campaigns.status is constrained to draft | active | paused
+//   * public.ifund_campaigns.status is constrained to draft | active | paused | completed
 //   * constraint ifund_publish_complete requires a non-empty title, summary and
 //     story plus goal_amount > 0 before status can be 'active'
 //   * row level security restricts every write to owner_id = auth.uid()
@@ -23,11 +23,12 @@ export const COVER_URL_MAX = 2000;
 
 const GOAL_PATTERN = /^\d+(?:\.\d{1,2})?$/;
 
-// draft may be published; active may be paused; paused may be resumed.
+// Owners may publish drafts and resume campaigns paused by a protected review.
+// The database trigger requires a protected review to pause or complete a campaign.
 // A published campaign is never silently deleted.
 const TRANSITIONS = Object.freeze({
   draft: Object.freeze(["draft", "active"]),
-  active: Object.freeze(["active", "paused"]),
+  active: Object.freeze(["active"]),
   paused: Object.freeze(["paused", "active"]),
 });
 
