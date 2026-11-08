@@ -73,3 +73,29 @@ test("section regeneration respects the workforce 4,000-character bound without 
     globalThis.fetch = previousFetch;
   }
 });
+
+test("section regeneration rejects responses beyond the workforce output bound", async () => {
+  const { requestCampaignSection } = await import("../src/api/campaignDraft.js");
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    Response.json({ draft: { payload: { section: "R".repeat(4001) } } }, { status: 201 });
+  try {
+    const client = {
+      auth: {
+        getSession: async () => ({
+          data: { session: { access_token: "signed-session" } },
+          error: null,
+        }),
+      },
+    };
+    await assert.rejects(
+      requestCampaignSection(client, {
+        details: "Verified campaign facts for section regeneration",
+        section: "Original section",
+      }),
+      /invalid section/,
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
