@@ -9,7 +9,7 @@
 // These helpers only mirror that contract so the UI can explain what is
 // missing before a save is attempted. They never publish or charge anything.
 
-export const CAMPAIGN_STATUSES = Object.freeze(["draft", "active", "paused"]);
+export const CAMPAIGN_STATUSES = Object.freeze(["draft", "active", "paused", "completed"]);
 
 export const CAMPAIGN_CATEGORIES = Object.freeze([
   "medical", "emergency", "education", "community", "animals",
@@ -125,6 +125,7 @@ export function buildCampaignPayload(form, status) {
 export function campaignStatusLabel(status) {
   if (status === "active") return "Published";
   if (status === "paused") return "Paused";
+  if (status === "completed") return "Completed";
   if (status === "draft") return "Draft";
   return "Unknown";
 }
@@ -132,5 +133,6 @@ export function campaignStatusLabel(status) {
 export function campaignStatusTone(status) {
   if (status === "active") return "border-emerald-300 bg-emerald-50 text-emerald-800";
   if (status === "paused") return "border-amber-300 bg-amber-50 text-amber-900";
+  if (status === "completed") return "border-stone-300 bg-stone-100 text-stone-700";
   return "border-stone-300 bg-stone-100 text-stone-700";
 }
