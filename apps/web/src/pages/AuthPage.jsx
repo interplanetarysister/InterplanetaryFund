@@ -9,7 +9,10 @@ import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const afterLogin = safeReturnTo(searchParams.get("returnTo"));
+  const requestedReturnTo = safeReturnTo(searchParams.get("returnTo"));
+  const afterLogin = requestedReturnTo.startsWith("/onboarding")
+    ? safeReturnTo(new URL(requestedReturnTo, window.location.origin).searchParams.get("returnTo"))
+    : requestedReturnTo;
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
