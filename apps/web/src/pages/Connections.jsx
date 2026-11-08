@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { connectionStatusLabel } from "@/lib/connectionPresentation";
+import { requestConnectionApi } from "@/lib/connectionSession";
 const button = "min-h-11 rounded-lg border px-4 py-2 disabled:opacity-50";
 const input = "mt-1 min-h-11 w-full rounded-lg border bg-background p-3";
 const activeRequest = (r) =>
@@ -59,35 +60,15 @@ export default function Connections() {
     .filter(Boolean);
   const locked = busy || retry || !!review;
   async function api(path, body) {
-    const { data, error: authError } = await authClient().auth.getSession();
-    const session = data?.session;
-    if (
-      !alive.current ||
-      authError ||
-      !session?.access_token ||
-      !session.user?.id
-    )
-      throw Error("Please sign in again.");
-    if (owner.current && owner.current !== session.user.id)
-      throw Error("Your account changed. Reload before continuing.");
-    owner.current = session.user.id;
-    const r = await fetch("/api/agents/connections/" + path, {
-      method: body ? "POST" : "GET",
-      headers: {
-        Authorization: "Bearer " + session.access_token,
-        ...(body ? { "content-type": "application/json" } : {}),
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-      signal: AbortSignal.timeout(20000),
+    if (!alive.current) throw Error("This connection page is no longer active.");
+    const { result, ownerId } = await requestConnectionApi({
+      client: authClient(),
+      path,
+      body,
+      ownerId: owner.current,
     });
-    const result = await r.json().catch(() => ({
-      error: "Connection assistance is temporarily unavailable.",
-    }));
-    if (!r.ok)
-      throw Object.assign(
-        Error(result.error || "This connection action is unavailable."),
-        { status: r.status },
-      );
+    if (!alive.current) throw Error("This connection page is no longer active.");
+    owner.current = ownerId;
     return result;
   }
   async function load() {
