@@ -3,7 +3,12 @@ export function makeDraftRequest({ details, beneficiary, need, cause, goal }) {
   const text = String(details || "").trim();
   if (text.length < 12) throw new Error("Provide at least 12 characters about your campaign.");
   if (text.length > 1500) throw new Error("Keep campaign writing details to 1,500 characters. Your text was not shortened.");
-  const tidy = (v) => String(v || "").trim().slice(0, 100);
+  const tidy = (v) => {
+    const value = String(v || "").trim();
+    if (value.length > 100)
+      throw new Error("Keep each beneficiary, need and cause detail to 100 characters or fewer. Your text was not shortened.");
+    return value;
+  };
   const goalAmount = Number(goal);
   return {
     details: text,
