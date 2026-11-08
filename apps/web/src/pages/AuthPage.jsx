@@ -11,6 +11,7 @@ export default function AuthPage({ mode = "login" }) {
   const [searchParams] = useSearchParams();
   const afterLogin = safeReturnTo(searchParams.get("returnTo"));
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmationCode, setConfirmationCode] = useState("");
@@ -23,6 +24,7 @@ export default function AuthPage({ mode = "login" }) {
   const [error, setError] = useState("");
   const isRegister = mode === "register";
   const isReset = mode === "forgot-password";
+  const onboardingPath = "/onboarding?returnTo=" + encodeURIComponent(afterLogin);
   async function submit(event) {
     event.preventDefault();
     if (busy) return;
@@ -70,9 +72,11 @@ export default function AuthPage({ mode = "login" }) {
           });
           if (verifyError) throw verifyError;
           await verifiedAuthUser(auth);
-          navigate(afterLogin, { replace: true });
+          navigate(onboardingPath, { replace: true });
           return;
         }
+        if (!/^[A-Za-z0-9_-]{3,32}$/.test(username.trim()))
+          throw new Error("Choose a username of 3–32 letters, numbers, underscores or hyphens.");
         if (password !== confirmPassword)
           throw new Error("Your passwords do not match.");
         const { data, error: err } = await auth.signUp({
@@ -81,14 +85,15 @@ export default function AuthPage({ mode = "login" }) {
           options: {
             emailRedirectTo: authRedirectUrl(
               window.location.origin,
-              afterLogin,
+              onboardingPath,
             ),
+            data: { preferred_handle: username.trim() },
           },
         });
         if (err) throw err;
         if (data.session) {
           await verifiedAuthUser(auth);
-          navigate(afterLogin, { replace: true });
+          navigate(onboardingPath, { replace: true });
         } else {
           setConfirmationPending(true);
           setMessage(
@@ -101,8 +106,19 @@ export default function AuthPage({ mode = "login" }) {
           password,
         });
         if (err) throw err;
-        await verifiedAuthUser(auth);
-        navigate(afterLogin, { replace: true });
+        const user = await verifiedAuthUser(auth);
+        const { data: profile, error: profileError } = await authClient()
+          .from("ifund_profiles")
+          .select("handle")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (profileError) throw new Error("Your profile setup could not be verified.");
+        navigate(
+          typeof profile?.handle === "string" && profile.handle.trim()
+            ? afterLogin
+            : onboardingPath,
+          { replace: true },
+        );
       }
     } catch (err) {
       setError(err?.message || "Authentication could not be completed.");
@@ -120,7 +136,7 @@ export default function AuthPage({ mode = "login" }) {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: authRedirectUrl(window.location.origin, afterLogin),
+          emailRedirectTo: authRedirectUrl(window.location.origin, onboardingPath),
         },
       });
       if (error) throw error;
@@ -169,6 +185,22 @@ export default function AuthPage({ mode = "login" }) {
                 className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"
               />
             </label>
+            {isRegister && !confirmationPending && (
+              <label className="block text-sm font-medium">
+                Username
+                <input
+                  required
+                  type="text"
+                  autoComplete="username"
+                  maxLength={32}
+                  pattern="[A-Za-z0-9_-]{3,32}"
+                  value={username}
+                  disabled={busy}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"
+                />
+              </label>
+            )}
             {!isReset && !confirmationPending && (
               <label className="block text-sm font-medium">
                 Password
