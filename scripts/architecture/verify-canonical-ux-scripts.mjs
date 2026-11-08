@@ -19,6 +19,11 @@ export function assertCanonicalUxScripts(pkg) {
     if (typeof pkg.scripts[name] !== 'string' || !pkg.scripts[name].trim()) {
       throw new Error('Missing canonical UX acceptance command: ' + name);
     }
+    const command = pkg.scripts[name].trim();
+    const first = command.split(/\s+/)[0].toLowerCase();
+    if (['echo', 'printf', 'true', ':'].includes(first) || command === 'exit 0') {
+      throw new Error('Canonical UX acceptance command is a no-op: ' + name);
+    }
   }
   return requiredUxScripts;
 }
