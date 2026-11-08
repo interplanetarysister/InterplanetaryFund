@@ -101,6 +101,7 @@ export default function MyCampaigns() {
   }
 
   const published = rows.filter((row) => row.status === "active").length;
+  const drafts = rows.filter((row) => row.status === "draft").length;
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -128,7 +129,7 @@ export default function MyCampaigns() {
       </div>
       <div className="col-span-2 rounded-2xl border border-border bg-card p-4 sm:col-span-1">
         <dt className="text-xs uppercase tracking-wide text-muted-foreground">Drafts</dt>
-        <dd className="mt-1 text-2xl font-semibold">{rows.length - published}</dd>
+        <dd className="mt-1 text-2xl font-semibold">{drafts}</dd>
       </div>
     </dl>
 
