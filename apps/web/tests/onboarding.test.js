@@ -15,4 +15,6 @@ test("onboarding restores the six-step member journey without granting delegated
   assert.match(page, /to="\/agents"/);
   assert.match(page, /to="\/connections"/);
   assert.doesNotMatch(page, /setUnifiedOboConsent|delegated_operations_enabled|onboarding_completed/);
+  assert.ok(page.includes('onClick={()=>setStep(4)} className="rounded-xl border border-border px-4 py-2">Back</button>'));
+  assert.ok(page.includes('onClick={()=>setStep(3)} className="rounded-xl border border-border px-4 py-2">Back</button>'));
 });
