@@ -76,3 +76,41 @@ Work continuously across multiple related tasks; do not stop after each small su
 ## Immediate next task
 
 Start with A: inspect and generalize the current shared Story workforce reservation/lease/receipt contract, including its SQL/RLS and Worker tests. Then implement B on the existing Managed Connections PR branch. Do not advance the ledger to Discovery until Managed Connections has passed all gates above.
+
+---
+
+## Continuation checkpoint — 2026-11-08 (latest reviewed branch head)
+
+Current branch head at checkpoint: 66971459b9c12c9ff72e2f267f1653eb60bfff8c (PR #223 remains draft, stacked on PR #220).
+
+### Additional code repairs committed
+
+- Campaign editor: preserve the database row revision when loading and saving an existing draft; pass the expected revision on updates; refresh the revision after successful publish/pause transitions. This prevents an old tab from silently overwriting a newer edit and avoids the editor rejecting its own next save after a status transition.
+- Story section regeneration: align the browser, Worker input, model output schema and workforce SQL contract at 4,000 characters. Earlier 6,000-character frontend/Worker bounds were incompatible with the SQL reservation function's 4,000-character check. Oversized sections now show a clear limit and cannot be regenerated until shortened.
+- Account/profile writes: live ifund_profiles grants are column-scoped. Authenticated users may update handle and display_name, but may not update id. The previous browser upserts and Worker upsert included id in the conflict update, which can fail against the actual grants. Onboarding, Profile and the Worker account route now issue owner-filtered updates containing only editable columns and verify the returned owner row.
+- Profile display-name UI now uses the same 80-character limit as the Worker account API.
+- Authentication fixtures for account, community, campaign, reads and studio Worker tests now model confirmed email accounts, matching the production guard.
+- Added regression/source-contract tests for draft revision handling, profile column-scoped writes, and Story size parity.
+
+### Existing preview build evidence and repair
+
+The Pages deployment for commit ad7fbd30f0ba721be0239285ea509f93865a900e ran npm ci --no-audit --no-fund && npm test && npm run build. Its test run reported one failure: draft links reopen and update the owned draft in apps/web/tests/draft-editing.test.js, because the source assertion still expected the old one-line saveOwnerCampaign call after the editor had been changed to a multi-line revision-aware request. The test was updated to assert the new status and revision contract. The log stream was truncated before a final test/build summary, so do not claim a full pass from that deployment.
+
+### Still not complete / must not be represented as complete
+
+1. The shared workforce SQL reservation path is still Story-specific. It must be generalized through a properly generated/reviewed migration; do not patch the live schema ad hoc or bypass the Supabase migration workflow.
+2. Managed Connections remains an owner-consented request-tracking preview. No verified conversational AI implementation, tested workforce registration, provider OAuth adapters, credential vault lifecycle or provider-backed account actions have been completed.
+3. Campaign draft suggestions currently come from the active Supabase Edge Function's deterministic grounded_offline_fallback response (ai_inference: false). Do not describe those suggestions as AI-generated. Real inference must use the approved shared workforce path and freshly verified free quota; no metered fallback.
+4. Campaign image output is still a prompt only; image_rendered is false. Actual image generation, storage, IFund watermark and owner review remain incomplete.
+5. The canonical member My Blog flow, public profile visitor/privacy experience, searchable community directory and community detail route still require schema- and RLS-correct implementation. Preserve the separate official Reporter publication.
+6. Onboarding/profile setup must continue to be verified against the live profile row, owner-scoped RLS and column grants. Do not reintroduce profile upserts that attempt to update protected columns.
+7. No test/build pass for the latest head is recorded in this checkpoint. Check the newest Pages deployment and resolve every failure before calling this slice accepted.
+
+### Next actions
+
+- Continue the source-level bug audit before intentionally starting another test cycle. Inspect all remaining direct Supabase writes against live table/column grants and RLS; compare every browser/Worker field bound to live schema constraints.
+- Retrieve the newest Pages deployment logs for the current branch head, fix any failures, then run the full suite/build through the existing preview pipeline.
+- Reconcile PR #223's branch ancestry and required PR #165 checkpoint without dropping any existing implementation.
+- Generalize workforce runtime and SQL only through a CLI-generated migration with RLS/grant review, then register Managed Connections under the same shared quota.
+- After Managed Connections passes its gates, advance the ledger to Discovery. Continue with Outreach, Finance, Chief of Staff and protected Admin Builder in the prescribed order.
+- Keep production procurement disabled and do not merge/promote this draft stack.
