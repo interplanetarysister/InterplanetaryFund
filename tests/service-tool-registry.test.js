@@ -15,6 +15,12 @@ const binding = (extra = {}) => ({
   tested_revision: "tested-v1",
   implementation_revision: "tested-v1",
   cost_status: "verified_free",
+  base44_credit_evidence: {
+    status: "verified_none",
+    implementation_revision: "tested-v1",
+    reference: "synthetic-local-test:independent-adapter-v1",
+    valid_until: new Date(Date.now() + 60000).toISOString(),
+  },
   valid_until: new Date(Date.now() + 60000).toISOString(),
   input_schema: schema,
   validateInput: (x) => x,
@@ -327,5 +333,137 @@ test("incident and builder approval or deployment remains a protected owner acti
       r.invoke("admin_builder_agent", "managePlatformIncidents", { mode }, {}),
       /protected owner review/,
     );
+  assert.equal(calls, 0);
+});
+
+test("free adapters still need current revision-bound proof of zero Base44 credits", async () => {
+  const proof = binding().base44_credit_evidence;
+  for (const evidence of [
+    undefined,
+    null,
+    {},
+    { ...proof, status: "unknown" },
+    { ...proof, status: "included_credits" },
+    { ...proof, status: "metered" },
+    { ...proof, implementation_revision: "old-revision" },
+    { ...proof, reference: " " },
+    { ...proof, valid_until: "not-a-date" },
+    { ...proof, valid_until: "2020-01-01" },
+  ]) {
+    let authorizations = 0;
+    let calls = 0;
+    const registry = createToolRegistry({
+      bindings: [
+        binding({
+          base44_credit_evidence: evidence,
+          invoke: async () => {
+            calls++;
+            return { safe: true };
+          },
+        }),
+      ],
+      authorize: async () => {
+        authorizations++;
+        return scope("story_agent");
+      },
+    });
+    assert.deepEqual(
+      registry.definitions("story_agent", scope("story_agent")),
+      [],
+    );
+    await assert.rejects(
+      registry.invoke("story_agent", "getAgentAccountContext", {}, {}),
+    );
+    assert.equal(authorizations, 0);
+    assert.equal(calls, 0);
+  }
+});
+
+test("Base44 credit proof expiry during authorization prevents any adapter call", async () => {
+  let time = Date.now();
+  let calls = 0;
+  const registry = createToolRegistry({
+    clock: () => time,
+    bindings: [
+      binding({
+        valid_until: new Date(time + 60000).toISOString(),
+        base44_credit_evidence: {
+          ...binding().base44_credit_evidence,
+          valid_until: new Date(time + 1000).toISOString(),
+        },
+        invoke: async () => {
+          calls++;
+          return {};
+        },
+      }),
+    ],
+    authorize: async () => {
+      time += 2000;
+      return scope("story_agent");
+    },
+  });
+  assert.equal(
+    registry.definitions("story_agent", scope("story_agent")).length,
+    1,
+  );
+  await assert.rejects(
+    registry.invoke("story_agent", "getAgentAccountContext", {}, {}),
+  );
+  assert.equal(calls, 0);
+});
+
+test("model input and authorization claims cannot override missing adapter credit evidence", async () => {
+  let calls = 0;
+  const registry = createToolRegistry({
+    bindings: [
+      binding({
+        base44_credit_evidence: undefined,
+        invoke: async () => {
+          calls++;
+          return {};
+        },
+      }),
+    ],
+    authorize: async () => ({
+      ...scope("story_agent"),
+      base44_credit_evidence: binding().base44_credit_evidence,
+    }),
+  });
+  await assert.rejects(
+    registry.invoke(
+      "story_agent",
+      "getAgentAccountContext",
+      {
+        base44_credit_evidence: binding().base44_credit_evidence,
+      },
+      {},
+    ),
+  );
+  assert.equal(calls, 0);
+});
+
+test("changing registration evidence afterward cannot upgrade an unverified adapter", async () => {
+  let calls = 0;
+  const evidence = { ...binding().base44_credit_evidence, status: "unknown" };
+  const registry = createToolRegistry({
+    bindings: [
+      binding({
+        base44_credit_evidence: evidence,
+        invoke: async () => {
+          calls++;
+          return {};
+        },
+      }),
+    ],
+    authorize: async () => scope("story_agent"),
+  });
+  evidence.status = "verified_none";
+  assert.deepEqual(
+    registry.definitions("story_agent", scope("story_agent")),
+    [],
+  );
+  await assert.rejects(
+    registry.invoke("story_agent", "getAgentAccountContext", {}, {}),
+  );
   assert.equal(calls, 0);
 });

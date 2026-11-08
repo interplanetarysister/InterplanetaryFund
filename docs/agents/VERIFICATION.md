@@ -58,3 +58,18 @@ Browser regression now covers explicit title/summary selection, canonical wordin
 ## Production authorization and rollback target
 
 The owner explicitly instructed: enable execution, push live production, then begin the second agent. This authorizes Story runtime and canonical frontend production activation; it does not authorize paid plan upgrades, payments, DNS/mail changes or Base44 shutdown. The prior production Pages deployment is `321ccced-05bf-4c3b-bd3d-dd15401df69d` from commit `68bcbb4f8e7d6f1f665e3eb7056395841058dbf9`. Preserve it for rollback. The canonical Supabase project remains `ssibsfmtodgximseeqsv`; Cloudflare account remains `c95db4f2c901f32776471b85f1eda15d`.
+
+
+## Zero-Base44-credit tool adapter gate — 2026-11-08
+
+Based on existing Managed Connections branch commit `57563539041d62d2cd84a5cbcedcb1391e64cd56`; extends its canonical `worker/services/tool-registry.js`, not a second implementation. Owner requires zero Base44 credits for both development and application agents.
+
+Reproduced three failures before the fix: a tool marked verified-free with no zero-Base44-credit evidence was advertised and invoked; credit evidence expiring during authorization did not block execution; caller-supplied claims were not independently excluded as credit evidence. The new registry gate requires trusted, nonempty, expiring evidence bound to the exact code revision, copied at registration and rechecked before dispatch. Evidence must cover every transitive auth/tool/data/receipt dependency. Missing, unknown, included-credit, metered, stale-revision and expired evidence fails closed. Existing entitlement, OBO, administrator, exact owner approval and receipt checks are preserved.
+
+Verification: 15 registry tests pass, including original ownership/approval/receipt checks, ten invalid-evidence variations, expiry during authorization, untrusted-input rejection and post-registration mutation. Node syntax, Prettier and git whitespace checks pass. Independent reviewer ran the focused registry/runtime suites (29 cases before the added mutation regression), reran all 15 final registry tests, and reported no blocking finding.
+
+**Integration limit:** the registry currently has no production caller; it is exercised by tests only. This is a reviewed foundation change for the unified conversation/tool executor. No Base44 agent was reconfigured, no runtime was activated, and no cloud setting, schema, secret, model inference, payment or publishing operation changed. No account spending cap or complete zero-credit operation is claimed. No new dependency was installed; broader tests reuse the existing unchanged dependency set through a temporary local symlink.
+
+Follow-up: wire tested independent adapters into the existing canonical unified runtime with fresh owner/campaign authorization, an actual zero-credit evidence reference per implementation, bounded tool/handoff budgets, durable leases/receipts and two-owner hosted acceptance. Do not seed synthetic test evidence into production or activate all ten roles merely because these tests pass.
+
+Broader root regression result: `npm test` — **381 passed, 0 failed**, including the final credit-evidence tests, on Node v24.19.0. Database scenarios execute local PGlite only. No hosted database or provider mutation was performed.

@@ -134,6 +134,9 @@ export function createToolRegistry({
       ...b,
       roles: Object.freeze([...b.roles]),
       input_schema: structuredClone(b.input_schema),
+      base44_credit_evidence: b.base44_credit_evidence
+        ? Object.freeze(structuredClone(b.base44_credit_evidence))
+        : null,
     });
   }
   const available = (b) =>
@@ -142,6 +145,16 @@ export function createToolRegistry({
     typeof b.implementation_revision === "string" &&
     b.implementation_revision.length > 0 &&
     b.cost_status === "verified_free" &&
+    // Free allowances/trials can still consume Base44 credits. Evidence must
+    // cover this adapter's entire auth/tool/persistence/receipt path, including
+    // transitive dependencies, and come from trusted backend registration.
+    // Neither a model argument nor an authorization response can supply it.
+    b.base44_credit_evidence?.status === "verified_none" &&
+    b.base44_credit_evidence.implementation_revision ===
+      b.implementation_revision &&
+    typeof b.base44_credit_evidence.reference === "string" &&
+    b.base44_credit_evidence.reference.trim().length > 0 &&
+    Date.parse(b.base44_credit_evidence.valid_until) > clock() &&
     Date.parse(b.valid_until) > clock();
   function binding(role, name) {
     const p = serviceSkill(role),
