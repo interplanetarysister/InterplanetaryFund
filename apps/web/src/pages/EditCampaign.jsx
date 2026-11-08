@@ -9,7 +9,7 @@ import {
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
-import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
+import { Loader2, Save, PlayCircle } from "lucide-react";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
   "business", "creative", "memorial", "disaster_relief", "environment", "other"];
@@ -60,7 +60,8 @@ export default function EditCampaign() {
   }, [load]);
 
   const change = (key, value) => setForm((current) => ({ ...current, [key]: value }));
-  const disabled = busy || phase !== "ready";
+  const readOnlyStatus = status === "paused" || status === "completed";
+  const disabled = busy || phase !== "ready" || readOnlyStatus;
   const readiness = publishReadiness(form);
 
   async function save(nextStatus) {
@@ -86,7 +87,8 @@ export default function EditCampaign() {
 
   async function toggleStatus() {
     if (lock.current || phase !== "ready") return;
-    const next = status === "active" ? "paused" : "active";
+    if (status !== "draft" && status !== "paused") return;
+    const next = "active";
     if (next === "active" && !readiness.ready) { setError(readiness.missing[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
@@ -187,10 +189,7 @@ export default function EditCampaign() {
           </button>
         ) : (
           <>
-            <button type="button" onClick={toggleStatus} disabled={disabled}
-              className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
-              <PauseCircle className="h-4 w-4" aria-hidden="true" /> Pause
-            </button>
+            
             <Link to={`/campaign/${id}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold">
               View public page
             </Link>
@@ -199,8 +198,8 @@ export default function EditCampaign() {
       </div>
     </form>
 
-    <p className="text-sm text-muted-foreground">
-      Published campaigns cannot be deleted here. Pause it to hide it from Discover, or <Link to="/help" className="underline">get help</Link>.
-    </p>
+    {status === "paused" && <p className="text-sm text-muted-foreground">This campaign is read-only while paused. Resume it before making content changes.</p>}
+    {status === "completed" && <p className="text-sm text-muted-foreground">Completed campaigns are read-only.</p>}
+    {status === "active" && <p className="text-sm text-muted-foreground">Published campaigns cannot be deleted or paused from this page. A pause requires a protected review; <Link to="/help" className="underline">get help</Link>.</p>}
   </main>;
 }
