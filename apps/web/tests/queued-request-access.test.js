@@ -29,6 +29,7 @@ test("a denied queue read never manufactures saved text or disables valid writin
     if (path === "queued-requests") throw Error("Owner access denied");
     return { active: true, level: 1 };
   });
-  assert.deepEqual(result.queued_requests, []);
+  assert.equal(result.queued_requests, null);
+  assert.match(result.queue_error, /could not be loaded/);
   assert.equal(result.access.active, true);
 });
