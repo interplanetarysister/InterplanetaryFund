@@ -111,7 +111,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
 
   async function suggestDraft(regenerateOnly = "") {
-    if (busy || suggesting || loadingDraft || draftLoadError) return;
+    if (busy || suggesting || regeneratingSection !== -1 || loadingDraft || draftLoadError) return;
     setSuggesting(true);
     setRegeneratingIdea(regenerateOnly);
     setSuggestionError("");
@@ -191,7 +191,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <legend className="font-semibold">What kind of campaign are you creating?</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => setWritingPath(path.id)} disabled={suggesting || busy || loadingDraft} />
+            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => setWritingPath(path.id)} disabled={suggesting || busy || regeneratingSection !== -1 || loadingDraft} />
             <span>{path.title}</span>
           </label>)}
         </div>
@@ -204,15 +204,15 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Who benefits? (optional)
-        <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
+        <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy || regeneratingSection !== -1}
           onChange={e => setDraftBeneficiary(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <label className="block font-semibold">What is needed? (optional)
-        <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
+        <input maxLength={100} value={draftNeed} disabled={suggesting || busy || regeneratingSection !== -1}
           onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <button type="button" onClick={suggestDraft}
-        disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
+        disabled={suggesting || busy || regeneratingSection !== -1 || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
         className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
         {suggesting ? "Preparing ideas…" : "Generate campaign ideas"}
       </button>
@@ -222,7 +222,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-semibold">Title ideas</h3>
           <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
-            disabled={suggesting || busy} onClick={() => suggestDraft("titles")}>
+            disabled={suggesting || busy || regeneratingSection !== -1} onClick={() => suggestDraft("titles")}>
             {regeneratingIdea === "titles" ? "Regenerating titles…" : "Regenerate titles"}
           </button>
         </div>
@@ -234,7 +234,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-semibold">Short descriptions</h3>
           <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
-            disabled={suggesting || busy} onClick={() => suggestDraft("summaries")}>
+            disabled={suggesting || busy || regeneratingSection !== -1} onClick={() => suggestDraft("summaries")}>
             {regeneratingIdea === "summaries" ? "Regenerating descriptions…" : "Regenerate descriptions"}
           </button>
         </div>
@@ -246,7 +246,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="font-semibold">Story idea</h3>
           <button type="button" className="min-h-11 rounded-xl border border-border px-4 py-2"
-            disabled={suggesting || busy} onClick={() => suggestDraft("story")}>
+            disabled={suggesting || busy || regeneratingSection !== -1} onClick={() => suggestDraft("story")}>
             {regeneratingIdea === "story" ? "Regenerating story…" : "Regenerate story"}
           </button>
         </div>
@@ -257,7 +257,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           <p className="text-sm text-muted-foreground">Edit each section separately. Regeneration produces a suggestion for your review and never overwrites other sections.</p>
           {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
             <label className="block font-semibold">Section {index + 1}
-              <textarea rows={5} value={part} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
+              <textarea rows={5} value={part} disabled={regeneratingSection !== -1} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
             </label>
             <button type="button" disabled={regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
               {regeneratingSection === index ? "Generating…" : "Regenerate this section"}
@@ -270,7 +270,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             </div>}
           </div>)}
           {sectionError && <p role="alert">{sectionError}</p>}
-          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
+          <button type="button" className="rounded-xl border border-border px-4 py-2" disabled={regeneratingSection !== -1} onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
         </div>
         {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
           <p>{suggestions.imagePrompt}</p>
