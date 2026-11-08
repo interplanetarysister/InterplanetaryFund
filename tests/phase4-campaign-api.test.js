@@ -109,7 +109,7 @@ test('writes reject owner override, financial fields, unsafe links and invalid m
     { ...valid, owner_id: other }, { ...valid, raised_amount: 400 },
     { ...valid, donation_total: 100 }, { ...valid, role: 'super_admin' },
     { ...valid, goal_amount: -1 }, { ...valid, goal_amount: '1.234' },
-    { ...valid, goal_amount: '1e9' }, { ...valid, status: 'paid' },
+    { ...valid, goal_amount: '1e9' }, { ...valid, goal_amount: '9'.repeat(13) }, { ...valid, status: 'paid' },
     { ...valid, cover_image_url: 'javascript:alert(1)' },
     { ...valid, cover_image_url: 'https://a:b@example.org/' },
   ];
