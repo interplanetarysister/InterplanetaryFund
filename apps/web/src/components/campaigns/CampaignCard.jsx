@@ -15,13 +15,13 @@ export const categoryLabels = {
 
 export default function CampaignCard({ campaign }) {
   const isDraft = campaign.status === "draft";
-  // A paused campaign is hidden from Discover and the public detail page only
-  // serves active campaigns, so its card must lead the owner back to management
-  // rather than to a dead public link.
+  // Paused and completed campaigns are not public-detail targets. Their
+  // owner cards return to management instead of linking to a hidden page.
   const isPaused = campaign.status === "paused";
+  const isCompleted = campaign.status === "completed";
   const to = isDraft
     ? `/create?draft=${encodeURIComponent(campaign.id)}`
-    : isPaused
+    : isPaused || isCompleted
       ? "/campaigns"
       : `/campaign/${campaign.id}`;
   // Public preview data has no funding totals yet; hide them instead of
@@ -40,6 +40,8 @@ export default function CampaignCard({ campaign }) {
           <p className="text-sm text-stone-600">Private draft · Tap to continue where you left off</p>
         ) : isPaused ? (
           <p className="text-sm text-stone-600">Paused · Hidden from Discover. Tap to manage this campaign.</p>
+        ) : isCompleted ? (
+          <p className="text-sm text-stone-600">Completed · Tap to view your campaign history.</p>
         ) : !hasTotals ? (
           campaign.summary ? <p className="text-sm text-stone-600 line-clamp-2">{campaign.summary}</p> : null
         ) : (
