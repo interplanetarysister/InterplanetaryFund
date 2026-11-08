@@ -38,7 +38,7 @@ export default function AuthCallback() {
           typeof profile?.handle === "string" && profile.handle.trim()
             ? target
             : "/onboarding?returnTo=" + encodeURIComponent(target);
-        navigate(destination, { replace: true });
+        if (active) navigate(destination, { replace: true });
       })
       .catch(() => {
         if (active)
