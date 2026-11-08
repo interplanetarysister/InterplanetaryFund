@@ -18,10 +18,11 @@ test("writing selection adds context without changing the original story facts",
   assert.match(guidedCampaignDetails("write", facts), /writing the campaign from the facts/);
 });
 
-test("guided writing maintains request bounds and handles unknown choices", () => {
+test("guided writing preserves over-limit facts instead of silently truncating them", () => {
   assert.equal(guidedCampaignDetails("write", "  "), "");
   assert.equal(guidedCampaignDetails("unknown", "Needs funding").includes("the supplied facts"), true);
-  assert.equal(guidedCampaignDetails("creative", "x".repeat(2000)).length, 1500);
+  const longFacts = "x".repeat(2000);
+  assert.equal(guidedCampaignDetails("creative", longFacts), longFacts);
 });
 
 
