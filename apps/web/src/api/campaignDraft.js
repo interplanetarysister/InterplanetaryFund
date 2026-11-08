@@ -99,7 +99,7 @@ export async function requestCampaignSection(client, { details, section, campaig
         : result?.error || "A verified replacement section was not returned. Your current section was not changed.",
     );
   }
-  if (replacement.length > 6000 || /[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f]/.test(replacement)) {
+  if (replacement.length > 6000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(replacement)) {
     throw new Error("The Story Agent returned an invalid section. Your current section was not changed.");
   }
   return { section: replacement.trim() };
