@@ -32,11 +32,11 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
       ).searchParams.get("returnTo"),
       "/dashboard",
     );
-  assert.equal(
-    new URL(authRedirectUrl("https://interplanetaryfund.com", "/agents", true))
-      .pathname,
-    "/reset-password",
+  const recoveryUrl = new URL(
+    authRedirectUrl("https://interplanetaryfund.com", "/campaigns?tab=mine", true),
   );
+  assert.equal(recoveryUrl.pathname, "/reset-password");
+  assert.equal(recoveryUrl.searchParams.get("returnTo"), "/campaigns?tab=mine");
 });
 test("PKCE code is consumed once under duplicate callback effects", async () => {
   const auth = makeAuth();
