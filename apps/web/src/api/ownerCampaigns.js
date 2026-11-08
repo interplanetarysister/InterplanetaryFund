@@ -129,7 +129,7 @@ export async function loadOwnerCampaign(client, id) {
  * `expectedStatus` optionally pins the state the caller edited, so the creator
  * cannot overwrite a campaign another session has already published or paused.
  */
-export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus } = {}) {
+export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus, expectedUpdatedAt } = {}) {
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   if (expectedStatus !== undefined && !CAMPAIGN_STATUSES.includes(expectedStatus)) throw new Error("Invalid expected campaign status.");
@@ -162,7 +162,8 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   }
   if (
     !existing.updated_at ||
-    (expectedStatus !== undefined && existing.status !== expectedStatus)
+    (expectedStatus !== undefined && existing.status !== expectedStatus) ||
+    (expectedUpdatedAt !== undefined && existing.updated_at !== expectedUpdatedAt)
   ) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
