@@ -24,7 +24,7 @@ test("profile and onboarding updates only owner-editable columns",()=>{
  const onboarding=readFileSync(new URL("../src/pages/Onboarding.jsx",import.meta.url),"utf8");
  for(const page of [profile,onboarding]){
   assert.match(page,/\.from\("ifund_profiles"\)\.update\(/);
-  assert.match(page,/\.eq\("id",user\.id\)/);
+  assert.match(page,/\.eq\("id",\s*user\.id\)/);
   assert.doesNotMatch(page,/\.from\("ifund_profiles"\)\.upsert\(/);
  }
  assert.match(profile,/maxLength=\{80\} value=\{profile\.display_name\}/);
