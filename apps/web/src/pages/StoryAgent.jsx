@@ -10,6 +10,7 @@ export default function StoryAgent() {
   const [campaigns, setCampaigns] = useState([]);
   const [drafts, setDrafts] = useState([]);
   const [queuedRequests, setQueuedRequests] = useState([]);
+  const [queueError, setQueueError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [eligible, setEligible] = useState(null);
@@ -53,12 +54,13 @@ export default function StoryAgent() {
     (async () => {
       const workspace = await loadWritingWorkspaceAccess(api);
       if (!active) return;
-      setQueuedRequests(workspace.queued_requests);
+      setQueuedRequests(workspace.queued_requests || []);
+      setQueueError(workspace.queue_error || "");
       const access = workspace.access;
       if (!access) {
         setEligible(false);
         throw Error(
-          "Writing suggestions are temporarily unavailable. You can still remove your saved requests.",
+          workspace.access_error || "Writing suggestions are temporarily unavailable. You can still review or remove saved requests.",
         );
       }
       setEligible(access.active === true && access.level >= 1);
@@ -121,7 +123,8 @@ export default function StoryAgent() {
       if (result.state === "queued") {
         setNotice(result.message);
         const saved = await api("drafts");
-        setQueuedRequests(saved.queued_requests || []);
+        setQueuedRequests(Array.isArray(saved.queued_requests) ? saved.queued_requests : []);
+        setQueueError(Array.isArray(saved.queued_requests) ? "" : "Saved writing requests could not be refreshed.");
         return;
       }
       setDrafts((current) => [
@@ -213,7 +216,12 @@ export default function StoryAgent() {
     try {
       const result = await api("drafts");
       setDrafts(result.drafts);
-      setQueuedRequests(result.queued_requests || []);
+      if (Array.isArray(result.queued_requests)) {
+        setQueuedRequests(result.queued_requests);
+        setQueueError("");
+      } else {
+        setQueueError("Saved writing requests could not be refreshed.");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -239,6 +247,11 @@ export default function StoryAgent() {
       {notice && (
         <p role="status" className="rounded-xl border p-4">
           {notice}
+        </p>
+      )}
+      {queueError && (
+        <p role="alert" className="rounded-xl border border-destructive p-4">
+          {queueError}
         </p>
       )}
       {queuedRequests.length > 0 && (
@@ -295,6 +308,7 @@ export default function StoryAgent() {
                         (saved) => saved.request_id !== item.request_id,
                       ),
                     );
+                    setQueueError("");
                     if (requestRef.current?.id === item.request_id)
                       requestRef.current = null;
                     setNotice("The saved request has been removed.");
