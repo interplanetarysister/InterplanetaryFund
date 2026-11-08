@@ -21,7 +21,7 @@ export const SUMMARY_MAX = 600;
 export const STORY_MAX = 15000;
 export const COVER_URL_MAX = 2000;
 
-const GOAL_PATTERN = /^\d+(?:\.\d{1,2})?$/;
+const GOAL_PATTERN = /^\d{1,12}(?:\.\d{1,2})?$/;
 
 // Owners may publish drafts and resume campaigns paused by a protected review.
 // The database trigger requires a protected review to pause or complete a campaign.
