@@ -65,6 +65,16 @@ jobs:
         env:
           VITE_BASE44_APP_BASE_URL: ${{ vars.VITE_BASE44_APP_BASE_URL }}
           VITE_BASE44_APP_ID: ${{ vars.VITE_BASE44_APP_ID }}
+      - name: Verify canonical campaign wizard and mobile UX contracts
+        run: |
+          npm run verify:campaign-creation
+          npm run verify:design-ux
+      - name: Install Chromium for canonical browser checks
+        run: npx playwright install --with-deps chromium
+      - name: Verify original frontend mobile navigation and browser rendering
+        run: |
+          npm run verify:navigation
+          npm run verify:browser-render
       - name: Verify frontend artifact
         run: |
           test -s dist/index.html
@@ -218,4 +228,9 @@ jobs:
             esac
           done
           echo "Verified deployed source provenance and SPA login/create/discover deep links at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
-          echo "Browser visual parity, login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
+          # Exercise the actual deployed Pages URL in a mobile Chromium browser,
+          # not just the locally built Vite preview. This catches deployed JS
+          # initialization errors and route regressions missed by curl probes.
+          IFUND_SMOKE_URL="$PREVIEW_URL" npm run verify:browser-render
+          echo "Deployed mobile Chromium browser smoke passed at $PREVIEW_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Human visual parity, authenticated login and Base44 campaign API flows still require interactive verification." >> "$GITHUB_STEP_SUMMARY"
