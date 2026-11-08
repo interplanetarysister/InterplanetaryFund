@@ -63,9 +63,9 @@ async function assertCurrentTerms(client, owner) {
 }
 
 // A read -> check -> update sequence is not atomic: another tab or browser can
-// change the row between the read and the write. Every mutation therefore
-// carries the status it validated as a compare-and-swap condition, so a stale
-// operation matches no row and fails closed instead of overwriting newer state.
+// change the row between the read and the write. Every mutation carries both
+// the validated status and updated_at revision as compare-and-swap conditions,
+// so even a same-status content edit makes an older operation match no row.
 export const CAMPAIGN_CONFLICT_MESSAGE =
   "This campaign changed in another session. Reload before making changes.";
 
