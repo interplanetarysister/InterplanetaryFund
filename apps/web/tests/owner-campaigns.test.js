@@ -343,6 +343,7 @@ test("editor saves reject the row revision loaded by a stale editor", async () =
   assert.equal(f.calls.some((call) => call.type === "update"), false);
   const page = source("src/pages/EditCampaign.jsx");
   assert.match(page, /expectedUpdatedAt: revision/);
+  assert.match(page, /setRevision\(saved\.updated_at\)/);
 });
 
 test("a stale draft save loses to a concurrent publish instead of reverting it", async () => {
