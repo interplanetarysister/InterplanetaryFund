@@ -109,7 +109,7 @@ function AppRoutes() {
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/community/:id" element={<CommunityDetail />} />
-      <Route path="/create" element={<RequireAccess access="member"><CreateCampaign /></RequireAccess>} />
+      <Route path="/create" element={<CreateCampaign />} />
       <Route path="/edit/:id" element={<RequireAccess access="member"><EditDraftRedirect /></RequireAccess>} />
       <Route path="/mine" element={<RequireAccess access="member"><MyCampaigns /></RequireAccess>} />
       <Route path="/mine/:id" element={<RequireAccess access="member"><OwnerCampaignPreview /></RequireAccess>} />

@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
 import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
-import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
-import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import useVerifiedUser from "@/lib/useVerifiedUser";
@@ -37,7 +35,6 @@ const STORY = [
 ];
 
 export default function Home() {
-  const platformOnlyMode = !usePublicCampaignFundraising();
   const { user } = useVerifiedUser();
   const isAuthenticated = !!user;
   const [heroOk, setHeroOk] = useState(true);
@@ -47,11 +44,6 @@ export default function Home() {
     <div className="ifund-public min-h-dvh bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <MobileBottomNav user={isAuthenticated ? user : null} />
       <QuickActions user={isAuthenticated ? user : null} />
-      {platformOnlyMode && (
-        <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-4">
-          <PrelaunchNotice />
-        </div>
-      )}
       {/* Hero */}
       <section className="ifund-public-hero relative overflow-hidden deep-space">
         {heroOk && <img src={HERO_IMAGE} alt="A glowing planet arc surrounded by stars and soft nebula light" className="absolute inset-0 w-full h-full opacity-60 object-cover" style={{ objectPosition: "70% 60%" }} onError={() => setHeroOk(false)} />}

@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { safeReturnTo } from "@/lib/safeReturnTo";
 
 const HANDLE=/^[a-zA-Z0-9_-]{3,32}$/;
 export default function Onboarding() {
   const navigate=useNavigate();
+  const [searchParams]=useSearchParams();
+  const afterLogin=safeReturnTo(searchParams.get("returnTo"));
   const [step,setStep]=useState(0);
   const [name,setName]=useState("");
   const [handle,setHandle]=useState("");
@@ -34,6 +37,10 @@ export default function Onboarding() {
   async function save(){
     if(busy)return;
     setError("");
+    if(!name.trim()&&!handle.trim()){
+      setError("Enter a display name or choose a public handle.");
+      return;
+    }
     if(name.trim().length>100 || (handle.trim()&&!HANDLE.test(handle.trim()))){
       setError("Use a display name under 100 characters and a handle of 3–32 letters, numbers, underscores or hyphens.");
       return;
@@ -48,7 +55,8 @@ export default function Onboarding() {
       },{onConflict:"id"});
       if(writeError?.code==="23505")throw Error("That username is already taken. Choose another handle.");
       if(writeError)throw Error("Profile save was not confirmed.");
-      setStep(2);
+      if(afterLogin!=="/dashboard")navigate(afterLogin,{replace:true});
+      else setStep(2);
     }catch(cause){setError(cause?.message||"Setup could not be saved.");}
     finally{setBusy(false);}
   }
@@ -76,6 +84,6 @@ export default function Onboarding() {
       <p>Connect other platforms only when their provider consent and authorization services are verified. No AI delegation or external posting is activated by this setup.</p>
       <div className="flex flex-wrap gap-3"><Link to="/create" className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Create campaign</Link><Link to="/connections" className="rounded-xl border border-border px-5 py-3">Connections</Link><Link to="/dashboard" className="rounded-xl border border-border px-5 py-3">Dashboard</Link></div>
     </section>}
-    <Link to="/dashboard" className="inline-block text-sm underline">Skip setup</Link>
+    {afterLogin === "/dashboard" && <Link to={afterLogin} className="inline-block text-sm underline">Skip setup</Link>}
   </main>;
 }

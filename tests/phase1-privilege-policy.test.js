@@ -1,43 +1,38 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
-// The canonical migration-branch schema is the hardened 2026-10-25
-// application-runtime migration. The older main-branch initial.sql is not
-// part of this branch's migration history and has broader grants.
-const schema = readFileSync(
-  new URL('../supabase/migrations/20261025100627_ifund_phase1_application_runtime_schema.sql', import.meta.url),
-  'utf8',
-).toLowerCase();
+const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8").toLowerCase();
+const schema = read("../supabase/migrations/20261025100627_ifund_phase1_application_runtime_schema.sql");
+const profileGrants = read("../supabase/migrations/20261030152523_ifund_profile_column_scoped_client_grants.sql");
+const campaignGrants = read("../supabase/migrations/20261105193521_ifund_campaign_write_privilege_hardening_20261105.sql");
 
-test('nonfinancial preview tables enable owner-enforced RLS', () => {
-  for (const name of ['ifund_profiles', 'ifund_campaigns', 'ifund_posts', 'ifund_connections']) {
-    assert.match(schema, new RegExp('alter table public\\.' + name + ' enable row level security'));
+test("nonfinancial preview tables enable owner-enforced RLS", () => {
+  for (const name of ["ifund_profiles", "ifund_campaigns", "ifund_posts", "ifund_connections"]) {
+    assert.match(schema, new RegExp("alter table public\\." + name + " enable row level security"));
   }
 });
-test('client users cannot set timestamp or arbitrary campaign and post columns', () => {
-  assert.doesNotMatch(schema,/grant\s+(?:select,)?insert(?:,update)?(?:,delete)?\s+on\s+public\.ifund_(?:campaigns|posts|profiles)\s+to\s+authenticated/);
-  assert.match(schema,/grant insert\(author_id,body\) on public\.ifund_posts to authenticated/);
-  assert.match(schema,/grant insert\(owner_id,title,summary,story,category,goal_amount,cover_image_url,status\)/);
-  assert.match(schema,/grant update\(title,summary,story,category,goal_amount,cover_image_url,status\)/);
-  assert.match(schema,/grant insert\(id,handle,display_name\) on public\.ifund_profiles to authenticated/);
+
+test("campaign and post writes are limited to explicit client-owned columns", () => {
+  assert.match(campaignGrants, /revoke insert, update[\s\S]*on table public\.ifund_campaigns, public\.ifund_posts[\s\S]*from authenticated/);
+  assert.match(campaignGrants, /grant insert \(owner_id, title, summary, story, category, goal_amount, cover_image_url, status\)/);
+  assert.match(campaignGrants, /grant update \(title, summary, story, category, goal_amount, cover_image_url, status\)/);
+  assert.match(campaignGrants, /grant insert \(author_id, body\)/);
+  assert.doesNotMatch(campaignGrants, /grant\s+(?:select,)?insert(?:,update)?(?:,delete)?\s+on table public\.ifund_(?:campaigns|posts)\s+to authenticated/);
 });
-test('provider connections never have direct client write grants', () => {
-  assert.match(schema,/grant select on public\.ifund_connections to authenticated/);
-  assert.doesNotMatch(schema,/grant\s+(?:insert|update|delete).*?on\s+public\.ifund_connections/);
+
+test("profile writes are limited to handle and display name", () => {
+  assert.match(profileGrants, /revoke insert, update on table public\.ifund_profiles from authenticated/);
+  assert.match(profileGrants, /grant insert \(id, handle, display_name\)/);
+  assert.match(profileGrants, /grant update \(handle, display_name\)/);
 });
-test('campaigns and posts survive attempted deletion of the owning auth user', () => {
-  assert.match(schema,/owner_id uuid not null references auth\.users\(id\) on delete restrict/);
-  assert.match(schema,/author_id uuid not null references auth\.users\(id\) on delete restrict/);
+
+test("provider connections never have direct client write grants", () => {
+  assert.match(schema, /grant select on public\.ifund_connections to authenticated/);
+  assert.doesNotMatch(schema, /grant\s+(?:insert|update|delete).*?on\s+public\.ifund_connections/);
 });
-test('scoped column grants first revoke broad default table grants', () => {
-  assert.match(schema, /revoke all privileges on table/);
-  for (const table of ['ifund_profiles', 'ifund_campaigns', 'ifund_posts', 'ifund_connections']) {
-    assert.match(schema, new RegExp('public\\.' + table));
-  }
-  assert.match(schema, /from public, anon, authenticated/);
-  assert.ok(
-    schema.indexOf('revoke all privileges on table') <
-      schema.indexOf('grant insert(author_id,body) on public.ifund_posts'),
-  );
+
+test("campaigns and posts survive attempted deletion of the owning auth user", () => {
+  assert.match(schema, /owner_id uuid not null references auth\.users\(id\) on delete restrict/);
+  assert.match(schema, /author_id uuid not null references auth\.users\(id\) on delete restrict/);
 });

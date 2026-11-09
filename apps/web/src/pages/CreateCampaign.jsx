@@ -3,9 +3,10 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { persistCampaignContent } from "@/lib/campaignPublication";
+import { readGuestCampaignDraft, saveGuestCampaignDraft, clearGuestCampaignDraft } from "@/lib/guestCampaignDraft";
 
 const STEPS = [
-  { label: "Your Details", title: "Your campaign starts here", description: "Your signed-in account owns this private draft. You can save progress and return at any time." },
+  { label: "Your Details", title: "Your campaign starts here", description: "Explore and write without an account. Sign in when you are ready to save or publish." },
   { label: "Basics", title: "Set the campaign basics", description: "Give your campaign a clear title, choose its category, and set a fundraising goal." },
   { label: "Your Story", title: "Tell people why it matters", description: "Write a short introduction and the full story people will see when your campaign is published." },
   { label: "Launch", title: "Review before launch", description: "Check the public details and optional cover image before publishing." },
@@ -20,7 +21,7 @@ export default function CreateCampaign() {
   const [account, setAccount] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(() => ({ ...EMPTY, ...(!draftId ? readGuestCampaignDraft() : {}) }));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -30,12 +31,18 @@ export default function CreateCampaign() {
     (async () => {
       try {
         const { data, error } = await authClient().auth.getUser();
-        if (error || !data?.user) { navigate("/login", { replace: true }); return; }
+        if (error && error.name !== "AuthSessionMissingError") throw error;
+        if (!data?.user) { if (active) setAccount(null); return; }
         if (active) setAccount({ email: data.user.email || "", name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || "" });
-      } catch { if (active) setDraftLoadError("We could not verify your account. Refresh and sign in again."); }
+      } catch {
+        if (active) {
+          setAccount(null);
+          if (draftId) setDraftLoadError("We could not verify your account. Sign in again to open this saved draft.");
+        }
+      }
     })();
     return () => { active = false; };
-  }, [navigate]);
+  }, [draftId, navigate]);
 
   useEffect(() => {
     if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); return; }
@@ -47,7 +54,7 @@ export default function CreateCampaign() {
         const client = authClient();
         const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
-        if (authError || !user) { navigate("/login", { replace: true }); return; }
+        if (authError || !user) { navigate("/login?returnTo=" + encodeURIComponent("/create?draft=" + encodeURIComponent(draftId)), { replace: true }); return; }
         const { data, error } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id", draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (error || !data) throw new Error("Draft not found or access denied.");
         if (active) setForm({ title: data.title || "", summary: data.summary || "", story: data.story || "", category: data.category || "community", goal_amount: String(data.goal_amount ?? ""), cover_image_url: data.cover_image_url || "" });
@@ -57,15 +64,38 @@ export default function CreateCampaign() {
     return () => { active = false; };
   }, [draftId, navigate]);
 
+  useEffect(() => {
+    if (draftId) return;
+    saveGuestCampaignDraft(form);
+  }, [form, draftId]);
+
   const change = (key, value) => setForm(previous => ({ ...previous, [key]: value }));
-  const canContinue = step === 1 ? Boolean(form.title.trim()) && Number(form.goal_amount) > 0 : step === 2 ? Boolean(form.story.trim()) : true;
+  const canContinue = step === 1 ? Boolean(form.title.trim()) && Number(form.goal_amount) > 0 : step === 2 ? Boolean(form.summary.trim()) && Boolean(form.story.trim()) : true;
 
   async function save(e, publish = false) {
     e?.preventDefault?.();
     if (busy || loadingDraft || draftLoadError) return;
     setBusy(true); setError(""); setSaved("");
     try {
-      const outcome = await persistCampaignContent(authClient(), form, { id: draftId || null, publish });
+      const client = authClient();
+      const { data: authData, error: authError } = await client.auth.getUser();
+      if (authError && authError.name !== "AuthSessionMissingError") throw authError;
+      if (!authData?.user) {
+        saveGuestCampaignDraft(form);
+        const returnTo = draftId ? "/create?draft=" + encodeURIComponent(draftId) : "/create";
+        navigate("/login?returnTo=" + encodeURIComponent(returnTo), { replace: true });
+        return;
+      }
+      const { data: profile, error: profileError } = await client.from("ifund_profiles")
+        .select("id,display_name,handle").eq("id", authData.user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile || (!profile.display_name && !profile.handle)) {
+        const returnTo = draftId ? "/create?draft=" + encodeURIComponent(draftId) : "/create";
+        navigate("/onboarding?returnTo=" + encodeURIComponent(returnTo), { replace: true });
+        return;
+      }
+      const outcome = await persistCampaignContent(client, form, { id: draftId || null, publish });
+      clearGuestCampaignDraft();
       if (publish) navigate("/campaign/" + encodeURIComponent(outcome.id), { replace: true });
       else {
         setSaved(outcome.id);
@@ -90,7 +120,7 @@ export default function CreateCampaign() {
     <form onSubmit={e => { e.preventDefault(); if (step < 3) setStep(value => Math.min(3, value + 1)); else save(null, true); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <section className="space-y-2"><h2 className="font-display text-2xl font-bold">{current.title}</h2><p className="text-muted-foreground">{current.description}</p></section>
       {step === 0 && <section className="space-y-4">
-        <div className="rounded-xl border border-border bg-background p-4"><h3 className="font-semibold">Campaign owner</h3>{account?.name && <p className="mt-1">{account.name}</p>}<p className="text-sm text-muted-foreground">{account?.email || "Verifying your signed-in account…"}</p><p className="mt-3 text-sm text-muted-foreground">Your account owns this campaign. Your email is not displayed on its public page by this form.</p></div>
+        <div className="rounded-xl border border-border bg-background p-4"><h3 className="font-semibold">Campaign owner</h3>{account?.name && <p className="mt-1">{account.name}</p>}<p className="text-sm text-muted-foreground">{account?.email || "Guest mode — no account required to write."}</p><p className="mt-3 text-sm text-muted-foreground">{account ? "Your account owns this campaign. Your email is not displayed on its public page." : "Your draft stays in this browser for up to seven days. Sign in or create an account when you save or publish."}</p></div>
         <p className="text-sm text-muted-foreground">You can create a campaign for a person, community, cause, or project. Only information you add to the campaign title, description, story, and cover is included in its public presentation.</p>
       </section>}
       {step === 1 && <section className="space-y-4">
@@ -99,7 +129,7 @@ export default function CreateCampaign() {
         <label className="block font-semibold">Fundraising goal (USD)<input required min="0.01" step="0.01" type="number" value={form.goal_amount} onChange={e => change("goal_amount", e.target.value)} placeholder="5000" className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4 font-normal" /></label>
       </section>}
       {step === 2 && <section className="space-y-4">
-        <label className="block font-semibold">Short description<textarea maxLength={600} rows={3} value={form.summary} onChange={e => change("summary", e.target.value)} placeholder="A few sentences that explain your campaign." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.summary.length}/600 characters</span></label>
+        <label className="block font-semibold">Short description<textarea required maxLength={600} rows={3} value={form.summary} onChange={e => change("summary", e.target.value)} placeholder="A few sentences that explain your campaign." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.summary.length}/600 characters</span></label>
         <label className="block font-semibold">Your campaign story<textarea required maxLength={15000} rows={10} value={form.story} onChange={e => change("story", e.target.value)} placeholder="Tell people what happened, what you hope to accomplish, and how support will help." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.story.length}/15,000 characters</span></label>
         <div className="rounded-xl border border-border p-4"><p className="font-semibold">AI writing assistance</p><p className="mt-1 text-sm text-muted-foreground">AI title, description, and story generation are not connected in this independent build yet. Your writing is saved as entered. Generation controls will appear when the independent AI service passes authentication, quota, and cost-safety checks.</p></div>
       </section>}

@@ -21,16 +21,17 @@ test("signup callback URL is fixed to the same-origin onboarding route", () => {
 test("callback parser supports single-use code, email OTP hash, and implicit session", () => {
   assert.deepEqual(
     callbackParameters("https://interplanetaryfund.com/auth/callback?code=one-time-code&next=%2Fonboarding"),
-    { type: "code", code: "one-time-code", next: "/onboarding" },
+    { type: "code", code: "one-time-code", next: "/onboarding", returnTo: "/dashboard" },
   );
   assert.deepEqual(
     callbackParameters("https://interplanetaryfund.com/auth/callback?token_hash=hash123&type=signup&next=%2Fonboarding"),
-    { type: "token_hash", token_hash: "hash123", token_type: "signup", next: "/onboarding" },
+    { type: "token_hash", token_hash: "hash123", token_type: "signup", next: "/onboarding", returnTo: "/dashboard" },
   );
   const session = callbackParameters("https://interplanetaryfund.com/auth/callback?next=%2Fonboarding#access_token=access123&refresh_token=refresh123");
   assert.equal(session.type, "session");
   assert.equal(session.access_token, "access123");
   assert.equal(session.refresh_token, "refresh123");
+  assert.equal(session.returnTo, "/dashboard");
 });
 
 test("callback rejects incomplete token pairs and unsupported token types", () => {
@@ -52,7 +53,7 @@ test("callback verifies the provider session and confirmed email before onboardi
   };
   const next = await completeAuthCallback(auth, { type: "code", code: "single-use", next: "/onboarding" });
   assert.equal(exchanged, "single-use");
-  assert.equal(next, "/onboarding");
+  assert.equal(next, "/onboarding?returnTo=%2Fdashboard");
 });
 
 test("callback refuses onboarding when the email remains unconfirmed", async () => {
@@ -74,6 +75,6 @@ test("recovery callbacks route only to password reset and strip query/hash crede
   const next = await completeAuthCallback(auth, {
     type: "token_hash", token_hash: "recovery-hash", token_type: "recovery", next: "/reset-password",
   });
-  assert.equal(next, "/reset-password");
+  assert.equal(next, "/reset-password?returnTo=%2Fdashboard");
   assert.equal(strippedAuthCallbackLocation("https://interplanetaryfund.com"), "/auth/callback");
 });

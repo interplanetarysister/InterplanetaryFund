@@ -27,7 +27,7 @@ test("confirmation token hashes verify with Auth and require confirmed user",asy
     async getUser(){return {data:{user:{id:"test-user",email_confirmed_at:"2026-10-29T19:00:00Z"}},error:null};}
   };
   const result=await completeAuthCallback(auth,params);
-  assert.equal(result,"/onboarding");
+  assert.equal(result,"/onboarding?returnTo=%2Fdashboard");
   assert.deepEqual(calls,[{token_hash:"opaque-token",type:"signup"}]);
 });
 test("Supabase implicit email verification fragments are processed and removed from history",async()=>{
@@ -38,7 +38,7 @@ test("Supabase implicit email verification fragments are processed and removed f
     async setSession(value){calls.push(value);return {data:{},error:null};},
     async getUser(){return {data:{user:{id:"test-user",email_confirmed_at:"2026-10-29"}},error:null};}
   };
-  assert.equal(await completeAuthCallback(auth,params),"/onboarding");
+  assert.equal(await completeAuthCallback(auth,params),"/onboarding?returnTo=%2Fdashboard");
   assert.deepEqual(calls,[{access_token:"access",refresh_token:"refresh"}]);
 });
 test("PKCE code exchange supports explicit session callback but detects invalid response",async()=>{
@@ -48,7 +48,7 @@ test("PKCE code exchange supports explicit session callback but detects invalid 
     async exchangeCodeForSession(code){exchanged++;assert.equal(code,"one-use-code");return {data:{},error:null};},
     async getUser(){return {data:{user:{id:"verified",email_confirmed_at:"2026-10-29"}},error:null};}
   };
-  assert.equal(await completeAuthCallback(auth,params),"/onboarding");
+  assert.equal(await completeAuthCallback(auth,params),"/onboarding?returnTo=%2Fdashboard");
   assert.equal(exchanged,1);
   await assert.rejects(()=>completeAuthCallback({
     ...auth,exchangeCodeForSession:async()=>({error:new Error("expired")})
@@ -59,7 +59,7 @@ test("recovery link completes a session and points only to reset password",async
   const auth={verifyOtp:async()=>({data:{},error:null}),getUser:async()=>({
     data:{user:{id:"verified"}},error:null
   })};
-  assert.equal(await completeAuthCallback(auth,params),"/reset-password");
+  assert.equal(await completeAuthCallback(auth,params),"/reset-password?returnTo=%2Fdashboard");
 });
 test("never redirect to external origins, recursive auth or unsafe token links",async()=>{
   const params=callbackParameters("https://interplanetaryfund.com/auth/callback?next=https%3A%2F%2Fevil.invalid&token_hash=hash&type=signup");
@@ -86,9 +86,9 @@ test("first confirmed login routes incomplete profiles to onboarding",async()=>{
     async maybeSingle(){return {data:{display_name:null,handle:null},error:null};}};
   const client={auth:{getUser:async()=>({data:{user:{id:"verified",email_confirmed_at:"2026-10-29"}},error:null})},
     from(table){calls.push(["table",table]);return query;}};
-  assert.equal(await landingAfterLogin(client,"/dashboard"),"/onboarding");
+  assert.equal(await landingAfterLogin(client,"/dashboard"),"/onboarding?returnTo=%2Fdashboard");
   assert.ok(calls.some(x=>x[0]==="id"&&x[1]==="verified"));
-  assert.equal(await landingAfterLogin(client,"/mine"),"/mine");
+  assert.equal(await landingAfterLogin(client,"/mine"),"/onboarding?returnTo=%2Fmine");
 });
 test("returning member login resumes dashboard; profile errors do not block login",async()=>{
   const client={auth:{getUser:async()=>({data:{user:{id:"verified",email_confirmed_at:"2026-10-29"}},error:null})},

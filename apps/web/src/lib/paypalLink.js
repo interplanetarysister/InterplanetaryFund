@@ -1,4 +1,4 @@
-// Prelaunch/platform-support PayPal link. This raw provider URL is never a
+// Platform-support PayPal link. This raw provider URL is never a
 // campaign fundraising path because it cannot create IFund's canonical
 // campaign/payment identity. Campaign donations must return to IFund checkout.
 //

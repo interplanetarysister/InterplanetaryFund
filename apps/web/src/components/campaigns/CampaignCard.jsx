@@ -15,9 +15,8 @@ export const categoryLabels = {
 
 export default function CampaignCard({ campaign, ownerView = false }) {
   const isDraft = campaign.status === "draft";
-  // Public preview data has no funding totals yet; hide them instead of
-  // showing misleading zeros.
-  const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0 && Number.isFinite(Number(campaign.raised_amount)) && campaign.raised_amount !== null && campaign.raised_amount !== undefined && Number.isFinite(Number(campaign.donor_count)) && campaign.donor_count !== null && campaign.donor_count !== undefined;
+  // Show funding progress only when the canonical aggregate is available.
+  const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0 && Number.isFinite(Number(campaign.raised_amount)) && campaign.raised_amount !== null && campaign.raised_amount !== undefined;
   const pct = hasTotals ? Math.max(0, Math.min(100, (Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100)) : 0;
   return (
     <Link to={isDraft ? `/create?draft=${encodeURIComponent(campaign.id)}` : ownerView && campaign.status !== "active" ? `/mine/${encodeURIComponent(campaign.id)}` : `/campaign/${campaign.id}`} className="group bg-white rounded-2xl border border-stone-200/70 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
@@ -34,7 +33,7 @@ export default function CampaignCard({ campaign, ownerView = false }) {
         ) : (
           <>
             <Progress value={pct} className="h-1.5 mb-2.5" />
-            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()} · {campaign.donor_count || 0} donors</span></p>
+            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()}{campaign.donor_count != null ? ` · ${campaign.donor_count} donors` : campaign.gift_count != null ? ` · ${campaign.gift_count} gifts` : ""}</span></p>
           </>
         )}
       </div>

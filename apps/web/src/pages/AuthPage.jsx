@@ -4,7 +4,7 @@ import AuthLayout from "@/components/AuthLayout";
 import { UserPlus, LogIn, Mail } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { authCallbackUrl } from "@/lib/authCallback";
+import { authCallbackUrl, rememberAuthReturnTo, clearRememberedAuthReturnTo } from "@/lib/authCallback";
 import { landingAfterLogin } from "@/lib/postLogin";
 import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
@@ -15,12 +15,15 @@ export default function AuthPage({ mode="login" }){
   const [email,setEmail]=useState("");
   const [username,setUsername]=useState("");
   const [otpCode,setOtpCode]=useState("");
+  const [recoveryCode,setRecoveryCode]=useState("");
+  const [newPassword,setNewPassword]=useState("");
+  const [recoveryCodeSent,setRecoveryCodeSent]=useState(false);
   const [password,setPassword]=useState("");
   const [confirmPassword,setConfirmPassword]=useState("");
   const [busy,setBusy]=useState(false);
   const [resending,setResending]=useState(false);
   const [needsConfirmation,setNeedsConfirmation]=useState(false);
-  const [message,setMessage]=useState("");
+  const [message,setMessage]=useState(()=>searchParams.get("passwordUpdated")==="1"?"Your password has been updated. Sign in with your new password.":"");
   const [error,setError]=useState("");
   const isRegister=mode==="register";
   const isReset=mode==="forgot-password";
@@ -37,13 +40,31 @@ export default function AuthPage({ mode="login" }){
       if(isRegister && password!==confirmPassword)
         throw new Error("Your passwords do not match.");
       const auth=authClient().auth;
-      if(isReset){
+      if(isReset && !recoveryCodeSent){
+        rememberAuthReturnTo(afterLogin);
         const {error:failure}=await auth.resetPasswordForEmail(normalizedEmail,{
           redirectTo:authCallbackUrl(window.location.origin,{recovery:true})
         });
         if(failure)throw failure;
-        setMessage("If this address has an account, a password reset email will arrive. Use the most recent link.");
+        setRecoveryCodeSent(true);
+        setMessage("If this address has an account, check your email for a recovery code or secure reset link. Use the newest message.");
+      }else if(isReset){
+        if(!/^\d{6,8}$/.test(recoveryCode.trim()))throw new Error("Enter the recovery code from your newest email.");
+        if(newPassword.length<8)throw new Error("Choose a password with at least eight characters.");
+        const {error:verifyFailure}=await auth.verifyOtp({email:normalizedEmail,token:recoveryCode.trim(),type:"recovery"});
+        if(verifyFailure)throw verifyFailure;
+        const {error:updateFailure}=await auth.updateUser({password:newPassword});
+        if(updateFailure)throw updateFailure;
+        const {error:signoutFailure}=await auth.signOut();
+        if(signoutFailure){
+          const {error:localSignoutFailure}=await auth.signOut({scope:"local"});
+          if(localSignoutFailure)throw new Error("Your password was updated, but this session could not be cleared. Sign out manually before leaving this device.");
+        }
+        clearRememberedAuthReturnTo();
+        setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");
+        navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
       }else if(isRegister){
+        rememberAuthReturnTo(afterLogin);
         const {data,error:failure}=await auth.signUp({
           email:normalizedEmail,password,
           options:{emailRedirectTo:authCallbackUrl(window.location.origin),
@@ -52,6 +73,7 @@ export default function AuthPage({ mode="login" }){
         });
         if(failure)throw failure;
         if(data?.session){
+          clearRememberedAuthReturnTo();
           const {data:verified,error:verifyError}=await auth.getUser();
           if(verifyError || !verified?.user?.id)throw new Error("Your account session could not be verified. Try signing in again.");
           if(!isVerifiedEmailUser(verified.user)){
@@ -60,7 +82,7 @@ export default function AuthPage({ mode="login" }){
             if(signoutError)throw new Error("Your email is not confirmed and the temporary session could not be cleared. Protected account features remain blocked; request a new confirmation email.");
             throw new Error("Your email confirmation is not complete. Check the newest verification email.");
           }
-          navigate("/onboarding",{replace:true});
+          navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
         }else{
           setNeedsConfirmation(true);
           setMessage("Check your inbox and spam folder for the newest confirmation email. Open the link to finish signing up before signing in.");
@@ -88,6 +110,7 @@ export default function AuthPage({ mode="login" }){
           throw new Error("Your email has not been confirmed. Open the newest confirmation email or request another one below.");
         }
         const destination=await landingAfterLogin(authClient(),afterLogin);
+        clearRememberedAuthReturnTo();
         navigate(destination,{replace:true});
       }
     }catch(cause){
@@ -111,7 +134,8 @@ export default function AuthPage({ mode="login" }){
       const {data:verified,error:verifyError}=await auth.getUser();
       if(verifyError||!verified?.user?.id||!verified.user.email_confirmed_at)
         throw new Error("Confirmation was not verified. Please request a new email.");
-      navigate("/onboarding",{replace:true});
+      clearRememberedAuthReturnTo();
+      navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
     }catch(cause){
       setError(cause?.message||"The code could not be verified. Open the newest email or request another code.");
     }finally{setBusy(false);}
@@ -121,6 +145,7 @@ export default function AuthPage({ mode="login" }){
     if(busy||resending||!email.trim())return;
     setResending(true);setError("");setMessage("");
     try{
+      rememberAuthReturnTo(afterLogin);
       const {error:failure}=await authClient().auth.resend({
         type:"signup",email:email.trim(),
         options:{emailRedirectTo:authCallbackUrl(window.location.origin)}
@@ -145,7 +170,7 @@ export default function AuthPage({ mode="login" }){
         <form onSubmit={submit} className="mt-6 space-y-4">
           <label className="block text-sm font-medium">Email address
             <input required type="email" autoComplete="email" maxLength={254}
-              value={email} onChange={event=>{setEmail(event.target.value);setNeedsConfirmation(false);}}
+              value={email} onChange={event=>{setEmail(event.target.value);setNeedsConfirmation(false);setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");}}
               className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"/>
           </label>
           {isRegister&&<label className="block text-sm font-medium">Username
@@ -160,6 +185,18 @@ export default function AuthPage({ mode="login" }){
               value={password} onChange={event=>setPassword(event.target.value)}
               className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"/>
           </label>}
+          {isReset&&recoveryCodeSent&&<>
+            <label className="block text-sm font-medium">Email recovery code
+              <input required inputMode="numeric" autoComplete="one-time-code" maxLength={8} pattern="[0-9]{6,8}"
+                value={recoveryCode} onChange={event=>setRecoveryCode(event.target.value.replace(/[^0-9]/g,"").slice(0,8))}
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-center font-mono text-xl tracking-widest text-slate-950"/>
+            </label>
+            <label className="block text-sm font-medium">New password
+              <input required minLength={8} type="password" autoComplete="new-password" value={newPassword}
+                onChange={event=>setNewPassword(event.target.value)}
+                className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"/>
+            </label>
+          </>}
           {isRegister&&<label className="block text-sm font-medium">Confirm password
             <input required minLength={8} type="password" autoComplete="new-password"
               value={confirmPassword} onChange={event=>setConfirmPassword(event.target.value)}
@@ -169,9 +206,14 @@ export default function AuthPage({ mode="login" }){
           {message&&<p role="status" className="text-sm text-cyan-200">{message}</p>}
           <button disabled={busy||resending} type="submit"
             className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">
-            {busy?"Please wait…":isReset?"Email reset link":isRegister?"Create account":"Sign in"}
+            {busy?"Please wait…":isReset?(recoveryCodeSent?"Verify code and update password":"Email recovery code"):isRegister?"Create account":"Sign in"}
           </button>
         </form>
+        {isReset&&recoveryCodeSent&&<button type="button"
+          onClick={()=>{setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");setError("");setMessage("");}}
+          className="mt-4 text-sm font-semibold text-cyan-200 underline">
+          Send another recovery email
+        </button>}
         {needsConfirmation&&!isReset&&<section aria-label="Verify your email address" className="mt-5 rounded-xl border border-slate-500 p-4">
           <h2 className="text-lg font-semibold">Verify your email</h2>
           <p className="mt-2 text-sm text-slate-300">Open the confirmation link in the newest email, or enter its verification code here if one is provided.</p>
@@ -191,9 +233,9 @@ export default function AuthPage({ mode="login" }){
           {resending?"Requesting confirmation…":"Resend confirmation email"}
         </button>}
         <nav className="mt-5 flex flex-wrap gap-4 text-sm text-cyan-200">
-          {!isRegister&&<Link to="/register" className="underline">Create an account</Link>}
-          {mode!=="login"&&<Link to="/login" className="underline">Sign in</Link>}
-          {!isReset&&<Link to="/forgot-password" className="underline">Forgot password?</Link>}
+          {!isRegister&&<Link to={"/register?returnTo="+encodeURIComponent(afterLogin)} className="underline">Create an account</Link>}
+          {mode!=="login"&&<Link to={"/login?returnTo="+encodeURIComponent(afterLogin)} className="underline">Sign in</Link>}
+          {!isReset&&<Link to={"/forgot-password?returnTo="+encodeURIComponent(afterLogin)} className="underline">Forgot password?</Link>}
         </nav>
     </div>
   </AuthLayout>;

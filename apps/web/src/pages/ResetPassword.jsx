@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import AuthLayout from "@/components/AuthLayout";
 import { Lock } from "lucide-react";
+import { safeReturnTo } from "@/lib/safeReturnTo";
 
 export default function ResetPassword(){
   const [password,setPassword]=useState("");
@@ -11,6 +12,8 @@ export default function ResetPassword(){
   const [error,setError]=useState("");
   const [message,setMessage]=useState("");
   const navigate=useNavigate();
+  const [searchParams]=useSearchParams();
+  const afterLogin=safeReturnTo(searchParams.get("returnTo"));
 
   async function submit(event){
     event.preventDefault();
@@ -28,10 +31,13 @@ export default function ResetPassword(){
       if(updateError)throw updateError;
       const {error:signoutError}=await client.auth.signOut();
       if(signoutError){
-        setMessage("Password updated, but automatic sign-out was not confirmed. Sign out manually on your account before leaving this device.");
-        return;
+        const {error:localSignoutError}=await client.auth.signOut({scope:"local"});
+        if(localSignoutError){
+          setMessage("Password updated, but automatic sign-out was not confirmed. Sign out manually on your account before leaving this device.");
+          return;
+        }
       }
-      navigate("/login",{replace:true});
+      navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
     }catch(cause){
       setError(cause?.message||"Password could not be changed.");
     }finally{setBusy(false);}
@@ -59,8 +65,8 @@ export default function ResetPassword(){
         </button>
       </form>
       <div className="mt-5 flex flex-wrap gap-4 text-sm text-cyan-200">
-        <Link to="/login" className="underline">Return to sign in</Link>
-        <Link to="/forgot-password" className="underline">Request a new recovery link</Link>
+        <Link to={"/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1"} className="underline">Return to sign in</Link>
+        <Link to={"/forgot-password?returnTo="+encodeURIComponent(afterLogin)} className="underline">Request a new recovery link</Link>
       </div>
     </div>
   </AuthLayout>;

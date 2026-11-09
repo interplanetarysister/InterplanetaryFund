@@ -1,0 +1,49 @@
+name: IFund web preview build
+
+on:
+  pull_request:
+    branches:
+      - migration/build-completeness-gates-20261029
+    paths:
+      - "apps/web/**"
+      - "scripts/**"
+      - "supabase/migrations/**"
+      - "tests/**"
+      - ".github/workflows/web-preview-build.yml"
+  push:
+    branches:
+      - feature/ifund-campaign-donation-ux-20261103
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-web-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test and compile preview bundle
+    runs-on: ubuntu-latest
+    env:
+      CF_PAGES: "1"
+      CF_PAGES_BRANCH: ${{ github.head_ref || github.ref_name }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.2"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install locked web dependencies
+        run: npm ci --prefix apps/web --no-audit --no-fund
+
+      - name: Run web regression and offline coverage tests
+        run: npm test --prefix apps/web
+
+      - name: Compile the Cloudflare Pages preview bundle
+        run: npm run build --prefix apps/web
