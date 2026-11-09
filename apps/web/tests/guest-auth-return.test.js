@@ -12,7 +12,7 @@ test("guest draft survives authentication and is cleared after successful save",
   const creator = read("../src/pages/CreateCampaign.jsx");
   assert.match(creator, /sessionStorage\.setItem\("ifund-guest-campaign-v1"/);
   assert.match(creator, /sessionStorage\.removeItem\("ifund-guest-campaign-v1"/);
-  assert.match(creator, /navigate\("\/register\?returnTo="/);
+  assert.match(creator, /navigate\("\/login\?returnTo="/);
 });
 test("auth retains the campaign return path and describes actual recovery options", () => {
   const auth = read("../src/pages/AuthPage.jsx");
