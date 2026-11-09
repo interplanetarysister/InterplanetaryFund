@@ -50,6 +50,13 @@ test("draft requests retain the existing input bounds and factual answers", () =
     /was not shortened/,
   );
 });
+test("full and section requests preserve all user text within their distinct worker bounds", () => {
+  assert.equal(makeDraftRequest({ ...input, details: "D".repeat(3000) }).details.length, 3000);
+  assert.throws(() => makeDraftRequest({ ...input, details: "D".repeat(3001) }), /not shortened/);
+  assert.equal(makeDraftRequest({ ...input, details: "D".repeat(4000), section: "Original" }).details.length, 4000);
+  assert.throws(() => makeDraftRequest({ ...input, details: "D".repeat(4001), section: "Original" }), /not shortened/);
+});
+
 test("draft responses require all five titles, two summaries, story and honest assistance metadata", () => {
   assert.throws(
     () => validateDraftSuggestion({ titles: [], summaries: [] }),
