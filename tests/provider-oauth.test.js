@@ -443,9 +443,10 @@ test('callback rejects replayed or mismatched state without exchanging a code', 
     }),
   });
   const r = await routeOAuthRequest(request, env, async (url) => {
-    tokenCalls += 1;
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
-    if (String(url).includes('/ifund_oauth_transactions?')) return Response.json([]);
+    const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.includes('/ifund_oauth_transactions?')) return Response.json([]);
+    if (target === 'https://oauth2.googleapis.com/token') tokenCalls += 1;
     throw Error('must not fetch');
   });
   assert.equal(r.status, 400);
