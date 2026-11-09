@@ -2,7 +2,7 @@ name: Deploy migration API Worker preview
 on:
   push:
     branches:
-      - release/provider-oauth-pages-20261109
+      - main
     paths:
       - "worker/**"
       - "wrangler.jsonc"
