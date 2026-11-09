@@ -55,7 +55,8 @@ export default function AuthPage({ mode="login" }){
         if(verifyFailure)throw verifyFailure;
         const {error:updateFailure}=await auth.updateUser({password:newPassword});
         if(updateFailure)throw updateFailure;
-        await auth.signOut();
+        const {error:signoutFailure}=await auth.signOut();
+        if(signoutFailure)throw new Error("Your password was updated, but this session could not be cleared. Sign out manually before leaving this device.");
         setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");
         navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
       }else if(isRegister){
