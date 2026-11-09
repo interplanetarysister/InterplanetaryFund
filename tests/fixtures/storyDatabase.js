@@ -55,7 +55,7 @@ export async function fixture({ workforce = false } = {}) {
     for (const name of [
       "20261104055345_ifund_collective_workforce.sql",
       "20261104062233_ifund_preview_workforce_isolation.sql",
-      "pending/ifund_isolated_story_preview_access.sql",
+      "20261106031923_ifund_isolated_story_preview_access.sql",
     ])
       await db.exec(
         readFileSync(

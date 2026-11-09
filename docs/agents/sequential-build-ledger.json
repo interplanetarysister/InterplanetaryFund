@@ -1106,20 +1106,20 @@
       }
     },
     "story_preview_access": {
-      "status": "reviewed_local_verified_pending_remote_apply",
+      "status": "preview_member_generation_verified",
       "source_baseline": "ad9e709a2e61cbce59c6c84d161f148e61bda605",
       "reason": "Shared Story gate also off; restore preview without activating production",
-      "source_migration": "pending/ifund_isolated_story_preview_access.sql",
+      "source_migration": "20261106031923_ifund_isolated_story_preview_access.sql",
       "shared_story_enabled": false,
       "production_procurement_enabled": false,
-      "preview_procurement_enabled": false,
+      "preview_procurement_enabled": true,
       "database_cases": 17,
       "runtime_cases": 10,
       "function_security_cases": 5,
       "root_test_files": 34,
       "root_build": "pass",
       "rollback_probe": "local pass; no persistent data or control changes",
-      "live_member_receipt": "NOT TESTED"
+      "live_member_receipt": "PASS: trusted preview assignment and stored draft verified November 8; publication/recovery separate"
     },
     "campaign_writing_service": {
       "status": "deployed_pending_hosted_signed_in_generation",
@@ -1154,7 +1154,11 @@
         "direct_https_authorization_cases": 11,
         "live_campaign_or_financial_write_by_builder": false
       },
-      "ci": [42024101322, 42024101202, 42025153722],
+      "ci": [
+        42024101322,
+        42024101202,
+        42025153722
+      ],
       "current_production_reconciliation": {
         "observed_date_utc": "2026-11-06",
         "deployment": "8296ae39-8a48-4b9a-a139-cd3dcec661b1",
@@ -1172,6 +1176,15 @@
         "settings_changed_by_this_increment": false,
         "next_gate": "reconcile current preview controls, then obtain authenticated member/provider receipt"
       }
+    },
+    "campaign_writing_handoff": {
+      "status": "local_verified_pending_deployment",
+      "browser_cases": 21,
+      "web_test_files": 29,
+      "root_test_files": 34,
+      "automatic_publication": false,
+      "existing_campaign_publish": "saves reviewed copy and active status atomically",
+      "codex_builder": "separate blocked connection; no paid API fallback"
     }
   }
 }

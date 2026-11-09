@@ -10,6 +10,8 @@ import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
   "business", "creative", "memorial", "disaster_relief", "environment", "other"];
@@ -19,6 +21,7 @@ const fieldClass = "mt-2 min-h-12 w-full rounded-xl border border-input bg-backg
 // Owner campaign editor. Loads exactly one campaign owned by the signed-in
 // member, blocks saving until that load succeeds, and confirms every write.
 export default function EditCampaign() {
+  const { user } = useAuthSession();
   const { id } = useParams();
   const navigate = useNavigate();
   const alive = useRef(true);
@@ -30,6 +33,7 @@ export default function EditCampaign() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [handoffBusy, setHandoffBusy] = useState(false);
 
   const load = useCallback(async () => {
     setPhase("loading"); setLoadError(""); setError("");
@@ -60,11 +64,11 @@ export default function EditCampaign() {
   }, [load]);
 
   const change = (key, value) => setForm((current) => ({ ...current, [key]: value }));
-  const disabled = busy || phase !== "ready";
+  const disabled = busy || handoffBusy || phase !== "ready";
   const readiness = publishReadiness(form);
 
   async function save(nextStatus) {
-    if (lock.current || phase !== "ready") return;
+    if (lock.current || handoffBusy || phase !== "ready") return;
     const problems = validateCampaignForm(form, { publish: nextStatus === "active" });
     if (problems.length) { setError(problems[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
@@ -85,7 +89,7 @@ export default function EditCampaign() {
   }
 
   async function toggleStatus() {
-    if (lock.current || phase !== "ready") return;
+    if (lock.current || handoffBusy || phase !== "ready") return;
     const next = status === "active" ? "paused" : "active";
     if (next === "active" && !readiness.ready) { setError(readiness.missing[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
@@ -121,6 +125,7 @@ export default function EditCampaign() {
   }
 
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
+    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={user?.id || null} campaignId={id} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setError(""); setNotice(""); }} />
     <header className="space-y-3">
       <Link to="/campaigns" className="text-sm underline">Back to my campaigns</Link>
       <div className="flex flex-wrap items-center gap-2">
@@ -140,11 +145,11 @@ export default function EditCampaign() {
           onChange={(e) => change("title", e.target.value)} className={fieldClass} />
       </label>
       <label className="block font-semibold">Short description
-        <textarea rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
+        <textarea aria-label="Short description" rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
           onChange={(e) => change("summary", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Your story
-        <textarea rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
+        <textarea aria-label="Your story" rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
           onChange={(e) => change("story", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Category
@@ -180,7 +185,7 @@ export default function EditCampaign() {
           <Save className="h-4 w-4" aria-hidden="true" /> {busy ? "Saving…" : "Save changes"}
         </button>
         {status !== "active" ? (
-          <button type="button" onClick={toggleStatus} disabled={disabled || !readiness.ready}
+          <button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready}
             title={readiness.ready ? "Publish to Discover" : readiness.missing[0]}
             className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
             <PlayCircle className="h-4 w-4" aria-hidden="true" /> Publish

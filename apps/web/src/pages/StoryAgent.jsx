@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadWritingWorkspaceAccess } from "@/lib/writingWorkspace";
+import { loadOwnerCampaign } from "@/api/ownerCampaigns";
+import {
+  rememberWritingHandoff,
+  WritingHandoffError,
+} from "@/lib/writingCampaignHandoff";
 
 export default function StoryAgent() {
+  const navigate = useNavigate();
   const [details, setDetails] = useState("");
   const [section, setSection] = useState("");
   const [campaignId, setCampaignId] = useState("");
@@ -16,10 +23,14 @@ export default function StoryAgent() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const requestRef = useRef(null);
+  const ownerRef = useRef(null);
+  const alive = useRef(true);
+  const handoffLock = useRef(false);
   async function api(path, body) {
     const client = authClient();
     const { data, error } = await client.auth.getSession();
-    if (error || !data?.session?.access_token)
+    const actorId = data?.session?.user?.id;
+    if (error || !data?.session?.access_token || !actorId)
       throw Error("Sign in to use your writing assistant.");
     const res = await fetch("/api/services/story_agent/" + path, {
       method: body ? "POST" : "GET",
@@ -38,6 +49,15 @@ export default function StoryAgent() {
         "The writing assistant is not available yet. Your text is safe.",
       );
     }
+    const current = await client.auth.getSession();
+    if (
+      current.error ||
+      current.data?.session?.user?.id !== actorId ||
+      (ownerRef.current && ownerRef.current !== actorId)
+    )
+      throw Error(
+        "Your account changed. Reopen your saved writing to continue.",
+      );
     if (!res.ok)
       throw Object.assign(
         Error(
@@ -45,9 +65,56 @@ export default function StoryAgent() {
         ),
         { code: result.code },
       );
+    ownerRef.current = actorId;
     return result;
   }
+  async function continueWriting(draft, selection, target) {
+    if (busy || handoffLock.current) return;
+    handoffLock.current = true;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const client = authClient();
+      const expectedOwner = ownerRef.current;
+      const first = await client.auth.getUser();
+      if (
+        first.error ||
+        !expectedOwner ||
+        first.data?.user?.id !== expectedOwner
+      )
+        throw new WritingHandoffError(
+          "Your account changed. Reopen your saved writing to continue.",
+        );
+      const destination = draft.campaign_id || target || null;
+      if (destination) await loadOwnerCampaign(client, destination);
+      const current = await client.auth.getUser();
+      if (current.error || current.data?.user?.id !== expectedOwner)
+        throw new WritingHandoffError(
+          "Your account changed. Reopen your saved writing to continue.",
+        );
+      if (!alive.current) return;
+      const handoff = rememberWritingHandoff(sessionStorage, {
+        ownerId: expectedOwner,
+        draft,
+        selection,
+        campaignId: destination,
+      });
+      navigate(handoff.target);
+    } catch (cause) {
+      if (alive.current)
+        setError(
+          cause instanceof WritingHandoffError
+            ? cause.message
+            : "The campaign editor could not be opened. Your writing is still saved.",
+        );
+    } finally {
+      handoffLock.current = false;
+      if (alive.current) setBusy(false);
+    }
+  }
   useEffect(() => {
+    alive.current = true;
     let active = true;
     (async () => {
       const workspace = await loadWritingWorkspaceAccess(api);
@@ -96,6 +163,7 @@ export default function StoryAgent() {
       });
     return () => {
       active = false;
+      alive.current = false;
     };
   }, []);
   async function generate(e) {
@@ -425,6 +493,7 @@ export default function StoryAgent() {
               onSelect={saveSelection}
               onRevise={reviseDraft}
               onCancel={cancel}
+              onContinue={continueWriting}
             />
           ))}
         </section>
@@ -440,6 +509,7 @@ export function StoryDraft({
   onSelect,
   onRevise,
   onCancel,
+  onContinue,
 }) {
   const [titleIndex, setTitleIndex] = useState(0);
   const [summaryIndex, setSummaryIndex] = useState(0);
@@ -562,7 +632,7 @@ export function StoryDraft({
                   onChange={(e) => setTarget(e.target.value)}
                   className="mt-2 min-h-12 w-full rounded-xl border bg-background px-3"
                 >
-                  <option value="">Choose your campaign</option>
+                  <option value="">Start a new campaign</option>
                   {campaigns.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.title || "Untitled campaign"}
@@ -585,6 +655,34 @@ export function StoryDraft({
           )}
         </>
       )}
+      {!cancelled &&
+        draft.payload?.story &&
+        (selected || draft.payload?.titles) && (
+          <div className="space-y-2">
+            <button
+              type="button"
+              disabled={busy || !onContinue}
+              onClick={() =>
+                onContinue(
+                  draft,
+                  {
+                    title_index: titleIndex,
+                    summary_index: summaryIndex,
+                    ...(selected ? { wording } : {}),
+                  },
+                  target,
+                )
+              }
+              className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              Continue to campaign editor
+            </button>
+            <p className="text-sm text-muted-foreground">
+              Review this writing in your campaign, add the remaining details,
+              then choose Save private draft or Publish campaign.
+            </p>
+          </div>
+        )}
       {!cancelled && (
         <button
           disabled={busy}

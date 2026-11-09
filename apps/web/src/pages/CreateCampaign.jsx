@@ -9,23 +9,24 @@ import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
+import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 
 export default function CreateCampaign() {
   const [params] = useSearchParams();
   const draftId = params.get("draft");
   // The member gate clears private saved text when the account changes.
   return draftId
-    ? <MemberAccess><CampaignComposer key={draftId} memberAccess /></MemberAccess>
+    ? <MemberAccess><NewCampaign draftId={draftId} /></MemberAccess>
     : <NewCampaign />;
 }
 
-function NewCampaign() {
+function NewCampaign({ draftId = null }) {
   const session = useAuthSession();
   if (session.status === "loading") return <main className="mx-auto max-w-3xl px-4 py-8" role="status">Opening your campaign editor…</main>;
   const ownerId = session.user?.id || null;
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
-  return <CampaignComposer key={ownerId || "guest"} ownerId={ownerId} />;
+  return <CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
 }
 
 function CampaignComposer({ memberAccess = false, ownerId = null }) {
@@ -66,6 +67,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
   });
   const [busy, setBusy] = useState(false);
+  const [handoffBusy, setHandoffBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [restoredBrief] = useState(() => {
@@ -161,7 +163,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }); }
     catch { /* session storage unavailable */ }
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
-  const disabled = Boolean(busy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  const disabled = Boolean(busy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(status) {
@@ -197,6 +199,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Write your story, save a private draft, or publish it to Discover when you’re ready. You can start writing before signing in.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
+    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
@@ -277,8 +280,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <fieldset disabled={disabled} className="space-y-5">
       <label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Short description<textarea maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Your story<textarea maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <label className="block font-semibold">Short description<textarea aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <label className="block font-semibold">Your story<textarea aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>

@@ -86,3 +86,9 @@ merge; no timestamp will be guessed.
 After the preview repair and direct checks, obtain a genuine signed-in request
 and trusted assignment/provider-backed receipt through the existing private
 writing interface. SQL role probes and model fixtures cannot satisfy that gate.
+
+## November 8 verified continuation
+
+Applied migration `20261106031923`; source filename now matches actual history. Eight live rollback-only permission checks passed with zero persistent test changes. Preview Worker `a85d1ca6-7834-4f11-bb5d-2905933d0677` retains inherited bindings. One genuine member request succeeded in preview and stored the complete writing receipt; independent audit verified ownership, lease, contract, implementation and success log linkage without disclosing private copy. Production activation and publication remain separate gates.
+
+The campaign handoff opens a review panel in the new or existing owner editor. It writes no campaign until the owner saves or publishes. Publishing existing campaigns saves the reviewed copy with the status change. Import-time editing/publication is blocked, and account/reference changes cancel stale imports. All21 local intercepted browser cases,29 web files/build and34 root files passed. Live deployment verification follows in PR#228.
