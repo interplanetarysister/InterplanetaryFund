@@ -177,6 +177,31 @@ test("outlines fit campaign bounds for every existing category without inventing
     );
   }
 });
+test("full briefs and section rewrites use distinct bounded context limits", () => {
+  assert.equal(
+    campaignPreviewInput({ ...input, details: "D".repeat(3000) }).details.length,
+    3000,
+  );
+  assert.throws(() =>
+    campaignPreviewInput({ ...input, details: "D".repeat(3001) }),
+  );
+  assert.equal(
+    campaignPreviewInput({
+      ...input,
+      details: "D".repeat(4000),
+      section: "Original section",
+    }).details.length,
+    4000,
+  );
+  assert.throws(() =>
+    campaignPreviewInput({
+      ...input,
+      details: "D".repeat(4001),
+      section: "Original section",
+    }),
+  );
+});
+
 test("owned draft context is validated and forwarded to the Story Agent", async () => {
   assert.throws(() =>
     campaignPreviewInput({ ...input, campaign_id: "not-a-uuid" }),
