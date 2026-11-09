@@ -10,7 +10,7 @@ const PROVIDERS = [
   { id: "google", name: "Google Account", description: "Connect Google identity. Other Google products require their own approved scopes." },
   { id: "linkedin", name: "LinkedIn", description: "Connect LinkedIn identity. Posting requires the separately approved w_member_social permission." },
   { id: "tiktok", name: "TikTok", description: "Connect TikTok identity. Video upload is enabled only after TikTok app review." },
-  { id: "x", name: "X", description: "User-level authorization is not enabled yet; the Base44 connector is currently shared-only.", unavailable: true },
+  { id: "x", name: "X", description: "Connect your own X account. Read access depends on X developer-app approval; publishing requires separate API access approval." },
   { id: "gofundme_pro", name: "GoFundMe Pro", description: "Organization-level API connection managed by IFund administrators; this is not per-user OAuth.", adminOnly: true },
   { id: "gofundme", name: "GoFundMe", description: "Consumer GoFundMe campaigns are added by campaign URL. GoFundMe Pro API access is separate.", linkOnly: true },
 ];
