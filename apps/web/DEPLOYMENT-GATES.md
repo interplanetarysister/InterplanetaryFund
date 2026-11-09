@@ -15,20 +15,20 @@ These are current observations, not a prohibition on a later repair deployment. 
 
 ## Current Cloudflare Pages state — verified 2026-11-09
 
-The active preview target is Cloudflare Pages project \`interplanetaryfund-migration\`.
+The active preview target is Cloudflare Pages project `interplanetaryfund-migration`.
 
 Observed project configuration:
 
-- GitHub source: \`interplanetarysister/InterplanetaryFund\` (repository ID \`1326040927\`).
-- Production branch: \`main\`.
+- GitHub source: `interplanetarysister/InterplanetaryFund` (repository ID `1326040927`).
+- Production branch: `main`.
 - Production deployments: disabled.
-- Preview deployment setting: \`custom\`.
-- The preview branch allowlist includes \`feature/ifund-campaign-donation-ux-20261103\`.
-- Build root: \`apps/web\`.
-- Build command: \`npm ci --no-audit --no-fund && npm test && npm run build\`.
-- Attached domains: \`interplanetaryfund.com\`, \`www.interplanetaryfund.com\`, and \`preview.interplanetaryfund.com\`, as well as the project's \`pages.dev\` domain.
+- Preview deployment setting: `custom`.
+- The preview branch allowlist includes `feature/ifund-campaign-donation-ux-20261103`.
+- Build root: `apps/web`.
+- Build command: `npm ci --no-audit --no-fund && npm test && npm run build`.
+- Attached domains: `interplanetaryfund.com`, `www.interplanetaryfund.com`, and `preview.interplanetaryfund.com`, as well as the project's `pages.dev` domain.
 
-The generated branch-preview URL is the verified target for this repair. The custom-domain attachment does not by itself prove that \`preview.interplanetaryfund.com\` resolves to this branch deployment. No DNS, custom-domain, production-branch, or production-deployment setting was changed.
+The generated branch-preview URL is the verified target for this repair. The custom-domain attachment does not by itself prove that `preview.interplanetaryfund.com` resolves to this branch deployment. No DNS, custom-domain, production-branch, or production-deployment setting was changed.
 
 ## Current GitHub automation mode
 
@@ -40,17 +40,17 @@ The migration static-check workflow:
 - Runs web regression tests and offline coverage audits.
 - Syntax-checks Worker JavaScript without compiling or deploying it.
 
-The separate \`web-preview-build.yml\` workflow runs the web regression suite and compiles the Pages bundle. It contains no deploy command; Cloudflare Pages performs the branch-preview build and deployment from the allowlisted GitHub branch.
+The separate `web-preview-build.yml` workflow runs the web regression suite and compiles the Pages bundle. It contains no deploy command; Cloudflare Pages performs the branch-preview build and deployment from the allowlisted GitHub branch.
 
-The \`verify-build-mode.mjs\` gate selects the inventory-consistency check for a non-production Cloudflare Pages branch. Local builds and the \`main\` production branch retain the strict production evidence gate. A successful preview build is not production release approval.
+The `verify-build-mode.mjs` gate selects the inventory-consistency check for a non-production Cloudflare Pages branch. Local builds and the `main` production branch retain the strict production evidence gate. A successful preview build is not production release approval.
 
 ## Canonical Supabase and migration safety — verified 2026-11-09
 
-The canonical Supabase project is \`ssibsfmtodgximseeqsv\`. Its live migration history already contains the newer campaign-funding aggregate and donation-support migrations. The older staged drafts \`20261103150000\` and \`20261103160000\` have therefore been converted to inert migration markers; they no longer replace the live funding RPC or narrow the existing optional-support ceiling.
+The canonical Supabase project is `ssibsfmtodgximseeqsv`. Its live migration history already contains the newer campaign-funding aggregate and donation-support migrations. The older staged drafts `20261103150000` and `20261103160000` have therefore been converted to inert migration markers; they no longer replace the live funding RPC or narrow the existing optional-support ceiling.
 
-The previously applied \`20261025100627\` schema migration is restored to its original grant block. The repository now carries the later \`20261105193521\` campaign write-privilege hardening migration separately, preserving the live column-scoped insert/update grants and RLS-constrained delete permissions.
+The previously applied `20261025100627` schema migration is restored to its original grant block. The repository now carries the later `20261105193521` campaign write-privilege hardening migration separately, preserving the live column-scoped insert/update grants and RLS-constrained delete permissions.
 
-The public funding RPC's existing \`donor_count\` field counts captured gift rows, not unique people. The web client now presents that aggregate as a gift count and does not label it as unique donors. This is a presentation correction; no donor records or database rows were changed.
+The public funding RPC's existing `donor_count` field counts captured gift rows, not unique people. The web client now presents that aggregate as a gift count and does not label it as unique donors. This is a presentation correction; no donor records or database rows were changed.
 
 No Supabase migration was executed during this preview repair. The preview uses the canonical project bindings already configured in Pages; no service-role key was added.
 
@@ -73,13 +73,13 @@ Static route shells, schema names, mocks, or passing unit tests are not runtime 
 ## Current checkpoint
 
 - Open PR: #200
-- Working branch: \`feature/ifund-campaign-donation-ux-20261103\`
-- Current implementation commit at this checkpoint: \`4a9c5483c17a909712aa203854038e235e7c1af0\`
+- Working branch: `feature/ifund-campaign-donation-ux-20261103`
+- Current implementation commit at this checkpoint: `4a9c5483c17a909712aa203854038e235e7c1af0`
 - Migration static checks: passed.
 - Web regression tests and offline coverage audits: passed.
 - Vite preview compilation: passed.
-- Cloudflare Pages branch preview: deployment of this exact commit is still in progress; use the generated \`pages.dev\` URL only after its deploy stage reports success.
+- Cloudflare Pages branch preview: deployment of this exact commit is still in progress; use the generated `pages.dev` URL only after its deploy stage reports success.
 - Production deployment: disabled.
 - Production readiness: **NOT READY**.
 
-Do not merge to \`main\`, enable production deployments, alter DNS, activate PayPal checkout, or apply database migrations as part of this preview-only repair. A green preview build and unit suite do not prove end-to-end authentication, provider, payment, withdrawal, agent, Android, or production runtime parity.
+Do not merge to `main`, enable production deployments, alter DNS, activate PayPal checkout, or apply database migrations as part of this preview-only repair. A green preview build and unit suite do not prove end-to-end authentication, provider, payment, withdrawal, agent, Android, or production runtime parity.
