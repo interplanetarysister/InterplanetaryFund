@@ -200,6 +200,10 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     const verifier = randomSecret(48);
     const challenge = base64url(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(verifier))));
     try {
+      const expiryQuery = new URLSearchParams({ expires_at: 'lt.' + new Date().toISOString() });
+      await supabaseRequest(env, 'ifund_oauth_transactions?' + expiryQuery.toString(), {
+        method: 'DELETE', headers: { Prefer: 'return=minimal' },
+      }, fetcher);
       const encryptedVerifier = await encryptOAuthValue({ verifier }, env);
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
       const row = {
@@ -218,7 +222,10 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         authorize.searchParams.set('code_challenge', challenge);
         authorize.searchParams.set('code_challenge_method', 'S256');
       }
-      if (provider === 'google') authorize.searchParams.set('access_type', 'offline');
+      if (provider === 'google') {
+        authorize.searchParams.set('access_type', 'offline');
+        authorize.searchParams.set('prompt', 'consent');
+      }
       if (provider === 'tiktok') {
         authorize.searchParams.delete('client_id');
         authorize.searchParams.set('client_key', config.clientId);
@@ -259,24 +266,34 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     if (typeof verifierRecord.verifier !== 'string') throw new Error('Invalid PKCE verifier.');
     const token = await exchangeCode(provider, config, code, verifierRecord.verifier, redirectUri, fetcher);
     const identity = await fetchIdentity(config, token, fetcher);
-    const encryptedTokens = await encryptOAuthValue({
+    const existingQuery = new URLSearchParams({
+      select: 'token_ciphertext', owner_id: 'eq.' + rows[0].owner_id,
+      provider: 'eq.' + provider, limit: '1',
+    });
+    const existingResponse = await supabaseRequest(env, 'ifund_provider_tokens?' + existingQuery.toString(), {}, fetcher);
+    const existingRows = await existingResponse.json();
+    let previousTokens = null;
+    if (Array.isArray(existingRows) && existingRows.length === 1) {
+      previousTokens = await decryptOAuthValue(existingRows[0].token_ciphertext, env);
+    }
+    const refreshToken = typeof token.refresh_token === 'string' && token.refresh_token
+      ? token.refresh_token : previousTokens?.refresh_token || null;
+    const tokenPayload = {
       access_token: token.access_token,
-      refresh_token: typeof token.refresh_token === 'string' ? token.refresh_token : null,
+      refresh_token: refreshToken,
       token_type: 'Bearer',
       scope: typeof token.scope === 'string' ? token.scope : config.scopes.join(' '),
       expires_at: Number.isFinite(Number(token.expires_in)) ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
-    }, env);
-    await supabaseRequest(env, 'ifund_provider_tokens?on_conflict=owner_id%2Cprovider', {
-      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({
-        owner_id: rows[0].owner_id, provider, provider_subject: identity.subject,
-        token_ciphertext: encryptedTokens, granted_scopes: typeof token.scope === 'string' ? token.scope.split(/[ ,]+/).filter(Boolean) : config.scopes,
-        status: 'active', updated_at: new Date().toISOString(),
+      refresh_expires_at: Number.isFinite(Number(token.refresh_expires_in)) ? new Date(Date.now() + Number(token.refresh_expires_in) * 1000).toISOString() : previousTokens?.refresh_expires_at || null,
+    };
+    const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
+    const scopes = typeof token.scope === 'string' ? token.scope.split(/[ ,]+/).filter(Boolean) : config.scopes;
+    await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
+      method: 'POST', body: JSON.stringify({
+        p_owner_id: rows[0].owner_id, p_provider: provider,
+        p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
+        p_granted_scopes: scopes,
       }),
-    }, fetcher);
-    await supabaseRequest(env, 'ifund_connections?on_conflict=owner_id%2Cprovider', {
-      method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ owner_id: rows[0].owner_id, provider, status: 'connected', verified_at: new Date().toISOString() }),
     }, fetcher);
     return redirectResult(base, 'connected', provider);
   } catch {
