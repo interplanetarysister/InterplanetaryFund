@@ -63,3 +63,8 @@ Verified: branch derived from README-only current main; #136 is obsolete; read-o
 - **Phase 7**: Cloudflare still has **16** active domain Worker routes assigned to `interplanetary-fund2`; that deployed legacy Worker may proxy Base44. Pages project `interplanetaryfund-migration` has production branch `migration/phase7-offline-cutover-gate` and production deployments disabled. **No cutover was activated.**
 
 Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. PRs #139–#143 became conflicted after the clean Phase 1 merge; they require per-phase reconciliation and review. Original PRs #141/#142 contain overlapping stacked changes: use merged #150/#151 as the baseline instead of merging their obsolete overlapped code wholesale. PRs #144–#148 need their separate gates. **Do not deploy, enable migration flags, switch DNS/API traffic or perform financial writes based solely on code merges.**
+
+
+## Provider OAuth foundation — 2026-11-09
+
+A focused integration branch `migration/provider-oauth-foundation-20261109` now documents provider-specific registration, OAuth security, token storage, Cloudflare secret placement, test gates and owner/provider blockers in [PROVIDER_OAUTH_FOUNDATION.md](../integrations/PROVIDER_OAUTH_FOUNDATION.md). Direct native Cloudflare/Supabase inspection found no configured secrets on the inspected IFund Workers and no provider OAuth Edge Function in either active project's current function inventory. The managed-connections preview worker still reports provider execution disabled. No provider credentials were retrieved, created, copied or deployed. No TinyFish automation was used and no metered credits were consumed. This is documentation groundwork, not a verified OAuth implementation or release.
