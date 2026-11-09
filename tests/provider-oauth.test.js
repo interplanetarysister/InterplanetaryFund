@@ -50,7 +50,7 @@ test('OAuth endpoints fail closed until service secrets and callback origin are 
 
 test('OAuth connection status is available in an OAuth-enabled production environment without preview migration flag', async () => {
   const request = new Request(base + '/api/account/connections', {
-    headers: { authorization: 'Bearer verified.test.jwt' },
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const fetcher = async (url) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
@@ -69,7 +69,7 @@ test('OAuth connection status is available in an OAuth-enabled production enviro
 });
 test('account connection status remains disabled when OAuth and preview migration are both off', async () => {
   const request = new Request(base + '/api/account/connections', {
-    headers: { authorization: 'Bearer verified.test.jwt' },
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const r = await routeAccountRequest(request, { ...env, OAUTH_API_ENABLED: 'false' }, async () => {
     throw Error('must not fetch');
@@ -141,7 +141,7 @@ test('TikTok web authorization uses client_key and does not send mobile-only PKC
 
 test('YouTube uses the Google OAuth client with explicit YouTube scopes', async () => {
   const request = new Request(base + '/api/oauth/youtube/start', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const fetcher = async (url, options = {}) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
@@ -158,7 +158,7 @@ test('YouTube uses the Google OAuth client with explicit YouTube scopes', async 
 });
 test('Meta Facebook Pages authorization requests comma-separated Page permissions', async () => {
   const request = new Request(base + '/api/oauth/facebook_pages/start', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const fetcher = async (url, options = {}) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
@@ -174,7 +174,7 @@ test('Meta Facebook Pages authorization requests comma-separated Page permission
 });
 test('Instagram Login uses its dedicated OAuth endpoints and business scopes', async () => {
   const request = new Request(base + '/api/oauth/instagram/start', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const fetcher = async (url, options = {}) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
@@ -379,7 +379,7 @@ test('Google refresh rotates the access token, preserves an omitted refresh toke
     throw Error('unexpected fetch: ' + target);
   };
   const request = new Request(base + '/api/oauth/google/refresh', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const r = await routeOAuthRequest(request, env, fetcher);
   assert.equal(r.status, 200);
@@ -403,7 +403,7 @@ test('refresh rejects a saved connection without a refresh token without contact
     throw Error('provider token endpoint must not be called');
   };
   const request = new Request(base + '/api/oauth/google/refresh', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const r = await routeOAuthRequest(request, env, fetcher);
   assert.equal(r.status, 409);
