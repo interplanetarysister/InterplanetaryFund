@@ -23,6 +23,7 @@ test("public campaign pages keep the intended donate experience without hard-cod
   assert.match(fundingCard, /gift_count/);
   assert.match(fundingCard, /gifts/);
   assert.doesNotMatch(fundingCard, /donors/);
+  assert.match(fundingCard, /isValid\(endDate\)/);
   assert.match(discover, /Gifts/);
   assert.match(discover, /campaign\.gift_count/);
 });
