@@ -54,6 +54,9 @@ jobs:
         run: |
           test -n "$VITE_BASE44_APP_BASE_URL" || { echo 'Missing VITE_BASE44_APP_BASE_URL'; exit 1; }
           test -n "$VITE_BASE44_APP_ID" || { echo 'Missing VITE_BASE44_APP_ID'; exit 1; }
+          # Fail closed: duplicate Base44 apps exist. Only the published official app is authorized.
+          test "$VITE_BASE44_APP_ID" = '6a67a778342a8fe05ee79cba' || { echo 'Base44 app ID must identify the official published Interplanetary Fund app'; exit 1; }
+          test "${VITE_BASE44_APP_BASE_URL%/}" = 'https://interplanetaryfund.base44.app' || { echo 'Base44 origin must identify the official published Interplanetary Fund app'; exit 1; }
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
