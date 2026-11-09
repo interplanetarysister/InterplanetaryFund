@@ -2,6 +2,7 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
+import { routeOAuthRequest } from './oauth.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
@@ -19,6 +20,9 @@ export default {
     }
     if (request.method === 'GET' && /^\/api\/campaigns\/[^/]+$/.test(pathname)) {
       return routeReadRequest(request, env);
+    }
+    if (pathname.startsWith('/api/oauth/')) {
+      return routeOAuthRequest(request, env);
     }
     if (pathname === '/api/account/me' ||
         pathname === '/api/account/profile' ||
