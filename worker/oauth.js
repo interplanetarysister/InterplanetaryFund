@@ -324,6 +324,143 @@ async function fetchIdentity(config, token, fetcher) {
   return { subject: String(subject), profile: data, grantedScopes };
 }
 
+async function refreshProviderToken(provider, config, previous, fetcher) {
+  if (provider === 'instagram') {
+    const endpoint = new URL('https://graph.instagram.com/refresh_access_token');
+    endpoint.searchParams.set('grant_type', 'ig_refresh_token');
+    endpoint.searchParams.set('access_token', previous.access_token);
+    const res = await fetcher(endpoint.toString(), {
+      method: 'GET', headers: { accept: 'application/json' },
+      redirect: 'error', signal: AbortSignal.timeout(10000),
+    });
+    const refreshed = await limitedJson(res);
+    if (typeof refreshed.access_token !== 'string' || !refreshed.access_token) {
+      throw new Error('Instagram token refresh failed.');
+    }
+    return {
+      ...previous, ...refreshed, token_type: 'Bearer',
+      refresh_token: previous.refresh_token || null,
+      permissions: previous.permissions,
+    };
+  }
+
+  const form = new URLSearchParams();
+  if (provider === 'facebook_pages') {
+    form.set('grant_type', 'fb_exchange_token');
+    form.set('client_id', config.clientId);
+    form.set('client_secret', config.clientSecret);
+    form.set('fb_exchange_token', previous.access_token);
+  } else {
+    form.set('grant_type', 'refresh_token');
+    form.set('refresh_token', previous.refresh_token);
+    if (config.tokenAuth === 'tiktok') {
+      form.set('client_key', config.clientId);
+      form.set('client_secret', config.clientSecret);
+    } else {
+      form.set('client_id', config.clientId);
+      if (config.tokenAuth === 'body' || config.tokenAuth === 'query') {
+        form.set('client_secret', config.clientSecret);
+      }
+    }
+  }
+
+  const headers = { accept: 'application/json' };
+  let endpoint = config.token;
+  let options;
+  if (provider === 'facebook_pages' || config.tokenMethod === 'GET') {
+    const target = new URL(endpoint);
+    for (const [key, value] of form) target.searchParams.set(key, value);
+    endpoint = target.toString();
+    options = {
+      method: 'GET', headers, redirect: 'error',
+      signal: AbortSignal.timeout(10000),
+    };
+  } else {
+    headers['content-type'] = 'application/x-www-form-urlencoded';
+    if (config.tokenAuth === 'basic') {
+      headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
+    }
+    options = {
+      method: 'POST', headers, body: form.toString(), redirect: 'error',
+      signal: AbortSignal.timeout(10000),
+    };
+  }
+
+  const res = await fetcher(endpoint, options);
+  const refreshed = await limitedJson(res);
+  if (typeof refreshed.access_token !== 'string' || !refreshed.access_token ||
+      (!config.allowMissingTokenType && refreshed.token_type?.toLowerCase() !== 'bearer') ||
+      (refreshed.token_type && refreshed.token_type.toLowerCase() !== 'bearer')) {
+    throw new Error('OAuth provider token refresh failed.');
+  }
+  return {
+    ...previous,
+    ...refreshed,
+    token_type: 'Bearer',
+    refresh_token: typeof refreshed.refresh_token === 'string' && refreshed.refresh_token
+      ? refreshed.refresh_token : previous.refresh_token || null,
+    scope: typeof refreshed.scope === 'string' ? refreshed.scope : previous.scope,
+  };
+}
+
+async function refreshConnection(provider, account, config, env, fetcher) {
+  const query = new URLSearchParams({
+    select: 'provider_subject,token_ciphertext,granted_scopes',
+    owner_id: 'eq.' + account.uid,
+    provider: 'eq.' + provider,
+    limit: '1',
+  });
+  const storedResponse = await supabaseRequest(env, 'ifund_provider_tokens?' + query.toString(), {}, fetcher);
+  const rows = await storedResponse.json();
+  if (!Array.isArray(rows) || rows.length !== 1) {
+    return response(404, { error: 'No saved provider connection was found.' });
+  }
+
+  const previous = await decryptOAuthValue(rows[0].token_ciphertext, env);
+  if (!previous || typeof previous.access_token !== 'string') {
+    return response(409, { error: 'The provider connection needs to be reconnected.' });
+  }
+  if (provider !== 'facebook_pages' && provider !== 'instagram' &&
+      typeof previous.refresh_token !== 'string') {
+    return response(409, { error: 'The provider connection needs to be reconnected.' });
+  }
+
+  const refreshed = await refreshProviderToken(provider, config, previous, fetcher);
+  const identity = await fetchIdentity(config, refreshed, fetcher);
+  if (identity.subject !== rows[0].provider_subject) {
+    throw new Error('The refreshed provider identity did not match the saved account.');
+  }
+
+  const scopes = identity.grantedScopes.length
+    ? identity.grantedScopes
+    : Array.isArray(rows[0].granted_scopes) ? rows[0].granted_scopes : [];
+  const expiresIn = Number(refreshed.expires_in);
+  const refreshExpiresIn = Number(refreshed.refresh_token_expires_in || refreshed.refresh_expires_in);
+  const tokenPayload = {
+    access_token: refreshed.access_token,
+    refresh_token: refreshed.refresh_token || null,
+    token_type: 'Bearer',
+    scope: typeof refreshed.scope === 'string' ? refreshed.scope : scopes.join(' '),
+    expires_at: Number.isFinite(expiresIn) ? new Date(Date.now() + expiresIn * 1000).toISOString() : null,
+    refresh_expires_at: Number.isFinite(refreshExpiresIn)
+      ? new Date(Date.now() + refreshExpiresIn * 1000).toISOString()
+      : previous.refresh_expires_at || null,
+  };
+  const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
+  await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
+    method: 'POST',
+    body: JSON.stringify({
+      p_owner_id: account.uid, p_provider: provider,
+      p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
+      p_granted_scopes: scopes,
+    }),
+  }, fetcher);
+  return response(200, {
+    provider, status: 'connected', refreshed: true,
+    expires_at: tokenPayload.expires_at,
+  });
+}
+
 export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
   const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback)$/.exec(url.pathname);
@@ -337,6 +474,17 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const config = providerConfig(provider, env);
   if (!config) return response(503, { error: 'This provider is not configured yet.' });
   const redirectUri = base + '/api/oauth/' + provider + '/callback';
+
+  if (action === 'refresh') {
+    if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
+    const account = await authenticatedUser(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in before refreshing a provider connection.' });
+    try {
+      return await refreshConnection(provider, account, config, env, fetcher);
+    } catch {
+      return response(503, { error: 'Provider token refresh could not be completed.' });
+    }
+  }
 
   if (action === 'start') {
     if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
