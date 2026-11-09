@@ -215,7 +215,7 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
   const state = 'meta-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
-    owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext,
+    state_hash: await hash(state), owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext,
     redirect_uri: base + '/oauth/callback/facebook_pages',
   };
   const fetcher = async (url, options = {}) => {
@@ -265,7 +265,7 @@ test('Instagram callback exchanges short token for long-lived token before encry
   const state = 'instagram-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
-    owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext,
+    state_hash: await hash(state), owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext,
     redirect_uri: base + '/oauth/callback/instagram',
   };
   const fetcher = async (url, options = {}) => {
@@ -317,7 +317,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   const stateHash = await hash(state);
   const verifierCiphertext = await encryptOAuthValue({ verifier }, env);
   const tx = {
-    owner_id: uid, provider: 'google', verifier_ciphertext: verifierCiphertext,
+    state_hash: stateHash, owner_id: uid, provider: 'google', verifier_ciphertext: verifierCiphertext,
     redirect_uri: base + '/oauth/callback/google',
   };
   const calls = [];
