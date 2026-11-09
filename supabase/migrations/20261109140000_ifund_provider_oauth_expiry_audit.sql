@@ -110,14 +110,14 @@ create or replace function public.ifund_store_provider_connection(
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   perform public.ifund_store_provider_connection_v2(
     p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
     p_granted_scopes, null, null, 1, 'connected'
   );
 end;
-$;
+$$;
 revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[])
   from public, anon, authenticated;
 grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[])
