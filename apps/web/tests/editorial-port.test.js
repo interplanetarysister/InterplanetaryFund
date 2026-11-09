@@ -33,7 +33,7 @@ test("canonical editorial tables use published-only public reads and no browser 
  assert.doesNotMatch(hardening,/grant\s+(insert|update|delete)/i);
  assert.match(publications,/ifund_publications_final_read/i);
  assert.match(publications,/final_approved = true/i);
- assert.match(hardening,/revoke all privileges[\s\S]*from PUBLIC, anon, authenticated/i);
+ assert.match(publications,/revoke all privileges[\s\S]*from PUBLIC, anon, authenticated/i);
  assert.doesNotMatch(publications,/grant\s+(insert|update|delete)/i);
 });
 
