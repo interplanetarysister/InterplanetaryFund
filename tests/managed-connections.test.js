@@ -156,7 +156,7 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     p.fetch,
   );
   assert.equal(r.status, 200);
-  assert.deepEqual(p.calls[2].body, permissionInput(grant));
+  assert.deepEqual(p.calls[1].body, permissionInput(grant));
   const q = provider({
     response: { request: { id: revision, state: "setup_required" } },
   });
@@ -170,9 +170,9 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     q.fetch,
   );
   assert.equal(r.status, 200);
-  assert.equal(q.calls[2].body.p_provider, "discord");
-  assert.equal(q.calls[2].body.p_campaign_id, null);
-  assert.ok(!("p_owner_id" in q.calls[2].body));
+  assert.equal(q.calls[1].body.p_provider, "discord");
+  assert.equal(q.calls[1].body.p_campaign_id, null);
+  assert.ok(!("p_owner_id" in q.calls[1].body));
 });
 test("invalid or oversized commands never reach an action RPC and backend denial is preserved", async () => {
   const p = provider();
@@ -190,8 +190,7 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     400,
   );
-  assert.equal(p.calls.length, 2);
-  assert.ok(p.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
+  assert.equal(p.calls.length, 1);
   assert.ok(!p.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_request_action")));
   const big = provider();
   assert.equal(
@@ -204,8 +203,7 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     413,
   );
-  assert.equal(big.calls.length, 2);
-  assert.ok(big.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
+  assert.equal(big.calls.length, 1);
   assert.ok(!big.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_grant_help")));
   const denied = async (url) =>
     url.endsWith("/auth/v1/user")
@@ -217,10 +215,8 @@ test("invalid or oversized commands never reach an action RPC and backend denial
   );
 });
 
-test("expired plan can still read connection workspace but cannot request new managed help", async () => {
-  const workspaceProvider = provider({
-    subscription: { active: false, level: 0 },
-  });
+test("expired plan can still read connection workspace while the canonical action RPC denies new help", async () => {
+  const workspaceProvider = provider();
   const workspace = await handleManagedConnections(
     http("workspace"),
     env,
@@ -228,9 +224,13 @@ test("expired plan can still read connection workspace but cannot request new ma
   );
   assert.equal(workspace.status, 200);
 
-  const requestProvider = provider({
-    subscription: { active: false, level: 0 },
-  });
+  const calls = [];
+  const requestProvider = async (url, options) => {
+    calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
+    return url.endsWith("/auth/v1/user")
+      ? Response.json({ id: uid, email_confirmed_at: "yes" })
+      : Response.json({ code: "42501" }, { status: 403 });
+  };
   const request = await handleManagedConnections(
     http("requests", {
       operation_id: uid,
@@ -238,11 +238,11 @@ test("expired plan can still read connection workspace but cannot request new ma
       action: "connect",
     }),
     env,
-    requestProvider.fetch,
+    requestProvider,
   );
   assert.equal(request.status, 403);
-  assert.equal(requestProvider.calls.length, 2);
-  assert.ok(requestProvider.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
+  assert.equal(calls.length, 2);
+  assert.ok(calls[1].url.endsWith("/rpc/ifund_connections_request_action"));
 });
 test("worker rejects foreign routes/methods and never leaks upstream errors or raw provider state", async () => {
   const p = provider();
