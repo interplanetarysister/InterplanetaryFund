@@ -15,7 +15,7 @@ export default function AuthPage({ mode = "login" }) {
   const [newPassword, setNewPassword] = useState("");
   const [recoveryCodeSent, setRecoveryCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(() => searchParams.get("passwordUpdated") === "1" ? "Your password has been updated. Sign in with your new password." : "");
   const [error, setError] = useState("");
   const isRegister = mode === "register";
   const isReset = mode === "forgot-password";
@@ -29,7 +29,7 @@ export default function AuthPage({ mode = "login" }) {
       const auth = authClient().auth;
       if (isReset && !recoveryCodeSent) {
         const { error: err } = await auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: window.location.origin + "/reset-password",
+          redirectTo: window.location.origin + "/reset-password?returnTo=" + encodeURIComponent(afterLogin),
         });
         if (err) throw err;
         setRecoveryCodeSent(true);
@@ -44,7 +44,7 @@ export default function AuthPage({ mode = "login" }) {
         setRecoveryCode("");
         setNewPassword("");
         setMessage("Your password has been updated. Sign in with your new password.");
-        navigate("/login?returnTo=" + encodeURIComponent(afterLogin), { replace: true });
+        navigate("/login?returnTo=" + encodeURIComponent(afterLogin) + "&passwordUpdated=1", { replace: true });
       } else if (isRegister) {
         const { data, error: err } = await auth.signUp({
           email,
