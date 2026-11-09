@@ -100,3 +100,28 @@ Use environment-specific secret names/bindings or separate preview and productio
 - Preview and production credentials and redirect URIs are isolated.
 - Reconnect, refresh-token rotation, disconnect/revocation, provider denial and account deletion are covered by tests.
 - Social publishing and fundraising operations use distinct least-privilege capabilities; OAuth login must not imply posting, donor, campaign, or payment authority.
+
+## Implemented preview code foundation — 2026-11-09
+
+The branch now contains an initial server-side OAuth consumer for Google, LinkedIn, X and TikTok:
+
+- worker/oauth.js implements fixed provider endpoints/scopes, authenticated start requests, random one-use state, PKCE for Google and X, provider-specific TikTok web parameters, encrypted short-lived verifier storage, exact HTTPS callback-origin validation, server-side code exchange, identity lookup, and encrypted access/refresh token persistence.
+- worker/index.js routes /api/oauth/:provider/start and /api/oauth/:provider/callback.
+- supabase/migrations/20261109000100_provider_oauth_vault.sql creates service-role-only OAuth transaction and encrypted token tables, plus an atomic function to store a verified token and connection receipt.
+- src/pages/Connections.jsx now initiates supported provider authorization and reads owner-scoped connection status.
+- tests/provider-oauth.test.js covers the provider allowlist, encryption envelope, fail-closed configuration, verified owner requirement, PKCE/state, TikTok web parameters, identity verification, encrypted persistence, and state-cookie mismatch.
+
+**Not yet release-ready:** provider credentials, Supabase migration application, Cloudflare environment secrets/bindings, exact preview and production callback registration, refresh/revocation lifecycle, and real-provider authorization tests remain outstanding. The implemented provider set is intentionally limited to the four with explicit server-side identity-verification paths. Meta/Facebook, Instagram, YouTube, PayPal and GoFundMe are not enabled by this consumer. Do not mark a provider connected until a real authorization callback and userinfo request succeed.
+
+Required Cloudflare Worker configuration (names only):
+- SUPABASE_SERVICE_ROLE_KEY — Supabase service-role secret for server-only PostgREST/RPC access
+- OAUTH_ENCRYPTION_KEY — base64-encoded 32-byte AES-GCM key, generated separately per environment
+- OAUTH_PUBLIC_BASE_URL — exact HTTPS origin for that environment, no path/query/fragment
+- GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET
+- LINKEDIN_OAUTH_CLIENT_ID / LINKEDIN_OAUTH_CLIENT_SECRET
+- X_OAUTH_CLIENT_ID / X_OAUTH_CLIENT_SECRET
+- TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
+
+The same logical implementation must be ported to Base44 server functions with separate Base44 server-side secrets and Base44-specific callback registrations before dual-deployment acceptance. No client secret or per-user token belongs in a Base44 entity or browser bundle.
+
+Provider endpoint references: Google OAuth web-server flow https://developers.google.com/identity/protocols/oauth2/web-server; LinkedIn 3-legged flow https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow; X OAuth 2.0 user authentication https://developer.x.com/en/docs/authentication/oauth-2-0/authorization-code; TikTok Login Kit https://developers.tiktok.com/docs/en/login-kit-overview and token exchange https://developers.tiktok.com/docs/en/oauth-get-user-access-token.
