@@ -31,6 +31,17 @@ Authority: [migration issue #137](https://github.com/interplanetarysister/Interp
 
 **Count:** PayPal 3 + Buffer 4 + Eventbrite 1 + Cloudflare 1 + Browserbase 1 + Convex 8 + Stripe 2 = **20** Base44 secret names.
 
+## Verified PayPal secret destinations — 2026-11-08
+
+**Business account:** `cuddlemeplatonically@gmail.com` owns the existing REST application (owner-confirmed); `interplanetarysister@gmail.com` and `unrewound@gmail.com` are personal addresses, not the campaign receiving merchant. Do not create another PayPal application.
+
+- **Original Base44 application** `6a67a778342a8fe05ee79cba`: Secrets API verified the masked entries `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET`, and `PAYPAL_MODE` are already present. **Values cannot be read** through the secrets API and are not yet matched to the owner-supplied existing app Client ID. Only replace them as a verified, matched Live or Sandbox credential pair. Location: Base44 app editor → Settings → Secrets. The client secret must never be copied into GitHub, Supabase tables or frontend variables.
+- **New Cloudflare payment runtime**: existing Worker `ifund-payments` has zero secret bindings; current Worker is an intentionally **disabled preview stub** (only `IFUND_PAYMENTS_ENABLED`, `IFUND_PAYPAL_MODE`, `IFUND_SUPABASE_URL`, and allowed-origin settings are present). Add server-only Client ID and Client Secret bindings through Worker Settings → Variables and Secrets **when code is implemented and preview verified**. Merely setting secrets does not make the current stub an operational payment processor; keep live payment switches off.
+- **Webhook verification:** user reports **six existing PayPal Developer webhooks** for this REST application. The PayPal MCP connected in ChatGPT supports transactions/invoices but does not expose Developer webhook-management operations. Enumerate the six IDs/URLs/event sets in PayPal Developer before creating another. The **REST Client Secret** is different from each PayPal **Webhook ID** (provider-issued; used for signature verification). The Base44 campaign-webhook source already contains a registration routine that checks for an existing matching URL. Never substitute client secret for webhook ID or infer that a registered subscription callback is a campaign-payment callback.
+- **Single-source storage**: use Supabase Postgres for application and migration records; Cloudflare R2 `ifund-media` for media bytes. Do not duplicate media in Supabase Storage, KV or D1. Read [data parity contract](BASE44_PARITY_STORAGE_CONTRACT.md).
+
+**Action still required:** confirm which masked Base44 Client Secret matches the provided PayPal Client ID by a provider-authenticated **read-only OAuth test**, then add matching secret bindings to the verified Cloudflare payment runtime in preview. No credential values should ever be pasted into chat.
+
 ## Additional credentials required by the proposed PayPal Worker (not in the Base44 list)
 
 - `PAYPAL_WEBHOOK_ID` — PayPal dashboard webhook registration ID; **not verified/created**.
