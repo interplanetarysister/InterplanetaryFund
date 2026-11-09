@@ -28,24 +28,34 @@ export default function CreateCampaign() {
     })();
     return () => { active = false; };
   }, [draftId,navigate]);
-  const [form, setForm] = useState(() => {
+  const [guestDraft] = useState(() => {
+    if (draftId) return {};
     try {
       const stored = JSON.parse(localStorage.getItem("ifund-guest-campaign-v1") || "null");
-      if (stored?.savedAt && Date.now() - Number(stored.savedAt) > 7 * 24 * 60 * 60 * 1000) { localStorage.removeItem("ifund-guest-campaign-v1"); }
-      if (stored && typeof stored === "object" && !draftId && (!stored.savedAt || Date.now() - Number(stored.savedAt) <= 7 * 24 * 60 * 60 * 1000)) return {
-        title: String(stored.title || ""), summary: String(stored.summary || ""),
-        story: String(stored.story || ""), category: String(stored.category || "community"),
-        goal_amount: String(stored.goal_amount || ""), cover_image_url: String(stored.cover_image_url || ""),
-      };
+      if (!stored || typeof stored !== "object" || Array.isArray(stored)) return {};
+      const savedAt = stored.savedAt === undefined ? null : Number(stored.savedAt);
+      if (savedAt !== null && (!Number.isFinite(savedAt) || savedAt <= 0 || Date.now() - savedAt > 7 * 24 * 60 * 60 * 1000)) {
+        localStorage.removeItem("ifund-guest-campaign-v1");
+        return {};
+      }
+      return stored;
     } catch { /* private browsing or malformed draft */ }
-    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
+    return {};
   });
+  const [form, setForm] = useState(() => ({
+    title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "",
+    ...(!draftId ? {
+      title: String(guestDraft.title || ""), summary: String(guestDraft.summary || ""),
+      story: String(guestDraft.story || ""), category: String(guestDraft.category || "community"),
+      goal_amount: String(guestDraft.goal_amount || ""), cover_image_url: String(guestDraft.cover_image_url || ""),
+    } : {}),
+  }));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
-  const [draftDetails, setDraftDetails] = useState("");
-  const [draftBeneficiary, setDraftBeneficiary] = useState("");
-  const [draftNeed, setDraftNeed] = useState("");
+  const [draftDetails, setDraftDetails] = useState(() => String(guestDraft.details || ""));
+  const [draftBeneficiary, setDraftBeneficiary] = useState(() => String(guestDraft.beneficiary || ""));
+  const [draftNeed, setDraftNeed] = useState(() => String(guestDraft.need || ""));
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -104,9 +114,9 @@ export default function CreateCampaign() {
   }
   useEffect(() => {
     if (draftId) return;
-    try { localStorage.setItem("ifund-guest-campaign-v1", JSON.stringify({ ...form, savedAt: Date.now() })); }
+    try { localStorage.setItem("ifund-guest-campaign-v1", JSON.stringify({ ...form, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed, savedAt: Date.now() })); }
     catch { /* storage unavailable; no server-side guest persistence */ }
-  }, [form, draftId]);
+  }, [form, draftDetails, draftBeneficiary, draftNeed, draftId]);
   function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
   async function save(e) {
     e.preventDefault();
