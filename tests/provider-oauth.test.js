@@ -42,7 +42,7 @@ function signedIn() {
 }
 test('OAuth vault migration records token expiry, key version, and private audit events', () => {
   const migration = readFileSync(
-    new URL('../supabase/migrations/20261109000100_provider_oauth_vault.sql', import.meta.url),
+    new URL('../supabase/migrations/20261109140000_ifund_provider_oauth_expiry_audit.sql', import.meta.url),
     'utf8',
   );
   assert.match(migration, /expires_at timestamptz/);
