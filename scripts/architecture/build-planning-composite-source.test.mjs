@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { buildPlanningCompositeSource } from './build-planning-composite-source.mjs';
 
 const input = `
@@ -13,8 +14,10 @@ var growth_default = {
 };
 export { growth_default as default };
 `;
+const hash = (text) => createHash('sha256').update(text).digest('hex');
+const build = (text) => buildPlanningCompositeSource(text, { expectedSourceSha256: hash(text) });
 test('one generated Worker handles both strategy and growth directly', async()=>{
- const src=buildPlanningCompositeSource(input);
+ const src=build(input);
  const {default:worker}=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(src));
  for (const agent of ['strategy','growth']) {
    const r=await worker.fetch(new Request('https://preview.example/api/agents/'+agent+'/workspace'),{});
@@ -22,16 +25,19 @@ test('one generated Worker handles both strategy and growth directly', async()=>
  }
 });
 test('other workloads are denied',async()=>{
- const {default:worker}=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(buildPlanningCompositeSource(input)));
+ const {default:worker}=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(build(input)));
  const r=await worker.fetch(new Request('https://preview.example/api/payments/webhook'),{});
  assert.equal(r.status,404);
 });
 test('health reports separate enabled flags without claiming publishing',async()=>{
- const {default:worker}=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(buildPlanningCompositeSource(input)));
+ const {default:worker}=await import('data:text/javascript;charset=utf-8,'+encodeURIComponent(build(input)));
  const r=await worker.fetch(new Request('https://preview.example/health'),{IFUND_STRATEGY_ENABLED:'enabled',IFUND_GROWTH_ENABLED:'disabled'});
  const json=await r.json();
  assert.equal(json.strategy_enabled,true);assert.equal(json.growth_enabled,false);assert.equal(json.publishing,false);
 });
-test('drifted entrypoint fails closed',()=>assert.throws(()=>buildPlanningCompositeSource(input.replace('growth_default =','growth_composite ='))));
+test('drifted entrypoint fails closed',()=>assert.throws(()=>build(input.replace('growth_default =','growth_composite ='))));
 test('bundles without both specialists fail closed',()=>assert.throws(()=>buildPlanningCompositeSource(input.replace('function strategyRoute(','function otherRoute('))));
-test('malformed source rejected',()=>assert.throws(()=>buildPlanningCompositeSource(null)));
+test('malformed source rejected',()=>assert.throws(()=>buildPlanningCompositeSource(null, { expectedSourceSha256: 'a'.repeat(64) })));
+
+test('changed Growth source cannot pass original checksum',()=>assert.throws(()=>buildPlanningCompositeSource(input+'\n// drift',{expectedSourceSha256:hash(input)})));
+test('missing source checksum never accepted',()=>assert.throws(()=>buildPlanningCompositeSource(input)));
