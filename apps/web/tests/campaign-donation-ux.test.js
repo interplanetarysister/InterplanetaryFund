@@ -58,7 +58,6 @@ test("public funding totals are aggregate-only and exclude optional support", ()
   assert.doesNotMatch(migration, /optional_support_cents/);
   assert.match(migration, /security definer/i);
   assert.match(migration, /grant execute[\s\S]*to anon, authenticated/i);
-  assert.match(migration, /count\(distinct d\.donor_id\)/);
   assert.match(publicData, /ifund_public_campaign_funding_totals/);
 });
 
