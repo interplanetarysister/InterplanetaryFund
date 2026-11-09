@@ -53,7 +53,7 @@ test("public funding uses the canonical verified aggregate RPC and never exposes
   assert.doesNotMatch(staleMigration, /create or replace function|grant execute|security definer/i);
   assert.match(publicData, /ifund_public_campaign_funding_totals/);
   assert.match(publicData, /raised_amount: numOrNull\(row\.raised_amount\)/);
-  assert.match(publicData, /donor_count: numOrNull\(row\.donor_count\)/);
+  assert.match(publicData, /donor_count: null/);\n  assert.match(publicData, /gift_count: numOrNull\(row\.donor_count\)/);
 });
 
 test("obsolete donation support migration cannot narrow the canonical support ceiling", () => {
