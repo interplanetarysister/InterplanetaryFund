@@ -140,7 +140,7 @@ export default function AuthPage({ mode="login" }){
       rememberAuthReturnTo(afterLogin);
       const {error:failure}=await authClient().auth.resend({
         type:"signup",email:email.trim(),
-        options:{emailRedirectTo:authCallbackUrl(window.location.origin,{returnTo:afterLogin})}
+        options:{emailRedirectTo:authCallbackUrl(window.location.origin)}
       });
       if(failure)throw failure;
       setNeedsConfirmation(true);
