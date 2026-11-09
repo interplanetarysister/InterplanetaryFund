@@ -1,0 +1,157 @@
+name: Canonical frontend source parity audit
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '18 */6 * * *'
+permissions:
+  contents: read
+jobs:
+  audit-original-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout deployable repository
+        uses: actions/checkout@v4
+      - name: Checkout original frontend source
+        uses: actions/checkout@v4
+        with:
+          repository: interplanetarysister/interplanetary-fund2
+          ref: main
+          path: original-frontend
+          token: ${{ secrets.IFUND_SOURCE_READ_TOKEN || github.token }}
+      - name: Audit original frontend inventory and runtime dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f original-frontend/src/App.jsx
+          test -f original-frontend/package.json
+          mkdir -p audit-evidence
+          source_sha="$(git -C original-frontend rev-parse HEAD)"
+          find original-frontend/src/pages -type f | sort > audit-evidence/original-pages.txt
+          find original-frontend/src/components -type f | sort > audit-evidence/original-components.txt
+          if test -d original-frontend/public; then
+            find original-frontend/public -type f | sort > audit-evidence/original-public-assets.txt
+          else
+            : > audit-evidence/original-public-assets.txt
+          fi
+          grep -RInE 'base44Client|@base44/sdk|base44\.entities|base44\.functions' original-frontend/src --include='*.js' --include='*.jsx' --include='*.ts' --include='*.tsx' > audit-evidence/base44-runtime-usages.txt || test "$?" -eq 1
+          # Compare page/component basenames as a triage inventory, not proof of parity.
+          # Original and reconstructed routes may have different names or behavior.
+          for kind in pages components; do
+            find "original-frontend/src/$kind" -type f -printf '%f\n' | sort -u > "audit-evidence/original-$kind-basenames.txt"
+            if test -d "apps/web/src/$kind"; then
+              find "apps/web/src/$kind" -type f -printf '%f\n' | sort -u > "audit-evidence/destination-$kind-basenames.txt"
+            else
+              : > "audit-evidence/destination-$kind-basenames.txt"
+            fi
+            comm -23 "audit-evidence/original-$kind-basenames.txt" "audit-evidence/destination-$kind-basenames.txt" > "audit-evidence/unmatched-original-$kind.txt"
+          done
+          # Exact public-asset paths and content hashes are stronger evidence than filenames.
+          # Missing/different assets are actionable; matching hashes still do not prove rendered parity.
+          if test -d original-frontend/public; then
+            (cd original-frontend/public && find . -type f -print0 | sort -z | xargs -0 -r sha256sum) > audit-evidence/original-public-sha256.txt
+          else
+            : > audit-evidence/original-public-sha256.txt
+          fi
+          if test -d apps/web/public; then
+            (cd apps/web/public && find . -type f -print0 | sort -z | xargs -0 -r sha256sum) > audit-evidence/destination-public-sha256.txt
+          else
+            : > audit-evidence/destination-public-sha256.txt
+          fi
+          # Compare paths as structured values; sha256sum/join whitespace parsing
+          # misidentifies assets whose filenames contain spaces or tabs.
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          output = Path("audit-evidence")
+          def inventory(directory):
+              if not directory.is_dir():
+                  return {}
+              return {
+                  path.relative_to(directory).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in directory.rglob("*") if path.is_file()
+              }
+          original = inventory(Path("original-frontend/public"))
+          destination = inventory(Path("apps/web/public"))
+          for filename, paths in (
+              ("original-public-paths.txt", sorted(original)),
+              ("destination-public-paths.txt", sorted(destination)),
+              ("missing-original-public-assets.txt", sorted(original.keys() - destination.keys())),
+              ("changed-original-public-assets.txt", sorted(
+                  path for path in original.keys() & destination.keys()
+                  if original[path] != destination[path]
+              )),
+          ):
+              (output / filename).write_text(
+                  "".join(path + "\n" for path in paths), encoding="utf-8"
+              )
+          PY
+          # Compare original source paths and exact bytes against both deployable frontend trees.
+          # A basename match alone is not a source port; this report is advisory, not a release gate.
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          root = Path("original-frontend/src")
+          output = Path("audit-evidence")
+          originals = sorted(p for p in root.rglob("*") if p.is_file())
+          def digest(p):
+              return hashlib.sha256(p.read_bytes()).hexdigest()
+          for target_name, target in (("apps-web", Path("apps/web/src")), ("root", Path("src"))):
+              missing, changed, identical = [], [], []
+              for source in originals:
+                  rel = source.relative_to(root)
+                  dest = target / rel
+                  if not dest.is_file():
+                      missing.append(str(rel))
+                  elif digest(source) != digest(dest):
+                      changed.append(str(rel))
+                  else:
+                      identical.append(str(rel))
+              for category, paths in (("missing", missing), ("changed", changed), ("identical", identical)):
+                  (output / f"{target_name}-original-src-{category}.txt").write_text(
+                      "".join(p + "\n" for p in paths), encoding="utf-8")
+          PY
+          git rev-parse HEAD > audit-evidence/deployable-checkout-sha.txt
+          cp original-frontend/package.json audit-evidence/original-package.json
+          # Capture reproducible dependency/build configuration fingerprints without secrets.
+          # This is source provenance evidence, not proof of a successful deployment.
+          for config in package-lock.json pnpm-lock.yaml yarn.lock vite.config.js vite.config.ts; do
+            if test -f "original-frontend/$config"; then
+              sha256sum "original-frontend/$config" >> audit-evidence/original-build-config-sha256.txt
+            fi
+          done
+          touch audit-evidence/original-build-config-sha256.txt
+          git -C original-frontend status --porcelain > audit-evidence/original-checkout-status.txt
+          if test -s audit-evidence/original-checkout-status.txt; then
+            echo "Original source checkout was modified during audit" >&2
+            exit 1
+          fi
+          printf '%s\n' "$source_sha" > audit-evidence/original-source-sha.txt
+          {
+            echo "## Canonical frontend inventory"
+            echo "- Source: interplanetarysister/interplanetary-fund2@main"
+            echo "- Pinned source commit: $source_sha"
+            echo "- Pages: $(wc -l < audit-evidence/original-pages.txt)"
+            echo "- Components: $(wc -l < audit-evidence/original-components.txt)"
+            echo "- Public assets: $(wc -l < audit-evidence/original-public-assets.txt)"
+            echo "- Missing original public asset paths: $(wc -l < audit-evidence/missing-original-public-assets.txt)"
+            echo "- Same-path public assets with different SHA-256: $(wc -l < audit-evidence/changed-original-public-assets.txt)"
+            echo "- Original page filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-pages.txt)"
+            echo "- Original component filenames absent from apps/web: $(wc -l < audit-evidence/unmatched-original-components.txt)"
+            echo "- Filename differences are triage only; they do not establish missing functionality or visual parity."
+            echo "- Original src files absent from apps/web at identical relative paths: $(wc -l < audit-evidence/apps-web-original-src-missing.txt)"
+            echo "- Original src files with changed bytes in apps/web: $(wc -l < audit-evidence/apps-web-original-src-changed.txt)"
+            echo "- Original src files byte-identical in apps/web: $(wc -l < audit-evidence/apps-web-original-src-identical.txt)"
+            echo "- Original src files absent from root src at identical relative paths: $(wc -l < audit-evidence/root-original-src-missing.txt)"
+            echo "- Original src files with changed bytes in root src: $(wc -l < audit-evidence/root-original-src-changed.txt)"
+            echo "- Original src files byte-identical in root src: $(wc -l < audit-evidence/root-original-src-identical.txt)"
+            echo "- Base44 runtime usage lines: $(wc -l < audit-evidence/base44-runtime-usages.txt)"
+            echo "- Download the audit-evidence artifact for exact paths and integration inventory."
+            echo "- This audit does not certify preview, visual parity, or backend readiness."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload source inventory evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: canonical-frontend-source-inventory
+          path: audit-evidence/
+          retention-days: 14

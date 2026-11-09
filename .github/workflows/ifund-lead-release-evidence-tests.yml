@@ -1,0 +1,30 @@
+name: IFund lead release-evidence regression tests
+on:
+  push:
+    branches:
+      - agent/lead-architecture
+    paths:
+      - docs/architecture/tools/verify-agent-release-evidence.mjs
+      - docs/architecture/tools/verify-agent-release-evidence.test.mjs
+      - .github/workflows/ifund-lead-release-evidence-tests.yml
+  pull_request:
+    paths:
+      - docs/architecture/tools/verify-agent-release-evidence.mjs
+      - docs/architecture/tools/verify-agent-release-evidence.test.mjs
+      - .github/workflows/ifund-lead-release-evidence-tests.yml
+permissions:
+  contents: read
+jobs:
+  evidence-regression:
+    name: Fail-closed release evidence regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run positive and negative evidence checks
+        run: node --test docs/architecture/tools/verify-agent-release-evidence.test.mjs
