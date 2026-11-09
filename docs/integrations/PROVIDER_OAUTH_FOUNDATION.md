@@ -10,12 +10,12 @@ Use the connected GitHub, Cloudflare, Supabase, and other provider-native integr
 
 ## Correct architecture
 
-- The canonical independent application is `interplanetarysister/InterplanetaryFund`; Base44 is a legacy reference, not the production source of truth. Keep Base44 documentation limited to legacy metadata and do not store new provider secrets there.
+- **Both deployments are required:** the existing Base44 app and the independent `interplanetaryfund.com` application. Base44 is an active product target, not merely an archive. The independent repository/Cloudflare/Supabase stack owns the standalone domain deployment; the Base44 app must receive equivalent user-facing connection functionality through its own server-side functions and secret configuration.
 - OAuth authorization-code + PKCE flows terminate at the canonical Cloudflare Worker/API. Validate one-time state, exact redirect URI, issuer/provider, expiry, and PKCE verifier before exchanging codes server-side.
-- Provider client secrets are Cloudflare Worker Secrets attached only to the OAuth consumer Worker. Never use `VITE_*`, public Pages variables, GitHub Actions plaintext, browser storage, Base44 entities, or logs for secret values.
+- Provider client secrets are stored separately in each deployment's server-side secret manager: Base44 server/runtime secrets for Base44 functions, and Cloudflare Worker Secrets for the independent app. Never use `VITE_*`, public Pages variables, GitHub Actions plaintext, browser storage, Base44 entities, or logs for secret values. Do not copy one deployment's secret into the other's client bundle.
 - User access/refresh tokens are per-user credentials, encrypted at rest in the private Supabase credential vault; never reuse the application client secret as a user token or put refresh tokens into Worker env vars.
 - Supabase stores provider identity, granted scopes, token expiry, encrypted token ciphertext/key version, owner ID, provider subject, status, and audit events. RLS denies browser access to ciphertext and token material; service-side RPC/Edge Function owns reads and writes.
-- Base44, if retained during migration, may store only non-secret provider setup metadata and references. It is not the token store for the independent app.
+- The Base44 deployment may store only non-secret provider setup metadata in ordinary entities. Per-user OAuth tokens must be encrypted and accessible only through server-side functions with owner-scoped authorization; do not store plaintext tokens in Base44 entities. The independent app uses its private Supabase token store and Cloudflare-held encryption material.
 - OAuth connection success means a provider-issued token has been exchanged, identity has been fetched, granted scopes recorded, and a minimal permitted API call has succeeded. A redirect or consent page alone is not success.
 
 ## Provider registration matrix
@@ -48,7 +48,7 @@ Do not register guessed callbacks. Derive the final callback from the deployed r
 - `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`
 - `GOFUNDME_PRO_CLIENT_ID` / `GOFUNDME_PRO_CLIENT_SECRET` (only after approval)
 
-Use environment-specific secret names/bindings or separate preview and production Workers. Never bind production credentials to preview. Cloudflare's Worker Secrets API supports secret writes, but this repo's provider OAuth consumer and exact callback contract must exist before secrets are installed.
+Use environment-specific secret names/bindings or separate preview and production Workers. Never bind production credentials to preview. Base44 preview and production must likewise use separately configured server-side secrets and exact callback URIs. Cloudflare's Worker Secrets API supports secret writes, but this repo's provider OAuth consumer and exact callback contract must exist before secrets are installed.
 
 ## Implementation sequence
 
@@ -78,6 +78,13 @@ Use environment-specific secret names/bindings or separate preview and productio
 - TikTok OAuth v2 migration guidance: https://developers.tiktok.com/bulletin/migration-guidance-oauth-v1
 - Cloudflare Worker Secrets API: https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/secrets/
 - Cloudflare secret handling: https://developers.cloudflare.com/workers/configuration/secrets/
+
+## Dual-deployment requirement
+
+- Implement and verify the same provider capabilities in both Base44 and `interplanetaryfund.com`; neither deployment is considered complete merely because the other works.
+- Use deployment-specific callback URIs, app registrations where provider policy requires them, and isolated secrets. Never share a callback URL across hosts unless the provider and implementation explicitly support it.
+- Base44 code access currently requires the connected workspace's Builder plan for direct file/shell tools; the alternative AI-builder edit consumes workspace credits. Do not invoke a credit-consuming edit without explicit approval. Continue independent repository implementation while this access gate remains.
+- Do not mark either deployment ready until both have negative tests for cross-user token access, state replay, CSRF, disconnect/revocation and secret/log redaction.
 
 ## Human/provider gates (do not block unrelated implementation)
 
