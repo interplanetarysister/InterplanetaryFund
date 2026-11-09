@@ -22,7 +22,7 @@ export function rememberAuthReturnTo(value, { storage = browserStorage() } = {})
   }
 }
 
-function clearAuthReturnTo(storage = browserStorage()) {
+export function clearRememberedAuthReturnTo({ storage = browserStorage() } = {}) {
   try { storage?.removeItem(AUTH_RETURN_TO_KEY); } catch { /* storage unavailable */ }
 }
 
@@ -79,7 +79,7 @@ export function callbackParameters(href, { storage = browserStorage() } = {}) {
 // Supabase Auth verifies every token; browser URL shape is never sufficient.
 export async function completeAuthCallback(auth, params, { storage = browserStorage() } = {}) {
   if (params.type === "error") {
-    clearAuthReturnTo(storage);
+    clearRememberedAuthReturnTo({ storage });
     throw new Error(params.message);
   }
   let response;
