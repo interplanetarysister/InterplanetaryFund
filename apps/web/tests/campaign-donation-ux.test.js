@@ -10,6 +10,8 @@ test("public campaign pages keep the intended donate experience without hard-cod
   const detail = read("../src/pages/CampaignDetail.jsx");
   const card = read("../src/components/campaigns/CampaignFundingCard.jsx");
   const mine = read("../src/pages/MyCampaigns.jsx");
+  const fundingCard = read("../src/components/campaigns/CampaignFundingCard.jsx");
+  const discover = read("../src/pages/Discover.jsx");
 
   for (const source of [home, detail, card]) {
     assert.doesNotMatch(source, /PrelaunchNotice|usePublicCampaignFundraising|CAMPAIGN DONATIONS ARE CURRENTLY PAUSED/);
@@ -18,6 +20,11 @@ test("public campaign pages keep the intended donate experience without hard-cod
   assert.equal((detail.match(/onDonate=\{\(\) => setDonateOpen\(true\)\}/g) || []).length, 2);
   assert.match(card, /Donate with PayPal/);
   assert.match(mine, /Campaign withdrawals are not enabled yet/);
+  assert.match(fundingCard, /gift_count/);
+  assert.match(fundingCard, /gifts/);
+  assert.doesNotMatch(fundingCard, /donors/);
+  assert.match(discover, /Gifts/);
+  assert.match(discover, /campaign\.gift_count/);
 });
 
 test("campaign checkout remains fail-closed until create and capture routes are both verified", () => {
