@@ -3,6 +3,10 @@
   "name": "interplanetary-fund-api-migration",
   "main": "./worker/index.js",
   "compatibility_date": "2026-10-23",
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "OAUTH_FRONTEND_ORIGINS": "https://release-provider-oauth-pages.interplanetaryfund-migration.pages.dev"
+  },
   "observability": { "enabled": true },
   "ai": { "binding": "AI" }
 }
