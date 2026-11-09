@@ -68,7 +68,7 @@ revoke all privileges on table
 from public, anon, authenticated;
 
 grant select on public.ifund_campaigns, public.ifund_posts to anon;
-grant select on public.ifund_campaigns, public.ifund_posts, public.ifund_profiles, public.ifund_connections to authenticated;
+grant select on public.ifund_campaigns, public.ifund_posts, public.ifund_profiles to authenticated;\ngrant select on public.ifund_connections to authenticated;
 
 grant insert(id,handle,display_name) on public.ifund_profiles to authenticated;
 grant update(handle,display_name) on public.ifund_profiles to authenticated;
