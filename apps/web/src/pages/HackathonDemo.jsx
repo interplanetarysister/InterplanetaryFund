@@ -16,6 +16,7 @@ export default function HackathonDemo() {
   const [receipt, setReceipt] = useState(null);
   const token = query.get("token");
   const approved = query.get("paypal")==="approved";
+  const missingApprovalToken = approved && !token;
   useEffect(() => {
     let alive=true;
     fetch("/api/paypal/sandbox/status",{cache:"no-store"})
@@ -78,6 +79,7 @@ export default function HackathonDemo() {
       <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
         <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals.</p></div>
       {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
+      {missingApprovalToken&&<p role="alert" className="rounded-lg border border-amber-500/40 p-3 text-sm">PayPal returned without an order token. No payment has been captured. Start a new sandbox checkout; do not treat this approval as a donation.</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
         !ready.enabled ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is not configured yet. The required server-side PayPal credentials and feature gate must be verified before payment testing can begin.</p> : null}
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
@@ -110,6 +112,7 @@ export default function HackathonDemo() {
         <p className="mt-2 text-xs">No real donation or withdrawable balance was created.</p>
       </div>}
       {message&&<p role="alert" className="rounded-xl border border-red-500/40 p-3 text-sm">{message}</p>}
+      {(statusError||campaignError||missingApprovalToken||message)&&<button type="button" onClick={()=>window.location.reload()} className="min-h-11 w-full rounded-xl border border-border px-4 text-sm font-semibold">Retry demo checks</button>}
     </section>
     <p className="text-xs text-muted-foreground">Demo receipts require successful server-side verification and database persistence. Sandbox transactions never count toward public campaign totals. The live PayPal platform-support button is a separate integration.</p>
   </main>;
