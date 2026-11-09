@@ -3,6 +3,12 @@ import { platforms } from "../lib/platforms";
 import { db } from "../lib/supabase";
 
 const OAUTH_PROVIDERS = new Set(["google", "linkedin", "x", "tiktok"]);
+const STATUS_LABELS = {
+  connected: "Connected",
+  pending: "Verification pending",
+  error: "Needs attention",
+  disconnected: "Not connected",
+};
 
 export default function Connections() {
   const [statuses, setStatuses] = useState({});
@@ -121,14 +127,7 @@ export default function Connections() {
         {platforms.map((platform) => {
           const supported = OAUTH_PROVIDERS.has(platform.id);
           const status = statuses[platform.id] || "disconnected";
-          const statusLabel =
-            status === "connected"
-              ? "Connected"
-              : status === "pending"
-                ? "Verification pending"
-                : status === "error"
-                  ? "Needs attention"
-                  : "Not connected";
+          const statusLabel = STATUS_LABELS[status] || "Not connected";
 
           return (
             <section className="card" key={platform.id}>
@@ -142,7 +141,9 @@ export default function Connections() {
               {supported && (
                 <button
                   type="button"
-                  disabled={!db || Boolean(busyProvider) || status === "connected"}
+                  disabled={
+                    !db || Boolean(busyProvider) || status === "connected"
+                  }
                   onClick={() => connect(platform.id)}
                 >
                   {busyProvider === platform.id
