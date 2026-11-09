@@ -110,8 +110,8 @@ export default function Connections() {
       <h1>Connections</h1>
       <p>
         Connect the platforms you use to share campaigns and manage approved
-        fundraising workflows. A connection is shown as verified only after
-        the provider authorizes access and IFund confirms the account identity.
+        fundraising workflows. A connection is shown as verified only after the
+        provider authorizes access and IFund confirms the account identity.
       </p>
       {message && (
         <p role="status" className="notice">
