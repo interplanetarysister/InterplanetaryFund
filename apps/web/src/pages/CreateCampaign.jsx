@@ -34,6 +34,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const draftId = params.get("draft");
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
+  const suggestionRequest = useRef(null);
+  const sectionRequests = useRef({});
   const [loadedDraftId, setLoadedDraftId] = useState(null);
   const [revision, setRevision] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
@@ -97,15 +99,33 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         "Category: " + form.category,
         form.goal_amount ? "Fundraising goal: " + form.goal_amount + " USD" : "",
       ].filter(Boolean).join("\n");
-      const result = await requestCampaignSection(authClient(), {
+      const signature = JSON.stringify({
         details: context,
         section: original,
         campaign_id: campaignId.current,
       });
+      const previous = sectionRequests.current[index];
+      const requestId = previous?.signature === signature
+        ? previous.id
+        : globalThis.crypto?.randomUUID?.();
+      if (!requestId) throw new Error("A secure writing request reference could not be created.");
+      sectionRequests.current[index] = { id: requestId, signature };
+      const result = await requestCampaignSection(
+        authClient(),
+        {
+          details: context,
+          section: original,
+          campaign_id: campaignId.current,
+        },
+        { requestId },
+      );
+      delete sectionRequests.current[index];
       const proposed = result.section;
       if (!proposed) throw new Error("No verified replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
     } catch (err) {
+      if (["queued", "new_request_required"].includes(err?.code))
+        delete sectionRequests.current[index];
       setSectionError(err?.message || "Unable to regenerate section.");
     } finally {
       setRegeneratingSection(-1);
@@ -119,13 +139,22 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setSuggestionError("");
     if (!regenerateOnly) setSuggestions(null);
     try {
-      const result = await requestCampaignDraft(authClient(), {
+      const requestInput = {
         details: guidedCampaignDetails(writingPath, draftDetails),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
         goal: form.goal_amount,
-      });
+        campaign_id: campaignId.current,
+      };
+      const signature = JSON.stringify(requestInput);
+      const requestId = suggestionRequest.current?.signature === signature
+        ? suggestionRequest.current.id
+        : globalThis.crypto?.randomUUID?.();
+      if (!requestId) throw new Error("A secure writing request reference could not be created.");
+      suggestionRequest.current = { id: requestId, signature };
+      const result = await requestCampaignDraft(authClient(), requestInput, { requestId });
+      suggestionRequest.current = null;
       if (regenerateOnly) {
         const key = regenerateOnly === "story" ? "story" : regenerateOnly;
         setSuggestions((previous) => previous ? { ...previous, [key]: result[key] } : result);
@@ -139,6 +168,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         setSectionProposals({});
       }
     } catch (error) {
+      if (["queued", "new_request_required"].includes(error?.code))
+        suggestionRequest.current = null;
       setSuggestionError(error?.message || "Could not prepare your draft.");
     } finally {
       setSuggesting(false);
