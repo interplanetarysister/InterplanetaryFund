@@ -29,6 +29,12 @@ Use the connected GitHub, Cloudflare, Supabase, and other provider-native integr
 | Google / YouTube | Google Cloud project + OAuth Web client; enable only required APIs | `openid`, `email`, `profile`; YouTube scopes only for requested YouTube features | Consent screen, test users, verification and API enablement may apply. |
 | GoFundMe Pro | GoFundMe Pro / Classy developer approval | Provider-defined | Separate from consumer GoFundMe; do not infer access from a consumer campaign URL. |
 
+## Existing provider registration evidence
+
+- **Meta / iFund app exists:** an official Meta developer onboarding email dated 2026-10-20 identifies app `iFund` with App ID `1427538482140267` and Business ID `1881031393302767`. The App ID is a public identifier, not a client secret. The email does not contain the App Secret, configured OAuth redirect URIs, approved permissions, or App Review status. Treat the app as registered but not yet verified for the required login/publishing capabilities.
+- **Other provider app credentials:** targeted searches of the connected IFund mailbox found no LinkedIn, X, TikTok, Google OAuth client registration or GoFundMe Pro developer credential messages. This is only an inbox search result, not proof that no app exists in those developer consoles.
+- No secret value was found in the messages inspected. Do not use any personal account password as an OAuth client secret.
+
 ## Redirect URI contract
 
 Do not register guessed callbacks. Derive the final callback from the deployed route and test environment. Use distinct fixed callbacks for preview and production, e.g. `https://<verified-preview-host>/api/oauth/<provider>/callback` and `https://interplanetaryfund.com/api/oauth/<provider>/callback`, only after the worker route is implemented and verified. Register the exact HTTPS URI with each provider. No wildcard paths, query parameters, or fragments.
