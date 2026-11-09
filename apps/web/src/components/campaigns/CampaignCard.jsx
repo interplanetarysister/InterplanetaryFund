@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Image } from "@/components/ui/image";
 import { Progress } from "@/components/ui/progress";
 import { FALLBACK_IMAGE } from "@/components/brand/brand";
+import TrustBadge from "@/components/campaigns/TrustBadge";
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
@@ -24,7 +25,7 @@ export default function CampaignCard({ campaign, ownerView = false }) {
         {isVideo(campaign.cover_image_url) ? <video src={campaign.cover_image_url} muted loop playsInline className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" /> : <Image src={campaign.cover_image_url || FALLBACK_IMAGE} alt={campaign.title} className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500" />}
       </div>
       <div className="p-5">
-        <div className="flex items-center justify-between gap-2 mb-1.5"><p className="text-[11px] font-medium uppercase tracking-wider text-primary">{categoryLabels[campaign.category] || "Other"}</p></div>
+        <div className="flex items-center justify-between gap-2 mb-1.5"><p className="text-[11px] font-medium uppercase tracking-wider text-primary">{categoryLabels[campaign.category] || "Other"}</p>{campaign.donor_count !== null && campaign.donor_count !== undefined && Number.isFinite(Number(campaign.donor_count)) ? <TrustBadge donorCount={Number(campaign.donor_count)} /> : null}</div>
         <h3 className="font-display text-lg text-stone-900 leading-snug mb-2 line-clamp-2">{campaign.title || "Untitled draft"}</h3>
         {isDraft ? (
           <p className="text-sm text-stone-600">Private draft · Tap to continue where you left off</p>
@@ -33,7 +34,7 @@ export default function CampaignCard({ campaign, ownerView = false }) {
         ) : (
           <>
             <Progress value={pct} className="h-1.5 mb-2.5" />
-            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()}{campaign.gift_count != null ? ` · ${campaign.gift_count} gifts` : ""}</span></p>
+            <p className="text-sm text-stone-600"><span className="font-semibold text-stone-900">${(campaign.raised_amount || 0).toLocaleString()}</span><span className="text-stone-400"> of ${campaign.goal_amount?.toLocaleString()}{campaign.donor_count != null ? ` · ${campaign.donor_count} donors` : campaign.gift_count != null ? ` · ${campaign.gift_count} gifts` : ""}</span></p>
           </>
         )}
       </div>
