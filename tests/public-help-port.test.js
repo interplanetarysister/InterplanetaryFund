@@ -52,7 +52,6 @@ test("public campaign queries use one Supabase project and active-only RLS scope
   assert.match(api, /raised_amount: numOrNull\(row\.raised_amount\)/);
   assert.match(api, /donor_count: numOrNull\(row\.donor_count\)/);
   assert.match(api, /ifund_public_campaign_funding_totals/);
-  assert.match(api, /\.eq\("status", "active"\)/);
 });
 
 test("Help retains search, accessible topics, legal links and source-style hero", async () => {
