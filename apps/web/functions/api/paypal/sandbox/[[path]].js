@@ -56,14 +56,17 @@ async function create(env,request) {
   if(!Number.isSafeInteger(n)||n<100||n>10000)return fail("Choose a demo amount from $1.00 to $100.00");
   const campaign=await db(env,"ifund_campaigns","GET","?select=id,status&id=eq."+encodeURIComponent(input.campaign_id)+"&limit=1");
   if(campaign.length!==1||campaign[0].status!=="active")return fail("Campaign not accepting demo payments",409);
+  const host=new URL(request.url);
+  if(host.protocol!=="https:" || !(/^(www\\.)?interplanetaryfund\\.com$/.test(host.hostname) || /^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/.test(host.hostname))) return fail("Unrecognized demo host",403);
+  const origin=host.origin;
   const access=await token(env);
   const order=await paypal(env,access,"POST","/v2/checkout/orders",{
     intent:"CAPTURE",purchase_units:[{reference_id:"ifund-hackathon",
       custom_id:input.campaign_id,description:"IFund sandbox demo (no real money)",
       amount:{currency_code:"USD",value:centsString(n)}}],
     application_context:{brand_name:"Interplanetary Fund Demo",user_action:"PAY_NOW",
-      return_url:"https://interplanetaryfund.com/hackathon?paypal=approved",
-      cancel_url:"https://interplanetaryfund.com/hackathon?paypal=cancelled"}
+      return_url:origin+"/hackathon?paypal=approved",
+      cancel_url:origin+"/hackathon?paypal=cancelled"}
   },"ifund-demo-"+crypto.randomUUID());
   if(!safeId(order.id)||order.status!=="CREATED")throw Error("PayPal order was not confirmed");
   await db(env,"ifund_paypal_sandbox_orders","POST","",{
