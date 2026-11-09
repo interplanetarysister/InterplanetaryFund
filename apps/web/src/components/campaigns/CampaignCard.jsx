@@ -15,8 +15,7 @@ export const categoryLabels = {
 
 export default function CampaignCard({ campaign, ownerView = false }) {
   const isDraft = campaign.status === "draft";
-  // Public preview data has no funding totals yet; hide them instead of
-  // showing misleading zeros.
+  // Show funding progress only when the canonical aggregate is available.
   const hasTotals = Number.isFinite(Number(campaign.goal_amount)) && Number(campaign.goal_amount) > 0 && Number.isFinite(Number(campaign.raised_amount)) && campaign.raised_amount !== null && campaign.raised_amount !== undefined;
   const pct = hasTotals ? Math.max(0, Math.min(100, (Number(campaign.raised_amount) / Number(campaign.goal_amount)) * 100)) : 0;
   return (
