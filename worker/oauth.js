@@ -463,7 +463,7 @@ async function refreshConnection(provider, account, config, env, fetcher) {
 
 export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
-  const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback)$/.exec(url.pathname);
+  const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh)$/.exec(url.pathname);
   if (!match) return response(404, { error: 'Not found.' });
   const [, provider, action] = match;
   if (!PROVIDERS[provider]) return response(404, { error: 'Provider not supported.' });
