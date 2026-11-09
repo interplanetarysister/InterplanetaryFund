@@ -1,7 +1,7 @@
 // Owner campaign lifecycle rules for the independent IFund frontend.
 //
 // The database is authoritative, not this file:
-//   * public.ifund_campaigns.status is constrained to draft | active | paused
+//   * public.ifund_campaigns.status is constrained to draft | active | paused | completed
 //   * constraint ifund_publish_complete requires a non-empty title, summary and
 //     story plus goal_amount > 0 before status can be 'active'
 //   * row level security restricts every write to owner_id = auth.uid()
@@ -9,7 +9,7 @@
 // These helpers only mirror that contract so the UI can explain what is
 // missing before a save is attempted. They never publish or charge anything.
 
-export const CAMPAIGN_STATUSES = Object.freeze(["draft", "active", "paused"]);
+export const CAMPAIGN_STATUSES = Object.freeze(["draft", "active", "paused", "completed"]);
 
 export const CAMPAIGN_CATEGORIES = Object.freeze([
   "medical", "emergency", "education", "community", "animals",
@@ -21,13 +21,14 @@ export const SUMMARY_MAX = 600;
 export const STORY_MAX = 15000;
 export const COVER_URL_MAX = 2000;
 
-const GOAL_PATTERN = /^\d+(?:\.\d{1,2})?$/;
+const GOAL_PATTERN = /^\d{1,12}(?:\.\d{1,2})?$/;
 
-// draft may be published; active may be paused; paused may be resumed.
+// Owners may publish drafts and resume campaigns paused by a protected review.
+// The database trigger requires a protected review to pause or complete a campaign.
 // A published campaign is never silently deleted.
 const TRANSITIONS = Object.freeze({
   draft: Object.freeze(["draft", "active"]),
-  active: Object.freeze(["active", "paused"]),
+  active: Object.freeze(["active"]),
   paused: Object.freeze(["paused", "active"]),
 });
 
@@ -85,8 +86,8 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   if (cover.length > COVER_URL_MAX) errors.push("The cover image link is too long.");
   if (!CAMPAIGN_CATEGORIES.includes(value.category)) errors.push("Choose a valid campaign category.");
   if (goal && !GOAL_PATTERN.test(goal)) {
-    errors.push("Enter the fundraising goal in USD with up to two decimal places.");
-  } else if (goal && !(Number(goal) > 0)) {
+    errors.push("Enter a fundraising goal with up to 12 digits and two decimal places.");
+  } else if (goal && (!Number.isFinite(Number(goal)) || !(Number(goal) > 0))) {
     errors.push("Enter a fundraising goal greater than zero.");
   }
   if (cover && coverUrlError(cover)) errors.push("Enter a valid http or https cover image link.");
@@ -124,6 +125,7 @@ export function buildCampaignPayload(form, status) {
 export function campaignStatusLabel(status) {
   if (status === "active") return "Published";
   if (status === "paused") return "Paused";
+  if (status === "completed") return "Completed";
   if (status === "draft") return "Draft";
   return "Unknown";
 }
@@ -131,5 +133,6 @@ export function campaignStatusLabel(status) {
 export function campaignStatusTone(status) {
   if (status === "active") return "border-emerald-300 bg-emerald-50 text-emerald-800";
   if (status === "paused") return "border-amber-300 bg-amber-50 text-amber-900";
+  if (status === "completed") return "border-stone-300 bg-stone-100 text-stone-700";
   return "border-stone-300 bg-stone-100 text-stone-700";
 }

@@ -4,16 +4,12 @@
 // creating, saving and publishing member stories under a blog the user owns.
 // Porting it is what makes apps/web a true superset before it becomes canonical.
 //
-// Two things are deliberate here:
-//
-// 1. The blog owner is checked in the client *and* in RLS. The client check is
-//    defence in depth and gives a clear message; the boundary is the
-//    ifund_blog_entries policy fixed in
-//    20261102_ifund_blog_entry_ownership_fix.sql (blocker B20). Before that fix
-//    the policy was self-referential and any authenticated account could file a
-//    published entry under someone else's blog.
-// 2. The account lifecycle gate is applied, matching socialPosts.js, so a
-//    suspended or unconfirmed account cannot publish.
+// Important deployment boundary:
+// The hardened owner/blog RLS and server-side member-publication write contract
+// are not present as an applied migration in this branch. The pending ownership
+// fix is not proof of a deployed policy. Direct browser table writes below must
+// remain disabled until the canonical server API and RLS contract are reviewed
+// and verified. Client ownership checks are defense in depth, never authority.
 //
 // The blog id is the legacy Base44 identifier, which is text, not a UUID. That
 // is why entry ids are generated here and validated as opaque refs rather than

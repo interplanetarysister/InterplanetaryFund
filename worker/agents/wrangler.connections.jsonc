@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ifund-managed-connections-agent-preview",
+  "main": "managedConnections.js",
+  "compatibility_date": "2026-11-05",
+  "workers_dev": true,
+  "vars": {
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "IFUND_CONNECTIONS_ENABLED": "disabled"
+  },
+  "observability": { "enabled": false }
+}

@@ -7,8 +7,8 @@ const ALLOWED = new Set([
   'title', 'summary', 'story', 'category', 'goal_amount', 'cover_image_url', 'status',
 ]);
 const CATEGORIES = new Set([
-  'community', 'medical', 'emergency', 'education', 'animals',
-  'business', 'creative', 'other',
+  'medical', 'emergency', 'education', 'community', 'animals',
+  'business', 'creative', 'memorial', 'disaster_relief', 'environment', 'other',
 ]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 32_768;
@@ -23,8 +23,8 @@ function validatePayload(raw, isCreate) {
     if (Object.hasOwn(raw, field)) {
       if (typeof raw[field] !== 'string') return null;
       const max = field === 'story' ? 15_000 :
-        field === 'cover_image_url' ? 2_048 :
-        field === 'summary' ? 600 : 120;
+        field === 'cover_image_url' ? 2_000 :
+        field === 'summary' ? 600 : 150;
       if (raw[field].length > max) return null;
       data[field] = raw[field].trim();
     }
@@ -41,7 +41,7 @@ function validatePayload(raw, isCreate) {
     const value = raw.goal_amount;
     if (typeof value !== 'number' && typeof value !== 'string') return null;
     const str = String(value);
-    if (!/^(?:0|[1-9][0-9]{0,11})(?:\.[0-9]{1,2})?$/.test(str)) return null;
+    if (!/^\d{1,12}(?:\.[0-9]{1,2})?$/.test(str)) return null;
     const amount = Number(str);
     if (!Number.isFinite(amount)) return null;
     data.goal_amount = amount;
@@ -54,7 +54,10 @@ function validatePayload(raw, isCreate) {
   }
   if (isCreate) data.status ??= 'draft';
   // A publish transition always supplies a complete, validated payload.
-  if (data.status === 'active' &&
+  // Create requests must carry a complete publish payload. PATCH requests
+  // may change only status; their merged existing row is validated after the
+  // owner-scoped read in routeCampaignWrite.
+  if (isCreate && data.status === 'active' &&
     (!data.title || !data.summary || !data.story ||
       !data.goal_amount || data.goal_amount <= 0)) return null;
   return data;
@@ -100,13 +103,64 @@ export async function routeCampaignWrite(request, env, fetcher = fetch) {
         return response(422, { error: 'Invalid or incomplete campaign fields.' });
       if (create) campaign.owner_id = account.uid;
     }
+    let existing = null;
+    if (updateMatch) {
+      const readQuery = new URLSearchParams({
+        select: SELECT,
+        id: 'eq.' + updateMatch[1],
+        owner_id: 'eq.' + account.uid,
+        limit: '1',
+      });
+      const read = await fetcher(
+        env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + readQuery,
+        { method: 'GET', headers: apiHeaders(env, account.jwt) },
+      );
+      if (!read.ok) return response(503, { error: 'Campaign save unavailable.' });
+      const rows = await read.json();
+      if (!Array.isArray(rows)) return response(503, { error: 'Campaign save unavailable.' });
+      if (!rows.length) return response(404, { error: 'Campaign not found or not editable.' });
+      if (rows.length !== 1 || rows[0]?.owner_id !== account.uid || !rows[0]?.updated_at)
+        return response(503, { error: 'Campaign save could not be verified.' });
+      existing = rows[0];
+      if (deleting && existing.status !== 'draft')
+        return response(404, { error: 'Campaign not found or not editable.' });
+      if (!deleting) {
+        const nextStatus = campaign.status ?? existing.status;
+        if (!['draft', 'active'].includes(nextStatus))
+          return response(422, { error: 'This campaign status cannot be changed here.' });
+        const merged = { ...existing, ...campaign, status: nextStatus };
+        if (nextStatus === 'active' &&
+            (!String(merged.title || '').trim() ||
+             !String(merged.summary || '').trim() ||
+             !String(merged.story || '').trim() ||
+             !(Number(merged.goal_amount) > 0)))
+          return response(422, { error: 'Complete the campaign before publishing.' });
+        campaign.status = nextStatus;
+      }
+    }
     const query = new URLSearchParams({ select: SELECT });
     if (updateMatch) {
       query.set('id', 'eq.' + updateMatch[1]);
       query.set('owner_id', 'eq.' + account.uid);
-      // Deletion is restricted to empty/draft records; published campaigns
-      // can have donors and must enter a separate audited archive workflow.
-      if (deleting) query.set('status', 'eq.draft');
+      query.set('status', 'eq.' + existing.status);
+      // The database touch trigger advances updated_at on every write. This
+      // prevents a stale Worker request from overwriting a newer same-status edit.
+      query.set('updated_at', 'eq.' + existing.updated_at);
+    }
+    if (!deleting) {
+      // The browser helper is not a security boundary. Enforce the same
+      // current, versioned legal acceptance on this independent Worker path.
+      const terms = await fetcher(
+        env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_has_current_terms',
+        {
+          method: 'POST',
+          headers: { ...apiHeaders(env, account.jwt), 'Content-Type': 'application/json' },
+          body: '{}',
+        },
+      );
+      if (!terms.ok) return response(503, { error: 'Campaign terms could not be verified.' });
+      if ((await terms.json()) !== true)
+        return response(403, { error: 'Review and accept the current member agreement before saving or publishing.' });
     }
     const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_campaigns?' + query, {
       method: create ? 'POST' : deleting ? 'DELETE' : 'PATCH',

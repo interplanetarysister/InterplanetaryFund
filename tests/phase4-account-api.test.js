@@ -16,7 +16,7 @@ function request(path,method='GET',body,auth=true){
 function remote(calls,rows=[]){
   return async(url,opts)=>{
     calls.push({url:String(url),opts});
-    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid});
+    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid,email_confirmed_at:'2026-10-15T12:00:00Z'});
     return Response.json(rows);
   };
 }
@@ -46,16 +46,16 @@ test('profile GET filters by signed-in uid and never uses service-role credentia
   assert.equal(calls[1].opts.headers.Authorization,'Bearer verified.test.jwt');
   assert.equal(calls[1].opts.headers.apikey,env.SUPABASE_PUBLISHABLE_KEY);
 });
-test('PUT profile derives uid and uses RLS-scoped upsert without an admin role',async()=>{
+test('PUT profile derives uid and uses an owner-scoped column-only update',async()=>{
   const calls=[];
   const r=await routeAccountRequest(request('/api/account/profile','PUT',
     {handle:'Planet_One',display_name:' IFund '}),env,
     remote(calls,[{id:uid,handle:'Planet_One',display_name:'IFund'}]));
   assert.equal(r.status,200);
-  assert.equal(calls[1].opts.method,'POST');
-  assert.equal(calls[1].opts.headers.Prefer,'resolution=merge-duplicates,return=representation');
-  assert.ok(calls[1].url.includes('on_conflict=id'));
-  assert.deepEqual(JSON.parse(calls[1].opts.body),{id:uid,handle:'Planet_One',display_name:'IFund'});
+  assert.equal(calls[1].opts.method,'PATCH');
+  assert.equal(calls[1].opts.headers.Prefer,'return=representation');
+  assert.match(calls[1].url,/id=eq\./);assert.ok(calls[1].url.includes(uid));
+  assert.deepEqual(JSON.parse(calls[1].opts.body),{handle:'Planet_One',display_name:'IFund'});
 });
 test('profile write rejects identity overrides and reserved privileged fields',async()=>{
   const attempts=[{handle:'person',id:other},{display_name:'OK',role:'admin'},
@@ -66,7 +66,7 @@ test('profile write rejects identity overrides and reserved privileged fields',a
     assert.equal(r.status,422);assert.equal(calls.length,1);
   }
 });
-test('profile upsert requires a returned row owned by the authenticated user',async()=>{
+test('profile update requires a returned row owned by the authenticated user',async()=>{
   const calls=[];
   assert.equal((await routeAccountRequest(request('/api/account/profile','PUT',{handle:'Person_1'}),
     env,remote(calls,[]))).status,503);
@@ -98,7 +98,7 @@ test('account writes reject inappropriate methods, content types and oversized b
 });
 test('provider failures are sanitized and cannot expose upstream details',async()=>{
   const r=await routeAccountRequest(request('/api/account/profile'),env,async(url)=>{
-    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid});
+    if(String(url).endsWith('/auth/v1/user'))return Response.json({id:uid,email_confirmed_at:'2026-10-15T12:00:00Z'});
     return new Response('provider diagnostic SECRET',{status:500});
   });
   assert.equal(r.status,503);assert.doesNotMatch(await r.text(),/SECRET/);

@@ -4,6 +4,7 @@ import {
   authRedirectUrl,
   completeAuthCallback,
   confirmedUser,
+  hasAuthCallbackCredentials,
   legacyAuthCallbackUrl,
 } from "../src/lib/authFlow.js";
 const user = { id: "owner", email_confirmed_at: "2026-01-01" };
@@ -19,6 +20,10 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
   );
   assert.equal(url.pathname, "/auth/callback");
   assert.equal(url.searchParams.get("returnTo"), "/campaigns?tab=mine");
+  assert.equal(
+    new URL(authRedirectUrl("https://www.interplanetaryfund.com", "/agents")).origin,
+    "https://interplanetaryfund.com",
+  );
   for (const target of [
     "https://evil.test",
     "//evil.test",
@@ -32,11 +37,16 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
       ).searchParams.get("returnTo"),
       "/dashboard",
     );
-  assert.equal(
-    new URL(authRedirectUrl("https://interplanetaryfund.com", "/agents", true))
-      .pathname,
-    "/reset-password",
+  const recoveryUrl = new URL(
+    authRedirectUrl("https://interplanetaryfund.com", "/campaigns?tab=mine", true),
   );
+  assert.equal(recoveryUrl.pathname, "/reset-password");
+  assert.equal(recoveryUrl.searchParams.get("returnTo"), "/campaigns?tab=mine");
+});
+test("returnTo-only recovery URLs do not masquerade as callback credentials", () => {
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password?returnTo=%2Fcampaigns"), false);
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password?returnTo=%2Fcampaigns&token_hash=abc&type=recovery"), true);
+  assert.equal(hasAuthCallbackCredentials("https://interplanetaryfund.com/reset-password#access_token=abc&refresh_token=def"), true);
 });
 test("PKCE code is consumed once under duplicate callback effects", async () => {
   const auth = makeAuth();
@@ -111,6 +121,10 @@ test("already-issued dashboard and login links are rescued before member guards"
     new URL(legacy, "https://interplanetaryfund.com").pathname,
     "/auth/callback",
   );
+  const wwwLegacy = legacyAuthCallbackUrl(
+    "https://www.interplanetaryfund.com/dashboard#access_token=access&refresh_token=refresh",
+  );
+  assert.equal(new URL(wwwLegacy, "https://interplanetaryfund.com").origin, "https://interplanetaryfund.com");
   assert.match(legacy, /returnTo=%2Fdashboard/);
   assert.match(legacy, /access_token=access/);
   assert.match(

@@ -5,6 +5,7 @@ import {
   listOwnerCampaigns, listMyCampaigns, loadOwnerCampaign, saveOwnerCampaign,
   setCampaignStatus, deleteDraftCampaign, isCampaignConflict, CAMPAIGN_CONFLICT_MESSAGE,
 } from "../src/api/ownerCampaigns.js";
+import { TERMS_VERSION } from "../src/lib/legalPolicy.js";
 
 const OWNER = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
@@ -15,7 +16,7 @@ const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "u
 const campaign = (over = {}) => ({
   id: DRAFT_ID, owner_id: OWNER, title: "Plaza lights", summary: "Light the plaza.",
   story: "Longer story.", category: "community", goal_amount: 1200,
-  cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", ...over,
+  cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", updated_at: "2026-11-01T10:00:00Z", ...over,
 });
 
 /**
@@ -34,6 +35,11 @@ function fakeClient({
   failDelete = false,
   returnOtherOwner = false,
   statusOverride = null,
+  insertStatusOverride = null,
+  legalAccepted = true,
+  legalReadError = false,
+  acceptanceOwner = OWNER,
+  acceptanceVersion = TERMS_VERSION,
   // Simulates another browser session changing the row *between* this
   // operation's pre-read and its write, which is the real race window.
   raceStatusAfterRead = null,
@@ -83,6 +89,10 @@ function fakeClient({
             error: null,
           };
         }
+        if (table === "ifund_legal_acceptances") {
+          return { data: legalAccepted ? { owner_id: acceptanceOwner, terms_version: acceptanceVersion, explicit_consent: true } : null,
+            error: legalReadError ? { message: "unavailable" } : null };
+        }
         if (table !== "ifund_campaigns") return { data: null, error: { message: "unexpected table" } };
         const byId = query.filters.find(([column]) => column === "id")?.[1];
         const byOwner = query.filters.find(([column]) => column === "owner_id")?.[1];
@@ -106,7 +116,8 @@ function fakeClient({
         if (query.op === "insert") {
           lastInsert = query.payload;
           if (failInsert) return { data: null, error: { message: "insert failed" } };
-          const created = { id: ACTIVE_ID, created_at: "2026-11-01T10:00:00Z", ...query.payload };
+          const created = { id: ACTIVE_ID, created_at: "2026-11-01T10:00:00Z", updated_at: "2026-11-08T23:00:00Z", ...query.payload };
+          if (insertStatusOverride !== null) created.status = insertStatusOverride;
           store.push(created);
           return singleRow ? { data: { ...created }, error: null } : { data: [{ ...created }], error: null };
         }
@@ -116,10 +127,12 @@ function fakeClient({
           // Real PostgREST applies every filter, including a status filter, so a
           // compare-and-swap on status matches zero rows once the row moved on.
           const statusFilter = query.filters.find(([column]) => column === "status");
+          const revisionFilter = query.filters.find(([column]) => column === "updated_at");
           const index = store.findIndex((row) => row.id === byId && row.owner_id === byOwner &&
-            (statusFilter === undefined || row.status === statusFilter[1]));
+            (statusFilter === undefined || row.status === statusFilter[1]) &&
+            (revisionFilter === undefined || row.updated_at === revisionFilter[1]));
           if (index < 0) return noRows();
-          store[index] = { ...store[index], ...query.payload };
+          store[index] = { ...store[index], ...query.payload, updated_at: "2026-11-08T23:00:00Z" };
           if (statusOverride !== null) store[index].status = statusOverride;
           return singleRow ? { data: { ...store[index] }, error: null } : { data: [{ ...store[index] }], error: null };
         }
@@ -196,6 +209,53 @@ test("creating a campaign sets owner_id from the verified session, never the for
   assert.equal("updated_at" in f.lastInsert, false);
 });
 
+test("explicit creator publishing saves reviewed content and confirms the published receipt", async () => {
+  const form = { ...campaign(), title: "Reviewed campaign", owner_id: OTHER };
+  const create = fakeClient({ rows: [] });
+  const published = await saveOwnerCampaign(create.client, form, { status: "active", expectedStatus: "draft" });
+  assert.equal(published.status, "active");
+  assert.equal(published.owner_id, OWNER);
+  assert.equal(create.lastInsert.title, "Reviewed campaign");
+  const existing = fakeClient();
+  assert.equal((await saveOwnerCampaign(existing.client, form, { id: DRAFT_ID, status: "active", expectedStatus: "draft" })).id, DRAFT_ID);
+  assert.equal(existing.lastUpdate.status, "active");
+  assert.equal(existing.store.length, 1);
+});
+
+test("creator publishing refuses a campaign already changed before the write begins", async () => {
+  for (const status of ["active", "paused"]) {
+    const f = fakeClient({ rows: [campaign({ status })] });
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { id: DRAFT_ID, status: "active", expectedStatus: "draft" }), /changed in another session/);
+    assert.equal(f.calls.some(c => c.type === "update"), false);
+    assert.equal(f.store[0].status, status);
+  }
+});
+
+test("saving or publishing requires confirmed current consent and valid content", async () => {
+  for (const options of [{ legalAccepted: false }, { legalReadError: true }, { acceptanceOwner: OTHER }, { acceptanceVersion: "old" }]) {
+    const f = fakeClient(options);
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { status: "active" }), /member agreement/);
+    assert.equal(f.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  }
+  const incomplete = fakeClient();
+  await assert.rejects(saveOwnerCampaign(incomplete.client, { ...campaign(), story: "" }, { status: "active" }), /story before publishing/);
+  assert.equal(incomplete.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  const draft = fakeClient({ rows: [] });
+  assert.equal((await saveOwnerCampaign(draft.client, { title: "Work in progress", category: "animals" })).status, "draft");
+});
+
+test("creator publishing rejects unauthenticated, suspended and other-owner writes", async () => {
+  for (const options of [{ authenticatedUserId: null }, { unverifiedEmail: true }, { profileActive: false }, { rows: [campaign({ owner_id: OTHER })] }]) {
+    const f = fakeClient(options);
+    await assert.rejects(saveOwnerCampaign(f.client, campaign(), { id: DRAFT_ID, status: "active", expectedStatus: "draft" }));
+    assert.equal(f.calls.some(c => c.type === "insert" || c.type === "update"), false);
+  }
+});
+
+test("a create receipt with an unexpected status is never reported as a publication", async () => {
+  await assert.rejects(saveOwnerCampaign(fakeClient({ rows: [], insertStatusOverride: "draft" }).client, campaign(), { status: "active" }), /saved status could not be confirmed/);
+});
+
 test("publishing is refused client-side when the campaign is incomplete", async () => {
   const f = fakeClient({ rows: [campaign({ summary: "", story: "", goal_amount: 0 })] });
   // The first unmet publish requirement is reported; any of them is valid.
@@ -203,15 +263,15 @@ test("publishing is refused client-side when the campaign is incomplete", async 
   assert.equal(f.calls.some((c) => c.type === "update"), false, "no write may be attempted");
 });
 
-test("a draft can be published and an active campaign can be paused", async () => {
+test("a draft can be published, protected pause is refused, and reviewed pauses can be resumed", async () => {
   const publish = fakeClient();
   const published = await setCampaignStatus(publish.client, DRAFT_ID, "active");
   assert.equal(published.status, "active");
   assert.deepEqual(publish.lastUpdate, { status: "active" });
 
   const pause = fakeClient({ rows: [campaign({ id: ACTIVE_ID, status: "active" })] });
-  const paused = await setCampaignStatus(pause.client, ACTIVE_ID, "paused");
-  assert.equal(paused.status, "paused");
+  await assert.rejects(setCampaignStatus(pause.client, ACTIVE_ID, "paused"), /cannot be set to paused/);
+  assert.equal(pause.calls.some((call) => call.type === "update"), false);
 
   const resume = fakeClient({ rows: [campaign({ id: ACTIVE_ID, status: "paused" })] });
   assert.equal((await setCampaignStatus(resume.client, ACTIVE_ID, "active")).status, "active");
@@ -264,6 +324,29 @@ test("every mutation carries the validated status as a compare-and-swap guard", 
   await setCampaignStatus(status.client, DRAFT_ID, "active");
   assert.ok(status.calls.some((c) => c.type === "eq" && c.column === "status" && c.value === "draft"),
     "the transition must filter on the status it validated");
+  assert.ok(status.calls.some((c) => c.type === "eq" && c.column === "updated_at" && c.value === "2026-11-01T10:00:00Z"),
+    "the transition must filter on the row revision it validated");
+});
+
+test("editor saves reject the row revision loaded by a stale editor", async () => {
+  const f = fakeClient();
+  await assert.rejects(
+    saveOwnerCampaign(f.client, {
+      title: "Old tab edit", summary: "Updated", story: "Updated", category: "community",
+      goal_amount: "500", cover_image_url: "",
+    }, {
+      id: DRAFT_ID, status: "draft", expectedStatus: "draft",
+      expectedUpdatedAt: "2026-10-31T10:00:00Z",
+    }),
+    /changed in another session/,
+  );
+  assert.equal(f.calls.some((call) => call.type === "update"), false);
+  const page = source("src/pages/EditCampaign.jsx");
+  assert.match(page, /expectedUpdatedAt: revision/);
+  assert.match(page, /setRevision\(saved\.updated_at\)/);
+  const composer = source("src/pages/CreateCampaign.jsx");
+  assert.match(composer, /expectedUpdatedAt: campaignId\.current \? revision : undefined/);
+  assert.match(composer, /setRevision\(data\.updated_at\)/);
 });
 
 test("a stale draft save loses to a concurrent publish instead of reverting it", async () => {

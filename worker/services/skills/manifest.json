@@ -1,0 +1,402 @@
+{
+  "schema_version": 1,
+  "policy_version": "ifund-runtime-skills-2026-11-v1",
+  "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
+  "agents": [
+    {
+      "agent": "admin_builder_agent",
+      "source_sha256": "ee89e011d44802b4c5b0fed98f024338a11a5829ce5f4a121822b95e5203c713",
+      "declared_tools": [
+        "managePlatformIncidents",
+        "manageAdminBuilderWork"
+      ],
+      "entity_reads": [],
+      "remote_skill_references": [],
+      "managed_skill_references": [],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "chief_of_staff",
+      "source_sha256": "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313",
+      "declared_tools": [
+        "generateIntelligence",
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask",
+        "getVerifiedIFundIntegrationContext",
+        "discoverConnectionMethods"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Recommendation",
+          "operations": [
+            "read",
+            "update"
+          ]
+        },
+        {
+          "entity": "AgentDelegation",
+          "operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "entity": "MissionBrief",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "FollowedCampaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Notification",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "InboxItem",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab47197ed579d54b1b6b87e",
+        "6ab2366e595f644ba24295f2",
+        "6ab236c1727beca33232db70"
+      ],
+      "managed_skill_references": [
+        "connections-webproxy"
+      ],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "communications_agent",
+      "source_sha256": "37097ccd666016fa5d1b102a1cd82ed85837b17e639b1b941ffd72d7cac9012b",
+      "declared_tools": [
+        "sendCommunication",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Message",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab4723f7fc2b06c5f3ab8a7",
+        "6ab475f0f3fd429b0510e3ce",
+        "6ab236c1727beca33232db70",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab2366e595f644ba24295f2",
+        "6ab4779013dfc91ef024f384",
+        "6ab236a20f89e75829fa0eec"
+      ],
+      "managed_skill_references": [
+        "connections-webproxy"
+      ],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "connection_discovery_agent",
+      "source_sha256": "91bf743522f36e43d8bbb33758459a29be9451f2eb290a16fe9a75aaa2ad572d",
+      "declared_tools": [
+        "listFundraisingProviderCapabilities",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "FundraisingProviderCapability",
+          "operations": [
+            "read",
+            "create",
+            "update"
+          ]
+        },
+        {
+          "entity": "PlatformConnection",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "AgentActivity",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [],
+      "managed_skill_references": [],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "finance_agent",
+      "source_sha256": "a298ff7136566786af2d78d80dff6e8f6561af0982bac0adee2fd5dea9d66c43",
+      "declared_tools": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Withdrawal",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab47362e1c4cb9cb4d225c7",
+        "6ab2366e595f644ba24295f2",
+        "6ab236c1727beca33232db70",
+        "6ab236a20f89e75829fa0eec",
+        "6ab474e9c2b6b184aa9b049f"
+      ],
+      "managed_skill_references": [],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "growth_agent",
+      "source_sha256": "0757986693590bd4b467406139987101efcc225a7cf59a8fa895af08e9da09c4",
+      "declared_tools": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Donation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "PlatformConnection",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab4798715c82e0e88c70efe",
+        "6ab46f2180895ff2754f1d03",
+        "6ab474e9c2b6b184aa9b049f"
+      ],
+      "managed_skill_references": [
+        "connections-webproxy"
+      ],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "managed_connection_agent",
+      "source_sha256": "a55aeaf89a1faa08940eaf0314f43c2452361bd2b321f236dbb255cdf1f0badc",
+      "declared_tools": [
+        "requestManagedConnectionAction",
+        "listConnections",
+        "resolveConnectionStatus",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "routeAgentTask",
+        "getVerifiedIFundIntegrationContext",
+        "discoverConnectionMethods"
+      ],
+      "entity_reads": [],
+      "remote_skill_references": [],
+      "managed_skill_references": [],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "outreach_agent",
+      "source_sha256": "f6c60968fcf1771ea2ad64265469364cb82de33fabbbdb6c5665e8c8162b1caa",
+      "declared_tools": [
+        "runBrowserConnection",
+        "getStripeIntegrationAudit",
+        "repairStripeWebhookEvents",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Recommendation",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "AgentActivity",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab4723f7fc2b06c5f3ab8a7",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab475f0f3fd429b0510e3ce"
+      ],
+      "managed_skill_references": [
+        "connections-webproxy",
+        "platform-connection",
+        "failed-connection-recovery"
+      ],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "story_agent",
+      "source_sha256": "1436b2557ba1b88dc9c7c7dffc3e4e2312d033af2b45aed8f974df5ab67e6f10",
+      "declared_tools": [
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab4767651cc203b523a04e3",
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab236a20f89e75829fa0eec"
+      ],
+      "managed_skill_references": [],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    },
+    {
+      "agent": "strategy_agent",
+      "source_sha256": "acb83a017c3a9eda46997a0853e7b3d32b209d0b2c3df4facb75e5dae2523056",
+      "declared_tools": [
+        "generateIntelligence",
+        "getWritingResearchBrief",
+        "getAgentAccountContext",
+        "manageAgentContentDraft",
+        "routeAgentTask"
+      ],
+      "entity_reads": [
+        {
+          "entity": "Campaign",
+          "operations": [
+            "read"
+          ]
+        },
+        {
+          "entity": "Recommendation",
+          "operations": [
+            "read"
+          ]
+        }
+      ],
+      "remote_skill_references": [
+        "6ab46f2180895ff2754f1d03",
+        "6ab4798715c82e0e88c70efe",
+        "6ab474e9c2b6b184aa9b049f",
+        "6ab2366e595f644ba24295f2"
+      ],
+      "managed_skill_references": [
+        "connections-webproxy"
+      ],
+      "remote_content_reconciled": false,
+      "instruction_asset": "../position-contracts.json",
+      "permissions_from_assets": false
+    }
+  ]
+}

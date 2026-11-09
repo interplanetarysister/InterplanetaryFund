@@ -11,9 +11,9 @@ import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
-// Hero art is served from this app (public/images). If the file is absent the
-// deep-space gradient shows on its own.
-const HERO_IMAGE = "/images/home-hero.png";
+// Archived original Base44 hero artwork, bundled locally with Cloudflare Pages.
+// SHA-256 and original source are recorded in public/images/base44-archive/manifest.json.
+const HERO_IMAGE = "/images/base44-archive/19cbf6ba785409de9ac0.png";
 
 // "Who is Interplanetary Fund?" — the opening of our story shows directly; the
 // full letter expands behind "Read more · Our Story".

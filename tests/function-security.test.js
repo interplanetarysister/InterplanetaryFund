@@ -27,6 +27,11 @@ const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 // tightly capped Studio AI quota; the other records immutable page-version
 // snapshots from a database trigger. Keep this allowlist narrow and explicit.
 const MUTATING_DEFINER_FUNCTIONS = new Set([
+  // Owner JWT plus private Worker key; no direct table or financial authority.
+  "ifund_workforce_runtime.begin_story",
+  "ifund_workforce_runtime.started",
+  "ifund_workforce_runtime.finish",
+  "ifund_workforce_runtime.cancel_queued",
   "public.ifund_studio_consume_ai_quota",
   "ifund_private.ifund_studio_capture_page_version",
   // Story contracts reviewed independently in PR #210. These private functions
@@ -55,6 +60,13 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_communications_runtime.cancel",
   "ifund_communications_runtime.prepare_send",
   "ifund_communications_runtime.send",
+  // Independently reviewed owner-scoped help consent and request tracking.
+  // No provider execution, secret storage, publication or financial writes.
+  // Native PostgreSQL cases cover two owners, CAS, replay and expired plans.
+  "ifund_connections_runtime.grant_help",
+  "ifund_connections_runtime.request_action",
+  "ifund_connections_runtime.change_selected",
+  "ifund_connections_runtime.campaign_deleted",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */

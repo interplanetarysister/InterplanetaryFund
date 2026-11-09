@@ -17,7 +17,7 @@ function remote(role, rows = []) {
   const calls = [];
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(role === 'super_admin');
     return Response.json(rows);
   };
@@ -42,7 +42,7 @@ test('studio allows a verified legacy owner mapping without an app_metadata role
   const calls = [];
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: {} });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: {} });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     return Response.json([]);
   };
@@ -148,7 +148,7 @@ test('Studio AI enforces admin role and the shared daily quota before inference'
   const aiEnv = { ...env, IFUND_STUDIO_AI_ENABLED: 'enabled', AI: { run: async () => {
     throw new Error('AI must not run when quota is exhausted');
   } } };
-  const memberFetcher = async (url) => Response.json({ id: uid, app_metadata: { role: 'member' } });
+  const memberFetcher = async (url) => Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role: 'member' } });
   const denied = await routeStudioGenerateRequest(
     request('/api/studio/generate', 'POST', { prompt: 'Create a campaign landing page' }),
     aiEnv,
@@ -157,7 +157,7 @@ test('Studio AI enforces admin role and the shared daily quota before inference'
   assert.equal(denied.status, 403);
 
   const exhaustedFetcher = async (url) => {
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     return Response.json(false);
   };
@@ -188,7 +188,7 @@ test('Studio AI returns a validated visual draft and never saves it automaticall
   };
   const fetcher = async (url, options = {}) => {
     calls += 1;
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     assert.match(String(url), /rpc\/ifund_studio_consume_ai_quota/);
     return Response.json(true);
@@ -210,7 +210,7 @@ test('Studio AI rejects short or oversized prompts before consuming quota', asyn
   let calls = 0;
   const fetcher = async (url) => {
     calls += 1;
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     return Response.json(false);
   };
@@ -266,7 +266,7 @@ test('Studio revision restore creates a draft from a verified snapshot', async (
   const calls = [];
   const fetcher = async (url, options = {}) => {
     calls.push({ url: String(url), options });
-    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, app_metadata: { role: 'super_admin' } });
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z', app_metadata: { role: 'super_admin' } });
     if (String(url).endsWith('/rpc/ifund_current_user_is_verified_super_admin')) return Response.json(true);
     if (String(url).includes('/ifund_studio_page_versions?')) return Response.json([snapshot]);
     if (String(url).includes('slug=eq.older-page')) return Response.json([]);

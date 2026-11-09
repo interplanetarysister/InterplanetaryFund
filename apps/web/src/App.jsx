@@ -24,12 +24,14 @@ const CommunicationsAgent = lazy(() => import("./pages/CommunicationsAgent"));
 const StrategyAgent = lazy(() => import("./pages/StrategyAgent"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
@@ -41,7 +43,6 @@ const Inbox = lazy(() => import("./pages/Inbox"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const BlogArticle = lazy(() => import("./pages/BlogArticle"));
 const PublicationArticle = lazy(() => import("./pages/PublicationArticle"));
-const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
@@ -50,13 +51,12 @@ const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
 const STANDALONE_COMING_SOON = [
-  "/onboarding",
   "/globe", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
-  "/community/:id", "/u/:id",
+  "/community/:id",
   "/giving", "/ai-images",
-  "/institutions", "/institutions/:id", "/my-blog", "/devices",
+  "/institutions", "/institutions/:id", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
@@ -75,6 +75,7 @@ function AppRoutes() {
     <Route path="/contact" element={<Contact />} />
     <Route path="/login" element={<AuthPage key="login" mode="login" />} />
     <Route path="/register" element={<AuthPage key="register" mode="register" />} />
+    <Route path="/onboarding" element={<MemberAccess><Onboarding /></MemberAccess>} />
     <Route path="/forgot-password" element={<AuthPage key="forgot-password" mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
@@ -89,25 +90,27 @@ function AppRoutes() {
       <Route path="/agents/strategy" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
       <Route path="/agents/growth" element={<MemberAccess><GrowthAgent /></MemberAccess>} />
       <Route path="/agents/communications" element={<MemberAccess><CommunicationsAgent /></MemberAccess>} />
+      <Route path="/agents/connections" element={<MemberAccess><Connections /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsAgent /></MemberAccess>} />
       <Route path="/mission" element={<MemberAccess><StrategyAgent /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
       <Route path="/community" element={<SocialFeedPage community />} />
-      <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />
+      <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
+      <Route path="/u/:id" element={<PublicProfile />} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
+      <Route path="/my-blog" element={<MemberAccess><ComingSoon /></MemberAccess>} />
+      <Route path="/publication" element={<MemberAccess><ComingSoon /></MemberAccess>} />
       <Route path="/blogs" element={<Blogs />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
-      <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
-      <Route path="/my-blog" element={<MemberAccess><MyPublication /></MemberAccess>} />
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />

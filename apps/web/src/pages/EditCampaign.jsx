@@ -9,7 +9,7 @@ import {
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
-import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
+import { Loader2, Save, PlayCircle } from "lucide-react";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
   "business", "creative", "memorial", "disaster_relief", "environment", "other"];
@@ -25,6 +25,7 @@ export default function EditCampaign() {
   const lock = useRef(false);
   const [form, setForm] = useState(emptyCampaignForm);
   const [status, setStatus] = useState("draft");
+  const [revision, setRevision] = useState(null);
   const [phase, setPhase] = useState("loading");
   const [loadError, setLoadError] = useState("");
   const [error, setError] = useState("");
@@ -45,6 +46,7 @@ export default function EditCampaign() {
         cover_image_url: campaign.cover_image_url || "",
       });
       setStatus(campaign.status);
+      setRevision(campaign.updated_at);
       setPhase("ready");
     } catch (cause) {
       if (!alive.current) return;
@@ -60,7 +62,8 @@ export default function EditCampaign() {
   }, [load]);
 
   const change = (key, value) => setForm((current) => ({ ...current, [key]: value }));
-  const disabled = busy || phase !== "ready";
+  const readOnlyStatus = status === "paused" || status === "completed";
+  const disabled = busy || phase !== "ready" || readOnlyStatus;
   const readiness = publishReadiness(form);
 
   async function save(nextStatus) {
@@ -69,8 +72,14 @@ export default function EditCampaign() {
     if (problems.length) { setError(problems[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
-      const saved = await saveOwnerCampaign(authClient(), form, { id, status: nextStatus });
+      const saved = await saveOwnerCampaign(authClient(), form, {
+        id,
+        status: nextStatus,
+        expectedStatus: status,
+        expectedUpdatedAt: revision,
+      });
       setStatus(saved.status);
+      setRevision(saved.updated_at);
       setNotice(nextStatus === "active"
         ? "Your campaign is published and visible on Discover. Donations stay paused."
         : "Your campaign changes were saved.");
@@ -86,12 +95,14 @@ export default function EditCampaign() {
 
   async function toggleStatus() {
     if (lock.current || phase !== "ready") return;
-    const next = status === "active" ? "paused" : "active";
+    if (status !== "draft" && status !== "paused") return;
+    const next = "active";
     if (next === "active" && !readiness.ready) { setError(readiness.missing[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
       const saved = await setCampaignStatus(authClient(), id, next);
       setStatus(saved.status);
+      setRevision(saved.updated_at);
       setNotice(next === "active"
         ? "Your campaign is published and visible on Discover. Donations stay paused."
         : "Your campaign is paused and hidden from Discover.");
@@ -129,7 +140,7 @@ export default function EditCampaign() {
           {campaignStatusLabel(status)}
         </span>
       </div>
-      <p className="text-muted-foreground">Changes are private until you publish. Donations remain paused platform-wide.</p>
+      <p className="text-muted-foreground">{status === "active" ? "Changes to this published campaign become visible as soon as they are saved." : "Changes remain private until you publish."} Donations remain paused platform-wide.</p>
     </header>
 
     <PrelaunchNotice compact />
@@ -179,28 +190,30 @@ export default function EditCampaign() {
           className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">
           <Save className="h-4 w-4" aria-hidden="true" /> {busy ? "Saving…" : "Save changes"}
         </button>
-        {status !== "active" ? (
+        {status === "draft" && (
           <button type="button" onClick={toggleStatus} disabled={disabled || !readiness.ready}
             title={readiness.ready ? "Publish to Discover" : readiness.missing[0]}
             className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
             <PlayCircle className="h-4 w-4" aria-hidden="true" /> Publish
           </button>
-        ) : (
-          <>
-            <button type="button" onClick={toggleStatus} disabled={disabled}
-              className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
-              <PauseCircle className="h-4 w-4" aria-hidden="true" /> Pause
-            </button>
-            <Link to={`/campaign/${id}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold">
-              View public page
-            </Link>
-          </>
+        )}
+        {status === "paused" && (
+          <button type="button" onClick={toggleStatus} disabled={busy || phase !== "ready" || !readiness.ready}
+            title={readiness.ready ? "Resume on Discover" : readiness.missing[0]}
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
+            <PlayCircle className="h-4 w-4" aria-hidden="true" /> Resume
+          </button>
+        )}
+        {status === "active" && (
+          <Link to={`/campaign/${id}`} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 font-semibold">
+            View public page
+          </Link>
         )}
       </div>
     </form>
 
-    <p className="text-sm text-muted-foreground">
-      Published campaigns cannot be deleted here. Pause it to hide it from Discover, or <Link to="/help" className="underline">get help</Link>.
-    </p>
+    {status === "paused" && <p className="text-sm text-muted-foreground">This campaign is read-only while paused. Resume it before making content changes.</p>}
+    {status === "completed" && <p className="text-sm text-muted-foreground">Completed campaigns are read-only.</p>}
+    {status === "active" && <p className="text-sm text-muted-foreground">Published campaigns cannot be deleted or paused from this page. A pause requires a protected review; <Link to="/help" className="underline">get help</Link>.</p>}
   </main>;
 }

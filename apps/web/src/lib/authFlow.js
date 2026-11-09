@@ -1,7 +1,27 @@
 import { safeReturnTo } from "./safeReturnTo.js";
 
+export function hasAuthCallbackCredentials(href) {
+  const url = new URL(href);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  return (
+    url.searchParams.has("code") ||
+    url.searchParams.has("token_hash") ||
+    url.searchParams.has("error") ||
+    fragment.has("access_token") ||
+    fragment.has("refresh_token") ||
+    fragment.has("error")
+  );
+}
+
 export function confirmedUser(user) {
   return Boolean(user?.id && user?.email_confirmed_at);
+}
+
+export function canonicalAuthOrigin(origin) {
+  const base = new URL(origin);
+  if (base.hostname.toLowerCase() === "www.interplanetaryfund.com")
+    base.hostname = "interplanetaryfund.com";
+  return base.origin;
 }
 
 export function authRedirectUrl(
@@ -9,10 +29,13 @@ export function authRedirectUrl(
   returnTo = "/dashboard",
   recovery = false,
 ) {
-  const url = new URL(recovery ? "/reset-password" : "/auth/callback", origin);
+  const url = new URL(
+    recovery ? "/reset-password" : "/auth/callback",
+    canonicalAuthOrigin(origin),
+  );
   if (url.protocol !== "https:" && url.hostname !== "localhost")
     throw new Error("Secure sign-in is unavailable.");
-  if (!recovery) url.searchParams.set("returnTo", safeReturnTo(returnTo));
+  url.searchParams.set("returnTo", safeReturnTo(returnTo));
   return url.toString();
 }
 
@@ -36,7 +59,7 @@ export function legacyAuthCallbackUrl(href) {
     url.searchParams.has("error") ||
     fragment.has("error");
   if (!hasCredentials) return null;
-  const target = new URL("/auth/callback", url.origin);
+  const target = new URL("/auth/callback", canonicalAuthOrigin(url.origin));
   for (const key of ["code", "token_hash", "type", "error"])
     if (url.searchParams.has(key))
       target.searchParams.set(key, url.searchParams.get(key));

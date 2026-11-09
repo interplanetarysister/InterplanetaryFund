@@ -47,7 +47,8 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
       table = 'ifund_profiles';
       query = new URLSearchParams({
         select: profileSelect,
-        ...(isWrite ? { on_conflict: 'id' } : { id: 'eq.' + account.uid, limit: '1' }),
+        id: 'eq.' + account.uid,
+        limit: '1',
       });
       if (isWrite) {
         if (!/^application\/json(?:\s*;|\s*$)/i.test(request.headers.get('content-type') || '')) {
@@ -64,7 +65,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
         if (fields.length === 0 || fields.some((name) => !['handle', 'display_name'].includes(name))) {
           return response(422, { error: 'Invalid profile fields.' });
         }
-        const updated = { id: account.uid };
+        const updated = {};
         if (Object.hasOwn(input, 'handle')) {
           if (typeof input.handle !== 'string' ||
             !/^[A-Za-z0-9_-]{3,32}$/.test(input.handle)) {
@@ -80,7 +81,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
         }
         body = JSON.stringify(updated);
         headers['Content-Type'] = 'application/json';
-        headers.Prefer = 'resolution=merge-duplicates,return=representation';
+        headers.Prefer = 'return=representation';
       }
     } else {
       table = 'ifund_connections';
@@ -92,7 +93,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
       });
     }
     const result = await fetcher(env.SUPABASE_URL + '/rest/v1/' + table + '?' + query, {
-      method: isWrite ? 'POST' : 'GET',
+      method: isWrite ? 'PATCH' : 'GET',
       headers,
       ...(body ? { body } : {}),
     });

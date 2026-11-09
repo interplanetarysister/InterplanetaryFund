@@ -1,0 +1,65 @@
+name: IFund sequential preview verification
+
+on:
+  push:
+    branches:
+      - feature/managed-connections-agent-20261105
+    paths:
+      - "worker/**"
+      - "tests/**"
+      - "apps/web/**"
+      - "supabase/migrations/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ifund-sequential-preview-checks.yml"
+  pull_request:
+    branches:
+      - feature/communications-agent-20261104
+    paths:
+      - "worker/**"
+      - "tests/**"
+      - "apps/web/**"
+      - "supabase/migrations/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/ifund-sequential-preview-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  root-runtime:
+    name: Root Worker, database-contract and migration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+
+  web-preview:
+    name: Canonical apps/web tests and production bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+        working-directory: apps/web
+      - run: npm test
+        working-directory: apps/web
+      - run: npm run build
+        working-directory: apps/web

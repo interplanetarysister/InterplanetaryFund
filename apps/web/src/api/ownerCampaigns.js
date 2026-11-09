@@ -9,14 +9,15 @@
 // directly by node:test, matching src/lib/inbox.js and src/lib/followedCampaigns.js.
 import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
-import { CAMPAIGN_STATUSES, canTransition, buildCampaignPayload, publishReadiness } from "../lib/campaignLifecycle.js";
+import { CAMPAIGN_STATUSES, canTransition, buildCampaignPayload, publishReadiness, validateCampaignForm } from "../lib/campaignLifecycle.js";
+import { TERMS_VERSION } from "../lib/legalPolicy.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Only columns already used by other owner reads in this app, so a deployment
 // missing a newer column cannot break the management page.
 export const OWNER_CAMPAIGN_COLUMNS =
-  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,updated_at";
 
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
@@ -45,10 +46,26 @@ async function assertSessionUnchanged(client, owner) {
   }
 }
 
+async function assertCurrentTerms(client, owner) {
+  const { data, error } = await client.from("ifund_legal_acceptances")
+    .select("owner_id,terms_version,explicit_consent")
+    .eq("owner_id", owner)
+    .eq("terms_version", TERMS_VERSION)
+    .maybeSingle();
+  if (
+    error ||
+    data?.owner_id !== owner ||
+    data?.terms_version !== TERMS_VERSION ||
+    data?.explicit_consent !== true
+  ) {
+    throw new Error("Review and accept the current member agreement before saving or publishing.");
+  }
+}
+
 // A read -> check -> update sequence is not atomic: another tab or browser can
-// change the row between the read and the write. Every mutation therefore
-// carries the status it validated as a compare-and-swap condition, so a stale
-// operation matches no row and fails closed instead of overwriting newer state.
+// change the row between the read and the write. Every mutation carries both
+// the validated status and updated_at revision as compare-and-swap conditions,
+// so even a same-status content edit makes an older operation match no row.
 export const CAMPAIGN_CONFLICT_MESSAGE =
   "This campaign changed in another session. Reload before making changes.";
 
@@ -109,11 +126,17 @@ export async function loadOwnerCampaign(client, id) {
 /**
  * Create a new campaign (id === null) or update an existing one.
  * `status` must be a valid lifecycle value and reachable from the stored state.
+ * `expectedStatus` optionally pins the state the caller edited, so the creator
+ * cannot overwrite a campaign another session has already published or paused.
  */
-export async function saveOwnerCampaign(client, form, { id = null, status = "draft" } = {}) {
+export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus, expectedUpdatedAt } = {}) {
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid campaign reference.");
+  if (expectedStatus !== undefined && !CAMPAIGN_STATUSES.includes(expectedStatus)) throw new Error("Invalid expected campaign status.");
   const owner = await verifiedOwner(client);
+  await assertCurrentTerms(client, owner);
+  const problems = validateCampaignForm(form, { publish: status === "active" });
+  if (problems.length) throw new Error(problems[0]);
   const payload = buildCampaignPayload(form, status);
 
   if (id === null) {
@@ -124,18 +147,24 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
       .single();
     if (error || !data) throw new Error("Your campaign was not saved.");
     const created = assertOwned(data, owner);
+    if (created.status !== status) throw new Error("The campaign's saved status could not be confirmed. Check My campaigns before trying again.");
     await assertSessionUnchanged(client, owner);
     return created;
   }
 
   const { data: existing, error: readError } = await client.from("ifund_campaigns")
-    .select("id,owner_id,status")
+    .select("id,owner_id,status,updated_at")
     .eq("id", id)
     .eq("owner_id", owner)
     .maybeSingle();
   if (readError || !existing || existing.owner_id !== owner) {
     throw new Error("That campaign was not found for your account.");
   }
+  if (
+    !existing.updated_at ||
+    (expectedStatus !== undefined && existing.status !== expectedStatus) ||
+    (expectedUpdatedAt !== undefined && existing.updated_at !== expectedUpdatedAt)
+  ) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
   }
@@ -146,6 +175,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
     .eq("id", id)
     .eq("owner_id", owner)
     .eq("status", existing.status)
+    .eq("updated_at", existing.updated_at)
     .select(OWNER_CAMPAIGN_COLUMNS)
     .maybeSingle();
   const updated = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "Your campaign changes were not saved." });
@@ -158,6 +188,7 @@ export async function setCampaignStatus(client, id, status) {
   if (!UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   const owner = await verifiedOwner(client);
+  if (status === "active") await assertCurrentTerms(client, owner);
   const { data: existing, error: readError } = await client.from("ifund_campaigns")
     .select(OWNER_CAMPAIGN_COLUMNS)
     .eq("id", id)
@@ -165,7 +196,11 @@ export async function setCampaignStatus(client, id, status) {
     .maybeSingle();
   if (readError || !existing) throw new Error("That campaign was not found for your account.");
   const current = assertOwned(existing, owner, id);
-  if (current.status === status) return current;
+  if (!current.updated_at) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
+  if (current.status === status) {
+    await assertSessionUnchanged(client, owner);
+    return current;
+  }
   if (!canTransition(current.status, status)) {
     throw new Error(`A ${current.status} campaign cannot be set to ${status}.`);
   }
@@ -180,6 +215,7 @@ export async function setCampaignStatus(client, id, status) {
     .eq("id", id)
     .eq("owner_id", owner)
     .eq("status", current.status)
+    .eq("updated_at", current.updated_at)
     .select(OWNER_CAMPAIGN_COLUMNS)
     .maybeSingle();
   const saved = confirmedWrite({ data, error }, { owner, id, expectedStatus: status, failureMessage: "The campaign status change was not saved." });

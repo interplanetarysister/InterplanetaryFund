@@ -5,12 +5,27 @@ const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.
 test("draft links reopen and update the owned draft",()=>{
  assert.match(source,/useSearchParams/);
  assert.match(source,/params\.get\("draft"\)/);
- assert.match(source,/\.eq\("owner_id",user\.id\)/);
- assert.match(source,/\.eq\("status","draft"\)/);
- assert.match(source,/\.update\(values\)/);
- assert.match(source,/\.insert\(\{ \.\.\.values, owner_id: user\.id \}\)/);
+ assert.match(source,/loadOwnerCampaign\(authClient\(\), draftId\)/);
+ assert.match(source,/data\.status !== "draft"/);
+ assert.match(source,/saveOwnerCampaign\(client, form, \{/);
+ assert.match(source,/expectedStatus: campaignId\.current \? "draft" : undefined/);
+ assert.match(source,/expectedUpdatedAt: campaignId\.current \? revision : undefined/);
+ assert.doesNotMatch(source,/\.from\("ifund_campaigns"\)/);
 });
-test("draft save never publishes or charges donors",()=>{
- assert.match(source,/status: "draft"/);
- assert.doesNotMatch(source,/status: "active"|paypal\.capture|stripe/);
+test("form submission saves privately and publishing requires a separate explicit action",()=>{
+ assert.match(source,/onSubmit=\{event => \{ event\.preventDefault\(\); save\("draft"\); \}\}/);
+ assert.match(source,/<button type="button" onClick=\{\(\) => save\("active"\)\}/);
+ assert.match(source,/saveLock\.current/);
+ assert.doesNotMatch(source,/paypal\.capture|stripe/);
+});
+
+test("profile and onboarding updates only owner-editable columns",()=>{
+ const profile=readFileSync(new URL("../src/pages/Profile.jsx",import.meta.url),"utf8");
+ const onboarding=readFileSync(new URL("../src/pages/Onboarding.jsx",import.meta.url),"utf8");
+ for(const page of [profile,onboarding]){
+  assert.match(page,/\.from\("ifund_profiles"\)\.update\(/);
+  assert.match(page,/\.eq\("id",\s*user\.id\)/);
+  assert.doesNotMatch(page,/\.from\("ifund_profiles"\)\.upsert\(/);
+ }
+ assert.match(profile,/maxLength=\{80\} value=\{profile\.display_name\}/);
 });
