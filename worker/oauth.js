@@ -285,7 +285,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
   if (config.tokenAuth === 'tiktok') {
     form.set('client_key', config.clientId);
     form.set('client_secret', config.clientSecret);
-  } else {
+  } else if (config.tokenAuth !== 'basic') {
     form.set('client_id', config.clientId);
     if (config.tokenAuth === 'body' || config.tokenAuth === 'query') {
       form.set('client_secret', config.clientSecret);
@@ -420,7 +420,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     if (config.tokenAuth === 'tiktok') {
       form.set('client_key', config.clientId);
       form.set('client_secret', config.clientSecret);
-    } else {
+    } else if (config.tokenAuth !== 'basic') {
       form.set('client_id', config.clientId);
       if (config.tokenAuth === 'body' || config.tokenAuth === 'query') {
         form.set('client_secret', config.clientSecret);
