@@ -35,17 +35,17 @@ function provider(overrides = {}) {
     calls,
     fetch: async (url, options) => {
       calls.push({ url, body: options.body ? JSON.parse(options.body) : null });
-      return Response.json(
-        url.endsWith("/auth/v1/user")
-          ? { id: uid, email_confirmed_at: "2026-01-01" }
-          : overrides.response || {
+      const payload = url.endsWith("/auth/v1/user")
+        ? { id: uid, email_confirmed_at: "2026-01-01" }
+        : url.endsWith("/rpc/ifund_story_subscription")
+          ? (overrides.subscription || { active: true, level: 2 })
+          : (overrides.response || {
               managed_available: true,
               connections: [],
               permissions: [],
               requests: [],
-            },
-        { status: overrides.status || 200 },
-      );
+            });
+      return Response.json(payload, { status: overrides.status || 200 });
     },
   };
 }
@@ -156,7 +156,7 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     p.fetch,
   );
   assert.equal(r.status, 200);
-  assert.deepEqual(p.calls[1].body, permissionInput(grant));
+  assert.deepEqual(p.calls[2].body, permissionInput(grant));
   const q = provider({
     response: { request: { id: revision, state: "setup_required" } },
   });
@@ -170,9 +170,9 @@ test("owner actions map only accepted fields into UID-derived backend contracts"
     q.fetch,
   );
   assert.equal(r.status, 200);
-  assert.equal(q.calls[1].body.p_provider, "discord");
-  assert.equal(q.calls[1].body.p_campaign_id, null);
-  assert.ok(!("p_owner_id" in q.calls[1].body));
+  assert.equal(q.calls[2].body.p_provider, "discord");
+  assert.equal(q.calls[2].body.p_campaign_id, null);
+  assert.ok(!("p_owner_id" in q.calls[2].body));
 });
 test("invalid or oversized commands never reach an action RPC and backend denial is preserved", async () => {
   const p = provider();
@@ -190,7 +190,9 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     400,
   );
-  assert.equal(p.calls.length, 1);
+  assert.equal(p.calls.length, 2);
+  assert.ok(p.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
+  assert.ok(!p.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_request_action")));
   const big = provider();
   assert.equal(
     (
@@ -202,7 +204,9 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     ).status,
     413,
   );
-  assert.equal(big.calls.length, 1);
+  assert.equal(big.calls.length, 2);
+  assert.ok(big.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
+  assert.ok(!big.calls.some((call) => call.url.endsWith("/rpc/ifund_connections_grant_help")));
   const denied = async (url) =>
     url.endsWith("/auth/v1/user")
       ? Response.json({ id: uid, email_confirmed_at: "yes" })
@@ -211,6 +215,34 @@ test("invalid or oversized commands never reach an action RPC and backend denial
     (await handleManagedConnections(http(), env, denied)).status,
     403,
   );
+});
+
+test("expired plan can still read connection workspace but cannot request new managed help", async () => {
+  const workspaceProvider = provider({
+    subscription: { active: false, level: 0 },
+  });
+  const workspace = await handleManagedConnections(
+    http("workspace"),
+    env,
+    workspaceProvider.fetch,
+  );
+  assert.equal(workspace.status, 200);
+
+  const requestProvider = provider({
+    subscription: { active: false, level: 0 },
+  });
+  const request = await handleManagedConnections(
+    http("requests", {
+      operation_id: uid,
+      provider: "discord",
+      action: "connect",
+    }),
+    env,
+    requestProvider.fetch,
+  );
+  assert.equal(request.status, 403);
+  assert.equal(requestProvider.calls.length, 2);
+  assert.ok(requestProvider.calls[1].url.endsWith("/rpc/ifund_story_subscription"));
 });
 test("worker rejects foreign routes/methods and never leaks upstream errors or raw provider state", async () => {
   const p = provider();
