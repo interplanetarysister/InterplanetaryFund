@@ -12,6 +12,7 @@ import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
+const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
@@ -77,6 +78,7 @@ function AppRoutes() {
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
+    <Route path="/hackathon" element={<HackathonDemo />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
