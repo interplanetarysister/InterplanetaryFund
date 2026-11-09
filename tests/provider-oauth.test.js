@@ -478,6 +478,123 @@ test('refresh rejects a saved connection without a refresh token without contact
   assert.equal(r.status, 409);
 });
 
+test('X confidential OAuth code exchange uses Basic auth without duplicate client_id', async () => {
+  const xEnv = {
+    ...env,
+    X_OAUTH_USER_ENABLED: 'true',
+    X_OAUTH_CLIENT_ID: 'x-client-id',
+    X_OAUTH_CLIENT_SECRET: 'x-client-secret',
+  };
+  const state = 'x-state-token';
+  const verifier = 'x-pkce-verifier';
+  const tx = {
+    state_hash: await hash(state),
+    owner_id: uid,
+    provider: 'x',
+    verifier_ciphertext: await encryptOAuthValue({ verifier }, xEnv),
+    redirect_uri: base + '/oauth/callback/x',
+  };
+  const fetcher = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
+    if (target === 'https://api.x.com/2/oauth2/token') {
+      const form = new URLSearchParams(options.body);
+      assert.equal(form.get('grant_type'), 'authorization_code');
+      assert.equal(form.get('code_verifier'), verifier);
+      assert.equal(form.get('client_id'), null);
+      assert.equal(options.headers.authorization, 'Basic ' + btoa('x-client-id:x-client-secret'));
+      return Response.json({
+        access_token: 'x-access-token',
+        refresh_token: 'x-refresh-token',
+        token_type: 'bearer',
+        expires_in: 7200,
+        scope: 'users.read tweet.read offline.access',
+      });
+    }
+    if (target === 'https://api.x.com/2/users/me?user.fields=id,name,username') {
+      assert.equal(options.headers.authorization, 'Bearer x-access-token');
+      return Response.json({ data: { id: 'x-user-1', name: 'IFund', username: 'ifund' } });
+    }
+    if (target.includes('/ifund_provider_tokens?')) return Response.json([]);
+    if (target.includes('/rpc/ifund_store_provider_connection')) {
+      const body = JSON.parse(options.body);
+      assert.equal(body.p_provider, 'x');
+      assert.equal(body.p_provider_subject, 'x-user-1');
+      assert.deepEqual(body.p_granted_scopes, ['users.read', 'tweet.read', 'offline.access']);
+      assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /x-access-token|x-refresh-token/);
+      return new Response(null, { status: 204 });
+    }
+    throw Error('unexpected fetch: ' + target);
+  };
+  const request = new Request(base + '/api/oauth/x/callback', {
+    method: 'POST',
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'x-code', state, redirect_uri: tx.redirect_uri }),
+  });
+  const r = await routeOAuthRequest(request, xEnv, fetcher);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).status, 'connected');
+});
+
+test('X confidential refresh uses Basic auth without duplicate client_id', async () => {
+  const xEnv = {
+    ...env,
+    X_OAUTH_USER_ENABLED: 'true',
+    X_OAUTH_CLIENT_ID: 'x-client-id',
+    X_OAUTH_CLIENT_SECRET: 'x-client-secret',
+  };
+  const stored = await encryptOAuthValue({
+    access_token: 'old-x-access-token',
+    refresh_token: 'x-refresh-token',
+    scope: 'users.read tweet.read offline.access',
+  }, xEnv);
+  const fetcher = async (url, options = {}) => {
+    const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.includes('/rest/v1/ifund_provider_tokens?')) {
+      return Response.json([{
+        provider_subject: 'x-user-1',
+        token_ciphertext: stored,
+        granted_scopes: ['users.read', 'tweet.read', 'offline.access'],
+      }]);
+    }
+    if (target === 'https://api.x.com/2/oauth2/token') {
+      const form = new URLSearchParams(options.body);
+      assert.equal(form.get('grant_type'), 'refresh_token');
+      assert.equal(form.get('refresh_token'), 'x-refresh-token');
+      assert.equal(form.get('client_id'), null);
+      assert.equal(options.headers.authorization, 'Basic ' + btoa('x-client-id:x-client-secret'));
+      return Response.json({
+        access_token: 'new-x-access-token',
+        refresh_token: 'rotated-x-refresh-token',
+        token_type: 'bearer',
+        expires_in: 7200,
+        scope: 'users.read tweet.read offline.access',
+      });
+    }
+    if (target === 'https://api.x.com/2/users/me?user.fields=id,name,username') {
+      assert.equal(options.headers.authorization, 'Bearer new-x-access-token');
+      return Response.json({ data: { id: 'x-user-1', name: 'IFund', username: 'ifund' } });
+    }
+    if (target.includes('/rpc/ifund_store_provider_connection')) {
+      const body = JSON.parse(options.body);
+      assert.equal(body.p_provider_subject, 'x-user-1');
+      assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /new-x-access-token|rotated-x-refresh-token/);
+      return new Response(null, { status: 204 });
+    }
+    throw Error('unexpected fetch: ' + target);
+  };
+  const request = new Request(base + '/api/oauth/x/refresh', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+  });
+  const r = await routeOAuthRequest(request, xEnv, fetcher);
+  assert.equal(r.status, 200);
+  const payload = await r.json();
+  assert.equal(payload.refreshed, true);
+  assert.equal(payload.provider, 'x');
+});
+
 test('callback rejects replayed or mismatched state without exchanging a code', async () => {
   let tokenCalls = 0;
   const request = new Request(base + '/api/oauth/google/callback', {
