@@ -85,3 +85,26 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
 export function forgetBrowserCampaign(storage) {
   storage.removeItem(KEY);
 }
+
+// UI progress is session-only; this is not campaign persistence. Bind saved
+// context to both the owner and campaign so private briefs cannot cross drafts.
+const WIZARD_KEY = "ifund-campaign-wizard-v1";
+export function restoreCampaignWizard(storage, ownerId, campaignId = null) {
+  const empty = { step: 0, brief: emptyWritingBrief() };
+  let record;
+  try { record = JSON.parse(storage.getItem(WIZARD_KEY)); } catch { return empty; }
+  if (record?.version !== 1 || record.campaign_id !== campaignId) return empty;
+  if (record.owner_id !== ownerId && !(record.owner_id === null && campaignId === null)) return empty;
+  return {
+    step: Number.isInteger(record.step) && record.step >= 0 && record.step <= 3 ? record.step : 0,
+    brief: writingBrief(record.brief),
+  };
+}
+
+export function rememberCampaignWizard(storage, ownerId, campaignId, step, brief) {
+  storage.setItem(WIZARD_KEY, JSON.stringify({
+    version: 1, owner_id: ownerId, campaign_id: campaignId,
+    step: Number.isInteger(step) && step >= 0 && step <= 3 ? step : 0,
+    brief: writingBrief(brief),
+  }));
+}

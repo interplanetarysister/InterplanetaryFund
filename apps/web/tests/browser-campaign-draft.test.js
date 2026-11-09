@@ -86,3 +86,19 @@ test("writing brief follows the same guest handoff and identity boundary without
     /never-store|request_id|access_token/,
   );
 });
+
+test("wizard progress follows guest handoff but saved briefs require the same owner and exact campaign", async () => {
+  const { restoreCampaignWizard, rememberCampaignWizard } = await import("../src/lib/browserCampaignDraft.js");
+  const storage = store();
+  const brief = { ...emptyWritingBrief(), details: "Private campaign facts", token: "never-store" };
+  rememberCampaignWizard(storage, null, null, 2, brief);
+  assert.equal(restoreCampaignWizard(storage, A).step, 2);
+  rememberCampaignWizard(storage, A, "campaign-one", 3, brief);
+  assert.equal(restoreCampaignWizard(storage, A, "campaign-one").brief.details, brief.details);
+  for (const [owner, campaign] of [[B, "campaign-one"], [null, "campaign-one"], [A, "campaign-two"], [A, null]]) {
+    assert.deepEqual(restoreCampaignWizard(storage, owner, campaign), { step: 0, brief: emptyWritingBrief() });
+  }
+  assert.doesNotMatch(storage.getItem("ifund-campaign-wizard-v1"), /never-store|token/);
+  rememberCampaignWizard(storage, A, null, 99, brief);
+  assert.equal(restoreCampaignWizard(storage, A).step, 0);
+});

@@ -17,8 +17,9 @@ const session = { access_token: testToken(OWNER), refresh_token: "local-test-onl
 const fixture = () => ({ id: ID, owner_id: OWNER, title: "Synthetic community garden", summary: "A garden for our neighborhood.", story: "We will purchase tools and seeds for the shared garden.", category: "community", goal_amount: 250, cover_image_url: "", status: "draft", created_at: "2026-11-01T00:00:00Z" });
 const browser = await chromium.launch({ executablePath: process.env.IFUND_CHROMIUM_PATH || "/usr/bin/chromium", headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
 const results = [];
+const screenshotDirectory = process.env.IFUND_SCREENSHOT_DIR;
 async function scenario(name, test, options = {}) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const context = await browser.newContext({ viewport: options.viewport || { width: 390, height: 844 }, serviceWorkers: "block" });
   const state = { authenticated: true, identity: OWNER, accepted: true, active: true, rows: [], writes: [], errors: [], writingLevel: 1, writingCalls: [], nativeWritingCalls: [], ...options };
   await context.addInitScript(({ storageKey, session, signedIn }) => { if (signedIn) localStorage.setItem(storageKey, JSON.stringify(session)); }, { storageKey, session, signedIn: state.authenticated });
   await context.route("**/*", async route => {
@@ -44,7 +45,7 @@ async function scenario(name, test, options = {}) {
       });
       return route.fulfill({ status: response.status, headers: Object.fromEntries(response.headers), body: await response.text() });
     }
-    if (url.origin === new URL(origin).origin) return route.continue();
+    if (url.origin === new URL(origin).origin) return url.pathname.startsWith("/api/") ? route.abort() : route.continue();
     if (url.hostname !== "ssibsfmtodgximseeqsv.supabase.co") return route.abort();
     const method = request.method();
     const json = (data, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data), headers: { "access-control-allow-origin": "*" } });
@@ -95,24 +96,51 @@ async function scenario(name, test, options = {}) {
     console.log("FAIL: " + name + " — " + error.message);
   } finally { await context.close(); }
 }
+async function toStep(page, target) {
+  const indicator = page.getByRole("list", { name: /Campaign setup: step/ });
+  await indicator.waitFor();
+  let current = Number((await indicator.getAttribute("aria-label")).match(/step (\d)/)[1]) - 1;
+  while (current !== target) {
+    if (current < target) {
+      if (current === 1 && !(await page.getByLabel("Fundraising goal (USD)", { exact: true }).inputValue()))
+        await page.getByLabel("Fundraising goal (USD)", { exact: true }).fill("250");
+      await page.getByRole("button", { name: "Continue", exact: true }).click();
+      current++;
+    } else {
+      await page.locator("main.campaign-quest").getByRole("button", { name: "Back", exact: true }).click();
+      current--;
+    }
+    await page.getByRole("list", { name: `Campaign setup: step ${current + 1} of 4`, exact: true }).waitFor();
+  }
+}
 async function complete(page) {
+  await toStep(page, 2);
   await page.getByLabel("Campaign title", { exact: true }).fill("Synthetic community garden");
+  await toStep(page, 2);
   await page.getByLabel("Short description").fill("A garden for our neighborhood.");
+  await toStep(page, 2);
   await page.getByLabel("Your story").fill("We will purchase tools and seeds for the shared garden.");
+  await toStep(page, 1);
   await page.getByLabel("Fundraising goal (USD)", { exact: true }).fill("250");
+  await toStep(page, 3);
   await page.getByRole("button", { name: "Publish campaign", exact: true }).waitFor();
 }
 async function doublePublish(page) {
+  await toStep(page, 3);
   await page.getByRole("button", { name: "Publish campaign", exact: true }).evaluate(button => { button.click(); button.click(); });
   await page.waitForURL(`**/campaign/${ID}`);
 }
 try {
-  await scenario("Enter saves a private draft; explicit publish updates the same campaign once", async (page, state) => {
+  await scenario("A partial private draft saves; explicit publish updates the same campaign once", async (page, state) => {
     await page.goto(origin + "/create");
     await page.getByRole("button", { name: "Save private draft", exact: true }).waitFor();
-    assert.equal(await page.getByRole("button", { name: "Publish campaign", exact: true }).isEnabled(), false);
+    assert.equal(await page.getByRole("button", { name: "Publish campaign", exact: true }).count(), 0);
+  await toStep(page, 2);
     await page.getByLabel("Campaign title", { exact: true }).fill("Synthetic community garden");
-    await page.getByLabel("Campaign title", { exact: true }).press("Enter");
+  await toStep(page, 2);
+    await toStep(page, 1);
+    await page.getByLabel("Fundraising goal (USD)").fill("");
+    await page.getByRole("button", { name: "Save private draft", exact: true }).click();
     await page.waitForURL(`**/create?draft=${ID}`);
     await page.getByText("Private draft saved.", { exact: false }).waitFor();
     assert.equal(state.rows[0].status, "draft");
@@ -141,8 +169,9 @@ try {
   });
   await scenario("A failed publish preserves the owner draft and current text", async (page, state) => {
     await page.goto(origin + `/create?draft=${ID}`);
-    await page.getByRole("button", { name: "Publish campaign", exact: true }).waitFor();
+    await toStep(page, 2);
     await page.getByLabel("Your story").fill("Reviewed text kept after the synthetic write failure.");
+  await toStep(page, 3);
     await page.getByRole("button", { name: "Publish campaign", exact: true }).click();
     await page.getByRole("alert").filter({ hasText: "not saved" }).waitFor();
     assert.equal(await page.getByLabel("Your story").inputValue(), "Reviewed text kept after the synthetic write failure.");
@@ -153,6 +182,7 @@ try {
     await page.goto(origin + `/create?draft=${ID}`);
     await page.getByText("Private draft saved.", { exact: false }).waitFor();
     state.rows[0].status = "paused";
+  await toStep(page, 3);
     await page.getByRole("button", { name: "Publish campaign", exact: true }).click();
     await page.getByRole("alert").filter({ hasText: "changed in another session" }).first().waitFor();
     assert.equal(state.writes.length, 0);
@@ -160,7 +190,9 @@ try {
   }, { rows: [fixture()] });
   await scenario("Guest text survives sign-in routing; returning never automatically publishes", async (page, state) => {
     await page.goto(origin + "/create");
+  await toStep(page, 2);
     await page.getByLabel("Campaign title", { exact: true }).fill("Guest draft survives");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("Guest facts for a neighborhood garden survive sign-in.");
     await page.getByRole("radio", { name: "My community", exact: true }).check();
     await page.getByRole("region", { name: "Save or publish campaign" }).getByRole("link", { name: "Sign in", exact: true }).click();
@@ -178,6 +210,7 @@ try {
     await page.goto(origin + "/create");
     await page.getByRole("heading", { name: "Review the member agreement" }).waitFor();
     assert.equal(await page.locator("form form").count(), 0);
+  await toStep(page, 2);
     await page.getByLabel("Campaign title", { exact: true }).fill("Agreement required");
     await page.locator("#campaign-editor").evaluate(form => form.requestSubmit());
     await page.getByRole("alert").filter({ hasText: "member agreement" }).waitFor();
@@ -198,7 +231,9 @@ try {
   await scenario("Account switches and sign-out clear unsaved member text and assistant context", async (page, state) => {
     await page.goto(origin + "/create");
     await page.getByRole("button", { name: "Save private draft", exact: true }).waitFor();
+  await toStep(page, 2);
     await page.getByLabel("Campaign title", { exact: true }).fill("Private owner A text");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("Private owner A assistant context.");
     assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), OWNER);
     state.identity = OTHER;
@@ -207,9 +242,10 @@ try {
       const { error } = await authClient().auth.setSession({ access_token: token, refresh_token: "local-test-only" });
       if (error) throw error;
     }, testToken(OTHER));
-    await page.waitForFunction(() => document.querySelector("#campaign-editor input")?.value === "");
+    await page.waitForFunction(() => document.querySelector("input[maxlength=\"150\"]")?.value === "");
     assert.equal(await page.getByLabel("What is your fundraiser about?").inputValue(), "");
     assert.equal(await page.getByText("Private owner A text", { exact: true }).count(), 0);
+  await toStep(page, 2);
     await page.getByLabel("Campaign title", { exact: true }).fill("Private owner B text");
     assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), OTHER);
     state.authenticated = false;
@@ -218,17 +254,22 @@ try {
       const { error } = await authClient().auth.signOut({ scope: "local" });
       if (error) throw error;
     });
-    await page.waitForFunction(() => document.querySelector("#campaign-editor input")?.value === "");
+    await page.waitForFunction(() => document.querySelector("input[maxlength=\"150\"]")?.value === "");
     assert.equal(await page.evaluate(() => JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1")).owner_id), null);
     assert.equal(state.writes.length, 0);
   });
   await scenario("The creator requests writing without choosing a model and publishes only applied content", async (page, state) => {
     await page.goto(origin + "/create");
     await page.getByRole("button", { name: "Save private draft", exact: true }).waitFor();
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("A neighborhood garden needs tools and seeds for the community.");
+  await toStep(page, 0);
     await page.getByLabel("Who benefits? (optional)").fill("Our neighbors");
+  await toStep(page, 0);
     await page.getByLabel("What is needed? (optional)").fill("Tools and seeds");
+    await toStep(page, 1);
     await page.getByLabel("Fundraising goal (USD)").fill("250");
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).evaluate(button => { button.click(); button.click(); });
     await page.getByRole("region", { name: "Campaign ideas", exact: true }).waitFor();
     assert.equal(state.nativeWritingCalls.length, 1);
@@ -244,7 +285,9 @@ try {
   });
   await scenario("The free basic outline is labeled accurately and never calls native execution", async (page, state) => {
     await page.goto(origin + "/create");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("A local animal rescue needs equipment for the animals.");
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByText("A basic outline is ready", { exact: false }).waitFor();
     assert.equal(state.nativeWritingCalls.length, 0);
@@ -253,10 +296,13 @@ try {
   }, { writingLevel: 0 });
   await scenario("Queued writing resumes the same request and does not invent completed suggestions", async (page, state) => {
     await page.goto(origin + "/create");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("A neighborhood garden needs tools and seeds for the community.");
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByRole("link", { name: "View saved writing requests", exact: true }).waitFor();
     assert.equal(await page.getByRole("region", { name: "Campaign ideas", exact: true }).count(), 0);
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByRole("region", { name: "Campaign ideas", exact: true }).waitFor();
     assert.equal(state.writingCalls.length, 2);
@@ -264,7 +310,9 @@ try {
   }, { queueFirst: true });
   await scenario("A rewrite keeps the full replacement and all other story sections", async (page, state) => {
     await page.goto(origin + "/create");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("A neighborhood garden needs tools and seeds for the community.");
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByRole("region", { name: "Campaign ideas", exact: true }).waitFor();
     await page.getByRole("button", { name: "Regenerate this section", exact: true }).first().click();
@@ -277,12 +325,15 @@ try {
   });
   await scenario("A writing failure retains previously completed suggestions and the owner's form text", async (page, state) => {
     await page.goto(origin + "/create");
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("A neighborhood garden needs tools and seeds for the community.");
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByRole("region", { name: "Campaign ideas", exact: true }).waitFor();
     await page.getByRole("button", { name: "Use story", exact: true }).click();
     const original = await page.getByLabel("Your story").inputValue();
     state.writingFailure = true;
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await page.getByRole("alert").filter({ hasText: "temporarily unavailable" }).waitFor();
     assert.equal(await page.getByLabel("Your story").inputValue(), original);
@@ -292,9 +343,11 @@ try {
   await scenario("A response arriving after an account switch cannot populate the next owner's editor", async (page, state) => {
     await page.goto(origin + "/create");
     await page.getByRole("button", { name: "Save private draft", exact: true }).waitFor();
+  await toStep(page, 0);
     await page.getByLabel("What is your fundraiser about?").fill("Private owner A facts for a neighborhood garden.");
     const outgoing = page.waitForRequest(request => new URL(request.url()).pathname.endsWith("/campaign-preview"));
     const finished = page.waitForResponse(response => new URL(response.url()).pathname.endsWith("/campaign-preview"));
+    await toStep(page, 2);
     await page.getByRole("button", { name: "Generate campaign ideas", exact: true }).click();
     await outgoing;
     state.identity = OTHER;
@@ -310,6 +363,48 @@ try {
     assert.equal(await page.getByRole("region", { name: "Campaign ideas", exact: true }).count(), 0);
     assert.equal(state.writes.length, 0);
   }, { writingDelay: 500 });
+  await scenario("Four steps gate forward navigation, focus headings and preserve progress on reload", async (page, state) => {
+    await page.goto(origin + "/create");
+    await page.getByRole("heading", { name: "Tell us what matters" }).waitFor();
+    if (screenshotDirectory) await page.screenshot({ path: `${screenshotDirectory}/details-mobile.png`, fullPage: true });
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    assert.equal(await page.getByRole("button", { name: "Continue", exact: true }).isEnabled(), false);
+    await page.getByLabel("Fundraising goal (USD)").fill("1.001");
+    assert.equal(await page.getByRole("button", { name: "Continue", exact: true }).isEnabled(), false);
+    await page.getByLabel("Fundraising goal (USD)").fill("500");
+    assert.equal(await page.locator("select option").count(), 11);
+    if (screenshotDirectory) await page.screenshot({ path: `${screenshotDirectory}/basics-mobile.png`, fullPage: true });
+    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    assert.equal(await page.getByRole("heading", { name: "Choose your words and story" }).evaluate(e => e === document.activeElement), true);
+    assert.equal(await page.getByRole("button", { name: "Continue", exact: true }).isEnabled(), false);
+    await page.getByLabel("Campaign title", { exact: true }).fill("Review only synthetic campaign");
+    if (screenshotDirectory) await page.screenshot({ path: `${screenshotDirectory}/story-mobile.png`, fullPage: true });
+    await toStep(page, 3);
+    assert.equal(await page.getByRole("button", { name: "Publish campaign", exact: true }).isEnabled(), false);
+    await page.getByText("Add a short description before publishing.", { exact: true }).waitFor();
+    if (screenshotDirectory) await page.screenshot({ path: `${screenshotDirectory}/launch-mobile.png`, fullPage: true });
+    await page.reload();
+    await page.getByRole("heading", { name: "Review & launch" }).waitFor();
+    assert.equal(state.writes.length, 0);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.getByRole("button", { name: "Edit your story", exact: true }).click();
+    await page.getByLabel("Campaign title", { exact: true }).press("Enter");
+    await page.waitForURL(`**/create?draft=${ID}`);
+    await page.getByText("Private draft saved.", { exact: false }).waitFor();
+    await page.getByRole("heading", { name: "Choose your words and story" }).waitFor();
+    assert.equal(state.writes.length, 1);
+    assert.equal(state.rows[0].status, "draft");
+    await page.reload();
+    await page.getByRole("heading", { name: "Choose your words and story" }).waitFor();
+  });
+  await scenario("Desktop review shows the authoritative text without overflow", async (page, state) => {
+    await page.goto(origin + "/create");
+    await complete(page);
+    await page.getByRole("heading", { name: "Synthetic community garden", exact: true }).waitFor();
+    if (screenshotDirectory) await page.screenshot({ path: `${screenshotDirectory}/launch-desktop.png`, fullPage: true });
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(state.writes.length, 0);
+  }, { viewport: { width: 1440, height: 1000 } });
 } finally { await browser.close(); }
 console.log(JSON.stringify({ transport: "intercepted Supabase; local app; no live writes", results }, null, 2));
 if (results.some(result => result.status !== "PASS")) process.exitCode = 1;
