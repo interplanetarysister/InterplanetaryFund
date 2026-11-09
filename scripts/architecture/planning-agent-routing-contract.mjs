@@ -6,6 +6,6 @@ const ROUTES = Object.freeze([
 export function routePlanningAgent(pathname, flags = {}) {
   if (typeof pathname !== 'string') return null;
   const route = ROUTES.find(({prefix})=>pathname.startsWith(prefix));
-  if (!route || flags[route.flag] !== 'true') return null;
+  if (!route || flags[route.flag] !== 'enabled') return null;
   return Object.freeze({capability:route.capability,routePrefix:route.prefix,authorizationRequired:true,recommendationReviewWriteAllowed:true,campaignMutationAllowed:false,externalSendAllowed:false});
 }
