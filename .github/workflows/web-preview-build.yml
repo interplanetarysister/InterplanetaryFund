@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ifund-web-preview-\${{ github.event.pull_request.number || github.ref }}
+  group: ifund-web-preview-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CF_PAGES: "1"
-      CF_PAGES_BRANCH: \${{ github.head_ref || github.ref_name }}
+      CF_PAGES_BRANCH: ${{ github.head_ref || github.ref_name }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
