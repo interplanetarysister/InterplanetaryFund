@@ -13,7 +13,7 @@
     "test": "cd ../.. && node --test apps/web/tests/*.test.js && node scripts/verify-migration-readiness.mjs --inventory && node scripts/audit-backend-coverage.mjs",
     "check:inventory": "node ../../scripts/verify-migration-readiness.mjs --inventory",
     "check:release": "node ../../scripts/verify-migration-readiness.mjs --release",
-    "prebuild": "node ../../scripts/verify-migration-readiness.mjs --build",
+    "prebuild": "node ../../scripts/verify-build-mode.mjs",
     "audit:backend": "node ../../scripts/audit-backend-coverage.mjs",
     "audit:backend:release": "node ../../scripts/audit-backend-coverage.mjs --release"
   },
