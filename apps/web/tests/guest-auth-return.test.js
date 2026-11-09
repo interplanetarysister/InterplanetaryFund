@@ -10,12 +10,13 @@ test("campaign creation is accessible without MemberAccess", () => {
 });
 test("guest draft survives authentication and is cleared after successful save", () => {
   const creator = read("../src/pages/CreateCampaign.jsx");
-  assert.match(creator, /sessionStorage\.setItem\("ifund-guest-campaign-v1"/);
-  assert.match(creator, /sessionStorage\.removeItem\("ifund-guest-campaign-v1"/);
+  assert.match(creator, /localStorage\.setItem\("ifund-guest-campaign-v1"/);
+  assert.match(creator, /localStorage\.removeItem\("ifund-guest-campaign-v1"/);
   assert.match(creator, /navigate\("\/login\?returnTo="/);
 });
 test("auth retains the campaign return path and describes actual recovery options", () => {
   const auth = read("../src/pages/AuthPage.jsx");
   assert.match(auth, /emailRedirectTo: window\.location\.origin \+ "\/login\?returnTo="/);
   assert.match(auth, /open the secure recovery link/);
+  assert.match(auth, /\/register\?returnTo=/);
 });
