@@ -114,15 +114,17 @@ The branch now contains an initial server-side OAuth consumer for Google, Linked
 **Not yet release-ready:** provider credentials, Supabase migration application, Cloudflare environment secrets/bindings, exact preview and production callback registration, refresh/revocation lifecycle, and real-provider authorization tests remain outstanding. The implemented provider set is intentionally limited to the four with explicit server-side identity-verification paths. Meta/Facebook, Instagram, YouTube, PayPal and GoFundMe are not enabled by this consumer. Do not mark a provider connected until a real authorization callback and userinfo request succeed.
 
 Required Cloudflare Worker configuration (names only):
-- SUPABASE_SERVICE_ROLE_KEY — Supabase service-role secret for server-only PostgREST/RPC access
+- OAUTH_API_ENABLED — explicit per-environment enable switch; do not tie OAuth availability to the preview-only migration flag
+- SUPABASE_SECRET_KEY — preferred opaque Supabase secret API key for server-only PostgREST/RPC access; legacy SUPABASE_SERVICE_ROLE_KEY JWT remains supported
 - OAUTH_ENCRYPTION_KEY — base64-encoded 32-byte AES-GCM key, generated separately per environment
 - OAUTH_PUBLIC_BASE_URL — exact HTTPS origin for that environment, no path/query/fragment
-- GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET
+- GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET — shared by Google identity and YouTube channel OAuth
 - LINKEDIN_OAUTH_CLIENT_ID / LINKEDIN_OAUTH_CLIENT_SECRET
 - X_OAUTH_CLIENT_ID / X_OAUTH_CLIENT_SECRET
 - TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
+- META_OAUTH_CLIENT_ID / META_OAUTH_CLIENT_SECRET — Meta App ID / App Secret for Facebook Pages and Instagram Login
 
-The same logical implementation must be ported to Base44 server functions with separate Base44 server-side secrets and Base44-specific callback registrations before dual-deployment acceptance. No client secret or per-user token belongs in a Base44 entity or browser bundle.
+Base44 already has a separate app-user connector runtime. Configure each approved provider's workspace OAuth connector, then set the matching non-secret APP_USER_CONNECTOR_<PROVIDER>_ID reference in the Base44 app's server environment. Base44 workspace connector configuration owns its client secret; do not copy it into Base44 entities. The Base44 app's existing connect/finalize/verify functions should remain the per-user connection path. No client secret or per-user token belongs in a Base44 entity or browser bundle.
 
 Provider endpoint references: Google OAuth web-server flow https://developers.google.com/identity/protocols/oauth2/web-server; LinkedIn 3-legged flow https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow; X OAuth 2.0 user authentication https://developer.x.com/en/docs/authentication/oauth-2-0/authorization-code; TikTok Login Kit https://developers.tiktok.com/docs/en/login-kit-overview and token exchange https://developers.tiktok.com/docs/en/oauth-get-user-access-token.
 
