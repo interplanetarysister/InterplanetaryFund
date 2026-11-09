@@ -73,8 +73,8 @@ begin
      or p_provider is null or p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
      or p_provider_subject is null or length(p_provider_subject) = 0
      or p_token_ciphertext is null
-     or p_key_version <> 1
-     or p_event_type not in ('connected','refreshed','revoked','error') then
+     or p_key_version is distinct from 1
+     or p_event_type is null or p_event_type not in ('connected','refreshed') then
     raise exception 'Invalid provider connection payload';
   end if;
 
