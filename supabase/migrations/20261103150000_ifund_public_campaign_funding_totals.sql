@@ -18,11 +18,15 @@ as $$
   select
     c.id as campaign_id,
     coalesce(sum(d.gift_cents), 0)::numeric / 100 as raised_amount,
-    count(distinct coalesce(d.donor_id::text, d.id::text))::bigint as donor_count
+    count(distinct d.donor_id)::bigint as donor_count
   from public.ifund_campaigns c
   left join public.ifund_donations d
     on d.campaign_id = c.id
    and d.status = 'captured'
+   and d.paypal_capture_id is not null
+   and d.captured_at is not null
+   and d.currency = 'USD'
+   and d.gift_cents > 0
   where c.status = 'active'
     and cardinality(coalesce(p_campaign_ids, array[]::uuid[])) <= 500
     and c.id = any(coalesce(p_campaign_ids, array[]::uuid[]))
