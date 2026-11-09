@@ -67,7 +67,7 @@ create or replace function public.ifund_store_provider_connection(
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   if p_owner_id is null
      or p_provider is null or p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
@@ -109,7 +109,7 @@ begin
                         'granted_scopes', coalesce(p_granted_scopes, '{}'),
                         'key_version', p_key_version));
 end;
-$;
+$$;
 revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
   from public, anon, authenticated;
 grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
