@@ -107,7 +107,7 @@ function AppRoutes() {
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
-  </Routes>{(["/", "/about", "/terms", "/privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
+  </Routes>{(["/about", "/terms", "/privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
 }
 
 function App() {
