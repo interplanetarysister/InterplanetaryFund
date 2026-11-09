@@ -1,4 +1,8 @@
-Interplanetary Fund
+# Interplanetary Fund
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+
+**Open-source license: [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE).** Copyright retained by the respective copyright holders. See [COPYRIGHT.md](COPYRIGHT.md) for ownership, brand/trademark and third-party licensing details. AGPLv3 permits compliant reuse and forks; it does not transfer copyright or grant trademark rights.
 
 **Official website:** [https://interplanetaryfund.com](https://interplanetaryfund.com)  
 **Canonical application source:** [https://github.com/interplanetarysister/InterplanetaryFund](https://github.com/interplanetarysister/InterplanetaryFund)
@@ -79,7 +83,8 @@ cd InterplanetaryFund
 
 Follow the instructions in the relevant apps/ and documentation folders, and respect all deployment gates before any production-related actions.
 
-License
-[Add license here]
+## License
+
+The original software in this repository is licensed under the **[GNU Affero General Public License, version 3.0 (AGPL-3.0)](LICENSE)**. See [COPYRIGHT.md](COPYRIGHT.md) for copyright, brand, and third-party notices. Third-party components retain their applicable licenses.
 
 Status as of November 2026: Independent migration in progress. Base44 remains the current live system until acceptance tests pass and cutover is explicitly approved.
