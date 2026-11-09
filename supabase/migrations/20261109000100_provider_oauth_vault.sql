@@ -20,48 +20,78 @@ create table if not exists public.ifund_provider_tokens (
   provider_subject text not null,
   token_ciphertext jsonb not null,
   granted_scopes text[] not null default '{}',
+  expires_at timestamptz,
+  refresh_expires_at timestamptz,
+  key_version smallint not null default 1 check (key_version > 0),
   status text not null default 'active' check (status in ('active','revoked','error')),
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique(owner_id, provider)
 );
 create index if not exists ifund_provider_tokens_owner
   on public.ifund_provider_tokens(owner_id);
 
+create table if not exists public.ifund_provider_connection_events (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  provider text not null check (provider in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')),
+  event_type text not null check (event_type in ('connected','refreshed','revoked','error')),
+  metadata jsonb not null default '{}',
+  occurred_at timestamptz not null default now()
+);
+create index if not exists ifund_provider_connection_events_owner_time
+  on public.ifund_provider_connection_events(owner_id, occurred_at desc);
+
 alter table public.ifund_oauth_transactions enable row level security;
 alter table public.ifund_provider_tokens enable row level security;
-revoke all privileges on table public.ifund_oauth_transactions, public.ifund_provider_tokens
-  from public, anon, authenticated;
-grant all privileges on table public.ifund_oauth_transactions, public.ifund_provider_tokens
-  to service_role;
+alter table public.ifund_provider_connection_events enable row level security;
+revoke all privileges on table public.ifund_oauth_transactions, public.ifund_provider_tokens,
+  public.ifund_provider_connection_events from public, anon, authenticated;
+grant all privileges on table public.ifund_oauth_transactions, public.ifund_provider_tokens,
+  public.ifund_provider_connection_events to service_role;
 
--- Persist the encrypted token and public connection receipt in one transaction.
+-- Replace the original RPC signature so expiry and key version are indexed
+-- separately from the encrypted token payload, and every write is auditable.
+drop function if exists public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]);
 create or replace function public.ifund_store_provider_connection(
   p_owner_id uuid,
   p_provider text,
   p_provider_subject text,
   p_token_ciphertext jsonb,
-  p_granted_scopes text[]
+  p_granted_scopes text[],
+  p_expires_at timestamptz default null,
+  p_refresh_expires_at timestamptz default null,
+  p_key_version smallint default 1,
+  p_event_type text default 'connected'
 ) returns void
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $
 begin
-  if p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
+  if p_owner_id is null
+     or p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
      or p_provider_subject is null or length(p_provider_subject) = 0
-     or p_token_ciphertext is null then
+     or p_token_ciphertext is null
+     or p_key_version <> 1
+     or p_event_type not in ('connected','refreshed','revoked','error') then
     raise exception 'Invalid provider connection payload';
   end if;
 
   insert into public.ifund_provider_tokens
-    (owner_id, provider, provider_subject, token_ciphertext, granted_scopes, status, updated_at)
+    (owner_id, provider, provider_subject, token_ciphertext, granted_scopes,
+     expires_at, refresh_expires_at, key_version, status, updated_at)
   values
     (p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
-     coalesce(p_granted_scopes, '{}'), 'active', now())
+     coalesce(p_granted_scopes, '{}'), p_expires_at, p_refresh_expires_at,
+     p_key_version, 'active', now())
   on conflict (owner_id, provider) do update set
     provider_subject = excluded.provider_subject,
     token_ciphertext = excluded.token_ciphertext,
     granted_scopes = excluded.granted_scopes,
+    expires_at = excluded.expires_at,
+    refresh_expires_at = excluded.refresh_expires_at,
+    key_version = excluded.key_version,
     status = 'active',
     updated_at = now();
 
@@ -70,7 +100,17 @@ begin
   on conflict (owner_id, provider) do update set
     status = 'connected',
     verified_at = now();
+
+  insert into public.ifund_provider_connection_events
+    (owner_id, provider, event_type, metadata)
+  values
+    (p_owner_id, p_provider, p_event_type,
+     jsonb_build_object('provider_subject', p_provider_subject,
+                        'granted_scopes', coalesce(p_granted_scopes, '{}'),
+                        'key_version', p_key_version));
 end;
-$$;
-revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]) from public, anon, authenticated;
-grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]) to service_role;
+$;
+revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
+  from public, anon, authenticated;
+grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
+  to service_role;
