@@ -7,12 +7,13 @@ import { getPlatformSupportLink } from './platform-support-link-contract.mjs';
 
 export function getCampaignSupportView({
   campaignPaymentsPaused = true,
+  campaignCheckoutVerifiedReady = false,
   platformPayPalUrl,
   platformPayPalVerified = false,
 } = {}) {
   if (!campaignPaymentsPaused) {
     return Object.freeze({
-      campaignCheckoutEnabled: true,
+      campaignCheckoutEnabled: campaignCheckoutVerifiedReady === true,
       campaignPausedNotice: null,
       platformSupport: null,
     });
