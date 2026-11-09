@@ -124,7 +124,7 @@ test('Google start stores only state hash and encrypted PKCE verifier and return
 });
 test('TikTok web authorization uses client_key and does not send mobile-only PKCE', async () => {
   const request = new Request(base + '/api/oauth/tiktok/start', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
   const fetcher = async (url, options = {}) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
@@ -198,6 +198,7 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
   const fetcher = async (url, options = {}) => {
     const target = String(url);
     if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target.startsWith('https://graph.facebook.com/v26.0/oauth/access_token?')) {
       const query = new URL(target).searchParams;
@@ -246,6 +247,7 @@ test('Instagram callback exchanges short token for long-lived token before encry
   };
   const fetcher = async (url, options = {}) => {
     const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target === 'https://api.instagram.com/oauth/access_token') {
       const form = new URLSearchParams(options.body);
@@ -299,6 +301,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   const fetcher = async (url, options = {}) => {
     const target = String(url);
     calls.push({ target, options });
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target === 'https://oauth2.googleapis.com/token') {
       const form = new URLSearchParams(options.body);
