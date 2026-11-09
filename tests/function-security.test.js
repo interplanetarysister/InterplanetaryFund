@@ -32,6 +32,7 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   // OAuth callback persistence: service-role-only RPC, authenticated owner is
   // resolved from the one-use state row before this function is invoked.
   "public.ifund_store_provider_connection",
+  "public.ifund_store_provider_connection_v2",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
