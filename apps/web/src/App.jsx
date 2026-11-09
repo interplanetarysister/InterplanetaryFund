@@ -42,8 +42,8 @@ const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
 const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 
-// Pages from the Base44 app that are not ported yet. Their links stay in the
-// navigation and land on a branded "Coming soon" page instead of breaking.
+// Legacy standalone paths that are not implemented yet remain on a branded
+// "Coming soon" page instead of resolving to a broken route.
 const STANDALONE_COMING_SOON = [
   "/onboarding",
   "/globe", "/oauth/consent", "/activate",
