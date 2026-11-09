@@ -324,7 +324,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
   // for the long-lived token before persisting it.
   if (provider === 'instagram') {
     const longLived = new URL('https://graph.instagram.com/access_token');
-    longLived.searchParams.set('grant_type', 'ig_exchange');
+    longLived.searchParams.set('grant_type', 'ig_exchange_token');
     longLived.searchParams.set('client_secret', config.clientSecret);
     longLived.searchParams.set('access_token', token.access_token);
     const longResponse = await fetcher(longLived.toString(), {
