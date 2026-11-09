@@ -116,8 +116,8 @@ test("password reset page requires a live session and preserves return destinati
 
 test("campaign return onboarding cannot be skipped without a usable profile", () => {
   const onboarding = read("../src/pages/Onboarding.jsx");
-  assert.match(onboarding, /if\\(!name\\.trim\\(\\)&&!handle\\.trim\\(\\)\\)/);
-  assert.match(onboarding, /afterLogin === "\\/dashboard" &&/);
+  assert.ok(onboarding.includes("if(!name.trim()&&!handle.trim())"));
+  assert.ok(onboarding.includes('afterLogin === "/dashboard" &&'));
 });
 
 test("new members finish profile onboarding before returning to a guest campaign", async () => {
