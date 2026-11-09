@@ -29,12 +29,12 @@ test("canonical editorial tables use published-only public reads and no browser 
  assert.match(foundation,/alter table public.ifund_blog_entries enable row level security/i);
  assert.match(foundation,/alter table public.ifund_blogs enable row level security/i);
  assert.match(hardening,/ifund_blog_entries_read_published_or_owner/i);
- assert.match(hardening,/revoke all privileges[\\s\\S]*from PUBLIC, anon, authenticated/i);
- assert.doesNotMatch(hardening,/grant\\s+(insert|update|delete)/i);
+ assert.match(hardening,/revoke all privileges[\s\S]*from PUBLIC, anon, authenticated/i);
+ assert.doesNotMatch(hardening,/grant\s+(insert|update|delete)/i);
  assert.match(publications,/ifund_publications_final_read/i);
  assert.match(publications,/final_approved = true/i);
- assert.match(publications,/revoke all privileges[\\s\\S]*from PUBLIC, anon, authenticated/i);
- assert.doesNotMatch(publications,/grant\\s+(insert|update|delete)/i);
+ assert.match(hardening,/revoke all privileges[\s\S]*from PUBLIC, anon, authenticated/i);
+ assert.doesNotMatch(publications,/grant\s+(insert|update|delete)/i);
 });
 
 test("source article embedded campaigns cannot execute arbitrary iframe HTML",()=>{
