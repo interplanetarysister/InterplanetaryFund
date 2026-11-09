@@ -592,7 +592,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
 
     const hash = await digest(state);
     const params = new URLSearchParams({
-      select: 'owner_id,provider,verifier_ciphertext,redirect_uri,expires_at',
+      select: 'state_hash,owner_id,provider,verifier_ciphertext,redirect_uri,expires_at',
       state_hash: 'eq.' + hash, provider: 'eq.' + provider,
       owner_id: 'eq.' + account.uid,
       expires_at: 'gt.' + new Date().toISOString(),
@@ -602,7 +602,8 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     }, fetcher);
     const rows = await txResponse.json();
     if (!Array.isArray(rows) || rows.length !== 1 || rows[0].provider !== provider ||
-        rows[0].owner_id !== account.uid || rows[0].redirect_uri !== redirectUri) {
+        rows[0].owner_id !== account.uid || rows[0].redirect_uri !== redirectUri ||
+        !(await constantTimeEqual(rows[0].state_hash, hash))) {
       return response(400, { error: 'Provider authorization could not be verified.' });
     }
 
