@@ -21,6 +21,8 @@ const env = {
   META_OAUTH_CLIENT_SECRET: 'meta-app-secret-placeholder',
   META_PAGES_APPROVED: 'true',
   INSTAGRAM_BUSINESS_APPROVED: 'true',
+  INSTAGRAM_OAUTH_CLIENT_ID: 'instagram-app-client-id',
+  INSTAGRAM_OAUTH_CLIENT_SECRET: 'instagram-app-client-secret',
   YOUTUBE_OAUTH_ENABLED: 'true',
   YOUTUBE_UPLOAD_APPROVED: 'true',
   TIKTOK_LOGIN_ENABLED: 'true',
@@ -222,7 +224,7 @@ test('Meta Facebook Pages authorization requests comma-separated Page permission
   const r = await routeOAuthRequest(request, env, fetcher);
   const auth = new URL((await r.json()).authorization_url);
   assert.equal(auth.origin, 'https://www.facebook.com');
-  assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
+  assert.equal(auth.searchParams.get('client_id'), env.INSTAGRAM_OAUTH_CLIENT_ID);
   assert.ok(auth.searchParams.get('scope').includes('pages_show_list,pages_read_engagement,pages_manage_posts'));
   assert.equal(auth.searchParams.has('code_challenge'), false);
 });
@@ -242,6 +244,20 @@ test('Instagram Login uses its dedicated OAuth endpoints and business scopes', a
   assert.ok(auth.searchParams.get('scope').includes('instagram_business_content_publish'));
   assert.equal(auth.searchParams.get('redirect_uri'), base + '/oauth/callback/instagram');
 });
+test('Instagram Login never falls back to the parent Meta App credentials', async () => {
+  const request = new Request(base + '/api/oauth/instagram/start', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+  });
+  const r = await routeOAuthRequest(request, {
+    ...env,
+    INSTAGRAM_OAUTH_CLIENT_ID: '',
+    INSTAGRAM_OAUTH_CLIENT_SECRET: '',
+  }, async () => {
+    throw Error('Instagram credentials must be checked before any provider request');
+  });
+  assert.equal(r.status, 503);
+});
+
 test('Meta callback verifies granted Page scopes and a publishable Page before storing tokens', async () => {
   const state = 'meta-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
