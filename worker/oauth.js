@@ -524,7 +524,7 @@ async function refreshConnection(provider, account, config, env, fetcher) {
       : previous.refresh_expires_at || null,
   };
   const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-  await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
+  await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v2', {
     method: 'POST',
     body: JSON.stringify({
       p_owner_id: account.uid, p_provider: provider,
@@ -682,7 +682,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     // Granted scopes must come from the provider token/permission response,
     // never from a browser-supplied callback query parameter.
     const scopes = identity.grantedScopes;
-    await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
+    await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v2', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
         p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
