@@ -19,12 +19,12 @@ const good=()=>({
   preview_urls:['https://example.pages.dev'],test_receipts:['https://github.com/example/receipt'],
   ...Object.fromEntries(truthKeys.map(k=>[k,true]))
 });
-function check(data){
+function check(data, stage='production'){
   const dir=mkdtempSync(join(tmpdir(),'ifund-evidence-'));
   try{
     const file=join(dir,'evidence.json');
     writeFileSync(file,JSON.stringify(data));
-    return spawnSync(process.execPath,[validator,file],{encoding:'utf8'});
+    return spawnSync(process.execPath,[validator,...(stage==='preview'?['--preview']:[]),file],{encoding:'utf8'});
   }finally{rmSync(dir,{recursive:true,force:true})}
 }
 test('complete evidence schema can be evaluated without deploying',()=>{
@@ -58,4 +58,24 @@ test('production approval must be explicitly true',()=>{
   const result=check(data);
   assert.equal(result.status,1);
   assert.match(result.stderr,/user_production_approval/);
+});
+
+test('preview readiness does not require financial or production approval fields',()=>{
+  const data=good();
+  for(const field of ['auth_recovery_verified','supabase_rls_owner_isolation_verified','payments_verified_only','withdrawal_owner_only_verified','withdrawal_seven_percent_fee_verified','rollback_tested','user_production_approval'])delete data[field];
+  const result=check(data,'preview');
+  assert.equal(result.status,0,result.stderr);
+  assert.match(result.stdout,/PREVIEW evidence schema complete/);
+});
+test('preview readiness fails without original Base44 connection proof',()=>{
+  const data=good();delete data.base44_preview_connection_verified;
+  const result=check(data,'preview');
+  assert.equal(result.status,1);
+  assert.match(result.stderr,/base44_preview_connection_verified/);
+});
+test('preview readiness refuses production promotion requests',()=>{
+  const data=good();data.production_promotion_requested=true;
+  const result=check(data,'preview');
+  assert.equal(result.status,1);
+  assert.match(result.stderr,/must not request production promotion/);
 });
