@@ -33,7 +33,7 @@ test("gift-first quote preserves the full campaign gift and adds support and pro
   assert.equal(quote.gift, 100);
   assert.equal(quote.support, 10);
   assert.equal(Number((quote.total - quote.processing).toFixed(2)), 110);
-  assert.ok(quote.processing > 0);
+  assert.ok(quote.processing > 0);\n\n  const fractional = computePayPalGiftFirstQuote(12.39, true);\n  assert.equal(fractional.gift, 12.39);\n  assert.equal(fractional.support, 1.24);
 
   const noSupport = computePayPalGiftFirstQuote(100, false);
   assert.equal(noSupport.gift, 100);
@@ -49,5 +49,6 @@ test("public funding totals are aggregate-only and exclude optional support", ()
   assert.doesNotMatch(migration, /optional_support_cents/);
   assert.match(migration, /security definer/i);
   assert.match(migration, /grant execute[\s\S]*to anon, authenticated/i);
-  assert.match(publicData, /ifund_public_campaign_funding_totals/);
+  assert.match(publicData, /ifund_public_campaign_funding_totals/);\n  assert.match(migration, /count\\(distinct coalesce\\(d\\.donor_id::text, d\\.id::text\\)\\)/);
 });
+\ntest("donation support constraint uses cent rounding and preserves legacy floor values", () => {\n  const migration = read("../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");\n  assert.match(migration, /round\\(gift_cents::numeric \/ 10\\)::bigint/);\n  assert.match(migration, /floor\\(gift_cents::numeric \/ 10\\)::bigint/);\n  assert.match(migration, /drop constraint if exists ifund_donations_check/i);\n});\n
