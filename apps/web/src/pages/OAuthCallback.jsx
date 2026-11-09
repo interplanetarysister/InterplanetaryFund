@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 
 const API_BASE = (import.meta.env.VITE_IFUND_OAUTH_API_BASE_URL || "").replace(/\/+$/, "");
 const PROVIDERS = new Set(["google", "youtube", "linkedin", "x", "tiktok", "facebook_pages", "instagram"]);
+const callbackFlights = new Map();
 
 export default function OAuthCallback() {
   const { provider = "" } = useParams();
@@ -27,7 +28,7 @@ export default function OAuthCallback() {
       const code = query.get("code");
       const state = query.get("state");
       if (code && state) {
-        payload = { code, state, scopes: query.get("scopes") || "" };
+        payload = { code, state };
         window.sessionStorage.setItem(storageKey, JSON.stringify(payload));
         window.history.replaceState({}, "", window.location.pathname);
       } else {
@@ -46,17 +47,11 @@ export default function OAuthCallback() {
       return () => { live = false; };
     }
 
-    const finish = async () => {
+    const completeAuthorization = async () => {
       const client = authClient();
       const { data: { session }, error: sessionError } = await client.auth.getSession();
       if (sessionError) throw sessionError;
-      if (!session?.access_token) {
-        if (live) {
-          setStatus("sign-in");
-          setMessage("Sign in to the same IFund account to finish connecting this provider.");
-        }
-        return;
-      }
+      if (!session?.access_token) return { requiresSignIn: true };
       if (!API_BASE) throw new Error("The provider authorization service is not configured for this build.");
       const redirectUri = new URL("/oauth/callback/" + provider, window.location.origin).toString();
       const response = await fetch(API_BASE + "/api/oauth/" + provider + "/callback", {
@@ -65,7 +60,6 @@ export default function OAuthCallback() {
         body: JSON.stringify({
           code: payload.code,
           state: payload.state,
-          scopes: payload.scopes || "",
           redirect_uri: redirectUri,
         }),
       });
@@ -73,20 +67,34 @@ export default function OAuthCallback() {
       if (!response.ok || result.status !== "connected") {
         throw new Error(result.error || "Provider authorization could not be verified.");
       }
-      window.sessionStorage.removeItem(storageKey);
-      if (live) {
-        setStatus("success");
-        setMessage("Connection verified. Returning to your Connections page…");
-        navigate("/connections?oauth=connected&provider=" + encodeURIComponent(provider), { replace: true });
-      }
+      return { connected: true };
     };
 
-    finish().catch((finishError) => {
-      window.sessionStorage.removeItem(storageKey);
-      if (live) {
-        setStatus("error");
-        setMessage(finishError?.message || "Provider authorization could not be verified.");
+    // React StrictMode can replay mount effects. Share one callback request
+    // across the replay so the provider's one-use state is not consumed twice.
+    let completion = callbackFlights.get(storageKey);
+    if (!completion) {
+      completion = completeAuthorization();
+      callbackFlights.set(storageKey, completion);
+    }
+    completion.then((result) => {
+      if (!live) return;
+      if (result.requiresSignIn) {
+        setStatus("sign-in");
+        setMessage("Sign in to the same IFund account to finish connecting this provider.");
+        return;
       }
+      window.sessionStorage.removeItem(storageKey);
+      setStatus("success");
+      setMessage("Connection verified. Returning to your Connections page…");
+      navigate("/connections?oauth=connected&provider=" + encodeURIComponent(provider), { replace: true });
+    }).catch((finishError) => {
+      if (!live) return;
+      window.sessionStorage.removeItem(storageKey);
+      setStatus("error");
+      setMessage(finishError?.message || "Provider authorization could not be verified.");
+    }).finally(() => {
+      if (callbackFlights.get(storageKey) === completion) callbackFlights.delete(storageKey);
     });
     return () => { live = false; };
   }, [navigate, provider]);
