@@ -57,7 +57,7 @@ async function create(env,request) {
   const campaign=await db(env,"ifund_campaigns","GET","?select=id,status&id=eq."+encodeURIComponent(input.campaign_id)+"&limit=1");
   if(campaign.length!==1||campaign[0].status!=="active")return fail("Campaign not accepting demo payments",409);
   const host=new URL(request.url);
-  if(host.protocol!=="https:" || !(/^(www\\.)?interplanetaryfund\\.com$/.test(host.hostname) || /^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/.test(host.hostname))) return fail("Unrecognized demo host",403);
+  if(host.protocol!=="https:" || !(/^(www\.)?interplanetaryfund\.com$/.test(host.hostname) || /^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/.test(host.hostname))) return fail("Unrecognized demo host",403);
   const origin=host.origin;
   const access=await token(env);
   const order=await paypal(env,access,"POST","/v2/checkout/orders",{
