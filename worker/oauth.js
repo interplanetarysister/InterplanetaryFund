@@ -530,6 +530,9 @@ async function refreshConnection(provider, account, config, env, fetcher) {
       p_owner_id: account.uid, p_provider: provider,
       p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
       p_granted_scopes: scopes,
+      p_expires_at: tokenPayload.expires_at,
+      p_refresh_expires_at: tokenPayload.refresh_expires_at,
+      p_key_version: 1, p_event_type: 'refreshed',
     }),
   }, fetcher);
   return response(200, {
@@ -684,6 +687,9 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         p_owner_id: rows[0].owner_id, p_provider: provider,
         p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
         p_granted_scopes: scopes,
+        p_expires_at: tokenPayload.expires_at,
+        p_refresh_expires_at: tokenPayload.refresh_expires_at,
+        p_key_version: 1, p_event_type: 'connected',
       }),
     }, fetcher);
     return response(200, { provider, status: 'connected', verified: true });
