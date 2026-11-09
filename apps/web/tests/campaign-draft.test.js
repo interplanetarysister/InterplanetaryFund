@@ -42,7 +42,7 @@ test("draft requests retain the existing input bounds and factual answers", () =
   assert.equal(payload.answers.need, "Garden tools");
   assert.equal(payload.goal, 600);
   assert.throws(
-    () => makeDraftRequest({ ...input, details: "x".repeat(2000) }),
+    () => makeDraftRequest({ ...input, details: "x".repeat(3001) }),
     /was not shortened/,
   );
   assert.throws(
