@@ -8,6 +8,7 @@ import {
   GUEST_CAMPAIGN_DRAFT_TTL_MS,
 } from "../src/lib/guestCampaignDraft.js";
 import { authCallbackUrl, callbackParameters, completeAuthCallback } from "../src/lib/authCallback.js";
+import { landingAfterLogin } from "../src/lib/postLogin.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 function memoryStorage() {
@@ -95,4 +96,18 @@ test("password reset page requires a live session and preserves return destinati
   assert.match(reset, /auth\.updateUser\(\{password\}\)/);
   assert.match(reset, /safeReturnTo/);
   assert.match(reset, /returnTo=/);
+});
+
+test("new members finish profile onboarding before returning to a guest campaign", async () => {
+  const client = {
+    auth: { getUser: async () => ({ data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } }, error: null }) },
+    from: () => ({
+      select: () => ({
+        eq: () => ({
+          maybeSingle: async () => ({ data: null, error: null }),
+        }),
+      }),
+    }),
+  };
+  assert.equal(await landingAfterLogin(client, "/create"), "/onboarding?returnTo=%2Fcreate");
 });
