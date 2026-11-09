@@ -91,24 +91,24 @@ export async function completeAuthCallback(auth, params, { storage = browserStor
     access_token: params.access_token, refresh_token: params.refresh_token,
   });
   else {
-    clearAuthReturnTo(storage);
+    clearRememberedAuthReturnTo({ storage });
     throw new Error(UNTRUSTED_MESSAGE);
   }
   if (response?.error) {
-    clearAuthReturnTo(storage);
+    clearRememberedAuthReturnTo({ storage });
     throw new Error(UNTRUSTED_MESSAGE);
   }
   const { data, error } = await auth.getUser();
   if (error || !data?.user?.id) {
-    clearAuthReturnTo(storage);
+    clearRememberedAuthReturnTo({ storage });
     throw new Error("The authentication service could not verify this session. Sign in again.");
   }
   const requested = params.next === "/reset-password" ? "/reset-password" : "/onboarding";
   if (requested !== "/reset-password" && !data.user.email_confirmed_at) {
-    clearAuthReturnTo(storage);
+    clearRememberedAuthReturnTo({ storage });
     throw new Error("Your email confirmation is not complete. Check the newest verification email.");
   }
-  clearAuthReturnTo(storage);
+  clearRememberedAuthReturnTo({ storage });
   const returnTo = safeReturnTo(params.returnTo);
   return requested + "?returnTo=" + encodeURIComponent(returnTo);
 }
