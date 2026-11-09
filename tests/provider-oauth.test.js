@@ -13,7 +13,7 @@ const env = {
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
   SUPABASE_SECRET_KEY: opaqueSecretKey,
   OAUTH_ENCRYPTION_KEY: key,
-  OAUTH_PUBLIC_BASE_URL: base,
+  OAUTH_FRONTEND_ORIGINS: base,
   GOOGLE_OAUTH_CLIENT_ID: 'google-client-id',
   GOOGLE_OAUTH_CLIENT_SECRET: 'google-client-secret',
   META_OAUTH_CLIENT_ID: '1427538482140267',
@@ -27,7 +27,7 @@ async function hash(value) {
 }
 function signedIn() {
   return new Request(base + '/api/oauth/google/start', {
-    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
 }
 test('provider registry contains only providers with implemented OAuth profile verification', () => {
@@ -44,7 +44,7 @@ test('OAuth endpoints fail closed until service secrets and callback origin are 
   assert.equal(r.status, 503);
   const disabled = await routeOAuthRequest(signedIn(), { ...env, OAUTH_API_ENABLED: 'false' });
   assert.equal(disabled.status, 503);
-  const badOrigin = await routeOAuthRequest(signedIn(), { ...env, OAUTH_PUBLIC_BASE_URL: 'http://preview.example' });
+  const badOrigin = await routeOAuthRequest(signedIn(), { ...env, OAUTH_FRONTEND_ORIGINS: '' });
   assert.equal(badOrigin.status, 503);
 });
 
@@ -79,12 +79,12 @@ test('account connection status remains disabled when OAuth and preview migratio
 
 test('unsupported providers and methods are rejected before remote calls', async () => {
   const unsupported = await routeOAuthRequest(
-    new Request(base + '/api/oauth/facebook/start', { method: 'POST' }), env,
+    new Request(base + '/api/oauth/facebook/start', { method: 'POST', headers: { origin: base } }), env,
     () => { throw Error('must not fetch'); },
   );
   assert.equal(unsupported.status, 404);
   const method = await routeOAuthRequest(
-    new Request(base + '/api/oauth/google/start', { method: 'GET' }), env,
+    new Request(base + '/api/oauth/google/start', { method: 'GET', headers: { origin: base } }), env,
     () => { throw Error('must not fetch'); },
   );
   assert.equal(method.status, 405);
@@ -111,7 +111,7 @@ test('Google start stores only state hash and encrypted PKCE verifier and return
   const payload = await r.json();
   const auth = new URL(payload.authorization_url);
   assert.equal(auth.origin, 'https://accounts.google.com');
-  assert.equal(auth.searchParams.get('redirect_uri'), base + '/api/oauth/google/callback');
+  assert.equal(auth.searchParams.get('redirect_uri'), base + '/oauth/callback/google');
   assert.equal(auth.searchParams.get('code_challenge_method'), 'S256');
   assert.ok(auth.searchParams.get('code_challenge'));
   const insert = calls.find(x => x.url.includes('ifund_oauth_transactions') && x.options.method === 'POST');
@@ -120,7 +120,7 @@ test('Google start stores only state hash and encrypted PKCE verifier and return
   assert.equal(row.owner_id, uid);
   assert.doesNotMatch(JSON.stringify(row), /code_verifier|google-client-secret/);
   assert.ok(row.verifier_ciphertext.ciphertext);
-  assert.match(r.headers.get('set-cookie'), /HttpOnly; Secure; SameSite=Lax/);
+  assert.equal(r.headers.get('set-cookie'), null);
 });
 test('TikTok web authorization uses client_key and does not send mobile-only PKCE', async () => {
   const request = new Request(base + '/api/oauth/tiktok/start', {
@@ -154,7 +154,7 @@ test('YouTube uses the Google OAuth client with explicit YouTube scopes', async 
   assert.equal(auth.searchParams.get('client_id'), env.GOOGLE_OAUTH_CLIENT_ID);
   assert.ok(auth.searchParams.get('scope').includes('https://www.googleapis.com/auth/youtube.upload'));
   assert.ok(auth.searchParams.get('scope').includes('https://www.googleapis.com/auth/youtube.readonly'));
-  assert.equal(auth.searchParams.get('redirect_uri'), base + '/api/oauth/youtube/callback');
+  assert.equal(auth.searchParams.get('redirect_uri'), base + '/oauth/callback/youtube');
 });
 test('Meta Facebook Pages authorization requests comma-separated Page permissions', async () => {
   const request = new Request(base + '/api/oauth/facebook_pages/start', {
@@ -186,17 +186,18 @@ test('Instagram Login uses its dedicated OAuth endpoints and business scopes', a
   assert.equal(auth.origin, 'https://www.instagram.com');
   assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
   assert.ok(auth.searchParams.get('scope').includes('instagram_business_content_publish'));
-  assert.equal(auth.searchParams.get('redirect_uri'), base + '/api/oauth/instagram/callback');
+  assert.equal(auth.searchParams.get('redirect_uri'), base + '/oauth/callback/instagram');
 });
 test('Meta callback verifies granted Page scopes and a publishable Page before storing tokens', async () => {
   const state = 'meta-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
     owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext,
-    redirect_uri: base + '/api/oauth/facebook_pages/callback',
+    redirect_uri: base + '/oauth/callback/facebook_pages',
   };
   const fetcher = async (url, options = {}) => {
     const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target.startsWith('https://graph.facebook.com/v26.0/oauth/access_token?')) {
       const query = new URL(target).searchParams;
@@ -227,19 +228,21 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
     }
     throw Error('unexpected fetch: ' + target);
   };
-  const request = new Request(base + '/api/oauth/facebook_pages/callback?code=meta-code&state=' + state, {
-    headers: { cookie: 'ifund_oauth_facebook_pages=' + state },
+  const request = new Request(base + '/api/oauth/facebook_pages/callback', {
+    method: 'POST',
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'meta-code', state, redirect_uri: tx.redirect_uri }),
   });
   const r = await routeOAuthRequest(request, env, fetcher);
-  assert.equal(r.status, 303);
-  assert.match(r.headers.get('location'), /oauth=connected/);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).status, 'connected');
 });
 test('Instagram callback exchanges short token for long-lived token before encrypted storage', async () => {
   const state = 'instagram-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
     owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext,
-    redirect_uri: base + '/api/oauth/instagram/callback',
+    redirect_uri: base + '/oauth/callback/instagram',
   };
   const fetcher = async (url, options = {}) => {
     const target = String(url);
@@ -273,12 +276,14 @@ test('Instagram callback exchanges short token for long-lived token before encry
     }
     throw Error('unexpected fetch: ' + target);
   };
-  const request = new Request(base + '/api/oauth/instagram/callback?code=ig-code&state=' + state, {
-    headers: { cookie: 'ifund_oauth_instagram=' + state },
+  const request = new Request(base + '/api/oauth/instagram/callback', {
+    method: 'POST',
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'ig-code', state, redirect_uri: tx.redirect_uri }),
   });
   const r = await routeOAuthRequest(request, env, fetcher);
-  assert.equal(r.status, 303);
-  assert.match(r.headers.get('location'), /oauth=connected/);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).status, 'connected');
 });
 
 test('callback consumes one-use state, verifies identity, and persists only encrypted tokens', async () => {
@@ -288,7 +293,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   const verifierCiphertext = await encryptOAuthValue({ verifier }, env);
   const tx = {
     owner_id: uid, provider: 'google', verifier_ciphertext: verifierCiphertext,
-    redirect_uri: base + '/api/oauth/google/callback',
+    redirect_uri: base + '/oauth/callback/google',
   };
   const calls = [];
   const fetcher = async (url, options = {}) => {
@@ -316,12 +321,14 @@ test('callback consumes one-use state, verifies identity, and persists only encr
     }
     throw Error('unexpected fetch: ' + target);
   };
-  const request = new Request(base + '/api/oauth/google/callback?code=one-time-code&state=' + state, {
-    headers: { cookie: 'ifund_oauth_google=' + state },
+  const request = new Request(base + '/api/oauth/google/callback', {
+    method: 'POST',
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
+    body: JSON.stringify({ code: 'one-time-code', state, redirect_uri: tx.redirect_uri }),
   });
   const r = await routeOAuthRequest(request, env, fetcher);
-  assert.equal(r.status, 303);
-  assert.match(r.headers.get('location'), /oauth=connected/);
+  assert.equal(r.status, 200);
+  assert.equal((await r.json()).status, 'connected');
   assert.ok(calls.some(x => x.options.method === 'DELETE'));
   assert.ok(calls.some(x => x.target.includes('/rpc/ifund_store_provider_connection')));
   assert.match(r.headers.get('set-cookie'), /Max-Age=0/);
@@ -401,14 +408,20 @@ test('refresh rejects a saved connection without a refresh token without contact
 
 test('callback rejects replayed or mismatched state without exchanging a code', async () => {
   let tokenCalls = 0;
-  const request = new Request(base + '/api/oauth/google/callback?code=one-time-code&state=state-1', {
-    headers: { cookie: 'ifund_oauth_google=state-2' },
+  const request = new Request(base + '/api/oauth/google/callback', {
+    method: 'POST',
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      code: 'one-time-code', state: 'state-1',
+      redirect_uri: base + '/oauth/callback/google',
+    }),
   });
-  const r = await routeOAuthRequest(request, env, async () => {
+  const r = await routeOAuthRequest(request, env, async (url) => {
     tokenCalls += 1;
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).includes('/ifund_oauth_transactions?')) return Response.json([]);
     throw Error('must not fetch');
   });
-  assert.equal(r.status, 303);
-  assert.match(r.headers.get('location'), /oauth=failed/);
+  assert.equal(r.status, 400);
   assert.equal(tokenCalls, 0);
 });
