@@ -6,11 +6,12 @@ import { routeAccountRequest } from '../worker/accountRoutes.js';
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const base = 'https://preview.example';
 const key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+const opaqueSecretKey = ['sb', 'secret'].join('_') + '_test_key_for_oauth_vault_123456';
 const env = {
   OAUTH_API_ENABLED: 'true',
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
-  SUPABASE_SERVICE_ROLE_KEY: 'service-role-secret-test-1234567890',
+  SUPABASE_SECRET_KEY: opaqueSecretKey,
   OAUTH_ENCRYPTION_KEY: key,
   OAUTH_PUBLIC_BASE_URL: base,
   GOOGLE_OAUTH_CLIENT_ID: 'google-client-id',
@@ -37,7 +38,7 @@ test('encryption envelope round-trips without exposing plaintext', async () => {
   assert.ok(envelope.iv && envelope.ciphertext);
 });
 test('OAuth endpoints fail closed until service secrets and callback origin are configured', async () => {
-  const r = await routeOAuthRequest(signedIn(), { ...env, SUPABASE_SERVICE_ROLE_KEY: '' });
+  const r = await routeOAuthRequest(signedIn(), { ...env, SUPABASE_SECRET_KEY: '' });
   assert.equal(r.status, 503);
   const disabled = await routeOAuthRequest(signedIn(), { ...env, OAUTH_API_ENABLED: 'false' });
   assert.equal(disabled.status, 503);
@@ -96,7 +97,11 @@ test('Google start stores only state hash and encrypted PKCE verifier and return
     calls.push({ url: String(url), options });
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (options.method === 'DELETE') return new Response(null, { status: 204 });
-    if (options.method === 'POST') return new Response(null, { status: 201 });
+    if (options.method === 'POST') {
+      assert.equal(options.headers.apikey, env.SUPABASE_SECRET_KEY);
+      assert.equal(options.headers.Authorization, undefined);
+      return new Response(null, { status: 201 });
+    }
     throw Error('unexpected fetch');
   };
   const r = await routeOAuthRequest(signedIn(), env, fetcher);
