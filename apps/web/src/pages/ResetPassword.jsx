@@ -31,8 +31,11 @@ export default function ResetPassword(){
       if(updateError)throw updateError;
       const {error:signoutError}=await client.auth.signOut();
       if(signoutError){
-        setMessage("Password updated, but automatic sign-out was not confirmed. Sign out manually on your account before leaving this device.");
-        return;
+        const {error:localSignoutError}=await client.auth.signOut({scope:"local"});
+        if(localSignoutError){
+          setMessage("Password updated, but automatic sign-out was not confirmed. Sign out manually on your account before leaving this device.");
+          return;
+        }
       }
       navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
     }catch(cause){
