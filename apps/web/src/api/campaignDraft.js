@@ -2,12 +2,15 @@
 // suggestion receipt; campaign content changes only when the owner saves it.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function makeDraftRequest({ details, beneficiary, need, cause, goal, campaign_id = null }) {
+export function makeDraftRequest({ details, beneficiary, need, cause, goal, campaign_id = null, section = null }) {
   const text = String(details || "").trim();
+  const maxDetails = section ? 4000 : 3000;
   if (text.length < 12)
     throw new Error("Provide at least 12 characters about your campaign.");
-  if (text.length > 1500)
-    throw new Error("Keep campaign writing details to 1,500 characters. Your text was not shortened.");
+  if (text.length > maxDetails)
+    throw new Error("Keep campaign writing context to " + maxDetails.toLocaleString("en-US") + " characters or fewer. Your text was not shortened.");
+  if (campaign_id != null && (typeof campaign_id !== "string" || !UUID.test(campaign_id)))
+    throw new Error("The campaign reference could not be verified.");
   const tidy = (v) => {
     const value = String(v || "").trim();
     if (value.length > 100)
@@ -23,12 +26,7 @@ export function makeDraftRequest({ details, beneficiary, need, cause, goal, camp
       cause: tidy(cause),
     },
     goal: Number.isFinite(goalAmount) && goalAmount > 0 ? goalAmount : null,
-    campaign_id:
-      campaign_id == null
-        ? null
-        : UUID.test(campaign_id)
-          ? campaign_id
-          : (() => { throw new Error("The campaign reference could not be verified."); })(),
+    campaign_id: campaign_id || null,
   };
 }
 
@@ -162,8 +160,8 @@ export async function requestCampaignSection(
 ) {
   const context = String(details || "").trim();
   const original = String(section || "").trim();
-  if (context.length < 12 || context.length > 1500)
-    throw new Error("Provide 12 to 1,500 characters of campaign context. Nothing was changed.");
+  if (context.length < 12 || context.length > 4000)
+    throw new Error("Provide 12 to 4,000 characters of campaign context. Nothing was changed.");
   if (!original || original.length > 4000)
     throw new Error("Keep the selected story section to 4,000 characters or fewer. Nothing was changed.");
   const result = await requestCampaignDraft(
