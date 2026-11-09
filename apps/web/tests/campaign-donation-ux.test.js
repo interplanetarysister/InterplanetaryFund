@@ -46,7 +46,7 @@ test("gift-first quote preserves the full campaign gift and adds support and pro
 });
 
 test("public funding totals are aggregate-only and exclude optional support", () => {
-  const migration = read("../../supabase/migrations/20261103150000_ifund_public_campaign_funding_totals.sql");
+  const migration = read("../../../supabase/migrations/20261103150000_ifund_public_campaign_funding_totals.sql");
   const publicData = read("../src/api/publicData.js");
   assert.match(migration, /d\.status = 'captured'/);
   assert.match(migration, /sum\(d\.gift_cents\)/);
@@ -58,7 +58,7 @@ test("public funding totals are aggregate-only and exclude optional support", ()
 });
 
 test("donation support constraint uses cent rounding and preserves legacy floor values", () => {
-  const migration = read("../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");
+  const migration = read("../../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");
   assert.match(migration, /round\(gift_cents::numeric \/ 10\)::bigint/);
   assert.match(migration, /floor\(gift_cents::numeric \/ 10\)::bigint/);
   assert.match(migration, /pg_get_constraintdef\(oid\)/i);
