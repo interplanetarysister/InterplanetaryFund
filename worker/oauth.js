@@ -151,8 +151,15 @@ function serviceHeaders(env) {
 }
 function serviceConfigured(env) {
   const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
-  return typeof key === 'string' && key.length > 20 &&
-    typeof env.OAUTH_ENCRYPTION_KEY === 'string' && env.OAUTH_ENCRYPTION_KEY.length > 20;
+  if (typeof key !== 'string' || key.length <= 20 ||
+      typeof env.OAUTH_ENCRYPTION_KEY !== 'string' || env.OAUTH_ENCRYPTION_KEY.length <= 20) {
+    return false;
+  }
+  try {
+    return fromBase64(env.OAUTH_ENCRYPTION_KEY).length === 32;
+  } catch {
+    return false;
+  }
 }
 function oauthRuntimeReady(env) {
   return env?.OAUTH_API_ENABLED === 'true' &&
@@ -181,6 +188,9 @@ function callbackUri(origin, provider) {
   return new URL('/oauth/callback/' + provider, origin).toString();
 }
 async function limitedRequestJson(request, maxBytes = 8192) {
+  if (!JSON_TYPE.test(request.headers.get('content-type') || '')) {
+    throw new Error('OAuth callback must use JSON.');
+  }
   const declaredLength = Number(request.headers.get('content-length'));
   if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
     throw new Error('OAuth callback body was too large.');
@@ -617,7 +627,6 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     const body = await limitedRequestJson(request);
     const code = typeof body.code === 'string' ? body.code : '';
     const state = typeof body.state === 'string' ? body.state : '';
-    const callbackScopes = typeof body.scopes === 'string' ? body.scopes : '';
     if (!code || code.length > 4096 || !state || state.length > 256 ||
         body.redirect_uri !== redirectUri) {
       return response(400, { error: 'Provider authorization could not be verified.' });
@@ -667,9 +676,9 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         : previousTokens?.refresh_expires_at || null,
     };
     const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-    const scopes = identity.grantedScopes.length
-      ? identity.grantedScopes
-      : callbackScopes.split(/[ ,]+/).filter(Boolean);
+    // Granted scopes must come from the provider token/permission response,
+    // never from a browser-supplied callback query parameter.
+    const scopes = identity.grantedScopes;
     await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
