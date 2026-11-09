@@ -308,7 +308,7 @@ test("central service addresses preserve authorization and never expose the priv
       fetch: async (req) => {
         calls.push(new URL(req.url).pathname);
         assert.equal(req.headers.get("authorization"), "Bearer owner.jwt");
-        return Response.json({ tier: "basic" });
+        return Response.json({ level: 1, active: true });
       },
     },
   };
@@ -328,8 +328,25 @@ test("central service addresses preserve authorization and never expose the priv
     bindings,
   );
   const body = await catalog.json();
-  assert.equal(body.services.length, 9);
+  assert.deepEqual(body.services, [{ id: "story_agent", title: "Story" }]);
   assert.ok(!JSON.stringify(body).includes("admin_builder_agent"));
+  assert.ok(!JSON.stringify(body).includes("managed_connection_agent"));
+  const managedCalls = [];
+  await serviceGateway(
+    new Request("https://ifund.test/api/services/managed_connection_agent/workspace", {
+      headers: { authorization: "Bearer owner.jwt" },
+    }),
+    {
+      IFUND_CONNECTIONS_AGENT: {
+        fetch: async (req) => {
+          managedCalls.push(new URL(req.url).pathname);
+          assert.equal(req.headers.get("authorization"), "Bearer owner.jwt");
+          return Response.json({ requests: [] });
+        },
+      },
+    },
+  );
+  assert.deepEqual(managedCalls, ["/api/agents/connections/workspace"]);
   await serviceGateway(
     new Request("https://ifund.test/api/services/story_agent/drafts", {
       headers: { authorization: "Bearer owner.jwt" },
