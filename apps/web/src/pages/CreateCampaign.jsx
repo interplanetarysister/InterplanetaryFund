@@ -70,7 +70,7 @@ export default function CreateCampaign() {
   }, [form, draftId]);
 
   const change = (key, value) => setForm(previous => ({ ...previous, [key]: value }));
-  const canContinue = step === 1 ? Boolean(form.title.trim()) && Number(form.goal_amount) > 0 : step === 2 ? Boolean(form.story.trim()) : true;
+  const canContinue = step === 1 ? Boolean(form.title.trim()) && Number(form.goal_amount) > 0 : step === 2 ? Boolean(form.summary.trim()) && Boolean(form.story.trim()) : true;
 
   async function save(e, publish = false) {
     e?.preventDefault?.();
@@ -129,7 +129,7 @@ export default function CreateCampaign() {
         <label className="block font-semibold">Fundraising goal (USD)<input required min="0.01" step="0.01" type="number" value={form.goal_amount} onChange={e => change("goal_amount", e.target.value)} placeholder="5000" className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4 font-normal" /></label>
       </section>}
       {step === 2 && <section className="space-y-4">
-        <label className="block font-semibold">Short description<textarea maxLength={600} rows={3} value={form.summary} onChange={e => change("summary", e.target.value)} placeholder="A few sentences that explain your campaign." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.summary.length}/600 characters</span></label>
+        <label className="block font-semibold">Short description<textarea required maxLength={600} rows={3} value={form.summary} onChange={e => change("summary", e.target.value)} placeholder="A few sentences that explain your campaign." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.summary.length}/600 characters</span></label>
         <label className="block font-semibold">Your campaign story<textarea required maxLength={15000} rows={10} value={form.story} onChange={e => change("story", e.target.value)} placeholder="Tell people what happened, what you hope to accomplish, and how support will help." className="mt-2 w-full rounded-xl border border-input bg-background p-4 font-normal" /><span className="mt-1 block text-xs font-normal text-muted-foreground">{form.story.length}/15,000 characters</span></label>
         <div className="rounded-xl border border-border p-4"><p className="font-semibold">AI writing assistance</p><p className="mt-1 text-sm text-muted-foreground">AI title, description, and story generation are not connected in this independent build yet. Your writing is saved as entered. Generation controls will appear when the independent AI service passes authentication, quota, and cost-safety checks.</p></div>
       </section>}
