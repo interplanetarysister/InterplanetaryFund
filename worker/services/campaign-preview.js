@@ -44,10 +44,10 @@ export function campaignPreviewInput(raw) {
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
-    raw.details.length > 1500 ||
+    raw.details.length > (raw.section == null ? 3000 : 4000) ||
     invalidControl(raw.details)
   )
-    fail(400, "Describe your campaign in 12 to 1,500 characters.");
+    fail(400, "Describe your campaign in 12 to 3,000 characters, or up to 4,000 for a section rewrite.");
   const answers = raw.answers ?? {};
   if (
     !answers ||
