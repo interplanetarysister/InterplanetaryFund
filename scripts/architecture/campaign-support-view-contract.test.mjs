@@ -22,6 +22,12 @@ test('active campaign checkout does not display paused-mode fallback', () => {
   const view = getCampaignSupportView({ campaignPaymentsPaused: false, platformPayPalUrl: url, platformPayPalVerified: true });
   assert.equal(view.platformSupport, null);
   assert.equal(view.campaignPausedNotice, null);
+  assert.equal(view.campaignCheckoutEnabled, false);
+});
+test('checkout becomes available only with independently verified readiness', () => {
+  const view = getCampaignSupportView({ campaignPaymentsPaused: false, campaignCheckoutVerifiedReady: true });
+  assert.equal(view.campaignCheckoutEnabled, true);
+  assert.equal(view.platformSupport, null);
 });
 test('view model is frozen and has no financial mutations', () => {
   const view = getCampaignSupportView({ platformPayPalUrl: url, platformPayPalVerified: true });
