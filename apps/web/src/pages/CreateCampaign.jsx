@@ -30,8 +30,8 @@ export default function CreateCampaign() {
   }, [draftId,navigate]);
   const [form, setForm] = useState(() => {
     try {
-      const stored = JSON.parse(sessionStorage.getItem("ifund-guest-campaign-v1") || "null");
-      if (stored && typeof stored === "object" && !draftId) return {
+      const stored = JSON.parse(localStorage.getItem("ifund-guest-campaign-v1") || "null");\n      if (stored?.savedAt && Date.now() - Number(stored.savedAt) > 7 * 24 * 60 * 60 * 1000) { localStorage.removeItem("ifund-guest-campaign-v1"); }
+      if (stored && typeof stored === "object" && !draftId && (!stored.savedAt || Date.now() - Number(stored.savedAt) <= 7 * 24 * 60 * 60 * 1000)) return {
         title: String(stored.title || ""), summary: String(stored.summary || ""),
         story: String(stored.story || ""), category: String(stored.category || "community"),
         goal_amount: String(stored.goal_amount || ""), cover_image_url: String(stored.cover_image_url || ""),
@@ -103,7 +103,7 @@ export default function CreateCampaign() {
   }
   useEffect(() => {
     if (draftId) return;
-    try { sessionStorage.setItem("ifund-guest-campaign-v1", JSON.stringify(form)); }
+    try { localStorage.setItem("ifund-guest-campaign-v1", JSON.stringify({ ...form, savedAt: Date.now() })); }
     catch { /* storage unavailable; no server-side guest persistence */ }
   }, [form, draftId]);
   function change(key, value) { setForm(prev => ({ ...prev, [key]: value })); }
@@ -127,7 +127,7 @@ export default function CreateCampaign() {
         : client.from("ifund_campaigns").insert({ ...values, owner_id: user.id });
       const { data, error: insertError } = await query.select("id").single();
       if (insertError) throw insertError;
-      setSaved(data.id);\n      try { sessionStorage.removeItem("ifund-guest-campaign-v1"); } catch { /* ignore */ }
+      setSaved(data.id);\n      try { localStorage.removeItem("ifund-guest-campaign-v1"); } catch { /* ignore */ }
       if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) { setError(err?.message || "Your draft could not be saved."); }
     finally { setBusy(false); }
