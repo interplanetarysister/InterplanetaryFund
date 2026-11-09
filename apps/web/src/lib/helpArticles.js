@@ -27,7 +27,7 @@ export const helpArticles = Object.freeze([
     category: "Money & Withdrawals",
     question: "When can I withdraw campaign funds?",
     description: "Payout authorization, balance verification and platform fees.",
-    answer: "Withdrawals require a verified eligible account, reconciled campaign balance, provider-approved payout capability and a recorded transaction. IFund's planned 3% platform fee applies at withdrawal, with processor fees separately disclosed. Withdrawal is not currently enabled on the new migration site; no funds can be released from this article."
+    answer: "Withdrawals require a verified eligible account, reconciled campaign balance, provider-approved payout capability and a recorded transaction. IFund's planned 7% platform fee applies at withdrawal, with processor fees separately disclosed. Withdrawal is not currently enabled on the new migration site; no funds can be released from this article."
   },
   {
     slug: "connect-another-platform",
