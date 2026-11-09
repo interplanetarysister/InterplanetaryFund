@@ -6,6 +6,9 @@ const json = (status, data) =>
 // Only list specialists whose preview Worker is actually bound to this runtime.
 // The stable catalog also preserves future positions; a catalog entry alone is
 // not evidence that an executable service has been deployed.
+// Managed Connections currently exposes supervised request tracking only. It
+// must not appear in the conversational specialist picker until its shared
+// workforce conversation runtime and tested tools are registered.
 const selectableBindings = Object.freeze({
   story_agent: "IFUND_STORY_AGENT",
   strategy_agent: "IFUND_STRATEGY_AGENT",
