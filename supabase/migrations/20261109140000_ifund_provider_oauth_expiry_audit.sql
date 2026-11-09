@@ -36,10 +36,10 @@ create or replace function public.ifund_store_provider_connection_v2(
   p_provider_subject text,
   p_token_ciphertext jsonb,
   p_granted_scopes text[],
-  p_expires_at timestamptz default null,
-  p_refresh_expires_at timestamptz default null,
-  p_key_version smallint default 1,
-  p_event_type text default 'connected'
+  p_expires_at timestamptz,
+  p_refresh_expires_at timestamptz,
+  p_key_version smallint,
+  p_event_type text
 ) returns void
 language plpgsql
 security definer
@@ -97,3 +97,29 @@ revoke all on function public.ifund_store_provider_connection_v2(uuid,text,text,
   from public, anon, authenticated;
 grant execute on function public.ifund_store_provider_connection_v2(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
   to service_role;
+
+-- Keep the already-deployed five-argument RPC compatible. It delegates to v2,
+-- records an audit event, and leaves expiry unknown until a Worker sends it.
+create or replace function public.ifund_store_provider_connection(
+  p_owner_id uuid,
+  p_provider text,
+  p_provider_subject text,
+  p_token_ciphertext jsonb,
+  p_granted_scopes text[]
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  perform public.ifund_store_provider_connection_v2(
+    p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
+    p_granted_scopes, null, null, 1, 'connected'
+  );
+end;
+$;
+revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[])
+  from public, anon, authenticated;
+grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[])
+  to service_role;
+
