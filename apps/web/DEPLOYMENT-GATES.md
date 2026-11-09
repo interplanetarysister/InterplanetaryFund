@@ -13,40 +13,46 @@ Current observed Cloudflare Pages settings for `interplanetaryfund-migration` ar
 
 These are current observations, not a prohibition on a later repair deployment. Do not change DNS or route ownership as a side effect of a build or deployment.
 
-## Current Cloudflare Pages state — read-only verification 2026-10-30
+## Current Cloudflare Pages state — verified 2026-11-09
 
-The Pages project currently reports production deployments disabled and preview deployments set to none. Its latest preview attempt is marked skipped with reason `preview_deployments_disabled`; no build or deploy stage ran for that attempt.
+The active preview target is Cloudflare Pages project \`interplanetaryfund-migration\`.
 
-The last recorded canonical production deployment is historical: created 2026-10-29T01:32:29Z, with build and deploy stages completed successfully. It predates this current checkpoint and is not evidence of present platform-wide readiness.
+Observed project configuration:
 
-Configuration drift remains unresolved and is intentionally untouched:
+- GitHub source: \`interplanetarysister/InterplanetaryFund\` (repository ID \`1326040927\`).
+- Production branch: \`main\`.
+- Production deployments: disabled.
+- Preview deployment setting: \`custom\`.
+- The preview branch allowlist includes \`feature/ifund-campaign-donation-ux-20261103\`.
+- Build root: \`apps/web\`.
+- Build command: \`npm ci --no-audit --no-fund && npm test && npm run build\`.
+- Attached domains: \`interplanetaryfund.com\`, \`www.interplanetaryfund.com\`, and \`preview.interplanetaryfund.com\`, as well as the project's \`pages.dev\` domain.
 
-- The current Pages project source configuration names repository `interplanetary-fund2`.
-- The recorded canonical deployment metadata names `InterplanetaryFund`.
-- The configured Pages build command remains present, but deployment controls are disabled. It cannot safely deploy this migration branch until the repository source, canonical Supabase binding, and rollback path are reconciled. A repair-specific preview or production deployment is authorized after those checks.
-
-The production Worker environment also remains mismatched: server-side `SUPABASE_URL` and `SUPABASE_JWKS_URL` point to the legacy project, while the browser Vite variables point to the canonical target project. The server-side secret binding is empty. No authenticated write path may be enabled until this is resolved through an authorized, independently verified configuration change.
+The generated branch-preview URL is the verified target for this repair. The custom-domain attachment does not by itself prove that \`preview.interplanetaryfund.com\` resolves to this branch deployment. No DNS, custom-domain, production-branch, or production-deployment setting was changed.
 
 ## Current GitHub automation mode
 
-The migration workflow runs:
+The migration static-check workflow:
 
-- Root dependencies install with lifecycle scripts disabled.
-- Worker and contract tests run with Node's test runner.
-- Web dependencies install with lifecycle scripts disabled.
-- Web regression tests and offline coverage audits run.
-- Vite compiles the independent web app after regression tests.
-- No deployment command is present in CI while the production route and project bindings remain mismatched.
+- Installs locked root dependencies with lifecycle scripts disabled.
+- Runs worker and contract tests.
+- Installs locked web test dependencies with lifecycle scripts disabled.
+- Runs web regression tests and offline coverage audits.
+- Syntax-checks Worker JavaScript without compiling or deploying it.
 
-The Vite step is a compilation check, not release approval or proof of browser, provider, Android, or production runtime behavior. Repair deployments are authorized when a safe target and rollback are verified.
+The separate \`web-preview-build.yml\` workflow runs the web regression suite and compiles the Pages bundle. It contains no deploy command; Cloudflare Pages performs the branch-preview build and deployment from the allowlisted GitHub branch.
 
-## Isolated migration preview — created 2026-10-30
+The \`verify-build-mode.mjs\` gate selects the inventory-consistency check for a non-production Cloudflare Pages branch. Local builds and the \`main\` production branch retain the strict production evidence gate. A successful preview build is not production release approval.
 
-A separate Cloudflare Pages project, `interplanetaryfund-migration-preview`, is connected to `interplanetarysister/InterplanetaryFund` (repository ID `1326040927`). It is restricted to preview builds from `migration/build-completeness-gates-20261029`; `production_deployments_enabled=false`, and it has no custom domains. The existing `interplanetaryfund-migration` project remains connected to the legacy `interplanetary-fund2` repository with automatic deployments and previews disabled. No production domains, DNS, or Worker routes were changed.
+## Canonical Supabase and migration safety — verified 2026-11-09
 
-The new preview uses Node `22.23.2`, npm `10.9.8`, the canonical Supabase project, and `MIGRATION_API_PREVIEW=enabled`. The new root `functions/api/[[path]].js` delegates same-origin `/api/*` requests to the independent Worker. The first preview build triggered by the latest code-tested branch push is queued; no successful Pages preview has completed yet. `SUPABASE_SERVICE_ROLE_KEY` is not configured in preview, so device-authorization and giving-history endpoints remain fail-closed/disabled until a trusted secret is provisioned.
+The canonical Supabase project is \`ssibsfmtodgximseeqsv\`. Its live migration history already contains the newer campaign-funding aggregate and donation-support migrations. The older staged drafts \`20261103150000\` and \`20261103160000\` have therefore been converted to inert migration markers; they no longer replace the live funding RPC or narrow the existing optional-support ceiling.
 
-The target database has applied migrations `20261030152135_ifund_public_grants_and_auth_trigger_hardening`, `20261030152355_ifund_legal_acceptances_owner_scoped`, the initial `20261030180529_ifund_account_lifecycle_guard_20261030`, and corrective `20261030183040_ifund_account_lifecycle_reconcile_guard`. The corrective migration resets all three pre-existing unmapped profiles to NULL, removes unsafe defaults, and gates authenticated RLS policies while preserving anonymous public reads. Rollback-only two-account RLS tests passed, including owner isolation and legal-consent insertion. The legal-acceptance table currently has zero real acceptance rows, so signup-to-consent remains unproven.
+The previously applied \`20261025100627\` schema migration is restored to its original grant block. The repository now carries the later \`20261105193521\` campaign write-privilege hardening migration separately, preserving the live column-scoped insert/update grants and RLS-constrained delete permissions.
+
+The public funding RPC's existing \`donor_count\` field counts captured gift rows, not unique people. The web client now presents that aggregate as a gift count and does not label it as unique donors. This is a presentation correction; no donor records or database rows were changed.
+
+No Supabase migration was executed during this preview repair. The preview uses the canonical project bindings already configured in Pages; no service-role key was added.
 
 ## Required production gates
 
@@ -66,11 +72,14 @@ Static route shells, schema names, mocks, or passing unit tests are not runtime 
 
 ## Current checkpoint
 
-- Draft PR: #165
-- Working branch: `migration/build-completeness-gates-20261029`
-- Current implementation commit: `24fae9d3b7a2d6f45a8f7c9d5a6e2b4c8f1d3a7b`
-- Latest CI: **120/120 Worker tests, 141/141 web tests, Vite 6.4.5 compile passed**
-- Build/CI/deployment repair authorization: **granted**
-- Production readiness: **NOT READY**
+- Open PR: #200
+- Working branch: \`feature/ifund-campaign-donation-ux-20261103\`
+- Current implementation commit at this checkpoint: \`4a9c5483c17a909712aa203854038e235e7c1af0\`
+- Migration static checks: passed.
+- Web regression tests and offline coverage audits: passed.
+- Vite preview compilation: passed.
+- Cloudflare Pages branch preview: deployment of this exact commit is still in progress; use the generated \`pages.dev\` URL only after its deploy stage reports success.
+- Production deployment: disabled.
+- Production readiness: **NOT READY**.
 
-Build and deploy when a repair requires it, but do not treat a green compile or unit suite as production readiness. Resolve the documented project mismatch and prove the full user-facing parity gates before cutover.
+Do not merge to \`main\`, enable production deployments, alter DNS, activate PayPal checkout, or apply database migrations as part of this preview-only repair. A green preview build and unit suite do not prove end-to-end authentication, provider, payment, withdrawal, agent, Android, or production runtime parity.
