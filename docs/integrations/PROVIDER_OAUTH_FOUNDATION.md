@@ -45,7 +45,8 @@ Do not register guessed callbacks. The exact preview frontend origin must be con
 
 ## Credential names (names only; values stay in secret stores)
 
-- `META_OAUTH_CLIENT_ID` (non-secret config) / `META_OAUTH_CLIENT_SECRET` (Worker Secret)
+- `META_OAUTH_CLIENT_ID` (non-secret config) / `META_OAUTH_CLIENT_SECRET` (Worker Secret) for Facebook Pages
+- `INSTAGRAM_OAUTH_CLIENT_ID` (non-secret config) / `INSTAGRAM_OAUTH_CLIENT_SECRET` (Worker Secret) from Instagram → API setup with Instagram Login; these are not interchangeable with the parent Meta App credentials
 - `LINKEDIN_OAUTH_CLIENT_ID` / `LINKEDIN_OAUTH_CLIENT_SECRET`
 - `X_OAUTH_CLIENT_ID` / `X_OAUTH_CLIENT_SECRET`
 - `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET`
@@ -126,7 +127,7 @@ Required Cloudflare Worker configuration (names only):
 - LINKEDIN_OAUTH_CLIENT_ID / LINKEDIN_OAUTH_CLIENT_SECRET
 - X_OAUTH_CLIENT_ID / X_OAUTH_CLIENT_SECRET
 - TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
-- META_OAUTH_CLIENT_ID / META_OAUTH_CLIENT_SECRET — Meta App ID / App Secret for Facebook Pages and Instagram Login
+- META_OAUTH_CLIENT_ID / META_OAUTH_CLIENT_SECRET — Meta App ID / App Secret for Facebook Pages; Instagram-specific App ID / App Secret for Instagram Login
 - VITE_IFUND_OAUTH_API_BASE_URL — Pages build-time variable pointing to the environment's OAuth Worker URL (preview currently uses the workers.dev URL above; production must use a separate production Worker)
 
 Base44 already has a separate app-user connector runtime. Configure each approved provider's workspace OAuth connector, then set the matching non-secret APP_USER_CONNECTOR_<PROVIDER>_ID reference in the Base44 app's server environment. Base44 workspace connector configuration owns its client secret; do not copy it into Base44 entities. The Base44 app's existing connect/finalize/verify functions should remain the per-user connection path. No client secret or per-user token belongs in a Base44 entity or browser bundle.
@@ -136,7 +137,7 @@ Provider endpoint references: Google OAuth web-server flow https://developers.go
 
 ## Provider-specific implementation updates — 2026-11-09
 
-The independent Worker registry now includes seven user-authorized provider flows: Google identity, YouTube channel, LinkedIn, X, TikTok, Facebook Pages, and Instagram Business. Google and YouTube share the same Google OAuth web client but use distinct fixed callback routes and scopes. Facebook Pages and Instagram use the existing iFund Meta App ID (public identifier) and separate provider-specific Meta/Instagram OAuth endpoints. The current Meta App ID found in the connected mailbox is 1427538482140267; the Meta App Secret remains unavailable.
+The independent Worker registry now includes seven user-authorized provider flows: Google identity, YouTube channel, LinkedIn, X, TikTok, Facebook Pages, and Instagram Business. Google and YouTube share the same Google OAuth web client but use distinct fixed callback routes and scopes. Facebook Pages uses the existing iFund Meta App ID (public identifier). Instagram Login uses its separate Instagram App ID and Instagram App Secret from the Instagram product's API setup; the parent Meta App credentials must never be used as a fallback. The current Meta App ID found in the connected mailbox is 1427538482140267; the Meta App Secret and Instagram-specific credential pair remain unavailable.
 
 Provider-specific rules now encoded:
 - Google and YouTube use Google authorization-code flow with PKCE; YouTube requests read-only and upload scopes, and channel identity is verified through the YouTube Data API.
