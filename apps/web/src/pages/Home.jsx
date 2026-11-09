@@ -5,7 +5,7 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import LegalFooter from "@/components/LegalFooter";
 import { Sparkles, Compass, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
-import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
+import PlatformSupportHostedButton from "@/components/payments/PlatformSupportHostedButton";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import QuickActions from "@/components/QuickActions";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -118,11 +118,12 @@ export default function Home() {
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
           <Link to="/discover"><Button variant="outline" className="rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
           <Link to="/create"><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
-          <div className="max-w-sm mx-auto mt-9 rounded-2xl border border-border p-4 text-center">
-            <p className="text-sm font-medium text-foreground mb-2">Support Interplanetary Fund itself</p>
-            <p className="text-xs text-muted-foreground mb-3">This donation helps operate the platform. It is not credited to any individual campaign.</p>
-            <PayPalDonateButton label="Support Interplanetary Fund with PayPal" />
-            <p className="mt-3 text-sm font-semibold text-foreground">Cryptocurrency donations — Coming soon…</p>
+          <div className="w-full mt-9">
+            <PlatformSupportHostedButton
+              label="Support Interplanetary Fund itself"
+              description="This $25 one-time payment supports platform operations. It is not credited to any individual campaign."
+            />
+            <p className="mt-3 text-center text-sm font-semibold text-foreground">Cryptocurrency donations — Coming soon…</p>
           </div>
         </div>
       </section>
