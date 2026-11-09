@@ -8,6 +8,7 @@ Read [the canonical architecture and execution contract](docs/architecture/IFUND
 - Preserve existing work; inspect current GitHub files and actual hosted Supabase/Cloudflare state before changing them. Repo documents may be stale. Never guess a URL, account mapping, existing schema, migration state, webhook secret or feature completion.
 
 ## Build discipline
+- **Mandatory Base44 data parity:** Before and after every feature, schema, migration, or deployment change, follow [the cross-cloud source-data and media preservation contract](docs/migration/BASE44_PARITY_STORAGE_CONTRACT.md). Reconcile relevant Base44 entity records into private Supabase snapshots, verified live Supabase models, and appropriate Cloudflare R2/KV storage; record counts, legacy IDs, owner mappings, asset verification, and excluded credentials. No snapshot counts as cutover or provider-verified money.
 1. Read the architecture contract, relevant source, deployed configuration, migration history, and `docs/migration/{STATUS,INVENTORY,BLOCKERS}.md` before planning or editing.
 2. Define one demonstrable user behavior or backend contract. Assign canonical file ownership, avoid duplicate route/function/grant implementations, and identify dependent services.
 3. Implement a reviewable scoped change, with database changes additive and reconciled against existing production catalog. Never apply all `pending/` migrations blindly.
