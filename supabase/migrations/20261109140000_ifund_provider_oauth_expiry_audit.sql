@@ -28,10 +28,9 @@ revoke all privileges on table public.ifund_provider_tokens, public.ifund_provid
 grant all privileges on table public.ifund_provider_tokens, public.ifund_provider_connection_events
   to service_role;
 
--- Replace the applied five-argument RPC. The worker supplies the indexed expiry
--- fields and a non-secret event type; the ciphertext remains the only token store.
-drop function if exists public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]);
-create or replace function public.ifund_store_provider_connection(
+-- Add a versioned RPC while keeping the applied five-argument function intact
+-- for any already-deployed Worker. New Workers use v2 for expiry/audit metadata.
+create or replace function public.ifund_store_provider_connection_v2(
   p_owner_id uuid,
   p_provider text,
   p_provider_subject text,
@@ -94,7 +93,7 @@ begin
 end;
 $$;
 
-revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
+revoke all on function public.ifund_store_provider_connection_v2(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
   from public, anon, authenticated;
-grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
+grant execute on function public.ifund_store_provider_connection_v2(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)
   to service_role;
