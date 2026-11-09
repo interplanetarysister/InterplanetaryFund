@@ -160,3 +160,28 @@ The authoritative Base44 application source already contains a per-user connecto
 The connected Base44 account also exposes app-scoped connections for Instagram and Facebook Pages, and a LinkedIn connection record whose live status is pending. Those app-scoped/shared connections are not evidence that end users can authorize their own accounts. Do not use a shared IFund page/profile token as a user's personal account token. The existing Base44 readiness function correctly keeps self-serve OAuth disabled until the required provider app registration and approval gates are met.
 
 This confirms the dual-deployment split: Base44 already has its own per-user connector UI/runtime but is missing the provider workspace connector registrations and IDs; the independent Cloudflare Worker now has the matching user OAuth consumer code but is missing its server secrets and live provider app configuration. Neither deployment is production-ready until its own user-scoped connection flow is verified.
+
+## Verified implementation checkpoint — 2026-11-09
+
+- Source branch: \`migration/provider-oauth-preview-20261109\`.
+- Target branch for this work: \`migration/base44-frontend-parity-20261103\`. This is a separate integration branch; do not merge it into \`migration/supabase-cloudflare\` without reconciling the 146-commit divergence.
+- Verified source commit: \`c172afec2aad6606a8098c2314f7d6fd9f4d11ea\`.
+- Root worker/migration suite: 249 tests, 248 passed, 0 failed, 1 skipped.
+- Pages frontend suite: 133 passed, 0 failed.
+- Pages production-mode build: passed.
+- Prettier normalization and whitespace check: passed in CI. Formatted files were retained as a CI artifact for review.
+- No provider OAuth credentials or encryption key were installed. No Supabase migration was applied. No provider app-review or callback URI registration was performed.
+- The Cloudflare Pages preview allowlist now includes this source branch. A new branch commit is required to trigger its first preview build.
+- The Pages production branch remains \`main\`; automatic production deployments remain disabled. This branch is not approved for production.
+
+The Instagram long-lived token exchange uses Meta's \`ig_exchange_token\` grant. Its regression test asserts the exact grant value. The X provider UI no longer inherits the Base44 connector catalog's shared-only limitation; its independent OAuth availability is controlled by the Worker app-registration and entitlement flags.
+
+### Outstanding release gates
+
+1. Apply and verify the private OAuth-vault migration in the intended Supabase environment only after the migration is reviewed against its live schema and RLS.
+2. Deploy the matching Worker code to a dedicated preview Worker, with separate preview-only secrets and exact frontend origin allowlisting. The currently deployed migration Worker has no OAuth secret bindings and must not be assumed to serve these routes.
+3. Complete real provider authorization and identity checks for each enabled provider. Mocked tests do not prove provider-console configuration or app-review approval.
+4. Verify token refresh/rotation and provider-specific revocation or reconnect behavior against real accounts.
+5. Complete the browser-level account-isolation, campaign, donation, withdrawal, agent, and mobile acceptance suites.
+6. Reconcile this branch with the canonical integration branch, then require a fresh production build and deployment verification before enabling production traffic.
+
