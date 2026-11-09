@@ -1,0 +1,162 @@
+# Provider OAuth implementation foundation
+
+**Branch:** `migration/provider-oauth-foundation-20261109`
+**Target:** `migration/supabase-cloudflare`
+**State:** implementation plan and provider contract only; no provider credentials have been created or copied.
+
+## Operating rule
+
+Use the connected GitHub, Cloudflare, Supabase, and other provider-native integrations directly. Do not use TinyFish or any paid browser-automation service as a prerequisite. Provider credentials can only be read from an authenticated developer account that exposes them to an authorized tool/session. If a provider requires an interactive identity, terms, MFA, CAPTCHA, business verification, or app review, queue only that specific human/provider gate and continue other work.
+
+## Correct architecture
+
+- **Both deployments are required:** the existing Base44 app and the independent `interplanetaryfund.com` application. Base44 is an active product target, not merely an archive. The independent repository/Cloudflare/Supabase stack owns the standalone domain deployment; the Base44 app must receive equivalent user-facing connection functionality through its own server-side functions and secret configuration.
+- OAuth authorization-code + PKCE flows terminate at the canonical Cloudflare Worker/API. Validate one-time state, exact redirect URI, issuer/provider, expiry, and PKCE verifier before exchanging codes server-side.
+- Provider client secrets are stored separately in each deployment's server-side secret manager: Base44 server/runtime secrets for Base44 functions, and Cloudflare Worker Secrets for the independent app. Never use `VITE_*`, public Pages variables, GitHub Actions plaintext, browser storage, Base44 entities, or logs for secret values. Do not copy one deployment's secret into the other's client bundle.
+- User access/refresh tokens are per-user credentials, encrypted at rest in the private Supabase credential vault; never reuse the application client secret as a user token or put refresh tokens into Worker env vars.
+- Supabase stores provider identity, granted scopes, token expiry, encrypted token ciphertext/key version, owner ID, provider subject, status, and audit events. RLS denies browser access to ciphertext and token material; service-side RPC/Edge Function owns reads and writes.
+- The Base44 deployment may store only non-secret provider setup metadata in ordinary entities. Per-user OAuth tokens must be encrypted and accessible only through server-side functions with owner-scoped authorization; do not store plaintext tokens in Base44 entities. The independent app uses its private Supabase token store and Cloudflare-held encryption material.
+- OAuth connection success means a provider-issued token has been exchanged, identity has been fetched, granted scopes recorded, and a minimal permitted API call has succeeded. A redirect or consent page alone is not success.
+
+## Provider registration matrix
+
+| Provider | App registration / products | Minimum login scopes | Notes |
+|---|---|---|---|
+| Meta | Meta for Developers app; Facebook Login; Instagram product only for supported Instagram API use | `public_profile`, `email` where approved | Business verification and App Review/Advanced Access may be required. Instagram is not a generic login provider. |
+| LinkedIn | LinkedIn Developer app; Sign In with LinkedIn using OpenID Connect | `openid`, `profile`, `email` | Other products and permissions are separately gated; request only features actually implemented. |
+| X | X Developer project/app with OAuth 2.0 user authentication | `users.read`, `tweet.read`, `offline.access` only if required | Confirm plan/endpoint entitlement before enabling write scopes. |
+| TikTok | TikTok for Developers app with Login Kit for Web | `user.info.basic` | Use OAuth v2 endpoints and exact static HTTPS redirect URI. |
+| Google / YouTube | Google Cloud project + OAuth Web client; enable only required APIs | `openid`, `email`, `profile`; YouTube scopes only for requested YouTube features | Consent screen, test users, verification and API enablement may apply. |
+| GoFundMe Pro | GoFundMe Pro / Classy developer approval | Provider-defined | Separate from consumer GoFundMe; do not infer access from a consumer campaign URL. |
+
+## Existing provider registration evidence
+
+- **Meta / iFund app exists:** an official Meta developer onboarding email dated 2026-10-20 identifies app `iFund` with App ID `1427538482140267` and Business ID `1881031393302767`. The App ID is a public identifier, not a client secret. The email does not contain the App Secret, configured OAuth redirect URIs, approved permissions, or App Review status. Treat the app as registered but not yet verified for the required login/publishing capabilities.
+- **Other provider app credentials:** targeted searches of the connected IFund mailbox found no LinkedIn, X, TikTok, Google OAuth client registration or GoFundMe Pro developer credential messages. This is only an inbox search result, not proof that no app exists in those developer consoles.
+- No secret value was found in the messages inspected. Do not use any personal account password as an OAuth client secret.
+
+## Redirect URI and cross-origin callback contract
+
+The Pages frontend and OAuth Worker are separate origins. The preview API Worker is deployed at `https://interplanetary-fund-api-migration.interplanetary-fund.workers.dev`; the frontend uses `VITE_IFUND_OAUTH_API_BASE_URL` to call it with the signed-in Supabase access token. The Worker accepts only exact HTTPS origins listed in `OAUTH_FRONTEND_ORIGINS` and returns CORS headers only for those origins.
+
+The provider redirect URI is on the frontend, not the Worker: `https://<verified-frontend-origin>/oauth/callback/<provider>`. The callback page reads the provider's code/state, then POSTs them to `/api/oauth/<provider>/callback` on the Worker with the current user's Supabase JWT. The Worker validates the allowed Origin, exact redirect URI, one-use state hash, authenticated owner ID and stored transaction before exchanging the code. This avoids relying on third-party cookies across the Pages and Workers origins and prevents an account-linking CSRF flow from binding another user's provider token.
+
+Do not register guessed callbacks. The exact preview frontend origin must be confirmed from a successful Pages branch deployment before provider registration. Production callback paths will use `https://interplanetaryfund.com/oauth/callback/<provider>` after the production frontend and separate production API Worker are deployed. Register each exact HTTPS URI with its provider; no wildcard paths, query parameters, or fragments.
+
+## Credential names (names only; values stay in secret stores)
+
+- `META_OAUTH_CLIENT_ID` (non-secret config) / `META_OAUTH_CLIENT_SECRET` (Worker Secret)
+- `LINKEDIN_OAUTH_CLIENT_ID` / `LINKEDIN_OAUTH_CLIENT_SECRET`
+- `X_OAUTH_CLIENT_ID` / `X_OAUTH_CLIENT_SECRET`
+- `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET`
+- `GOOGLE_OAUTH_CLIENT_ID` / `GOOGLE_OAUTH_CLIENT_SECRET`
+- `GOFUNDME_PRO_CLIENT_ID` / `GOFUNDME_PRO_CLIENT_SECRET` (only after approval)
+
+Use environment-specific secret names/bindings or separate preview and production Workers. Never bind production credentials to preview. Base44 preview and production must likewise use separately configured server-side secrets and exact callback URIs. Cloudflare's Worker Secrets API supports secret writes, but this repo's provider OAuth consumer and exact callback contract must exist before secrets are installed.
+
+## Implementation sequence
+
+1. Confirm canonical project and deployed preview host from the current release branch; do not guess the callback URL.
+2. Add a provider registry with fixed authorization/token/userinfo endpoints, allowed scopes, response parsing, token auth method, and capability flags. Treat endpoints and scopes as code-reviewed constants, not user input.
+3. Add `/api/oauth/:provider/start`, the frontend `/oauth/callback/:provider` page, and `POST /api/oauth/:provider/callback`; generate cryptographically random state and PKCE verifier, store a short-lived one-use transaction server-side, and bind the callback to the same authenticated owner and exact allowed frontend origin without relying on third-party cookies.
+4. Implement token exchange with strict timeouts, response size limits, no redirects to untrusted hosts, issuer/audience checks where applicable, and secret-safe error handling.
+5. Encrypt per-user access/refresh tokens with envelope encryption; keep key-encryption material in Cloudflare secrets or an approved key service, store only ciphertext + key version in private Supabase tables. Rotate keys with versioned re-encryption.
+6. Add refresh routes with provider-specific refresh behavior and token rotation handling. Implement provider revocation/disconnect only after each provider's documented revoke endpoint is verified; do not claim remote revocation from a local token deletion.
+7. Add contract tests for state replay, cross-origin CSRF/account-linking, PKCE mismatch, redirect mismatch, expired code, missing scope, provider denial, malformed token response, refresh rotation, owner isolation, CORS allowlisting and log redaction.
+8. Add per-provider capability checks; mark each capability verified only after real account authorization and a minimal provider API call. Keep unsupported actions disabled.
+9. Install client secrets into the preview Worker only after the consumer code and callback are deployed to preview. Promote secrets separately after production approval and verified release.
+
+## Work completed in this change
+
+- Inspected connected Base44 schemas and confirmed the legacy PlatformConnection, PlatformConnectionRecipe, UserCredentialVault, and AdminCredentialReference concepts.
+- Inspected Cloudflare account Worker inventory and secret-name listings. The checked Workers had no configured secrets at inspection time; no secret values were read.
+- Inspected both active Supabase projects and the deployed Edge Function inventory. No provider OAuth Edge Function was present in the two project function lists.
+- Identified that `ifund-managed-connections-agent-preview` currently reports `provider_execution: false`; its provider registration/capability receipts are not verified.
+- Identified that the legacy `ifund-oauth` Worker is a limited IFund agent OAuth service, not a social-provider OAuth consumer. Do not attach social-provider credentials to it without changing its trust boundary and implementing the provider flow.
+- Did not create credentials, change provider settings, modify DNS, deploy production code, or write secrets.
+
+## Verification references
+
+- LinkedIn OAuth 2.0 authorization-code flow: https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow
+- Google OpenID Connect setup: https://developers.google.com/identity/openid-connect/openid-connect
+- TikTok OAuth v2 migration guidance: https://developers.tiktok.com/bulletin/migration-guidance-oauth-v1
+- Cloudflare Worker Secrets API: https://developers.cloudflare.com/api/resources/workers/subresources/scripts/subresources/secrets/
+- Cloudflare secret handling: https://developers.cloudflare.com/workers/configuration/secrets/
+
+## Dual-deployment requirement
+
+- Implement and verify the same provider capabilities in both Base44 and `interplanetaryfund.com`; neither deployment is considered complete merely because the other works.
+- Use deployment-specific callback URIs, app registrations where provider policy requires them, and isolated secrets. Never share a callback URL across hosts unless the provider and implementation explicitly support it.
+- Base44 code access currently requires the connected workspace's Builder plan for direct file/shell tools; the alternative AI-builder edit consumes workspace credits. Do not invoke a credit-consuming edit without explicit approval. Continue independent repository implementation while this access gate remains.
+- Do not mark either deployment ready until both have negative tests for cross-user token access, state replay, CSRF, disconnect/revocation and secret/log redaction.
+
+## Human/provider gates (do not block unrelated implementation)
+
+- Existing provider developer-account access must be available in an authorized connected session. Do not request or store the user's main account password.
+- Provider-specific business verification, app review, legal terms, MFA, CAPTCHA, and identity confirmation remain provider-controlled.
+- Any paid provider plan, paid API add-on, browser automation credit, or subscription upgrade requires separate explicit approval.
+
+## Acceptance criteria
+
+- No provider marked connected before successful token exchange + identity lookup + minimal API verification.
+- No raw client secret, access token, refresh token, auth code, PKCE verifier, or state value in source, GitHub, Base44, logs, analytics, or client responses.
+- RLS and service-side authorization prove one user cannot read or refresh another user's tokens.
+- Preview and production credentials and redirect URIs are isolated.
+- Reconnect, refresh-token rotation, disconnect/revocation, provider denial and account deletion are covered by tests.
+- Social publishing and fundraising operations use distinct least-privilege capabilities; OAuth login must not imply posting, donor, campaign, or payment authority.
+
+## Implemented preview code foundation — 2026-11-09
+
+The branch now contains an initial server-side OAuth consumer for Google, LinkedIn, X and TikTok:
+
+- worker/oauth.js implements fixed provider endpoints/scopes, authenticated start requests, random one-use state, PKCE for Google and X, provider-specific TikTok web parameters, encrypted short-lived verifier storage, exact HTTPS callback-origin validation, server-side code exchange, identity lookup, and encrypted access/refresh token persistence.
+- worker/index.js routes /api/oauth/:provider/start and /api/oauth/:provider/callback.
+- supabase/migrations/20261109000100_provider_oauth_vault.sql creates service-role-only OAuth transaction and encrypted token tables, plus an atomic function to store a verified token and connection receipt.
+- src/pages/Connections.jsx now initiates supported provider authorization and reads owner-scoped connection status.
+- tests/provider-oauth.test.js covers the provider allowlist, encryption envelope, fail-closed configuration, verified owner requirement, PKCE/state, TikTok web parameters, identity verification, encrypted persistence, and state-cookie mismatch.
+
+**Not yet release-ready:** provider credentials, Supabase migration application, Cloudflare environment secrets/bindings, exact preview and production callback registration, refresh/revocation lifecycle, and real-provider authorization tests remain outstanding. The implemented provider set is intentionally limited to the four with explicit server-side identity-verification paths. Meta/Facebook, Instagram, YouTube, PayPal and GoFundMe are not enabled by this consumer. Do not mark a provider connected until a real authorization callback and userinfo request succeed.
+
+Required Cloudflare Worker configuration (names only):
+- OAUTH_API_ENABLED — explicit per-environment enable switch; do not tie OAuth availability to the preview-only migration flag
+- SUPABASE_SECRET_KEY — preferred opaque Supabase secret API key for server-only PostgREST/RPC access; legacy SUPABASE_SERVICE_ROLE_KEY JWT remains supported
+- OAUTH_ENCRYPTION_KEY — base64-encoded 32-byte AES-GCM key, generated separately per environment
+- OAUTH_FRONTEND_ORIGINS — comma-separated exact HTTPS frontend origins allowed to start/finish OAuth; no wildcard origins
+- GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET — shared by Google identity and YouTube channel OAuth
+- LINKEDIN_OAUTH_CLIENT_ID / LINKEDIN_OAUTH_CLIENT_SECRET
+- X_OAUTH_CLIENT_ID / X_OAUTH_CLIENT_SECRET
+- TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
+- META_OAUTH_CLIENT_ID / META_OAUTH_CLIENT_SECRET — Meta App ID / App Secret for Facebook Pages and Instagram Login
+- VITE_IFUND_OAUTH_API_BASE_URL — Pages build-time variable pointing to the environment's OAuth Worker URL (preview currently uses the workers.dev URL above; production must use a separate production Worker)
+
+Base44 already has a separate app-user connector runtime. Configure each approved provider's workspace OAuth connector, then set the matching non-secret APP_USER_CONNECTOR_<PROVIDER>_ID reference in the Base44 app's server environment. Base44 workspace connector configuration owns its client secret; do not copy it into Base44 entities. The Base44 app's existing connect/finalize/verify functions should remain the per-user connection path. No client secret or per-user token belongs in a Base44 entity or browser bundle.
+
+Provider endpoint references: Google OAuth web-server flow https://developers.google.com/identity/protocols/oauth2/web-server; LinkedIn 3-legged flow https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow; X OAuth 2.0 user authentication https://developer.x.com/en/docs/authentication/oauth-2-0/authorization-code; TikTok Login Kit https://developers.tiktok.com/docs/en/login-kit-overview and token exchange https://developers.tiktok.com/docs/en/oauth-get-user-access-token.
+
+
+## Provider-specific implementation updates — 2026-11-09
+
+The independent Worker registry now includes seven user-authorized provider flows: Google identity, YouTube channel, LinkedIn, X, TikTok, Facebook Pages, and Instagram Business. Google and YouTube share the same Google OAuth web client but use distinct fixed callback routes and scopes. Facebook Pages and Instagram use the existing iFund Meta App ID (public identifier) and separate provider-specific Meta/Instagram OAuth endpoints. The current Meta App ID found in the connected mailbox is 1427538482140267; the Meta App Secret remains unavailable.
+
+Provider-specific rules now encoded:
+- Google and YouTube use Google authorization-code flow with PKCE; YouTube requests read-only and upload scopes, and channel identity is verified through the YouTube Data API.
+- LinkedIn requests OIDC identity scopes plus w_member_social; posting remains gated on LinkedIn product/permission approval and the actually returned token scopes.
+- X uses OAuth 2.0 PKCE and read scopes only. Do not enable publishing until the X developer plan and write-scope entitlement are verified; the Base44 connector catalog currently treats X as shared-only.
+- TikTok Web uses client_key, comma-separated scopes, state, and the web token exchange (no mobile-only PKCE). It requests user.info.basic, video.list, and video.upload; extra scopes require TikTok app approval.
+- Facebook Pages uses Meta OAuth and checks the granted Page permissions plus an actual Page CREATE_CONTENT/MANAGE task before reporting the Page connection as verified.
+- Instagram uses Instagram Login endpoints and upgrades the short-lived token to a long-lived token server-side before encrypted storage. The token response's actual permissions are stored; no requested permission is assumed granted.
+- Provider scope recording is fail-closed: if the provider does not return scopes (or a verified permission endpoint is unavailable), the database records an empty scope list rather than copying requested scopes.
+
+## GoFundMe Pro is a separate organization connector
+
+GoFundMe Pro API authentication must not be treated as ordinary per-user social OAuth. Its API documents an organization-level OAuth 2.0 client-credentials grant at https://api.classy.org/oauth2/auth; the API app setup yields client_id and client_secret, and the organization ID is also required for organization-specific resources. The documented application token is requested with grant_type=client_credentials and expires; there is no documented refresh token for that grant, so the server requests a new token when needed. GoFundMe Pro also documents a member authorization-code/Classy Login path, but its authorization-code grant is not declared in the public API OpenAPI contract and Classy Login is separately documented as pre-release. Do not build production API access on that incomplete member-login path.
+
+Required GoFundMe Pro setup gate: an organization administrator creates an API app under Apps & Integrations > API, enters the exact registered redirect URI required by the portal, accepts the terms, and securely provisions client ID, client secret, and organization ID. Use a distinct server-only service connector and least privilege. Do not request broad write scope unless an approved IFund operation actually needs it. Respect the provider's rate limit and 429 retry guidance; do not poll automatically. No GoFundMe Pro credentials or organization ID were found in the connected mailbox or current connector inventory.
+
+## Base44 application-side evidence
+
+The authoritative Base44 application source already contains a per-user connector flow: Connections UI -> getAppUserConnector -> Base44 connectAppUser -> finalizeAppUserOAuthConnection -> verifyPlatformConnection. Its shared OAUTH_ENV map references APP_USER_CONNECTOR_*_ID values; the connected app secret inventory currently contains the Eventbrite connector reference but no social provider connector references. The workspace connector inventory has Eventbrite and GitHub connectors, not LinkedIn, X, TikTok, Meta, or YouTube per-user connectors. Base44 connector governance reports per-user connection disabled for the social providers until provider-specific per-user credentials are configured; X is shared-only.
+
+The connected Base44 account also exposes app-scoped connections for Instagram and Facebook Pages, and a LinkedIn connection record whose live status is pending. Those app-scoped/shared connections are not evidence that end users can authorize their own accounts. Do not use a shared IFund page/profile token as a user's personal account token. The existing Base44 readiness function correctly keeps self-serve OAuth disabled until the required provider app registration and approval gates are met.
+
+This confirms the dual-deployment split: Base44 already has its own per-user connector UI/runtime but is missing the provider workspace connector registrations and IDs; the independent Cloudflare Worker now has the matching user OAuth consumer code but is missing its server secrets and live provider app configuration. Neither deployment is production-ready until its own user-scoped connection flow is verified.
