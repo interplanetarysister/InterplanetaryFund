@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { encryptOAuthValue, routeOAuthRequest, oauthProviders } from '../worker/oauth.js';
 import { routeAccountRequest } from '../worker/accountRoutes.js';
+import worker from '../worker/index.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const base = 'https://preview.example';
@@ -75,6 +76,28 @@ test('account connection status remains disabled when OAuth and preview migratio
     throw Error('must not fetch');
   });
   assert.equal(r.status, 503);
+});
+
+
+test('Worker CORS allows only the configured frontend origin and answers preflight', async () => {
+  const request = new Request('https://oauth-api.example/api/oauth/google/start', {
+    method: 'OPTIONS',
+    headers: {
+      origin: base,
+      'access-control-request-method': 'POST',
+      'access-control-request-headers': 'authorization,content-type',
+    },
+  });
+  const r = await worker.fetch(request, env);
+  assert.equal(r.status, 204);
+  assert.equal(r.headers.get('access-control-allow-origin'), base);
+  assert.equal(r.headers.get('access-control-allow-methods'), 'GET, POST, OPTIONS');
+  const denied = await worker.fetch(new Request(request.url, {
+    method: 'OPTIONS',
+    headers: { origin: 'https://attacker.example' },
+  }), env);
+  assert.equal(denied.status, 403);
+  assert.equal(denied.headers.get('access-control-allow-origin'), null);
 });
 
 test('unsupported providers and methods are rejected before remote calls', async () => {
