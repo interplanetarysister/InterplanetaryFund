@@ -82,14 +82,16 @@ export default function CreateCampaign() {
       if (authError && authError.name !== "AuthSessionMissingError") throw authError;
       if (!authData?.user) {
         saveGuestCampaignDraft(form);
-        navigate("/login?returnTo=" + encodeURIComponent("/create"), { replace: true });
+        const returnTo = draftId ? "/create?draft=" + encodeURIComponent(draftId) : "/create";
+        navigate("/login?returnTo=" + encodeURIComponent(returnTo), { replace: true });
         return;
       }
       const { data: profile, error: profileError } = await client.from("ifund_profiles")
         .select("id,display_name,handle").eq("id", authData.user.id).maybeSingle();
       if (profileError) throw profileError;
       if (!profile || (!profile.display_name && !profile.handle)) {
-        navigate("/onboarding?returnTo=" + encodeURIComponent("/create"), { replace: true });
+        const returnTo = draftId ? "/create?draft=" + encodeURIComponent(draftId) : "/create";
+        navigate("/onboarding?returnTo=" + encodeURIComponent(returnTo), { replace: true });
         return;
       }
       const outcome = await persistCampaignContent(client, form, { id: draftId || null, publish });
