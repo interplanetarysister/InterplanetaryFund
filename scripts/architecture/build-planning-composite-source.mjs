@@ -3,6 +3,8 @@
  * Growth bundle, which already carries Strategy's shared implementation.
  * Reject source drift instead of silently applying a brittle transform.
  */
+import { createHash } from 'node:crypto';
+const SHA256 = /^[a-f0-9]{64}$/i;
 const MARKER = `var growth_default = {
   fetch(request, env) {
     return growthRoute(request, env);
@@ -25,7 +27,11 @@ const REPLACEMENT = `var growth_default = {
   }
 };`;
 
-export function buildPlanningCompositeSource(growthModule) {
+export function buildPlanningCompositeSource(growthModule, { expectedSourceSha256 } = {}) {
+  if (!SHA256.test(expectedSourceSha256 ?? '') || typeof growthModule !== 'string' ||
+      createHash('sha256').update(growthModule).digest('hex') !== expectedSourceSha256.toLowerCase()) {
+    throw Error('Growth source checksum missing or mismatched');
+  }
   if (typeof growthModule !== 'string' ||
       !growthModule.includes('function strategyRoute(') ||
       !growthModule.includes('function growthRoute(') ||
