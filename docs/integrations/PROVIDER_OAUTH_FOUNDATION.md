@@ -35,9 +35,13 @@ Use the connected GitHub, Cloudflare, Supabase, and other provider-native integr
 - **Other provider app credentials:** targeted searches of the connected IFund mailbox found no LinkedIn, X, TikTok, Google OAuth client registration or GoFundMe Pro developer credential messages. This is only an inbox search result, not proof that no app exists in those developer consoles.
 - No secret value was found in the messages inspected. Do not use any personal account password as an OAuth client secret.
 
-## Redirect URI contract
+## Redirect URI and cross-origin callback contract
 
-Do not register guessed callbacks. Derive the final callback from the deployed route and test environment. Use distinct fixed callbacks for preview and production, e.g. `https://<verified-preview-host>/api/oauth/<provider>/callback` and `https://interplanetaryfund.com/api/oauth/<provider>/callback`, only after the worker route is implemented and verified. Register the exact HTTPS URI with each provider. No wildcard paths, query parameters, or fragments.
+The Pages frontend and OAuth Worker are separate origins. The preview API Worker is deployed at `https://interplanetary-fund-api-migration.interplanetary-fund.workers.dev`; the frontend uses `VITE_IFUND_OAUTH_API_BASE_URL` to call it with the signed-in Supabase access token. The Worker accepts only exact HTTPS origins listed in `OAUTH_FRONTEND_ORIGINS` and returns CORS headers only for those origins.
+
+The provider redirect URI is on the frontend, not the Worker: `https://<verified-frontend-origin>/oauth/callback/<provider>`. The callback page reads the provider's code/state, then POSTs them to `/api/oauth/<provider>/callback` on the Worker with the current user's Supabase JWT. The Worker validates the allowed Origin, exact redirect URI, one-use state hash, authenticated owner ID and stored transaction before exchanging the code. This avoids relying on third-party cookies across the Pages and Workers origins and prevents an account-linking CSRF flow from binding another user's provider token.
+
+Do not register guessed callbacks. The exact preview frontend origin must be confirmed from a successful Pages branch deployment before provider registration. Production callback paths will use `https://interplanetaryfund.com/oauth/callback/<provider>` after the production frontend and separate production API Worker are deployed. Register each exact HTTPS URI with its provider; no wildcard paths, query parameters, or fragments.
 
 ## Credential names (names only; values stay in secret stores)
 
@@ -54,11 +58,11 @@ Use environment-specific secret names/bindings or separate preview and productio
 
 1. Confirm canonical project and deployed preview host from the current release branch; do not guess the callback URL.
 2. Add a provider registry with fixed authorization/token/userinfo endpoints, allowed scopes, response parsing, token auth method, and capability flags. Treat endpoints and scopes as code-reviewed constants, not user input.
-3. Add `/api/oauth/:provider/start` and `/api/oauth/:provider/callback`; generate cryptographically random state and PKCE verifier, store a short-lived one-use transaction server-side, bind it to the authenticated owner/session, and use SameSite/secure cookies where browser redirects require them.
+3. Add `/api/oauth/:provider/start`, the frontend `/oauth/callback/:provider` page, and `POST /api/oauth/:provider/callback`; generate cryptographically random state and PKCE verifier, store a short-lived one-use transaction server-side, and bind the callback to the same authenticated owner and exact allowed frontend origin without relying on third-party cookies.
 4. Implement token exchange with strict timeouts, response size limits, no redirects to untrusted hosts, issuer/audience checks where applicable, and secret-safe error handling.
 5. Encrypt per-user access/refresh tokens with envelope encryption; keep key-encryption material in Cloudflare secrets or an approved key service, store only ciphertext + key version in private Supabase tables. Rotate keys with versioned re-encryption.
-6. Add disconnect/revoke and refresh routes with provider-specific revocation behavior, token rotation handling, idempotency, audit events, and deletion of local token ciphertext after revocation/retention rules.
-7. Add contract tests for state replay, CSRF, PKCE mismatch, redirect mismatch, expired code, missing scope, provider denial, malformed token response, refresh rotation, disconnect, owner isolation and log redaction.
+6. Add refresh routes with provider-specific refresh behavior and token rotation handling. Implement provider revocation/disconnect only after each provider's documented revoke endpoint is verified; do not claim remote revocation from a local token deletion.
+7. Add contract tests for state replay, cross-origin CSRF/account-linking, PKCE mismatch, redirect mismatch, expired code, missing scope, provider denial, malformed token response, refresh rotation, owner isolation, CORS allowlisting and log redaction.
 8. Add per-provider capability checks; mark each capability verified only after real account authorization and a minimal provider API call. Keep unsupported actions disabled.
 9. Install client secrets into the preview Worker only after the consumer code and callback are deployed to preview. Promote secrets separately after production approval and verified release.
 
@@ -117,12 +121,13 @@ Required Cloudflare Worker configuration (names only):
 - OAUTH_API_ENABLED — explicit per-environment enable switch; do not tie OAuth availability to the preview-only migration flag
 - SUPABASE_SECRET_KEY — preferred opaque Supabase secret API key for server-only PostgREST/RPC access; legacy SUPABASE_SERVICE_ROLE_KEY JWT remains supported
 - OAUTH_ENCRYPTION_KEY — base64-encoded 32-byte AES-GCM key, generated separately per environment
-- OAUTH_PUBLIC_BASE_URL — exact HTTPS origin for that environment, no path/query/fragment
+- OAUTH_FRONTEND_ORIGINS — comma-separated exact HTTPS frontend origins allowed to start/finish OAuth; no wildcard origins
 - GOOGLE_OAUTH_CLIENT_ID / GOOGLE_OAUTH_CLIENT_SECRET — shared by Google identity and YouTube channel OAuth
 - LINKEDIN_OAUTH_CLIENT_ID / LINKEDIN_OAUTH_CLIENT_SECRET
 - X_OAUTH_CLIENT_ID / X_OAUTH_CLIENT_SECRET
 - TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET
 - META_OAUTH_CLIENT_ID / META_OAUTH_CLIENT_SECRET — Meta App ID / App Secret for Facebook Pages and Instagram Login
+- VITE_IFUND_OAUTH_API_BASE_URL — Pages build-time variable pointing to the environment's OAuth Worker URL (preview currently uses the workers.dev URL above; production must use a separate production Worker)
 
 Base44 already has a separate app-user connector runtime. Configure each approved provider's workspace OAuth connector, then set the matching non-secret APP_USER_CONNECTOR_<PROVIDER>_ID reference in the Base44 app's server environment. Base44 workspace connector configuration owns its client secret; do not copy it into Base44 entities. The Base44 app's existing connect/finalize/verify functions should remain the per-user connection path. No client secret or per-user token belongs in a Base44 entity or browser bundle.
 
