@@ -20,7 +20,7 @@ async function readJson(request) {
 async function db(env,table,method,filter="",body) {
   const url=env.SUPABASE_URL.replace(/\/$/,"")+"/rest/v1/"+table+filter;
   const response=await fetch(url,{method,headers:{
-    apikey:env.SUPABASE_SECRET_KEY,Authorization:"Bearer "+env.SUPABASE_SECRET_KEY,
+    apikey:env.SUPABASE_SECRET_KEY,
     "content-type":"application/json",Prefer:"return=representation"
   },...(body===undefined?{}:{body:JSON.stringify(body)})});
   if(!response.ok) throw Error("Database operation not confirmed");
