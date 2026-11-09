@@ -9,6 +9,7 @@ const base = 'https://preview.example';
 const key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 const opaqueSecretKey = ['sb', 'secret'].join('_') + '_test_key_for_oauth_vault_123456';
 const env = {
+  MIGRATION_API_PREVIEW: 'enabled',
   OAUTH_API_ENABLED: 'true',
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
@@ -55,7 +56,7 @@ test('OAuth endpoints fail closed until service secrets and callback origin are 
   assert.equal(badOrigin.status, 503);
 });
 
-test('OAuth connection status is available in an OAuth-enabled production environment without preview migration flag', async () => {
+test('account connection status is available when the independent migration API is enabled', async () => {
   const request = new Request(base + '/api/account/connections', {
     headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
