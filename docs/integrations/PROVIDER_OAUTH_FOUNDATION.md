@@ -1,8 +1,8 @@
 # Provider OAuth implementation foundation
 
-**Branch:** `migration/provider-oauth-foundation-20261109`
-**Target:** `migration/supabase-cloudflare`
-**State:** implementation plan and provider contract only; no provider credentials have been created or copied.
+**Branch:** `migration/provider-oauth-preview-20261109`
+**Target:** `migration/base44-frontend-parity-20261103`
+**State:** provider OAuth implementation, regression fixes, and preview verification; production credentials and live provider authorization remain gated.
 
 ## Operating rule
 
@@ -20,13 +20,14 @@ Use the connected GitHub, Cloudflare, Supabase, and other provider-native integr
 
 ## Provider registration matrix
 
-| Provider | App registration / products | Minimum login scopes | Notes |
+| Provider | App registration / products | Requested scopes | Notes |
 |---|---|---|---|
-| Meta | Meta for Developers app; Facebook Login; Instagram product only for supported Instagram API use | `public_profile`, `email` where approved | Business verification and App Review/Advanced Access may be required. Instagram is not a generic login provider. |
-| LinkedIn | LinkedIn Developer app; Sign In with LinkedIn using OpenID Connect | `openid`, `profile`, `email` | Other products and permissions are separately gated; request only features actually implemented. |
-| X | X Developer project/app with OAuth 2.0 user authentication | `users.read`, `tweet.read`, `offline.access` only if required | Confirm plan/endpoint entitlement before enabling write scopes. |
-| TikTok | TikTok for Developers app with Login Kit for Web | `user.info.basic` | Use OAuth v2 endpoints and exact static HTTPS redirect URI. |
-| Google / YouTube | Google Cloud project + OAuth Web client; enable only required APIs | `openid`, `email`, `profile`; YouTube scopes only for requested YouTube features | Consent screen, test users, verification and API enablement may apply. |
+| Facebook Pages | Meta for Developers app with Facebook Login | `pages_show_list`, `pages_read_engagement`, `pages_manage_posts` | Uses the parent Meta App ID and secret. Page publishing also requires an eligible Page role/task and Meta app review/Advanced Access. |
+| Instagram Business | Instagram API with Instagram Login product | `instagram_business_basic`, plus approved publish/comments/messages/insights scopes | Uses the Instagram product's dedicated App ID and secret, not the parent Meta App credentials. Business/Creator accounts only. |
+| LinkedIn | LinkedIn Developer app with OpenID Connect | `openid`, `profile`, `email`; `w_member_social` only after approval | Posting permission is separately gated by `LINKEDIN_POSTING_APPROVED`. |
+| X | X Developer project/app with OAuth 2.0 user authentication | `users.read`, `tweet.read`, `offline.access`; `tweet.write` only after approval | Confidential clients use HTTP Basic at token endpoints. Write scope is gated by `X_PUBLISHING_APPROVED`. |
+| TikTok | TikTok for Developers app with Login Kit for Web | `user.info.basic`; `video.list` and `video.upload` only after approval | Uses OAuth v2 endpoints, `client_key`, and exact HTTPS redirect URI. |
+| Google / YouTube | Google Cloud project + OAuth Web client; enable only required APIs | `openid`, `email`, `profile`; YouTube scopes only for requested YouTube features | YouTube uses the Google client; upload scope is separately gated. |
 | GoFundMe Pro | GoFundMe Pro / Classy developer approval | Provider-defined | Separate from consumer GoFundMe; do not infer access from a consumer campaign URL. |
 
 ## Existing provider registration evidence
@@ -154,28 +155,36 @@ GoFundMe Pro API authentication must not be treated as ordinary per-user social 
 
 Required GoFundMe Pro setup gate: an organization administrator creates an API app under Apps & Integrations > API, enters the exact registered redirect URI required by the portal, accepts the terms, and securely provisions client ID, client secret, and organization ID. Use a distinct server-only service connector and least privilege. Do not request broad write scope unless an approved IFund operation actually needs it. Respect the provider's rate limit and 429 retry guidance; do not poll automatically. No GoFundMe Pro credentials or organization ID were found in the connected mailbox or current connector inventory.
 
-## Base44 application-side evidence
+## Base44 application-side evidence — verified 2026-11-09
 
-The authoritative Base44 application source already contains a per-user connector flow: Connections UI -> getAppUserConnector -> Base44 connectAppUser -> finalizeAppUserOAuthConnection -> verifyPlatformConnection. Its shared OAUTH_ENV map references APP_USER_CONNECTOR_*_ID values; the connected app secret inventory currently contains the Eventbrite connector reference but no social provider connector references. The workspace connector inventory has Eventbrite and GitHub connectors, not LinkedIn, X, TikTok, Meta, or YouTube per-user connectors. Base44 connector governance reports per-user connection disabled for the social providers until provider-specific per-user credentials are configured; X is shared-only.
+The published Base44 app is `https://interplanetaryfund.base44.app` (app ID `6a67a778342a8fe05ee79cba`; current published version reported as `936d35924bef8e5dd3b232821491ddb3f35cb562`). The app status endpoint reports it as ready.
 
-The connected Base44 account also exposes app-scoped connections for Instagram and Facebook Pages, and a LinkedIn connection record whose live status is pending. Those app-scoped/shared connections are not evidence that end users can authorize their own accounts. Do not use a shared IFund page/profile token as a user's personal account token. The existing Base44 readiness function correctly keeps self-serve OAuth disabled until the required provider app registration and approval gates are met.
+The current workspace connector inventory reports:
 
-This confirms the dual-deployment split: Base44 already has its own per-user connector UI/runtime but is missing the provider workspace connector registrations and IDs; the independent Cloudflare Worker now has the matching user OAuth consumer code but is missing its server secrets and live provider app configuration. Neither deployment is production-ready until its own user-scoped connection flow is verified.
+- Facebook Pages: `connector_mode=all`, active, with `pages_show_list`, `pages_read_engagement`, and `pages_manage_posts`.
+- Instagram Business: `connector_mode=all`, active, with `instagram_business_basic`, `instagram_business_content_publish`, and `instagram_business_manage_messages`.
+- LinkedIn: `connector_mode=all`, active, with `openid`, `profile`, `email`, and `w_member_social`.
+- TikTok and YouTube: `connector_mode=all`, not connected.
+- X: `connector_mode=shared_only`, not connected. This is a limitation of the native Base44 X connector, not of the independent Cloudflare OAuth implementation.
+
+The connector inventory is not proof that every provider action is wired into the app UI or backend. It confirms the workspace connector modes and connection records only.
+
+Direct Base44 sandbox file/shell access returned a Builder-plan entitlement gate. No Base44 builder-AI action or metered credit was used, and no Base44 source change was made in this workstream. The independent Cloudflare/Supabase implementation can continue without that access, but Base44 source parity remains a separate gate until a no-credit code path or Builder-plan sandbox access is available.
 
 ## Verified implementation checkpoint — 2026-11-09
 
-- Source branch: \`migration/provider-oauth-preview-20261109\`.
-- Target branch for this work: \`migration/base44-frontend-parity-20261103\`. This is a separate integration branch; do not merge it into \`migration/supabase-cloudflare\` without reconciling the 146-commit divergence.
-- Verified source commit: \`c172afec2aad6606a8098c2314f7d6fd9f4d11ea\`.
+- Source branch: `migration/provider-oauth-preview-20261109`.
+- Target branch for this work: `migration/base44-frontend-parity-20261103`. This is a separate integration branch; do not merge it into `migration/supabase-cloudflare` without reconciling the 146-commit divergence.
+- Verified source commit: `c172afec2aad6606a8098c2314f7d6fd9f4d11ea`.
 - Root worker/migration suite: 249 tests, 248 passed, 0 failed, 1 skipped.
 - Pages frontend suite: 133 passed, 0 failed.
 - Pages production-mode build: passed.
 - Prettier normalization and whitespace check: passed in CI. Formatted files were retained as a CI artifact for review.
 - No provider OAuth credentials or encryption key were installed. No Supabase migration was applied. No provider app-review or callback URI registration was performed.
 - The Cloudflare Pages preview allowlist now includes this source branch. A new branch commit is required to trigger its first preview build.
-- The Pages production branch remains \`main\`; automatic production deployments remain disabled. This branch is not approved for production.
+- The Pages production branch remains `main`; automatic production deployments remain disabled. This branch is not approved for production.
 
-The Instagram long-lived token exchange uses Meta's \`ig_exchange_token\` grant. Its regression test asserts the exact grant value. The X provider UI no longer inherits the Base44 connector catalog's shared-only limitation; its independent OAuth availability is controlled by the Worker app-registration and entitlement flags.
+The Instagram long-lived token exchange uses Meta's `ig_exchange_token` grant. Its regression test asserts the exact grant value. The X provider UI no longer inherits the Base44 connector catalog's shared-only limitation; its independent OAuth availability is controlled by the Worker app-registration and entitlement flags.
 
 ### Outstanding release gates
 
