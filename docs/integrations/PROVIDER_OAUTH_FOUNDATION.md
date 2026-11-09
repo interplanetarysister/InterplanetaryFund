@@ -125,3 +125,31 @@ Required Cloudflare Worker configuration (names only):
 The same logical implementation must be ported to Base44 server functions with separate Base44 server-side secrets and Base44-specific callback registrations before dual-deployment acceptance. No client secret or per-user token belongs in a Base44 entity or browser bundle.
 
 Provider endpoint references: Google OAuth web-server flow https://developers.google.com/identity/protocols/oauth2/web-server; LinkedIn 3-legged flow https://learn.microsoft.com/en-us/linkedin/shared/authentication/authorization-code-flow; X OAuth 2.0 user authentication https://developer.x.com/en/docs/authentication/oauth-2-0/authorization-code; TikTok Login Kit https://developers.tiktok.com/docs/en/login-kit-overview and token exchange https://developers.tiktok.com/docs/en/oauth-get-user-access-token.
+
+
+## Provider-specific implementation updates — 2026-11-09
+
+The independent Worker registry now includes seven user-authorized provider flows: Google identity, YouTube channel, LinkedIn, X, TikTok, Facebook Pages, and Instagram Business. Google and YouTube share the same Google OAuth web client but use distinct fixed callback routes and scopes. Facebook Pages and Instagram use the existing iFund Meta App ID (public identifier) and separate provider-specific Meta/Instagram OAuth endpoints. The current Meta App ID found in the connected mailbox is 1427538482140267; the Meta App Secret remains unavailable.
+
+Provider-specific rules now encoded:
+- Google and YouTube use Google authorization-code flow with PKCE; YouTube requests read-only and upload scopes, and channel identity is verified through the YouTube Data API.
+- LinkedIn requests OIDC identity scopes plus w_member_social; posting remains gated on LinkedIn product/permission approval and the actually returned token scopes.
+- X uses OAuth 2.0 PKCE and read scopes only. Do not enable publishing until the X developer plan and write-scope entitlement are verified; the Base44 connector catalog currently treats X as shared-only.
+- TikTok Web uses client_key, comma-separated scopes, state, and the web token exchange (no mobile-only PKCE). It requests user.info.basic, video.list, and video.upload; extra scopes require TikTok app approval.
+- Facebook Pages uses Meta OAuth and checks the granted Page permissions plus an actual Page CREATE_CONTENT/MANAGE task before reporting the Page connection as verified.
+- Instagram uses Instagram Login endpoints and upgrades the short-lived token to a long-lived token server-side before encrypted storage. The token response's actual permissions are stored; no requested permission is assumed granted.
+- Provider scope recording is fail-closed: if the provider does not return scopes (or a verified permission endpoint is unavailable), the database records an empty scope list rather than copying requested scopes.
+
+## GoFundMe Pro is a separate organization connector
+
+GoFundMe Pro API authentication must not be treated as ordinary per-user social OAuth. Its API documents an organization-level OAuth 2.0 client-credentials grant at https://api.classy.org/oauth2/auth; the API app setup yields client_id and client_secret, and the organization ID is also required for organization-specific resources. The documented application token is requested with grant_type=client_credentials and expires; there is no documented refresh token for that grant, so the server requests a new token when needed. GoFundMe Pro also documents a member authorization-code/Classy Login path, but its authorization-code grant is not declared in the public API OpenAPI contract and Classy Login is separately documented as pre-release. Do not build production API access on that incomplete member-login path.
+
+Required GoFundMe Pro setup gate: an organization administrator creates an API app under Apps & Integrations > API, enters the exact registered redirect URI required by the portal, accepts the terms, and securely provisions client ID, client secret, and organization ID. Use a distinct server-only service connector and least privilege. Do not request broad write scope unless an approved IFund operation actually needs it. Respect the provider's rate limit and 429 retry guidance; do not poll automatically. No GoFundMe Pro credentials or organization ID were found in the connected mailbox or current connector inventory.
+
+## Base44 application-side evidence
+
+The authoritative Base44 application source already contains a per-user connector flow: Connections UI -> getAppUserConnector -> Base44 connectAppUser -> finalizeAppUserOAuthConnection -> verifyPlatformConnection. Its shared OAUTH_ENV map references APP_USER_CONNECTOR_*_ID values; the connected app secret inventory currently contains the Eventbrite connector reference but no social provider connector references. The workspace connector inventory has Eventbrite and GitHub connectors, not LinkedIn, X, TikTok, Meta, or YouTube per-user connectors. Base44 connector governance reports per-user connection disabled for the social providers until provider-specific per-user credentials are configured; X is shared-only.
+
+The connected Base44 account also exposes app-scoped connections for Instagram and Facebook Pages, and a LinkedIn connection record whose live status is pending. Those app-scoped/shared connections are not evidence that end users can authorize their own accounts. Do not use a shared IFund page/profile token as a user's personal account token. The existing Base44 readiness function correctly keeps self-serve OAuth disabled until the required provider app registration and approval gates are met.
+
+This confirms the dual-deployment split: Base44 already has its own per-user connector UI/runtime but is missing the provider workspace connector registrations and IDs; the independent Cloudflare Worker now has the matching user OAuth consumer code but is missing its server secrets and live provider app configuration. Neither deployment is production-ready until its own user-scoped connection flow is verified.
