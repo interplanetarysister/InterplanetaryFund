@@ -12,7 +12,10 @@ export function authCallbackUrl(origin,{recovery=false,returnTo="/dashboard"}={}
     throw new Error("Secure signup origin required.");
   if(parsed.username||parsed.password||parsed.search||parsed.hash)
     throw new Error("Invalid signup origin.");
-  const callback=new URL("/auth/callback",parsed.origin);\n  callback.searchParams.set("next",recovery?"/reset-password":"/onboarding");\n  callback.searchParams.set("returnTo",safeReturnTo(returnTo));\n  return callback.toString();
+  const callback=new URL("/auth/callback",parsed.origin);
+  callback.searchParams.set("next",recovery?"/reset-password":"/onboarding");
+  callback.searchParams.set("returnTo",safeReturnTo(returnTo));
+  return callback.toString();
 }
 
 export function callbackParameters(href){
@@ -25,7 +28,8 @@ export function callbackParameters(href){
   // Recovery is the only callback allowed to target the reset form; keep this
   // exact same-origin path exception local to auth callbacks, not generic redirects.
   const next=requestedNext==="/reset-password"?"/reset-password":safeReturnTo(requestedNext||"/onboarding");
-  const returnTo=safeReturnTo(query.get("returnTo"));\n  const code=clean(query.get("code"));
+  const returnTo=safeReturnTo(query.get("returnTo"));
+  const code=clean(query.get("code"));
   const token_hash=clean(query.get("token_hash"));
   const token_type=clean(query.get("type"));
   const access_token=clean(hash.get("access_token"));
@@ -37,7 +41,7 @@ export function callbackParameters(href){
     return {type:"token_hash",token_hash,token_type,next,returnTo};
   }
   if(access_token||refresh_token){
-    if(!access_token||!refresh_token)return {type:"error",message:UNTRUSTED_MESSAGE,next};
+    if(!access_token||!refresh_token)return {type:"error",message:UNTRUSTED_MESSAGE,next,returnTo};
     return {type:"session",access_token,refresh_token,next,returnTo};
   }
   return {type:"error",message:"This link does not contain a valid verification request. Open the newest link from your email.",next,returnTo};
@@ -62,7 +66,8 @@ export async function completeAuthCallback(auth,params){
   const requested=params.next==="/reset-password"?"/reset-password":"/onboarding";
   if(requested!=="/reset-password" && !data.user.email_confirmed_at)
     throw new Error("Your email confirmation is not complete. Check the newest verification email.");
-  const returnTo=safeReturnTo(params.returnTo);\n  return requested+"?returnTo="+encodeURIComponent(returnTo);
+  const returnTo=safeReturnTo(params.returnTo);
+  return requested+"?returnTo="+encodeURIComponent(returnTo);
 }
 
 // Remove all possible secrets from the browser history, before processing.
