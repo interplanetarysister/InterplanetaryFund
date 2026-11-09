@@ -17,7 +17,7 @@ test("public campaign pages keep the intended donate experience without hard-cod
   assert.match(detail, /DonateDialog/);
   assert.equal((detail.match(/onDonate=\{\(\) => setDonateOpen\(true\)\}/g) || []).length, 2);
   assert.match(card, /Donate with PayPal/);
-  assert.doesNotMatch(mine, /Campaign donations, withdrawals, and external distribution are paused/i);
+  assert.match(mine, /Campaign withdrawals are not enabled yet/);
 });
 
 test("campaign checkout remains fail-closed until create and capture routes are both verified", () => {
