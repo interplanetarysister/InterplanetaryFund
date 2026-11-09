@@ -241,3 +241,13 @@ test("worker rejects foreign routes/methods and never leaks upstream errors or r
   assert.equal(response.status, 503);
   assert.ok(!(await response.text()).includes("SECRET-CREDENTIAL"));
 });
+
+test("non-Error upstream rejections are safely normalized to an unavailable response", async () => {
+  const r = await handleManagedConnections(http(), env, async () => {
+    throw null;
+  });
+  assert.equal(r.status, 503);
+  const body = await r.json();
+  assert.equal(body.error, "Connection assistance is temporarily unavailable.");
+  assert.equal("code" in body, false);
+});
