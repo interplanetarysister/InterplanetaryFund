@@ -33,7 +33,21 @@ export default function CreateCampaign() {
         if (authError || !user) { navigate(`/login?next=${encodeURIComponent(`/create?draft=${encodeURIComponent(draftId)}`)}`, { replace: true }); return; }
         const { data, error: fetchError } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id",draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (fetchError || !data) throw new Error("Draft not found or access denied.");
-        if (active) setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" });
+        if (active) {
+          // A reopened private draft must hydrate the same section editor used
+          // by generated stories; otherwise regeneration reads an empty source.
+          const restoredStory = data.story || "";
+          const restoredSections = splitStory(restoredStory);
+          suggestionRevision.current += 1;
+          sectionRevision.current += 1;
+          regenerationRequest.current += 1;
+          setSuggestions(null);
+          setSectionProposals({});
+          setRegeneratingSection(-1);
+          storySectionsRef.current = restoredSections;
+          setStorySections(restoredSections);
+          setForm({ title:data.title||"", summary:data.summary||"", story:restoredStory, category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" });
+        }
       } catch (err) { if (active) setDraftLoadError(err?.message || "Unable to load draft."); }
       finally { if (active) setLoadingDraft(false); }
     })();
