@@ -2,7 +2,7 @@ import React from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
-import { Users, CalendarDays, Heart, ShieldCheck } from "lucide-react";
+import { Gift, CalendarDays, Heart, ShieldCheck } from "lucide-react";
 import { verifiedFundingProgress } from "@/lib/fundingTotals";
 
 // The campaign's primary funding and donation action. Provider readiness is
