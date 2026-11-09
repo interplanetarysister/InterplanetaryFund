@@ -57,30 +57,12 @@ create policy ifund_posts_delete on public.ifund_posts for delete to authenticat
 create policy ifund_connections_owner_read on public.ifund_connections for select to authenticated using (owner_id = (select auth.uid()));
 -- Only a trusted backend may mark a provider as connected after live verification.
 -- No public insert/update policies for connections.
-grant usage on schema public to anon, authenticated;
-
--- Remove broad default table privileges before granting only required columns.
-revoke all privileges on table
-  public.ifund_profiles,
-  public.ifund_campaigns,
-  public.ifund_posts,
-  public.ifund_connections
-from public, anon, authenticated;
-
-grant select on public.ifund_campaigns, public.ifund_posts to anon;
-grant select on public.ifund_campaigns, public.ifund_posts, public.ifund_profiles to authenticated;
+grant usage on schema public to anon,authenticated;
+grant select on public.ifund_campaigns,public.ifund_posts to anon;
+grant select,insert,update,delete on public.ifund_campaigns to authenticated;
+grant select,insert,delete on public.ifund_posts to authenticated;
+grant select,insert,update on public.ifund_profiles to authenticated;
 grant select on public.ifund_connections to authenticated;
-
-grant insert(id,handle,display_name) on public.ifund_profiles to authenticated;
-grant update(handle,display_name) on public.ifund_profiles to authenticated;
-
-grant insert(owner_id,title,summary,story,category,goal_amount,cover_image_url,status)
-  on public.ifund_campaigns to authenticated;
-grant update(title,summary,story,category,goal_amount,cover_image_url,status)
-  on public.ifund_campaigns to authenticated;
-
-grant insert(author_id,body) on public.ifund_posts to authenticated;
-grant delete on public.ifund_posts to authenticated;
 
 -- Timestamp maintenance; no live SQL was executed.
 create or replace function public.ifund_touch_updated_at()
