@@ -19,7 +19,7 @@ export default function CreateCampaign() {
         const client = authClient();
         const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
-        if (authError || !user) { navigate("/login", { replace: true }); return; }
+        if (authError || !user) { navigate("/login?returnTo=" + encodeURIComponent(draftId ? `/create?draft=${encodeURIComponent(draftId)}` : "/create"), { replace: true }); return; }
         const { data, error: fetchError } = await client.from("ifund_campaigns").select("title,summary,story,category,goal_amount,cover_image_url,status").eq("id",draftId).eq("owner_id",user.id).eq("status","draft").single();
         if (fetchError || !data) throw new Error("Draft not found or access denied.");
         if (active) setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:String(data.goal_amount??""), cover_image_url:data.cover_image_url||"" });
@@ -115,7 +115,7 @@ export default function CreateCampaign() {
       const client = authClient();
       const { data: authData, error: authError } = await client.auth.getUser();
         const user = authData?.user;
-      if (authError || !user) { navigate("/login", { replace: true }); return; }
+      if (authError || !user) { navigate("/login?returnTo=" + encodeURIComponent(draftId ? `/create?draft=${encodeURIComponent(draftId)}` : "/create"), { replace: true }); return; }
       const goalText = form.goal_amount.trim();
       const amount = Number(goalText);
       if (!goalText || !Number.isFinite(amount) || amount <= 0 || !/^\d+(?:\.\d{1,2})?$/.test(goalText)) throw new Error("Enter a positive fundraising goal in USD with no more than two decimal places.");
