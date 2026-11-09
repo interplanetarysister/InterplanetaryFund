@@ -47,6 +47,20 @@ jobs:
         run: npm --prefix apps/web test
       - name: Pages production build
         run: npm --prefix apps/web run build
+      - name: Format reviewed OAuth source files
+        run: npx prettier --write worker/oauth.js worker/index.js worker/accountRoutes.js tests/provider-oauth.test.js apps/web/src/pages/Connections.jsx apps/web/src/pages/OAuthCallback.jsx apps/web/src/App.jsx
+      - name: Preserve formatted files for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: oauth-prettier-formatted-files
+          path: |
+            worker/oauth.js
+            worker/index.js
+            worker/accountRoutes.js
+            tests/provider-oauth.test.js
+            apps/web/src/pages/Connections.jsx
+            apps/web/src/pages/OAuthCallback.jsx
+            apps/web/src/App.jsx
       - name: Whitespace and formatting checks
         run: |
           git diff --check
