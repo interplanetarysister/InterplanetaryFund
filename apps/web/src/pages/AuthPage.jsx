@@ -209,6 +209,11 @@ export default function AuthPage({ mode="login" }){
             {busy?"Please wait…":isReset?(recoveryCodeSent?"Verify code and update password":"Email recovery code"):isRegister?"Create account":"Sign in"}
           </button>
         </form>
+        {isReset&&recoveryCodeSent&&<button type="button"
+          onClick={()=>{setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");setError("");setMessage("");}}
+          className="mt-4 text-sm font-semibold text-cyan-200 underline">
+          Send another recovery email
+        </button>}
         {needsConfirmation&&!isReset&&<section aria-label="Verify your email address" className="mt-5 rounded-xl border border-slate-500 p-4">
           <h2 className="text-lg font-semibold">Verify your email</h2>
           <p className="mt-2 text-sm text-slate-300">Open the confirmation link in the newest email, or enter its verification code here if one is provided.</p>
