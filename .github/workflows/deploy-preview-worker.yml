@@ -1,0 +1,40 @@
+name: Deploy migration API Worker preview
+on:
+  push:
+    branches:
+      - release/provider-oauth-pages-20261109
+    paths:
+      - "worker/**"
+      - "wrangler.jsonc"
+      - ".github/workflows/deploy-preview-worker.yml"
+permissions:
+  contents: read
+concurrency:
+  group: ifund-migration-api-preview
+  cancel-in-progress: true
+jobs:
+  verify-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Verify repository tests and builds
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+          npm --prefix apps/web ci --no-audit --no-fund
+          npm --prefix apps/web test
+          npm --prefix apps/web run build
+      - name: Deploy only the migration preview Worker
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy --keep-vars
