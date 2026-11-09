@@ -29,5 +29,7 @@ jobs:
         run: npm test
       - name: Vite production build
         run: npm run build
+      - name: Inspect Connections formatting diff
+        run: npx --no-install prettier "src/pages/Connections.jsx" | diff -u "src/pages/Connections.jsx" - || true
       - name: Prettier check
         run: npx --no-install prettier --check "src/**/*.{js,jsx,css}"
