@@ -22,13 +22,19 @@ test("editorial data API never exposes unapproved drafts or private source data"
  assert.doesNotMatch(api,/ifund_stage|service_role|base44/);
 });
 
-test("public editorial table RLS has no user publishing or mutation grants",()=>{
- const schema=read("supabase/migrations/pending/20261029_ifund_editorial_readers.sql");
- assert.match(schema,/alter table public.ifund_blog_entries enable row level security/);
- assert.match(schema,/create policy ifund_entries_published_or_owner/);
- assert.match(schema,/create policy ifund_publications_final/);
- assert.match(schema,/grant select on public.ifund_user_blogs/);
- assert.doesNotMatch(schema,/grant (insert|update|delete) on public.ifund_blog_entries/i);
+test("canonical editorial tables use published-only public reads and no browser mutation grants",()=>{
+ const foundation=read("supabase/migrations/20261030175218_ifund_blog_migration_foundation_20261030.sql");
+ const hardening=read("supabase/migrations/20261030233951_ifund_editorial_public_read_and_server_write_hardening_20261030.sql");
+ const publications=read("supabase/migrations/20261031011426_ifund_official_publications_public_read_model_20261030.sql");
+ assert.match(foundation,/alter table public.ifund_blog_entries enable row level security/i);
+ assert.match(foundation,/alter table public.ifund_blogs enable row level security/i);
+ assert.match(hardening,/ifund_blog_entries_read_published_or_owner/i);
+ assert.match(hardening,/revoke all privileges[\\s\\S]*from PUBLIC, anon, authenticated/i);
+ assert.doesNotMatch(hardening,/grant\\s+(insert|update|delete)/i);
+ assert.match(publications,/ifund_publications_final_read/i);
+ assert.match(publications,/final_approved = true/i);
+ assert.match(publications,/revoke all privileges[\\s\\S]*from PUBLIC, anon, authenticated/i);
+ assert.doesNotMatch(publications,/grant\\s+(insert|update|delete)/i);
 });
 
 test("source article embedded campaigns cannot execute arbitrary iframe HTML",()=>{
