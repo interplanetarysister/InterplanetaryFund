@@ -230,6 +230,9 @@ function providerConfig(provider, env) {
   if (provider === 'linkedin' && env.LINKEDIN_POSTING_APPROVED !== 'true') {
     return { ...config, scopes: scopes.filter((scope) => scope !== 'w_member_social'), clientId, clientSecret };
   }
+  if (provider === 'x' && env.X_PUBLISHING_APPROVED === 'true') {
+    scopes.push('tweet.write');
+  }
   if (provider === 'tiktok' && env.TIKTOK_VIDEO_UPLOAD_APPROVED !== 'true') {
     return { ...config, scopes: scopes.filter((scope) => scope !== 'video.upload'), clientId, clientSecret };
   }
