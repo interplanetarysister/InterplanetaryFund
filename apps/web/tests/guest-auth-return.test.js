@@ -114,6 +114,12 @@ test("password reset page requires a live session and preserves return destinati
   assert.ok(reset.includes("returnTo="));
 });
 
+test("campaign return onboarding cannot be skipped without a usable profile", () => {
+  const onboarding = read("../src/pages/Onboarding.jsx");
+  assert.match(onboarding, /if\\(!name\\.trim\\(\\)&&!handle\\.trim\\(\\)\\)/);
+  assert.match(onboarding, /afterLogin === "\\/dashboard" &&/);
+});
+
 test("new members finish profile onboarding before returning to a guest campaign", async () => {
   const client = {
     auth: {
