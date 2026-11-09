@@ -23,7 +23,18 @@ test('rejects JSON-looking content with unsupported media types', async () => {
 test('rejects non-decimal and oversized declared content lengths', async () => {
   for (const length of ['-1', '1.5', '1e3', ' 9', '999999999999999999999']) {
     await assert.rejects(
-      readJsonBody(request('{"ok":true}', { 'content-length': length }), 64),
+      readJsonBody({
+        // WHATWG Headers normalizes surrounding whitespace before the parser
+        // sees it. Supply the raw declared value to test strict validation.
+        headers: {
+          get(name) {
+            if (name === 'content-type') return 'application/json';
+            if (name === 'content-length') return length;
+            return null;
+          },
+        },
+        body: request('{"ok":true}').body,
+      }, 64),
       error => error instanceof BodyError && error.status === 413,
       length,
     );
