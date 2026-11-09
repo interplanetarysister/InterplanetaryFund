@@ -50,7 +50,8 @@ test("public campaign queries use one Supabase project and active-only RLS scope
   assert.doesNotMatch(api, /tzehxfikoslihnclhxuz|ifund_migration_active_campaign_preview|ifund_public_campaign_detail/);
   assert.match(api, /\.eq\("status", "active"\)/);
   assert.match(api, /raised_amount: numOrNull\(row\.raised_amount\)/);
-  assert.match(api, /donor_count: null/);\n  assert.match(api, /gift_count: numOrNull\(row\.donor_count\)/);
+  assert.match(api, /donor_count: null/);
+  assert.match(api, /gift_count: numOrNull\(row\.donor_count\)/);
   assert.match(api, /ifund_public_campaign_funding_totals/);
 });
 
