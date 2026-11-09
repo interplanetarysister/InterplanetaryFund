@@ -10,8 +10,7 @@ import { CampaignGridSkeleton } from "@/components/mobile/Skeletons";
 import PageError from "@/components/PageError";
 import PageTips from "@/components/coach/PageTips";
 
-// Funding totals are not in the public preview data yet; show a neutral
-// placeholder instead of a misleading zero.
+// Funding totals come only from the canonical aggregate RPC; unavailable values stay neutral.
 const money = (v) => (v === null || v === undefined || v === "" ? "Not shown yet" : `$${Number(v).toLocaleString()}`);
 const count = (v) => (v === null || v === undefined || v === "" ? "Not shown yet" : Number(v).toLocaleString());
 
