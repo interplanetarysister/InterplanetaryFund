@@ -50,7 +50,7 @@ export default {
     if (corsPath && request.method === 'OPTIONS') {
       const origin = request.headers.get('origin') || '';
       if (!allowedFrontendOrigin(origin, env)) return response(403, { error: 'Origin not allowed.' });
-      return withCors(request, env, response(204, {}));
+      return withCors(request, env, new Response(null, { status: 204 }));
     }
     if (pathname === '/api/health') {
       if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
