@@ -478,6 +478,33 @@ test('refresh rejects a saved connection without a refresh token without contact
   assert.equal(r.status, 409);
 });
 
+test('X requests the posting scope only after explicit approval', async () => {
+  const start = async (approved) => {
+    const xEnv = {
+      ...env,
+      X_OAUTH_USER_ENABLED: 'true',
+      X_OAUTH_CLIENT_ID: 'x-client-id',
+      X_OAUTH_CLIENT_SECRET: 'x-client-secret',
+      X_PUBLISHING_APPROVED: approved ? 'true' : 'false',
+    };
+    const request = new Request(base + '/api/oauth/x/start', {
+      method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+    });
+    const fetcher = async (url, options = {}) => {
+      const target = String(url);
+      if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+      if (target.includes('/ifund_oauth_transactions?expires_at=')) return new Response(null, { status: 204 });
+      if (target.endsWith('/ifund_oauth_transactions')) return new Response(null, { status: 201 });
+      throw Error('unexpected fetch: ' + target);
+    };
+    const r = await routeOAuthRequest(request, xEnv, fetcher);
+    assert.equal(r.status, 200);
+    return new URL((await r.json()).authorization_url).searchParams.get('scope');
+  };
+  assert.equal(await start(false), 'users.read tweet.read offline.access');
+  assert.equal(await start(true), 'users.read tweet.read offline.access tweet.write');
+});
+
 test('X confidential OAuth code exchange uses Basic auth without duplicate client_id', async () => {
   const xEnv = {
     ...env,
