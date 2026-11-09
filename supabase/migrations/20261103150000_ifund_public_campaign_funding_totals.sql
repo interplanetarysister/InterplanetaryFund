@@ -18,7 +18,7 @@ as $$
   select
     c.id as campaign_id,
     coalesce(sum(d.gift_cents), 0)::numeric / 100 as raised_amount,
-    count(d.id)::bigint as donor_count
+    count(distinct coalesce(d.donor_id::text, d.id::text))::bigint as donor_count
   from public.ifund_campaigns c
   left join public.ifund_donations d
     on d.campaign_id = c.id
