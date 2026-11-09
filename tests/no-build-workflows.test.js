@@ -31,7 +31,7 @@ test('dedicated web preview workflow compiles but never deploys', () => {
   assert.ok(workflow.includes('migration/build-completeness-gates-20261029'));
   assert.ok(workflow.includes('CF_PAGES: "1"'));
   assert.ok(workflow.includes('npm run build --prefix apps/web'));
-  assert.equal(/\\b(?:wrangler|pages)\\s+deploy\\b/i.test(workflow), false);
+  assert.equal(/\b(?:wrangler|pages)\s+deploy\b/i.test(workflow), false);
   assert.equal(workflow.includes('production_deployments_enabled'), false);
 });
 
