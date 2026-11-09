@@ -41,3 +41,14 @@ test("no sandbox receipts are written to real donation tables",async()=>{
   assert.doesNotMatch(file,/db\(env,["']ifund_donations["']/);
   assert.doesNotMatch(file,/api-m\.paypal\.com/);
 });
+
+test("sandbox preview hostname regex accepts the deployed Pages host",async()=>{
+  const fs=await import("node:fs/promises");
+  const source=await fs.readFile(new URL("../functions/api/paypal/sandbox/[[path]].js",import.meta.url),"utf8");
+  // Guard against accidental double-escaping of periods in JavaScript regex literals.
+  const match=source.match(/\/\^\(\?:\[a-z0-9-\]\+\\\.\)\?interplanetaryfund-migration\\\.pages\\\.dev\$\//);
+  assert.ok(match,"Expected a literal-dot Pages hostname regex, not an escaped-backslash regex");
+  const hostPattern=new RegExp(match[0].slice(1,-1));
+  assert.equal(hostPattern.test("a213266c.interplanetaryfund-migration.pages.dev"),true);
+  assert.equal(hostPattern.test("attacker.interplanetaryfund-migrationXpages.dev"),false);
+});
