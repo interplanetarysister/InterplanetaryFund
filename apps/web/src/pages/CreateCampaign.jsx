@@ -270,7 +270,11 @@ export default function CreateCampaign() {
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
           onClick={() => { change("story",suggestions.story); storySectionsRef.current = splitStory(suggestions.story); setStorySections(storySectionsRef.current); }}>Use story</button>
-        <div className="space-y-4" aria-label="Story section editor">
+        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
+          <p>{suggestions.imagePrompt}</p>
+        </details>}
+      </div>}
+      {storySections.length > 0 && <div className="space-y-4" aria-label="Story section editor">
           <p className="text-sm text-muted-foreground">Edit each section separately. Regeneration produces a suggestion for your review and never overwrites other sections.</p>
           {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
             <label className="block font-semibold">Section {index + 1}
@@ -288,11 +292,7 @@ export default function CreateCampaign() {
           </div>)}
           {sectionError && <p role="alert">{sectionError}</p>}
           <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
-        </div>
-        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
-          <p>{suggestions.imagePrompt}</p>
-        </details>}
-      </div>}
+        </div>}
     </section>
     <form onSubmit={save} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <label className="block font-semibold">Campaign title<input required maxLength={150} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
