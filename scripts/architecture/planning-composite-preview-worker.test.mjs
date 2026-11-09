@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import worker from './planning-composite-preview-worker.mjs';
 
-const flags = {IFUND_STRATEGY_ENABLED:'true',IFUND_GROWTH_ENABLED:'true'};
+const flags = {IFUND_STRATEGY_ENABLED:'enabled',IFUND_GROWTH_ENABLED:'enabled'};
 const request = (path,opts={})=>new Request('https://planning-preview.example'+path,opts);
 const service = (name,calls)=>({fetch:async req=>{calls.push({name,url:req.url,method:req.method,auth:req.headers.get('authorization')});return Response.json({agent:name});}});
 test('one preview ingress routes independently to both existing specialists',async()=>{
@@ -21,7 +21,7 @@ test('anonymous requests are never forwarded',async()=>{
  assert.equal(r.status,401);assert.equal(calls.length,0);
 });
 test('missing or disabled capability never crosses to another service',async()=>{
- const calls=[];const env={IFUND_STRATEGY_ENABLED:'true',IFUND_STRATEGY_AGENT:service('strategy',calls)};
+ const calls=[];const env={IFUND_STRATEGY_ENABLED:'enabled',IFUND_STRATEGY_AGENT:service('strategy',calls)};
  const r=await worker.fetch(request('/api/agents/growth/workspace',{headers:{authorization:'Bearer token'}}),env);
  assert.equal(r.status,404);assert.equal(calls.length,0);
 });
