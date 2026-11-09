@@ -131,7 +131,7 @@ export default function AuthPage({ mode="login" }){
       const {data:verified,error:verifyError}=await auth.getUser();
       if(verifyError||!verified?.user?.id||!verified.user.email_confirmed_at)
         throw new Error("Confirmation was not verified. Please request a new email.");
-      navigate("/onboarding",{replace:true});
+      navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
     }catch(cause){
       setError(cause?.message||"The code could not be verified. Open the newest email or request another code.");
     }finally{setBusy(false);}
