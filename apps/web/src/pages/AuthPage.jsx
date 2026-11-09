@@ -23,7 +23,7 @@ export default function AuthPage({ mode="login" }){
   const [busy,setBusy]=useState(false);
   const [resending,setResending]=useState(false);
   const [needsConfirmation,setNeedsConfirmation]=useState(false);
-  const [message,setMessage]=useState("");
+  const [message,setMessage]=useState(()=>searchParams.get("passwordUpdated")==="1"?"Your password has been updated. Sign in with your new password.":"");
   const [error,setError]=useState("");
   const isRegister=mode==="register";
   const isReset=mode==="forgot-password";
