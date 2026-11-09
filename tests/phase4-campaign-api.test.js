@@ -132,6 +132,57 @@ test('PATCH must include both exact campaign id and signed-in owner filter', asy
   assert.match(calls[3].url, /updated_at=eq/);
   assert.equal(JSON.parse(calls[3].opts.body).owner_id, undefined);
 });
+test('status-only PATCH can publish an already-complete owner draft', async () => {
+  const calls = [];
+  const r = await routeCampaignWrite(
+    request({ status: 'active' }, '/api/campaigns/' + campaignId, 'PATCH'),
+    env,
+    async (target, opts) => {
+      calls.push({ url: String(target), opts });
+      if (String(target).endsWith('/auth/v1/user'))
+        return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' });
+      if (String(target).endsWith('/rpc/ifund_current_user_has_current_terms'))
+        return Response.json(true);
+      if (opts.method === 'GET')
+        return Response.json([{
+          id: campaignId, owner_id: uid, title: 'Beach cleanup',
+          summary: 'Community cleanup', story: 'A complete existing story.',
+          goal_amount: 500, status: 'draft', updated_at: '2026-10-25T00:00:00Z',
+        }]);
+      return Response.json([{
+        id: campaignId, owner_id: uid, status: 'active',
+        updated_at: '2026-10-26T00:00:00Z',
+      }]);
+    },
+  );
+  assert.equal(r.status, 200);
+  assert.equal(calls[3].opts.method, 'PATCH');
+  assert.match(calls[3].url, /status=eq\.draft/);
+  assert.equal(JSON.parse(calls[3].opts.body).status, 'active');
+});
+
+test('status-only PATCH cannot publish an incomplete existing owner draft', async () => {
+  const calls = [];
+  const r = await routeCampaignWrite(
+    request({ status: 'active' }, '/api/campaigns/' + campaignId, 'PATCH'),
+    env,
+    async (target, opts) => {
+      calls.push({ url: String(target), opts });
+      if (String(target).endsWith('/auth/v1/user'))
+        return Response.json({ id: uid, email_confirmed_at: '2026-10-15T12:00:00Z' });
+      if (opts.method === 'GET')
+        return Response.json([{
+          id: campaignId, owner_id: uid, title: 'Beach cleanup',
+          summary: 'Community cleanup', story: '',
+          goal_amount: 500, status: 'draft', updated_at: '2026-10-25T00:00:00Z',
+        }]);
+      throw Error('Incomplete campaign must not reach terms or write APIs');
+    },
+  );
+  assert.equal(r.status, 422);
+  assert.equal(calls.length, 2);
+});
+
 test('missing or wrong-owner rows fail closed; internal errors stay private', async () => {
   const path = '/api/campaigns/' + campaignId;
   assert.equal((await routeCampaignWrite(request({ title: 'Change' }, path, 'PATCH'),
