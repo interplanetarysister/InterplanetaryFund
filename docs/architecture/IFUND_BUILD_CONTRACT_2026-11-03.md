@@ -5,7 +5,7 @@ Updated 2026-11-03. Authority: owner requirements, the Base44 `interplanetary-fu
 - One cohesive crowdfunding product at `interplanetaryfund.com`; preserve the original installed-APK workflows, screen behavior and data semantics unless explicitly revised.
 - `interplanetarysister/InterplanetaryFund` is the implementation repository. `interplanetary-fund2` is a read-only functional reference, not a production deploy source. Obsolete `interplanetary-fund-backend` and all Vercel/Convex configurations are outside the active architecture.
 - One canonical web frontend: `apps/web` (Vite/React). Root `src/` is historical overlap pending verified retirement, not a second production app.
-- Cloudflare Pages serves the web bundle; Cloudflare Workers provide the independent API, integrations, webhook intake, AI/agent orchestration and scheduled jobs. Supabase is the canonical Auth, Postgres, RLS and Storage system. GitHub is the sole versioned source of deployable code.
+- Cloudflare Pages serves the web bundle; Cloudflare Workers provide the independent API, integrations, webhook intake, AI/agent orchestration and scheduled jobs. Supabase Postgres/Auth/RLS is the **sole durable application record store**. Existing Cloudflare R2 `ifund-media` is the **sole durable media file store**. KV is a disposable cache only; never duplicate Supabase records in KV/D1 or asset bytes in Supabase Storage. GitHub is the sole versioned source of deployable code.
 - Use free tiers at initial 1–2-user scale; measure quotas and avoid paid upgrades or new paid resources without explicit owner approval. Design for thousands later without assuming that capacity is already validated.
 - Never expose Supabase service/secret keys, payment credentials, webhook verification material or provider refresh tokens in Vite `VITE_*` variables or browser responses. Publishable keys are browser-safe **only when RLS and grants are correct**.
 - Financial truth comes only from provider-verified events and an idempotent ledger. The 7% platform fee is taken at withdrawal; only verified owners can request withdrawals and non-owners must never see payout information. Do not fabricate paid/donated/withdrawn states or activate payment paths before real integration tests.
@@ -19,13 +19,13 @@ Browser / Android app (existing APK is parity reference)
     -> Supabase publishable client (Auth + owner-scoped RLS reads)
     -> Cloudflare Workers APIs (privileged operations only, user JWT checked)
           -> Supabase Postgres (canonical relational data + RLS)
-          -> Supabase Storage (campaign/media assets)
+          -> Cloudflare R2 (campaign/media bytes, with Supabase metadata and owner checks)
           -> Provider integrations (PayPal, publishing, mail) using scoped secrets
           -> Verified webhook intake -> event deduplication -> ledger/workflow queue
           -> Agent orchestration + consent/approval/audit records
 ```
 
-No client-to-Base44 runtime dependency in the final product. Keep an explicit migration adapter only until export/import and provider handoff have been reconciled. Do not make Cloudflare D1 a competing source of truth for campaigns, identities, donations or owner mappings; D1 is permitted only for clearly isolated operational state where needed.
+No client-to-Base44 runtime dependency in the final product. Keep an explicit migration adapter only until export/import and provider handoff have been reconciled. Do not make Cloudflare KV/D1 a competing store for campaigns, identity, consent, configuration, donations or owner mappings. Use ephemeral cache only, and keep media object bytes in R2 rather than Supabase Storage. The private Base44 staging mirror in Supabase is temporary and must be reconciled/de-duplicated after verified cutover.
 
 ## Environment contract
 | Environment | Source | Public frontend | Backend | Data |
@@ -57,7 +57,7 @@ Cloudflare Pages project `interplanetaryfund-migration` must ultimately point to
 
 **Gate E: UI parity.** Test the complete route matrix, not page count alone. Make campaign save/publish/reload/discover, owner settings, following, login, Atlas marker navigation, embed and inbox work against the canonical backend. Use an intergalactic/cyberpunk visual system with extremely simple interaction and phone-safe layout; match original APK behavior where present.
 
-**Gate F: import/reconciliation.** Inventory all batches, preserve legacy IDs and original audit evidence. Reconcile per-table counts/hashes, campaign/owner links, media, provider connections, workflows and verified ledger balances. Never mark mismatched or unverified financial rows as captured donations.
+**Gate F: import/reconciliation.** Inventory all batches, preserve legacy IDs and original audit evidence. Reconcile per-table counts/hashes, campaign/owner links, **R2 media bytes and checksums**, provider connections, workflows and verified ledger balances. Supabase Postgres is the only authoritative application record store; Cloudflare R2 holds media bytes only. Never mark mismatched or unverified financial rows as captured donations.
 
 **Gate G: release.** Verify builds/tests/preview URLs, deep links, OAuth redirects, RLS privacy, agent and webhook authentication, fail-closed payment gates, and rollback. Repair Pages source/root mismatch. Only after owner signoff promote the tested `apps/web` artifact, change DNS if needed while preserving mail, and retire Base44 after full parity.
 
