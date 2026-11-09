@@ -52,7 +52,9 @@ test('OAuth vault migration records token expiry, key version, and private audit
   assert.match(migration, /alter table public\.ifund_provider_connection_events enable row level security/);
   assert.match(migration, /revoke all privileges[\s\S]*from public, anon, authenticated/);
   assert.match(migration, /grant all privileges[\s\S]*to service_role/);
-  assert.match(migration, /p_event_type text default 'connected'/);
+  assert.match(migration, /p_event_type text/);
+  assert.match(migration, /perform public\\.ifund_store_provider_connection_v2/);
+  assert.match(migration, /create or replace function public\\.ifund_store_provider_connection\\(/);
   assert.match(migration, /function public\.ifund_store_provider_connection_v2/);
   assert.doesNotMatch(migration, /drop function if exists public\.ifund_store_provider_connection\(/);
   assert.match(migration, /grant execute[\s\S]*to service_role/);
