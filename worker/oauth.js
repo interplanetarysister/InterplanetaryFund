@@ -6,7 +6,7 @@ const PROVIDERS = Object.freeze({
     authorize: 'https://accounts.google.com/o/oauth2/v2/auth',
     token: 'https://oauth2.googleapis.com/token',
     profile: 'https://openidconnect.googleapis.com/v1/userinfo',
-    scopes: ['openid', 'email', 'profile'], tokenAuth: 'body',
+    scopes: ['openid', 'email', 'profile'], tokenAuth: 'body', pkce: true,
     subject: (data) => data.sub,
   },
   linkedin: {
@@ -14,7 +14,7 @@ const PROVIDERS = Object.freeze({
     authorize: 'https://www.linkedin.com/oauth/v2/authorization',
     token: 'https://www.linkedin.com/oauth/v2/accessToken',
     profile: 'https://api.linkedin.com/v2/userinfo',
-    scopes: ['openid', 'profile', 'email'], tokenAuth: 'body',
+    scopes: ['openid', 'profile', 'email'], tokenAuth: 'body', pkce: false,
     subject: (data) => data.sub,
   },
   x: {
@@ -22,7 +22,7 @@ const PROVIDERS = Object.freeze({
     authorize: 'https://x.com/i/oauth2/authorize',
     token: 'https://api.x.com/2/oauth2/token',
     profile: 'https://api.x.com/2/users/me?user.fields=id,name,username',
-    scopes: ['users.read', 'tweet.read', 'offline.access'], tokenAuth: 'basic',
+    scopes: ['users.read', 'tweet.read', 'offline.access'], tokenAuth: 'basic', pkce: true,
     subject: (data) => data.data?.id,
   },
   tiktok: {
@@ -30,7 +30,7 @@ const PROVIDERS = Object.freeze({
     authorize: 'https://www.tiktok.com/v2/auth/authorize/',
     token: 'https://open.tiktokapis.com/v2/oauth/token/',
     profile: 'https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name',
-    scopes: ['user.info.basic'], tokenAuth: 'tiktok',
+    scopes: ['user.info.basic'], tokenAuth: 'tiktok', pkce: false,
     subject: (data) => data.data?.user?.open_id,
   },
 });
@@ -148,10 +148,10 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
   if (provider === 'tiktok') {
     form.set('client_key', config.clientId);
     form.set('client_secret', config.clientSecret);
-    form.set('code_verifier', verifier);
+    // TikTok's web flow does not use PKCE; verifier is only required for mobile/desktop.
   } else {
     form.set('client_id', config.clientId);
-    form.set('code_verifier', verifier);
+    if (config.pkce) form.set('code_verifier', verifier);
     if (config.tokenAuth === 'body') form.set('client_secret', config.clientSecret);
   }
   const headers = { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' };
@@ -212,12 +212,16 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       const authorize = new URL(config.authorize);
       authorize.search = new URLSearchParams({
         response_type: 'code', client_id: config.clientId, redirect_uri: redirectUri,
-        scope: config.scopes.join(' '), state, code_challenge: challenge, code_challenge_method: 'S256',
+        scope: config.scopes.join(' '), state,
       }).toString();
+      if (config.pkce) {
+        authorize.searchParams.set('code_challenge', challenge);
+        authorize.searchParams.set('code_challenge_method', 'S256');
+      }
       if (provider === 'google') authorize.searchParams.set('access_type', 'offline');
       if (provider === 'tiktok') {
+        authorize.searchParams.delete('client_id');
         authorize.searchParams.set('client_key', config.clientId);
-        authorize.searchParams.set('disable_auto_auth', '0');
       }
       return new Response(JSON.stringify({ authorization_url: authorize.toString() }), {
         status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'set-cookie': cookieHeader(provider, state, 600) },
@@ -266,7 +270,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify({
         owner_id: rows[0].owner_id, provider, provider_subject: identity.subject,
-        token_ciphertext: encryptedTokens, granted_scopes: typeof token.scope === 'string' ? token.scope.split(' ').filter(Boolean) : config.scopes,
+        token_ciphertext: encryptedTokens, granted_scopes: typeof token.scope === 'string' ? token.scope.split(/[ ,]+/).filter(Boolean) : config.scopes,
         status: 'active', updated_at: new Date().toISOString(),
       }),
     }, fetcher);
