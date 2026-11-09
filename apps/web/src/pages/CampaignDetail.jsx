@@ -17,9 +17,9 @@ const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
 // Independent public campaign detail page. Owner and admin tools
 // (editing, distribution, outreach agents, AI coach, translations, follow,
-// share kit, supporter list, donation dialog) need a signed-in member and are
-// not part of this slice. Campaign checkout stays disabled while campaign
-// donations are paused.
+// share kit and supporter list) need a signed-in member and are not part
+// of this slice. Checkout stays disabled until the server confirms both
+// PayPal order creation and capture routes are ready.
 export default function CampaignDetail() {
   const { id } = useParams();
   const location = useLocation();
