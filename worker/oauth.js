@@ -1,4 +1,4 @@
-import { authenticatedUser, migrationReady, response } from './reads.js';
+import { authenticatedUser, response } from './reads.js';
 
 const PROVIDERS = Object.freeze({
   google: {
@@ -97,6 +97,13 @@ function serviceHeaders(env) {
 function serviceConfigured(env) {
   return typeof env.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20 &&
     typeof env.OAUTH_ENCRYPTION_KEY === 'string' && env.OAUTH_ENCRYPTION_KEY.length > 20;
+}
+function oauthRuntimeReady(env) {
+  return env?.OAUTH_API_ENABLED === 'true' &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
+    typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
+    env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
+    serviceConfigured(env);
 }
 function callbackBase(env) {
   const url = new URL(env.OAUTH_PUBLIC_BASE_URL || '');
@@ -203,7 +210,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   if (!match) return response(404, { error: 'Not found.' });
   const [, provider, action] = match;
   if (!PROVIDERS[provider]) return response(404, { error: 'Provider not supported.' });
-  if (!migrationReady(env) || !serviceConfigured(env)) return response(503, { error: 'Provider connections are not configured.' });
+  if (!oauthRuntimeReady(env)) return response(503, { error: 'Provider connections are not configured.' });
 
   let base;
   try { base = callbackBase(env); } catch { return response(503, { error: 'Provider connections are not configured.' }); }
