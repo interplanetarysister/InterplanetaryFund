@@ -8,6 +8,8 @@ export default function HackathonDemo() {
   const [ready, setReady] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [campaignId, setCampaignId] = useState("");
+  const [campaignError, setCampaignError] = useState("");
+  const [statusError, setStatusError] = useState("");
   const [cents, setCents] = useState(500);
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
@@ -16,9 +18,13 @@ export default function HackathonDemo() {
   const approved = query.get("paypal")==="approved";
   useEffect(() => {
     let alive=true;
-    fetch("/api/paypal/sandbox/status",{cache:"no-store"}).then(r=>r.json()).then(x=>{if(alive)setReady(x)}).catch(()=>{if(alive)setReady({enabled:false})});
+    fetch("/api/paypal/sandbox/status",{cache:"no-store"})
+      .then(async r=>{if(!r.ok)throw Error(`Sandbox status unavailable (${r.status})`);return r.json()})
+      .then(x=>{if(alive)setReady(x)})
+      .catch(e=>{if(alive){setReady({enabled:false});setStatusError(e.message)}});
     authClient().from("ifund_campaigns").select("id,title").eq("status","active").limit(20)
-      .then(({data,error})=>{if(alive&&!error){setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"")}});
+      .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"")})
+      .catch(()=>{if(alive)setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.")});
     return ()=>{alive=false};
   },[]);
   async function post(path,data) {
@@ -60,8 +66,10 @@ export default function HackathonDemo() {
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
       <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
         <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals.</p></div>
+      {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
         !ready.enabled ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is not configured yet. The required server-side PayPal credentials and feature gate must be verified before payment testing can begin.</p> : null}
+      {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
       <label className="block text-sm font-medium">Demo campaign
         <select aria-label="Demo campaign" value={campaignId} onChange={e=>setCampaignId(e.target.value)}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
