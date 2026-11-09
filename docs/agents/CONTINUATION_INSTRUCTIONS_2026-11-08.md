@@ -187,3 +187,28 @@ The five new frontend regression tests are present in the build logs (tests 54�
 ### Still blocked / not complete
 
 The five preview specialist Worker bindings do not make five AI specialists live. Managed Connections remains request tracking and provider-method guidance, with no AI binding, workforce role registration, provider adapter, OAuth/token vault or provider execution. Shared workforce reservation/lease/receipt is still Story-specific. Discovery, Outreach, Finance, Chief of Staff and Admin Builder remain gated by the sequential ledger. Do not activate paid or metered services, enable production procurement, change live RLS, or claim the member blog/community/profile features are complete without their reviewed migrations and tests.
+
+
+---
+
+## Managed Connections Worker repair and preview deployment — 2026-11-08
+
+A full root CI run exposed two stale/incorrect Worker tests and one additional assertion affected by the redundant preflight. The actual defect was that the edge Worker independently called `ifund_story_subscription` before validating a connection request, while the canonical `ifund_connections_grant_help` and `ifund_connections_request_action` RPCs already enforce the entitlement atomically with current owner scope, consent, idempotency and creation. This duplicate preflight masked malformed request validation and duplicated a potentially racy authorization read.
+
+Changes on `feature/managed-connections-agent-20261105`:
+- `4145268023746e08c5ff96eb71dcdb54be7843b3` — normalize non-Error upstream rejections and invalid HTTP status values safely.
+- `5187050d7b85edd73f43784d9dd9753f8fc3aa21` — add regression coverage for non-Error rejection handling.
+- `a41abab5eb0086e15a0b87d0e69e8b8f528ecd86` — remove the redundant Worker-side subscription preflight; keep database RPCs as the authoritative entitlement gate.
+- `760c3b304379d577fcfebb9d175507f96fb606ab` — update route tests to verify that request validation happens before the action RPC and expired-plan denial comes from the canonical database action.
+
+Verification:
+- GitHub Actions run `42539408336` — root Worker/database/migration suite: **385 tests, 385 pass, 0 fail**, followed by root build success.
+- The same run's canonical `apps/web` tests and production bundle completed successfully.
+- Cloudflare Pages preview deployment `26f5ecf0-d3d5-4ffc-a773-2180b3ec9939`, commit `760c3b304379d577fcfebb9d175507f96fb606ab`, stage `deploy / success`, URL https://26f5ecf0.interplanetaryfund-migration.pages.dev; its frontend test log shows 154 passing tests and no failing tests.
+- Uploaded the matching source modules to the dedicated `ifund-managed-connections-agent-preview` Worker only. Cloudflare created version `371f9780-84d4-4d1d-bd87-4eb5ef0c0320` and its deployment record shows 100% traffic on that version. Existing preview bindings (feature flag and Supabase configuration) were preserved. Production Worker was not changed.
+- Worker source/settings read-back confirms the new safe error normalization and absence of the duplicate subscription preflight. A public `/health` smoke request could not be completed from this execution environment; do not claim a live HTTP health response.
+
+Important remaining boundary:
+- This deployment is a Managed Connections *request and permission tracking* Worker repair, not the finished conversational specialist. It still has no AI binding, no workforce executor-key binding and no registered/tested Managed Connections workforce implementation. It must not be presented as a fully working AI agent.
+- The existing workforce SQL/runtime remains Story-specific (`story_agent`, `story.draft.v1`, `story.section.v1`). Role-scoped reservation/lease/receipt generalization requires a reviewed CLI-generated migration and database test coverage. Do not hand-author/apply a migration from this tool-only environment.
+- Keep workforce production disabled, keep this PR draft, preserve the stacked PR order, and continue with the source-level remaining campaign/blog/profile/community/agent work. Do not promote production based on this checkpoint.
