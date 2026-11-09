@@ -157,7 +157,13 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
       }),
     );
   } catch (e) {
-    const status = e instanceof BodyError ? e.status : e.status || 503;
+    // Upstream fetch implementations can reject with non-Error values. Never
+    // dereference an unknown rejection or let an invalid status escape.
+    const candidate = e instanceof BodyError ? e.status : e?.status;
+    const status =
+      Number.isInteger(candidate) && candidate >= 400 && candidate <= 599
+        ? candidate
+        : 503;
     return reply(status, {
       error:
         status >= 500
@@ -168,8 +174,12 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
               ? "Your connection request limit has been reached. Try again later."
               : status === 400
                 ? "Check the selected provider, campaign and current permission."
-                : e.message || "This connection action is unavailable.",
-      ...(e.code ? { code: e.code } : {}),
+                : typeof e?.message === "string"
+                  ? e.message
+                  : "This connection action is unavailable.",
+      ...(typeof e?.code === "string" && /^[A-Z0-9_]{1,48}$/.test(e.code)
+        ? { code: e.code }
+        : {}),
     });
   }
 }
