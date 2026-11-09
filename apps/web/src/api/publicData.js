@@ -50,7 +50,10 @@ export function mapCampaign(row = {}) {
     preview_only: false,
     raised_amount: numOrNull(row.raised_amount),
     goal_amount: numOrNull(row.goal_amount),
-    donor_count: numOrNull(row.donor_count),
+    // The canonical RPC currently counts captured gift rows, not distinct donors.
+    // Keep the public label truthful until a stable donor identity aggregate exists.
+    donor_count: null,
+    gift_count: numOrNull(row.donor_count),
     end_date: null,
   };
 }
