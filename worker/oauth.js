@@ -88,6 +88,19 @@ function fromBase64(value) {
 async function digest(value) {
   return base64url(new Uint8Array(await crypto.subtle.digest('SHA-256', encoder.encode(value))));
 }
+async function constantTimeEqual(leftValue, rightValue) {
+  const [leftHash, rightHash] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(leftValue)),
+    crypto.subtle.digest('SHA-256', encoder.encode(rightValue)),
+  ]);
+  const left = new Uint8Array(leftHash);
+  const right = new Uint8Array(rightHash);
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    difference |= left[index] ^ right[index];
+  }
+  return difference === 0;
+}
 function randomSecret(size = 32) {
   const bytes = crypto.getRandomValues(new Uint8Array(size));
   return base64url(bytes);
@@ -535,7 +548,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
   const state = url.searchParams.get('state') || '';
   const cookie = cookieValue(request, 'ifund_oauth_' + provider);
-  if (!state || state.length > 256 || !cookie || cookie !== state) {
+  if (!state || state.length > 256 || !cookie || !(await constantTimeEqual(cookie, state))) {
     return redirectResult(base, 'failed', provider);
   }
   const code = url.searchParams.get('code') || '';
