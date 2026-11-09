@@ -299,7 +299,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
       const form = new URLSearchParams(options.body);
       assert.equal(form.get('code_verifier'), verifier);
       assert.equal(form.get('redirect_uri'), tx.redirect_uri);
-      return Response.json({ access_token: 'secret-access-token', refresh_token: 'secret-refresh-token', token_type: 'Bearer', expires_in: 3600, scope: 'openid email profile' });
+      return Response.json({ access_token: 'secret-access-token', refresh_token: 'secret-refresh-token', token_type: 'Bearer', expires_in: 3600 });
     }
     if (target === 'https://openidconnect.googleapis.com/v1/userinfo') {
       assert.equal(options.headers.authorization, 'Bearer secret-access-token');
@@ -310,6 +310,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
       const body = JSON.parse(options.body);
       assert.equal(body.p_owner_id, uid);
       assert.equal(body.p_provider_subject, 'google-user-1');
+      assert.deepEqual(body.p_granted_scopes, []);
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /secret-access-token|secret-refresh-token/);
       return new Response(null, { status: 204 });
     }
