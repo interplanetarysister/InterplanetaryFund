@@ -149,3 +149,41 @@ Correction/reconciliation from the live Cloudflare Pages project API:
 The latest Pages preview build executed the configured command and emitted 154 passing TAP tests with zero failing TAP cases; its deployment stage succeeded. This verifies that exact frontend preview bundle and the configured test command. It does not verify all browser routes, database migrations, live Worker execution, provider OAuth or end-to-end member journeys.
 
 CodeRabbit's implementation attempts ended with its explicit response that the action is unavailable for this repository; it made no implementation commit. Continue direct code changes and independent checks. Do not wait for CodeRabbit to implement the remainder.
+
+
+## Additional source repairs and preview checkpoint — 2026-11-09 00:04 UTC
+
+### Implemented on the existing PR #223 branch
+
+- Fixed Connections response isolation across account changes. New `apps/web/src/lib/connectionSession.js` binds each request to the authenticated member before sending it and rechecks the session after receiving the response, before exposing any response payload. `Connections.jsx` now uses that helper.
+- Added five focused regression cases covering authenticated bearer use, account changes during a request, account changes before a subsequent request, missing sessions, and rejected routes.
+- Clarified that Managed Connections is deliberately excluded from the conversational specialist picker until the shared-workforce conversation runtime and tested tool registrations exist. Its separate request-tracking endpoint remains routable.
+- Repaired a stale root Worker test in `tests/workforce-runtime.test.js`: the service subscription fixture now returns the actual `level/active` contract, and discovery expects only the actually bound Story specialist rather than nine catalog entries. The test also verifies the Managed request-tracking route forwards the member bearer to the dedicated Worker.
+
+Commits:
+- `0252aec6f0b9fa617de03c84dbda24bf33688272` — account-bound connection helper
+- `c61d9dad4d6e6396a069eda51b0e592407eda599` — connection session regression tests
+- `2908911bf9c304a82e204592cc1a4f8cf03b7ab3` — Connections page integration
+- `6cd5a676f7c9181b7e408eaa30e52350ab1a2fda` — gateway catalog gating explanation
+- `aafcf1cede356d9d1119ba5fba9447b33c802171` — root gateway test correction
+
+### Preview evidence
+
+Cloudflare Pages preview deployment `311183b7-f8cd-4c40-998b-8b7e6f21fbf1` completed successfully for commit `aafcf1cede356d9d1119ba5fba9447b33c802171`:
+- URL: https://311183b7.interplanetaryfund-migration.pages.dev
+- Build command: `npm ci --no-audit --no-fund && npm test && npm run build`
+- Frontend tests: 154 passing, 0 failing
+- Build and deploy stages: success
+
+The five new frontend regression tests are present in the build logs (tests 54–58). The Pages build does not execute the root `tests/workforce-runtime.test.js`; that corrected root test is committed but has not been executed in this checkpoint. Do not report it as passing.
+
+### Schema blockers confirmed by read-only live inspection
+
+- `ifund_profiles` currently has only authenticated self-read/update policies; public profile visibility/bio/follow controls are not available through a verified public policy.
+- `ifund_blogs` and `ifund_blog_entries` expose owner-scoped reads and published public reads. No current authenticated owner insert/update/delete policy or blog write RPC was found in the live database. The public read RPC is read-only.
+- `ifund_community` and `ifund_community_member` exist as singular legacy tables, but no corresponding usable RLS policies or canonical authenticated read/write API were found in the live audit. Do not invent plural replacement tables or query them as if they were secured.
+- Supabase reported no development branches for this project. No database migration or live database change was made.
+
+### Still blocked / not complete
+
+The five preview specialist Worker bindings do not make five AI specialists live. Managed Connections remains request tracking and provider-method guidance, with no AI binding, workforce role registration, provider adapter, OAuth/token vault or provider execution. Shared workforce reservation/lease/receipt is still Story-specific. Discovery, Outreach, Finance, Chief of Staff and Admin Builder remain gated by the sequential ledger. Do not activate paid or metered services, enable production procurement, change live RLS, or claim the member blog/community/profile features are complete without their reviewed migrations and tests.
