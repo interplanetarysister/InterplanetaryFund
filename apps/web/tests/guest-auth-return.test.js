@@ -68,6 +68,8 @@ test("guest campaign form saves only after sign-in and preserves its return path
   assert.ok(creator.includes("readGuestCampaignDraft"));
   assert.ok(creator.includes("saveGuestCampaignDraft(form)"));
   assert.ok(creator.includes("clearGuestCampaignDraft()"));
+  assert.ok(creator.includes("Boolean(form.summary.trim()) && Boolean(form.story.trim())"));
+  assert.ok(creator.includes("Short description<textarea required"));
   assert.ok(creator.includes('navigate("/login?returnTo="'));
 });
 
