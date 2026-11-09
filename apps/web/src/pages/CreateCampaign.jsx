@@ -181,7 +181,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try { rememberBrowserCampaign(sessionStorage, ownerId, form); }
     catch { /* session storage unavailable */ }
   }, [form, draftId, ownerId]);
-  const disabled = Boolean(busy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  const disabled = Boolean(busy || suggesting || regeneratingSection !== -1 || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(status) {
