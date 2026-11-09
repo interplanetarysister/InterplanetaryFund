@@ -159,14 +159,54 @@ function oauthRuntimeReady(env) {
     /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
     typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
     env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
+    typeof env?.OAUTH_FRONTEND_ORIGINS === 'string' && env.OAUTH_FRONTEND_ORIGINS.trim().length > 0 &&
     serviceConfigured(env);
 }
-function callbackBase(env) {
-  const url = new URL(env.OAUTH_PUBLIC_BASE_URL || '');
-  if (url.protocol !== 'https:' || url.username || url.password || url.pathname !== '/' || url.search || url.hash) {
-    throw new Error('OAuth public base URL must be a clean HTTPS origin.');
+function allowedFrontendOrigin(request, env) {
+  const origin = request.headers.get('origin') || '';
+  if (!origin || origin.length > 512) return '';
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== 'https:' || url.origin !== origin || url.username || url.password) return '';
+    const allowed = String(env.OAUTH_FRONTEND_ORIGINS || '')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+    return allowed.includes(origin) ? origin : '';
+  } catch {
+    return '';
   }
-  return url.origin;
+}
+function callbackUri(origin, provider) {
+  return new URL('/oauth/callback/' + provider, origin).toString();
+}
+async function limitedRequestJson(request, maxBytes = 8192) {
+  const declaredLength = Number(request.headers.get('content-length'));
+  if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+    throw new Error('OAuth callback body was too large.');
+  }
+  if (!request.body) throw new Error('OAuth callback body is empty.');
+  const reader = request.body.getReader();
+  const chunks = [];
+  let length = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    length += value.byteLength;
+    if (length > maxBytes) {
+      await reader.cancel();
+      throw new Error('OAuth callback body was too large.');
+    }
+    chunks.push(value);
+  }
+  const merged = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.byteLength; }
+  const data = JSON.parse(decoder.decode(merged));
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('OAuth callback body was invalid.');
+  }
+  return data;
 }
 function providerConfig(provider, env) {
   const config = PROVIDERS[provider];
@@ -215,15 +255,6 @@ async function supabaseRequest(env, path, options = {}, fetcher = fetch) {
   });
   if (!res.ok) throw new Error('OAuth credential storage failed.');
   return res;
-}
-function redirectResult(base, status, provider) {
-  const url = new URL('/connections', base);
-  url.searchParams.set('oauth', status);
-  if (provider) url.searchParams.set('provider', provider);
-  return new Response(null, {
-    status: 303,
-    headers: { location: url.toString(), 'cache-control': 'no-store', 'set-cookie': cookieHeader(provider || 'unknown', '', 0) },
-  });
 }
 async function exchangeCode(provider, config, code, verifier, redirectUri, fetcher) {
   const form = new URLSearchParams();
@@ -482,11 +513,11 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   if (!PROVIDERS[provider]) return response(404, { error: 'Provider not supported.' });
   if (!oauthRuntimeReady(env)) return response(503, { error: 'Provider connections are not configured.' });
 
-  let base;
-  try { base = callbackBase(env); } catch { return response(503, { error: 'Provider connections are not configured.' }); }
+  const origin = allowedFrontendOrigin(request, env);
+  if (!origin) return response(403, { error: 'Origin not allowed.' });
+  const redirectUri = callbackUri(origin, provider);
   const config = providerConfig(provider, env);
   if (!config) return response(503, { error: 'This provider is not configured yet.' });
-  const redirectUri = base + '/api/oauth/' + provider + '/callback';
 
   if (action === 'refresh') {
     if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
@@ -529,7 +560,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         authorize.searchParams.set('code_challenge', challenge);
         authorize.searchParams.set('code_challenge_method', 'S256');
       }
-      if (provider === 'google') {
+      if (provider === 'google' || provider === 'youtube') {
         authorize.searchParams.set('access_type', 'offline');
         authorize.searchParams.set('prompt', 'consent');
       }
@@ -537,27 +568,33 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         authorize.searchParams.delete('client_id');
         authorize.searchParams.set('client_key', config.clientId);
       }
-      return new Response(JSON.stringify({ authorization_url: authorize.toString() }), {
-        status: 200, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'set-cookie': cookieHeader(provider, state, 600) },
-      });
+      return response(200, { authorization_url: authorize.toString() });
     } catch {
       return response(503, { error: 'Could not start provider authorization.' });
     }
   }
 
-  if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
-  const state = url.searchParams.get('state') || '';
-  const cookie = cookieValue(request, 'ifund_oauth_' + provider);
-  if (!state || state.length > 256 || !cookie || !(await constantTimeEqual(cookie, state))) {
-    return redirectResult(base, 'failed', provider);
+  if (action !== 'callback' || request.method !== 'POST') {
+    return response(405, { error: 'Method not allowed.' });
   }
-  const code = url.searchParams.get('code') || '';
-  const providerError = url.searchParams.get('error');
+  const account = await authenticatedUser(request, env, fetcher);
+  if (!account) return response(401, { error: 'Sign in to finish provider authorization.' });
+
   try {
+    const body = await limitedRequestJson(request);
+    const code = typeof body.code === 'string' ? body.code : '';
+    const state = typeof body.state === 'string' ? body.state : '';
+    const callbackScopes = typeof body.scopes === 'string' ? body.scopes : '';
+    if (!code || code.length > 4096 || !state || state.length > 256 ||
+        body.redirect_uri !== redirectUri) {
+      return response(400, { error: 'Provider authorization could not be verified.' });
+    }
+
     const hash = await digest(state);
     const params = new URLSearchParams({
       select: 'owner_id,provider,verifier_ciphertext,redirect_uri,expires_at',
       state_hash: 'eq.' + hash, provider: 'eq.' + provider,
+      owner_id: 'eq.' + account.uid,
       expires_at: 'gt.' + new Date().toISOString(),
     });
     const txResponse = await supabaseRequest(env, 'ifund_oauth_transactions?' + params.toString(), {
@@ -565,10 +602,10 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     }, fetcher);
     const rows = await txResponse.json();
     if (!Array.isArray(rows) || rows.length !== 1 || rows[0].provider !== provider ||
-      rows[0].redirect_uri !== redirectUri || !UUID.test(rows[0].owner_id)) {
-      return redirectResult(base, 'failed', provider);
+        rows[0].owner_id !== account.uid || rows[0].redirect_uri !== redirectUri) {
+      return response(400, { error: 'Provider authorization could not be verified.' });
     }
-    if (providerError || !code || code.length > 4096) return redirectResult(base, 'denied', provider);
+
     const verifierRecord = await decryptOAuthValue(rows[0].verifier_ciphertext, env);
     if (typeof verifierRecord.verifier !== 'string') throw new Error('Invalid PKCE verifier.');
     const token = await exchangeCode(provider, config, code, verifierRecord.verifier, redirectUri, fetcher);
@@ -591,11 +628,14 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       token_type: 'Bearer',
       scope: typeof token.scope === 'string' ? token.scope : identity.grantedScopes.join(' '),
       expires_at: Number.isFinite(Number(token.expires_in)) ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
-      refresh_expires_at: Number.isFinite(Number(token.refresh_expires_in)) ? new Date(Date.now() + Number(token.refresh_expires_in) * 1000).toISOString() : previousTokens?.refresh_expires_at || null,
+      refresh_expires_at: Number.isFinite(Number(token.refresh_token_expires_in || token.refresh_expires_in))
+        ? new Date(Date.now() + Number(token.refresh_token_expires_in || token.refresh_expires_in) * 1000).toISOString()
+        : previousTokens?.refresh_expires_at || null,
     };
     const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-    const callbackScopes = url.searchParams.get('scopes') || '';
-    const scopes = identity.grantedScopes.length ? identity.grantedScopes : callbackScopes.split(/[ ,]+/).filter(Boolean);
+    const scopes = identity.grantedScopes.length
+      ? identity.grantedScopes
+      : callbackScopes.split(/[ ,]+/).filter(Boolean);
     await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
@@ -603,9 +643,9 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         p_granted_scopes: scopes,
       }),
     }, fetcher);
-    return redirectResult(base, 'connected', provider);
+    return response(200, { provider, status: 'connected', verified: true });
   } catch {
-    return redirectResult(base, 'failed', provider);
+    return response(400, { error: 'Provider authorization could not be verified.' });
   }
 }
 
