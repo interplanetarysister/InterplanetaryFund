@@ -326,6 +326,79 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   assert.ok(calls.some(x => x.target.includes('/rpc/ifund_store_provider_connection')));
   assert.match(r.headers.get('set-cookie'), /Max-Age=0/);
 });
+
+test('Google refresh rotates the access token, preserves an omitted refresh token and returns no credentials', async () => {
+  const stored = await encryptOAuthValue({
+    access_token: 'old-google-access-token',
+    refresh_token: 'stable-google-refresh-token',
+    scope: 'openid email profile',
+  }, env);
+  const calls = [];
+  const fetcher = async (url, options = {}) => {
+    const target = String(url);
+    calls.push({ target, options });
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.includes('/rest/v1/ifund_provider_tokens?')) {
+      return Response.json([{
+        provider_subject: 'google-user-1',
+        token_ciphertext: stored,
+        granted_scopes: ['openid', 'email', 'profile'],
+      }]);
+    }
+    if (target === 'https://oauth2.googleapis.com/token') {
+      const form = new URLSearchParams(options.body);
+      assert.equal(form.get('grant_type'), 'refresh_token');
+      assert.equal(form.get('refresh_token'), 'stable-google-refresh-token');
+      return Response.json({
+        access_token: 'new-google-access-token',
+        token_type: 'Bearer',
+        expires_in: 3600,
+      });
+    }
+    if (target === 'https://openidconnect.googleapis.com/v1/userinfo') {
+      assert.equal(options.headers.authorization, 'Bearer new-google-access-token');
+      return Response.json({ sub: 'google-user-1', email: 'person@example.test' });
+    }
+    if (target.includes('/rpc/ifund_store_provider_connection')) {
+      const body = JSON.parse(options.body);
+      assert.equal(body.p_provider_subject, 'google-user-1');
+      assert.deepEqual(body.p_granted_scopes, ['openid', 'email', 'profile']);
+      assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /new-google-access-token|stable-google-refresh-token/);
+      return new Response(null, { status: 204 });
+    }
+    throw Error('unexpected fetch: ' + target);
+  };
+  const request = new Request(base + '/api/oauth/google/refresh', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const r = await routeOAuthRequest(request, env, fetcher);
+  assert.equal(r.status, 200);
+  const payload = await r.json();
+  assert.equal(payload.refreshed, true);
+  assert.equal(payload.provider, 'google');
+  assert.equal(JSON.stringify(payload).includes('new-google-access-token'), false);
+  assert.ok(calls.some(call => call.target.includes('/rpc/ifund_store_provider_connection')));
+});
+test('refresh rejects a saved connection without a refresh token without contacting the provider', async () => {
+  const stored = await encryptOAuthValue({ access_token: 'old-access-token' }, env);
+  const fetcher = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).includes('/rest/v1/ifund_provider_tokens?')) {
+      return Response.json([{
+        provider_subject: 'google-user-1',
+        token_ciphertext: stored,
+        granted_scopes: [],
+      }]);
+    }
+    throw Error('provider token endpoint must not be called');
+  };
+  const request = new Request(base + '/api/oauth/google/refresh', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const r = await routeOAuthRequest(request, env, fetcher);
+  assert.equal(r.status, 409);
+});
+
 test('callback rejects replayed or mismatched state without exchanging a code', async () => {
   let tokenCalls = 0;
   const request = new Request(base + '/api/oauth/google/callback?code=one-time-code&state=state-1', {
