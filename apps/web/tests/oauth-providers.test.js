@@ -226,3 +226,10 @@ test("no credential is read from the browser bundle", () => {
   assert.doesNotMatch(mod, /CLIENT_SECRET|SERVICE_ROLE|clientSecret/i);
   assert.match(mod, /VITE_SUPABASE_OAUTH_PROVIDERS/);
 });
+test("provider connection callback is single-flight and trusts only provider-reported scopes", () => {
+  const callback = source("src/pages/OAuthCallback.jsx");
+  assert.match(callback, /const callbackFlights = new Map\(\)/);
+  assert.match(callback, /callbackFlights\.get\(storageKey\)/);
+  assert.doesNotMatch(callback, /scopes:\s*payload\.scopes/);
+  assert.match(callback, /redirect_uri: redirectUri/);
+});

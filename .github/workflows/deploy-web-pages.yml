@@ -15,8 +15,10 @@ name: Deploy branded frontend to Cloudflare Pages
 #   VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY
 # Optional repository variable:
 #   VITE_SUPABASE_OAUTH_PROVIDERS - comma-separated subset of "google,facebook".
-#     Only names a provider whose OAuth client is enabled in the Supabase
-#     dashboard. Empty or unset simply renders no social buttons.
+#   VITE_IFUND_OAUTH_API_BASE_URL - preview or production OAuth Worker URL.
+#     Only set it when the matching Worker has OAuth enabled, server-only secrets,
+#     exact origin allowlisting, and provider app credentials/approval flags.
+#     Empty or unset leaves provider account connections unavailable in this build.
 # Never add a service-role key here; it would be baked into the public bundle.
 
 on:
@@ -71,6 +73,7 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_OAUTH_PROVIDERS: ${{ vars.VITE_SUPABASE_OAUTH_PROVIDERS }}
+          VITE_IFUND_OAUTH_API_BASE_URL: ${{ vars.VITE_IFUND_OAUTH_API_BASE_URL }}
         run: |
           npm ci --no-audit --no-fund
           npm test
