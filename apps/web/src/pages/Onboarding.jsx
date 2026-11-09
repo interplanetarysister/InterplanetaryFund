@@ -84,6 +84,6 @@ export default function Onboarding() {
       <p>Connect other platforms only when their provider consent and authorization services are verified. No AI delegation or external posting is activated by this setup.</p>
       <div className="flex flex-wrap gap-3"><Link to="/create" className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Create campaign</Link><Link to="/connections" className="rounded-xl border border-border px-5 py-3">Connections</Link><Link to="/dashboard" className="rounded-xl border border-border px-5 py-3">Dashboard</Link></div>
     </section>}
-    <Link to={afterLogin} className="inline-block text-sm underline">Skip setup</Link>
+    {afterLogin === "/dashboard" && <Link to={afterLogin} className="inline-block text-sm underline">Skip setup</Link>}
   </main>;
 }
