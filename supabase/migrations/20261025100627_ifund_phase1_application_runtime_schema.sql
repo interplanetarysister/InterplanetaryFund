@@ -70,15 +70,15 @@ from public, anon, authenticated;
 grant select on public.ifund_campaigns, public.ifund_posts to anon;
 grant select on public.ifund_campaigns, public.ifund_posts, public.ifund_profiles, public.ifund_connections to authenticated;
 
-grant insert (id, handle, display_name) on public.ifund_profiles to authenticated;
-grant update (handle, display_name) on public.ifund_profiles to authenticated;
+grant insert(id,handle,display_name) on public.ifund_profiles to authenticated;
+grant update(handle,display_name) on public.ifund_profiles to authenticated;
 
-grant insert (owner_id, title, summary, story, category, goal_amount, cover_image_url, status)
+grant insert(owner_id,title,summary,story,category,goal_amount,cover_image_url,status)
   on public.ifund_campaigns to authenticated;
-grant update (title, summary, story, category, goal_amount, cover_image_url, status)
+grant update(title,summary,story,category,goal_amount,cover_image_url,status)
   on public.ifund_campaigns to authenticated;
 
-grant insert (author_id, body) on public.ifund_posts to authenticated;
+grant insert(author_id,body) on public.ifund_posts to authenticated;
 grant delete on public.ifund_posts to authenticated;
 
 -- Timestamp maintenance; no live SQL was executed.
