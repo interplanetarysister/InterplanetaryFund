@@ -48,7 +48,7 @@ export default function AuthPage({ mode="login" }){
         setRecoveryCodeSent(true);
         setMessage("If this address has an account, check your email for a recovery code or secure reset link. Use the newest message.");
       }else if(isReset){
-        if(!/^\\d{6,8}$/.test(recoveryCode.trim()))throw new Error("Enter the recovery code from your newest email.");
+        if(!/^\d{6,8}$/.test(recoveryCode.trim()))throw new Error("Enter the recovery code from your newest email.");
         if(newPassword.length<8)throw new Error("Choose a password with at least eight characters.");
         const {error:verifyFailure}=await auth.verifyOtp({email:normalizedEmail,token:recoveryCode.trim(),type:"recovery"});
         if(verifyFailure)throw verifyFailure;
