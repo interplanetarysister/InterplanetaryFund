@@ -33,7 +33,7 @@ const numOrNull = (value) =>
   value === null || value === undefined || value === "" || !Number.isFinite(Number(value))
     ? null : Number(value);
 
-// Funding/donor totals must never be estimated from goals or preview records.
+// Funding totals and gift counts must never be estimated from goals or preview records.
 // This selects only real, RLS-visible active campaigns.
 export function mapCampaign(row = {}) {
   return {
