@@ -4,7 +4,7 @@
 create table if not exists public.ifund_oauth_transactions (
   state_hash text primary key check (state_hash ~ '^[A-Za-z0-9_-]{43}$'),
   owner_id uuid not null references auth.users(id) on delete cascade,
-  provider text not null check (provider in ('google','linkedin','x','tiktok')),
+  provider text not null check (provider in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')),
   verifier_ciphertext jsonb not null,
   redirect_uri text not null check (redirect_uri ~ '^https://'),
   expires_at timestamptz not null,
@@ -16,7 +16,7 @@ create index if not exists ifund_oauth_transactions_expiry
 create table if not exists public.ifund_provider_tokens (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
-  provider text not null check (provider in ('google','linkedin','x','tiktok')),
+  provider text not null check (provider in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')),
   provider_subject text not null,
   token_ciphertext jsonb not null,
   granted_scopes text[] not null default '{}',
@@ -47,7 +47,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_provider not in ('google','linkedin','x','tiktok')
+  if p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
      or p_provider_subject is null or length(p_provider_subject) = 0
      or p_token_ciphertext is null then
     raise exception 'Invalid provider connection payload';
