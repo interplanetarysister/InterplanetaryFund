@@ -12,14 +12,21 @@ const OAUTH_PROVIDERS = new Set([
   "instagram",
 ]);
 const PROVIDER_DESCRIPTIONS = {
-  google: "Connect Google identity. Drive, Calendar and other Google services require their own approved scopes.",
-  youtube: "Connect a YouTube channel. Upload capability depends on Google OAuth verification and granted YouTube scopes.",
-  linkedin: "Connect LinkedIn. Publishing requires the approved w_member_social permission.",
+  google:
+    "Connect Google identity. Drive, Calendar and other Google services require their own approved scopes.",
+  youtube:
+    "Connect a YouTube channel. Upload capability depends on Google OAuth verification and granted YouTube scopes.",
+  linkedin:
+    "Connect LinkedIn. Publishing requires the approved w_member_social permission.",
   x: "Connect X for approved read access. Publishing remains disabled until API plan entitlement is verified.",
-  tiktok: "Connect TikTok profile and approved video capabilities. Additional scopes require TikTok app approval.",
-  facebook_pages: "Connect Facebook Pages. Publishing requires approved Page permissions and a Page with content-creation access.",
-  instagram: "Connect an Instagram business account. Publishing and insights depend on approved Instagram business scopes.",
-  gofundme_pro: "GoFundMe Pro uses an organization-level API client, not per-user OAuth. API app credentials and organization approval are still required.",
+  tiktok:
+    "Connect TikTok profile and approved video capabilities. Additional scopes require TikTok app approval.",
+  facebook_pages:
+    "Connect Facebook Pages. Publishing requires approved Page permissions and a Page with content-creation access.",
+  instagram:
+    "Connect an Instagram business account. Publishing and insights depend on approved Instagram business scopes.",
+  gofundme_pro:
+    "GoFundMe Pro uses an organization-level API client, not per-user OAuth. API app credentials and organization approval are still required.",
 };
 const STATUS_LABELS = {
   connected: "Connected",
