@@ -16,6 +16,8 @@ const env = {
   OAUTH_PUBLIC_BASE_URL: base,
   GOOGLE_OAUTH_CLIENT_ID: 'google-client-id',
   GOOGLE_OAUTH_CLIENT_SECRET: 'google-client-secret',
+  META_OAUTH_CLIENT_ID: '1427538482140267',
+  META_OAUTH_CLIENT_SECRET: 'meta-app-secret-placeholder',
   TIKTOK_CLIENT_KEY: 'tiktok-client-key',
   TIKTOK_CLIENT_SECRET: 'tiktok-client-secret',
 };
@@ -29,7 +31,7 @@ function signedIn() {
   });
 }
 test('provider registry contains only providers with implemented OAuth profile verification', () => {
-  assert.deepEqual(oauthProviders, ['google', 'linkedin', 'x', 'tiktok']);
+  assert.deepEqual(oauthProviders, ['google', 'youtube', 'linkedin', 'x', 'tiktok', 'facebook_pages', 'instagram']);
 });
 test('encryption envelope round-trips without exposing plaintext', async () => {
   const envelope = await encryptOAuthValue({ access_token: 'do-not-leak' }, env);
@@ -134,7 +136,151 @@ test('TikTok web authorization uses client_key and does not send mobile-only PKC
   assert.equal(auth.searchParams.get('client_key'), env.TIKTOK_CLIENT_KEY);
   assert.equal(auth.searchParams.has('client_id'), false);
   assert.equal(auth.searchParams.has('code_challenge'), false);
+  assert.equal(auth.searchParams.get('scope'), 'user.info.basic,video.list,video.upload');
 });
+
+test('YouTube uses the Google OAuth client with explicit YouTube scopes', async () => {
+  const request = new Request(base + '/api/oauth/youtube/start', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const fetcher = async (url, options = {}) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (options.method === 'DELETE' || options.method === 'POST') return new Response(null, { status: 204 });
+    throw Error('unexpected fetch');
+  };
+  const r = await routeOAuthRequest(request, env, fetcher);
+  const auth = new URL((await r.json()).authorization_url);
+  assert.equal(auth.origin, 'https://accounts.google.com');
+  assert.equal(auth.searchParams.get('client_id'), env.GOOGLE_OAUTH_CLIENT_ID);
+  assert.ok(auth.searchParams.get('scope').includes('https://www.googleapis.com/auth/youtube.upload'));
+  assert.ok(auth.searchParams.get('scope').includes('https://www.googleapis.com/auth/youtube.readonly'));
+  assert.equal(auth.searchParams.get('redirect_uri'), base + '/api/oauth/youtube/callback');
+});
+test('Meta Facebook Pages authorization requests comma-separated Page permissions', async () => {
+  const request = new Request(base + '/api/oauth/facebook_pages/start', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const fetcher = async (url, options = {}) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (options.method === 'DELETE' || options.method === 'POST') return new Response(null, { status: 204 });
+    throw Error('unexpected fetch');
+  };
+  const r = await routeOAuthRequest(request, env, fetcher);
+  const auth = new URL((await r.json()).authorization_url);
+  assert.equal(auth.origin, 'https://www.facebook.com');
+  assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
+  assert.ok(auth.searchParams.get('scope').includes('pages_show_list,pages_read_engagement,pages_manage_posts'));
+  assert.equal(auth.searchParams.has('code_challenge'), false);
+});
+test('Instagram Login uses its dedicated OAuth endpoints and business scopes', async () => {
+  const request = new Request(base + '/api/oauth/instagram/start', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const fetcher = async (url, options = {}) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (options.method === 'DELETE' || options.method === 'POST') return new Response(null, { status: 204 });
+    throw Error('unexpected fetch');
+  };
+  const r = await routeOAuthRequest(request, env, fetcher);
+  const auth = new URL((await r.json()).authorization_url);
+  assert.equal(auth.origin, 'https://www.instagram.com');
+  assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
+  assert.ok(auth.searchParams.get('scope').includes('instagram_business_content_publish'));
+  assert.equal(auth.searchParams.get('redirect_uri'), base + '/api/oauth/instagram/callback');
+});
+test('Meta callback verifies granted Page scopes and a publishable Page before storing tokens', async () => {
+  const state = 'meta-state-token';
+  const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
+  const tx = {
+    owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext,
+    redirect_uri: base + '/api/oauth/facebook_pages/callback',
+  };
+  const fetcher = async (url, options = {}) => {
+    const target = String(url);
+    if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
+    if (target.startsWith('https://graph.facebook.com/v26.0/oauth/access_token?')) {
+      const query = new URL(target).searchParams;
+      assert.equal(query.get('code'), 'meta-code');
+      assert.equal(query.get('redirect_uri'), tx.redirect_uri);
+      return Response.json({ access_token: 'meta-user-token', token_type: 'bearer', expires_in: 3600 });
+    }
+    if (target === 'https://graph.facebook.com/v26.0/me?fields=id,name,email') {
+      return Response.json({ id: 'meta-user-1', name: 'IFund Admin' });
+    }
+    if (target === 'https://graph.facebook.com/v26.0/me/permissions') {
+      return Response.json({ data: [
+        { permission: 'pages_show_list', status: 'granted' },
+        { permission: 'pages_read_engagement', status: 'granted' },
+        { permission: 'pages_manage_posts', status: 'granted' },
+      ] });
+    }
+    if (target === 'https://graph.facebook.com/v26.0/me/accounts?fields=id,name,tasks&limit=100') {
+      return Response.json({ data: [{ id: 'page-1', name: 'IFund Page', tasks: ['CREATE_CONTENT'] }] });
+    }
+    if (target.includes('/ifund_provider_tokens?')) return Response.json([]);
+    if (target.includes('/rpc/ifund_store_provider_connection')) {
+      const body = JSON.parse(options.body);
+      assert.equal(body.p_provider, 'facebook_pages');
+      assert.equal(body.p_provider_subject, 'meta-user-1');
+      assert.deepEqual(body.p_granted_scopes.sort(), ['pages_manage_posts', 'pages_read_engagement', 'pages_show_list']);
+      return new Response(null, { status: 204 });
+    }
+    throw Error('unexpected fetch: ' + target);
+  };
+  const request = new Request(base + '/api/oauth/facebook_pages/callback?code=meta-code&state=' + state, {
+    headers: { cookie: 'ifund_oauth_facebook_pages=' + state },
+  });
+  const r = await routeOAuthRequest(request, env, fetcher);
+  assert.equal(r.status, 303);
+  assert.match(r.headers.get('location'), /oauth=connected/);
+});
+test('Instagram callback exchanges short token for long-lived token before encrypted storage', async () => {
+  const state = 'instagram-state-token';
+  const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
+  const tx = {
+    owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext,
+    redirect_uri: base + '/api/oauth/instagram/callback',
+  };
+  const fetcher = async (url, options = {}) => {
+    const target = String(url);
+    if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
+    if (target === 'https://api.instagram.com/oauth/access_token') {
+      const form = new URLSearchParams(options.body);
+      assert.equal(form.get('client_id'), env.META_OAUTH_CLIENT_ID);
+      assert.equal(form.get('grant_type'), 'authorization_code');
+      return Response.json({
+        access_token: 'instagram-short-token', token_type: 'bearer',
+        user_id: 'instagram-user-1',
+        permissions: ['instagram_business_basic', 'instagram_business_content_publish'],
+      });
+    }
+    if (target.startsWith('https://graph.instagram.com/access_token?')) {
+      const query = new URL(target).searchParams;
+      assert.equal(query.get('access_token'), 'instagram-short-token');
+      return Response.json({ access_token: 'instagram-long-token', token_type: 'bearer', expires_in: 5184000 });
+    }
+    if (target === 'https://graph.instagram.com/me?fields=user_id,username') {
+      assert.equal(options.headers.authorization, 'Bearer instagram-long-token');
+      return Response.json({ user_id: 'instagram-user-1', username: 'ifund' });
+    }
+    if (target.includes('/ifund_provider_tokens?')) return Response.json([]);
+    if (target.includes('/rpc/ifund_store_provider_connection')) {
+      const body = JSON.parse(options.body);
+      assert.equal(body.p_provider, 'instagram');
+      assert.equal(body.p_provider_subject, 'instagram-user-1');
+      assert.ok(body.p_token_ciphertext.ciphertext);
+      return new Response(null, { status: 204 });
+    }
+    throw Error('unexpected fetch: ' + target);
+  };
+  const request = new Request(base + '/api/oauth/instagram/callback?code=ig-code&state=' + state, {
+    headers: { cookie: 'ifund_oauth_instagram=' + state },
+  });
+  const r = await routeOAuthRequest(request, env, fetcher);
+  assert.equal(r.status, 303);
+  assert.match(r.headers.get('location'), /oauth=connected/);
+});
+
 test('callback consumes one-use state, verifies identity, and persists only encrypted tokens', async () => {
   const state = 'test-state-token';
   const verifier = 'test-pkce-verifier';
