@@ -61,7 +61,9 @@ async function create(env,request) {
     intent:"CAPTURE",purchase_units:[{reference_id:"ifund-hackathon",
       custom_id:input.campaign_id,description:"IFund sandbox demo (no real money)",
       amount:{currency_code:"USD",value:centsString(n)}}],
-    application_context:{brand_name:"Interplanetary Fund Demo",user_action:"PAY_NOW"}
+    application_context:{brand_name:"Interplanetary Fund Demo",user_action:"PAY_NOW",
+      return_url:"https://interplanetaryfund.com/hackathon?paypal=approved",
+      cancel_url:"https://interplanetaryfund.com/hackathon?paypal=cancelled"}
   },"ifund-demo-"+crypto.randomUUID());
   if(!safeId(order.id)||order.status!=="CREATED")throw Error("PayPal order was not confirmed");
   await db(env,"ifund_paypal_sandbox_orders","POST","",{
