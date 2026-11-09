@@ -30,8 +30,6 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
               <Gift className="w-4 h-4" />{campaign.gift_count} gifts
             </span>
           )}
-            </span>
-          )}
         {campaign.end_date && (
           <span className="flex items-center gap-1.5">
             <CalendarDays className="w-4 h-4" />Ends {format(new Date(campaign.end_date), "MMM d")}
