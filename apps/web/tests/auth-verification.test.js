@@ -48,7 +48,7 @@ test("PKCE code exchange supports explicit session callback but detects invalid 
     async exchangeCodeForSession(code){exchanged++;assert.equal(code,"one-use-code");return {data:{},error:null};},
     async getUser(){return {data:{user:{id:"verified",email_confirmed_at:"2026-10-29"}},error:null};}
   };
-  assert.equal(await completeAuthCallback(auth,params),"/onboarding");
+  assert.equal(await completeAuthCallback(auth,params),"/onboarding?returnTo=%2Fdashboard");
   assert.equal(exchanged,1);
   await assert.rejects(()=>completeAuthCallback({
     ...auth,exchangeCodeForSession:async()=>({error:new Error("expired")})
