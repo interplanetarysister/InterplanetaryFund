@@ -55,6 +55,10 @@ test('OAuth endpoints fail closed until service secrets and callback origin are 
   assert.equal(disabled.status, 503);
   const badOrigin = await routeOAuthRequest(signedIn(), { ...env, OAUTH_FRONTEND_ORIGINS: '' });
   assert.equal(badOrigin.status, 503);
+  const invalidEncryptionKey = await routeOAuthRequest(signedIn(), {
+    ...env, OAUTH_ENCRYPTION_KEY: '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!',
+  });
+  assert.equal(invalidEncryptionKey.status, 503);
 });
 
 test('OAuth connection status is available in an OAuth-enabled production environment without preview migration flag', async () => {
@@ -397,7 +401,10 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   const request = new Request(base + '/api/oauth/google/callback', {
     method: 'POST',
     headers: { authorization: 'Bearer verified.test.jwt', origin: base, 'content-type': 'application/json' },
-    body: JSON.stringify({ code: 'one-time-code', state, redirect_uri: tx.redirect_uri }),
+    body: JSON.stringify({
+      code: 'one-time-code', state, redirect_uri: tx.redirect_uri,
+      scopes: 'openid email profile admin',
+    }),
   });
   const r = await routeOAuthRequest(request, env, fetcher);
   assert.equal(r.status, 200);
@@ -620,6 +627,31 @@ test('X confidential refresh uses Basic auth without duplicate client_id', async
   const payload = await r.json();
   assert.equal(payload.refreshed, true);
   assert.equal(payload.provider, 'x');
+});
+
+test('OAuth callback rejects non-JSON bodies before consuming state', async () => {
+  let transactionCalls = 0;
+  const request = new Request(base + '/api/oauth/google/callback', {
+    method: 'POST',
+    headers: {
+      authorization: 'Bearer verified.test.jwt',
+      origin: base,
+      'content-type': 'text/plain',
+    },
+    body: JSON.stringify({
+      code: 'one-time-code',
+      state: 'state-1',
+      redirect_uri: base + '/oauth/callback/google',
+    }),
+  });
+  const r = await routeOAuthRequest(request, env, async (url) => {
+    const target = String(url);
+    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (target.includes('/ifund_oauth_transactions?')) transactionCalls += 1;
+    throw Error('unexpected provider or database request');
+  });
+  assert.equal(r.status, 400);
+  assert.equal(transactionCalls, 0);
 });
 
 test('callback rejects replayed or mismatched state without exchanging a code', async () => {
