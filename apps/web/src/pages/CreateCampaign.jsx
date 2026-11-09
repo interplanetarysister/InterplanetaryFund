@@ -34,10 +34,15 @@ export default function CreateCampaign() {
         if (error && error.name !== "AuthSessionMissingError") throw error;
         if (!data?.user) { if (active) setAccount(null); return; }
         if (active) setAccount({ email: data.user.email || "", name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || "" });
-      } catch { if (active) setDraftLoadError("We could not verify your account. Refresh and sign in again."); }
+      } catch {
+        if (active) {
+          setAccount(null);
+          if (draftId) setDraftLoadError("We could not verify your account. Sign in again to open this saved draft.");
+        }
+      }
     })();
     return () => { active = false; };
-  }, [navigate]);
+  }, [draftId, navigate]);
 
   useEffect(() => {
     if (!draftId) { setLoadingDraft(false); setDraftLoadError(""); return; }
