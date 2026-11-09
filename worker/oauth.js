@@ -60,7 +60,7 @@ const PROVIDERS = Object.freeze({
       page.tasks.some((task) => ['CREATE_CONTENT', 'MANAGE'].includes(task))),
   },
   instagram: {
-    clientId: 'META_OAUTH_CLIENT_ID', clientSecret: 'META_OAUTH_CLIENT_SECRET',
+    clientId: 'INSTAGRAM_OAUTH_CLIENT_ID', clientSecret: 'INSTAGRAM_OAUTH_CLIENT_SECRET',
     authorize: 'https://www.instagram.com/oauth/authorize',
     token: 'https://api.instagram.com/oauth/access_token',
     tokenAuth: 'body', tokenMethod: 'POST',
