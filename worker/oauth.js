@@ -74,7 +74,6 @@ const PROVIDERS = Object.freeze({
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const decoder = new TextDecoder();
 const JSON_TYPE = /^application\/json(?:\s*;|\s*$)/i;
 
 function base64url(bytes) {
