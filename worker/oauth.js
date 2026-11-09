@@ -213,24 +213,65 @@ function redirectResult(base, status, provider) {
   });
 }
 async function exchangeCode(provider, config, code, verifier, redirectUri, fetcher) {
-  const form = new URLSearchParams({ grant_type: 'authorization_code', code, redirect_uri: redirectUri });
-  if (provider === 'tiktok') {
+  const form = new URLSearchParams();
+  if (!config.noGrantType) form.set('grant_type', 'authorization_code');
+  form.set('code', code);
+  form.set('redirect_uri', redirectUri);
+
+  if (config.tokenAuth === 'tiktok') {
     form.set('client_key', config.clientId);
     form.set('client_secret', config.clientSecret);
-    // TikTok's web flow does not use PKCE; verifier is only required for mobile/desktop.
   } else {
     form.set('client_id', config.clientId);
-    if (config.pkce) form.set('code_verifier', verifier);
-    if (config.tokenAuth === 'body') form.set('client_secret', config.clientSecret);
+    if (config.tokenAuth === 'body' || config.tokenAuth === 'query') {
+      form.set('client_secret', config.clientSecret);
+    }
   }
-  const headers = { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' };
-  if (config.tokenAuth === 'basic') headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
-  const res = await fetcher(config.token, {
-    method: 'POST', headers, body: form.toString(), redirect: 'error', signal: AbortSignal.timeout(10000),
-  });
+  if (config.pkce) form.set('code_verifier', verifier);
+
+  const headers = { accept: 'application/json' };
+  let endpoint = config.token;
+  let options;
+  if (config.tokenMethod === 'GET') {
+    const target = new URL(endpoint);
+    for (const [key, value] of form) target.searchParams.set(key, value);
+    endpoint = target.toString();
+    options = { method: 'GET', headers, redirect: 'error', signal: AbortSignal.timeout(10000) };
+  } else {
+    headers['content-type'] = 'application/x-www-form-urlencoded';
+    if (config.tokenAuth === 'basic') {
+      headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
+    }
+    options = {
+      method: 'POST', headers, body: form.toString(), redirect: 'error',
+      signal: AbortSignal.timeout(10000),
+    };
+  }
+
+  const res = await fetcher(endpoint, options);
   const token = await limitedJson(res);
-  if (typeof token.access_token !== 'string' || !token.access_token || token.token_type?.toLowerCase() !== 'bearer') {
+  if (typeof token.access_token !== 'string' || !token.access_token ||
+      (!config.allowMissingTokenType && token.token_type?.toLowerCase() !== 'bearer') ||
+      (token.token_type && token.token_type.toLowerCase() !== 'bearer')) {
     throw new Error('OAuth provider did not issue a bearer token.');
+  }
+
+  // Instagram Login issues a short-lived token first. Exchange it server-side
+  // for the long-lived token before persisting it.
+  if (provider === 'instagram') {
+    const longLived = new URL('https://graph.instagram.com/access_token');
+    longLived.searchParams.set('grant_type', 'ig_exchange');
+    longLived.searchParams.set('client_secret', config.clientSecret);
+    longLived.searchParams.set('access_token', token.access_token);
+    const longResponse = await fetcher(longLived.toString(), {
+      method: 'GET', headers: { accept: 'application/json' },
+      redirect: 'error', signal: AbortSignal.timeout(10000),
+    });
+    const longToken = await limitedJson(longResponse);
+    if (typeof longToken.access_token !== 'string' || !longToken.access_token) {
+      throw new Error('Instagram did not issue a long-lived token.');
+    }
+    return { ...token, ...longToken, permissions: token.permissions, scope: token.scope };
   }
   return token;
 }
@@ -241,10 +282,46 @@ async function fetchIdentity(config, token, fetcher) {
   });
   const data = await limitedJson(res);
   const subject = config.subject(data);
-  if (typeof subject !== 'string' || !subject || subject.length > 255) {
+  if (typeof subject !== 'string' && typeof subject !== 'number') {
     throw new Error('OAuth provider identity could not be verified.');
   }
-  return { subject, profile: data };
+  if (!String(subject) || String(subject).length > 255) {
+    throw new Error('OAuth provider identity could not be verified.');
+  }
+
+  let grantedScopes = [];
+  if (config.permissions) {
+    const permissionResponse = await fetcher(config.permissions, {
+      headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
+      redirect: 'error', signal: AbortSignal.timeout(10000),
+    });
+    const permissionData = await limitedJson(permissionResponse);
+    grantedScopes = (Array.isArray(permissionData.data) ? permissionData.data : [])
+      .filter((item) => item?.status === 'granted')
+      .map((item) => String(item.permission || ''))
+      .filter(Boolean);
+    if (config.requiredScopes?.some((scope) => !grantedScopes.includes(scope))) {
+      throw new Error('Required provider permissions were not granted.');
+    }
+  }
+
+  if (config.capability) {
+    const capabilityResponse = await fetcher(config.capability, {
+      headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
+      redirect: 'error', signal: AbortSignal.timeout(10000),
+    });
+    const capabilityData = await limitedJson(capabilityResponse);
+    if (typeof config.verifyCapability === 'function' && !config.verifyCapability(capabilityData)) {
+      throw new Error('The required provider account capability could not be verified.');
+    }
+  }
+
+  if (!grantedScopes.length) {
+    const scopeValue = token.scope || token.scopes || token.permissions;
+    if (Array.isArray(scopeValue)) grantedScopes = scopeValue.map(String);
+    else if (typeof scopeValue === 'string') grantedScopes = scopeValue.split(/[ ,]+/).filter(Boolean);
+  }
+  return { subject: String(subject), profile: data, grantedScopes };
 }
 
 export async function routeOAuthRequest(request, env, fetcher = fetch) {
@@ -285,7 +362,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       const authorize = new URL(config.authorize);
       authorize.search = new URLSearchParams({
         response_type: 'code', client_id: config.clientId, redirect_uri: redirectUri,
-        scope: config.scopes.join(' '), state,
+        scope: config.scopes.join(config.scopeDelimiter || ' '), state,
       }).toString();
       if (config.pkce) {
         authorize.searchParams.set('code_challenge', challenge);
@@ -351,12 +428,12 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       access_token: token.access_token,
       refresh_token: refreshToken,
       token_type: 'Bearer',
-      scope: typeof token.scope === 'string' ? token.scope : config.scopes.join(' '),
+      scope: typeof token.scope === 'string' ? token.scope : identity.grantedScopes.join(' '),
       expires_at: Number.isFinite(Number(token.expires_in)) ? new Date(Date.now() + Number(token.expires_in) * 1000).toISOString() : null,
       refresh_expires_at: Number.isFinite(Number(token.refresh_expires_in)) ? new Date(Date.now() + Number(token.refresh_expires_in) * 1000).toISOString() : previousTokens?.refresh_expires_at || null,
     };
     const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-    const scopes = typeof token.scope === 'string' ? token.scope.split(/[ ,]+/).filter(Boolean) : config.scopes;
+    const scopes = identity.grantedScopes;
     await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
