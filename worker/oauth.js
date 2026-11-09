@@ -119,8 +119,26 @@ async function limitedJson(res) {
   if (!res.ok) throw new Error('OAuth provider request failed.');
   const type = res.headers.get('content-type') || '';
   if (!JSON_TYPE.test(type)) throw new Error('OAuth provider returned an invalid response.');
-  const body = await res.text();
-  if (body.length > 32768) throw new Error('OAuth provider response was too large.');
+  const declaredLength = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declaredLength) && declaredLength > 32768) throw new Error('OAuth provider response was too large.');
+  if (!res.body) throw new Error('OAuth provider returned an empty response.');
+  const reader = res.body.getReader();
+  const chunks = [];
+  let length = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    length += value.byteLength;
+    if (length > 32768) {
+      await reader.cancel();
+      throw new Error('OAuth provider response was too large.');
+    }
+    chunks.push(value);
+  }
+  const merged = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { merged.set(chunk, offset); offset += chunk.byteLength; }
+  const body = decoder.decode(merged);
   const data = JSON.parse(body);
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('OAuth provider returned an invalid response.');
   return data;
@@ -128,6 +146,7 @@ async function limitedJson(res) {
 async function supabaseRequest(env, path, options = {}, fetcher = fetch) {
   const res = await fetcher(env.SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
+    signal: options.signal || AbortSignal.timeout(10000),
     headers: { ...serviceHeaders(env), ...(options.headers || {}) },
     redirect: 'error',
   });
@@ -157,7 +176,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
   const headers = { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' };
   if (config.tokenAuth === 'basic') headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
   const res = await fetcher(config.token, {
-    method: 'POST', headers, body: form.toString(), redirect: 'error',
+    method: 'POST', headers, body: form.toString(), redirect: 'error', signal: AbortSignal.timeout(10000),
   });
   const token = await limitedJson(res);
   if (typeof token.access_token !== 'string' || !token.access_token || token.token_type?.toLowerCase() !== 'bearer') {
@@ -168,7 +187,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
 async function fetchIdentity(config, token, fetcher) {
   const res = await fetcher(config.profile, {
     headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-    redirect: 'error',
+    redirect: 'error', signal: AbortSignal.timeout(10000),
   });
   const data = await limitedJson(res);
   const subject = config.subject(data);
