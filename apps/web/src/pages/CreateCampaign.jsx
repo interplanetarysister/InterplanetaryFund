@@ -80,6 +80,13 @@ export default function CreateCampaign() {
         navigate("/login?returnTo=" + encodeURIComponent("/create"), { replace: true });
         return;
       }
+      const { data: profile, error: profileError } = await client.from("ifund_profiles")
+        .select("id,display_name,handle").eq("id", authData.user.id).maybeSingle();
+      if (profileError) throw profileError;
+      if (!profile || (!profile.display_name && !profile.handle)) {
+        navigate("/onboarding?returnTo=" + encodeURIComponent("/create"), { replace: true });
+        return;
+      }
       const outcome = await persistCampaignContent(client, form, { id: draftId || null, publish });
       clearGuestCampaignDraft();
       if (publish) navigate("/campaign/" + encodeURIComponent(outcome.id), { replace: true });
