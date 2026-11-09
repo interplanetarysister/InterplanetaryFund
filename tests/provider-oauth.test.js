@@ -224,7 +224,7 @@ test('Meta Facebook Pages authorization requests comma-separated Page permission
   const r = await routeOAuthRequest(request, env, fetcher);
   const auth = new URL((await r.json()).authorization_url);
   assert.equal(auth.origin, 'https://www.facebook.com');
-  assert.equal(auth.searchParams.get('client_id'), env.INSTAGRAM_OAUTH_CLIENT_ID);
+  assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
   assert.ok(auth.searchParams.get('scope').includes('pages_show_list,pages_read_engagement,pages_manage_posts'));
   assert.equal(auth.searchParams.has('code_challenge'), false);
 });
@@ -240,7 +240,7 @@ test('Instagram Login uses its dedicated OAuth endpoints and business scopes', a
   const r = await routeOAuthRequest(request, env, fetcher);
   const auth = new URL((await r.json()).authorization_url);
   assert.equal(auth.origin, 'https://www.instagram.com');
-  assert.equal(auth.searchParams.get('client_id'), env.META_OAUTH_CLIENT_ID);
+  assert.equal(auth.searchParams.get('client_id'), env.INSTAGRAM_OAUTH_CLIENT_ID);
   assert.ok(auth.searchParams.get('scope').includes('instagram_business_content_publish'));
   assert.equal(auth.searchParams.get('redirect_uri'), base + '/oauth/callback/instagram');
 });
@@ -320,10 +320,10 @@ test('Instagram callback exchanges short token for long-lived token before encry
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target === 'https://api.instagram.com/oauth/access_token') {
       const form = new URLSearchParams(options.body);
-      assert.equal(form.get('client_id'), env.META_OAUTH_CLIENT_ID);
+      assert.equal(form.get('client_id'), env.INSTAGRAM_OAUTH_CLIENT_ID);
       assert.equal(form.get('grant_type'), 'authorization_code');
       return Response.json({
-        access_token: 'instagram-short-token', token_type: 'bearer',
+        access_token: 'instagram-short-token',
         user_id: 'instagram-user-1',
         permissions: ['instagram_business_basic', 'instagram_business_content_publish'],
       });
