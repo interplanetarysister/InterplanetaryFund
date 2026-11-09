@@ -61,5 +61,6 @@ test("donation support constraint uses cent rounding and preserves legacy floor 
   const migration = read("../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");
   assert.match(migration, /round\(gift_cents::numeric \/ 10\)::bigint/);
   assert.match(migration, /floor\(gift_cents::numeric \/ 10\)::bigint/);
-  assert.match(migration, /pg_get_constraintdef\(oid\)/i);\n  assert.match(migration, /add constraint ifund_donations_support_matches_gift/i);
+  assert.match(migration, /pg_get_constraintdef\(oid\)/i);
+  assert.match(migration, /add constraint ifund_donations_support_matches_gift/i);
 });
