@@ -48,7 +48,7 @@ export default function HackathonDemo() {
   async function complete() {
     if(!approved||!token||working)return;
     setWorking(true);setMessage("");
-    try {const result=await post("capture",{order_id:token});setReceipt(result)}
+    try {\n      const result=await post("capture",{order_id:token});\n      if(result.mode!=="sandbox"||result.status!=="captured"||!result.capture_id||!result.order_id)\n        throw Error("PayPal capture receipt was incomplete; payment is not confirmed");\n      setReceipt(result);\n      // Remove the one-time approval token from browser history after confirmed capture.\n      const clean=new URL(window.location.href);\n      clean.searchParams.delete("token");\n      clean.searchParams.delete("PayerID");\n      clean.searchParams.delete("paypal");\n      window.history.replaceState(window.history.state,"",clean.pathname+clean.search+clean.hash);\n    }
     catch(e){setMessage(e.message)}
     finally{setWorking(false)}
   }
@@ -69,7 +69,7 @@ export default function HackathonDemo() {
       {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
         !ready.enabled ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is not configured yet. The required server-side PayPal credentials and feature gate must be verified before payment testing can begin.</p> : null}
-      {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
+      {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}\n      {!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
       <label className="block text-sm font-medium">Demo campaign
         <select aria-label="Demo campaign" value={campaignId} onChange={e=>setCampaignId(e.target.value)}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
