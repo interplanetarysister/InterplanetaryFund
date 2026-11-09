@@ -68,3 +68,12 @@ Remaining integration blockers are recorded in `BLOCKERS.md` below and in #137. 
 ## Provider OAuth foundation — 2026-11-09
 
 A focused integration branch `migration/provider-oauth-foundation-20261109` now documents provider-specific registration, OAuth security, token storage, Cloudflare secret placement, test gates and owner/provider blockers in [PROVIDER_OAUTH_FOUNDATION.md](../integrations/PROVIDER_OAUTH_FOUNDATION.md). Direct native Cloudflare/Supabase inspection found no configured secrets on the inspected IFund Workers and no provider OAuth Edge Function in either active project's current function inventory. The managed-connections preview worker still reports provider execution disabled. No provider credentials were retrieved, created, copied or deployed. No TinyFish automation was used and no metered credits were consumed. This is documentation groundwork, not a verified OAuth implementation or release.
+
+
+## Provider OAuth follow-up — 2026-11-09
+
+- Meta registration evidence found in the connected IFund mailbox: official Meta developer onboarding email for the existing **iFund** app (App ID `1427538482140267`, Business ID `1881031393302767`). This is an app registration identifier only; the email does not contain the client secret, redirect URI, permissions approval, or review status.
+- Targeted mailbox searches did not locate LinkedIn, X, TikTok, Google OAuth client credentials, or GoFundMe Pro developer approval. No secret values were found or copied.
+- The OAuth foundation branch remains documentation-only. The updated commit `19b96cc491a1e52dcd2ef196997307bfb065ec55` passed GitHub Actions run [42611128356](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/42611128356): real npm install, lockfile resolution, unit tests, Vite production build, and formatting check all passed. This does not test OAuth runtime or deploy either app.
+- Base44 direct file/shell access was rejected by the connected workspace because its sandbox bridge requires the Builder plan. The alternative Base44 AI-builder edit consumes workspace credits, so it was not invoked without explicit approval. No Base44 app files or deployment were changed.
+- Bulk actions are not yet implemented; the Connections page currently has only static provider cards and the independent API has read-only connection status. Confirm whether bulk actions should apply to multi-provider connect/disconnect on Connections or to another part of the app before wiring state-changing controls.
