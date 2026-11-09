@@ -1,25 +1,15 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useCallback,useEffect,useState } from "react";
+import { Link,useParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
-export default function Connections() {
- const [rows,setRows]=useState([]);
- const [status,setStatus]=useState("loading");
- useEffect(()=>{let live=true;(async()=>{
-  try {
-   const client=authClient();
-   const {data:{user}}=await client.auth.getUser();
-   if(!user){if(live)setStatus("sign-in");return;}
-   const {data,error}=await client.from("ifund_connections").select("id,provider,status,verified_at").eq("owner_id",user.id);
-   if(error)throw error;
-   if(live){setRows(data||[]);setStatus("ready");}
-  } catch {if(live)setStatus("error");}
- })();return()=>{live=false};},[]);
- return <main className="mx-auto max-w-3xl p-6">
-  <h1 className="text-3xl font-bold">Connections</h1>
-  <p className="my-4">Review your independently verified platform connections. New provider connections are not enabled until consent and provider checks are complete.</p>
-  {status==="loading"&&<p>Loading connections…</p>}
-  {status==="sign-in"&&<Link to="/login">Sign in to view connections</Link>}
-  {status==="error"&&<p role="alert">Connection records are unavailable.</p>}
-  {status==="ready"&&(rows.length?<ul>{rows.map(x=><li key={x.id} className="my-3 rounded-xl border p-4">{x.provider}: {x.status === "connected" && !x.verified_at ? "pending verification" : x.status}</li>)}</ul>:<p>No connections recorded.</p>)}
- </main>;
-}
+const PROVIDERS=[["google","Google"],["youtube","YouTube"],["linkedin","LinkedIn"],["x","X"],["tiktok","TikTok"],["facebook_pages","Facebook Pages"],["instagram","Instagram"]];
+function apiBase(){const value=import.meta.env.VITE_IFUND_OAUTH_API_BASE_URL;if(!value)throw Error("Provider connections are not configured.");const u=new URL(value);if(u.protocol!=="https:"||u.username||u.password||u.search||u.hash)throw Error("Provider connections are not configured.");return u.origin;}
+async function oauthFetch(path,body){const c=authClient();const {data:{session}}=await c.auth.getSession();if(!session?.access_token)throw Error("Sign in to manage platform connections.");const r=await fetch(apiBase()+path,{method:body===undefined?"GET":"POST",headers:{Authorization:"Bearer "+session.access_token,"Content-Type":"application/json"},...(body===undefined?{}:{body:JSON.stringify(body)}),credentials:"omit",redirect:"error"});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Connection request failed.");return d;}
+export default function Connections(){const [providers,setProviders]=useState({});const [rows,setRows]=useState([]);const [busy,setBusy]=useState("");const [error,setError]=useState("");const [loading,setLoading]=useState(true);
+const load=useCallback(async()=>{setLoading(true);setError("");try{const c=authClient();const {data:{user}}=await c.auth.getUser();if(!user)throw Error("Sign in to manage platform connections.");const [ready,connections]=await Promise.all([oauthFetch("/api/oauth/status"),c.from("ifund_connections").select("id,provider,status,verified_at").eq("owner_id",user.id)]);if(connections.error)throw connections.error;setProviders(ready.providers||{});setRows(connections.data||[]);}catch(e){setError(e.message||"Connections could not be loaded.");}finally{setLoading(false);}},[]);
+useEffect(()=>{load();},[load]);
+const connect=async(provider)=>{setBusy(provider);setError("");try{const d=await oauthFetch("/api/oauth/"+provider+"/start",{});const u=new URL(d.authorization_url);if(u.protocol!=="https:"||!["accounts.google.com","www.linkedin.com","x.com","www.tiktok.com","www.facebook.com","www.instagram.com"].includes(u.hostname))throw Error("Invalid provider authorization destination.");window.location.assign(u.toString());}catch(e){setError(e.message||"Could not start authorization.");setBusy("");}};
+return <main className="mx-auto max-w-4xl p-6"><div className="mb-6 flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-3xl font-bold">Platform connections</h1><p className="mt-2 text-muted-foreground">Authorize the platforms you want IFund to connect to. You control each permission grant.</p></div><button type="button" onClick={load} disabled={loading||!!busy} className="rounded-lg border px-4 py-2 disabled:opacity-50">Refresh</button></div>
+{error&&<p role="alert" className="mb-4 rounded-lg border border-red-500/50 p-3 text-red-700">{error}</p>}
+{loading?<p role="status">Loading available connections…</p>:<div className="grid gap-3 sm:grid-cols-2">{PROVIDERS.map(([provider,label])=>{const connected=rows.some(x=>x.provider===provider&&x.status==="connected"&&x.verified_at);const enabled=providers[provider]===true;return <section key={provider} className="rounded-xl border p-4"><h2 className="font-semibold">{label}</h2><p className="mt-1 text-sm text-muted-foreground">{connected?"Connected and verified":enabled?"Not connected":"Not yet configured"}</p><button type="button" onClick={()=>connect(provider)} disabled={!enabled||!!busy||connected} className="mt-4 rounded-lg border px-4 py-2 disabled:cursor-not-allowed disabled:opacity-50">{busy===provider?"Connecting…":connected?"Connected":"Connect "+label}</button></section>;})}</div>}
+<p className="mt-6 text-sm text-muted-foreground">Provider access is granted on the provider’s own consent screen. Disconnect controls will be enabled after each provider’s revocation endpoint is verified.</p><Link className="mt-4 inline-block underline" to="/dashboard">Return to dashboard</Link></main>;}
+export function ProviderOAuthCallback(){const {provider}=useParams();const [status,setStatus]=useState("Verifying provider authorization…");const [error,setError]=useState("");useEffect(()=>{let active=true;const current=new URL(window.location.href);const code=current.searchParams.get("code")||"";const state=current.searchParams.get("state")||"";const denied=current.searchParams.get("error");const redirect_uri=window.location.origin+"/oauth/callback/"+provider;window.history.replaceState({},"","/oauth/callback/"+encodeURIComponent(provider));(async()=>{try{if(!PROVIDERS.some(([key])=>key===provider))throw Error("Unsupported provider callback.");if(denied)throw Error("Provider authorization was declined or cancelled.");if(!code||!state)throw Error("Provider response was incomplete.");await oauthFetch("/api/oauth/"+provider+"/callback",{code,state,redirect_uri});if(active)setStatus("Platform connected and verified.");}catch(e){if(active)setError(e.message||"Provider authorization could not be verified.");}})();return()=>{active=false;};},[provider]);return <main className="ifund-public min-h-dvh p-8 text-white"><section className="mx-auto max-w-lg space-y-5"><h1 className="text-2xl font-bold">Platform authorization</h1>{error?<p role="alert">{error}</p>:<p role="status">{status}</p>}<Link className="underline" to="/connections">Return to platform connections</Link></section></main>;}
