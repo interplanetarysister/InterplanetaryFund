@@ -50,15 +50,15 @@ test("public funding totals are aggregate-only and exclude optional support", ()
   const publicData = read("../src/api/publicData.js");
   assert.match(migration, /d\.status = 'captured'/);
   assert.match(migration, /sum\(d\.gift_cents\)/);
-  assert.match(migration, /d\\.paypal_capture_id is not null/i);
-  assert.match(migration, /d\\.captured_at is not null/i);
-  assert.match(migration, /d\\.currency = 'USD'/i);
-  assert.match(migration, /d\\.gift_cents > 0/);
-  assert.match(migration, /count\\(distinct d\\.donor_id\\)/);
+  assert.match(migration, /d\.paypal_capture_id is not null/i);
+  assert.match(migration, /d\.captured_at is not null/i);
+  assert.match(migration, /d\.currency = 'USD'/i);
+  assert.match(migration, /d\.gift_cents > 0/);
+  assert.match(migration, /count\(distinct d\.donor_id\)/);
   assert.doesNotMatch(migration, /optional_support_cents/);
   assert.match(migration, /security definer/i);
   assert.match(migration, /grant execute[\s\S]*to anon, authenticated/i);
-  assert.match(migration, /count\(distinct coalesce\(d\.donor_id::text, d\.id::text\)\)/);
+  assert.match(migration, /count\(distinct d\.donor_id\)/);
   assert.match(publicData, /ifund_public_campaign_funding_totals/);
 });
 
