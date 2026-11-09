@@ -4,7 +4,7 @@ import AuthLayout from "@/components/AuthLayout";
 import { UserPlus, LogIn, Mail } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { authCallbackUrl, rememberAuthReturnTo } from "@/lib/authCallback";
+import { authCallbackUrl, rememberAuthReturnTo, clearRememberedAuthReturnTo } from "@/lib/authCallback";
 import { landingAfterLogin } from "@/lib/postLogin";
 import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
@@ -60,6 +60,7 @@ export default function AuthPage({ mode="login" }){
           const {error:localSignoutFailure}=await auth.signOut({scope:"local"});
           if(localSignoutFailure)throw new Error("Your password was updated, but this session could not be cleared. Sign out manually before leaving this device.");
         }
+        clearRememberedAuthReturnTo();
         setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");
         navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
       }else if(isRegister){
@@ -72,6 +73,7 @@ export default function AuthPage({ mode="login" }){
         });
         if(failure)throw failure;
         if(data?.session){
+          clearRememberedAuthReturnTo();
           const {data:verified,error:verifyError}=await auth.getUser();
           if(verifyError || !verified?.user?.id)throw new Error("Your account session could not be verified. Try signing in again.");
           if(!isVerifiedEmailUser(verified.user)){
@@ -80,7 +82,8 @@ export default function AuthPage({ mode="login" }){
             if(signoutError)throw new Error("Your email is not confirmed and the temporary session could not be cleared. Protected account features remain blocked; request a new confirmation email.");
             throw new Error("Your email confirmation is not complete. Check the newest verification email.");
           }
-          navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
+          clearRememberedAuthReturnTo();
+      navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
         }else{
           setNeedsConfirmation(true);
           setMessage("Check your inbox and spam folder for the newest confirmation email. Open the link to finish signing up before signing in.");
@@ -108,6 +111,7 @@ export default function AuthPage({ mode="login" }){
           throw new Error("Your email has not been confirmed. Open the newest confirmation email or request another one below.");
         }
         const destination=await landingAfterLogin(authClient(),afterLogin);
+        clearRememberedAuthReturnTo();
         navigate(destination,{replace:true});
       }
     }catch(cause){
