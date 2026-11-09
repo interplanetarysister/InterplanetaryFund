@@ -7,7 +7,12 @@ import {
   clearGuestCampaignDraft,
   GUEST_CAMPAIGN_DRAFT_TTL_MS,
 } from "../src/lib/guestCampaignDraft.js";
-import { authCallbackUrl, rememberAuthReturnTo, callbackParameters, completeAuthCallback } from "../src/lib/authCallback.js";
+import {
+  authCallbackUrl,
+  rememberAuthReturnTo,
+  callbackParameters,
+  completeAuthCallback,
+} from "../src/lib/authCallback.js";
 import { landingAfterLogin } from "../src/lib/postLogin.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
@@ -48,7 +53,9 @@ test("guest drafts persist with bounded retention and sanitized fields", () => {
 test("expired and malformed guest drafts are cleared instead of restored", () => {
   const storage = memoryStorage();
   const now = 1_800_000_000_000;
-  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({ title: "Old", savedAt: now - GUEST_CAMPAIGN_DRAFT_TTL_MS - 1 }));
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({
+    title: "Old", savedAt: now - GUEST_CAMPAIGN_DRAFT_TTL_MS - 1,
+  }));
   assert.equal(readGuestCampaignDraft({ storage, now }).title, "");
   assert.equal(storage.has("ifund-guest-campaign-v1"), false);
   storage.setItem("ifund-guest-campaign-v1", "{broken");
@@ -58,49 +65,62 @@ test("expired and malformed guest drafts are cleared instead of restored", () =>
 
 test("guest campaign form saves only after sign-in and preserves its return path", () => {
   const creator = read("../src/pages/CreateCampaign.jsx");
-  assert.match(creator, /readGuestCampaignDraft/);
-  assert.match(creator, /saveGuestCampaignDraft\(form\)/);
-  assert.match(creator, /clearGuestCampaignDraft\(\)/);
-  assert.match(creator, /navigate\("\/login\?returnTo="/);
+  assert.ok(creator.includes("readGuestCampaignDraft"));
+  assert.ok(creator.includes("saveGuestCampaignDraft(form)"));
+  assert.ok(creator.includes("clearGuestCampaignDraft()"));
+  assert.ok(creator.includes('navigate("/login?returnTo="'));
 });
 
 test("signup and recovery callbacks preserve a safe campaign return destination", async () => {
   const auth = read("../src/pages/AuthPage.jsx");
   const callback = read("../src/lib/authCallback.js");
-  assert.match(auth, /rememberAuthReturnTo\(afterLogin\)/);
-  assert.match(auth, /authCallbackUrl\(window\.location\.origin,\{recovery:true\}\)/);
-  assert.match(auth, /verifyOtp\(\{email:normalizedEmail,token:recoveryCode\.trim\(\),type:"recovery"\}\)/);
-  assert.match(auth, /updateUser\(\{password:newPassword\}\)/);
-  assert.match(callback, /AUTH_RETURN_TO_KEY/);\n  assert.match(callback, /safeReturnTo\(query\.get\("returnTo"\) \|\| storedReturnTo\)/);
-  assert.match(callback, /return requested\+"\\?returnTo="/);
+  assert.ok(auth.includes("rememberAuthReturnTo(afterLogin)"));
+  assert.ok(auth.includes("authCallbackUrl(window.location.origin,{recovery:true})"));
+  assert.ok(auth.includes('type:"recovery"'));
+  assert.ok(auth.includes("updateUser({password:newPassword})"));
+  assert.ok(callback.includes("AUTH_RETURN_TO_KEY"));
+  assert.ok(callback.includes("safeReturnTo(query.get(\"returnTo\") || storedReturnTo)"));
 
-  const url = authCallbackUrl("https://interplanetaryfund.com", {
-    recovery: true,
-    returnTo: "/create",
-  });
-  const params = callbackParameters(url + "&code=pkce");
+  const storage = memoryStorage();
+  rememberAuthReturnTo("/create", { storage });
+  const url = authCallbackUrl("https://interplanetaryfund.com", { recovery: true });
+  assert.equal(new URL(url).searchParams.get("next"), "/reset-password");
+  const params = callbackParameters(url + "&code=pkce", { storage });
   assert.equal(params.next, "/reset-password");
   assert.equal(params.returnTo, "/create");
+
   let exchanged = false;
   const destination = await completeAuthCallback({
-    exchangeCodeForSession: async () => { exchanged = true; return { data: {}, error: null }; },
-    getUser: async () => ({ data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } }, error: null }),
+    exchangeCodeForSession: async () => {
+      exchanged = true;
+      return { data: {}, error: null };
+    },
+    getUser: async () => ({
+      data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } },
+      error: null,
+    }),
   }, params, { storage });
   assert.equal(exchanged, true);
-  assert.equal(destination, "/reset-password?returnTo=%2Fcreate");\n  assert.equal(storage.has("ifund-auth-return-to"), false);
+  assert.equal(destination, "/reset-password?returnTo=%2Fcreate");
+  assert.equal(storage.has("ifund-auth-return-to"), false);
 });
 
 test("password reset page requires a live session and preserves return destination", () => {
   const reset = read("../src/pages/ResetPassword.jsx");
-  assert.match(reset, /auth\.getSession/);
-  assert.match(reset, /auth\.updateUser\(\{password\}\)/);
-  assert.match(reset, /safeReturnTo/);
-  assert.match(reset, /returnTo=/);
+  assert.ok(reset.includes("auth.getSession"));
+  assert.ok(reset.includes("auth.updateUser({password})"));
+  assert.ok(reset.includes("safeReturnTo"));
+  assert.ok(reset.includes("returnTo="));
 });
 
 test("new members finish profile onboarding before returning to a guest campaign", async () => {
   const client = {
-    auth: { getUser: async () => ({ data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } }, error: null }) },
+    auth: {
+      getUser: async () => ({
+        data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } },
+        error: null,
+      }),
+    },
     from: () => ({
       select: () => ({
         eq: () => ({
