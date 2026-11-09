@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fixture, as } from "./fixtures/storyDatabase.js";
 import { allServicePositions } from "../worker/services/catalog.js";
+import { storyRoute } from "../worker/agents/story.js";
+import { serviceGateway } from "../worker/services/gateway.js";
 
 const uid = "11111111-1111-4111-8111-111111111111",
   other = "22222222-2222-4222-8222-222222222222";
@@ -19,25 +21,7 @@ const result = {
   image_prompt: "Mission-specific image",
 };
 async function setup({ enabled = true, tested = true } = {}) {
-  const db = await fixture();
-  await db.exec(
-    readFileSync(
-      new URL(
-        "../supabase/migrations/20261104055345_ifund_collective_workforce.sql",
-        import.meta.url,
-      ),
-      "utf8",
-    ),
-  );
-  await db.exec(
-    readFileSync(
-      new URL(
-        "../supabase/migrations/20261104062233_ifund_preview_workforce_isolation.sql",
-        import.meta.url,
-      ),
-      "utf8",
-    ),
-  );
+  const db = await fixture({ workforce: true });
   assert.equal(
     (await db.query("select count(*) n from ifund_ops.service_positions"))
       .rows[0].n,
@@ -525,6 +509,306 @@ test("untagged historical jobs are production and cannot be replayed by a previe
     );
     await actor(db, uid, previewSecret);
     assert.equal((await begin(db)).state, "conflict");
+  } finally {
+    await db.close();
+  }
+});
+
+async function isolatedPreview(db) {
+  const previewSecret = "f".repeat(64);
+  await db.exec(
+    "reset role; update ifund_story_runtime.control set enabled=false",
+  );
+  await db.query(
+    "update ifund_ops.workforce_control set enabled=false,preview_enabled=true,preview_worker_secret_sha256=encode(sha256(convert_to($1,'UTF8')),'hex')",
+    [previewSecret],
+  );
+  await actor(db, uid, previewSecret);
+  return previewSecret;
+}
+
+test("isolated preview can read owned context while both production writing gates remain off", async () => {
+  const db = await setup();
+  try {
+    const previewSecret = await isolatedPreview(db);
+    assert.ok(
+      (await db.query("select public.ifund_story_context(null) r")).rows[0].r,
+    );
+    for (const key of [null, secret, "b".repeat(64)]) {
+      await actor(db, uid, key);
+      await assert.rejects(
+        db.query("select public.ifund_story_context(null)"),
+        /Story preview disabled/,
+      );
+    }
+    await actor(db, uid, previewSecret);
+    await assert.rejects(
+      db.query("select public.ifund_story_context($1)", [other]),
+      /Owned campaign required/,
+    );
+    await db.exec("reset role");
+    assert.deepEqual(
+      (
+        await db.query(
+          "select (select enabled from ifund_story_runtime.control) story,enabled production,preview_enabled preview from ifund_ops.workforce_control",
+        )
+      ).rows[0],
+      { story: false, production: false, preview: true },
+    );
+    for (const role of ["anon", "authenticated"]) {
+      assert.equal(
+        (
+          await db.query(
+            "select has_function_privilege($1,'ifund_workforce_runtime.story_preview_enabled()','EXECUTE') allowed",
+            [role],
+          )
+        ).rows[0].allowed,
+        false,
+      );
+    }
+  } finally {
+    await db.close();
+  }
+});
+
+test("preview proof never substitutes for confirmed identity, active account, agreement or entitlement", async () => {
+  const db = await setup();
+  try {
+    const previewSecret = await isolatedPreview(db);
+    const cases = [
+      [
+        "update auth.users set email_confirmed_at=null where id=$1",
+        "update auth.users set email_confirmed_at=now() where id=$1",
+      ],
+      [
+        "update public.ifund_profiles set account_status='suspended' where id=$1",
+        "update public.ifund_profiles set account_status='active' where id=$1",
+      ],
+      [
+        "update public.ifund_profiles set account_deletion_pending=true where id=$1",
+        "update public.ifund_profiles set account_deletion_pending=false where id=$1",
+      ],
+      [
+        "update public.ifund_legal_acceptances set explicit_consent=false where owner_id=$1",
+        "update public.ifund_legal_acceptances set explicit_consent=true where owner_id=$1",
+      ],
+      [
+        "update ifund_access.member_entitlements set status='expired' where owner_id=$1",
+        "update ifund_access.member_entitlements set status='active' where owner_id=$1",
+      ],
+    ];
+    for (const [disable, restore] of cases) {
+      await db.exec("reset role");
+      await db.query(disable, [uid]);
+      await actor(db, uid, previewSecret);
+      await assert.rejects(
+        db.query("select public.ifund_story_context(null)"),
+        /Member access required|Eligible AI plan required/,
+      );
+      await db.exec("reset role");
+      await db.query(restore, [uid]);
+    }
+    await actor(db, null, previewSecret);
+    await assert.rejects(
+      db.query("select public.ifund_story_context(null)"),
+      /Story preview disabled|Member access required/,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test("expired or disabled preview access stops context and dispatch without enabling a legacy fallback", async () => {
+  const db = await setup();
+  try {
+    const previewSecret = await isolatedPreview(db);
+    for (const disable of [
+      "update ifund_ops.workforce_control set preview_enabled=false",
+      "update ifund_ops.workforce_control set free_plan_verified_until=now()-interval '1 second'",
+      "update ifund_ops.workforce_control set free_plan_evidence=''",
+    ]) {
+      await db.exec("reset role");
+      await db.exec(disable);
+      await actor(db, uid, previewSecret);
+      await assert.rejects(
+        db.query("select public.ifund_story_context(null)"),
+        /Story preview disabled/,
+      );
+      await assert.rejects(begin(db), /Story preview disabled/);
+      // Owner erasure/recovery is deliberately independent of native eligibility.
+      assert.deepEqual(
+        (await db.query("select public.ifund_workforce_queued() r")).rows[0].r,
+        [],
+      );
+      await db.exec(
+        "reset role; update ifund_ops.workforce_control set preview_enabled=true,free_plan_verified_until=now()+interval '1 day',free_plan_evidence='verified test account'",
+      );
+    }
+    assert.equal(
+      (await db.query("select count(*) n from ifund_ops.workforce_assignments"))
+        .rows[0].n,
+      0,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test("permanent gateway carries preview proof through real database context, assignment and receipt replay", async () => {
+  const db = await setup();
+  try {
+    const previewSecret = await isolatedPreview(db);
+    let inference = 0;
+    const apiFetch = async (url, init) => {
+      assert.equal(init.headers.Authorization, "Bearer fixture.owner.jwt");
+      if (url.endsWith("/auth/v1/user"))
+        return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
+      const name = url.split("/").pop();
+      const payload = JSON.parse(init.body);
+      const args = {
+        ifund_story_context: [payload.p_campaign_id],
+        ifund_workforce_snapshot: [],
+        ifund_workforce_begin: [
+          payload.p_request_id,
+          payload.p_input_hash,
+          payload.p_campaign_id,
+          payload.p_implementation_id,
+          payload.p_contract,
+          payload.p_prompt_bytes,
+          payload.p_task,
+        ],
+        ifund_workforce_started: [payload.p_request_id, payload.p_lease],
+        ifund_workforce_finish: [
+          payload.p_request_id,
+          payload.p_lease,
+          payload.p_result,
+          payload.p_outcome,
+        ],
+      }[name];
+      assert.ok(args, "Known fixture RPC only");
+      await actor(db, uid, init.headers["x-ifund-workforce-key"] || null);
+      try {
+        const row = await db.query(
+          `select public.${name}(${args.map((_, i) => "$" + (i + 1)).join(",")}) r`,
+          args,
+        );
+        return Response.json(row.rows[0].r);
+      } catch (error) {
+        return Response.json({ message: error.message }, { status: 403 });
+      }
+    };
+    const workerEnv = {
+      SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
+      SUPABASE_PUBLISHABLE_KEY: "fixture-public-key",
+      IFUND_STORY_ENABLED: "enabled",
+      IFUND_STORY_AI_ENABLED: "enabled",
+      IFUND_WORKFORCE_ENABLED: "enabled",
+      IFUND_WORKFORCE_ENVIRONMENT: "preview",
+      IFUND_WORKFORCE_EXECUTOR_KEY: previewSecret,
+      AI: {
+        run: async (_model, input) => {
+          inference++;
+          assert.ok(!JSON.stringify(input).includes(previewSecret));
+          assert.ok(!JSON.stringify(input).includes("fixture.owner.jwt"));
+          return { response: result };
+        },
+      },
+    };
+    const request = () =>
+      new Request("https://ifund.test/api/services/story_agent/drafts", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer fixture.owner.jwt",
+          "content-type": "application/json",
+          "x-ifund-workforce-key": "untrusted-client-value",
+        },
+        body: JSON.stringify({ ...task, request_id: rid }),
+      });
+    const env = {
+      IFUND_STORY_AGENT: { fetch: (r) => storyRoute(r, workerEnv, apiFetch) },
+    };
+    const response = await serviceGateway(request(), env);
+    const body = await response.json();
+    assert.equal(response.status, 201, JSON.stringify(body));
+    assert.equal(body.draft.status, "draft");
+    assert.deepEqual(body.draft.payload.titles, result.titles);
+    assert.ok(!JSON.stringify(body).includes(previewSecret));
+    const replay = await serviceGateway(request(), env);
+    assert.equal(replay.status, 200);
+    assert.equal((await replay.json()).draft.id, body.draft.id);
+    assert.equal(inference, 1);
+    await db.exec("reset role");
+    assert.deepEqual(
+      (
+        await db.query(
+          "select environment,status from ifund_ops.workforce_assignments",
+        )
+      ).rows,
+      [{ environment: "preview", status: "succeeded" }],
+    );
+    assert.equal(
+      (await db.query("select enabled from ifund_story_runtime.control"))
+        .rows[0].enabled,
+      false,
+    );
+    assert.equal(
+      (await db.query("select enabled from ifund_ops.workforce_control"))
+        .rows[0].enabled,
+      false,
+    );
+    assert.equal(
+      (await db.query("select count(*) n from public.ifund_campaigns")).rows[0]
+        .n,
+      0,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test("operator preview permission probe selects a consenting identity and rolls back every temporary control", async () => {
+  const db = await setup();
+  try {
+    await isolatedPreview(db);
+    await db.exec("reset role");
+    // Match PostgREST claim resolution for this operator-probe fixture. The
+    // first eligible identity lacks consent; a later eligible identity has it.
+    await db.exec(
+      "create or replace function auth.uid() returns uuid language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),nullif(current_setting('test.uid',true),''))::uuid $$",
+    );
+    await db.query(
+      "delete from public.ifund_legal_acceptances where owner_id=$1",
+      [uid],
+    );
+    const before = (
+      await db.query("select to_jsonb(c) r from ifund_ops.workforce_control c")
+    ).rows[0].r;
+    await db.exec(
+      readFileSync(
+        new URL(
+          "../scripts/verify-isolated-story-preview.sql",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+    );
+    const report = (
+      await db.query(
+        "select current_setting('ifund.story_preview_probe_result')::jsonb r",
+      )
+    ).rows[0].r;
+    assert.equal(report.status, "PASS");
+    assert.equal(report.checks.length, 8);
+    assert.equal(report.persisted_control_or_key_changes, 0);
+    assert.equal(report.member_execution_receipt, false);
+    assert.deepEqual(
+      (
+        await db.query(
+          "select to_jsonb(c) r from ifund_ops.workforce_control c",
+        )
+      ).rows[0].r,
+      before,
+    );
   } finally {
     await db.close();
   }

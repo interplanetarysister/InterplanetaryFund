@@ -15,22 +15,27 @@ const user = { id: OWNER, email: "browser-test@example.invalid", email_confirmed
 const testToken = id => [Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url"), Buffer.from(JSON.stringify({ sub: id, role: "authenticated", aud: "authenticated", exp: Math.floor(Date.now() / 1000) + 3600 })).toString("base64url"), Buffer.from("local-test-only").toString("base64url")].join(".");
 const session = { access_token: testToken(OWNER), refresh_token: "local-test-only", expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: "bearer", user };
 const fixture = () => ({ id: ID, owner_id: OWNER, title: "Synthetic community garden", summary: "A garden for our neighborhood.", story: "We will purchase tools and seeds for the shared garden.", category: "community", goal_amount: 250, cover_image_url: "", status: "draft", created_at: "2026-11-01T00:00:00Z" });
+const writingPayload = () => ({ titles: ["Garden for everyone", "Tools for our garden", "Grow our community", "A shared growing space", "Help our neighborhood garden"], summaries: ["A factual community garden summary.", "A second truthful summary."], story: "We are creating a community garden.\n\nFunds would buy the tools and seeds described by the organizer.", image_prompt: "A symbolic neighborhood garden." });
+const writingFixture = changes => ({id:"44444444-4444-4444-8444-444444444444",campaign_id:null,status:"draft",source_system:"ifund_story_v1",updated_at:"2026-11-08T18:14:57Z",payload:writingPayload(),...changes});
 const browser = await chromium.launch({ executablePath: process.env.IFUND_CHROMIUM_PATH || "/usr/bin/chromium", headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"] });
 const results = [];
 async function scenario(name, test, options = {}) {
+  if (process.env.IFUND_TEST_CASE && !name.includes(process.env.IFUND_TEST_CASE)) return;
   const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
-  const state = { authenticated: true, identity: OWNER, accepted: true, active: true, rows: [], writes: [], errors: [], writingLevel: 1, writingCalls: [], nativeWritingCalls: [], ...options };
+  const state = { authenticated: true, identity: OWNER, accepted: true, active: true, rows: [], writes: [], errors: [], writingLevel: 1, writingCalls: [], nativeWritingCalls: [], savedWriting: [], writingOwner: OWNER, ...options };
   await context.addInitScript(({ storageKey, session, signedIn }) => { if (signedIn) localStorage.setItem(storageKey, JSON.stringify(session)); }, { storageKey, session, signedIn: state.authenticated });
   await context.route("**/*", async route => {
     const request = route.request();
     const url = new URL(request.url());
-    if (url.origin === new URL(origin).origin && url.pathname === "/api/services/story_agent/campaign-preview") {
-      const raw = request.postDataJSON();
-      state.writingCalls.push(raw);
-      const response = await serviceGateway(new Request(request.url(), { method: request.method(), headers: request.headers(), body: request.postData() }), {
+    if (url.origin === new URL(origin).origin && url.pathname.startsWith("/api/services/story_agent/")) {
+      if (url.pathname.endsWith("/campaign-preview")) state.writingCalls.push(request.postDataJSON());
+      const response = await serviceGateway(new Request(request.url(), { method: request.method(), headers: request.headers(), ...(request.method() === "POST" ? {body:request.postData()} : {}) }), {
         IFUND_STORY_AGENT: { fetch: async forwarded => {
           if (!state.authenticated || !state.active) return Response.json({ error: "Access denied" }, { status: 403 });
           if (new URL(forwarded.url).pathname.endsWith("/subscription")) return Response.json({ active: state.writingLevel > 0, level: state.writingLevel });
+          if (new URL(forwarded.url).pathname.endsWith("/queued-requests")) return Response.json({queued_requests:[]});
+          if (new URL(forwarded.url).pathname.endsWith("/preferences") && forwarded.method === "GET") return Response.json({preferences:{},generation:0,revision:null,provenance:"owner_statement"});
+          if (new URL(forwarded.url).pathname.endsWith("/drafts") && forwarded.method === "GET") return Response.json({drafts:state.identity===state.writingOwner?state.savedWriting:[],queued_requests:[]});
           if (!state.accepted) return Response.json({ error: "Member agreement required" }, { status: 403 });
           const body = await forwarded.json();
           state.nativeWritingCalls.push(body);
@@ -38,7 +43,7 @@ async function scenario(name, test, options = {}) {
           if (state.writingFailure) return Response.json({ error: "Synthetic failure" }, { status: 503 });
           if (state.writingDelay) await new Promise(resolve => setTimeout(resolve, state.writingDelay));
           const payload = body.section ? { section: "A reviewed replacement paragraph.\n\nThe second paragraph keeps the original facts." }
-            : { titles: ["Garden for everyone", "Tools for our garden", "Grow our community", "A shared growing space", "Help our neighborhood garden"], summaries: ["A factual community garden summary.", "A second truthful summary."], story: "We are creating a community garden.\n\nFunds would buy the tools and seeds described by the organizer.", image_prompt: "A symbolic neighborhood garden." };
+            : writingPayload();
           return Response.json({ draft: { id: "44444444-4444-4444-8444-444444444444", payload } }, { status: 201 });
         } },
       });
@@ -50,7 +55,12 @@ async function scenario(name, test, options = {}) {
     const json = (data, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data), headers: { "access-control-allow-origin": "*" } });
     const one = data => request.headers().accept?.includes("vnd.pgrst.object") ? data : data ? [data] : [];
     if (method === "OPTIONS") return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "*" } });
-    if (url.pathname === "/auth/v1/user") return json(state.authenticated ? { ...user, id: state.identity } : { message: "Not signed in" }, state.authenticated ? 200 : 401);
+    if (url.pathname === "/auth/v1/user") {
+      const identity=state.identity;
+      if(state.authGate)await state.authGate;
+      if(state.authDelay)await new Promise(resolve=>setTimeout(resolve,state.authDelay));
+      return json(state.authenticated ? { ...user, id: identity } : { message: "Not signed in" }, state.authenticated ? 200 : 401);
+    }
     if (url.pathname === "/rest/v1/ifund_profiles") return json(one({ id: state.identity, account_status: state.active ? "active" : "suspended", account_deletion_pending: false }));
     if (url.pathname === "/rest/v1/ifund_legal_acceptances") {
       if (method === "POST") { state.accepted = true; return json(null, 201); }
@@ -93,6 +103,7 @@ async function scenario(name, test, options = {}) {
   } catch (error) {
     results.push({ name, status: "FAIL", error: error.message });
     console.log("FAIL: " + name + " — " + error.message);
+    console.log(JSON.stringify({alerts:await page.getByRole("alert").allTextContents().catch(()=>[]),path:new URL(page.url()).pathname,writing_requests:state.writingCalls.length,native_requests:state.nativeWritingCalls.length}));
   } finally { await context.close(); }
 }
 async function complete(page) {
@@ -310,6 +321,106 @@ try {
     assert.equal(await page.getByRole("region", { name: "Campaign ideas", exact: true }).count(), 0);
     assert.equal(state.writes.length, 0);
   }, { writingDelay: 500 });
+  await scenario("Saved writing reaches the campaign editor and publishes only after explicit review",async(page,state)=>{
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).waitFor();
+    await page.getByLabel("Tools for our garden",{exact:true}).check();
+    await page.getByLabel("A second truthful summary.",{exact:true}).check();
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await page.waitForURL("**/create?writing=*");
+    await page.getByRole("region",{name:"Review saved writing",exact:true}).waitFor();
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),"");
+    assert.equal(state.writes.length,0);
+    await page.getByRole("button",{name:"Use this writing",exact:true}).click();
+    await page.getByText("Your writing is in the editor. Review the campaign details below, then save or publish.",{exact:true}).waitFor();
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),"Tools for our garden");
+    assert.equal(await page.getByLabel("Short description",{exact:true}).inputValue(),"A second truthful summary.");
+    assert.equal(await page.getByLabel("Your story",{exact:true}).inputValue(),writingPayload().story);
+    await page.getByLabel("Fundraising goal (USD)",{exact:true}).fill("250");
+    await doublePublish(page);
+    assert.equal(state.writes.length,1);
+    assert.equal(state.rows[0].status,"active");
+    assert.equal(state.rows[0].title,"Tools for our garden");
+    assert.equal(state.nativeWritingCalls.length,0);
+  },{savedWriting:[writingFixture()]});
+  await scenario("Writing for an existing campaign preserves its details and publishes that same campaign",async(page,state)=>{
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await page.waitForURL(`**/campaigns/${ID}/edit?writing=*`);
+    await page.getByRole("region",{name:"Review saved writing",exact:true}).waitFor();
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),fixture().title);
+    assert.equal(state.writes.length,0);
+    await page.getByRole("button",{name:"Use this writing",exact:true}).click();
+    await page.getByText("Your writing is in the editor. Review the campaign details below, then save or publish.",{exact:true}).waitFor();
+    assert.equal(await page.getByLabel("Fundraising goal (USD)",{exact:true}).inputValue(),"250");
+    await page.getByRole("button",{name:"Publish",exact:true}).click();
+    await page.getByText("Your campaign is published and visible on Discover. Donations stay paused.",{exact:true}).waitFor();
+    assert.equal(state.writes.length,1);assert.equal(state.writes[0].method,"PATCH");
+    assert.equal(state.rows.length,1);assert.equal(state.rows[0].id,ID);assert.equal(state.rows[0].status,"active");
+    assert.equal(state.rows[0].title,writingPayload().titles[0]);assert.equal(state.rows[0].summary,writingPayload().summaries[0]);assert.equal(state.rows[0].story,writingPayload().story);
+    assert.equal(state.nativeWritingCalls.length,0);
+  },{rows:[fixture()],savedWriting:[writingFixture({campaign_id:ID})]});
+  await scenario("A writing handoff leaves an existing unsaved campaign intact until the owner applies it",async(page,state)=>{
+    await page.goto(origin+"/create");
+    await page.getByLabel("Campaign title",{exact:true}).fill("Keep my current campaign");
+    await page.getByLabel("Your story",{exact:true}).fill("Keep this previously written story.");
+    await page.getByLabel("Fundraising goal (USD)",{exact:true}).fill("500");
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await page.waitForURL("**/create?writing=*");
+    await page.getByRole("button",{name:"Keep my current writing",exact:true}).click();
+    await page.getByText("Your current campaign text is kept.",{exact:true}).waitFor();
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),"Keep my current campaign");
+    assert.equal(await page.getByLabel("Your story",{exact:true}).inputValue(),"Keep this previously written story.");
+    assert.equal(await page.getByLabel("Fundraising goal (USD)",{exact:true}).inputValue(),"500");
+    assert.equal(state.writes.length,0);assert.equal(state.nativeWritingCalls.length,0);
+  },{savedWriting:[writingFixture()]});
+  await scenario("An account switch during the handoff cannot place one owner's writing in another editor",async(page,state)=>{
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).waitFor();
+    state.authDelay=200;
+    const pending=page.waitForRequest(r=>new URL(r.url()).pathname==="/auth/v1/user");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await pending;
+    state.identity=OTHER;
+    await page.evaluate(async token=>{const {authClient}=await import("/src/api/auth.js");await authClient().auth.setSession({access_token:token,refresh_token:"local-test-only"});},testToken(OTHER));
+    await page.goto(origin+"/create");
+    assert.equal(await page.getByRole("region",{name:"Review saved writing",exact:true}).count(),0);
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),"");
+    assert.equal(state.writes.length,0);
+  },{savedWriting:[writingFixture()]});
+  await scenario("A delayed handoff approval cannot overwrite a new writing reference",async(page,state)=>{
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await page.waitForURL("**/create?writing=*");
+    await page.getByRole("region",{name:"Review saved writing",exact:true}).waitFor();
+    state.authDelay=250;
+    const pending=page.waitForResponse(r=>new URL(r.url()).pathname==="/auth/v1/user");
+    await page.getByRole("button",{name:"Use this writing",exact:true}).click();
+    await page.evaluate(ref=>{history.pushState({},"","/create?writing="+ref);dispatchEvent(new PopStateEvent("popstate"));},OTHER);
+    await (await pending).finished();
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+    assert.equal(new URL(page.url()).searchParams.get("writing"),OTHER);
+    assert.equal(await page.getByLabel("Campaign title",{exact:true}).inputValue(),"");
+    assert.equal(state.writes.length,0);
+  },{savedWriting:[writingFixture()]});
+  await scenario("Publish and form editing wait for the writing import account check",async(page,state)=>{
+    await page.goto(origin+"/agents");
+    await page.getByRole("button",{name:"Continue to campaign editor",exact:true}).click();
+    await page.waitForURL(`**/campaigns/${ID}/edit?writing=*`);
+    await page.getByRole("region",{name:"Review saved writing",exact:true}).waitFor();
+    await page.waitForLoadState("networkidle");
+    let release;state.authGate=new Promise(resolve=>release=resolve);
+    const pending=page.waitForRequest(r=>new URL(r.url()).pathname==="/auth/v1/user");
+    await page.getByRole("button",{name:"Use this writing",exact:true}).click();await pending;
+    try {
+      assert.equal(await page.getByRole("button",{name:"Publish",exact:true}).isDisabled(),true);
+      assert.equal(await page.getByLabel("Campaign title",{exact:true}).isDisabled(),true);
+      assert.equal(state.writes.length,0);
+    } finally {state.authGate=null;release();}
+    await page.getByText("Your writing is in the editor. Review the campaign details below, then save or publish.",{exact:true}).waitFor();
+    assert.equal(await page.getByRole("button",{name:"Publish",exact:true}).isEnabled(),true);
+  },{rows:[fixture()],savedWriting:[writingFixture({campaign_id:ID})]});
 } finally { await browser.close(); }
 console.log(JSON.stringify({ transport: "intercepted Supabase; local app; no live writes", results }, null, 2));
 if (results.some(result => result.status !== "PASS")) process.exitCode = 1;

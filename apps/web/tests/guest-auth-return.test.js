@@ -13,7 +13,7 @@ test("guest drafts survive login and are cleared only after successful save", ()
   const creator = read("../src/pages/CreateCampaign.jsx");
   assert.match(creator, /rememberBrowserCampaign\(sessionStorage, ownerId, form,/);
   assert.match(creator, /forgetBrowserCampaign\(sessionStorage\)/);
-  assert.match(creator, /key=\{ownerId \|\| "guest"\}/);
+  assert.match(creator, /key=\{[^}]*ownerId \|\| "guest"/);
   assert.match(creator, /navigate\("\/login\?returnTo="/);
   assert.match(creator, /encodeURIComponent\(window\.location\.pathname \+ window\.location\.search\)/);
 });

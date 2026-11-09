@@ -305,8 +305,20 @@ export async function storyRoute(request, env, fetcher = fetch) {
           "ifund_workforce_admin_status",
           "ifund_workforce_cancel_queued",
         ].includes(name);
+      // The shared Story gate stays off during isolated preview acceptance.
+      // Only this trusted preview Worker supplies proof to gated Story RPCs;
+      // the database derives the channel from its digest, never a client label.
+      // Subscription reads and owner erasure/recovery remain key-independent.
+      const previewStoryOperation =
+        env.IFUND_WORKFORCE_ENABLED === "enabled" &&
+        env.IFUND_WORKFORCE_ENVIRONMENT === "preview" &&
+        name.startsWith("ifund_story_") &&
+        !["ifund_story_subscription", "ifund_story_clear_preferences"].includes(
+          name,
+        );
+      const executorOperation = workerOperation || previewStoryOperation;
       if (
-        workerOperation &&
+        executorOperation &&
         !/^[a-f0-9]{64}$/.test(env.IFUND_WORKFORCE_EXECUTOR_KEY || "")
       )
         fail(503, "Writing suggestions are temporarily unavailable.");
@@ -317,7 +329,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
         {
           method: "POST",
           body: JSON.stringify(body),
-          ...(workerOperation
+          ...(executorOperation
             ? {
                 headers: {
                   "x-ifund-workforce-key": env.IFUND_WORKFORCE_EXECUTOR_KEY,
