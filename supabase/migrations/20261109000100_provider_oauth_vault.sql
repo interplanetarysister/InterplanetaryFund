@@ -33,3 +33,44 @@ revoke all privileges on table public.ifund_oauth_transactions, public.ifund_pro
   from public, anon, authenticated;
 grant all privileges on table public.ifund_oauth_transactions, public.ifund_provider_tokens
   to service_role;
+
+-- Persist the encrypted token and public connection receipt in one transaction.
+create or replace function public.ifund_store_provider_connection(
+  p_owner_id uuid,
+  p_provider text,
+  p_provider_subject text,
+  p_token_ciphertext jsonb,
+  p_granted_scopes text[]
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_provider not in ('google','linkedin','x','tiktok')
+     or p_provider_subject is null or length(p_provider_subject) = 0
+     or p_token_ciphertext is null then
+    raise exception 'Invalid provider connection payload';
+  end if;
+
+  insert into public.ifund_provider_tokens
+    (owner_id, provider, provider_subject, token_ciphertext, granted_scopes, status, updated_at)
+  values
+    (p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
+     coalesce(p_granted_scopes, '{}'), 'active', now())
+  on conflict (owner_id, provider) do update set
+    provider_subject = excluded.provider_subject,
+    token_ciphertext = excluded.token_ciphertext,
+    granted_scopes = excluded.granted_scopes,
+    status = 'active',
+    updated_at = now();
+
+  insert into public.ifund_connections (owner_id, provider, status, verified_at)
+  values (p_owner_id, p_provider, 'connected', now())
+  on conflict (owner_id, provider) do update set
+    status = 'connected',
+    verified_at = now();
+end;
+$$;
+revoke all on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]) from public, anon, authenticated;
+grant execute on function public.ifund_store_provider_connection(uuid,text,text,jsonb,text[]) to service_role;
