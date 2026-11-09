@@ -6,13 +6,13 @@ const clean=(value)=>typeof value==="string"?value.trim():"";
 
 // Return a fixed path so Supabase's exact redirect allowlist can be configured.
 // No login credentials or tokens are put into the redirect URL we create.
-export function authCallbackUrl(origin,{recovery=false}={}){
+export function authCallbackUrl(origin,{recovery=false,returnTo="/dashboard"}={}){
   const parsed=new URL(origin);
   if(parsed.protocol!=="https:" && !(parsed.protocol==="http:"&&parsed.hostname==="localhost"))
     throw new Error("Secure signup origin required.");
   if(parsed.username||parsed.password||parsed.search||parsed.hash)
     throw new Error("Invalid signup origin.");
-  return parsed.origin+(recovery?"/auth/callback?next=/reset-password":"/auth/callback?next=/onboarding");
+  const callback=new URL("/auth/callback",parsed.origin);\n  callback.searchParams.set("next",recovery?"/reset-password":"/onboarding");\n  callback.searchParams.set("returnTo",safeReturnTo(returnTo));\n  return callback.toString();
 }
 
 export function callbackParameters(href){
@@ -25,22 +25,22 @@ export function callbackParameters(href){
   // Recovery is the only callback allowed to target the reset form; keep this
   // exact same-origin path exception local to auth callbacks, not generic redirects.
   const next=requestedNext==="/reset-password"?"/reset-password":safeReturnTo(requestedNext||"/onboarding");
-  const code=clean(query.get("code"));
+  const returnTo=safeReturnTo(query.get("returnTo"));\n  const code=clean(query.get("code"));
   const token_hash=clean(query.get("token_hash"));
   const token_type=clean(query.get("type"));
   const access_token=clean(hash.get("access_token"));
   const refresh_token=clean(hash.get("refresh_token"));
-  if(error)return {type:"error",message:error.slice(0,180),next};
-  if(code)return {type:"code",code,next};
+  if(error)return {type:"error",message:error.slice(0,180),next,returnTo};
+  if(code)return {type:"code",code,next,returnTo};
   if(token_hash){
-    if(!ALLOWED_TYPES.has(token_type))return {type:"error",message:UNTRUSTED_MESSAGE,next};
-    return {type:"token_hash",token_hash,token_type,next};
+    if(!ALLOWED_TYPES.has(token_type))return {type:"error",message:UNTRUSTED_MESSAGE,next,returnTo};
+    return {type:"token_hash",token_hash,token_type,next,returnTo};
   }
   if(access_token||refresh_token){
     if(!access_token||!refresh_token)return {type:"error",message:UNTRUSTED_MESSAGE,next};
-    return {type:"session",access_token,refresh_token,next};
+    return {type:"session",access_token,refresh_token,next,returnTo};
   }
-  return {type:"error",message:"This link does not contain a valid verification request. Open the newest link from your email.",next};
+  return {type:"error",message:"This link does not contain a valid verification request. Open the newest link from your email.",next,returnTo};
 }
 
 // The caller erases the URL query and hash before any network exchange.
@@ -62,7 +62,7 @@ export async function completeAuthCallback(auth,params){
   const requested=params.next==="/reset-password"?"/reset-password":"/onboarding";
   if(requested!=="/reset-password" && !data.user.email_confirmed_at)
     throw new Error("Your email confirmation is not complete. Check the newest verification email.");
-  return requested;
+  const returnTo=safeReturnTo(params.returnTo);\n  return requested+"?returnTo="+encodeURIComponent(returnTo);
 }
 
 // Remove all possible secrets from the browser history, before processing.
