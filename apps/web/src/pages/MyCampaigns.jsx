@@ -50,7 +50,8 @@ export default function MyCampaigns() {
       <Link to="/create" className="rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground">Create a campaign</Link>
     </header>
 
-    <p role="status" className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Campaign withdrawals are not enabled yet. Payouts will appear only after PayPal settlement and the owner withdrawal ledger are independently verified.</p>\n    {error && <p role="alert" className="rounded-xl border border-border p-4 text-destructive">{error}
+    <p role="status" className="rounded-xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">Campaign withdrawals are not enabled yet. Payouts will appear only after PayPal settlement and the owner withdrawal ledger are independently verified.</p>
+    {error && <p role="alert" className="rounded-xl border border-border p-4 text-destructive">{error}
       {phase === "error" && <button type="button" className="ml-3 underline" onClick={refresh}>Retry</button>}
     </p>}
     {phase === "loading" && <p role="status">Loading your campaigns…</p>}
