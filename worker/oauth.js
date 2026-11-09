@@ -66,7 +66,7 @@ const PROVIDERS = Object.freeze({
     tokenAuth: 'body', tokenMethod: 'POST',
     profile: 'https://graph.instagram.com/me?fields=user_id,username',
     scopes: ['instagram_business_basic', 'instagram_business_content_publish', 'instagram_business_manage_comments', 'instagram_business_manage_messages', 'instagram_business_manage_insights'],
-    scopeDelimiter: ',', pkce: false,
+    scopeDelimiter: ',', pkce: false, allowMissingTokenType: true,
     subject: (data) => data.user_id || data.id,
   },
 });
