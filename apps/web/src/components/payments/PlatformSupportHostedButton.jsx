@@ -32,6 +32,7 @@ function loadHostedButtonsSdk() {
       cleanup();
       if (window.paypal?.HostedButtons) resolve(window.paypal);
       else {
+        script.remove();
         hostedSdkPromise = null;
         reject(new Error("PayPal hosted buttons did not initialize."));
       }
