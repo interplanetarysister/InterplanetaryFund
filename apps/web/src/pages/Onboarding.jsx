@@ -37,6 +37,10 @@ export default function Onboarding() {
   async function save(){
     if(busy)return;
     setError("");
+    if(!name.trim()&&!handle.trim()){
+      setError("Enter a display name or choose a public handle.");
+      return;
+    }
     if(name.trim().length>100 || (handle.trim()&&!HANDLE.test(handle.trim()))){
       setError("Use a display name under 100 characters and a handle of 3–32 letters, numbers, underscores or hyphens.");
       return;
