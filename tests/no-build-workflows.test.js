@@ -16,14 +16,23 @@ const forbiddenBuildOrDeployCommands = [
   /\bnpx\s+cap\s+sync\b/i,
 ];
 
-test('GitHub Actions workflows do not invoke build, package, or deploy commands', () => {
+test('non-preview GitHub Actions workflows do not invoke build, package, or deploy commands', () => {
   assert.ok(workflowFiles.length > 0, 'expected checked-in GitHub Actions workflows');
-  for (const file of workflowFiles) {
+  for (const file of workflowFiles.filter(name => name !== 'web-preview-build.yml')) {
     const workflow = readFileSync(new URL('../.github/workflows/' + file, import.meta.url), 'utf8');
     for (const pattern of forbiddenBuildOrDeployCommands) {
       assert.equal(pattern.test(workflow), false, file + ' contains forbidden command ' + pattern);
     }
   }
+});
+
+test('dedicated web preview workflow compiles but never deploys', () => {
+  const workflow = read('.github/workflows/web-preview-build.yml');
+  assert.ok(workflow.includes('migration/build-completeness-gates-20261029'));
+  assert.ok(workflow.includes('CF_PAGES: "1"'));
+  assert.ok(workflow.includes('npm run build --prefix apps/web'));
+  assert.equal(/\\b(?:wrangler|pages)\\s+deploy\\b/i.test(workflow), false);
+  assert.equal(workflow.includes('production_deployments_enabled'), false);
 });
 
 test('migration workflow contains static tests and audits only', () => {
