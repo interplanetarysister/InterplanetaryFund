@@ -23,11 +23,13 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
         <p className="text-sm text-stone-500 mb-4">Funding progress is temporarily unavailable.</p>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mb-4">
-        {campaign.donor_count !== null && campaign.donor_count !== undefined &&
-          campaign.donor_count !== "" && Number.isInteger(Number(campaign.donor_count)) &&
-          Number(campaign.donor_count) >= 0 && (
+        {campaign.gift_count !== null && campaign.gift_count !== undefined &&
+          campaign.gift_count !== "" && Number.isInteger(Number(campaign.gift_count)) &&
+          Number(campaign.gift_count) >= 0 && (
             <span className="flex items-center gap-1.5">
-              <Users className="w-4 h-4" />{campaign.donor_count} donors
+              <Gift className="w-4 h-4" />{campaign.gift_count} gifts
+            </span>
+          )}
             </span>
           )}
         {campaign.end_date && (
