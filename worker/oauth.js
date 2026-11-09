@@ -211,12 +211,32 @@ async function limitedRequestJson(request, maxBytes = 8192) {
 function providerConfig(provider, env) {
   const config = PROVIDERS[provider];
   if (!config) return null;
+  const approvalFlags = {
+    youtube: 'YOUTUBE_OAUTH_ENABLED',
+    linkedin: 'LINKEDIN_OIDC_ENABLED',
+    x: 'X_OAUTH_USER_ENABLED',
+    tiktok: 'TIKTOK_LOGIN_ENABLED',
+    facebook_pages: 'META_PAGES_APPROVED',
+    instagram: 'INSTAGRAM_BUSINESS_APPROVED',
+  };
+  const approvalFlag = approvalFlags[provider];
+  if (approvalFlag && env[approvalFlag] !== 'true') return null;
   const clientId = env[config.clientId];
   const clientSecret = env[config.clientSecret];
   if (typeof clientId !== 'string' || !clientId.trim() || typeof clientSecret !== 'string' || !clientSecret.trim()) {
     return null;
   }
-  return { ...config, clientId, clientSecret };
+  const scopes = [...config.scopes];
+  if (provider === 'linkedin' && env.LINKEDIN_POSTING_APPROVED !== 'true') {
+    return { ...config, scopes: scopes.filter((scope) => scope !== 'w_member_social'), clientId, clientSecret };
+  }
+  if (provider === 'tiktok' && env.TIKTOK_VIDEO_UPLOAD_APPROVED !== 'true') {
+    return { ...config, scopes: scopes.filter((scope) => scope !== 'video.upload'), clientId, clientSecret };
+  }
+  if (provider === 'youtube' && env.YOUTUBE_UPLOAD_APPROVED !== 'true') {
+    return { ...config, scopes: scopes.filter((scope) => !scope.endsWith('/youtube.upload')), clientId, clientSecret };
+  }
+  return { ...config, scopes, clientId, clientSecret };
 }
 async function limitedJson(res) {
   if (!res.ok) throw new Error('OAuth provider request failed.');
@@ -507,6 +527,16 @@ async function refreshConnection(provider, account, config, env, fetcher) {
 
 export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
+  if (url.pathname === '/api/oauth/status') {
+    if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+    if (!oauthRuntimeReady(env)) return response(503, { error: 'Provider connections are not configured.' });
+    const origin = allowedFrontendOrigin(request, env);
+    if (!origin) return response(403, { error: 'Origin not allowed.' });
+    const account = await authenticatedUser(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in to view provider availability.' });
+    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
+    return response(200, { enabled: true, providers });
+  }
   const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh)$/.exec(url.pathname);
   if (!match) return response(404, { error: 'Not found.' });
   const [, provider, action] = match;
