@@ -78,6 +78,7 @@ test("signup and recovery callbacks preserve a safe campaign return destination"
   assert.ok(auth.includes("authCallbackUrl(window.location.origin,{recovery:true})"));
   assert.ok(auth.includes('type:"recovery"'));
   assert.ok(auth.includes("updateUser({password:newPassword})"));
+  assert.ok(auth.includes("Send another recovery email"));
   assert.ok(callback.includes("AUTH_RETURN_TO_KEY"));
   assert.ok(callback.includes("safeReturnTo(query.get(\"returnTo\") || storedReturnTo)"));
 
