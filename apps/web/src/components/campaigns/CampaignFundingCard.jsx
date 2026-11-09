@@ -1,7 +1,7 @@
 import React from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { Gift, CalendarDays, Heart, ShieldCheck } from "lucide-react";
 import { verifiedFundingProgress } from "@/lib/fundingTotals";
 
@@ -11,6 +11,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
   const totals = verifiedFundingProgress(campaign);
   const hasTotals = totals !== null;
   const checkoutDisabled = typeof onDonate !== "function";
+  const endDate = campaign.end_date ? new Date(campaign.end_date) : null;
   return (
     <div className={"bg-white rounded-2xl border border-stone-200/70 p-5 sm:p-6 shadow-sm " + className}>
       {hasTotals ? (
@@ -30,9 +31,9 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
               <Gift className="w-4 h-4" />{campaign.gift_count} gifts
             </span>
           )}
-        {campaign.end_date && (
+        {endDate && isValid(endDate) && (
           <span className="flex items-center gap-1.5">
-            <CalendarDays className="w-4 h-4" />Ends {format(new Date(campaign.end_date), "MMM d")}
+            <CalendarDays className="w-4 h-4" />Ends {format(endDate, "MMM d")}
           </span>
         )}
       </div>
