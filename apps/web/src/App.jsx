@@ -19,7 +19,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
-const StoryAgent = lazy(() => import("./pages/StoryAgent"));
+const AgentsTeam = lazy(() => import("./pages/AgentsTeam"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -83,7 +83,7 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
-      <Route path="/agents" element={<MemberAccess><StoryAgent /></MemberAccess>} />
+      <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
