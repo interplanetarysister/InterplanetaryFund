@@ -70,7 +70,7 @@ set search_path = ''
 as $
 begin
   if p_owner_id is null
-     or p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
+     or p_provider is null or p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram')
      or p_provider_subject is null or length(p_provider_subject) = 0
      or p_token_ciphertext is null
      or p_key_version <> 1
