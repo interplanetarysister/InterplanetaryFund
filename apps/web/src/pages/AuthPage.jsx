@@ -82,8 +82,7 @@ export default function AuthPage({ mode="login" }){
             if(signoutError)throw new Error("Your email is not confirmed and the temporary session could not be cleared. Protected account features remain blocked; request a new confirmation email.");
             throw new Error("Your email confirmation is not complete. Check the newest verification email.");
           }
-          clearRememberedAuthReturnTo();
-      navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
+          navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
         }else{
           setNeedsConfirmation(true);
           setMessage("Check your inbox and spam folder for the newest confirmation email. Open the link to finish signing up before signing in.");
@@ -135,6 +134,7 @@ export default function AuthPage({ mode="login" }){
       const {data:verified,error:verifyError}=await auth.getUser();
       if(verifyError||!verified?.user?.id||!verified.user.email_confirmed_at)
         throw new Error("Confirmation was not verified. Please request a new email.");
+      clearRememberedAuthReturnTo();
       navigate("/onboarding?returnTo="+encodeURIComponent(afterLogin),{replace:true});
     }catch(cause){
       setError(cause?.message||"The code could not be verified. Open the newest email or request another code.");
