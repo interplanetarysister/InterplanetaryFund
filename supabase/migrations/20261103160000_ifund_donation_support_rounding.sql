@@ -3,7 +3,7 @@
 -- This migration changes only the validation constraint; it never rewrites
 -- existing financial records or activates payment processing.
 
-do $
+do $$
 declare
   existing_constraint record;
 begin
@@ -23,7 +23,7 @@ begin
     );
   end loop;
 end;
-$;
+$$;
 
 alter table public.ifund_donations
   add constraint ifund_donations_support_matches_gift
