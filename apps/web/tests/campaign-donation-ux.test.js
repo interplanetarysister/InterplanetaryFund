@@ -45,26 +45,21 @@ test("gift-first quote preserves the full campaign gift and adds support and pro
   assert.equal(Number((noSupport.total - noSupport.processing).toFixed(2)), 100);
 });
 
-test("public funding totals are aggregate-only and exclude optional support", () => {
-  const migration = read("../../../supabase/migrations/20261103150000_ifund_public_campaign_funding_totals.sql");
+test("public funding uses the canonical verified aggregate RPC and never exposes donor records", () => {
+  const staleMigration = read("../../../supabase/migrations/20261103150000_ifund_public_campaign_funding_totals.sql");
   const publicData = read("../src/api/publicData.js");
-  assert.match(migration, /d\.status = 'captured'/);
-  assert.match(migration, /sum\(d\.gift_cents\)/);
-  assert.match(migration, /d\.paypal_capture_id is not null/i);
-  assert.match(migration, /d\.captured_at is not null/i);
-  assert.match(migration, /d\.currency = 'USD'/i);
-  assert.match(migration, /d\.gift_cents > 0/);
-  assert.match(migration, /count\(distinct d\.donor_id\)/);
-  assert.doesNotMatch(migration, /optional_support_cents/);
-  assert.match(migration, /security definer/i);
-  assert.match(migration, /grant execute[\s\S]*to anon, authenticated/i);
+  assert.match(staleMigration, /SUPERSEDED/);
+  assert.match(staleMigration, /20261105194309/);
+  assert.doesNotMatch(staleMigration, /create or replace function|grant execute|security definer/i);
   assert.match(publicData, /ifund_public_campaign_funding_totals/);
+  assert.match(publicData, /raised_amount: numOrNull\(row\.raised_amount\)/);
+  assert.match(publicData, /donor_count: numOrNull\(row\.donor_count\)/);
 });
 
-test("donation support constraint uses cent rounding and preserves legacy floor values", () => {
-  const migration = read("../../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");
-  assert.match(migration, /round\(gift_cents::numeric \/ 10\)::bigint/);
-  assert.match(migration, /floor\(gift_cents::numeric \/ 10\)::bigint/);
-  assert.match(migration, /pg_get_constraintdef\(oid\)/i);
-  assert.match(migration, /add constraint ifund_donations_support_matches_gift/i);
+test("obsolete donation support migration cannot narrow the canonical support ceiling", () => {
+  const staleMigration = read("../../../supabase/migrations/20261103160000_ifund_donation_support_rounding.sql");
+  assert.match(staleMigration, /SUPERSEDED/);
+  assert.match(staleMigration, /20261101215828/);
+  assert.match(staleMigration, /20261105194340/);
+  assert.doesNotMatch(staleMigration, /alter table|add constraint|drop constraint/i);
 });
