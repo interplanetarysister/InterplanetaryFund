@@ -433,7 +433,8 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
       refresh_expires_at: Number.isFinite(Number(token.refresh_expires_in)) ? new Date(Date.now() + Number(token.refresh_expires_in) * 1000).toISOString() : previousTokens?.refresh_expires_at || null,
     };
     const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-    const scopes = identity.grantedScopes;
+    const callbackScopes = url.searchParams.get('scopes') || '';
+    const scopes = identity.grantedScopes.length ? identity.grantedScopes : callbackScopes.split(/[ ,]+/).filter(Boolean);
     await supabaseRequest(env, 'rpc/ifund_store_provider_connection', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
