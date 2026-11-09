@@ -101,18 +101,10 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
     return reply(405, { error: "Method not allowed." });
   try {
     const api = await memberApi(request, env, fetcher);
-    // Viewing existing connection state and revoking/cancelling prior requests
-    // remains available after plan expiry. Creating a new grant or provider
-    // request requires the role's current plan entitlement.
-    if (route === "grant-help" || route === "requests") {
-      const entitlement = await api.rpc("ifund_story_subscription");
-      if (
-        entitlement?.active !== true ||
-        !Number.isInteger(entitlement.level) ||
-        entitlement.level < 2
-      )
-        return reply(403, { error: "An active Outreach, Nonprofit or higher plan is required to request managed connection help." });
-    }
+    // The canonical connection RPCs enforce the current plan entitlement
+    // atomically with owner scope, consent, idempotency and request creation.
+    // Do not preflight with a second subscription read: it can race with the
+    // action and mask malformed requests before their own validation.
     if (route === "workspace")
       return reply(200, {
         ...(await api.rpc("ifund_connections_workspace")),
