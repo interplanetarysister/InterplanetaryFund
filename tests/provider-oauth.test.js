@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { encryptOAuthValue, routeOAuthRequest, oauthProviders } from '../worker/oauth.js';
 import { routeAccountRequest } from '../worker/accountRoutes.js';
@@ -39,6 +40,22 @@ function signedIn() {
     method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
 }
+test('OAuth vault migration records token expiry, key version, and private audit events', () => {
+  const migration = readFileSync(
+    new URL('../supabase/migrations/20261109000100_provider_oauth_vault.sql', import.meta.url),
+    'utf8',
+  );
+  assert.match(migration, /expires_at timestamptz/);
+  assert.match(migration, /refresh_expires_at timestamptz/);
+  assert.match(migration, /key_version smallint/);
+  assert.match(migration, /ifund_provider_connection_events/);
+  assert.match(migration, /alter table public\.ifund_provider_connection_events enable row level security/);
+  assert.match(migration, /revoke all privileges[\s\S]*from public, anon, authenticated/);
+  assert.match(migration, /grant all privileges[\s\S]*to service_role/);
+  assert.match(migration, /p_event_type text default 'connected'/);
+  assert.match(migration, /grant execute[\s\S]*to service_role/);
+});
+
 test('provider registry contains only providers with implemented OAuth profile verification', () => {
   assert.deepEqual(oauthProviders, ['google', 'youtube', 'linkedin', 'x', 'tiktok', 'facebook_pages', 'instagram']);
 });
@@ -393,6 +410,9 @@ test('callback consumes one-use state, verifies identity, and persists only encr
       assert.equal(body.p_owner_id, uid);
       assert.equal(body.p_provider_subject, 'google-user-1');
       assert.deepEqual(body.p_granted_scopes, []);
+      assert.equal(body.p_key_version, 1);
+      assert.equal(body.p_event_type, 'connected');
+      assert.ok(body.p_expires_at === null || typeof body.p_expires_at === 'string');
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /secret-access-token|secret-refresh-token/);
       return new Response(null, { status: 204 });
     }
@@ -449,6 +469,9 @@ test('Google refresh rotates the access token, preserves an omitted refresh toke
       const body = JSON.parse(options.body);
       assert.equal(body.p_provider_subject, 'google-user-1');
       assert.deepEqual(body.p_granted_scopes, ['openid', 'email', 'profile']);
+      assert.equal(body.p_key_version, 1);
+      assert.equal(body.p_event_type, 'refreshed');
+      assert.ok(body.p_expires_at === null || typeof body.p_expires_at === 'string');
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /new-google-access-token|stable-google-refresh-token/);
       return new Response(null, { status: 204 });
     }
