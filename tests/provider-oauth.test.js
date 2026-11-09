@@ -315,6 +315,7 @@ test('Instagram callback exchanges short token for long-lived token before encry
     if (target.startsWith('https://graph.instagram.com/access_token?')) {
       const query = new URL(target).searchParams;
       assert.equal(query.get('access_token'), 'instagram-short-token');
+      assert.equal(query.get('grant_type'), 'ig_exchange_token');
       return Response.json({ access_token: 'instagram-long-token', token_type: 'bearer', expires_in: 5184000 });
     }
     if (target === 'https://graph.instagram.com/me?fields=user_id,username') {
