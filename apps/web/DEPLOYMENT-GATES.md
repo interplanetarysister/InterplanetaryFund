@@ -74,12 +74,16 @@ Static route shells, schema names, mocks, or passing unit tests are not runtime 
 
 - Open PR: #200
 - Working branch: `feature/ifund-campaign-donation-ux-20261103`
-- Current implementation commit at this checkpoint: `4a9c5483c17a909712aa203854038e235e7c1af0`
-- Migration static checks: passed.
-- Web regression tests and offline coverage audits: passed.
-- Vite preview compilation: passed.
-- Cloudflare Pages branch preview: deployment of this exact commit is still in progress; use the generated `pages.dev` URL only after its deploy stage reports success.
+- Deployed application code commit: `1b9ab7f8382a2928ef4b942f72f9e6e7689adfb6`.
+- Root worker and contract tests: 152 passed, 0 failed.
+- Web regression and offline coverage tests: 166 passed, 0 failed.
+- Vite preview bundle compilation: passed (6.66 seconds).
+- Cloudflare Pages preview deployment: success.
+- Unique preview URL: https://633212d3.interplanetaryfund-migration.pages.dev
+- Branch preview alias: https://feature-ifund-campaign-donat.interplanetaryfund-migration.pages.dev
 - Production deployment: disabled.
 - Production readiness: **NOT READY**.
+
+The deployment-gate document itself may receive a documentation-only follow-up commit; the application code identified above is the version verified and deployed in preview.
 
 Do not merge to `main`, enable production deployments, alter DNS, activate PayPal checkout, or apply database migrations as part of this preview-only repair. A green preview build and unit suite do not prove end-to-end authentication, provider, payment, withdrawal, agent, Android, or production runtime parity.
