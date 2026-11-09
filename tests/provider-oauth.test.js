@@ -19,6 +19,12 @@ const env = {
   GOOGLE_OAUTH_CLIENT_SECRET: 'google-client-secret',
   META_OAUTH_CLIENT_ID: '1427538482140267',
   META_OAUTH_CLIENT_SECRET: 'meta-app-secret-placeholder',
+  META_PAGES_APPROVED: 'true',
+  INSTAGRAM_BUSINESS_APPROVED: 'true',
+  YOUTUBE_OAUTH_ENABLED: 'true',
+  YOUTUBE_UPLOAD_APPROVED: 'true',
+  TIKTOK_LOGIN_ENABLED: 'true',
+  TIKTOK_VIDEO_UPLOAD_APPROVED: 'true',
   TIKTOK_CLIENT_KEY: 'tiktok-client-key',
   TIKTOK_CLIENT_SECRET: 'tiktok-client-secret',
 };
@@ -98,6 +104,31 @@ test('Worker CORS allows only the configured frontend origin and answers preflig
   }), env);
   assert.equal(denied.status, 403);
   assert.equal(denied.headers.get('access-control-allow-origin'), null);
+});
+
+
+test('provider status exposes readiness booleans only and respects provider approval gates', async () => {
+  const request = new Request(base + '/api/oauth/status', {
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+  });
+  const fetcher = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    throw Error('unexpected fetch');
+  };
+  const r = await routeOAuthRequest(request, env, fetcher);
+  assert.equal(r.status, 200);
+  const payload = await r.json();
+  assert.equal(payload.enabled, true);
+  assert.deepEqual(payload.providers, {
+    google: true,
+    youtube: true,
+    linkedin: false,
+    x: false,
+    tiktok: true,
+    facebook_pages: true,
+    instagram: true,
+  });
+  assert.equal(JSON.stringify(payload).includes('client-secret'), false);
 });
 
 test('unsupported providers and methods are rejected before remote calls', async () => {
