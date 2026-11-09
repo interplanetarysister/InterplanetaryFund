@@ -4,6 +4,12 @@ import { authenticatedUser, migrationReady, response } from './reads.js';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const profileSelect = 'id,handle,display_name,created_at';
 const connectionSelect = 'id,provider,status,verified_at,created_at';
+function oauthStatusReady(env) {
+  return env?.OAUTH_API_ENABLED === 'true' &&
+    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
+    typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
+    env.SUPABASE_PUBLISHABLE_KEY.length > 0;
+}
 
 /** Private owner-only profile and provider status API. No roles or OAuth writes. */
 export async function routeAccountRequest(request, env, fetcher = fetch) {
@@ -19,7 +25,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
     }
     return response(404, { error: 'Not found.' });
   }
-  if (!migrationReady(env)) {
+  if (!migrationReady(env) && !(path === '/api/account/connections' && oauthStatusReady(env))) {
     return response(503, { error: 'Independent migration API not enabled.' });
   }
 
