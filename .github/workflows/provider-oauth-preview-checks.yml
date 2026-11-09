@@ -1,0 +1,53 @@
+name: Provider OAuth preview checks
+
+on:
+  push:
+    branches: [migration/provider-oauth-preview-20261109]
+    paths:
+      - "worker/**"
+      - "supabase/migrations/**"
+      - "tests/**"
+      - "apps/web/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/**"
+  pull_request:
+    branches: [migration/base44-frontend-parity-20261103]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: provider-oauth-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.23.2"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/web/package-lock.json
+      - name: Install root dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Root worker and migration tests
+        run: npm test
+      - name: Install Pages frontend dependencies
+        run: npm --prefix apps/web ci --no-audit --no-fund
+      - name: Pages frontend tests
+        run: npm --prefix apps/web test
+      - name: Pages production build
+        run: npm --prefix apps/web run build
+      - name: Whitespace and formatting checks
+        run: |
+          git diff --check
+          npx prettier --check worker/oauth.js worker/index.js worker/accountRoutes.js tests/provider-oauth.test.js apps/web/src/pages/Connections.jsx apps/web/src/pages/OAuthCallback.jsx apps/web/src/App.jsx

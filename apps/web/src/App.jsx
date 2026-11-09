@@ -25,6 +25,7 @@ const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
@@ -64,6 +65,7 @@ function AppRoutes() {
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
     <Route path="/contact" element={<Contact />} />
+    <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
     <Route path="/login" element={<AuthPage mode="login" />} />
     <Route path="/register" element={<AuthPage mode="register" />} />
     <Route path="/forgot-password" element={<AuthPage mode="forgot-password" />} />
