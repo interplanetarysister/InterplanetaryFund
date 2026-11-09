@@ -7,7 +7,7 @@ import {
   clearGuestCampaignDraft,
   GUEST_CAMPAIGN_DRAFT_TTL_MS,
 } from "../src/lib/guestCampaignDraft.js";
-import { authCallbackUrl, callbackParameters, completeAuthCallback } from "../src/lib/authCallback.js";
+import { authCallbackUrl, rememberAuthReturnTo, callbackParameters, completeAuthCallback } from "../src/lib/authCallback.js";
 import { landingAfterLogin } from "../src/lib/postLogin.js";
 
 const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
@@ -67,11 +67,11 @@ test("guest campaign form saves only after sign-in and preserves its return path
 test("signup and recovery callbacks preserve a safe campaign return destination", async () => {
   const auth = read("../src/pages/AuthPage.jsx");
   const callback = read("../src/lib/authCallback.js");
-  assert.match(auth, /authCallbackUrl\(window\.location\.origin,\{returnTo:afterLogin\}\)/);
-  assert.match(auth, /authCallbackUrl\(window\.location\.origin,\{recovery:true,returnTo:afterLogin\}\)/);
+  assert.match(auth, /rememberAuthReturnTo\(afterLogin\)/);
+  assert.match(auth, /authCallbackUrl\(window\.location\.origin,\{recovery:true\}\)/);
   assert.match(auth, /verifyOtp\(\{email:normalizedEmail,token:recoveryCode\.trim\(\),type:"recovery"\}\)/);
   assert.match(auth, /updateUser\(\{password:newPassword\}\)/);
-  assert.match(callback, /callback\.searchParams\.set\("returnTo",safeReturnTo\(returnTo\)\)/);
+  assert.match(callback, /AUTH_RETURN_TO_KEY/);\n  assert.match(callback, /safeReturnTo\(query\.get\("returnTo"\) \|\| storedReturnTo\)/);
   assert.match(callback, /return requested\+"\\?returnTo="/);
 
   const url = authCallbackUrl("https://interplanetaryfund.com", {
@@ -85,9 +85,9 @@ test("signup and recovery callbacks preserve a safe campaign return destination"
   const destination = await completeAuthCallback({
     exchangeCodeForSession: async () => { exchanged = true; return { data: {}, error: null }; },
     getUser: async () => ({ data: { user: { id: "user-1", email_confirmed_at: "2026-11-09T00:00:00Z" } }, error: null }),
-  }, params);
+  }, params, { storage });
   assert.equal(exchanged, true);
-  assert.equal(destination, "/reset-password?returnTo=%2Fcreate");
+  assert.equal(destination, "/reset-password?returnTo=%2Fcreate");\n  assert.equal(storage.has("ifund-auth-return-to"), false);
 });
 
 test("password reset page requires a live session and preserves return destination", () => {
