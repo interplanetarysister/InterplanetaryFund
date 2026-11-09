@@ -30,7 +30,8 @@ test("callback parser supports single-use code, email OTP hash, and implicit ses
   const session = callbackParameters("https://interplanetaryfund.com/auth/callback?next=%2Fonboarding#access_token=access123&refresh_token=refresh123");
   assert.equal(session.type, "session");
   assert.equal(session.access_token, "access123");
-  assert.equal(session.refresh_token, "refresh123");\n  assert.equal(session.returnTo, "/dashboard");
+  assert.equal(session.refresh_token, "refresh123");
+  assert.equal(session.returnTo, "/dashboard");
 });
 
 test("callback rejects incomplete token pairs and unsupported token types", () => {
