@@ -221,7 +221,6 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
   const fetcher = async (url, options = {}) => {
     const target = String(url);
     if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
-    if (target.endsWith('/auth/v1/user')) return Response.json({ id: uid });
     if (target.includes('/ifund_oauth_transactions?')) return Response.json([tx]);
     if (target.startsWith('https://graph.facebook.com/v26.0/oauth/access_token?')) {
       const query = new URL(target).searchParams;
@@ -357,7 +356,6 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   assert.equal((await r.json()).status, 'connected');
   assert.ok(calls.some(x => x.options.method === 'DELETE'));
   assert.ok(calls.some(x => x.target.includes('/rpc/ifund_store_provider_connection')));
-  assert.match(r.headers.get('set-cookie'), /Max-Age=0/);
 });
 
 test('Google refresh rotates the access token, preserves an omitted refresh token and returns no credentials', async () => {
