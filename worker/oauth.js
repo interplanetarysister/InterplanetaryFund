@@ -87,15 +87,22 @@ function cookieHeader(provider, value, maxAge) {
   return `ifund_oauth_${provider}=${value}; Path=/api/oauth/${provider}/callback; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
 }
 function serviceHeaders(env) {
-  return {
-    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: 'Bearer ' + env.SUPABASE_SERVICE_ROLE_KEY,
+  const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+  const headers = {
+    apikey: key,
     'Content-Type': 'application/json',
     Accept: 'application/json',
   };
+  // New sb_secret_* keys are opaque API keys, not JWTs. Legacy service_role
+  // keys are JWTs and must also be supplied as Authorization: Bearer.
+  if (typeof key === 'string' && !key.startsWith('sb_secret_')) {
+    headers.Authorization = 'Bearer ' + key;
+  }
+  return headers;
 }
 function serviceConfigured(env) {
-  return typeof env.SUPABASE_SERVICE_ROLE_KEY === 'string' && env.SUPABASE_SERVICE_ROLE_KEY.length > 20 &&
+  const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+  return typeof key === 'string' && key.length > 20 &&
     typeof env.OAUTH_ENCRYPTION_KEY === 'string' && env.OAUTH_ENCRYPTION_KEY.length > 20;
 }
 function oauthRuntimeReady(env) {
