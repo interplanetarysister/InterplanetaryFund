@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { encryptOAuthValue, routeOAuthRequest, oauthProviders } from '../worker/oauth.js';
+import { routeAccountRequest } from '../worker/accountRoutes.js';
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
 const base = 'https://preview.example';
 const key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 const env = {
-  MIGRATION_API_PREVIEW: 'enabled',
+  OAUTH_API_ENABLED: 'true',
   SUPABASE_URL: 'https://example.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
   SUPABASE_SERVICE_ROLE_KEY: 'service-role-secret-test-1234567890',
@@ -38,9 +39,41 @@ test('encryption envelope round-trips without exposing plaintext', async () => {
 test('OAuth endpoints fail closed until service secrets and callback origin are configured', async () => {
   const r = await routeOAuthRequest(signedIn(), { ...env, SUPABASE_SERVICE_ROLE_KEY: '' });
   assert.equal(r.status, 503);
+  const disabled = await routeOAuthRequest(signedIn(), { ...env, OAUTH_API_ENABLED: 'false' });
+  assert.equal(disabled.status, 503);
   const badOrigin = await routeOAuthRequest(signedIn(), { ...env, OAUTH_PUBLIC_BASE_URL: 'http://preview.example' });
   assert.equal(badOrigin.status, 503);
 });
+
+test('OAuth connection status is available in an OAuth-enabled production environment without preview migration flag', async () => {
+  const request = new Request(base + '/api/account/connections', {
+    headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const fetcher = async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).includes('/rest/v1/ifund_connections?')) {
+      return Response.json([{ id: 'connection-1', provider: 'google', status: 'connected', verified_at: '2026-11-09T12:00:00.000Z' }]);
+    }
+    throw Error('unexpected fetch');
+  };
+  const r = await routeAccountRequest(request, env, fetcher);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), [{
+    provider: 'google',
+    status: 'connected',
+    verified_at: '2026-11-09T12:00:00.000Z',
+  }]);
+});
+test('account connection status remains disabled when OAuth and preview migration are both off', async () => {
+  const request = new Request(base + '/api/account/connections', {
+    headers: { authorization: 'Bearer verified.test.jwt' },
+  });
+  const r = await routeAccountRequest(request, { ...env, OAUTH_API_ENABLED: 'false' }, async () => {
+    throw Error('must not fetch');
+  });
+  assert.equal(r.status, 503);
+});
+
 test('unsupported providers and methods are rejected before remote calls', async () => {
   const unsupported = await routeOAuthRequest(
     new Request(base + '/api/oauth/facebook/start', { method: 'POST' }), env,
