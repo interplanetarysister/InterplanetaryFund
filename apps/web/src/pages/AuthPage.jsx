@@ -4,7 +4,7 @@ import AuthLayout from "@/components/AuthLayout";
 import { UserPlus, LogIn, Mail } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { authCallbackUrl } from "@/lib/authCallback";
+import { authCallbackUrl, rememberAuthReturnTo } from "@/lib/authCallback";
 import { landingAfterLogin } from "@/lib/postLogin";
 import { isVerifiedEmailUser } from "@/lib/verifiedEmailUser";
 
@@ -41,8 +41,9 @@ export default function AuthPage({ mode="login" }){
         throw new Error("Your passwords do not match.");
       const auth=authClient().auth;
       if(isReset && !recoveryCodeSent){
+        rememberAuthReturnTo(afterLogin);
         const {error:failure}=await auth.resetPasswordForEmail(normalizedEmail,{
-          redirectTo:authCallbackUrl(window.location.origin,{recovery:true,returnTo:afterLogin})
+          redirectTo:authCallbackUrl(window.location.origin,{recovery:true})
         });
         if(failure)throw failure;
         setRecoveryCodeSent(true);
@@ -58,9 +59,10 @@ export default function AuthPage({ mode="login" }){
         setRecoveryCodeSent(false);setRecoveryCode("");setNewPassword("");
         navigate("/login?returnTo="+encodeURIComponent(afterLogin)+"&passwordUpdated=1",{replace:true});
       }else if(isRegister){
+        rememberAuthReturnTo(afterLogin);
         const {data,error:failure}=await auth.signUp({
           email:normalizedEmail,password,
-          options:{emailRedirectTo:authCallbackUrl(window.location.origin,{returnTo:afterLogin}),
+          options:{emailRedirectTo:authCallbackUrl(window.location.origin),
             // A display hint only; never trust user_metadata for privileges.
             data:{preferred_handle:username.trim()}}
         });
@@ -135,6 +137,7 @@ export default function AuthPage({ mode="login" }){
     if(busy||resending||!email.trim())return;
     setResending(true);setError("");setMessage("");
     try{
+      rememberAuthReturnTo(afterLogin);
       const {error:failure}=await authClient().auth.resend({
         type:"signup",email:email.trim(),
         options:{emailRedirectTo:authCallbackUrl(window.location.origin,{returnTo:afterLogin})}
