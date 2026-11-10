@@ -9,6 +9,7 @@ export default function HackathonDemo() {
   const [campaigns, setCampaigns] = useState([]);
   const [campaignId, setCampaignId] = useState("");
   const [campaignError, setCampaignError] = useState("");
+  const [campaignLoading, setCampaignLoading] = useState(true);
   const [statusError, setStatusError] = useState("");
   const [cents, setCents] = useState(500);
   const [working, setWorking] = useState(false);
@@ -24,8 +25,8 @@ export default function HackathonDemo() {
       .then(x=>{if(alive)setReady(x)})
       .catch(e=>{if(alive){setReady({enabled:false});setStatusError(e.message)}});
     authClient().from("ifund_campaigns").select("id,title").eq("status","active").limit(20)
-      .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"")})
-      .catch(()=>{if(alive)setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.")});
+      .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");setCampaignLoading(false);return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"");setCampaignLoading(false)})
+      .catch(()=>{if(alive){setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.");setCampaignLoading(false)}});
     return ()=>{alive=false};
   },[]);
   async function post(path,data) {
@@ -89,10 +90,11 @@ export default function HackathonDemo() {
       {missingApprovalToken&&<p role="alert" className="rounded-lg border border-amber-500/40 p-3 text-sm">PayPal returned without an order token. No payment has been captured. Start a new sandbox checkout; do not treat this approval as a donation.</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
         !ready.enabled ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is not configured yet. The required server-side PayPal credentials and feature gate must be verified before payment testing can begin.</p> : null}
+      {campaignLoading&&<p role="status" className="text-sm text-muted-foreground">Loading active campaigns…</p>}
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
-      {!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
+      {!campaignLoading&&!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
       <label className="block text-sm font-medium">Demo campaign
-        <select aria-label="Demo campaign" value={campaignId} onChange={e=>setCampaignId(e.target.value)}
+        <select aria-label="Demo campaign" disabled={campaignLoading} value={campaignId} onChange={e=>setCampaignId(e.target.value)}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
           {campaigns.length===0&&<option value="">No published demo campaigns available</option>}
           {campaigns.map(c=><option value={c.id} key={c.id}>{c.title}</option>)}
@@ -104,7 +106,7 @@ export default function HackathonDemo() {
           <option value={100}>$1.00</option><option value={500}>$5.00</option><option value={1000}>$10.00</option>
         </select>
       </label>
-      <button type="button" onClick={start} disabled={!ready?.enabled||!campaignId||working}
+      <button type="button" onClick={start} disabled={!ready?.enabled||campaignLoading||!campaignId||working}
         className="min-h-12 w-full rounded-xl bg-[#FFC439] px-4 font-semibold text-[#003087] disabled:opacity-50">
         {working?"Connecting to PayPal…":"Approve sandbox payment with PayPal"}
       </button>
