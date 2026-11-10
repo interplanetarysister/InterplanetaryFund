@@ -47,5 +47,4 @@ export function confirmedWebhookResource(event, orderRecord) {
     throw new SandboxVerificationError("Webhook capture amount mismatch");
   }
   return { type, eventId: event.id, captureId: resource.id, status: "verified" };
-  throw new SandboxVerificationError("Unsupported webhook event");
 }
