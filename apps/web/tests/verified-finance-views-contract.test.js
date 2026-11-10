@@ -31,3 +31,11 @@ test("frontend explicitly routes member and admin finances and never writes ledg
   assert.match(admin,/rpc\("ifund_admin_finance_summary"\)/);
   assert.doesNotMatch(donor+admin,/\.insert\(|\.update\(|\.delete\(/);
 });
+
+test("public campaign progress is derived only from the verified totals RPC",()=>{
+  const publicData=fs.readFileSync(new URL("../src/api/publicData.js",import.meta.url),"utf8");
+  assert.match(publicData,/rpc\("ifund_public_campaign_funding_totals"/);
+  assert.match(publicData,/return attachVerifiedFunding\(data \|\| \[\]\)/);
+  assert.match(publicData,/if \(!progress\) throw new Error/);
+  assert.doesNotMatch(publicData,/goal_amount\s*[-+*/]/);
+});
