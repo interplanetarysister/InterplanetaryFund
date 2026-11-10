@@ -55,6 +55,8 @@ export default function Dashboard() {
       <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
       <Link to="/campaigns" className="mt-4 mr-5 inline-block text-primary underline">Manage your campaigns</Link>
+      <Link to="/ledger" className="mt-4 mr-5 inline-block text-primary underline">Verified finances</Link>
+      <Link to="/giving" className="mt-4 mr-5 inline-block text-primary underline">My Giving</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
