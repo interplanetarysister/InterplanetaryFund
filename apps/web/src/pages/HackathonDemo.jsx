@@ -95,7 +95,7 @@ export default function HackathonDemo() {
       {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
       {missingApprovalToken&&<p role="alert" className="rounded-lg border border-amber-500/40 p-3 text-sm">PayPal returned without an order token. No payment has been captured. Start a new sandbox checkout; do not treat this approval as a donation.</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
-        !ready.enabled ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is not configured yet. The required server-side PayPal credentials and feature gate must be verified before payment testing can begin.</p> : null}
+        (!ready.enabled || !ready.webhook_ready) ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is unavailable until PayPal sandbox credentials, webhook verification, and the server-side feature gate are configured. No sample payment can be captured yet.</p> : null}
       {campaignLoading&&<p role="status" className="text-sm text-muted-foreground">Loading active campaigns…</p>}
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
       {!campaignLoading&&!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
@@ -112,7 +112,7 @@ export default function HackathonDemo() {
           <option value={100}>$1.00</option><option value={500}>$5.00</option><option value={1000}>$10.00</option>
         </select>
       </label>
-      <button type="button" onClick={start} disabled={!ready?.enabled||campaignLoading||!campaignId||working}
+      <button type="button" onClick={start} disabled={!ready?.enabled||!ready?.webhook_ready||campaignLoading||!campaignId||working}
         className="min-h-12 w-full rounded-xl bg-[#FFC439] px-4 font-semibold text-[#003087] disabled:opacity-50">
         {working?"Connecting to PayPal…":"Approve sandbox payment with PayPal"}
       </button>
