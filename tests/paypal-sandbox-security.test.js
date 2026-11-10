@@ -26,7 +26,7 @@ test("unassociated, unknown and mismatched webhook resources are rejected",()=>{
  const event={id:"EVENT-12345678",event_type:"PAYMENT.CAPTURE.COMPLETED",resource:{id:record.paypal_capture_id,amount:{currency_code:"USD",value:"5.00"}}};
  assert.equal(confirmedWebhookResource(event,record).captureId,record.paypal_capture_id);
  for (const candidate of [
- {...event,event_type:"UNEXPECTED.EVENT"}, {...event,resource:{...event.resource,id:"CAPTURE-WRONG123"}},
+ {...event,event_type:"UNEXPECTED.EVENT"}, {...event,event_type:"PAYMENT.CAPTURE.REFUNDED"}, {...event,resource:{...event.resource,id:"CAPTURE-WRONG123"}},
  {...event,resource:{...event.resource,amount:{currency_code:"USD",value:"9.00"}}}
  ]) assert.throws(()=>confirmedWebhookResource(candidate,record),SandboxVerificationError);
 });
