@@ -60,3 +60,12 @@ test("oversized webhook payload is rejected before provider verification",async(
   assert.equal(result.status,413);
   assert.equal((await result.json()).ok,false);
 });
+
+test("PayPal webhook ID is mandatory even if other sandbox settings exist",async()=>{
+  const response=await call("status","GET",{...fakeConfig,PAYPAL_WEBHOOK_ID:""});
+  assert.equal(response.status,200);
+  const body=await response.json();
+  assert.equal(body.enabled,false);
+  assert.equal(body.webhook_ready,false);
+  assert.equal(body.live_payments_enabled,false);
+});
