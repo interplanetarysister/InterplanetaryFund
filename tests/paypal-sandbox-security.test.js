@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {sandboxConfigured, confirmCapturedOrder, confirmedWebhookResource, SandboxVerificationError} from "../worker/paypalSandboxSecurity.js";
+import {sandboxConfigured, confirmCapturedOrder, confirmedWebhookResource, SandboxVerificationError,issueCheckoutBinding,requireCheckoutSession,atomicCaptureUpdateFilter,associatedCaptureWebhook} from "../worker/paypalSandboxSecurity.js";
 const env = {IFUND_PAYPAL_SANDBOX_ENABLED:"enabled",PAYPAL_CLIENT_ID:"sandbox_id",PAYPAL_CLIENT_SECRET:"secret",PAYPAL_WEBHOOK_ID:"webhook",SUPABASE_URL:"https://example.supabase.co",SUPABASE_SECRET_KEY:"secret"};
 const record = {paypal_order_id:"ORDER-12345678",campaign_id:"campaign-one",gift_cents:500,paypal_capture_id:"CAPTURE-12345678"};
 const order = {id:record.paypal_order_id,status:"COMPLETED",purchase_units:[{custom_id:record.campaign_id,amount:{currency_code:"USD",value:"5.00"},payments:{captures:[{id:record.paypal_capture_id,status:"COMPLETED",amount:{currency_code:"USD",value:"5.00"}}]}}]};
@@ -29,4 +29,33 @@ test("unassociated, unknown and mismatched webhook resources are rejected",()=>{
  {...event,event_type:"UNEXPECTED.EVENT"}, {...event,event_type:"PAYMENT.CAPTURE.REFUNDED"}, {...event,resource:{...event.resource,id:"CAPTURE-WRONG123"}},
  {...event,resource:{...event.resource,amount:{currency_code:"USD",value:"9.00"}}}
  ]) assert.throws(()=>confirmedWebhookResource(candidate,record),SandboxVerificationError);
+});
+
+test("checkout token is HttpOnly and bound to the origin and PayPal order",async()=>{
+ const binding=await issueCheckoutBinding(record.paypal_order_id);
+ assert.match(binding.setCookie,/HttpOnly; Secure; SameSite=Lax/);
+ assert.match(binding.checkoutTokenHash,/^[a-f0-9]{64}$/);
+ const cookie=binding.setCookie.split(";")[0];
+ const request=new Request("https://preview.interplanetaryfund-migration.pages.dev/api/paypal/sandbox/capture",{
+  method:"POST",headers:{origin:"https://preview.interplanetaryfund-migration.pages.dev",cookie}});
+ const bound={...record,checkout_token_hash:binding.checkoutTokenHash};
+ assert.equal(await requireCheckoutSession(request,bound),true);
+ assert.match(atomicCaptureUpdateFilter(bound),/status=eq.created&paypal_capture_id=is.null$/);
+ for(const changed of [
+  new Request(request.url,{method:"POST",headers:{origin:"https://untrusted.example",cookie}}),
+  new Request(request.url,{method:"POST",headers:{origin:request.headers.get("origin")}}),
+  new Request(request.url,{method:"POST",headers:{origin:request.headers.get("origin"),cookie:cookie.replace(/.$/,"0")}})
+ ]) await assert.rejects(requireCheckoutSession(changed,bound),SandboxVerificationError);
+ assert.throws(()=>atomicCaptureUpdateFilter(record),SandboxVerificationError);
+});
+test("webhook must contain the exact associated order and USD amount",()=>{
+ const event={event_type:"PAYMENT.CAPTURE.COMPLETED",resource:{
+  id:record.paypal_capture_id,amount:{currency_code:"USD",value:"5.00"},
+  supplementary_data:{related_ids:{order_id:record.paypal_order_id}}}};
+ assert.equal(associatedCaptureWebhook(event,record).captureId,record.paypal_capture_id);
+ for(const changed of [
+  {...event,resource:{...event.resource,supplementary_data:{related_ids:{order_id:"OTHER-12345678"}}}},
+  {...event,resource:{...event.resource,amount:{currency_code:"USD",value:"8.00"}}},
+  {...event,event_type:"PAYMENT.CAPTURE.REFUNDED"}
+ ])assert.throws(()=>associatedCaptureWebhook(changed,record),SandboxVerificationError);
 });
