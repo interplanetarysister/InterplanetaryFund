@@ -1,0 +1,59 @@
+name: Backend migration QA
+on:
+  push:
+    branches:
+      - agent/backend-migration
+  pull_request:
+    branches:
+      - main
+      - migration/base44-frontend-parity-20261103
+    paths:
+      - 'worker/**'
+      - 'functions/**'
+      - 'tests/**'
+      - 'apps/web/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.*'
+      - 'supabase/**'
+      - 'wrangler.toml'
+      - 'wrangler.json'
+      - 'wrangler.jsonc'
+      - 'worker/wrangler.*'
+      - 'public/_redirects'
+      - 'public/_headers'
+      - 'apps/web/public/_redirects'
+      - 'apps/web/public/_headers'
+      - '.github/workflows/backend-migration-qa.yml'
+      - '.github/workflows/deploy-web-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: backend-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Run repository regression suite (including Worker security)
+        run: npm test
+      - name: Build root application to detect integration regressions
+        run: npm run build
+      - name: Install locked mobile-first web dependencies
+        run: npm ci --prefix apps/web --no-audit --no-fund
+      - name: Run mobile-first web regression suite
+        run: npm test --prefix apps/web
+      - name: Build mobile-first web application
+        run: npm run build --prefix apps/web

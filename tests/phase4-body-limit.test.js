@@ -65,3 +65,12 @@ test('content-type is required for JSON operations', async () => {
   await assert.rejects(readJsonBody(req, 100),
     (error) => error instanceof BodyError && error.status === 415);
 });
+
+test('fails closed when caller omits or corrupts the body byte limit', async () => {
+  for (const invalid of [undefined, null, 0, -1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    await assert.rejects(readJsonBody(request(['{}']), invalid),
+      (error) => error instanceof BodyError && error.status === 500,
+      `invalid cap ${String(invalid)} must fail closed`);
+  }
+  assert.deepEqual(await readJsonBody(request(['{}']), 2), {});
+});
