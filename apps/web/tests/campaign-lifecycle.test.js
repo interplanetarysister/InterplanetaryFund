@@ -23,6 +23,8 @@ test("a complete campaign passes both draft and publish validation", () => {
 test("draft saving is allowed before the campaign is publishable", () => {
   const draft = { ...emptyCampaignForm(), title: "Work in progress" };
   assert.deepEqual(validateCampaignForm(draft), []);
+  assert.deepEqual(validateCampaignForm(emptyCampaignForm()), [], "step-one untitled draft is valid");
+  assert.ok(publishReadiness(emptyCampaignForm()).missing.some(item => /title/i.test(item)), "untitled campaign cannot publish");
   // The database constraint ifund_publish_complete is stricter than a save.
   const readiness = publishReadiness(draft);
   assert.equal(readiness.ready, false);
