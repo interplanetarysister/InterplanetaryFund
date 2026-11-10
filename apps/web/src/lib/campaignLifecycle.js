@@ -40,6 +40,8 @@ export function emptyCampaignForm() {
   return {
     title: "", summary: "", story: "",
     category: "community", goal_amount: "", cover_image_url: "",
+    end_date: "", location: "", location_lat: null, location_lng: null,
+    cover_image_is_ai: false, ai_profile: { tone: "", never_change: "" }, story_versions: [],
   };
 }
 
