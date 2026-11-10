@@ -66,6 +66,10 @@ export default function HackathonDemo() {
   }
   return <main className="mx-auto max-w-3xl space-y-7 px-4 py-10 pb-24">
     <header>
+      <nav aria-label="Demo navigation" className="mb-5 flex flex-wrap gap-3 text-sm">
+        <Link to="/" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold">IFund home</Link>
+        <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold">Browse campaigns</Link>
+      </nav>
       <p className="text-xs font-semibold uppercase tracking-[.22em] text-cyan-400">PayPal AI Hackathon · 2026</p>
       <h1 className="mt-3 text-3xl font-bold text-foreground">IFund PayPal + AI demo</h1>
       <p className="mt-3 text-muted-foreground">See how AI helps people prepare a fundraiser, then approve a sample donation through PayPal's free sandbox. No real money is collected here.</p>
@@ -73,7 +77,10 @@ export default function HackathonDemo() {
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">1. AI campaign preparation</h2>
       <p className="mt-2 text-sm text-muted-foreground">Open the existing AI writing workspace to draft and review campaign wording before publication. Availability depends on verified account access.</p>
-      <Link to="/agents" className="mt-3 inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Open AI writing workspace</Link>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <Link to="/agents" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Open AI writing workspace (sign-in required)</Link>
+        <Link to="/create" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Try campaign drafting as a guest</Link>
+      </div>
     </section>
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
       <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
