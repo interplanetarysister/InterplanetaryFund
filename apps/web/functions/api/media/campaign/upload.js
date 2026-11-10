@@ -36,8 +36,9 @@ export async function onRequest({ request, env }) {
   if (!env.IFUND_CAMPAIGN_MEDIA?.put || !env.IFUND_CAMPAIGN_MEDIA?.get) return json(503, { error: "Campaign image uploads are not configured for this preview." });
   const type = (request.headers.get("content-type") || "").toLowerCase().split(";")[0].trim();
   if (!Object.hasOwn(TYPES, type)) return json(415, { error: "Choose a PNG, JPG, WEBP, or GIF image." });
-  const declared = Number(request.headers.get("content-length"));
-  if (declared > LIMIT || declared === 0) return json(413, { error: "Images must be smaller than 5 MB." });
+  const lengthHeader = request.headers.get("content-length");
+  if (lengthHeader !== null && (!/^\\d+$/.test(lengthHeader) || Number(lengthHeader) > LIMIT || Number(lengthHeader) === 0))
+    return json(413, { error: "Images must be smaller than 5 MB." });
   let owner;
   try { owner = await authenticate(request, env); }
   catch { return json(503, { error: "Could not verify your account. Please retry." }); }
