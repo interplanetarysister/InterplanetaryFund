@@ -369,7 +369,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         </label>
         {!ownerId && <p className="text-sm text-muted-foreground">You can design the campaign as a guest. Sign in to upload and store your artwork.</p>}
         <p className="text-xs text-muted-foreground">JPG, PNG, WEBP or GIF, up to 5 MB. Files are hosted by iFund on Cloudflare R2 rather than Base44.</p>
-        {form.cover_image_is_ai && <p className="text-xs font-semibold">AI-generated illustration — not a documentary photograph.</p>
+        {form.cover_image_is_ai && <p className="text-xs font-semibold">AI-generated illustration — not a documentary photograph.</p>}
         {coverBusy && <p role="status">Uploading your artwork…</p>}
         {coverError && <p role="alert" className="text-destructive">{coverError}</p>}
         <label className="block font-semibold">Or use an existing image URL
