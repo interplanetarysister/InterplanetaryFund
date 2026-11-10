@@ -299,7 +299,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </div>}
       </fieldset>
     </section>}
-    {(step === 1 || step === 2) && <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className={`${step === 1 || step === 2 ? "" : "hidden"} space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8`}>
       <fieldset disabled={disabled} className="space-y-5">
       {step === 2 && <><label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
@@ -312,7 +312,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
-    </form>}
+    </form>
     {step === 3 && <section aria-label="Campaign launch preview" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <h2 className="text-xl font-semibold">Review your campaign</h2>
       {form.cover_image_url && <img src={form.cover_image_url} alt="Campaign cover preview" className="w-full max-h-80 rounded-xl object-contain" />}
