@@ -6,7 +6,7 @@ export async function onRequest({ request, env, params }) {
   if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
   const owner = String(params.owner || ""), file = String(params.file || "");
   if (!UUID.test(owner) || !FILE.test(file)) return new Response("Not found", { status: 404 });
-  if (!env.IFUND_CAMPAIGN_MEDIA?.get || env.IFUND_MEDIA_ENVIRONMENT !== "preview") return new Response("Media unavailable", { status: 503 });
+  if (!env.IFUND_CAMPAIGN_MEDIA?.get) return new Response("Media unavailable", { status: 503 });
   const key = "preview/campaigns/" + owner + "/" + file;
   try {
     const object = await env.IFUND_CAMPAIGN_MEDIA.get(key);
