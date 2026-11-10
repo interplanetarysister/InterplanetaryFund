@@ -28,7 +28,8 @@ function withAuth(t, { active = true, confirmed = true } = {}) {
   t.after(() => { globalThis.fetch = originalFetch; });
 }
 
-test("media endpoint rejects unauthenticated and mismatched content", async () => {
+test("media endpoint rejects unauthenticated and mismatched content", async (t) => {
+  withAuth(t);
   const bucket = { put: async () => { throw Error("unexpected write"); }, get: async () => null };
   const noAuth = new Request("https://preview.example/api/media/campaign/upload", {
     method: "POST", headers: { "content-type": "image/jpeg" }, body: jpeg,
