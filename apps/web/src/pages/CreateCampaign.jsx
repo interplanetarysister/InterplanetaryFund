@@ -215,7 +215,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {step === 0 && <section className="rounded-2xl border border-border bg-card p-5 sm:p-8 space-y-3">
       <h2 className="text-xl font-semibold">Tell us what matters</h2>
       <p className="text-sm text-muted-foreground">Start with what your fundraiser is about. You can explore the entire creator without signing in; saving and publishing require an account.</p>
-      <label className="block font-semibold">Your campaign idea
+      <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={6} maxLength={1500} value={draftDetails} onChange={e => setDraftDetails(e.target.value)}
           placeholder="Who are you helping, what happened, and what would donations accomplish?"
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
