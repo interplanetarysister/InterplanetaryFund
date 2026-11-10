@@ -50,3 +50,13 @@ test("unsigned webhooks are rejected before OAuth or any database writes",async(
   assert.equal(response.status,400);
   assert.equal((await response.json()).ok,false);
 });
+
+test("oversized webhook payload is rejected before provider verification",async()=>{
+  const request=new Request(origin+"/api/paypal/sandbox/webhook",{
+    method:"POST",headers:{"content-type":"application/json",origin},
+    body:"x".repeat(65537)
+  });
+  const result=await onRequest({request,env:fakeConfig,params:{path:["webhook"]}});
+  assert.equal(result.status,413);
+  assert.equal((await result.json()).ok,false);
+});
