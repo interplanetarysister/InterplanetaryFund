@@ -52,10 +52,11 @@ export default function Dashboard() {
     </header>
     <section className="rounded-2xl border border-border bg-card p-6">
       <h2 className="text-xl font-semibold">Your campaigns</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Your verified donations and campaign receipts are available in Finance. New campaign checkout and withdrawals remain disabled until payment verification is complete.</p>
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
       <Link to="/campaigns" className="mt-4 mr-5 inline-block text-primary underline">Manage your campaigns</Link>
-      <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
+      <Link to="/discover" className="mt-4 mr-5 inline-block text-primary underline">Explore campaigns</Link>
+      <Link to="/ledger" className="mt-4 inline-block text-primary underline">View your finances</Link>
     </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
