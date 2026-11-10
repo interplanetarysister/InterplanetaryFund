@@ -78,7 +78,7 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   const goal = text(value.goal_amount);
   const cover = text(value.cover_image_url);
 
-  if (!title) errors.push("Add a campaign title.");
+  if (!title && publish) errors.push("Add a campaign title.");
   else if (title.length > TITLE_MAX) errors.push(`Keep the title to ${TITLE_MAX} characters or fewer.`);
   if (summary.length > SUMMARY_MAX) errors.push(`Keep the short description to ${SUMMARY_MAX} characters or fewer.`);
   if (story.length > STORY_MAX) errors.push(`Keep the story to ${STORY_MAX} characters or fewer.`);
