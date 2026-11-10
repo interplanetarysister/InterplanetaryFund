@@ -330,6 +330,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <p className="text-sm text-muted-foreground">Campaign donations are currently paused.</p>
       {memberAccess ? actions : <MemberAccess>{actions}</MemberAccess>}
     </section>}
+    {step !== 3 && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-4">
+      <p className="text-sm text-muted-foreground">Your progress stays on this device until you save it to your account.</p>
+      <button type="button" onClick={() => save("draft")} disabled={disabled} className="min-h-12 rounded-xl border border-border px-5 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save private draft"}</button>
+    </div>}
+    {error && step !== 1 && step !== 2 && <p role="alert" className="text-destructive">{error}</p>}
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
       <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} className="min-h-12 rounded-xl border border-border px-6 disabled:opacity-40">Back</button>
       {step < 3 && <button type="button" onClick={() => setStep(s => Math.min(3, s + 1))} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground">Continue</button>}
