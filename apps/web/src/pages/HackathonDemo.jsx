@@ -18,6 +18,7 @@ export default function HackathonDemo() {
   const token = query.get("token");
   const approved = query.get("paypal")==="approved";
   const missingApprovalToken = approved && !token;
+  const sandboxReady = ready?.mode === "sandbox" && ready?.enabled === true && ready?.webhook_ready === true && ready?.live_payments_enabled === false;
   useEffect(() => {
     let alive=true;
     fetch("/api/paypal/sandbox/status",{cache:"no-store"})
@@ -43,7 +44,7 @@ export default function HackathonDemo() {
     return reply;
   }
   async function start() {
-    if(!campaignId||working)return;
+    if(!campaignId||working||!sandboxReady||approved)return;
     setWorking(true);setMessage("");setReceipt(null);
     try {
       const result=await post("orders",{campaign_id:campaignId,amount_cents:cents});
@@ -54,7 +55,7 @@ export default function HackathonDemo() {
     }catch(e){setMessage(e.message);setWorking(false)}
   }
   async function complete() {
-    if(!approved||!token||working)return;
+    if(!approved||!token||working||!sandboxReady)return;
     setWorking(true);setMessage("");
     try {
       const result=await post("capture",{order_id:token});
@@ -91,11 +92,11 @@ export default function HackathonDemo() {
     </section>
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
       <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
-        <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals.</p></div>
+        <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals. Sandbox checkout is disabled unless the server explicitly confirms sandbox-only readiness.</p></div>
       {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
       {missingApprovalToken&&<p role="alert" className="rounded-lg border border-amber-500/40 p-3 text-sm">PayPal returned without an order token. No payment has been captured. Start a new sandbox checkout; do not treat this approval as a donation.</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
-        (!ready.enabled || !ready.webhook_ready) ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is unavailable until PayPal sandbox credentials, webhook verification, and the server-side feature gate are configured. No sample payment can be captured yet.</p> : null}
+        (!sandboxReady) ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is unavailable until PayPal sandbox credentials, webhook verification, and the server-side feature gate are configured. No sample payment can be captured yet.</p> : null}
       {campaignLoading&&<p role="status" className="text-sm text-muted-foreground">Loading active campaigns…</p>}
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
       {!campaignLoading&&!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
@@ -112,14 +113,14 @@ export default function HackathonDemo() {
           <option value={100}>$1.00</option><option value={500}>$5.00</option><option value={1000}>$10.00</option>
         </select>
       </label>
-      <button type="button" onClick={start} disabled={!ready?.enabled||!ready?.webhook_ready||campaignLoading||!campaignId||working}
+      <button type="button" onClick={start} disabled={!sandboxReady||campaignLoading||!campaignId||working||approved}
         className="min-h-12 w-full rounded-xl bg-[#FFC439] px-4 font-semibold text-[#003087] disabled:opacity-50">
         {working?"Connecting to PayPal…":"Approve sandbox payment with PayPal"}
       </button>
       {query.get("paypal")==="cancelled"&&<p role="status">The sample payment was cancelled. No donation was recorded.</p>}
       {approved&&token&&<div className="rounded-xl border p-4">
-        <p className="text-sm">PayPal returned from approval. Capture must now be verified on the server.</p>
-        <button disabled={working||!!receipt} onClick={complete} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">Verify and capture sample payment</button>
+        <p className="text-sm">PayPal returned from approval. This is not a completed donation. Capture must now be verified on the server.</p>
+        <button disabled={working||!!receipt||!sandboxReady} onClick={complete} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">Verify and capture sample payment</button>
       </div>}
       {receipt&&<div role="status" className="rounded-xl border border-cyan-500/40 p-4">
         <p className="font-semibold">Verified PayPal sandbox receipt</p>
