@@ -32,6 +32,18 @@ This guide is intentionally **not** a certification of a functioning payment dem
 4. Register the exact deployed preview webhook URL `https://<actual-preview-host>/api/paypal/sandbox/webhook` with the PayPal **sandbox** app. Save the provider-assigned webhook ID as a secret binding.
 5. Only after the above, enable `IFUND_PAYPAL_SANDBOX_ENABLED=enabled` on preview. Check `/api/paypal/sandbox/status`; if unavailable, disabled, or unhealthy, stop and report the demo as blocked.
 
+
+## Preview smoke checks (safe, read-only)
+Run these against the **actual Cloudflare deployment URL** after checking its build SHA and Pages Functions routing. A DNS failure, HTML SPA fallback, or HTTP 200 alone does not prove the API is functioning. Never paste private keys or sandbox buyer credentials into these commands.
+
+```bash
+PREVIEW_ORIGIN='https://REPLACE-WITH-VERIFIED-PREVIEW-HOST'
+curl --fail-with-body --show-error --location --max-time 20 "$PREVIEW_ORIGIN/hackathon"
+curl --show-error --include --max-time 20 "$PREVIEW_ORIGIN/api/paypal/sandbox/status"
+```
+
+Inspect the second response's **HTTP status, Content-Type, and parsed JSON status**, and confirm it comes from the sandbox status Function rather than the SPA's index.html. A disabled status is a valid fail-closed outcome, **not** a passed checkout test. Do not issue `/orders`, `/capture`, or webhook POST requests until an authorized sandbox test operator has configured matching sandbox credentials and the isolated database migration. Preserve redacted request/response evidence and provider-side records; do not publicly log access tokens or payment identifiers tied to people.
+
 ## Judge walkthrough (only after hosted verification)
 1. Open the **verified** preview `/hackathon` route; confirm the app loads on desktop and mobile.
 2. Demonstrate a real AI campaign-drafting action. Record input, generated output, and an actual saved draft where permitted. Clearly distinguish implemented AI from static samples.
