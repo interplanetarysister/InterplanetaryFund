@@ -65,7 +65,7 @@ Inspect the second response's **HTTP status, Content-Type, and parsed JSON statu
 | Cloudflare preview deployment provenance | `16cfa7ed.interplanetaryfund-migration.pages.dev` · deployment `16cfa7ed-4151-4d22-9cc5-6f0a4ed76161` · source `0a9b0e1fd5287616dcc6a1e308ed9a33efc8f585` · deploy/success at 2026-11-10 14:02:40 UTC (see compliance ledger) | Deployment metadata verified; HTTP routes/functions unverified |
 | Real sandbox order and capture | Pending | Unverified |
 | Signed webhook and deduplication | Pending | Unverified |
-| Isolated Supabase receipt / RLS | Pending | Unverified |
+| Isolated Supabase receipt / RLS | Supabase project `ssibsfmtodgximseeqsv`, catalog inspection 2026-11-10 12:19 Pacific: both sandbox tables exist, RLS enabled, zero policies, anon/authenticated SELECT and INSERT privileges denied; both tables contained 0 rows (see compliance ledger) | Catalog-level isolation verified; negative API tests and real provider-backed receipt still unverified |
 | Hosted AI drafting | Pending | Unverified |
 | Public YouTube video (<3 minutes) | Pending | Unverified |
 | Devpost submission receipt | Pending | Unverified |
