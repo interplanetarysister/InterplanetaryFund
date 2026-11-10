@@ -62,7 +62,7 @@ Inspect the second response's **HTTP status, Content-Type, and parsed JSON statu
 ## Evidence register
 | Gate | Evidence URL / identifier | Result |
 | --- | --- | --- |
-| Hosted preview and build SHA | Pending live verification | Unverified |
+| Cloudflare preview deployment provenance | `16cfa7ed.interplanetaryfund-migration.pages.dev` · deployment `16cfa7ed-4151-4d22-9cc5-6f0a4ed76161` · source `0a9b0e1fd5287616dcc6a1e308ed9a33efc8f585` · deploy/success at 2026-11-10 14:02:40 UTC (see compliance ledger) | Deployment metadata verified; HTTP routes/functions unverified |
 | Real sandbox order and capture | Pending | Unverified |
 | Signed webhook and deduplication | Pending | Unverified |
 | Isolated Supabase receipt / RLS | Pending | Unverified |
