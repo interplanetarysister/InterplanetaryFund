@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { UserRound, Target, BookOpen, Rocket, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
+import { uploadCampaignCover } from "@/api/campaignMedia";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
 import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
@@ -68,6 +69,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
   });
   const [busy, setBusy] = useState(false);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverError, setCoverError] = useState("");
   const [handoffBusy, setHandoffBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -166,9 +169,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }); }
     catch { /* session storage unavailable */ }
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
-  const disabled = Boolean(busy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  const disabled = Boolean(busy || coverBusy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
+  async function uploadCover(file) {
+    if (!file || coverBusy || disabled) return;
+    setCoverBusy(true); setCoverError("");
+    try {
+      const url = await uploadCampaignCover(authClient(), file);
+      if (!alive.current) return;
+      change("cover_image_url", url);
+    } catch (error) {
+      if (alive.current) setCoverError(error?.message || "The image upload failed.");
+    } finally { if (alive.current) setCoverBusy(false); }
+  }
   async function save(status) {
     if (saveLock.current || disabled) return;
     const problems = validateCampaignForm(form, { publish: status === "active" });
@@ -310,10 +324,26 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {step === 2 && <><label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Your story<textarea aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <div className="space-y-3 rounded-xl border border-border p-4" aria-label="Campaign cover artwork">
+        <h3 className="font-semibold">Campaign artwork</h3>
+        {form.cover_image_url && <img src={form.cover_image_url} alt="Current campaign cover" className="max-h-72 w-full rounded-lg object-contain" />}
+        <label className="block font-semibold">Upload your own photo
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" disabled={disabled || coverBusy || !ownerId}
+            onChange={event => { const file = event.target.files?.[0]; event.target.value = ""; uploadCover(file); }}
+            className="mt-2 block w-full rounded-xl border border-input bg-background p-3 text-sm" />
+        </label>
+        {!ownerId && <p className="text-sm text-muted-foreground">You can design the campaign as a guest. Sign in to upload and store your artwork.</p>}
+        <p className="text-xs text-muted-foreground">JPG, PNG, WEBP or GIF, up to 5 MB. Files are hosted by iFund on Cloudflare R2 rather than Base44.</p>
+        {coverBusy && <p role="status">Uploading your artwork…</p>}
+        {coverError && <p role="alert" className="text-destructive">{coverError}</p>}
+        <label className="block font-semibold">Or use an existing image URL
+          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+        </label>
+      </div>
       </>}
       {step === 1 && <><label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+
       </>}
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
