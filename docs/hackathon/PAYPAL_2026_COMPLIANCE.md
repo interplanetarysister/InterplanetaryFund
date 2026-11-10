@@ -38,3 +38,7 @@
 **Security:** A PayPal client ID is publicly identifiable; the matching client secret and webhook validation are essential. Never publish sandbox buyer passwords, PayPal secrets, credentials or service keys in README, public repository, screenshots, logs, or demo submissions. Give judge access via a test environment with controlled credentials transmitted securely.
 
 **Architecture:** Existing Base44 app publishes at `interplanetaryfund.base44.app`; Cloudflare/Supabase owns `interplanetaryfund.com`. No Base44 dependency or domain reintroduction is permitted.
+
+## Cloudflare authenticated deployment provenance — 2026-11-10 06:29 Pacific
+
+Cloudflare Pages project `interplanetaryfund-migration` is connected to `interplanetarysister/InterplanetaryFund`, with configured `root_dir=apps/web`, `build_command=npm ci --no-audit --no-fund && npm test && npm run build`, and `destination_dir=dist`. `production_deployments_enabled=false` at inspection time. The most recent inspected **preview** deployment was `16cfa7ed-4151-4d22-9cc5-6f0a4ed76161` (`https://16cfa7ed.interplanetaryfund-migration.pages.dev`), commit `0a9b0e1fd5287616dcc6a1e308ed9a33efc8f585` on the sandbox-compliance branch, Cloudflare stage `deploy/success` ending 2026-11-10 14:02:40 UTC. This verifies deployment metadata **only**; it does not verify public DNS reachability, `/hackathon` rendering, Pages Functions, PayPal capture/webhooks, or live AI generation. Those gates remain unchecked until direct functional evidence exists.
