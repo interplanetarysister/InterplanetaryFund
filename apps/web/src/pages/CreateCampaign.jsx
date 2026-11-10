@@ -252,6 +252,18 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">What is needed? (optional)
         <input maxLength={100} value={draftNeed} onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
+      <details className="rounded-xl border border-border p-4">
+        <summary className="cursor-pointer font-semibold">Your AI writing instructions (optional)</summary>
+        <div className="mt-3 space-y-3">
+          <label className="block font-semibold">Preferred writing tone
+            <input maxLength={200} value={form.ai_profile?.tone || ""} onChange={e => changeAi("tone",e.target.value)} placeholder="Hopeful, direct, professional…" className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"/>
+          </label>
+          <label className="block font-semibold">Facts or wording the AI must preserve
+            <textarea maxLength={2000} rows={3} value={form.ai_profile?.never_change || ""} onChange={e => changeAi("never_change",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4"/>
+          </label>
+          <p className="text-xs text-muted-foreground">These instructions are saved privately with your campaign. Review every AI suggestion before publishing.</p>
+        </div>
+      </details>
     </section>}
     {step === 2 && <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />}
     {step === 2 && <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
@@ -336,6 +348,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {step === 2 && <><label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Your story<textarea aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      {form.story_versions?.length > 0 && <details className="rounded-xl border border-border p-4">
+        <summary className="cursor-pointer font-semibold">Previous story versions ({form.story_versions.length})</summary>
+        <div className="mt-3 space-y-3">
+          {form.story_versions.slice(-5).reverse().map((revision,index) =>
+            <div key={index} className="rounded-lg border border-border p-3">
+              <p className="line-clamp-3 whitespace-pre-wrap text-sm">{revision.text}</p>
+              <button type="button" onClick={() => applyStoryCopy(revision.text)} className="mt-2 rounded-lg border border-border px-4 py-2">Restore this version</button>
+            </div>
+          )}
+        </div>
+      </details>}
       <div className="space-y-3 rounded-xl border border-border p-4" aria-label="Campaign cover artwork">
         <h3 className="font-semibold">Campaign artwork</h3>
         {form.cover_image_url && <img src={form.cover_image_url} alt="Current campaign cover" className="max-h-72 w-full rounded-lg object-contain" />}
@@ -346,16 +369,27 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         </label>
         {!ownerId && <p className="text-sm text-muted-foreground">You can design the campaign as a guest. Sign in to upload and store your artwork.</p>}
         <p className="text-xs text-muted-foreground">JPG, PNG, WEBP or GIF, up to 5 MB. Files are hosted by iFund on Cloudflare R2 rather than Base44.</p>
+        {form.cover_image_is_ai && <p className="text-xs font-semibold">AI-generated illustration — not a documentary photograph.</p>
         {coverBusy && <p role="status">Uploading your artwork…</p>}
         {coverError && <p role="alert" className="text-destructive">{coverError}</p>}
         <label className="block font-semibold">Or use an existing image URL
-          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>{ setSaved(""); setForm(prev=>({ ...prev, cover_image_url:e.target.value, cover_image_is_ai:false })); }} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
         </label>
       </div>
       </>}
       {step === 1 && <><label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-
+      <details className="rounded-xl border border-border p-4">
+        <summary className="cursor-pointer font-semibold">Add extras (optional)</summary>
+        <div className="mt-3 space-y-4">
+          <label className="block font-semibold">Campaign deadline
+            <input type="date" value={form.end_date || ""} onChange={e=>change("end_date",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          </label>
+          <label className="block font-semibold">Where is this happening?
+            <input maxLength={160} value={form.location || ""} onChange={e=>change("location",e.target.value)} placeholder="City, state or region" className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          </label>
+        </div>
+      </details>
       </>}
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
