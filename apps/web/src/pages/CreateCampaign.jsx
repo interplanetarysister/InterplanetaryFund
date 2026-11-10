@@ -78,6 +78,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
+  const [step, setStep] = useState(0);
+  const steps = ["Your Details", "Basics", "Your Story", "Launch"];
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -199,8 +201,28 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Write your story, save a private draft, or publish it to Discover when you’re ready. You can start writing before signing in.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
-    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
-    <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+    <nav aria-label="Campaign creation steps" className="grid grid-cols-4 gap-2" role="list">
+      {steps.map((label, index) => <button key={label} type="button" role="listitem" aria-current={step === index ? "step" : undefined}
+        className={`min-h-14 rounded-xl border px-2 py-3 text-xs sm:text-sm font-semibold ${step === index ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground"}`}
+        onClick={() => setStep(index)}>{index + 1}. {label}</button>)}
+    </nav>
+    {step === 0 && <section className="rounded-2xl border border-border bg-card p-5 sm:p-8 space-y-3">
+      <h2 className="text-xl font-semibold">Tell us what matters</h2>
+      <p className="text-sm text-muted-foreground">Start with what your fundraiser is about. You can explore the entire creator without signing in; saving and publishing require an account.</p>
+      <label className="block font-semibold">Your campaign idea
+        <textarea rows={6} maxLength={1500} value={draftDetails} onChange={e => setDraftDetails(e.target.value)}
+          placeholder="Who are you helping, what happened, and what would donations accomplish?"
+          className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
+      </label>
+      <label className="block font-semibold">Who benefits? (optional)
+        <input maxLength={100} value={draftBeneficiary} onChange={e => setDraftBeneficiary(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+      </label>
+      <label className="block font-semibold">What is needed? (optional)
+        <input maxLength={100} value={draftNeed} onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+      </label>
+    </section>}
+    {step === 2 && <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />}
+    {step === 2 && <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
       <fieldset className="space-y-3">
@@ -276,20 +298,30 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         </details>}
       </div>}
       </fieldset>
-    </section>
-    <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    </section>}
+    {(step === 1 || step === 2) && <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <fieldset disabled={disabled} className="space-y-5">
-      <label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      {step === 2 && <><label className="block font-semibold">Campaign title<input required maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Your story<textarea aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
+      </>}
+      {step === 1 && <><label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      </>}
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
-    </form>
-    <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    </form>}
+    {step === 3 && <section aria-label="Campaign launch preview" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
+      <h2 className="text-xl font-semibold">Review your campaign</h2>
+      {form.cover_image_url && <img src={form.cover_image_url} alt="Campaign cover preview" className="w-full max-h-80 rounded-xl object-contain" />}
+      <h3 className="text-2xl font-semibold break-words">{form.title || "Untitled campaign"}</h3>
+      <p className="text-muted-foreground whitespace-pre-wrap">{form.summary || "Add a short description in Your Story."}</p>
+      <p className="text-sm">Category: {categoryLabels[form.category] || form.category} · Goal: ${Number(form.goal_amount || 0).toLocaleString("en-US")}</p>
+      <p className="whitespace-pre-wrap break-words">{form.story || "Add your story before publishing."}</p>
+    </section>}
+    {step === 3 && <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
         {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>
@@ -297,6 +329,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </div>
       <p className="text-sm text-muted-foreground">Campaign donations are currently paused.</p>
       {memberAccess ? actions : <MemberAccess>{actions}</MemberAccess>}
-    </section>
+    </section>}
+    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+      <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} className="min-h-12 rounded-xl border border-border px-6 disabled:opacity-40">Back</button>
+      {step < 3 && <button type="button" onClick={() => setStep(s => Math.min(3, s + 1))} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground">Continue</button>}
+    </div>
   </main>;
 }
