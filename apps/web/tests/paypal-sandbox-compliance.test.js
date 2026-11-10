@@ -46,8 +46,8 @@ test("sandbox preview hostname regex accepts the deployed Pages host",async()=>{
   const fs=await import("node:fs/promises");
   const source=await fs.readFile(new URL("../functions/api/paypal/sandbox/[[path]].js",import.meta.url),"utf8");
   // A JS regex literal needs a single backslash before each literal dot.
-  assert.ok(source.includes(String.raw`/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/`));
-  const hostPattern=/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/;
+  assert.ok(source.includes(String.raw`/^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/`));
+  const hostPattern=/^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/;
   assert.equal(hostPattern.test("a213266c.interplanetaryfund-migration.pages.dev"),true);
   assert.equal(hostPattern.test("attacker.interplanetaryfund-migrationXpages.dev"),false);
 });
