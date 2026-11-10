@@ -12,6 +12,9 @@ export function campaignSetupPayload(form, draftStep = 0) {
   const versions = Array.isArray(form?.story_versions) ? form.story_versions
     .filter(v => typeof v?.text === "string" && v.text.trim())
     .slice(-20).map(v => ({ text: v.text.slice(0, 15000), saved_at: cleanText(v.saved_at, 50) })) : [];
+  // Keep the JSON below the database limit even after many long story rewrites.
+  while (versions.length && new TextEncoder().encode(JSON.stringify(versions)).length > 180000)
+    versions.shift();
   const latitude = form?.location_lat === "" || form?.location_lat == null ? null : Number(form.location_lat);
   const longitude = form?.location_lng === "" || form?.location_lng == null ? null : Number(form.location_lng);
   return {
