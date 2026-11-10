@@ -55,6 +55,29 @@ export function mapCampaign(row = {}) {
   };
 }
 
+// Only provider-verified captures count. The security-definer RPC enforces
+// active campaigns and canonical confirmed gifts, with no sample payments.
+async function attachVerifiedFunding(rows) {
+  if (!rows.length) return [];
+  const ids = rows.map(row => row.id);
+  const { data, error } = await supabase().rpc("ifund_public_campaign_funding_totals", { p_campaign_ids: ids });
+  if (error || !Array.isArray(data)) throw new Error("Verified campaign funding is unavailable.");
+  const totals = new Map();
+  for (const entry of data) {
+    if (!ids.includes(entry.campaign_id)) throw new Error("Unexpected funding response.");
+    const amount = Number(entry.raised_amount);
+    const donors = Number(entry.donor_count);
+    if (!Number.isFinite(amount) || amount < 0 || !Number.isSafeInteger(donors) || donors < 0)
+      throw new Error("Invalid verified campaign funding totals.");
+    totals.set(entry.campaign_id, { amount, donors });
+  }
+  return rows.map(row => {
+    const funding = totals.get(row.id);
+    if (!funding) throw new Error("Verified campaign totals were incomplete.");
+    return { ...mapCampaign(row), raised_amount: funding.amount, donor_count: funding.donors };
+  });
+}
+
 export async function listActiveCampaigns({ limit = 100 } = {}) {
   const max = Math.min(500, Math.max(1, Number(limit) || 100));
   const { data, error } = await supabase()
@@ -65,20 +88,7 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
     .order("id", { ascending: false })
     .limit(max);
   if (error) throw error;
-  const campaigns = (data || []).map(mapCampaign);
-  if (!campaigns.length) return campaigns;
-  const { data: totals, error: totalsError } = await supabase()
-    .from("ifund_campaign_funding_totals")
-    .select("campaign_id,captured_gift_cents,donor_count")
-    .in("campaign_id", campaigns.map(c => c.id));
-  if (totalsError) return campaigns; // Never fabricate totals on failed finance reads.
-  const byId = new Map((totals || []).map(row => [row.campaign_id, row]));
-  return campaigns.map(c => {
-    const row = byId.get(c.id);
-    return { ...c,
-      raised_amount: row ? Number(row.captured_gift_cents) / 100 : 0,
-      donor_count: row ? Number(row.donor_count) : 0 };
-  });
+  return attachVerifiedFunding(data || []);
 }
 
 export async function getCampaignDetail(id) {
@@ -92,18 +102,8 @@ export async function getCampaignDetail(id) {
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const mapped = mapCampaign(data);
-  const { data: finance, error: financeError } = await supabase()
-    .from("ifund_campaign_funding_totals")
-    .select("captured_gift_cents,donor_count")
-    .eq("campaign_id", id)
-    .maybeSingle();
-  if (financeError) return mapped; // Fail closed rather than inventing amounts.
-  return {
-    ...mapped,
-    raised_amount: finance ? Number(finance.captured_gift_cents) / 100 : 0,
-    donor_count: finance ? Number(finance.donor_count) : 0,
-  };
+  const funding = await attachVerifiedFunding([data]);
+  return funding[0];
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
