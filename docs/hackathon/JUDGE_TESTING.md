@@ -9,7 +9,24 @@ This guide is intentionally **not** a certification of a functioning payment dem
 - Never use live PayPal credentials or a live buyer for this demonstration.
 
 ## Reproducible setup (maintainer)
-1. Clone the deployable repository at a recorded commit SHA. Follow the root README for its current package manager, install and build commands; verify the commands on a clean checkout before claiming reproducibility.
+1. Clone the deployable repository at a recorded commit SHA, using Node.js 22 and npm. The repository has **two distinct Vite frontends**. Reproduce both locally using the commands below, and record the commit SHA and results. These are repository-declared commands, **not a claim that a clean-room build has already passed**.
+
+   ```bash
+   git clone https://github.com/interplanetarysister/InterplanetaryFund.git
+   cd InterplanetaryFund
+   git checkout feature/paypal-hackathon-sandbox-compliance-20261109
+   git rev-parse HEAD
+   npm ci --no-audit --no-fund
+   npm test
+   npm run build
+   cd apps/web
+   npm ci --no-audit --no-fund
+   npm test
+   npm run build
+   test -f dist/_redirects && test -f dist/_headers
+   ```
+
+   The root app and `apps/web` are not interchangeable: the manual Pages workflow builds `apps/web/dist`, while the hackathon Pages Functions and `/hackathon` route must be checked against the **actual Cloudflare Git deployment build root and artifact**. Do not assume a successful build of one frontend proves the other is deployed. Never publish a bundle missing its expected Functions/routes.
 2. Provision an authorized Cloudflare **preview** deployment, not production. Configure server-only encrypted bindings for matching sandbox PayPal client ID/secret, sandbox webhook ID, Supabase URL and server secret. Do not place these in Vite public variables or source control.
 3. Review and apply `supabase/migrations/20261109_ifund_paypal_hackathon_sandbox_isolation.sql` in the intended Supabase environment; verify anonymous/authenticated clients cannot read sandbox order/event tables.
 4. Register the exact deployed preview webhook URL `https://<actual-preview-host>/api/paypal/sandbox/webhook` with the PayPal **sandbox** app. Save the provider-assigned webhook ID as a secret binding.
