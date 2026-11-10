@@ -33,6 +33,8 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_workforce_runtime.finish",
   "ifund_workforce_runtime.cancel_queued",
   "public.ifund_studio_consume_ai_quota",
+  // Worker service-role only; atomically persists encrypted provider tokens and a verified connection receipt.
+  "public.ifund_store_provider_connection",
   "ifund_private.ifund_studio_capture_page_version",
   // Story contracts reviewed independently in PR #210. These private functions
   // enforce confirmed identity, current membership/consent, owner scope and

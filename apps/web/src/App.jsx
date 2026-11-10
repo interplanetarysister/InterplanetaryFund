@@ -29,6 +29,7 @@ const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
+const ProviderOAuthCallback = lazy(() => import("./pages/Connections").then((module) => ({ default: module.ProviderOAuthCallback })));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
@@ -76,6 +77,7 @@ function AppRoutes() {
     <Route path="/forgot-password" element={<AuthPage key="forgot-password" mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/oauth/callback/:provider" element={<ProviderOAuthCallback />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
