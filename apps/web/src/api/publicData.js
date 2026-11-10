@@ -72,9 +72,9 @@ async function attachVerifiedFunding(rows) {
     totals.set(entry.campaign_id, { amount, donors });
   }
   return rows.map(row => {
-    const funding = totals.get(row.id);
-    if (!funding) throw new Error("Verified campaign totals were incomplete.");
-    return { ...mapCampaign(row), raised_amount: funding.amount, donor_count: funding.donors };
+    const progress = totals.get(row.id);
+    if (!progress) throw new Error("Verified campaign totals were incomplete.");
+    return { ...mapCampaign(row), raised_amount: progress.amount, donor_count: progress.donors };
   });
 }
 
