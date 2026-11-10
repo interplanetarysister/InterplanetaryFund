@@ -99,7 +99,7 @@ Deno.serve(async req=>{
     if(body.op==="reverse"){
       const p=body.data||{};
       const r=await db("rpc/ifund_reverse_verified_live_paypal_capture","POST",{
-        p_capture_id:p.paypal_capture_id,p_paypal_event_id:p.paypal_event_id,p_event_type:p.event_type});
+        p_capture_id:p.paypal_capture_id,p_paypal_event_id:p.paypal_event_id,p_event_type:p.event_type,p_refunded_cents:p.refunded_cents});
       return Response.json({ok:true,donation_id:r});
     }
     return fail("Unsupported operation",404);
