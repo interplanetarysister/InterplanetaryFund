@@ -65,7 +65,20 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
     .order("id", { ascending: false })
     .limit(max);
   if (error) throw error;
-  return (data || []).map(mapCampaign);
+  const campaigns = (data || []).map(mapCampaign);
+  if (!campaigns.length) return campaigns;
+  const { data: totals, error: totalsError } = await supabase()
+    .from("ifund_campaign_funding_totals")
+    .select("campaign_id,captured_gift_cents,donor_count")
+    .in("campaign_id", campaigns.map(c => c.id));
+  if (totalsError) return campaigns; // Never fabricate totals on failed finance reads.
+  const byId = new Map((totals || []).map(row => [row.campaign_id, row]));
+  return campaigns.map(c => {
+    const row = byId.get(c.id);
+    return { ...c,
+      raised_amount: row ? Number(row.captured_gift_cents) / 100 : 0,
+      donor_count: row ? Number(row.donor_count) : 0 };
+  });
 }
 
 export async function getCampaignDetail(id) {
@@ -78,7 +91,19 @@ export async function getCampaignDetail(id) {
     .eq("status", "active")
     .maybeSingle();
   if (error) throw error;
-  return data ? mapCampaign(data) : null;
+  if (!data) return null;
+  const mapped = mapCampaign(data);
+  const { data: finance, error: financeError } = await supabase()
+    .from("ifund_campaign_funding_totals")
+    .select("captured_gift_cents,donor_count")
+    .eq("campaign_id", id)
+    .maybeSingle();
+  if (financeError) return mapped; // Fail closed rather than inventing amounts.
+  return {
+    ...mapped,
+    raised_amount: finance ? Number(finance.captured_gift_cents) / 100 : 0,
+    donor_count: finance ? Number(finance.donor_count) : 0,
+  };
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
