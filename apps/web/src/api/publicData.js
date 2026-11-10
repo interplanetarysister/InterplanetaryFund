@@ -55,6 +55,31 @@ export function mapCampaign(row = {}) {
   };
 }
 
+// Authoritative public totals come from provider-verified captured donation
+// records. Never manufacture progress from a campaign goal or demo payment.
+async function attachVerifiedFunding(rows) {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const { data, error } = await supabase().rpc("ifund_public_campaign_funding_totals", { p_campaign_ids: ids });
+  if (error || !Array.isArray(data)) {
+    throw new Error("Verified campaign donation totals are unavailable.");
+  }
+  const totals = new Map();
+  for (const t of data) {
+    if (!ids.includes(t.campaign_id)) throw new Error("Campaign funding response was not verified.");
+    const amount = Number(t.raised_amount), count = Number(t.donor_count);
+    if (!Number.isFinite(amount) || amount < 0 || !Number.isSafeInteger(count) || count < 0) {
+      throw new Error("Campaign funding response was invalid.");
+    }
+    totals.set(t.campaign_id, { amount, count });
+  }
+  return rows.map((row) => {
+    const progress = totals.get(row.id);
+    if (!progress) throw new Error("Campaign donation totals were incomplete.");
+    return { ...mapCampaign(row), raised_amount: progress.amount, donor_count: progress.count };
+  });
+}
+
 export async function listActiveCampaigns({ limit = 100 } = {}) {
   const max = Math.min(500, Math.max(1, Number(limit) || 100));
   const { data, error } = await supabase()
@@ -65,7 +90,7 @@ export async function listActiveCampaigns({ limit = 100 } = {}) {
     .order("id", { ascending: false })
     .limit(max);
   if (error) throw error;
-  return (data || []).map(mapCampaign);
+  return attachVerifiedFunding(data || []);
 }
 
 export async function getCampaignDetail(id) {
@@ -78,7 +103,9 @@ export async function getCampaignDetail(id) {
     .eq("status", "active")
     .maybeSingle();
   if (error) throw error;
-  return data ? mapCampaign(data) : null;
+  if (!data) return null;
+  const funding = await attachVerifiedFunding([data]);
+  return funding[0];
 }
 
 export async function listRelatedCampaigns(category, excludeId, max = 3) {
