@@ -48,3 +48,55 @@ export function confirmedWebhookResource(event, orderRecord) {
   }
   return { type, eventId: event.id, captureId: resource.id, status: "verified" };
 }
+
+const cookieName = orderId => {
+  if (!validId(orderId)) throw new SandboxVerificationError("Invalid order ID");
+  return "ifund_sandbox_" + orderId;
+};
+const toHex = bytes => Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+export async function checkoutTokenHash(token) {
+  if (typeof token !== "string" || !/^[a-f0-9]{64}$/.test(token)) throw new SandboxVerificationError("Invalid checkout token");
+  return toHex(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token))));
+}
+export async function issueCheckoutBinding(orderId) {
+  const name=cookieName(orderId);
+  const token=toHex(crypto.getRandomValues(new Uint8Array(32)));
+  const hash=await checkoutTokenHash(token);
+  return {
+    checkoutTokenHash:hash,
+    setCookie:`${name}=${token}; HttpOnly; Secure; SameSite=Lax; Path=/api/paypal/sandbox; Max-Age=3600`
+  };
+}
+export async function requireCheckoutSession(request, orderRecord) {
+  if (request.method !== "POST" || new URL(request.url).protocol !== "https:" ||
+      request.headers.get("origin") !== new URL(request.url).origin)
+    throw new SandboxVerificationError("Invalid checkout request origin");
+  const name=cookieName(orderRecord?.paypal_order_id);
+  const token=(request.headers.get("cookie")||"").split(";").map(c=>c.trim())
+    .find(c=>c.startsWith(name+"="))?.slice(name.length+1);
+  if (!token || !/^[a-f0-9]{64}$/.test(orderRecord?.checkout_token_hash||""))
+    throw new SandboxVerificationError("Checkout session missing");
+  const presented=await checkoutTokenHash(token);
+  const expected=orderRecord.checkout_token_hash;
+  let difference=0;
+  for(let i=0;i<64;i++) difference |= presented.charCodeAt(i)^expected.charCodeAt(i);
+  if(difference!==0) throw new SandboxVerificationError("Checkout session mismatch");
+  return true;
+}
+export function atomicCaptureUpdateFilter(record) {
+  if (!validId(record?.paypal_order_id) || !/^[a-f0-9]{64}$/.test(record.checkout_token_hash||""))
+    throw new SandboxVerificationError("Unbound capture attempt");
+  return "?paypal_order_id=eq."+encodeURIComponent(record.paypal_order_id)+
+    "&checkout_token_hash=eq."+record.checkout_token_hash+
+    "&status=eq.created&paypal_capture_id=is.null";
+}
+export function associatedCaptureWebhook(event, orderRecord) {
+  if(event?.event_type!=="PAYMENT.CAPTURE.COMPLETED" ||
+     event?.resource?.supplementary_data?.related_ids?.order_id!==orderRecord?.paypal_order_id)
+    throw new SandboxVerificationError("Webhook order association missing");
+  if (event.resource.amount?.currency_code!=="USD" ||
+      event.resource.amount?.value!==expectedAmount(orderRecord.gift_cents) ||
+      !validId(event.resource.id))
+    throw new SandboxVerificationError("Webhook capture mismatch");
+  return {orderId:orderRecord.paypal_order_id,captureId:event.resource.id};
+}
