@@ -26,6 +26,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
+const MyGiving = lazy(() => import("./pages/MyGiving"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
@@ -53,7 +54,7 @@ const STANDALONE_COMING_SOON = [
 ];
 const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
-  "/giving", "/communications", "/mission", "/ai-images",
+  "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices",
   "/donors", "/ledger", "/subscriptions", "/withdrawals",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
@@ -90,6 +91,7 @@ function AppRoutes() {
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
+      <Route path="/giving" element={<MemberAccess><MyGiving /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
