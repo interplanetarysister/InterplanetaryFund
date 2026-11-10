@@ -50,8 +50,8 @@ Pre-migration Convex / Vercel / FundForge code remains historical reference mate
 Before publishing or making production changes, review:
 
 1. `apps/web/DEPLOYMENT-GATES.md`
-2. Migration issue **#137**
-3. Migration pull request **#165**
+2. [Authoritative migration issue #203](https://github.com/interplanetarysister/InterplanetaryFund/issues/203)
+3. [Hackathon verification ledger](docs/hackathon/PAYPAL_2026_COMPLIANCE.md)
 
 Use the **canonical Supabase project** and **Cloudflare account** only after verifying the intended environment and required approval gates.
 
@@ -74,6 +74,7 @@ This is done via repository settings or an authorized GitHub repository-administ
 ```bash
 git clone https://github.com/interplanetarysister/InterplanetaryFund.git
 cd InterplanetaryFund
+```
 
 Follow the instructions in the relevant apps/ and documentation folders, and respect all deployment gates before any production-related actions.
 
