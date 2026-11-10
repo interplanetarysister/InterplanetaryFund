@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { UserRound, Target, BookOpen, Rocket, ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
@@ -79,7 +80,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
   const [step, setStep] = useState(0);
-  const steps = ["Your Details", "Basics", "Your Story", "Launch"];
+  const steps = [{ label: "Your Details", Icon: UserRound }, { label: "Basics", Icon: Target }, { label: "Your Story", Icon: BookOpen }, { label: "Launch", Icon: Rocket }];
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
@@ -201,11 +202,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Write your story, save a private draft, or publish it to Discover when you’re ready. You can start writing before signing in.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
-    <nav aria-label="Campaign creation steps" className="grid grid-cols-4 gap-2" role="list">
-      {steps.map((label, index) => <button key={label} type="button" role="listitem" aria-current={step === index ? "step" : undefined}
-        className={`min-h-14 rounded-xl border px-2 py-3 text-xs sm:text-sm font-semibold ${step === index ? "border-primary bg-primary/15 text-foreground" : "border-border text-muted-foreground"}`}
-        onClick={() => setStep(index)}>{index + 1}. {label}</button>)}
+    <nav aria-label="Campaign creation progress" className="grid grid-cols-4 gap-1.5 sm:gap-3">
+      {steps.map(({ label, Icon }, index) => <div key={label} aria-current={step === index ? "step" : undefined}
+        className={`flex min-w-0 flex-col items-center gap-2 text-center text-xs sm:text-sm ${index <= step ? "text-foreground" : "text-muted-foreground"}`}>
+        <span className={`flex h-12 w-12 items-center justify-center rounded-2xl border ${index < step ? "border-primary bg-primary text-primary-foreground" : index === step ? "border-primary bg-primary/20 text-primary" : "border-border bg-card"}`}>
+          {index < step ? <Check aria-hidden="true" className="h-6 w-6"/> : <Icon aria-hidden="true" className="h-6 w-6"/>}
+        </span>
+        <span className="break-words font-semibold">{label}</span>
+      </div>)}
     </nav>
+    <p className="text-sm text-muted-foreground" role="status">Step {step + 1} of 4 — {steps[step].label}</p>
     {step === 0 && <section className="rounded-2xl border border-border bg-card p-5 sm:p-8 space-y-3">
       <h2 className="text-xl font-semibold">Tell us what matters</h2>
       <p className="text-sm text-muted-foreground">Start with what your fundraiser is about. You can explore the entire creator without signing in; saving and publishing require an account.</p>
@@ -336,8 +342,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </div>}
     {error && step !== 1 && step !== 2 && <p role="alert" className="text-destructive">{error}</p>}
     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-      <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} className="min-h-12 rounded-xl border border-border px-6 disabled:opacity-40">Back</button>
-      {step < 3 && <button type="button" onClick={() => setStep(s => Math.min(3, s + 1))} className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground">Continue</button>}
+      <button type="button" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-border px-6 disabled:opacity-40"><ArrowLeft aria-hidden="true" className="h-4 w-4"/>Back</button>
+      {step < 3 && <button type="button" onClick={() => setStep(s => Math.min(3, s + 1))}
+        disabled={disabled || (step === 1 && !(Number(form.goal_amount) > 0)) || (step === 2 && !form.title.trim())}
+        className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-40">Continue<ArrowRight aria-hidden="true" className="h-4 w-4"/></button>}
     </div>
   </main>;
 }
