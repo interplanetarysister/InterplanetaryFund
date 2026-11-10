@@ -14,16 +14,16 @@ const validId=s=>typeof s==="string" && /^[A-Za-z0-9-]{8,128}$/.test(s);
 const money=n=>(n/100).toFixed(2);
 const sandboxHost=request=>{
   const u=new URL(request.url);
-  return u.protocol==="https:" && /^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/.test(u.hostname);
+  return u.protocol==="https:" && /^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/.test(u.hostname);
 };
 const browserPost=request=>sandboxHost(request) &&
   request.method==="POST" && request.headers.get("origin")===new URL(request.url).origin;
 
 async function bodyJson(request,max=32768){
   const type=request.headers.get("content-type")||"";
-  if(!/^application\\/json(?:\\s*;|\\s*$)/i.test(type)) throw Error("Invalid JSON content type");
+  if(!/^application\/json(?:\s*;|\s*$)/i.test(type)) throw Error("Invalid JSON content type");
   const length=request.headers.get("content-length");
-  if(length!==null && (!/^\\d+$/.test(length)||Number(length)>max)) throw Error("Invalid request length");
+  if(length!==null && (!/^\d+$/.test(length)||Number(length)>max)) throw Error("Invalid request length");
   const reader=request.body?.getReader();
   if(!reader)throw Error("Empty request");
   const chunks=[];let size=0;
