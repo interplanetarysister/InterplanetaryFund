@@ -162,9 +162,33 @@ async function capture(env,request){
     capture_id:proof.captureId,amount_cents:proof.amountCents,
     status:"captured",note:"Sandbox receipt only. No real campaign funds or withdrawals."});
 }
+async function readWebhookBody(request) {
+  const max=65536;
+  const type=(request.headers.get("content-type")||"").split(";")[0].trim().toLowerCase();
+  if(type!=="application/json")throw Error("Unsupported webhook media type");
+  const length=request.headers.get("content-length");
+  if(length!==null && (!/^[0-9]+$/.test(length)||Number(length)>max))
+    throw Error("Oversized webhook body");
+  const reader=request.body?.getReader();
+  if(!reader)throw Error("Missing webhook body");
+  let size=0;const chunks=[];
+  try{
+    while(true){
+      const {done,value}=await reader.read();
+      if(done)break;
+      if(!(value instanceof Uint8Array))throw Error("Invalid webhook stream");
+      size+=value.byteLength;
+      if(size>max)throw Error("Oversized webhook body");
+      chunks.push(value);
+    }
+    const bytes=new Uint8Array(size);let pos=0;
+    for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.byteLength;}
+    return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+  }finally{try{await reader.cancel()}catch{};try{reader.releaseLock()}catch{}}
+}
 async function webhook(env,request){
-  const raw=await request.text();
-  if(raw.length>65536)return fail("Webhook too large",413);
+  let raw;
+  try{raw=await readWebhookBody(request)}catch{return fail("Webhook body rejected",413)}
   let event;try{event=JSON.parse(raw)}catch{return fail("Invalid webhook JSON")}
   const h=request.headers;
   const required=["paypal-transmission-id","paypal-transmission-time",
