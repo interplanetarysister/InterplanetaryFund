@@ -4,6 +4,7 @@ import { getCampaignDetail, listRelatedCampaigns } from "@/api/publicData";
 import { Image } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
 import CampaignFundingCard from "@/components/campaigns/CampaignFundingCard";
+import CampaignDonationDialog from "@/components/payments/CampaignDonationDialog";
 import CampaignFollowButton from "@/components/campaigns/CampaignFollowButton";
 import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
 import { FALLBACK_IMAGE } from "@/components/brand/brand";
@@ -26,6 +27,7 @@ export default function CampaignDetail() {
   const { id } = useParams();
   const location = useLocation();
   const [campaign, setCampaign] = useState(null);
+  const [donationOpen, setDonationOpen] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
   const [error, setError] = useState("");
@@ -106,7 +108,7 @@ export default function CampaignDetail() {
           </div>
           {/* Phones: funding progress sits directly under the title. */}
           <div id="campaign-funding-mobile" tabIndex={-1} className="scroll-mt-24 lg:hidden">
-            <CampaignFundingCard campaign={campaign} />
+            <CampaignFundingCard campaign={campaign} onDonate={() => setDonationOpen(true)} />
           </div>
           {displayed.story && (
             <div id="campaign-story" tabIndex={-1} className="scroll-mt-24 bg-white rounded-2xl border border-stone-200/70 p-6 shadow-sm">
@@ -119,7 +121,7 @@ export default function CampaignDetail() {
         {/* Sidebar */}
         <div className="space-y-5 lg:sticky lg:top-8 self-start">
           <div id="campaign-funding-desktop" tabIndex={-1} className="scroll-mt-24 hidden lg:block">
-            <CampaignFundingCard campaign={campaign} />
+            <CampaignFundingCard campaign={campaign} onDonate={() => setDonationOpen(true)} />
           </div>
           <CampaignShareButton campaign={campaign} />
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
@@ -135,10 +137,13 @@ export default function CampaignDetail() {
         </section>
       )}
 
+      <CampaignDonationDialog campaign={campaign} open={donationOpen} onOpenChange={setDonationOpen}
+        onPaid={async () => { try { const fresh = await getCampaignDetail(id); if (fresh) setCampaign(fresh); } catch (_) {} }} />
+
       {/* Mobile floating button keeps the original look; with checkout paused it
           scrolls to the funding card and its notice instead of opening checkout. */}
       <button
-        onClick={scrollToFunding}
+        onClick={platformOnlyMode ? scrollToFunding : () => setDonationOpen(true)}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
         aria-label={platformOnlyMode ? "Campaign donations are paused. Show funding details" : "Donate"}
       >
