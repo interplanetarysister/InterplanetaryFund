@@ -21,7 +21,8 @@ const api = await request('/api/paypal/sandbox/status');
 const html = !page.error && page.status === 200 && /text\/html/i.test(page.type) && /<html[\s>]/i.test(page.body);
 let json;
 try { if (/application\/json/i.test(api.type)) json = JSON.parse(api.body); } catch {}
-const apiFunction = !api.error && api.status >= 200 && api.status < 500 && !!json && typeof json === 'object' && !Array.isArray(json);
+// An unrelated JSON 404/error handler is not proof of a deployed sandbox Function.
+const apiFunction = !api.error && api.status === 200 && !!json && typeof json === 'object' && !Array.isArray(json);
 console.log(JSON.stringify({
   origin: base.origin, checkedAt: new Date().toISOString(),
   hackathon: { httpStatus: page.status ?? null, contentType: page.type ?? null, htmlDocument: !!html, error: page.error ?? null },
