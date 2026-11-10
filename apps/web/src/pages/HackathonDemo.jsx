@@ -24,9 +24,15 @@ export default function HackathonDemo() {
       .then(async r=>{if(!r.ok)throw Error(`Sandbox status unavailable (${r.status})`);return r.json()})
       .then(x=>{if(alive)setReady(x)})
       .catch(e=>{if(alive){setReady({enabled:false});setStatusError(e.message)}});
-    authClient().from("ifund_campaigns").select("id,title").eq("status","active").limit(20)
-      .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");setCampaignLoading(false);return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"");setCampaignLoading(false)})
-      .catch(()=>{if(alive){setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.");setCampaignLoading(false)}});
+    // Auth client initialization can fail synchronously when preview config is absent.
+    // Never strand judges on an indefinite campaign-loading state.
+    try {
+      Promise.resolve(authClient().from("ifund_campaigns").select("id,title").eq("status","active").limit(20))
+        .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");setCampaignLoading(false);return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"");setCampaignLoading(false)})
+        .catch(()=>{if(alive){setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.");setCampaignLoading(false)}});
+    } catch {
+      if(alive){setCampaignError("Campaign discovery is unavailable because the preview data connection could not initialize.");setCampaignLoading(false)}
+    }
     return ()=>{alive=false};
   },[]);
   async function post(path,data) {
