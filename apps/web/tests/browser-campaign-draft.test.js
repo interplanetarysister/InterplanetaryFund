@@ -86,3 +86,17 @@ test("writing brief follows the same guest handoff and identity boundary without
     /never-store|request_id|access_token/,
   );
 });
+
+test("Base44 wizard extras and progress survive identity-scoped guest handoff", () => {
+  const storage = store();
+  const draft = { ...emptyCampaignForm(), title: "Care project", end_date: "2026-12-31",
+    location: "Everett, Washington", cover_image_is_ai: true,
+    ai_profile: { tone: "respectful", never_change: "Keep exact beneficiary name" },
+    story_versions: [{ text: "A prior complete story", saved_at: "2026-11-10" }] };
+  rememberBrowserCampaign(storage, null, draft, { draftStep: 2, details: "Campaign information", writingPath: "write" });
+  assert.deepEqual(restoreBrowserCampaign(storage, A), draft);
+  assert.equal(restoreWritingBrief(storage, A).draftStep, 2);
+  rememberBrowserCampaign(storage, A, draft, { draftStep: 2 });
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+  assert.equal(restoreWritingBrief(storage, B).draftStep, 0);
+});
