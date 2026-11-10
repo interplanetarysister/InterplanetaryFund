@@ -37,20 +37,15 @@ export function confirmCapturedOrder(order, record) {
 export function confirmedWebhookResource(event, orderRecord) {
   if (!validId(event?.id) || !orderRecord?.paypal_order_id) throw new SandboxVerificationError("Invalid webhook event");
   const type = event.event_type, resource = event.resource;
-  if (type === "PAYMENT.CAPTURE.COMPLETED" || type === "PAYMENT.CAPTURE.REFUNDED") {
-    if (!validId(resource?.id) || !validId(orderRecord.paypal_capture_id) && type.endsWith("REFUNDED")) {
-      throw new SandboxVerificationError("Capture reference missing");
-    }
-    // Refund resource ID is the refund ID, not capture ID.
-    const captureId = type.endsWith("REFUNDED") ? resource?.links?.find(x => x.rel === "up")?.href?.split("/").pop() : resource.id;
-    if (captureId !== orderRecord.paypal_capture_id) throw new SandboxVerificationError("Unassociated capture event");
-    if (resource.amount?.currency_code !== "USD" || !/^\\d+\\.\\d{2}$/.test(resource.amount?.value ?? "")) {
-      throw new SandboxVerificationError("Invalid webhook amount");
-    }
-    if (type === "PAYMENT.CAPTURE.COMPLETED" && resource.amount.value !== expectedAmount(orderRecord.gift_cents)) {
-      throw new SandboxVerificationError("Webhook capture amount mismatch");
-    }
-    return { type, eventId: event.id, captureId, status: "verified" };
+  // Refunds require a separate provider GET of the refund and original capture.
+  // Do not infer financial transitions from webhook links or untrusted payloads.
+  if (type !== "PAYMENT.CAPTURE.COMPLETED") throw new SandboxVerificationError("Unsupported webhook event");
+  if (!validId(resource?.id) || resource.id !== orderRecord.paypal_capture_id) {
+    throw new SandboxVerificationError("Unassociated capture event");
   }
+  if (resource.amount?.currency_code !== "USD" || resource.amount?.value !== expectedAmount(orderRecord.gift_cents)) {
+    throw new SandboxVerificationError("Webhook capture amount mismatch");
+  }
+  return { type, eventId: event.id, captureId: resource.id, status: "verified" };
   throw new SandboxVerificationError("Unsupported webhook event");
 }
