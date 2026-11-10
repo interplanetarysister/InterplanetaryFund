@@ -99,7 +99,7 @@ export default function HackathonDemo() {
         (!sandboxReady) ? <p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">Sandbox checkout is unavailable until PayPal sandbox credentials, webhook verification, and the server-side feature gate are configured. No sample payment can be captured yet.</p> : null}
       {campaignLoading&&<p role="status" className="text-sm text-muted-foreground">Loading active campaigns…</p>}
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
-      {!campaignLoading&&!campaignError&&campaigns.length===0&&ready?.enabled&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
+      {!campaignLoading&&!campaignError&&campaigns.length===0&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
       <label className="block text-sm font-medium">Demo campaign
         <select aria-label="Demo campaign" disabled={campaignLoading} value={campaignId} onChange={e=>setCampaignId(e.target.value)}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
@@ -120,6 +120,7 @@ export default function HackathonDemo() {
       {query.get("paypal")==="cancelled"&&<p role="status">The sample payment was cancelled. No donation was recorded.</p>}
       {approved&&token&&<div className="rounded-xl border p-4">
         <p className="text-sm">PayPal returned from approval. This is not a completed donation. Capture must now be verified on the server.</p>
+        {!sandboxReady&&<p role="alert" className="mt-2 text-sm">Capture is currently unavailable because sandbox readiness has not been verified. No donation is recorded; do not retry payment or assume approval completed it.</p>}
         <button disabled={working||!!receipt||!sandboxReady} onClick={complete} className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">Verify and capture sample payment</button>
       </div>}
       {receipt&&<div role="status" className="rounded-xl border border-cyan-500/40 p-4">
