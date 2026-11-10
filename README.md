@@ -12,10 +12,8 @@ This repository is the **independent migration destination** from Base44.
 
 ## Migration Status
 
-- Migration tracking: **Issue #137**
-- Migration pull request: **PR #165**
-- Original Base44 source repository: read-only functional reference
-- Original Base44 app: legacy (not the canonical production URL)
+- Authoritative migration coordination: [GitHub issue #203](https://github.com/interplanetarysister/InterplanetaryFund/issues/203)
+- Original Base44 application: separate functional and visual reference, not a Cloudflare/Supabase runtime dependency
 
 The official domain (`interplanetaryfund.com`) is the intended public entry point.  
 However, the migration’s **user/admin, data, payment, and workflow acceptance tests must pass** before cutting over or retiring Base44.
@@ -79,7 +77,8 @@ cd InterplanetaryFund
 
 Follow the instructions in the relevant apps/ and documentation folders, and respect all deployment gates before any production-related actions.
 
-License
-[Add license here]
+## License
 
-Status as of November 2026: Independent migration in progress. Base44 remains the current live system until acceptance tests pass and cutover is explicitly approved.
+This repository is licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](LICENSE). Review the license terms before copying, modifying, or deploying the software.
+
+Status as of November 2026: Independent migration in progress. Base44 remains a separate original application/reference. Cloudflare/Supabase is the independent deployment target; payment activation and production promotion require explicit verification and approval.
