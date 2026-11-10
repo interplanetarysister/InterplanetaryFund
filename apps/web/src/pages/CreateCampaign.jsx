@@ -4,9 +4,10 @@ import { UserRound, Target, BookOpen, Rocket, ArrowLeft, ArrowRight, Check } fro
 import { authClient } from "@/api/auth";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { uploadCampaignCover } from "@/api/campaignMedia";
+import { loadCampaignSetup, saveCampaignSetup } from "@/api/campaignSetup";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
-import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
+import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness, emptyCampaignForm } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -52,8 +53,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       try {
         const data = await loadOwnerCampaign(authClient(), draftId);
         if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
+        const setup = await loadCampaignSetup(authClient(), draftId);
         if (active) {
-          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"" });
+          setForm({ ...emptyCampaignForm(), title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", ...(setup ? { end_date:setup.end_date||"", location:setup.location||"", location_lat:setup.location_lat, location_lng:setup.location_lng, cover_image_is_ai:setup.cover_image_is_ai===true, ai_profile:setup.ai_profile||{tone:"",never_change:""}, story_versions:setup.story_versions||[] } : {}) });
+          if (setup && Number.isInteger(setup.draft_step)) setStep(Math.min(3,Math.max(0,setup.draft_step)));
           setLoadedDraftId(draftId);
           setSaved(data.id);
         }
@@ -66,7 +69,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try {
       if (!draftId) return restoreBrowserCampaign(sessionStorage, ownerId);
     } catch { /* session storage unavailable */ }
-    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
+    return emptyCampaignForm();
   });
   const [busy, setBusy] = useState(false);
   const [coverBusy, setCoverBusy] = useState(false);
@@ -82,7 +85,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [draftDetails, setDraftDetails] = useState(restoredBrief.details);
   const [draftBeneficiary, setDraftBeneficiary] = useState(restoredBrief.beneficiary);
   const [draftNeed, setDraftNeed] = useState(restoredBrief.need);
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(restoredBrief.draftStep || 0);
   const steps = [{ label: "Your Details", Icon: UserRound }, { label: "Basics", Icon: Target }, { label: "Your Story", Icon: BookOpen }, { label: "Launch", Icon: Rocket }];
   const [suggestions, setSuggestions] = useState(null);
   const [suggesting, setSuggesting] = useState(false);
@@ -166,19 +169,27 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
   useEffect(() => {
     if (draftId) return;
-    try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }); }
+    try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed, draftStep: step }); }
     catch { /* session storage unavailable */ }
-  }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
+  }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, step]);
   const disabled = Boolean(busy || coverBusy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
+  function applyStoryCopy(text) {
+    setSaved(""); setForm(prev => ({ ...prev, story: text,
+      story_versions: prev.story?.trim() && prev.story !== text
+        ? [...(prev.story_versions || []), { text: prev.story, saved_at: new Date().toISOString() }].slice(-20)
+        : (prev.story_versions || []),
+    }));
+  }
+  function changeAi(key, value) { setSaved(""); setForm(prev => ({ ...prev, ai_profile: { ...(prev.ai_profile || {}), [key]: value } })); }
   async function uploadCover(file) {
     if (!file || coverBusy || disabled) return;
     setCoverBusy(true); setCoverError("");
     try {
       const url = await uploadCampaignCover(authClient(), file);
       if (!alive.current) return;
-      change("cover_image_url", url);
+      setSaved(""); setForm(prev => ({ ...prev, cover_image_url: url, cover_image_is_ai: false }));
     } catch (error) {
       if (alive.current) setCoverError(error?.message || "The image upload failed.");
     } finally { if (alive.current) setCoverBusy(false); }
@@ -199,6 +210,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
+      await saveCampaignSetup(client, data.id, form, step);
       try { forgetBrowserCampaign(sessionStorage); } catch { /* unavailable */ }
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
       else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
@@ -293,7 +305,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <h3 className="font-semibold">Story idea</h3>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
-          onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
+          onClick={() => { applyStoryCopy(suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
         <div className="space-y-4" aria-label="Story section editor">
           <p className="text-sm text-muted-foreground">{suggestions.assistance === "outline" ? "Edit this basic outline section by section, then apply your edited story below." : "Edit each section separately. Rewriting produces a suggestion for your review and never overwrites other sections."}</p>
           {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
@@ -311,7 +323,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             </div>}
           </div>)}
           {sectionError && <p role="alert">{sectionError}</p>}
-          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
+          <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => applyStoryCopy(storySections.join("\n\n"))}>Use edited story sections</button>
         </div>
         {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
           <p>{suggestions.imagePrompt}</p>
