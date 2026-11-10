@@ -27,7 +27,7 @@
 
 - [ ] Working PayPal sandbox checkout, authorization, capture and verified webhook with screenshots/log receipts
 - [ ] Live working AI assisted campaign drafting demonstrated, distinct from placeholders
-- [x] Public-source AGPL-3.0 license placed at repository root as `LICENSE` (public visibility and GitHub license recognition still to verify)
+- [x] Public repository and AGPL-3.0 license recognized by GitHub REST repository metadata on 2026-11-10 (`private=false`, `visibility=public`, `license.spdx_id=AGPL-3.0`); repository root `LICENSE` previously documented. Evidence: https://api.github.com/repos/interplanetarysister/InterplanetaryFund
 - [ ] Reproducible setup/build instructions and safe judge test login, with no secrets committed
 - [ ] Hosted functional demo with working sandbox test account OR exact local build instructions
 - [ ] Public YouTube demonstration <3 minutes showing the actual product (no static-only demo)
