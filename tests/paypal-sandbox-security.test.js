@@ -44,7 +44,7 @@ test("checkout token is HttpOnly and bound to the origin and PayPal order",async
  for(const changed of [
   new Request(request.url,{method:"POST",headers:{origin:"https://untrusted.example",cookie}}),
   new Request(request.url,{method:"POST",headers:{origin:request.headers.get("origin")}}),
-  new Request(request.url,{method:"POST",headers:{origin:request.headers.get("origin"),cookie:cookie.replace(/.$/,"0")}})
+  new Request(request.url,{method:"POST",headers:{origin:request.headers.get("origin"),cookie:cookie.replace(/=([0-9a-f])/,(_,x)=>"="+(x==="0"?"1":"0"))}})
  ]) await assert.rejects(requireCheckoutSession(changed,bound),SandboxVerificationError);
  assert.throws(()=>atomicCaptureUpdateFilter(record),SandboxVerificationError);
 });
