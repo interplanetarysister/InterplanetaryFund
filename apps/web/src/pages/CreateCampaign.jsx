@@ -125,7 +125,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try {
       const original = storySections[index];
       const result = await writingSuggestion({
-        details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
+        details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails + ". Preferred tone: " + (form.ai_profile?.tone || "") + ". Organizer-stated never-change text: " + (form.ai_profile?.never_change || "")).slice(0, 1500),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
@@ -150,7 +150,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setSuggesting(true); setSuggestionError(""); setWritingQueued(false);
     try {
       const result = await writingSuggestion({
-        details: guidedCampaignDetails(writingPath, draftDetails),
+        details: (guidedCampaignDetails(writingPath, draftDetails) + "\nPreferred writing tone: " + (form.ai_profile?.tone || "natural") + "\nOrganizer-stated facts and wording to preserve: " + (form.ai_profile?.never_change || "none")).slice(0, 1500),
         beneficiary: draftBeneficiary,
         need: draftNeed,
         cause: form.category,
