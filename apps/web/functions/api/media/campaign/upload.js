@@ -33,7 +33,7 @@ async function authenticate(request, env) {
 
 export async function onRequest({ request, env }) {
   if (request.method !== "POST") return json(405, { error: "Only POST is supported." });
-  if (!env.IFUND_CAMPAIGN_MEDIA?.put || !env.IFUND_CAMPAIGN_MEDIA?.get || env.IFUND_MEDIA_ENVIRONMENT !== "preview") return json(503, { error: "Campaign image uploads are not configured for this preview." });
+  if (!env.IFUND_CAMPAIGN_MEDIA?.put || !env.IFUND_CAMPAIGN_MEDIA?.get) return json(503, { error: "Campaign image uploads are not configured for this preview." });
   const type = (request.headers.get("content-type") || "").toLowerCase().split(";")[0].trim();
   if (!Object.hasOwn(TYPES, type)) return json(415, { error: "Choose a PNG, JPG, WEBP, or GIF image." });
   const declared = Number(request.headers.get("content-length"));
