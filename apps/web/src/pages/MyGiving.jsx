@@ -28,15 +28,17 @@ export default function MyGiving() {
       setPhase("error");
     }
   }, []);
-  useEffect(() => { let active = true; load(); return () => { active = false; }; }, [load]);
-  const seen = useMemo(() => new Set(), []);
-  const completed = records.filter(row => {
-    if (row.status !== "captured" || !row.paypal_capture_id || !row.campaign_id || !row.currency) return false;
-    const key = "live:" + row.paypal_capture_id;
-    if (seen.has(key)) return false;
-    seen.add(key); return true;
-  });
-  seen.clear();
+  useEffect(() => { load(); }, [load]);
+  const completed = useMemo(() => {
+    const seen = new Set();
+    return records.filter(row => {
+      if (row.status !== "captured" || !row.paypal_capture_id || !row.campaign_id || !row.currency) return false;
+      const key = "live:" + row.paypal_capture_id;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [records]);
   const usd = completed.filter(row => row.currency === "USD");
   const lifetime = usd.reduce((sum, row) => sum + Math.max(0, Number(row.gift_cents || 0)), 0) / 100;
   const campaigns = new Set(usd.map(row => row.campaign_id)).size;
