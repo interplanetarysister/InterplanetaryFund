@@ -26,3 +26,11 @@ test("launch is gated behind review and still uses owner-scoped save", () => {
   assert.match(source, /saveOwnerCampaign\(client, form,/);
   assert.doesNotMatch(source, /base44\.functions|base44\.entities|base44Client/);
 });
+
+test("the four-stage navigator keeps the original icon language without skipping fields", () => {
+  assert.match(source, /UserRound, Target, BookOpen, Rocket/);
+  assert.match(source, /Step \{step \+ 1\} of 4/);
+  assert.match(source, /step === 1 && !\(Number\(form\.goal_amount\) > 0\)/);
+  assert.match(source, /step === 2 && !form\.title\.trim\(\)/);
+  assert.match(source, /aria-label="Campaign creation progress"/);
+});
