@@ -16,8 +16,7 @@ This repository is the **independent migration destination** from Base44.
 
 ## Migration Status
 
-- Migration tracking: **Issue #137**
-- Migration pull request: **PR #165**
+- Authoritative migration and release coordination: **[issue #203](https://github.com/interplanetarysister/InterplanetaryFund/issues/203)**
 - Original Base44 source repository: read-only functional reference
 - Original Base44 app: legacy (not the canonical production URL)
 
@@ -56,8 +55,8 @@ Pre-migration Convex / Vercel / FundForge code remains historical reference mate
 Before publishing or making production changes, review:
 
 1. `apps/web/DEPLOYMENT-GATES.md`
-2. Migration issue **#137**
-3. Migration pull request **#165**
+2. Authoritative migration and release coordination **[issue #203](https://github.com/interplanetarysister/InterplanetaryFund/issues/203)**
+3. PayPal hackathon compliance ledger (`docs/hackathon/PAYPAL_2026_COMPLIANCE.md`, when present on the selected branch)
 
 Use the **canonical Supabase project** and **Cloudflare account** only after verifying the intended environment and required approval gates.
 
@@ -80,6 +79,7 @@ This is done via repository settings or an authorized GitHub repository-administ
 ```bash
 git clone https://github.com/interplanetarysister/InterplanetaryFund.git
 cd InterplanetaryFund
+```
 
 Follow the instructions in the relevant apps/ and documentation folders, and respect all deployment gates before any production-related actions.
 
