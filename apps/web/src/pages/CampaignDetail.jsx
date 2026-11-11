@@ -76,6 +76,7 @@ export default function CampaignDetail() {
   if (!campaign) return <div className="flex items-center justify-center h-[60vh]"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>;
 
   const displayed = campaign;
+  const campaignCanDonate = !platformOnlyMode && campaign.status === "active" && !campaign.preview_only;
   const textDirection = "auto";
   const scrollToFunding = () => {
     const section = document.getElementById("campaign-funding-mobile");
@@ -140,14 +141,14 @@ export default function CampaignDetail() {
       <CampaignDonationDialog campaign={campaign} open={donationOpen} onOpenChange={setDonationOpen}
         onPaid={async () => { try { const fresh = await getCampaignDetail(id); if (fresh) setCampaign(fresh); } catch (_) {} }} />
 
-      {/* The mobile action always refers to this campaign. When checkout is paused,
+      {/* The mobile action always refers to this campaign. When checkout is unavailable,
           it opens funding details rather than suggesting a platform donation. */}
       <button
-        onClick={platformOnlyMode ? scrollToFunding : () => setDonationOpen(true)}
+        onClick={campaignCanDonate ? () => setDonationOpen(true) : scrollToFunding}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
-        aria-label={platformOnlyMode ? "Campaign donations are paused. Show funding details" : "Donate"}
+        aria-label={campaignCanDonate ? "Donate to this campaign" : "Campaign donations unavailable. Show funding details"}
       >
-        <span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {platformOnlyMode ? "Funding details" : "Donate Now"}</span>
+        <span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {campaignCanDonate ? "Donate Now" : "Funding details"}</span>
       </button>
     </PullToRefresh>
   );
