@@ -1,6 +1,6 @@
 // Owner-scoped campaign persistence for the independent IFund frontend.
 //
-// Every call validates a server-issued member identity (including guest sessions), verifies the account lifecycle, scopes
+// Every call validates a confirmed, non-anonymous email identity, verifies the account lifecycle, scopes
 // reads and writes to owner_id = the verified auth.uid(), and confirms the
 // returned row before reporting success. No service-role key, no Base44 client,
 // no payment or ledger writes. Supabase row level security stays authoritative.
@@ -8,7 +8,7 @@
 // Relative imports (not the "@/" alias) so these functions can be unit tested
 // directly by node:test, matching src/lib/inbox.js and src/lib/followedCampaigns.js.
 import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
-import { guestIdentity } from "../lib/guestAccess.js";
+import { payoutIdentity } from "../lib/guestAccess.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 import { CAMPAIGN_STATUSES, canTransition, buildCampaignPayload, publishReadiness, validateCampaignForm } from "../lib/campaignLifecycle.js";
 import { TERMS_VERSION } from "../lib/legalPolicy.js";
@@ -23,8 +23,8 @@ export const OWNER_CAMPAIGN_COLUMNS =
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
   const user = data?.user;
-  if (error || !(isVerifiedEmailUser(user) || guestIdentity(user)) || !UUID.test(user?.id || "")) {
-    throw new Error("Open a guest account or sign in to manage your campaigns.");
+  if (error || !(isVerifiedEmailUser(user) && payoutIdentity(user)) || !UUID.test(user?.id || "")) {
+    throw new Error("Create and confirm your email account before managing campaigns.");
   }
   const lifecycle = await verifyAccountLifecycle(client, user);
   if (!lifecycle.ok) throw new Error(lifecycle.message || "Account access could not be verified.");
