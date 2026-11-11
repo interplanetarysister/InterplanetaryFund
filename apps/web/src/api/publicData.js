@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 const PROJECT_REF = "ssibsfmtodgximseeqsv";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
-const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
 
 let client = null;
 export function isPublicDataConfigured() {
@@ -45,7 +45,10 @@ export function mapCampaign(row = {}) {
     category: row.category || "other",
     cover_image_url: row.cover_image_url || "",
     cover_image_is_ai: false,
-    location: "",
+    location: row.map_opt_in === true && row.public_location_label ? row.public_location_label : "",
+    map_opt_in: row.map_opt_in === true,
+    latitude: row.map_opt_in === true && row.map_latitude !== null ? numOrNull(row.map_latitude) : null,
+    longitude: row.map_opt_in === true && row.map_longitude !== null ? numOrNull(row.map_longitude) : null,
     status: row.status || "active",
     preview_only: false,
     raised_amount: null,
