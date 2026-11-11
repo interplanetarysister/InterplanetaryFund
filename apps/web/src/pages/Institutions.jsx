@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowUpRight, BriefcaseBusiness, Globe2, HeartHandshake, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
+import { matchOpportunity } from "@/lib/opportunityMatch";
 
 const KINDS = [
   {id:"all",label:"All research sources"},
@@ -10,19 +11,13 @@ const KINDS = [
   {id:"volunteer",label:"Volunteer"},
 ];
 function text(value) { return String(value ?? "").trim(); }
-function causeTokens(campaign) {
-  if (!campaign) return [];
-  return [campaign.category, ...text(campaign.title).toLowerCase().match(/[a-z]{5,}/g)||[]]
-    .map(s=>text(s).toLowerCase().replaceAll(" ","_")).filter(Boolean);
-}
 function ranking(source,campaign) {
-  const tags = text(source.causes_supported).toLowerCase().split(",").map(t=>t.trim());
-  const tokens = causeTokens(campaign);
-  return tags.some(t=>tokens.includes(t)) ? 2 : 0;
+  return matchOpportunity({cause_tags:String(source.causes_supported||"").split(",").map(t=>t.trim())},campaign).score;
 }
 function verifiedUrl(url) { try { const x=new URL(url); return x.protocol==="https:" && !x.username && !x.password; } catch { return false; } }
 function SourceCard({source,campaign}) {
-  const relevant=campaign && ranking(source,campaign)>0;
+  const relevance=matchOpportunity({cause_tags:String(source.causes_supported||'').split(',').map(t=>t.trim())},campaign);
+  const relevant=campaign && relevance.score>0;
   const type=source.industry==="grants"?"Grant research":source.industry==="business"?"Business / procurement":"Volunteer research";
   return <article className="rounded-2xl border border-cyan-500/25 bg-card p-5 shadow-sm" aria-label={source.name}>
     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -34,7 +29,7 @@ function SourceCard({source,campaign}) {
     <p className="mt-3 text-sm leading-6 text-muted-foreground">{source.description || source.mission}</p>
     {campaign && <p className="mt-3 rounded-xl bg-slate-900/5 p-3 text-xs dark:bg-white/5">
       <strong>Matching note:</strong> {relevant
-        ? "This source covers causes related to the selected campaign. Review individual program eligibility, deadlines and application rules."
+        ? relevance.summary
         : "Broader research source; a relevant opportunity has not been individually verified."}
     </p>}
     {verifiedUrl(source.website) &&
@@ -45,7 +40,8 @@ function SourceCard({source,campaign}) {
 }
 
 function OpportunityCard({opportunity,campaign}) {
-  const matching=campaign && opportunity.cause_tags?.some(t=>causeTokens(campaign).includes(t));
+  const relevance=matchOpportunity(opportunity,campaign);
+  const matching=campaign && relevance.score>0;
   const isOpen=opportunity.status==="open";
   return <article className="rounded-2xl border border-emerald-500/30 bg-card p-5 shadow-sm">
     <div className="flex flex-wrap items-center gap-2">
@@ -109,8 +105,7 @@ export default function Institutions() {
       (type==="all" || (type==="grants" && o.type==="grant") ||
         (type==="business" && o.type==="business") || (type==="volunteer" && o.type==="volunteer")) &&
       (!query || [o.title,o.description,o.provider,o.eligibility,o.geography,...(o.cause_tags||[])].join(" ").toLowerCase().includes(query.toLowerCase()))
-    ).sort((a,b)=>Number((b.cause_tags||[]).some(tag=>causeTokens(selected).includes(tag)))-
-                      Number((a.cause_tags||[]).some(tag=>causeTokens(selected).includes(tag))) ||
+    ).sort((a,b)=>matchOpportunity(b,selected).score-matchOpportunity(a,selected).score ||
                       a.title.localeCompare(b.title)),[opportunities,id,type,query,selected]);
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-3">
