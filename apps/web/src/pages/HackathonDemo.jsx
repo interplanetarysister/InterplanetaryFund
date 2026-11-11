@@ -19,6 +19,10 @@ export default function HackathonDemo() {
   const approved = query.get("paypal")==="approved";
   const missingApprovalToken = approved && !token;
   const sandboxReady = ready?.mode === "sandbox" && ready?.enabled === true && ready?.webhook_ready === true && ready?.live_payments_enabled === false;
+  // Judges can reach the configured sandbox without enabling test payments on the live site.
+  // This is a public location, never a credential or a secret.
+  const sandboxDemoUrl = "https://feature-paypal-sandbox-secur.interplanetaryfund-migration.pages.dev/hackathon";
+  const sandboxHost = window.location.origin === new URL(sandboxDemoUrl).origin;
   useEffect(() => {
     let alive=true;
     fetch("/api/paypal/sandbox/status",{cache:"no-store"})
@@ -83,6 +87,16 @@ export default function HackathonDemo() {
       <h1 className="mt-3 text-3xl font-bold text-foreground">IFund PayPal + AI demo</h1>
       <p className="mt-3 text-muted-foreground">See how AI helps people prepare a fundraiser, then approve a sample donation through PayPal's free sandbox. No real money is collected here.</p>
     </header>
+    <section className="rounded-2xl border border-cyan-400/40 bg-card p-5" aria-label="Choose PayPal payment environment">
+      <h2 className="text-lg font-semibold">Choose a payment environment</h2>
+      <p className="mt-2 text-sm text-muted-foreground">These are separate PayPal experiences. Sandbox payments use test buyer credentials and never create real donations. Live campaign checkout uses real money and is available only when the production payment health check enables it.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <a href={sandboxDemoUrl} className="flex min-h-12 items-center justify-center rounded-xl border border-cyan-400/60 px-4 text-center text-sm font-semibold text-cyan-300">Test with PayPal Sandbox — no real money</a>
+        <a href="https://interplanetaryfund.com/discover" className="flex min-h-12 items-center justify-center rounded-xl border border-amber-400/60 px-4 text-center text-sm font-semibold text-amber-200">Browse live campaigns — real payments if enabled</a>
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">Judges: use a Personal PayPal Sandbox test buyer for sandbox checkout, not a merchant account or personal live PayPal credentials. Do not enter real card information in sandbox. Only the live checkout can create a real charge; confirm the amount and merchant before approving. No login credentials are supplied on this page.</p>
+      {!sandboxHost && <p role="status" className="mt-3 rounded-lg border border-amber-500/40 p-3 text-sm">You're viewing the production website. The sandbox checkout runs on the separate secure preview linked above. Sandbox controls below are intentionally unavailable here.</p>}
+    </section>
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">1. AI campaign preparation</h2>
       <p className="mt-2 text-sm text-muted-foreground">Open the existing AI writing workspace to draft and review campaign wording before publication. Availability depends on verified account access.</p>
