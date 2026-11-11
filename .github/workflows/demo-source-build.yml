@@ -21,8 +21,16 @@ jobs:
           node-version: '22'
       - run: npm install --no-audit --no-fund
         working-directory: demo
-      - run: npm run typecheck
+      - name: TypeScript source validation
+        run: npm run typecheck 2>&1 | tee typecheck.log
         working-directory: demo
+      - name: Publish diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-typecheck-diagnostics
+          path: demo/typecheck.log
+          retention-days: 2
       - run: npm run build:worker
         working-directory: demo
       - run: node --check worker/app.js
