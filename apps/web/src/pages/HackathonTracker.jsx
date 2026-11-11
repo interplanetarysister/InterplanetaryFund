@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, CheckCircle2, ClipboardCopy, Download, ExternalLink, FileCheck2, Filter, LockKeyhole, RefreshCw, Save } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ClipboardCopy, Download, ExternalLink, LockKeyhole, RefreshCw, Save } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { FLOWS, STATUS, STEPS, recordFor, readiness, makeReport, parseLinks, validateRecord } from "@/lib/hackathonTracker.mjs";
 
@@ -151,7 +151,7 @@ export default function HackathonTracker() {
         <div className="pointer-events-none absolute -right-28 -top-24 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="relative">
           <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.2em] text-cyan-300"><LockKeyhole size={14}/> Organizer-only · PayPal AI Hackathon 2026</p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">Demo readiness tracker</h1>
+          <h1 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">iFund PayPal Hackathon Demo Tracker</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">A guided evidence workspace for the existing iFund /hackathon experience. Check real results, preserve unknowns, and document what judges can actually test.</p>
           <p className="mt-4 text-xs font-semibold text-amber-200">Sandbox only · Never enables live payments · Final deadline: November 12, 2026, noon Pacific</p>
         </div>
@@ -213,7 +213,7 @@ export default function HackathonTracker() {
           <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Evidence record</p><StatusTag value={draft.status}/></div>
           <h2 className="mt-3 text-2xl font-bold">{currentStep.title}</h2>
           <p className="mt-2 text-sm leading-6 text-slate-300">{currentStep.check}</p>
-          {currentStep.action && <Link to={currentStep.action} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cyan-200 underline">Open related iFund experience <ExternalLink size={14}/></Link>}
+          {currentStep.action && (currentStep.action.startsWith("/api/") ? <a href={currentStep.action} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cyan-200 underline">Inspect server status <ExternalLink size={14}/></a> : <Link to={currentStep.action} className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-cyan-200 underline">Open related iFund experience <ExternalLink size={14}/></Link>)}
           <div className="mt-5 space-y-4 border-t border-white/10 pt-5">
             <label className="block text-sm font-medium text-slate-200">Verification status
               <select className={fieldClass} style={fieldStyle} value={draft.status} onChange={e => change({ status: e.target.value })}>
@@ -230,6 +230,7 @@ export default function HackathonTracker() {
               <InputField label="Preview URL" value={draft.preview_url} onChange={v=>change({preview_url:v})} placeholder="https://…pages.dev/hackathon" />
             </div>
             <InputField label="Deployment notes" value={draft.deployment_notes} onChange={v=>change({deployment_notes:v})} multiline placeholder="Cloudflare environment, deployed build, browser checks or rollback notes" />
+            <div className="space-y-2 text-xs text-slate-300">{[...draft.evidence_links, ...draft.screenshot_links].filter(link => { try { return new URL(link).protocol === "https:"; } catch { return false; } }).map((link, i) => <a key={link + i} href={link} rel="noopener noreferrer" target="_blank" className="block break-all text-cyan-200 underline">Open saved evidence {i + 1} <ExternalLink size={12} className="inline" /></a>)}</div>
             <div className="text-xs text-slate-400">Last recorded check: {dateLabel(draft.checked_at)} · Revision: {draft.revision || "not saved"}</div>
             {editError && <p role="alert" className="rounded-xl border border-red-400/40 bg-red-950/30 p-3 text-sm text-red-200">{editError}</p>}
             {notice && <p role="status" className="rounded-xl border border-emerald-400/20 bg-emerald-950/20 p-3 text-sm text-emerald-200">{notice}</p>}
