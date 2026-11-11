@@ -19,6 +19,7 @@ const Discover = lazy(() => import("./pages/Discover"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const HealthPrivacy = lazy(() => import("./pages/HealthPrivacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AgentsTeam = lazy(() => import("./pages/AgentsTeam"));
@@ -76,6 +77,7 @@ function AppRoutes() {
     <Route path="/about" element={<About />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/health-privacy" element={<HealthPrivacy />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/login" element={<AuthPage key="login" mode="login" />} />
     <Route path="/register" element={<AuthPage key="register" mode="register" />} />
@@ -116,7 +118,7 @@ function AppRoutes() {
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
-  </Routes>{(["/", "/about", "/terms", "/privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
+  </Routes>{(["/", "/about", "/terms", "/privacy", "/health-privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
 }
 
 function App() {
