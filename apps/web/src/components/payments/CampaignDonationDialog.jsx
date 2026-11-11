@@ -33,7 +33,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const [eligible,setEligible]=useState(null);
   const [complete,setComplete]=useState(false);
   const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
-  const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), latestPaid=useRef(onPaid);
+  const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
   const gift=Math.round(Number(amount)*100);
   const valid=Number.isSafeInteger(gift)&&gift>=100&&gift<=100000000;
@@ -45,12 +45,19 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   };
   const begin=async channel=>{
     if(!valid||!campaign?.id)throw new Error("Enter a donation of at least $1");
+    const key=requestKey(channel);
+    let checkoutToken=checkoutTokens.current.get(key);
+    if(!checkoutToken){
+      checkoutToken=crypto.randomUUID().replace(/-/g,"")+crypto.randomUUID().replace(/-/g,"");
+      checkoutTokens.current.set(key,checkoutToken);
+    }
     const data=await api("/api/payments/create-order",{method:"POST",body:JSON.stringify({
       campaign_id:campaign.id,gift_cents:gift,optional_support_cents:tip,
-      payment_channel:channel,request_key:requestKey(channel),
+      payment_channel:channel,request_key:key,checkout_token:checkoutToken,
     })});
-    if(!data.id||!data.checkout_token||data.environment!=="live")throw new Error("Invalid payment intent");
-    tokens.current.set(data.id,data.checkout_token);
+    if(!data.id||data.checkout_token!==checkoutToken||data.environment!=="live")
+      throw new Error("Payment checkout requires reconciliation");
+    tokens.current.set(data.id,checkoutToken);
     return data.id;
   };
   const capture=async data=>{
@@ -114,7 +121,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   },[open,campaign?.id,campaign?.status,gift,tip,valid]);
   const field="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
   return <Dialog open={open} onOpenChange={value=>{
-    if(!value){tokens.current.clear();keys.current.clear();setComplete(false);setError("");}
+    if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
     <DialogContent>
