@@ -51,6 +51,7 @@ const navSections = [
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
+  { to: "/institutions", label: "Opportunities", icon: Building2 },
     ],
   },
   {
