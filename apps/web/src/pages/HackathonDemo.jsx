@@ -2,6 +2,18 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
+import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { financeDemoRows, demoFinanceStats } from "@/lib/hackathonFinanceDemo.mjs";
+
+const financeColumns = [
+  { field: "id", headerName: "Example record", minWidth: 150 },
+  { field: "campaign", headerName: "Fictional campaign", minWidth: 230 },
+  { field: "paymentMethod", headerName: "Example channel", minWidth: 190 },
+  { field: "status", headerName: "Simulated status", minWidth: 170 },
+  { field: "amountCents", headerName: "Example value", minWidth: 140, valueFormatter: ({ value }) => formatUsdCents(value) },
+  { field: "period", headerName: "Period", minWidth: 125 },
+];
+const demoStats = demoFinanceStats();
 
 // A genuine PayPal Orders v2 SANDBOX demo. This page never uses hosted live buttons.
 export default function HackathonDemo() {
@@ -16,6 +28,7 @@ export default function HackathonDemo() {
   const [working, setWorking] = useState(false);
   const [message, setMessage] = useState("");
   const [receipt, setReceipt] = useState(null);
+  const [financeSearch, setFinanceSearch] = useState("");
   const token = query.get("token");
   const approved = query.get("paypal")==="approved";
   const missingApprovalToken = approved && !token;
@@ -170,6 +183,33 @@ export default function HackathonDemo() {
       </div>}
       {message&&<p role="alert" className="rounded-xl border border-red-500/40 p-3 text-sm">{message}</p>}
       {(statusError||campaignError||missingApprovalToken||message)&&<button type="button" onClick={()=>window.location.reload()} className="min-h-11 w-full rounded-xl border border-border px-4 text-sm font-semibold">Retry demo checks</button>}
+    </section>
+    <section id="finance-demo" aria-label="AG Grid Community example financial dashboard" className="space-y-4 rounded-2xl border border-cyan-400/40 bg-slate-950 p-5 text-slate-100 sm:p-6">
+      <div>
+        <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Sponsor technology · AG Grid Community</p>
+        <h2 className="mt-2 text-xl font-bold">3. Interactive financial dashboard</h2>
+        <p className="mt-2 text-sm text-slate-300">Sort columns, filter examples, page through records, or export the example CSV. This grid runs inside iFund at no extra backend cost.</p>
+      </div>
+      <p role="note" className="rounded-xl border border-amber-400/50 bg-amber-400/10 p-3 text-sm font-semibold text-amber-100">
+        FICTIONAL EXAMPLE DATA ONLY — these are not PayPal transactions, sandbox captures, donor receipts, real fundraising totals, or withdrawable balances. The actual sandbox receipt appears only in the verified checkout section above.
+      </p>
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-4"><p className="text-sm text-slate-400">Fictional records</p><p className="mt-1 text-2xl font-bold">{demoStats.examples}</p></div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-4"><p className="text-sm text-slate-400">Sample completed entries</p><p className="mt-1 text-2xl font-bold">{demoStats.completed}</p></div>
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-4"><p className="text-sm text-slate-400">Illustrative completed value</p><p className="mt-1 text-2xl font-bold">{formatUsdCents(demoStats.exampleCapturedCents)}</p></div>
+      </div>
+      <label className="block text-sm font-medium text-slate-200">
+        Filter the example finance table
+        <input type="search" value={financeSearch} onChange={e=>setFinanceSearch(e.target.value)}
+          placeholder="Search fictional campaign, status, or channel"
+          className="mt-2 min-h-11 w-full rounded-xl border border-slate-600 bg-slate-900 p-3 text-slate-100" />
+      </label>
+      <FinanceDataGrid rows={financeDemoRows} columns={financeColumns} label="Fictional campaign finance data in AG Grid"
+        search={financeSearch} allowExport csvName="ifund-fictional-example-finance.csv" />
+      <p className="text-xs text-slate-400">Developer API testing: a Postman collection is included in the public GitHub repository. Postman readiness checks do not create orders or verify captures.</p>
+      <a className="inline-flex min-h-11 items-center text-sm font-semibold text-cyan-300 underline"
+        href="/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json"
+        target="_blank" rel="noopener noreferrer">View Postman PayPal sandbox test collection</a>
     </section>
     <p className="text-xs text-muted-foreground">Demo receipts require successful server-side verification and database persistence. Sandbox transactions never count toward public campaign totals. The live PayPal platform-support button is a separate integration.</p>
   </main>;
