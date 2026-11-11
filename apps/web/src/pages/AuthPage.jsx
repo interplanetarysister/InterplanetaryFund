@@ -5,11 +5,15 @@ import OAuthButtons from "@/components/auth/OAuthButtons";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
+import { TERMS_VERSION } from "@/lib/legalPolicy";
+import { rememberSignupAgreement, finalizeSignupAgreement } from "@/lib/legalAcceptance";
 
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const afterLogin = safeReturnTo(searchParams.get("returnTo"));
+  const [legalReviewed, setLegalReviewed] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -25,7 +29,7 @@ export default function AuthPage({ mode = "login" }) {
   const isReset = mode === "forgot-password";
   async function submit(event) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || (isRegister && (!legalReviewed || !legalAgreed))) return;
     setBusy(true);
     setError("");
     setMessage("");
@@ -69,7 +73,9 @@ export default function AuthPage({ mode = "login" }) {
             type: "signup",
           });
           if (verifyError) throw verifyError;
-          await verifiedAuthUser(auth);
+          const verified = await verifiedAuthUser(auth);
+          try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
+          catch { navigate("/dashboard", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
           return;
         }
@@ -86,8 +92,11 @@ export default function AuthPage({ mode = "login" }) {
           },
         });
         if (err) throw err;
+        rememberSignupAgreement(sessionStorage, email.trim());
         if (data.session) {
-          await verifiedAuthUser(auth);
+          const verified = await verifiedAuthUser(auth);
+          try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
+          catch { navigate("/dashboard", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
         } else {
           setConfirmationPending(true);
@@ -138,6 +147,43 @@ export default function AuthPage({ mode = "login" }) {
     : isRegister
       ? "Create your account"
       : "Welcome back";
+  // Public signup starts with the complete legal documents, not credential collection.
+  // The signed-in receipt is persisted only after Supabase confirms identity.
+  if (isRegister && !legalReviewed) {
+    return (
+      <main className="ifund-public ifund-auth min-h-dvh px-5 py-12 text-white">
+        <div className="mx-auto w-full max-w-xl">
+          <Link to="/" className="inline-flex min-h-11 items-center"><BrandLogo size="sm" nameClassName="text-slate-100" /></Link>
+          <section className="ifund-auth-card mt-7 rounded-3xl p-6 sm:p-10">
+            <p className="text-sm font-medium uppercase tracking-widest text-cyan-300">Step 1 of 2 · Before registration</p>
+            <h1 className="mt-3 text-3xl font-semibold">Review our Terms and Privacy Policy</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-300">
+              Read the current policies before entering your email or choosing a sign-in provider.
+              Creating an account is free. IFund is not a tax-deductible charity by default,
+              and campaign payments and payouts are subject to availability and applicable checks.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Link className="min-h-20 rounded-2xl border border-cyan-400/50 bg-cyan-500/10 p-4 font-semibold text-cyan-100 hover:bg-cyan-500/20" to="/terms" target="_blank" rel="noopener noreferrer">
+                Terms of Service <span className="mt-1 block text-xs font-normal">Read the full agreement ↗</span>
+              </Link>
+              <Link className="min-h-20 rounded-2xl border border-cyan-400/50 bg-cyan-500/10 p-4 font-semibold text-cyan-100 hover:bg-cyan-500/20" to="/privacy" target="_blank" rel="noopener noreferrer">
+                Privacy Policy <span className="mt-1 block text-xs font-normal">Read how your data is used ↗</span>
+              </Link>
+            </div>
+            <p className="mt-5 text-xs text-slate-300">Terms version {TERMS_VERSION}. Your privacy rights remain yours whether or not you register.</p>
+            <form className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); if (legalAgreed) setLegalReviewed(true); }}>
+              <label className="flex items-start gap-3 rounded-2xl border border-slate-500/60 p-4 text-sm leading-6">
+                <input type="checkbox" required className="mt-1 h-5 w-5 shrink-0 accent-cyan-400" checked={legalAgreed} onChange={(event) => setLegalAgreed(event.target.checked)} />
+                <span>I confirm I am at least 18 years old, agree to the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/terms">Terms of Service</Link>, and acknowledge the <Link target="_blank" rel="noopener noreferrer" className="underline text-cyan-200" to="/privacy">Privacy Policy</Link>. I understand these terms include the current 7% campaign withdrawal fee.</span>
+              </label>
+              <button disabled={!legalAgreed} type="submit" className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50">Agree and continue to registration</button>
+            </form>
+            <p className="mt-5 text-sm text-slate-300">Have an account already? <Link className="text-cyan-200 underline" to={"/login?returnTo=" + encodeURIComponent(afterLogin)}>Sign in</Link></p>
+          </section>
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="ifund-public ifund-auth min-h-dvh px-5 py-12 text-white">
       <div className="mx-auto w-full max-w-md">
@@ -147,8 +193,11 @@ export default function AuthPage({ mode = "login" }) {
         <section className="ifund-auth-card mt-7 rounded-3xl p-7 sm:p-10">
           <h1 className="text-3xl font-semibold">{heading}</h1>
           <p className="mt-3 text-sm text-slate-300">
-            Sign in securely to Interplanetary Fund.
+            {isRegister ? "Step 2 of 2 · Create your free Interplanetary Fund account." : "Sign in securely to Interplanetary Fund."}
           </p>
+          {isRegister && !confirmationPending && (
+            <button type="button" onClick={() => { setLegalReviewed(false); setLegalAgreed(false); }} className="mt-3 text-sm text-cyan-200 underline">Review the policies again</button>
+          )}
           <form onSubmit={submit} className="mt-6 space-y-4">
             <label className="block text-sm font-medium">
               Email address
