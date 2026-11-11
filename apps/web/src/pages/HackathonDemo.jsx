@@ -234,6 +234,12 @@ export default function HackathonDemo() {
           <p className="mt-2 text-xs text-slate-300">{description}</p>
         </Link>)}
       </div>
+      <div className="rounded-xl border border-cyan-400/40 bg-slate-950/70 p-4">
+        <h3 className="font-semibold">Original Base44 iFund integration</h3>
+        <p className="mt-2 text-sm text-slate-300">The original Base44 application now has a matching six-stage hackathon companion with AG Grid Community and links to its real campaign creator, AI agents, social connection controls, interactive campaign globe and protected ledger. The companion and this demo share example content, not donation ledgers or authentication sessions.</p>
+        <a href="https://interplanetaryfund.base44.app/hackathon" target="_blank" rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 text-sm font-semibold text-cyan-200">Explore Base44 iFund companion</a>
+      </div>
       <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
         <h3 className="font-semibold">Hackathon sponsor tools</h3>
         <p className="mt-2 text-sm text-slate-300">AG Grid Community powers the interactive example financial table above and a protected real-data admin finance dashboard. A free Postman v2.1 collection verifies read-only PayPal sandbox API contracts; it cannot prove a payment was captured.</p>
