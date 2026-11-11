@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 export default function LegalFooter() {
   return (
     <footer className="text-center text-[11px] text-muted-foreground py-4 px-4 border-t border-border">
-      <div className="flex items-center justify-center gap-2 mb-1">
+      <div className="flex flex-wrap items-center justify-center gap-2 mb-1">
         <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
         <span>·</span>
         <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
@@ -12,6 +12,8 @@ export default function LegalFooter() {
         <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
         <span>·</span>
         <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+        <span>·</span>
+        <Link to="/health-privacy" className="hover:text-foreground transition-colors">Health Privacy</Link>
         <span>·</span>
         <Link to="/help" className="hover:text-foreground transition-colors">Help & Legal</Link>
       </div>
