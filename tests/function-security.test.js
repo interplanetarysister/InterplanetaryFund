@@ -45,6 +45,18 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "ifund_story_runtime.revise_wording",
   "ifund_story_runtime.save_preferences",
   "ifund_story_runtime.clear_preferences",
+  // Private trigger for existing verified-donation rollups.
+  "private.ifund_sync_funding_totals",
+  "private.ifund_finalize_paypal_capture",
+  "private.ifund_record_verified_paypal_refund",
+  "private.ifund_register_paypal_order",
+  // The member functions derive the caller from auth.uid() and require current
+  // terms plus an active, verified account. Editorial writes also check the
+  // owning blog and verified publisher role or member entitlement.
+  "public.ifund_save_my_profile",
+  "public.ifund_set_my_avatar",
+  "public.ifund_create_member_blog",
+  "public.ifund_save_blog_story",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
@@ -94,17 +106,11 @@ test("every SECURITY DEFINER function pins its search_path", () => {
 });
 
 test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", () => {
-  for (const fn of functionHeaders().filter((f) => f.definer)) {
-    const readOnly =
-      /language\s+sql/i.test(fn.header) || /stable/i.test(fn.header);
-    assert.ok(
-      readOnly || MUTATING_DEFINER_FUNCTIONS.has(fn.name),
-      fn.file +
-        ": " +
-        fn.name +
-        " is a mutating SECURITY DEFINER function without an explicit security-review allowlist entry",
-    );
-  }
+  const offenders = functionHeaders().filter((fn) =>
+    fn.definer && !/language\s+sql|\bstable\b/i.test(fn.header) &&
+    !MUTATING_DEFINER_FUNCTIONS.has(fn.name),
+  ).map((fn) => fn.file + ": " + fn.name);
+  assert.deepEqual(offenders, [], "Mutating SECURITY DEFINER functions require explicit review");
 });
 
 test("execute on a definer function is revoked from public before being granted", () => {

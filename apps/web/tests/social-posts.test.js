@@ -101,7 +101,7 @@ test("a post that returns another author, or fails, is not reported as published
 test("the feed page gates the composer and posts through the validated path", () => {
   const page = source("src/pages/SocialFeedPage.jsx");
   assert.match(page, /import \{ canMemberPost, publishPost, MAX_POST_LENGTH \} from "@\/lib\/socialPosts\.js"/);
-  assert.match(page, /canMemberPost\(authClient\(\), data\.user\)/);
+  assert.match(page, /canMemberPost\(authClient\(\), user\)/);
   assert.match(page, /await publishPost\(authClient\(\), user, body\)/);
   assert.match(page, /maxLength=\{MAX_POST_LENGTH\}/);
   // The raw insert must be gone.

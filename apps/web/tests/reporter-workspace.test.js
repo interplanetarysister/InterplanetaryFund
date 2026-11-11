@@ -17,149 +17,27 @@ const OTHER = "22222222-2222-4222-8222-222222222222";
 const ENTRY = "33333333-3333-4333-8333-333333333333";
 const confirmed = (id) => ({ id, email_confirmed_at: "2026-10-15T12:00:00Z" });
 
-// A hand-written fake. It models the two behaviours that matter: which rows the
-// caller can see, and whether an insert/upsert is accepted. It is not a mock of
-// the logic under test — validateStory, the ownership re-check and the response
-// verification all run for real.
-function fakeClient({
-  blogOwner = OWNER,
-  entryOwner = OWNER,
-  entries = [
-    {
-      id: ENTRY,
-      blog_id: REPORTER_BLOG_ID,
-      type: "article",
-      title: "Existing",
-      summary: "s",
-      body: "b",
-      status: "draft",
-      published_at: null,
-      created_at: "2026-11-01T00:00:00Z",
-      updated_at: "2026-11-01T00:00:00Z",
-    },
-  ],
-  accountActive = true,
-  upsertFails = false,
-  upsertReturnsOtherOwner = false,
-  lookupFails = false,
-} = {}) {
+function fakeClient({ owner = true, active = true, saveError, mismatched = false } = {}) {
   const calls = [];
-  const client = {
+  return {
     calls,
-    auth: {
-      async getUser() {
-        return { data: { user: confirmed(OWNER) }, error: null };
-      },
-    },
-    from(table) {
-      let upserting = false;
-      let selecting = "";
-      const api = {
-        select(columns) {
-          selecting = columns;
-          calls.push({ type: "select", table, columns });
-          return api;
-        },
-        eq() {
-          return api;
-        },
-        order() {
-          return api;
-        },
-        limit() {
-          return Promise.resolve({
-            data: table === "ifund_blog_entries" ? entries : null,
-            error: null,
-          });
-        },
-        upsert(row) {
-          upserting = true;
-          calls.push({ type: "upsert", table, row });
-          return api;
-        },
-        maybeSingle() {
-          if (table === "ifund_profiles")
-            return Promise.resolve({
-              data: accountActive
-                ? { account_status: "active", account_deletion_pending: false }
-                : {
-                    account_status: "suspended",
-                    account_deletion_pending: false,
-                  },
-              error: null,
-            });
-          if (table === "ifund_blogs") {
-            if (lookupFails)
-              return Promise.resolve({
-                data: null,
-                error: { message: "denied" },
-              });
-            return Promise.resolve({
-              data: {
-                id: REPORTER_BLOG_ID,
-                title: "Reporter",
-                description: "",
-                owner_auth_user_id: blogOwner,
-                legacy_owner_user_id: "legacy-1",
-                status: "active",
-              },
-              error: null,
-            });
-          }
-          if (table === "ifund_blog_entries") {
-            if (upserting)
-              return Promise.resolve({
-                data: null,
-                error: { message: "no single" },
-              });
-            // An entry lookup: only the owner can see their own row.
-            if (entryOwner !== OWNER)
-              return Promise.resolve({ data: null, error: null });
-            return Promise.resolve({
-              data: {
-                id: ENTRY,
-                published_at: null,
-                created_at: "2026-11-01T00:00:00Z",
-              },
-              error: null,
-            });
-          }
-          return Promise.resolve({ data: null, error: null });
-        },
-        single() {
-          if (upsertFails)
-            return Promise.resolve({
-              data: null,
-              error: { message: "denied" },
-            });
-          const row =
-            calls.filter((c) => c.type === "upsert").at(-1)?.row || {};
-          return Promise.resolve({
-            data: {
-              id: row.id,
-              title: row.title,
-              status: row.status,
-              published_at: row.published_at,
-              updated_at: row.updated_at,
-              owner_auth_user_id: upsertReturnsOtherOwner
-                ? OTHER
-                : row.owner_auth_user_id,
-            },
-            error: null,
-          });
-        },
-        then(resolve) {
-          // Awaiting a list query.
-          return Promise.resolve({
-            data: table === "ifund_blog_entries" ? entries : null,
-            error: null,
-          }).then(resolve);
+    from() {
+      return {
+        select() { return this; },
+        eq() { return this; },
+        async maybeSingle() {
+          return { data: { account_status: active ? "active" : "suspended", account_deletion_pending: false } };
         },
       };
-      return api;
+    },
+    async rpc(name, input) {
+      calls.push({ name, input });
+      if (name === "ifund_my_blog_workspace")
+        return { data: { blogs: owner ? [{ id: REPORTER_BLOG_ID, entries: [{ id: ENTRY }] }] : [], can_create: false } };
+      if (saveError || !owner) return { error: { code: saveError || "42501" } };
+      return { data: { id: input.p_entry_id || ENTRY, blog_id: mismatched ? OTHER : input.p_blog_id, status: input.p_status } };
     },
   };
-  return client;
 }
 
 test("the blog id is the legacy text reference, not a uuid", () => {
@@ -252,7 +130,7 @@ test("only a confirmed email on an active account may publish", async () => {
   assert.equal(
     (
       await canManagePublication(
-        fakeClient({ accountActive: false }),
+        fakeClient({ active: false }),
         confirmed(OWNER),
       )
     ).ok,
@@ -261,174 +139,43 @@ test("only a confirmed email on an active account may publish", async () => {
   );
 });
 
-test("a user who owns no blog gets an empty workspace, not an error", async () => {
-  const client = fakeClient({ blogOwner: OTHER });
-  const workspace = await loadReporterWorkspace(client, confirmed(OWNER));
-  assert.deepEqual(workspace, { blog: null, entries: [] });
-  // No entry read is attempted for a blog the user does not own.
-  assert.equal(
-    client.calls.filter(
-      (c) => c.type === "select" && c.table === "ifund_blog_entries",
-    ).length,
-    0,
-    "entries must not be queried when the user owns no blog",
-  );
-});
-
-test("the owner gets their blog and their entries", async () => {
+test("the workspace reads only blogs returned by the owner-scoped RPC", async () => {
+  const member = confirmed(OWNER);
+  assert.deepEqual(await loadReporterWorkspace(fakeClient({ owner: false }), member), { blogs: [], can_create: false });
   const client = fakeClient();
-  const workspace = await loadReporterWorkspace(client, confirmed(OWNER));
-  assert.equal(workspace.blog.id, REPORTER_BLOG_ID);
-  assert.equal(workspace.entries.length, 1);
-  assert.equal(workspace.entries[0].title, "Existing");
+  assert.equal((await loadReporterWorkspace(client, member)).blogs[0].entries[0].id, ENTRY);
+  assert.deepEqual(client.calls.map(call => call.name), ["ifund_my_blog_workspace"]);
 });
 
-test("saving a new story writes an owner-scoped draft", async () => {
+test("saving and publishing delegate ownership, classification and timestamps to the server", async () => {
   const client = fakeClient();
-  const saved = await saveReporterStory(client, confirmed(OWNER), {
-    title: "New",
-    summary: "S",
-    body: "B",
-  });
-  const write = client.calls.find((c) => c.type === "upsert");
-  assert.ok(write, "an upsert must be issued");
-  assert.equal(write.row.owner_auth_user_id, OWNER);
-  assert.equal(write.row.blog_id, REPORTER_BLOG_ID);
-  assert.equal(write.row.status, "draft");
-  assert.equal(write.row.published_at, null, "a draft has no published_at");
-  assert.equal(
-    write.row.legacy_owner_user_id,
-    "legacy-1",
-    "legacy provenance is carried through",
-  );
-  assert.equal(saved.status, "draft");
+  const member = confirmed(OWNER);
+  const story = { title: "Story", summary: "Summary", body: "Body", blogId: OTHER };
+  const draft = await saveReporterStory(client, member, story);
+  const published = await saveReporterStory(client, member, { ...story, id: draft.id, status: "published" });
+  assert.equal(published.status, "published");
+  assert.deepEqual(client.calls.map(call => call.input), [
+    { p_blog_id: OTHER, p_entry_id: null, p_title: "Story", p_summary: "Summary", p_body: "Body", p_status: "draft" },
+    { p_blog_id: OTHER, p_entry_id: ENTRY, p_title: "Story", p_summary: "Summary", p_body: "Body", p_status: "published" },
+  ]);
 });
 
-test("publishing stamps published_at", async () => {
-  const client = fakeClient();
-  await saveReporterStory(client, confirmed(OWNER), {
-    title: "Live",
-    summary: "S",
-    body: "B",
-    status: "published",
-  });
-  const write = client.calls.find((c) => c.type === "upsert");
-  assert.equal(write.row.status, "published");
-  assert.ok(write.row.published_at, "published_at must be set on publish");
+test("a malformed reference or suspended account does not reach the write RPC", async () => {
+  const input = { title: "Story", summary: "Summary", body: "Body" };
+  const invalid = fakeClient();
+  await assert.rejects(saveReporterStory(invalid, confirmed(OWNER), { ...input, id: "../../file" }), /not valid/);
+  assert.equal(invalid.calls.length, 0);
+  const suspended = fakeClient({ active: false });
+  await assert.rejects(saveReporterStory(suspended, confirmed(OWNER), input), /suspended|no longer|could not be verified/i);
+  assert.equal(suspended.calls.length, 0);
 });
 
-test("a non-owner cannot save, and no write is attempted", async () => {
-  // The blog lookup is owner-scoped, so a non-owner sees no blog and the write
-  // is refused before any upsert.
-  const client = fakeClient({ blogOwner: OTHER });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /does not own the publication/,
-  );
-  assert.equal(
-    client.calls.filter((c) => c.type === "upsert").length,
-    0,
-    "no write may be attempted for a blog the user does not own",
-  );
-});
-
-test("editing someone else's entry is refused", async () => {
-  const client = fakeClient({ entryOwner: OTHER });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        id: ENTRY,
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /not yours to edit/,
-  );
-});
-
-test("a forged or malformed story reference is refused", async () => {
-  const client = fakeClient();
-  for (const bad of [
-    "../../etc/passwd",
-    "x".repeat(200),
-    "has space",
-    "semi;colon",
-  ]) {
-    await assert.rejects(
-      () =>
-        saveReporterStory(client, confirmed(OWNER), {
-          id: bad,
-          title: "T",
-          summary: "S",
-          body: "B",
-        }),
-      /not valid|not yours to edit/,
-      `ref ${bad}`,
-    );
-  }
-});
-
-test("a suspended account cannot save even if it owns the blog", async () => {
-  const client = fakeClient({ accountActive: false });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /suspended|no longer|could not be verified/i,
-  );
-  assert.equal(
-    client.calls.filter((c) => c.type === "upsert").length,
-    0,
-    "no write on a suspended account",
-  );
-});
-
-test("a rejected write surfaces an error rather than reporting success", async () => {
-  const client = fakeClient({ upsertFails: true });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /not saved/,
-  );
-});
-
-test("a response that does not match the written row is treated as failure", async () => {
-  // Guards against a permissive or misconfigured backend appearing to succeed.
-  const client = fakeClient({ upsertReturnsOtherOwner: true });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /not saved as expected/,
-  );
-});
-
-test("a lookup failure is reported, not swallowed", async () => {
-  const client = fakeClient({ lookupFails: true });
-  await assert.rejects(
-    () =>
-      saveReporterStory(client, confirmed(OWNER), {
-        title: "T",
-        summary: "S",
-        body: "B",
-      }),
-    /could not be verified/,
-  );
+test("access errors, write errors and mismatched responses cannot report success", async () => {
+  const member = confirmed(OWNER);
+  const input = { title: "Story", summary: "Summary", body: "Body" };
+  await assert.rejects(saveReporterStory(fakeClient({ owner: false }), member, input), /publishing access/);
+  await assert.rejects(saveReporterStory(fakeClient({ saveError: "XX000" }), member, input), /not saved/);
+  await assert.rejects(saveReporterStory(fakeClient({ mismatched: true }), member, input), /not saved as expected/);
 });
 
 test("the publishing workspace is routed and member-gated", () => {

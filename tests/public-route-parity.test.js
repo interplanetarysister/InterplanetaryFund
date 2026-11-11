@@ -32,7 +32,7 @@ test("public pages never silently call Base44 or claim a support message was sen
 });
 
 test("legal documents preserve the original versioned source text, without implied acceptance", () => {
-  assert.equal(TERMS_VERSION, "2026-10-13-v3");
+  assert.equal(TERMS_VERSION, "2026-11-10-v4");
   assert.ok(TERMS_SECTIONS.length > 5);
   assert.ok(PRIVACY_SECTIONS.length > 3);
   assert.ok(TERMS_SECTIONS.every((s) => s.title && s.paragraphs.length > 0));

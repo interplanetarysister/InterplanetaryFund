@@ -28,10 +28,17 @@ const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
 const AdminFinance = lazy(() => import("./pages/AdminFinance"));
+function SocialRoute() {
+  const { search } = useLocation();
+  return new URLSearchParams(search).get("tab") === "publications"
+    ? <Navigate to="/news" replace />
+    : <SocialFeedPage />;
+}
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
+const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -58,9 +65,9 @@ const STANDALONE_COMING_SOON = [
   "/globe", "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
-  "/community/:id", "/u/:id",
+  "/community/:id",
   "/communications", "/mission", "/ai-images",
-  "/institutions", "/institutions/:id", "/my-blog", "/devices",
+  "/institutions", "/institutions/:id", "/devices",
   "/donors", "/subscriptions",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
@@ -99,17 +106,21 @@ function AppRoutes() {
       <Route path="/withdrawals" element={<WithdrawalVerification />} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><AdminFinance /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
-      <Route path="/social" element={<SocialFeedPage />} />
+      <Route path="/social" element={<SocialRoute />} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<MemberAccess><CreateCampaign /></MemberAccess>} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
+      <Route path="/my-profile" element={<Navigate to="/profile" replace />} />
+      <Route path="/u/:id" element={<PublicMemberProfile />} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
       <Route path="/blogs" element={<Blogs />} />
+      <Route path="/blog" element={<Navigate to="/blogs" replace />} />
+      <Route path="/news" element={<Blogs news />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
       <Route path="/publication" element={<MemberAccess><MyPublication /></MemberAccess>} />
