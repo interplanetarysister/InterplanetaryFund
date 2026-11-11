@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature/ifund-full-frontend-20261103
+      - feature/hackathon-postman-ag-grid-20261111
     paths:
       - apps/web/package.json
 
