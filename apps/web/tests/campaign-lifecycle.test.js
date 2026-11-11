@@ -50,11 +50,16 @@ test("field limits mirror the worker and database bounds", () => {
 test("payloads are trimmed and never carry owner_id or server-owned columns", () => {
   const payload = buildCampaignPayload({ ...complete(), title: "  Spaced  ", goal_amount: " 42.50 " }, "active");
   assert.deepEqual(Object.keys(payload).sort(), [
-    "category", "cover_image_url", "goal_amount", "status", "story", "summary", "title",
+    "category", "cover_image_url", "goal_amount", "map_latitude", "map_longitude",
+    "map_opt_in", "public_location_label", "status", "story", "summary", "title",
   ]);
   assert.equal(payload.title, "Spaced");
   assert.equal(payload.goal_amount, 42.5);
   assert.equal(payload.status, "active");
+  assert.equal(payload.map_opt_in, false);
+  assert.equal(payload.map_latitude, null);
+  assert.equal(payload.map_longitude, null);
+  assert.equal(payload.public_location_label, null);
   assert.equal("owner_id" in payload, false);
   assert.equal("created_at" in payload, false);
   assert.throws(() => buildCampaignPayload(complete(), "published"), /Invalid campaign status/);
