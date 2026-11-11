@@ -178,3 +178,5 @@ Pilot image source URL returned image bytes in a browser-independent image looku
 - Actual Devpost submission contents/confirmation and public YouTube evidence, fresh-source build, complete judge login and role navigation acceptance.
 
 **Release discipline:** No deployment/publish claim from a GitHub documentation commit; live demo database updates were independently checked via the public judge API. Never market recorded fictional activity as real donations or allow it into real financial tables. If another agent modifies these rows concurrently, refresh and reconcile before any further writes.
+
+**Final post-repair public API check:** A new unauthenticated HTTPS `GET /api/campaigns` returned HTTP 200 JSON with 83 campaigns, 0 blank image paths, 0 references to either retired problem image URL, and 3 Starlight Wildlife Rescue images pointing to the CC0 squirrel replacement. Confirmed against the deployed Worker endpoint via `pg_net` response request id 99. This proves repaired DB references are being served by the Worker API; not actual browser image render.
