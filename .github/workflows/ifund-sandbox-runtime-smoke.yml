@@ -1,0 +1,35 @@
+name: iFund Sandbox Runtime Smoke
+on:
+  push:
+    branches:
+      - feature/paypal-sandbox-secure-bindings-20261110
+  workflow_dispatch:
+jobs:
+  sandbox-http-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Confirm sandbox gateway responses (never create payments)
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://feature-paypal-sandbox-secur.interplanetaryfund-migration.pages.dev"
+          for attempt in $(seq 1 12); do
+            response=$(curl --silent --show-error --retry 1 --max-time 12 --write-out '\n%{http_code}' "$base/api/paypal/sandbox/status" || true)
+            status=$(printf '%s' "$response" | tail -n1)
+            body=$(printf '%s' "$response" | sed '$d')
+            if [ "$status" = "200" ] && printf '%s' "$body" | python3 -c 'import json,sys; x=json.load(sys.stdin); assert x.get("mode")=="sandbox"; assert x.get("live_payments_enabled") is False'; then
+              echo "Sandbox gateway status: $body"
+              break
+            fi
+            echo "Sandbox status check attempt $attempt returned HTTP $status"
+            if [ "$attempt" = 12 ]; then exit 1; fi
+            sleep 8
+          done
+          invalid_method=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 12 "$base/api/paypal/sandbox/orders")
+          echo "Orders GET rejection status: $invalid_method"
+          [ "$invalid_method" = "405" ]
+          unsigned=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 12 -X POST -H "Content-Type: application/json" -d '{"id":"TEST-UNSIGNED-ONLY"}' "$base/api/paypal/sandbox/webhook")
+          echo "Unsigned webhook rejection status: $unsigned"
+          [ "$unsigned" = "400" ]
+          echo "PASS: HTTP routing and negative tests. No checkout attempted, no money/receipts."
