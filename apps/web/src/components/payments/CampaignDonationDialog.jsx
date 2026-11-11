@@ -124,42 +124,61 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
-    <DialogContent>
-      <DialogHeader>
-        <DialogTitle>Donate to this campaign</DialogTitle>
-        <DialogDescription>Pay by card or PayPal. No iFund account is required.</DialogDescription>
+    <DialogContent className="gap-0 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-w-xl">
+      <DialogHeader className="space-y-2 border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-5 pb-5 pt-6 text-left text-white sm:px-6">
+        <p className="text-[11px] font-bold uppercase tracking-[.22em] text-cyan-300">Secure donation</p>
+        <DialogTitle className="pr-9 text-xl font-bold leading-snug sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
+        <DialogDescription className="text-sm text-slate-200">Choose an amount and payment method. No IFund account is needed.</DialogDescription>
       </DialogHeader>
-      {complete?<p role="status" className="rounded-lg bg-emerald-50 p-4 font-semibold text-emerald-800">Donation verified and recorded. Thank you!</p>:
-      <div className="space-y-3">
-        <div className="grid grid-cols-4 gap-2">
-          {[5,10,25,50].map(value=><button key={value} className="min-h-10 rounded-lg border border-slate-300 font-semibold" onClick={()=>setAmount(String(value))}>{"$"+value}</button>)}
+      {complete?<p role="status" className="m-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 font-semibold text-emerald-800">Donation verified with PayPal and recorded. Thank you!</p>:
+      <div className="space-y-4 px-5 py-5 sm:px-6">
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-slate-900">Choose your donation</p>
+          <div className="grid grid-cols-4 gap-2">
+            {[5,10,25,50].map(value=><button key={value} type="button" aria-pressed={Number(amount)===value}
+              className={Number(amount)===value
+                ? "min-h-11 rounded-xl border-2 border-cyan-500 bg-cyan-50 text-sm font-bold text-blue-950 shadow-sm"
+                : "min-h-11 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:border-cyan-500"}
+              onClick={()=>setAmount(String(value))}>{"$"+value}</button>)}
+          </div>
         </div>
-        <label className="block text-sm font-medium">Donation amount (USD)
+        <label className="block text-sm font-semibold text-slate-900">Other amount (USD)
           <input type="number" className={field} min="1" max="1000000" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
-        <label className="flex gap-2 text-xs"><input type="checkbox" checked={support} onChange={e=>setSupport(e.target.checked)}/> Add 10% optional iFund support</label>
-        {valid&&<p className="text-xs text-slate-600">{"Campaign gift: $"+(gift/100).toFixed(2)+(support?" · Optional support: $"+(tip/100).toFixed(2):"")+". PayPal confirms the final total before payment."}</p>}
+        <label className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
+          <input type="checkbox" className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
+          <span>Add optional 10% support for the IFund platform <span className="block text-xs text-slate-500">This is separate from your campaign gift and not required.</span></span>
+        </label>
+        {valid&&<div aria-live="polite" className="rounded-xl border border-slate-200 bg-blue-50/60 p-3 text-sm text-slate-800">
+          <div className="flex justify-between gap-3"><span>Campaign donation</span><strong>{"$"+(gift/100).toFixed(2)}</strong></div>
+          {support&&<div className="mt-1 flex justify-between gap-3"><span>Optional IFund support</span><strong>{"$"+(tip/100).toFixed(2)}</strong></div>}
+          <div className="mt-2 flex justify-between gap-3 border-t border-slate-200 pt-2 font-bold"><span>Today's total</span><span>{"$"+((gift+tip)/100).toFixed(2)} USD</span></div>
+          <p className="mt-1 text-[11px] text-slate-500">Review the final amount before approving with your payment provider.</p>
+        </div>}
         {!valid?<p className="text-xs text-red-700">Enter a gift of at least $1.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
-            <section className="space-y-2" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
-              <h3 className="flex gap-2 items-center text-sm font-semibold"><CreditCard className="h-4 w-4"/> Pay with card — no PayPal login</h3>
+            <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
+              <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
+              <p className="text-xs text-slate-500">PayPal-hosted secure card fields. You may not need a PayPal account.</p>
               <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
               <label className="block text-xs">Card number<div ref={numberHost} className={field}/></label>
               <div className="grid grid-cols-2 gap-2">
                 <label className="block text-xs">Expiration<div ref={expiryHost} className={field}/></label>
                 <label className="block text-xs">Security code<div ref={cvvHost} className={field}/></label>
               </div>
-              <button className="min-h-12 w-full rounded-lg bg-blue-700 font-semibold text-white disabled:opacity-50"
+            </section>
+            {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. PayPal may offer guest card checkout.</p>}
+            <section aria-label="Payment actions" className="sticky bottom-0 z-10 -mx-5 -mb-5 space-y-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:-mx-6 sm:px-6">
+              <h3 className="text-center text-sm font-bold text-slate-900">Choose how to pay</h3>
+              {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card payment failed. Check the details or use PayPal.");}}}>
-                {status==="capturing"?"Verifying donation…":"Donate securely with card"}
-              </button>
+                {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
+              </button>}
+              <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
+              <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cyan-600"/> Secure PayPal checkout · Other payment methods appear only if PayPal offers them.</p>
             </section>
-            {eligible===false&&<p className="text-xs text-slate-500">Embedded card payment is unavailable for this account or device. PayPal may still offer guest card checkout.</p>}
-            <h3 className="text-sm font-semibold">PayPal checkout</h3>
-            <div ref={paypalHost} aria-label="PayPal buttons"/>
-            <p className="flex items-center gap-2 text-[11px] text-slate-500"><ShieldCheck className="h-3 w-3"/> Secure hosted payment. iFund never collects card numbers or CVV.</p>
           </>}
         {status==="capturing"&&<p role="status">Verifying PayPal capture and saving your donation…</p>}
         {error&&<p role="alert" className="text-xs text-red-700">{error}</p>}
