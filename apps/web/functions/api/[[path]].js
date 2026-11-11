@@ -4,6 +4,7 @@ import ifundApi from "../../../../worker/index.js";
 export async function onRequest(context) {
   const env = {
     ...context.env,
+    SUPABASE_PUBLISHABLE_KEY: context.env.SUPABASE_PUBLISHABLE_KEY || context.env.VITE_SUPABASE_PUBLISHABLE_KEY,
     IFUND_STUDIO_ENABLED: "enabled",
     IFUND_STUDIO_AI_ENABLED: "disabled",
   };

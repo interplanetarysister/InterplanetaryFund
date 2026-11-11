@@ -39,7 +39,7 @@ test("every share target encodes its dynamic values", () => {
   const tricky = campaign({ title: 'R&D "cause" & more', summary: "50% off? yes/no" });
   const url = campaignShareUrl(ID);
   const targets = shareTargets(tricky, url);
-  assert.equal(targets.length, 4);
+  assert.equal(targets.length, 5);
   for (const target of targets) {
     // Raw delimiters must not survive into the query string.
     assert.doesNotMatch(target.href, /[^\s]*"[^\s]*=[^&]/, `${target.id} leaked a quote`);
@@ -150,4 +150,12 @@ test("the owner dashboard shares active campaigns in place", () => {
   assert.match(page, /import CampaignShareButton from "@\/components\/campaigns\/CampaignShareButton"/);
   // Only an active row gets the kit: drafts and paused campaigns have no public page.
   assert.match(page, /campaign\.status === "active" && \(\s*<div className="mt-4">\s*<CampaignShareButton campaign=\{campaign\} \/>/);
+});
+
+test("Bluesky opens a draft composer with the campaign text and canonical link", () => {
+  const target = shareTargets(campaign(), "https://preview.example/campaign/" + ID)
+    .find(item => item.id === "bluesky");
+  const intent = new URL(target.href);
+  assert.equal(intent.origin + intent.pathname, "https://bsky.app/intent/compose");
+  assert.equal(intent.searchParams.get("text"), "Plaza lights — Light the plaza.\n\n" + campaignShareUrl(ID));
 });

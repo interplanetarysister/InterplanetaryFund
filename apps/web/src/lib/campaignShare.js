@@ -74,6 +74,9 @@ export function shareTargets(campaign = {}, url = "") {
   return [
     { id: "x", label: "Share on X", href: `https://twitter.com/intent/tweet?text=${e(text)}&url=${e(url)}` },
     { id: "facebook", label: "Share on Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${e(url)}` },
+    { id: "bluesky", label: "Post on Bluesky", href: "https://bsky.app/intent/compose?" + new URLSearchParams({
+      text: `${Array.from(campaignShareText(campaign)).slice(0, 150).join("").trimEnd()}\n\n${campaignShareUrl(campaign.id) || url}`,
+    }) },
     { id: "linkedin", label: "Share on LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${e(url)}` },
     { id: "email", label: "Share by email", href: `mailto:?subject=${e(subject)}&body=${e(`${text}\n\n${url}`)}` },
   ];
