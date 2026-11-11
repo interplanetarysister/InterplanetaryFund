@@ -88,13 +88,21 @@ async function registeredWebhook(env,request,access){
   return isRegisteredSandboxWebhook(result,env.PAYPAL_WEBHOOK_ID,new URL(request.url).origin);
 }
 async function status(env,request){
-  const notReady={mode:"sandbox",enabled:false,webhook_ready:false,live_payments_enabled:false};
+  const notReady={mode:"sandbox",enabled:false,webhook_ready:false,
+    database_ready:false,live_payments_enabled:false};
   if(!sandboxHost(request)||!sandboxConfigured(env))return json(notReady);
+  let verified=false;
   try{
     const access=await oauth(env);
-    const verified=await registeredWebhook(env,request,access);
-    return json({...notReady,enabled:verified,webhook_ready:verified});
+    verified=await registeredWebhook(env,request,access);
   }catch{return json(notReady)}
+  if(!verified)return json(notReady);
+  try{
+    // Confirm the service-only sandbox receipt table can actually be read.
+    // A configured key or registered webhook alone is not proof of readiness.
+    await rest(env,"ifund_paypal_sandbox_orders","GET","?select=paypal_order_id&limit=1");
+    return json({...notReady,enabled:true,webhook_ready:true,database_ready:true});
+  }catch{return json({...notReady,webhook_ready:true})}
 }
 async function orders(env,request){
   if(!browserPost(request))return fail("Sandbox checkout requires a same-origin preview browser",403);
