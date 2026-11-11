@@ -35,6 +35,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
+  const checkoutLocked=status==="capturing"||complete;
   const gift=Math.round(Number(amount)*100);
   const valid=Number.isSafeInteger(gift)&&gift>=100&&gift<=100000000;
   const tip=valid&&support?Math.round(gift*.10):0;
@@ -121,6 +122,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   },[open,campaign?.id,campaign?.status,gift,tip,valid]);
   const field="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
   return <Dialog open={open} onOpenChange={value=>{
+    if(!value&&checkoutLocked)return;
     if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
@@ -135,7 +137,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <div className="space-y-2">
           <p className="text-sm font-semibold text-slate-900">Choose your donation</p>
           <div className="grid grid-cols-4 gap-2">
-            {[5,10,25,50].map(value=><button key={value} type="button" aria-pressed={Number(amount)===value}
+            {[5,10,25,50].map(value=><button key={value} type="button" disabled={checkoutLocked} aria-pressed={Number(amount)===value}
               className={Number(amount)===value
                 ? "min-h-11 rounded-xl border-2 border-cyan-500 bg-cyan-50 text-sm font-bold text-blue-950 shadow-sm"
                 : "min-h-11 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:border-cyan-500"}
@@ -143,10 +145,10 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           </div>
         </div>
         <label className="block text-sm font-semibold text-slate-900">Other amount (USD)
-          <input type="number" className={field} min="1" max="1000000" step="0.01" value={amount} onChange={e=>setAmount(e.target.value)}/>
+          <input type="number" className={field} min="1" max="1000000" step="0.01" disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
         <label className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
-          <input type="checkbox" className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
+          <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
           <span>Add optional 10% support for the IFund platform <span className="block text-xs text-slate-500">This is separate from your campaign gift and not required.</span></span>
         </label>
         {valid&&<div aria-live="polite" className="rounded-xl border border-slate-200 bg-blue-50/60 p-3 text-sm text-slate-800">
@@ -158,7 +160,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         {!valid?<p className="text-xs text-red-700">Enter a gift of at least $1.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
-            <section className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
+            <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">PayPal-hosted secure card fields. You may not need a PayPal account.</p>
               <label className="block text-xs">Name on card<div ref={nameHost} className={field}/></label>
@@ -180,7 +182,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
               <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cyan-600"/> Secure PayPal checkout · Other payment methods appear only if PayPal offers them.</p>
             </section>
           </>}
-        {status==="capturing"&&<p role="status">Verifying PayPal capture and saving your donation…</p>}
+        {status==="capturing"&&<p role="status">Verifying PayPal capture and saving your donation… Please keep checkout open.</p>}
         {error&&<p role="alert" className="text-xs text-red-700">{error}</p>}
       </div>}
     </DialogContent>
