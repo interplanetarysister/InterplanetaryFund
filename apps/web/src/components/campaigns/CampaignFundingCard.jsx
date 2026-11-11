@@ -39,7 +39,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
         aria-disabled={checkoutDisabled}
         className={platformOnlyMode ? "w-full rounded-xl h-12 text-base font-semibold bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/20 hover:opacity-90" : "w-full rounded-xl min-h-12 h-auto py-3 text-base font-bold bg-[#FFC439] text-[#003087] border-0 hover:bg-[#f2ba36] whitespace-normal"}
       >
-        <Heart className="w-5 h-5 mr-2" /> {!campaignActive ? "Campaign not accepting donations" : platformOnlyMode ? "Campaign donations paused" : "Donate with PayPal"}
+        <Heart className="w-5 h-5 mr-2" /> {!campaignActive ? "Campaign not accepting donations" : platformOnlyMode ? "Campaign donations paused" : "Donate Now"}
       </Button>
       {platformOnlyMode ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center">
@@ -48,7 +48,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
         </div>
       ) : (
         <p className="flex items-center justify-center gap-1.5 text-xs text-stone-400 mt-3">
-          <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" /> Secure PayPal checkout · other methods available
+          <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" /> Checkout options shown in the secure payment dialog
         </p>
       )}
     </div>
