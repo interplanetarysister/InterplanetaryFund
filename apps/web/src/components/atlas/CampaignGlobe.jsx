@@ -121,7 +121,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
             <article className="globe-selected">
               <p className="eyebrow">Selected fundraiser · live</p>
               <h3>{selected.title}</h3>
-              <p>{selected.location} · Synthetic</p>
+              <p>{selected.location} · Approximate public location</p>
               <Link className="button small" to={"/campaign/"+selected.id}>Open campaign and charts</Link>
             </article>
           )}
