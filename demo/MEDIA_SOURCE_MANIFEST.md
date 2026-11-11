@@ -1,6 +1,6 @@
 # Independent judge demo image source manifest
 
-Every entry is fictional campaign imagery and **illustrative only**. It does not depict an actual iFund organizer, campaign recipient, disaster or fundraiser.
+Entries below include campaign family groupings (not necessarily individual UUIDs). Every entry is fictional campaign imagery and **illustrative only**. It does not depict an actual iFund organizer, campaign recipient, disaster or fundraiser.
 
 | Campaign | Campaign UUID | Image URL | Verified Commons source | Author | License | Imported | Notes |
 |---|---|---|---|---|---|---|---|
@@ -8,6 +8,12 @@ Every entry is fictional campaign imagery and **illustrative only**. It does not
 
 | Asteroid Observatory Nights | `b3cb4cb1-55c2-4cdd-893e-52211baf7453` | https://upload.wikimedia.org/wikipedia/commons/3/3e/Observatory_Telescope_at_the_University_of_Saskatchewan.jpg | https://commons.wikimedia.org/wiki/File:Observatory_Telescope_at_the_University_of_Saskatchewan.jpg | SSPWXR | CC0 1.0 | 2026-11-11 | Original 4160×3120 JPEG, actual thumbnail/original visually inspected; shows a real telescope in a dome, illustrative fictional campaign only. |
 | Aurora Harbor Learning Labs | `c4a54cf7-62d1-44c6-8ce7-22adf552b5de` | https://upload.wikimedia.org/wikipedia/commons/0/03/Digital_Classroom.jpg | https://commons.wikimedia.org/wiki/File:Digital_Classroom.jpg | Xehadkabir | CC0 1.0 | 2026-11-11 | Original 1024×768 JPEG; public image visually inspected, depicts an actual digital classroom, not the fictional location. |
+
+| Comet Haven / Starlight Wildlife Rescue campaign family (4) | Fictional only | https://upload.wikimedia.org/wikipedia/commons/e/e9/Animal_shelter%2C_Zorge_street%2C_Moscow.JPG | https://commons.wikimedia.org/wiki/File:Animal_shelter,_Zorge_street,_Moscow.JPG | Andreykor | CC0 1.0 | 2026-11-11 | Real Moscow shelter illustration, not a photograph of the fictional recipient |
+| Constellation Animal Pantry family (3) | Fictional only | https://thumb.wikimedia.org/wikipedia/commons/thumb/5/55/Cachorro_esperando_na_ado%C3%A7%C3%A3o_20240623.jpg/500px-Cachorro_esperando_na_ado%C3%A7%C3%A3o_20240623.jpg | https://commons.wikimedia.org/wiki/File:Cachorro_esperando_na_ado%C3%A7%C3%A3o_20240623.jpg | Tet | CC0 1.0 | 2026-11-11 | 500px Wikimedia thumbnail, depicts adoption dog in Brazil; not a fictional campaign beneficiary |
+| Comet Coast Cleanup / Ember Estuary (4) | Fictional only | https://upload.wikimedia.org/wikipedia/commons/2/29/Crew_of_workers_clean_up_beach_coast.jpg | https://commons.wikimedia.org/wiki/File:Crew_of_workers_clean_up_beach_coast.jpg | Gore Lamar, U.S. Fish and Wildlife Service | Public domain | 2026-11-11 | Coastal cleanup; photograph from external public-domain image archive |
+| Nova Garden Food Network family (3) | Fictional only | https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Food_pantry_car_line.jpg/960px-Food_pantry_car_line.jpg | https://commons.wikimedia.org/wiki/File:Food_pantry_car_line.jpg | Wikideas1 | CC0 1.0 | 2026-11-11 | 960px Wikimedia thumbnail of food pantry line; not from fictional neighborhood |
+| Horizon First Aid Training family (3) | Fictional only | https://thumb.wikimedia.org/wikipedia/commons/thumb/2/26/Basic_first_aid_training_130219-N-PF210-358.jpg/960px-Basic_first_aid_training_130219-N-PF210-358.jpg | https://commons.wikimedia.org/wiki/File:Basic_first_aid_training_130219-N-PF210-358.jpg | U.S. Navy, MC2 Derek R. Sanchez | U.S. government work, public domain | 2026-11-11 | 960px thumbnail of CPR demonstration; not fictional course participants |
 
 ## Rules for additional image sourcing
 
