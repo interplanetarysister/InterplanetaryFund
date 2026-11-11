@@ -45,21 +45,36 @@ export default function Atlas() {
 
   const analytics = useMemo(() => {
     const byCause = new Map();
+    const byGoal = new Map();
+    const byProgress = new Map();
+    const increment = (map, label) => map.set(label, (map.get(label) || 0) + 1);
     let verifiedRaised = 0;
     let verifiedDonors = 0;
     for (const campaign of campaigns) {
       const cause = String(campaign.category || "other").replace(/_/g, " ");
-      byCause.set(cause, (byCause.get(cause) || 0) + 1);
-      const raised = Number(campaign.raised_amount);
-      const donors = Number(campaign.donor_count);
+      increment(byCause, cause);
+      const goal = campaign.goal_amount == null ? null : Number(campaign.goal_amount);
+      const raised = campaign.raised_amount == null ? null : Number(campaign.raised_amount);
+      const donors = campaign.donor_count == null ? null : Number(campaign.donor_count);
+      increment(byGoal, !Number.isFinite(goal) || goal <= 0 ? "No published goal"
+        : goal < 5000 ? "Under $5k" : goal < 25000 ? "$5k–$25k"
+        : goal < 100000 ? "$25k–$100k" : "$100k+");
+      increment(byProgress, !Number.isFinite(goal) || goal <= 0 ? "No published goal"
+        : !Number.isFinite(raised) || raised < 0 ? "No verified funding"
+        : raised === 0 ? "Not started" : raised / goal < 0.25 ? "Under 25%"
+        : raised / goal < 0.75 ? "25–74%" : "75%+ funded");
       if (Number.isFinite(raised) && raised >= 0) verifiedRaised += raised;
       if (Number.isSafeInteger(donors) && donors >= 0) verifiedDonors += donors;
     }
     const causeRows = [...byCause].map(([name, value]) => ({ name, value, label: value + " active campaigns" }))
       .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
+    const formatGroups = (groups) => [...groups].map(([name, value]) => ({name, value, label:value + " active campaigns"}))
+      .sort((a,b) => b.value - a.value || a.name.localeCompare(b.name));
     const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
     return {
       causeRows,
+      goalRows: formatGroups(byGoal),
+      progressRows: formatGroups(byProgress),
       verifiedRaised,
       verifiedDonors,
       money,
@@ -68,9 +83,9 @@ export default function Atlas() {
         title: c.title,
         category: String(c.category || "other").replace(/_/g, " "),
         location: c.map_opt_in ? c.location : "Location not shared",
-        raised: Number(c.raised_amount),
-        goal: Number(c.goal_amount),
-        donorCount: Number(c.donor_count),
+        raised: c.raised_amount == null ? null : Number(c.raised_amount),
+        goal: c.goal_amount == null ? null : Number(c.goal_amount),
+        donorCount: c.donor_count == null ? null : Number(c.donor_count),
       })),
     };
   }, [campaigns]);
@@ -146,6 +161,20 @@ export default function Atlas() {
               <div><span className="block text-muted-foreground">Confirmed donor counts</span><strong className="tabular-nums">{analytics.verifiedDonors.toLocaleString()}</strong></div>
             </div>
             <p className="mt-3 text-xs text-muted-foreground">Verified public funding totals only. Donor counts are summed per campaign (not a deduplicated count of people). No sandbox payments or implied personal demographics.</p>
+          </div>
+        </section>
+        <section className="grid gap-5 lg:grid-cols-2" aria-label="Live campaign goal and funding demographics">
+          <div className="ifund-chart-card">
+            <p className="ifund-chart-eyebrow">Live campaign planning · Actual published targets</p>
+            <h2>Campaigns by goal size</h2>
+            <DonutChart data={analytics.goalRows} title="Published campaign fundraising goal bands" valueText={campaigns.length + " published campaigns categorized by goal"} />
+            <p className="mt-3 text-sm text-muted-foreground">Targets are organizer-published goals, not confirmed money raised or predicted donations.</p>
+          </div>
+          <div className="ifund-chart-card">
+            <p className="ifund-chart-eyebrow">Live progress · Verified PayPal capture totals</p>
+            <h2>Fundraising progress bands</h2>
+            <DonutChart data={analytics.progressRows} title="Verified funding percentage bands for live campaigns" valueText={campaigns.length + " campaigns categorized by verified progress"} />
+            <p className="mt-3 text-sm text-muted-foreground">Progress is calculated only from public verified funding and published goals. No fictional showcase payments or inferred donor demographics.</p>
           </div>
         </section>
         <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Live campaign data explorer">
