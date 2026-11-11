@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {sandboxConfigured, confirmCapturedOrder, confirmedWebhookResource, SandboxVerificationError,issueCheckoutBinding,requireCheckoutSession,atomicCaptureUpdateFilter,associatedCaptureWebhook} from "../worker/paypalSandboxSecurity.js";
+import {isRegisteredSandboxWebhook, sandboxConfigured, confirmCapturedOrder, confirmedWebhookResource, SandboxVerificationError,issueCheckoutBinding,requireCheckoutSession,atomicCaptureUpdateFilter,associatedCaptureWebhook} from "../worker/paypalSandboxSecurity.js";
 const env = {IFUND_PAYPAL_SANDBOX_ENABLED:"enabled",PAYPAL_CLIENT_ID:"sandbox_id",PAYPAL_CLIENT_SECRET:"secret",PAYPAL_WEBHOOK_ID:"webhook",SUPABASE_URL:"https://example.supabase.co",SUPABASE_SECRET_KEY:"secret"};
 const record = {paypal_order_id:"ORDER-12345678",campaign_id:"campaign-one",gift_cents:500,paypal_capture_id:"CAPTURE-12345678"};
 const order = {id:record.paypal_order_id,status:"COMPLETED",purchase_units:[{custom_id:record.campaign_id,amount:{currency_code:"USD",value:"5.00"},payments:{captures:[{id:record.paypal_capture_id,status:"COMPLETED",amount:{currency_code:"USD",value:"5.00"}}]}}]};
@@ -58,4 +58,21 @@ test("webhook must contain the exact associated order and USD amount",()=>{
   {...event,resource:{...event.resource,amount:{currency_code:"USD",value:"8.00"}}},
   {...event,event_type:"PAYMENT.CAPTURE.REFUNDED"}
  ])assert.throws(()=>associatedCaptureWebhook(changed,record),SandboxVerificationError);
+});
+
+const origin="https://verified-demo.interplanetaryfund-migration.pages.dev";
+const webhook={id:"WH-1234567890",url:origin+"/api/paypal/sandbox/webhook",
+  event_types:[{name:"PAYMENT.CAPTURE.COMPLETED"}]};
+test("PayPal sandbox registered webhook must match exact preview, type, and provider ID",()=>{
+ assert.equal(isRegisteredSandboxWebhook(webhook,webhook.id,origin),true);
+ for(const candidate of [
+   {...webhook,id:"WH-WRONG123456"},
+   {...webhook,url:"https://evil.example/api/paypal/sandbox/webhook"},
+   {...webhook,url:origin+"/api/paypal/sandbox/webhook?foo=1"},
+   {...webhook,url:origin+"/api/paypal/sandbox/webhook/extra"},
+   {...webhook,event_types:[{name:"PAYMENT.CAPTURE.REFUNDED"}]},
+   {...webhook,url:"https://verified-demo.interplanetaryfund-migrationXpages.dev/api/paypal/sandbox/webhook"}
+ ]) assert.equal(isRegisteredSandboxWebhook(candidate,webhook.id,origin),false);
+ assert.equal(isRegisteredSandboxWebhook(webhook,webhook.id,
+   "https://different.interplanetaryfund-migration.pages.dev"),false);
 });
