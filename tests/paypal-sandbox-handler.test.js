@@ -69,3 +69,30 @@ test("PayPal webhook ID is mandatory even if other sandbox settings exist",async
   assert.equal(body.webhook_ready,false);
   assert.equal(body.live_payments_enabled,false);
 });
+
+test("sandbox readiness calls PayPal and rejects unregistered webhook endpoints",async()=>{
+ const oldFetch=globalThis.fetch;
+ let calls=[];
+ const providerWebhook={id:fakeConfig.PAYPAL_WEBHOOK_ID,
+   url:origin+"/api/paypal/sandbox/webhook",
+   event_types:[{name:"PAYMENT.CAPTURE.COMPLETED"}]};
+ try{
+   globalThis.fetch=async (url,opts)=>{
+     calls.push(String(url));
+     if(String(url).endsWith("/v1/oauth2/token"))
+       return Response.json({access_token:"dummy-test-token",token_type:"Bearer"});
+     if(String(url).includes("/v1/notifications/webhooks/"))
+       return Response.json(providerWebhook);
+     throw Error("Unexpected provider request");
+   };
+   const ready=await call("status","GET",fakeConfig);
+   assert.equal(ready.status,200);
+   assert.deepEqual(await ready.json(),{mode:"sandbox",enabled:true,webhook_ready:true,live_payments_enabled:false});
+   assert.equal(calls.length,2);
+   providerWebhook.url="https://attacker.example/api/paypal/sandbox/webhook";
+   const blocked=await call("status","GET",fakeConfig);
+   const body=await blocked.json();
+   assert.equal(body.enabled,false);
+   assert.equal(body.webhook_ready,false);
+ }finally{globalThis.fetch=oldFetch}
+});
