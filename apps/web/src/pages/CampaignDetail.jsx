@@ -140,14 +140,14 @@ export default function CampaignDetail() {
       <CampaignDonationDialog campaign={campaign} open={donationOpen} onOpenChange={setDonationOpen}
         onPaid={async () => { try { const fresh = await getCampaignDetail(id); if (fresh) setCampaign(fresh); } catch (_) {} }} />
 
-      {/* Mobile floating button keeps the original look; with checkout paused it
-          scrolls to the funding card and its notice instead of opening checkout. */}
+      {/* The mobile action always refers to this campaign. When checkout is paused,
+          it opens funding details rather than suggesting a platform donation. */}
       <button
         onClick={platformOnlyMode ? scrollToFunding : () => setDonationOpen(true)}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
         aria-label={platformOnlyMode ? "Campaign donations are paused. Show funding details" : "Donate"}
       >
-        <span className="flex flex-col items-center leading-tight"><span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {platformOnlyMode ? "Support IF" : "Donate"}</span>{platformOnlyMode && <span className="text-[10px] font-medium opacity-90">Platform, not campaign</span>}</span>
+        <span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {platformOnlyMode ? "Funding details" : "Donate Now"}</span>
       </button>
     </PullToRefresh>
   );
