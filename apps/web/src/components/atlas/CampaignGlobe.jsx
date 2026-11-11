@@ -58,7 +58,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
   const dragging = useRef(null);
   const grid = useMemo(() => graticule(rotation), [rotation]);
   const landmarks = useMemo(() => LAND.map((shape) => line(shape, rotation)), [rotation]);
-  const markers = useMemo(() => campaigns.filter(c => c.map_opt_in === true && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude))).map((campaign) => ({
+  const markers = useMemo(() => campaigns.filter(c => c.map_opt_in === true && c.latitude !== null && c.longitude !== null && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude))).map((campaign) => ({
     campaign,
     point: project(campaign.latitude, campaign.longitude, rotation),
   })).filter((marker) => marker.point.front), [campaigns, rotation]);
