@@ -20,6 +20,38 @@ export default {async fetch(request,env){
     return output({ok:true,access_token:data.access_token});
   }catch{return output({ok:false,error:"Sandbox OAuth unavailable"},503);}
  }
+ if(u.pathname==="/internal/migrate-webhook"){
+  // A single, restricted change: move the existing sandbox demo webhook from an
+  // immutable build URL to the stable branch alias. No arbitrary URL accepted.
+  const id="51B35522F66392518";
+  const old="https://f69605aa.interplanetaryfund-migration.pages.dev/api/paypal/sandbox/webhook";
+  const target="https://feature-paypal-sandbox-secur.interplanetaryfund-migration.pages.dev/api/paypal/sandbox/webhook";
+  const client=await secret(env.PAYPAL_CLIENT_ID),password=await secret(env.PAYPAL_CLIENT_SECRET);
+  if(!client||!password)return output({ok:false,error:"Sandbox credentials unavailable"},503);
+  try{
+   const auth=await fetch("https://api-m.sandbox.paypal.com/v1/oauth2/token",{
+     method:"POST",headers:{"authorization":"Basic "+btoa(client+":"+password),
+       "content-type":"application/x-www-form-urlencoded"},body:"grant_type=client_credentials"});
+   if(!auth.ok)return output({ok:false,error:"PayPal OAuth rejected"},503);
+   const token=(await auth.json()).access_token;
+   if(!token)return output({ok:false,error:"PayPal OAuth token unavailable"},503);
+   const url="https://api-m.sandbox.paypal.com/v1/notifications/webhooks/"+id;
+   const read=async()=>{const r=await fetch(url,{headers:{"authorization":"Bearer "+token}});
+     if(!r.ok)throw Error("Unable to identify webhook");return r.json();};
+   const prior=await read();
+   if(prior?.id!==id)return output({ok:false,error:"Webhook ID mismatch"},409);
+   if(prior.url!==target && prior.url!==old)return output({ok:false,error:"Unexpected existing callback; no changes made"},409);
+   if(prior.url===old){
+    const update=await fetch(url,{method:"PATCH",headers:{
+      "authorization":"Bearer "+token,"content-type":"application/json"},
+      body:JSON.stringify([{op:"replace",path:"/url",value:target}])});
+    if(!update.ok)return output({ok:false,error:"PayPal refused callback update"},503);
+   }
+   const current=await read();
+   if(current?.id!==id||current?.url!==target)return output({ok:false,error:"Updated callback not confirmed"},503);
+   return output({ok:true,updated:true,callback_url:target});
+  }catch{return output({ok:false,error:"Sandbox callback update unavailable"},503);}
+ }
  if(u.pathname==="/internal/storage"){
   let raw;
   try{raw=await request.text();if(raw.length>8192)throw Error("oversized");}catch{return output({ok:false,error:"Invalid request"},413);}
