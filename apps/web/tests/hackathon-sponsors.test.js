@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { financeDemoRows, demoFinanceStats } from "../src/lib/hackathonFinanceDemo.mjs";
-const collection = JSON.parse(readFileSync(new URL("../docs/hackathon/postman/ifund-paypal-sandbox-readonly.postman_collection.json", import.meta.url), "utf8"));
+const collection = JSON.parse(readFileSync(new URL("../public/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json", import.meta.url), "utf8"));
 test("Postman collection uses v2.1 and sandbox-only GET requests", () => {
   assert.equal(collection.info.schema, "https://schema.getpostman.com/json/collection/v2.1.0/collection.json");
   assert.equal(collection.item.length, 4);
