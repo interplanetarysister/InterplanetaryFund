@@ -14,6 +14,8 @@ WITH audit AS (
  SELECT id, array_remove(ARRAY[
    CASE WHEN status='captured' AND (cap_id IS NULL OR provider_status<>'COMPLETED' OR amount_cents IS DISTINCT FROM captured_cents OR currency IS DISTINCT FROM captured_currency OR paypal_capture_id IS DISTINCT FROM cap_id) THEN 'capture_mismatch' END,
    CASE WHEN status='captured' AND receipt_n<>1 THEN 'receipt_count' END,
+   CASE WHEN status='captured' AND event_n<>1 THEN 'capture_webhook_count' END,
+   CASE WHEN status<>'captured' AND event_n>0 THEN 'unsettled_webhook' END,
    CASE WHEN status='captured' AND (ledger_n<>2 OR ledger_net<>0) THEN 'ledger_group' END,
    CASE WHEN status<>'captured' AND (cap_id IS NOT NULL OR receipt_n>0 OR ledger_n>0) THEN 'premature_finance' END,
    CASE WHEN purpose='campaign' AND campaign_id IS NULL THEN 'campaign_unattributed' END,
@@ -29,6 +31,8 @@ SELECT
  (SELECT coalesce(sum(amount_cents),0) FROM public.ifund_demo_captures WHERE provider_status='COMPLETED') AS provider_recorded_cents,
  (SELECT count(*) FROM public.ifund_demo_receipts) AS receipts,
  (SELECT count(*) FROM public.ifund_demo_events) AS webhook_events,
+ (SELECT count(*) FROM public.ifund_demo_events e LEFT JOIN public.ifund_demo_orders o ON o.id=e.order_id WHERE o.id IS NULL) AS orphan_webhook_events,
+ (SELECT count(*) FROM public.ifund_demo_events e WHERE e.event_type<>'PAYMENT.CAPTURE.COMPLETED' OR e.delivery_count<1) AS malformed_webhook_events,
  (SELECT count(*) FROM public.ifund_demo_ledger) AS ledger_lines,
  (SELECT count(*) FROM violations WHERE cardinality(reasons)>0) AS anomalous_orders,
  (SELECT count(*) FROM public.ifund_demo_captures c LEFT JOIN public.ifund_demo_orders o ON o.id=c.order_id WHERE o.id IS NULL) AS orphan_captures,
