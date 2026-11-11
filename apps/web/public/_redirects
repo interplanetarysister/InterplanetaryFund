@@ -1,6 +1,8 @@
-# Cloudflare Pages SPA fallback.
-# Cloudflare matches real files and build assets before this rule, so hashed
-# JS/CSS and public assets are still served directly. Every other path is a
-# client-side route and must return the app shell, not a 404, so that deep
-# links and refreshes work (e.g. /discover, /campaign/<id>, /campaigns/<id>/edit).
-/*    /index.html   200
+# Cloudflare Pages uses its native SPA fallback when the build has an
+# index.html and no top-level 404.html. Do not add `/* /index.html 200`:
+# Cloudflare Pages rejects that rule as an infinite loop, leaving zero
+# effective redirect rules. Client-side deep links must be verified against
+# the deployed app separately from this build-time configuration.
+#
+# Keep this file free of catch-all redirects. Add only specific, validated
+# redirects here when needed.
