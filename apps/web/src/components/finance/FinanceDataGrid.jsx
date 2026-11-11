@@ -1,9 +1,28 @@
 import { useMemo, useRef } from "react";
-import { AllCommunityModule, ModuleRegistry, themeQuartz } from "ag-grid-community";
+import {
+  ClientSideRowModelModule,
+  ColumnAutoSizeModule,
+  CsvExportModule,
+  ModuleRegistry,
+  NumberFilterModule,
+  PaginationModule,
+  QuickFilterModule,
+  TextFilterModule,
+  themeQuartz,
+} from "ag-grid-community";
 import { AgGridReact } from "ag-grid-react";
 
 // MIT-licensed AG Grid Community only. No Enterprise licence, key, service or paid modules.
-ModuleRegistry.registerModules([AllCommunityModule]);
+// Register only the free modules this dashboard actually uses to reduce shipped JavaScript.
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule,
+  TextFilterModule,
+  NumberFilterModule,
+  QuickFilterModule,
+  PaginationModule,
+  CsvExportModule,
+  ColumnAutoSizeModule,
+]);
 const cosmicGridTheme = themeQuartz.withParams({
   accentColor: "#22d3ee",
   backgroundColor: "#070e20",
