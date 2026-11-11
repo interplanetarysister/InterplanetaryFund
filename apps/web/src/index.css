@@ -832,3 +832,15 @@ html:not(.dark) .campaign-quest :where([class~="bg-slate-950/45"], [class~="bg-s
 html:not(.dark) .campaign-quest input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
 }
+
+
+/* IFund free community-chart components: provider-backed numbers only. */
+.ifund-chart-card{background:#fff;color:#182638;border:1px solid #cad3df;border-radius:19px;padding:20px;min-width:0;overflow:hidden;}
+.ifund-chart-card h2{color:#182638;font-size:clamp(1.2rem,2.2vw,1.55rem);font-weight:700;margin:8px 0 14px;}
+.ifund-chart-card .ifund-chart-eyebrow{display:flex;align-items:center;gap:7px;font-size:.75rem;letter-spacing:.055em;font-weight:750;text-transform:uppercase;color:#126a7b;}
+.ifund-chart-card .ifund-free-chart{width:100%;height:260px;max-width:100%;}
+.ifund-chart-card .ifund-chart-values{padding:0;margin:10px 0;list-style:none;display:grid;gap:6px;}
+.ifund-chart-card .ifund-chart-values li{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border-bottom:1px solid #dce6ef;padding:7px 0;font-size:.86rem;}
+.ifund-chart-card .ifund-chart-values strong{text-align:right;font-variant-numeric:tabular-nums;color:#102238;}
+.ifund-chart-card p.text-muted-foreground,.ifund-chart-card ul.text-muted-foreground{color:#546377;}
+@media (prefers-color-scheme:dark){.dark .ifund-chart-card{border-color:#405a74}}
