@@ -9,7 +9,7 @@ Included in the **existing** iFund application. No new backend, storage, payment
 - Only `ag-grid-community` and `ag-grid-react` (Community) are required; no Enterprise licence or AG Studio purchase.
 
 ## Postman sandbox API checks
-- Import `apps/web/docs/hackathon/postman/ifund-paypal-sandbox-readonly.postman_collection.json` into free Postman, or execute via the Postman Newman CLI.
+- Import `apps/web/public/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json` into free Postman, or execute via the Postman Newman CLI.
 - Collection makes four **GET-only** calls against `sandbox_origin`: sandbox status, redacted diagnostics, demo HTML, and negative method validation for orders (405).
 - Default origin is a documented sandbox preview. Verify its deployment before execution.
 - The collection never stores credentials, posts to Orders v2, captures payments or writes receipts.
