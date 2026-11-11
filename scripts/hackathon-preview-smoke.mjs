@@ -22,12 +22,17 @@ const html = !page.error && page.status === 200 && /text\/html/i.test(page.type)
 let json;
 try { if (/application\/json/i.test(api.type)) json = JSON.parse(api.body); } catch {}
 // An unrelated JSON 404/error handler is not proof of a deployed sandbox Function.
-const apiFunction = !api.error && api.status === 200 && !!json && typeof json === 'object' && !Array.isArray(json);
+const apiFunction = !api.error && api.status === 200 && !!json && typeof json === 'object' &&
+  !Array.isArray(json) && json.mode === 'sandbox' &&
+  typeof json.enabled === 'boolean' && typeof json.webhook_ready === 'boolean' &&
+  typeof json.database_ready === 'boolean' && json.live_payments_enabled === false;
+const sandboxReady = apiFunction && json.enabled === true &&
+  json.webhook_ready === true && json.database_ready === true;
 console.log(JSON.stringify({
   origin: base.origin, checkedAt: new Date().toISOString(),
   hackathon: { httpStatus: page.status ?? null, contentType: page.type ?? null, htmlDocument: !!html, error: page.error ?? null },
-  sandboxStatus: { httpStatus: api.status ?? null, contentType: api.type ?? null, jsonResponse: !!apiFunction, error: api.error ?? null },
-  result: html && apiFunction ? 'HTTP_ROUTE_SMOKE_ONLY_NOT_PAYMENT_VERIFICATION' : 'NOT_VERIFIED',
+  sandboxStatus: { httpStatus: api.status ?? null, contentType: api.type ?? null, validSandboxStatus: !!apiFunction, ready: !!sandboxReady, enabled: apiFunction ? json.enabled : null, webhookReady: apiFunction ? json.webhook_ready : null, databaseReady: apiFunction ? json.database_ready : null, error: api.error ?? null },
+  result: html && sandboxReady ? 'SANDBOX_READY_NOT_PAYMENT_VERIFIED' : (html && apiFunction ? 'ROUTES_OK_SANDBOX_NOT_READY' : 'NOT_VERIFIED'),
   warning: 'This probe never verifies AI generation, PayPal provider capture, webhook signatures, database receipts, or compliance.'
 }, null, 2));
-process.exit(html && apiFunction ? 0 : 1);
+process.exit(html && sandboxReady ? 0 : 1);
