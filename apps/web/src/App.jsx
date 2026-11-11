@@ -13,6 +13,7 @@ import SuperAdminAccess from "@/components/auth/SuperAdminAccess";
 const Layout = lazy(() => import("./components/Layout"));
 const Home = lazy(() => import("./pages/Home"));
 const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
+const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
@@ -71,6 +72,7 @@ function AppRoutes() {
   return <Suspense fallback={<Loading />}><Routes>
     <Route path="/" element={<Home />} />
     <Route path="/hackathon" element={<HackathonDemo />} />
+    <Route path="/hackathon/tracker" element={<MemberAccess><SuperAdminAccess><HackathonTracker /></SuperAdminAccess></MemberAccess>} />
     <Route path="/about" element={<About />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />

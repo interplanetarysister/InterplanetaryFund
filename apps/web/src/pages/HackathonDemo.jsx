@@ -77,6 +77,7 @@ export default function HackathonDemo() {
       <nav aria-label="Demo navigation" className="mb-5 flex flex-wrap gap-3 text-sm">
         <Link to="/" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold">IFund home</Link>
         <Link to="/discover" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold">Browse campaigns</Link>
+        <Link to="/hackathon/tracker" className="inline-flex min-h-11 items-center rounded-xl border border-cyan-400/40 px-4 font-semibold text-cyan-300">Organizer demo tracker</Link>
       </nav>
       <p className="text-xs font-semibold uppercase tracking-[.22em] text-cyan-400">PayPal AI Hackathon · 2026</p>
       <h1 className="mt-3 text-3xl font-bold text-foreground">IFund PayPal + AI demo</h1>
