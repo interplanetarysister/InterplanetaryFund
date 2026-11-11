@@ -105,3 +105,85 @@ test("sandbox readiness calls PayPal and rejects unregistered webhook endpoints"
    assert.equal(body.webhook_ready,false);
  }finally{globalThis.fetch=oldFetch}
 });
+
+
+test("unapproved sandbox order cannot trigger capture or write a receipt",async()=>{
+ const previousFetch=globalThis.fetch;
+ const {issueCheckoutBinding}=await import("../worker/paypalSandboxSecurity.js");
+ const orderId="TESTORDER1234567",campaignId="a2251322-cac2-23ca-253e-274af4682a9a";
+ const binding=await issueCheckoutBinding(orderId);
+ const record={paypal_order_id:orderId,campaign_id:campaignId,gift_cents:100,
+   status:"created",paypal_capture_id:null,checkout_token_hash:binding.checkoutTokenHash};
+ let captureCalls=0,writeCalls=0;
+ try{
+  globalThis.fetch=async (url,options={})=>{
+   const u=String(url);
+   if(u.includes("/rest/v1/ifund_paypal_sandbox_orders")&&options.method==="GET")
+     return Response.json([record]);
+   if(u.endsWith("/v1/oauth2/token"))
+     return Response.json({access_token:"test-only-sandbox-token",token_type:"Bearer"});
+   if(u.endsWith("/v2/checkout/orders/"+orderId)&&options.method==="GET")
+     return Response.json({id:orderId,status:"CREATED"});
+   if(u.endsWith("/capture"))captureCalls++;
+   if(options.method==="PATCH"||options.method==="POST"&&u.includes("/rest/v1/"))writeCalls++;
+   throw Error("Unexpected external call: "+u);
+  };
+  const response=await call("capture","POST",fakeConfig,{order_id:orderId},{
+   cookie:binding.setCookie.split(";")[0]
+  });
+  assert.equal(response.status,409,"a buyer must approve sandbox checkout");
+  const rejected=await response.json();
+  assert.equal(rejected.ok,false);
+  assert.match(rejected.error,/buyer approval is required/i);
+  assert.equal(captureCalls,0,"never call PayPal capture before buyer approval");
+  assert.equal(writeCalls,0,"unapproved order cannot create a captured receipt");
+ }finally{globalThis.fetch=previousFetch;}
+});
+
+test("verified sandbox webhook retry is idempotent and never reaches live tables",async()=>{
+ const previousFetch=globalThis.fetch;
+ const orderId="TESTORDER1234567",captureId="TESTCAPTURE1234567";
+ const campaignId="a2251322-cac2-23ca-253e-274af4682a9a",eventId="TESTEVENT1234567";
+ const amount={currency_code:"USD",value:"1.00"};
+ const record={paypal_order_id:orderId,campaign_id:campaignId,gift_cents:100,
+   status:"captured",paypal_capture_id:captureId,checkout_token_hash:"a".repeat(64)};
+ const order={id:orderId,status:"COMPLETED",purchase_units:[{
+   custom_id:campaignId,amount,payments:{captures:[{id:captureId,status:"COMPLETED",amount}]}
+ }]};
+ const event={id:eventId,event_type:"PAYMENT.CAPTURE.COMPLETED",
+  resource:{id:captureId,amount,supplementary_data:{related_ids:{order_id:orderId}}}};
+ const headers={
+   "paypal-transmission-id":"test-transmission-id",
+   "paypal-transmission-time":"2026-11-10T20:00:00Z",
+   "paypal-cert-url":"https://api-m.sandbox.paypal.com/v1/notifications/certs/test",
+   "paypal-auth-algo":"SHA256withRSA","paypal-transmission-sig":"test-signature"
+ };
+ let inserted=0;const written=[];
+ try{
+  globalThis.fetch=async(url,options={})=>{
+   const u=String(url);
+   if(u.endsWith("/v1/oauth2/token"))
+     return Response.json({access_token:"test-only-sandbox-token",token_type:"Bearer"});
+   if(u.endsWith("/v1/notifications/verify-webhook-signature"))
+     return Response.json({verification_status:"SUCCESS"});
+   if(u.endsWith("/v2/checkout/orders/"+orderId))
+     return Response.json(order);
+   if(u.includes("/rest/v1/ifund_paypal_sandbox_orders")&&options.method==="GET")
+     return Response.json([record]);
+   if(u.includes("/rest/v1/ifund_paypal_sandbox_events")&&options.method==="GET")
+     return Response.json(inserted?[{paypal_event_id:eventId}]:[]);
+   if(u.includes("/rest/v1/ifund_paypal_sandbox_events")&&options.method==="POST"){
+     inserted++;written.push(JSON.parse(options.body));
+     return Response.json([{paypal_event_id:eventId}]);
+   }
+   throw Error("Unexpected financial API call: "+u);
+  };
+  for(let attempt=0;attempt<2;attempt++){
+   const result=await call("webhook","POST",fakeConfig,event,headers);
+   assert.equal(result.status,200,"signed, provider-matched event accepted");
+   assert.equal((await result.json()).verified,true);
+  }
+  assert.equal(inserted,1,"provider event must be stored exactly once");
+  assert.equal(written[0].paypal_resource_id,captureId);
+ }finally{globalThis.fetch=previousFetch;}
+});
