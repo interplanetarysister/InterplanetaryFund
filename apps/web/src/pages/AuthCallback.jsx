@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { completeAuthCallback } from "@/lib/authFlow";
+import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
+import { finalizeSignupAgreement } from "@/lib/legalAcceptance";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -13,7 +14,15 @@ export default function AuthCallback() {
     window.history.replaceState({}, "", "/auth/callback");
     Promise.resolve()
       .then(() => completeAuthCallback(authClient().auth, href))
-      .then((result) => {
+      .then(async (result) => {
+        if (!result.recovery) {
+          // Save only a same-browser, explicitly selected signup agreement.
+          // Missing or failed consent remains gated by MemberAccess.
+          try {
+            const user = await verifiedAuthUser(authClient().auth);
+            await finalizeSignupAgreement(authClient(), user, sessionStorage);
+          } catch { /* Preserve account access to the member consent screen. */ }
+        }
         if (active)
           navigate(result.recovery ? "/reset-password" : result.returnTo, {
             replace: true,
