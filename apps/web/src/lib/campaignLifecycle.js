@@ -40,6 +40,7 @@ export function emptyCampaignForm() {
   return {
     title: "", summary: "", story: "",
     category: "community", goal_amount: "", cover_image_url: "",
+    map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "",
   };
 }
 
@@ -91,6 +92,18 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   }
   if (cover && coverUrlError(cover)) errors.push("Enter a valid http or https cover image link.");
 
+  if (value.map_opt_in === true) {
+    const label = text(value.public_location_label);
+    if (label.length < 2 || label.length > 80) errors.push("For public Atlas placement, enter a broad city or region name (2–80 characters).");
+    for (const [field, range] of [["map_latitude", 90], ["map_longitude", 180]]) {
+      const input = text(value[field]);
+      const n = Number(input);
+      if (!/^-?\\d{1,3}(?:\\.\\d)?$/.test(input) || !Number.isFinite(n) || Math.abs(n) > range) {
+        errors.push("Use approximate public latitude and longitude with at most one decimal place. Never use an exact home address.");
+        break;
+      }
+    }
+  }
   if (publish) {
     if (!summary) errors.push("Add a short description before publishing.");
     if (!story) errors.push("Add your campaign story before publishing.");
@@ -117,6 +130,10 @@ export function buildCampaignPayload(form, status) {
     category: value.category,
     goal_amount: goal ? Number(goal) : 0,
     cover_image_url: text(value.cover_image_url),
+    map_opt_in: value.map_opt_in === true,
+    public_location_label: value.map_opt_in === true ? text(value.public_location_label) : null,
+    map_latitude: value.map_opt_in === true ? Number(value.map_latitude) : null,
+    map_longitude: value.map_opt_in === true ? Number(value.map_longitude) : null,
     status,
   };
 }
