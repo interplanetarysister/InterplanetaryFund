@@ -2,11 +2,12 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { payoutIdentity } from "@/lib/guestAccess";
+import { confirmWithdrawalFactor } from "@/lib/withdrawalMfa";
 
 // MFA is deliberately NOT part of login, registration, content creation or
 // account browsing. It is a step-up gate on the first withdrawal journey.
 // This screen never initiates a payout or treats client state as approval.
-function WithdrawalMfaGate() {
+function WithdrawalMfaGate({ authUser }) {
   const [state, setState] = useState("loading");
   const [factor, setFactor] = useState(null);
   const [enrollment, setEnrollment] = useState(null);
@@ -58,17 +59,7 @@ function WithdrawalMfaGate() {
     if (busy || !factorId || !/^\d{6}$/.test(code.trim())) return;
     setBusy(true); setError("");
     try {
-      const auth = authClient().auth;
-      const challenge = await auth.mfa.challenge({ factorId });
-      if (challenge.error || !challenge.data?.id)
-        throw challenge.error || new Error("Challenge unavailable.");
-      const check = await auth.mfa.verify({
-        factorId, challengeId: challenge.data.id, code: code.trim(),
-      });
-      if (check.error) throw check.error;
-      const assurance = await auth.mfa.getAuthenticatorAssuranceLevel();
-      if (assurance.error || assurance.data?.currentLevel !== "aal2")
-        throw new Error("Second-factor verification could not be confirmed.");
+      await confirmWithdrawalFactor(authClient().auth, authUser, factorId, code.trim());
       setCode(""); setEnrollment(null);
       setState("verified");
     } catch (cause) {
@@ -155,7 +146,7 @@ export default function WithdrawalVerification() {
         to="/register?returnTo=%2Fwithdrawals">Register an email account</Link>
       <Link className="ml-4 underline" to="/login?returnTo=%2Fwithdrawals">Sign in</Link>
     </section>}
-    {state.phase === "ready" && payoutIdentity(state.user) && <WithdrawalMfaGate/>}
+    {state.phase === "ready" && payoutIdentity(state.user) && <WithdrawalMfaGate authUser={state.user}/>}
     <p className="text-sm text-muted-foreground">The 7% platform fee is deducted at withdrawal. No payout succeeds without verified funds, account ownership, approved payout details, and the required checks.</p>
   </main>;
 }
