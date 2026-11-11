@@ -282,10 +282,34 @@ async function webhook(env,request){
   }
   return json({ok:true,mode:"sandbox",verified:true});
 }
+// Public-safe diagnostics: only boolean readiness flags; never expose tokens or stored secrets.
+async function diagnostics(env,request){
+ const result={mode:"sandbox",configured:sandboxHost(request)&&sandboxReady(env),
+  oauth_ready:false,webhook_registration_ready:false,webhook_origin_matches:false,
+  database_ready:false,live_payments_enabled:false};
+ if(!result.configured)return json(result);
+ try{
+  const access=await oauth(env);
+  result.oauth_ready=true;
+  try {
+   const registered=await paypal(access,"GET","/v1/notifications/webhooks/"+encodeURIComponent(env.PAYPAL_WEBHOOK_ID));
+   result.webhook_registration_ready=Boolean(registered?.id===env.PAYPAL_WEBHOOK_ID);
+   result.webhook_origin_matches=isRegisteredSandboxWebhook(registered,env.PAYPAL_WEBHOOK_ID,new URL(request.url).origin);
+  }catch{}
+ }catch{}
+ try {
+  await rest(env,"ifund_paypal_sandbox_orders","GET","?select=paypal_order_id&limit=1");
+  result.database_ready=true;
+ }catch{}
+ return json(result);
+}
+
 export async function onRequest({request,env,params}){
   const route=Array.isArray(params.path)?params.path.join("/"):String(params.path||"");
   if(route==="status"&&request.method==="GET")
     return status(env,request);
+  if(route==="diagnostics"&&request.method==="GET")
+    return diagnostics(env,request);
   if(!["orders","capture","webhook"].includes(route))return fail("Route not found",404);
   if(request.method!=="POST")return fail("Method not allowed",405);
   if(!sandboxReady(env))return fail("PayPal sandbox is not configured",503);
