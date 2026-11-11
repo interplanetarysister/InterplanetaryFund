@@ -19,7 +19,7 @@ test("sandbox status explicitly reports disabled without verified runtime bindin
   const response=await call("status","GET");
   assert.equal(response.status,200);
   assert.deepEqual(await response.json(),{
-    mode:"sandbox",enabled:false,webhook_ready:false,live_payments_enabled:false
+    mode:"sandbox",enabled:false,webhook_ready:false,database_ready:false,live_payments_enabled:false
   });
 });
 test("sandbox rejects order creation, capture and webhooks when secrets are missing",async()=>{
@@ -73,6 +73,7 @@ test("PayPal webhook ID is mandatory even if other sandbox settings exist",async
 test("sandbox readiness calls PayPal and rejects unregistered webhook endpoints",async()=>{
  const oldFetch=globalThis.fetch;
  let calls=[];
+ let databaseOk=true;
  const providerWebhook={id:fakeConfig.PAYPAL_WEBHOOK_ID,
    url:origin+"/api/paypal/sandbox/webhook",
    event_types:[{name:"PAYMENT.CAPTURE.COMPLETED"}]};
@@ -83,12 +84,20 @@ test("sandbox readiness calls PayPal and rejects unregistered webhook endpoints"
        return Response.json({access_token:"dummy-test-token",token_type:"Bearer"});
      if(String(url).includes("/v1/notifications/webhooks/"))
        return Response.json(providerWebhook);
+     if(String(url).includes("/rest/v1/ifund_paypal_sandbox_orders"))
+       return databaseOk ? Response.json([]) : Response.json({message:"Service key rejected"},{status:401});
      throw Error("Unexpected provider request");
    };
    const ready=await call("status","GET",fakeConfig);
    assert.equal(ready.status,200);
-   assert.deepEqual(await ready.json(),{mode:"sandbox",enabled:true,webhook_ready:true,live_payments_enabled:false});
-   assert.equal(calls.length,2);
+   assert.deepEqual(await ready.json(),{mode:"sandbox",enabled:true,webhook_ready:true,database_ready:true,live_payments_enabled:false});
+   assert.equal(calls.length,3);
+   databaseOk=false;
+   const databaseDown=await call("status","GET",fakeConfig);
+   assert.deepEqual(await databaseDown.json(),{
+     mode:"sandbox",enabled:false,webhook_ready:true,database_ready:false,live_payments_enabled:false
+   });
+   databaseOk=true;
    providerWebhook.url="https://attacker.example/api/paypal/sandbox/webhook";
    const blocked=await call("status","GET",fakeConfig);
    const body=await blocked.json();
