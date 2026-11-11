@@ -1,0 +1,1 @@
+import app from './app.js';import assets from './assets.js';export default {fetch(request,env,ctx){return app.fetch(request,{...env,ASSETS:assets},ctx)},scheduled:eventScheduled};async function eventScheduled(event,env,ctx){return app.scheduled(event,env,ctx)}
