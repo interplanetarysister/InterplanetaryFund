@@ -1,7 +1,8 @@
 // PayPal AI Hackathon sandbox-only gateway. Never touches real donations or withdrawals.
 import {
   sandboxConfigured, issueCheckoutBinding, requireCheckoutSession,
-  confirmCapturedOrder, atomicCaptureUpdateFilter, associatedCaptureWebhook
+  confirmCapturedOrder, atomicCaptureUpdateFilter, associatedCaptureWebhook,
+  isRegisteredSandboxWebhook
 } from "../../../../../../worker/paypalSandboxSecurity.js";
 
 const OUT="https://api-m.sandbox.paypal.com";
@@ -81,6 +82,20 @@ async function paypal(access,method,path,payload,requestId){
   if(!response.ok||!result)throw Error("Provider request not confirmed");
   return result;
 }
+async function registeredWebhook(env,request,access){
+  const result=await paypal(access,"GET",
+    "/v1/notifications/webhooks/"+encodeURIComponent(env.PAYPAL_WEBHOOK_ID));
+  return isRegisteredSandboxWebhook(result,env.PAYPAL_WEBHOOK_ID,new URL(request.url).origin);
+}
+async function status(env,request){
+  const notReady={mode:"sandbox",enabled:false,webhook_ready:false,live_payments_enabled:false};
+  if(!sandboxHost(request)||!sandboxConfigured(env))return json(notReady);
+  try{
+    const access=await oauth(env);
+    const verified=await registeredWebhook(env,request,access);
+    return json({...notReady,enabled:verified,webhook_ready:verified});
+  }catch{return json(notReady)}
+}
 async function orders(env,request){
   if(!browserPost(request))return fail("Sandbox checkout requires a same-origin preview browser",403);
   const input=await bodyJson(request);
@@ -92,6 +107,8 @@ async function orders(env,request){
     "?select=id,status&id=eq."+encodeURIComponent(campaignId)+"&limit=1");
   if(campaign.length!==1||campaign[0].status!=="active")return fail("Campaign not accepting demo payments",409);
   const access=await oauth(env);
+  if(!await registeredWebhook(env,request,access))
+    return fail("Sandbox webhook registration not verified",503);
   const origin=new URL(request.url).origin;
   const order=await paypal(access,"POST","/v2/checkout/orders",{
     intent:"CAPTURE",purchase_units:[{reference_id:"ifund-hackathon",
@@ -242,8 +259,7 @@ async function webhook(env,request){
 export async function onRequest({request,env,params}){
   const route=Array.isArray(params.path)?params.path.join("/"):String(params.path||"");
   if(route==="status"&&request.method==="GET")
-    return json({mode:"sandbox",enabled:sandboxConfigured(env),
-      webhook_ready:sandboxConfigured(env),live_payments_enabled:false});
+    return status(env,request);
   if(!["orders","capture","webhook"].includes(route))return fail("Route not found",404);
   if(request.method!=="POST")return fail("Method not allowed",405);
   if(!sandboxConfigured(env))return fail("PayPal sandbox is not configured",503);
