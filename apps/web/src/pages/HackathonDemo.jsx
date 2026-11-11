@@ -28,7 +28,7 @@ export default function HackathonDemo() {
     // Auth client initialization can fail synchronously when preview config is absent.
     // Never strand judges on an indefinite campaign-loading state.
     try {
-      Promise.resolve(authClient().from("ifund_campaigns").select("id,title").eq("status","active").limit(20))
+      Promise.resolve(authClient().from("ifund_campaigns").select("id,title").eq("status","active").order("title",{ascending:true}).limit(100))
         .then(({data,error})=>{if(!alive)return;if(error){setCampaignError("Unable to load published campaigns. Please try again later.");setCampaignLoading(false);return}setCampaigns(data||[]);setCampaignId(data?.[0]?.id||"");setCampaignLoading(false)})
         .catch(()=>{if(alive){setCampaignError("Campaign discovery is temporarily unavailable. Please try again later.");setCampaignLoading(false)}});
     } catch {
