@@ -186,7 +186,10 @@ async function capture(env,request){
   if(!validId(input?.order_id))return fail("Invalid order",400);
   const record=await orderRecord(env,input.order_id);
   if(!record)return fail("Sandbox order not found",404);
-  await requireCheckoutSession(request,record);
+  // Reject callers missing the browser-bound checkout cookie explicitly, before
+  // reaching PayPal. Never expose the cookie, its hash, or provider credentials.
+  try { await requireCheckoutSession(request,record); }
+  catch { return fail("Checkout session missing or invalid",403); }
   const access=await oauth(env);
   const path="/v2/checkout/orders/"+encodeURIComponent(input.order_id);
   let order=await paypal(access,"GET",path);
