@@ -6,7 +6,7 @@ const money = n => {
     ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(x/100) : "Unavailable";
 };
 export default function AdminFinance() {
-  const [state,setState] = useState({status:"loading",rows:[],unattributed:[],error:""});
+  const [state,setState] = useState({status:"loading",rows:[],receipts:[],error:""});
   useEffect(()=>{
     let active=true;
     (async()=>{
@@ -17,19 +17,22 @@ export default function AdminFinance() {
         // Server-side RPC checks verified administrator authority independently.
         const [report, merchant] = await Promise.all([
           client.rpc("ifund_admin_finance_summary"),
-          client.rpc("ifund_admin_unattributed_paypal_receipts"),
+          client.rpc("ifund_admin_paypal_merchant_receipts"),
         ]);
         if(report.error||!Array.isArray(report.data)||merchant.error||!Array.isArray(merchant.data))
           throw Error("Administrator financial reporting is unavailable or you do not have verified access.");
         const after=await client.auth.getUser();
         if(after.error||after.data?.user?.id!==before.data.user.id)throw Error("Your session changed. Reload to continue.");
-        if(active)setState({status:"ready",rows:report.data,unattributed:merchant.data,error:""});
-      }catch(e){if(active)setState({status:"error",rows:[],unattributed:[],error:e.message||"Unavailable"});}
+        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,error:""});
+      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],error:e.message||"Unavailable"});}
     })();
     return ()=>{active=false};
   },[]);
   const total=state.rows.reduce((s,row)=>s+(Number(row.raised_cents)||0),0);
   const count=state.rows.reduce((s,row)=>s+(Number(row.captured_payments)||0),0);
+  const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
+  const platform=shown.filter(r=>r.allocation_status==="platform_support");
+  const unmatched=shown.filter(r=>r.allocation_status==="unattributed");
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header><h1 className="text-3xl font-bold">Platform finance oversight</h1>
       <p className="mt-2 text-sm text-muted-foreground">Read-only verified donation totals. No payout controls, donor private details, sandbox payments or unconfirmed captures.</p></header>
@@ -41,26 +44,27 @@ export default function AdminFinance() {
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count}</p></div>
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Campaigns in reporting</p><p className="mt-2 text-2xl font-semibold">{state.rows.length}</p></div>
       </div>
-      <section className="rounded-2xl border border-border bg-card p-5 space-y-3" aria-label="Unattributed PayPal receipts">
-        <h2 className="text-lg font-semibold">Unattributed PayPal merchant receipts</h2>
-        <p className="text-sm text-muted-foreground">These payments were confirmed by PayPal but are not verified campaign donations. They are excluded from campaign totals and withdrawals until the original site and intended allocation are proven.</p>
+      <section className="rounded-2xl border border-border bg-card p-5 space-y-3" aria-label="Platform support and unmatched PayPal receipts">
+        <p className="text-xs text-muted-foreground">{unmatched.length} unmatched merchant receipt{unmatched.length === 1 ? "" : "s"} awaiting allocation review.</p>
+        <h2 className="text-lg font-semibold">PayPal platform donations and merchant receipts</h2>
+        <p className="text-sm text-muted-foreground">PayPal-confirmed gifts to IFund itself are platform support, not campaign gifts. Unmatched merchant payments remain separate. Neither group is included in campaign fundraising or owner withdrawals; the originating website is only displayed when verified.</p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <div><p className="text-xs text-muted-foreground">Unattributed receipts</p><p className="text-xl font-semibold tabular-nums">{state.unattributed.length}</p></div>
-          <div><p className="text-xs text-muted-foreground">Gross merchant receipts</p><p className="text-xl font-semibold tabular-nums">{money(state.unattributed.reduce((sum,r)=>sum+Number(r.gross_cents||0),0))}</p></div>
-          <div><p className="text-xs text-muted-foreground">Net after processor fees</p><p className="text-xl font-semibold tabular-nums">{money(state.unattributed.reduce((sum,r)=>sum+Number(r.net_cents||0),0))}</p></div>
+          <div><p className="text-xs text-muted-foreground">Verified platform donations</p><p className="text-xl font-semibold tabular-nums">{platform.length}</p></div>
+          <div><p className="text-xs text-muted-foreground">Gross platform support</p><p className="text-xl font-semibold tabular-nums">{money(platform.reduce((sum,r)=>sum+Number(r.gross_cents||0),0))}</p></div>
+          <div><p className="text-xs text-muted-foreground">Net platform support after PayPal fees</p><p className="text-xl font-semibold tabular-nums">{money(platform.reduce((sum,r)=>sum+Number(r.net_cents||0),0))}</p></div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm"><thead><tr className="border-b border-border">
-            <th className="py-3 pr-4">PayPal transaction</th><th className="py-3 pr-4">Received</th><th className="py-3 pr-4">Gross</th><th className="py-3 pr-4">Processor fee</th><th className="py-3 pr-4">Net</th><th className="py-3">Origin</th>
-          </tr></thead><tbody>{state.unattributed.map(r=><tr key={r.paypal_transaction_id} className="border-b border-border">
-            <td className="py-3 pr-4 font-mono text-xs">{r.paypal_transaction_id}</td>
+            <th className="py-3 pr-4">PayPal transaction</th><th className="py-3 pr-4">Allocation</th><th className="py-3 pr-4">Received</th><th className="py-3 pr-4">Gross</th><th className="py-3 pr-4">Processor fee</th><th className="py-3 pr-4">Net</th><th className="py-3">Origin</th>
+          </tr></thead><tbody>{shown.map(r=><tr key={r.paypal_transaction_id} className="border-b border-border">
+            <td className="py-3 pr-4 font-mono text-xs">{r.paypal_transaction_id}</td><td className="py-3 pr-4">{r.allocation_status === "platform_support" ? "IFund platform donation" : "Unmatched merchant receipt"}</td>
             <td className="py-3 pr-4">{new Date(r.occurred_at).toLocaleString()}</td>
             <td className="py-3 pr-4 tabular-nums">{money(r.gross_cents)}</td>
             <td className="py-3 pr-4 tabular-nums">{money(r.processing_fee_cents)}</td>
             <td className="py-3 pr-4 tabular-nums">{money(r.net_cents)}</td>
             <td className="py-3">{r.source_site === "unattributed" ? "Unverified" : r.source_site}</td>
           </tr>)}</tbody></table>
-          {state.unattributed.length===0&&<p className="py-4 text-sm text-muted-foreground">No unmatched provider-confirmed merchant receipts found.</p>}
+          {shown.length===0&&<p className="py-4 text-sm text-muted-foreground">No provider-confirmed platform or unmatched merchant receipts found.</p>}
         </div>
       </section>
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
