@@ -28,3 +28,9 @@ jobs:
       - name: Verify production frontend bundle compiles
         working-directory: apps/web
         run: npm run build
+
+      - name: Smoke-test isolated Cloudflare payment preview (payments must remain disabled)
+        run: |
+          response=$(curl --fail --silent --show-error --retry 2 --max-time 15 \
+            https://518029e8-ifund-payments.interplanetary-fund.workers.dev/api/payments/health)
+          node -e 'const data = JSON.parse(process.argv[1]); if (data.ok !== true || data.service !== "ifund-payments" || data.enabled !== false) process.exit(1)' "$response"
