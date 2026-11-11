@@ -755,3 +755,21 @@ test('disconnect never follows an upstream redirect carrying member authorizatio
   });
   assert.equal(result.status, 503);
 });
+
+test('enabled Connections reports provider availability before credentials are installed', async () => {
+  const { GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, ...remaining } = env;
+  for (const key of Object.keys(remaining)) {
+    if (/CLIENT_(ID|KEY|SECRET)$/.test(key)) delete remaining[key];
+  }
+  const request = new Request(base + '/api/oauth/status', {
+    headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+  });
+  const result = await routeOAuthRequest(request, { ...remaining, OAUTH_ENCRYPTION_KEY: '' }, async () =>
+    Response.json({ id: uid }));
+  assert.equal(result.status, 200);
+  const data = await result.json();
+  assert.equal(data.enabled, true);
+  assert.equal(data.storage_ready, false);
+  assert.equal(Object.keys(data.providers).length, 7);
+  assert.ok(Object.values(data.providers).every(value => value === false));
+});

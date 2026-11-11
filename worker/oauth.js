@@ -570,13 +570,19 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
   if (url.pathname === '/api/oauth/status') {
     if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
-    if (!oauthRuntimeReady(env)) return response(503, { error: 'Provider connections are not configured.' });
+    if (env.OAUTH_API_ENABLED !== 'true') return response(503, { error: 'Provider connections are not configured.' });
+    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
+    // Availability can be reported before any provider is provisioned. Never
+    // advertise an enabled provider until the complete token vault is ready.
+    const storageReady = serviceConfigured(env);
+    if (Object.values(providers).some(Boolean) && !oauthRuntimeReady(env)) {
+      return response(503, { error: 'Provider credential storage is not configured.' });
+    }
     const origin = oauthCorsOrigin(request, env);
     if (!origin) return response(403, { error: 'Origin not allowed.' });
     const account = await activeOAuthAccount(request, env, fetcher);
     if (!account) return response(401, { error: 'Sign in to view provider availability.' });
-    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
-    return response(200, { enabled: true, providers });
+    return response(200, { enabled: true, storage_ready: storageReady, providers });
   }
   const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh|disconnect)$/.exec(url.pathname);
   if (!match) return response(404, { error: 'Not found.' });
