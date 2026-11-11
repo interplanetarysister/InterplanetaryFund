@@ -18,10 +18,10 @@ test("Scenario selection is safely fictional and matches the AG Grid examples", 
   const titles = new Set(financeDemoRows.map(x=>x.campaign));
   assert.ok(SHOWCASE_CAMPAIGNS.every(c=>titles.has(c.title)));
   for(const campaign of SHOWCASE_CAMPAIGNS){
-    assert.equal(c.titles.length,5);
-    assert.equal(c.summaries.length,2);
-    assert.ok(c.sections.length>=3);
-    assert.ok(c.id.startsWith("story-"));
+    assert.equal(campaign.titles.length,5);
+    assert.equal(campaign.summaries.length,2);
+    assert.ok(campaign.sections.length>=3);
+    assert.ok(campaign.id.startsWith("story-"));
   }
   assert.match(journey,/FICTIONAL SHOWCASE DATA/);
   assert.match(journey,/not an AI inference call/);
