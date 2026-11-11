@@ -30,8 +30,9 @@ export default function AdminFinance() {
   },[]);
   const total=state.rows.reduce((s,row)=>s+(Number(row.raised_cents)||0),0);
   const count=state.rows.reduce((s,row)=>s+(Number(row.captured_payments)||0),0);
-  const platform=state.receipts.filter(r=>r.allocation_status==="platform_support");
-  const unmatched=state.receipts.filter(r=>r.allocation_status==="unattributed");
+  const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
+  const platform=shown.filter(r=>r.allocation_status==="platform_support");
+  const unmatched=shown.filter(r=>r.allocation_status==="unattributed");
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header><h1 className="text-3xl font-bold">Platform finance oversight</h1>
       <p className="mt-2 text-sm text-muted-foreground">Read-only verified donation totals. No payout controls, donor private details, sandbox payments or unconfirmed captures.</p></header>
@@ -55,7 +56,7 @@ export default function AdminFinance() {
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm"><thead><tr className="border-b border-border">
             <th className="py-3 pr-4">PayPal transaction</th><th className="py-3 pr-4">Allocation</th><th className="py-3 pr-4">Received</th><th className="py-3 pr-4">Gross</th><th className="py-3 pr-4">Processor fee</th><th className="py-3 pr-4">Net</th><th className="py-3">Origin</th>
-          </tr></thead><tbody>{state.receipts.map(r=><tr key={r.paypal_transaction_id} className="border-b border-border">
+          </tr></thead><tbody>{shown.map(r=><tr key={r.paypal_transaction_id} className="border-b border-border">
             <td className="py-3 pr-4 font-mono text-xs">{r.paypal_transaction_id}</td><td className="py-3 pr-4">{r.allocation_status === "platform_support" ? "IFund platform donation" : "Unmatched merchant receipt"}</td>
             <td className="py-3 pr-4">{new Date(r.occurred_at).toLocaleString()}</td>
             <td className="py-3 pr-4 tabular-nums">{money(r.gross_cents)}</td>
@@ -63,7 +64,7 @@ export default function AdminFinance() {
             <td className="py-3 pr-4 tabular-nums">{money(r.net_cents)}</td>
             <td className="py-3">{r.source_site === "unattributed" ? "Unverified" : r.source_site}</td>
           </tr>)}</tbody></table>
-          {state.receipts.length===0&&<p className="py-4 text-sm text-muted-foreground">No provider-confirmed platform or unmatched merchant receipts found.</p>}
+          {shown.length===0&&<p className="py-4 text-sm text-muted-foreground">No provider-confirmed platform or unmatched merchant receipts found.</p>}
         </div>
       </section>
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
