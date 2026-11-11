@@ -73,6 +73,8 @@ export function makeReport(records, generatedAt = new Date().toISOString()) {
     if (record.blocker.trim()) lines.push("  Blocker: " + record.blocker.trim().replace(/\s+/g, " ").slice(0, 400));
     if (record.next_action.trim()) lines.push("  Next: " + record.next_action.trim().replace(/\s+/g, " ").slice(0, 400));
     if (record.evidence_links.length) lines.push("  Evidence: " + record.evidence_links.join(", "));
+    if (record.screenshot_links.length) lines.push("  Screenshots: " + record.screenshot_links.join(", "));
+    if (record.deployment_notes) lines.push("  Deployment: " + record.deployment_notes.trim().replace(/\\s+/g, " ").slice(0, 450));
     if (record.preview_url) lines.push("  Preview: " + record.preview_url);
     if (record.commit_sha) lines.push("  Commit: " + record.commit_sha);
   }
