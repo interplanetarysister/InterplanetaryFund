@@ -142,3 +142,10 @@ This section consolidates the reported findings from the proposed photo/payment 
 5. **Next acceptance work:** verify pilot image in the judge browser and migrate a licensed/attributed optimized asset into the existing R2 media path if needed; complete remaining imagery; test real provider approval/capture and negative cases; connect recurring integrity audit to a controlled read-only run; finish judge browser/Devpost evidence.
 
 Recorded GitHub commits: `189bd345c981` (SQL audit), `70334fac8fbf` (webhook assertions), `3964c784274f` (media license provenance). These are source commits, not proof of worker deployment. Do not mark all IMG or PAY acceptance cases complete until verified.
+
+
+### Database authorization catalog verification (2026-11-11)
+
+Read-only PostgreSQL catalog query on `ifund_demo_campaigns`, `ifund_demo_media`, `ifund_demo_orders`, `ifund_demo_captures`, `ifund_demo_receipts`, `ifund_demo_events`, and `ifund_demo_ledger` confirmed **RLS enabled** on all seven; neither `anon` nor `authenticated` has direct SELECT or INSERT privilege on any. This passes the table-grant check but is not a substitute for live horizontal-authorization browser tests through the Worker.
+
+Pilot image source URL returned image bytes in a browser-independent image lookup; source page declares uploader-surrendered public-domain rights. The `image_path` was inserted in canonical demo Supabase, re-read and counted: 83 fictional campaigns, **80** blank image paths, one newly linked public-domain image and two existing media paths. Direct deployed-browser rendering, remote-image CSP and longer-term R2 residency remain outstanding.
