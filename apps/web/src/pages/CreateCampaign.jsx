@@ -70,6 +70,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [handoffBusy, setHandoffBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
+  const [browserSaved, setBrowserSaved] = useState(false);
   const [restoredBrief] = useState(() => {
     try { return draftId ? emptyWritingBrief() : restoreWritingBrief(sessionStorage, ownerId); }
     catch { return emptyWritingBrief(); }
@@ -165,7 +166,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
   const disabled = Boolean(busy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
-  function change(key, value) { setSaved(""); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(status) {
     if (saveLock.current || disabled) return;
     const problems = validateCampaignForm(form, { publish: status === "active" });
@@ -173,16 +174,30 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     saveLock.current = true;
     setBusy(status); setError(""); setSaved("");
     try {
-      const client = authClient();
-      const { data: authData, error: authError } = await client.auth.getUser();
-        const user = authData?.user;
-      if (authError || !user) { navigate("/login?returnTo=" + encodeURIComponent(window.location.pathname + window.location.search), { replace: true }); return; }
+      let client; let user;
+      try {
+        client = authClient();
+        const result = await client.auth.getUser();
+        if (!result.error) user = result.data?.user;
+      } catch { /* Guest editor remains available without an account. */ }
+      if (!user?.id || (!user.email_confirmed_at && user.is_anonymous !== true)) {
+        if (status === "active") {
+          setError("Publishing requires a secure account with a verified owner ID. Your draft remains in this browser; you can continue without verifying your identity, but public publishing is not available in browser-only mode.");
+          return;
+        }
+        try {
+          rememberBrowserCampaign(sessionStorage, null, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
+          setBrowserSaved(true);
+        } catch { throw new Error("Browser storage is unavailable. Copy your draft before leaving."); }
+        return;
+      }
       const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status, expectedStatus: "draft" });
       // Set the receipt before routing so another click cannot insert a second
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
       try { forgetBrowserCampaign(sessionStorage); } catch { /* unavailable */ }
+      setBrowserSaved(false);
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
       else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
     } catch (err) {
@@ -196,7 +211,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Write your story, save a private draft, or publish it to Discover when you’re ready. You can start writing before signing in.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
+    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts are held on this device; a secure guest or email account is required for cloud saving and publishing.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
@@ -287,6 +302,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
+      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser only. It has not been uploaded or published. Keep using this device until your account is linked.</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
     </form>
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
@@ -296,7 +312,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           : <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{readiness.missing.map(item => <li key={item}>{item}</li>)}</ul>}
       </div>
       <p className="text-sm text-muted-foreground">Campaign donations are currently paused.</p>
-      {memberAccess ? actions : <MemberAccess>{actions}</MemberAccess>}
+      {actions}
     </section>
   </main>;
 }
