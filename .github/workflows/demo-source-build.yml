@@ -29,7 +29,7 @@ jobs:
         working-directory: demo
       - name: Ensure source package contains no credential literals
         run: |
-          if grep -R -E --include='*.ts' '-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----|sk_live_[A-Za-z0-9]+' demo/worker demo/src; then
+          if grep -R -E --include='*.ts' -e '-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----|sk_live_[A-Za-z0-9]+' demo/worker demo/src; then
             echo 'Potential credential literal in source'; exit 1
           fi
       - name: Publish compiled Worker artifact for reproducibility
