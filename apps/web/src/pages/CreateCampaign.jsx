@@ -10,6 +10,7 @@ import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
+import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 
 export default function CreateCampaign() {
   const [params] = useSearchParams();
@@ -51,7 +52,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         const data = await loadOwnerCampaign(authClient(), draftId);
         if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
         if (active) {
-          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"" });
+          setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
           setLoadedDraftId(draftId);
           setSaved(data.id);
         }
@@ -64,7 +65,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try {
       if (!draftId) return restoreBrowserCampaign(sessionStorage, ownerId);
     } catch { /* session storage unavailable */ }
-    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "" };
+    return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
   });
   const [busy, setBusy] = useState(false);
   const [handoffBusy, setHandoffBusy] = useState(false);
@@ -300,6 +301,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <CampaignLocationFields form={form} change={change} disabled={disabled} />
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
