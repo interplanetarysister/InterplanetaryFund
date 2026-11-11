@@ -69,7 +69,7 @@ export function completeAuthCallback(auth, href) {
       result = await auth.exchangeCodeForSession(url.searchParams.get("code"));
     } else if (url.searchParams.has("token_hash")) {
       const type = url.searchParams.get("type");
-      if (!["signup", "email", "recovery", "magiclink"].includes(type))
+      if (!["signup", "email", "email_change", "recovery", "magiclink"].includes(type))
         throw new Error("This email link is not supported.");
       result = await auth.verifyOtp({
         token_hash: url.searchParams.get("token_hash"),

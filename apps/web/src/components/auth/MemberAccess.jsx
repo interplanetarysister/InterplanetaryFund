@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { confirmedUser } from "@/lib/authFlow";
+import { memberIdentity } from "@/lib/guestAccess";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 
 // Client gating is UX only: the Supabase RLS policies remain authoritative.
@@ -37,7 +37,7 @@ export default function MemberAccess({ children }) {
       setError("");
       try {
         const { data, error: authError } = await auth.auth.getUser();
-        if (authError || !confirmedUser(data?.user)) {
+        if (authError || !memberIdentity(data?.user)) {
           if (current()) setState({ phase: "login", user: null });
           return;
         }
@@ -77,7 +77,7 @@ export default function MemberAccess({ children }) {
     verify();
     const { data: sub } = auth.auth.onAuthStateChange((event, session) => {
       if (!alive) return;
-      const nextIdentity = confirmedUser(session?.user)
+      const nextIdentity = memberIdentity(session?.user)
         ? session.user.id
         : null;
       // Token refresh and tab focus can emit SIGNED_IN for the same identity.
@@ -147,7 +147,7 @@ export default function MemberAccess({ children }) {
   }
   const requested = location.pathname + location.search + location.hash;
   const loginTarget =
-    "/login?returnTo=" + encodeURIComponent(safeReturnTo(requested));
+    "/register?returnTo=" + encodeURIComponent(safeReturnTo(requested));
   if (state.phase === "ready")
     return <Fragment key={state.user.id}>{children}</Fragment>;
   if (state.phase === "loading")
@@ -159,10 +159,10 @@ export default function MemberAccess({ children }) {
   if (state.phase === "login")
     return (
       <main className="mx-auto max-w-2xl space-y-4 p-8">
-        <h1 className="text-2xl font-semibold">Sign in to continue</h1>
-        <p>Your account is required for this action.</p>
+        <h1 className="text-2xl font-semibold">Account-bound data is not available in browser-only mode</h1>
+        <p>You can keep exploring and creating a browser draft without verifying your identity. To sync private member data across devices, connect a recoverable account. Verification for payouts remains separate.</p>
         <Link to={loginTarget} className="underline">
-          Sign in
+          Set up an account
         </Link>
       </main>
     );
@@ -220,7 +220,7 @@ export default function MemberAccess({ children }) {
             className="mt-1 h-5 w-5"
           />
           <span>
-            I have reviewed and agree to the Terms of Service and Privacy Policy
+            I agree to the Terms of Service and acknowledge the Privacy Policy
             for the version listed above.
           </span>
         </label>

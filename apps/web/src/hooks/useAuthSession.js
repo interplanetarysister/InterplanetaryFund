@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
-import { confirmedUser } from "@/lib/authFlow";
+import { memberIdentity } from "@/lib/guestAccess";
 
 // Session state for the app shell. Client-side state only drives navigation
 // and labels; Supabase row level security stays authoritative for every read
@@ -27,7 +27,7 @@ export function useAuthSession() {
       .then(({ data, error }) => {
         if (!alive || revision !== 0) return;
         setState(
-          error || !confirmedUser(data?.user)
+          error || !memberIdentity(data?.user)
             ? { status: "signed-out", user: null }
             : { status: "signed-in", user: data.user },
         );
@@ -41,7 +41,7 @@ export function useAuthSession() {
       if (!alive) return;
       revision++;
       setState(
-        confirmedUser(session?.user)
+        memberIdentity(session?.user)
           ? { status: "signed-in", user: session.user }
           : { status: "signed-out", user: null },
       );

@@ -12,8 +12,8 @@ export function rememberSignupAgreement(storage, email) {
 }
 
 export async function recordLegalAcceptance(client, user) {
-  if (!user?.id || !user?.email_confirmed_at)
-    throw new Error("A verified account is required to record the agreement.");
+  if (!user?.id || (!user?.email_confirmed_at && user?.is_anonymous !== true))
+    throw new Error("A current Supabase member session is required to record the agreement.");
   const read = () => client.from("ifund_legal_acceptances")
     .select("owner_id,terms_version,explicit_consent")
     .eq("owner_id", user.id)

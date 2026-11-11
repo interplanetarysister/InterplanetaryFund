@@ -5,15 +5,14 @@ import { Plus, Megaphone, Heart, LayoutDashboard, Sparkles, LogIn, LogOut, X } f
 export default function QuickActions({user}) {
   const [open,setOpen]=useState(false),[signingOut,setSigningOut]=useState(false);
   const loggedIn=!!user?.id;
-  const gate=path=>loggedIn?path:`/login?returnTo=${encodeURIComponent(path)}`;
+  const gate=path=>path === "/create" || path === "/dashboard" ? path : loggedIn ? path : `/register?returnTo=${encodeURIComponent(path)}`;
   const actions=[
     {to:gate("/create"),label:"Create a campaign",icon:Megaphone},
     {to:gate("/following"),label:"Saved / followed campaigns",icon:Heart},
     {to:gate("/dashboard"),label:"My campaigns and drafts",icon:LayoutDashboard},
     {to:gate("/mission"),label:"Campaign command center",icon:Sparkles},
   ];
-  // Sign-in is not part of the public-site port yet; "Log in" routes to the
-  // branded Coming soon page and there is no session to sign out of.
+  // Public campaign drafting never requires login. Owner-specific data still requires a secure session.
   const logout=()=>{if(signingOut)return;setSigningOut(true);setOpen(false);window.location.assign("/login");};
   return <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] md:bottom-6 left-3 md:left-auto md:right-6 z-30 flex flex-col items-start md:items-end gap-2">
     {open&&<div className="flex flex-col items-start md:items-end gap-2 mb-1" role="menu" aria-label="Quick campaign and account actions">
