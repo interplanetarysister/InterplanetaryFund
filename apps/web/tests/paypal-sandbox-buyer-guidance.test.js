@@ -32,3 +32,10 @@ test("judge entrypoints keep PayPal sandbox and live checkout separate",()=>{
   assert.match(demo,/sandboxHost &&/);
   assert.doesNotMatch(demo,/sandbox\.paypal\.com\/sdk\/js/);
 });
+
+test("platform support is separate from campaign giving",()=>{
+  const app=readFileSync(new URL("../src/App.jsx",import.meta.url),"utf8");
+  assert.match(demo,/IFUND_PLATFORM_SUPPORT_PAYMENT_LINK/);
+  assert.match(demo,/real charge, not a campaign donation/);
+  assert.match(app,/"\/hackathon"\]\.includes\(location\.pathname\)/);
+});
