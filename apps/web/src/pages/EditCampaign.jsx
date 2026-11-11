@@ -12,6 +12,7 @@ import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
+import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
   "business", "creative", "memorial", "disaster_relief", "environment", "other"];
@@ -47,6 +48,10 @@ export default function EditCampaign() {
         category: campaign.category || "community",
         goal_amount: Number(campaign.goal_amount) > 0 ? String(campaign.goal_amount) : "",
         cover_image_url: campaign.cover_image_url || "",
+        map_opt_in: campaign.map_opt_in === true,
+        public_location_label: campaign.public_location_label || "",
+        map_latitude: campaign.map_latitude === null ? "" : String(campaign.map_latitude),
+        map_longitude: campaign.map_longitude === null ? "" : String(campaign.map_longitude),
       });
       setStatus(campaign.status);
       setPhase("ready");
@@ -166,6 +171,7 @@ export default function EditCampaign() {
         <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} disabled={disabled}
           onChange={(e) => change("cover_image_url", e.target.value)} className={fieldClass} />
       </label>
+      <CampaignLocationFields form={form} change={change} disabled={disabled} />
 
       {!readiness.ready && status === "draft" && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
