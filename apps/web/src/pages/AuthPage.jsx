@@ -20,7 +20,6 @@ export default function AuthPage({ mode = "login" }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [confirmationCode, setConfirmationCode] = useState("");
   const [confirmationPending, setConfirmationPending] = useState(false);
   const [recoveryCode, setRecoveryCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -88,12 +87,8 @@ export default function AuthPage({ mode = "login" }) {
         navigate("/login?returnTo=" + encodeURIComponent(afterLogin), { replace: true });
       } else if (isRegister) {
         if (confirmationPending) {
-          const { error: verifyError } = await auth.verifyOtp({
-            email: email.trim(),
-            token: confirmationCode.trim(),
-            type: (await auth.getUser()).data?.user?.is_anonymous ? "email_change" : "signup",
-          });
-          if (verifyError) throw verifyError;
+          // Supabase sends a confirmation link, never a signup code in this deployment.
+          // This simply rechecks the authenticated session after the link was opened.
           const verified = await verifiedAuthUser(auth);
           if (password && verified.email_confirmed_at) {
             const { error: pwError } = await auth.updateUser({ password });
@@ -114,7 +109,7 @@ export default function AuthPage({ mode = "login" }) {
           if (linked.error) throw linked.error;
           rememberSignupAgreement(sessionStorage, email.trim());
           setConfirmationPending(true);
-          setMessage("Confirm the email address using the latest link or code. Your guest account will become an email account. Two-factor setup is not required to post.");
+          setMessage("Open the confirmation link in your email to finish registration. Your guest account will become an email account. Two-factor setup is not required to post.");
           return;
         }
         const { data, error: err } = await auth.signUp({
@@ -137,7 +132,7 @@ export default function AuthPage({ mode = "login" }) {
         } else {
           setConfirmationPending(true);
           setMessage(
-            "Check your email to confirm your account and start creating content. No two-factor authentication is required until your first withdrawal.",
+            "Open the confirmation link we emailed you to finish creating your account. No code entry or two-factor authentication is needed to create content.",
           );
         }
       } else {
@@ -170,7 +165,7 @@ export default function AuthPage({ mode = "login" }) {
       });
       if (error) throw error;
       setMessage(
-        "If this account needs confirmation, a new email is on its way. Use the latest email.",
+        "If this account needs confirmation, a new verification link is on its way. Open the latest email and click Confirm email address.",
       );
     } catch {
       setError("We could not send another email. Wait a moment and try again.");
@@ -256,7 +251,6 @@ export default function AuthPage({ mode = "login" }) {
                   setRecoveryCodeSent(false);
                   setRecoveryCode("");
                   setConfirmationPending(false);
-                  setConfirmationCode("");
                 }}
                 className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"
               />
@@ -292,20 +286,12 @@ export default function AuthPage({ mode = "login" }) {
                 />
               </label>
             )}
-            {confirmationPending && (
-              <label className="block text-sm font-medium">
-                Email confirmation code
-                <input
-                  required
-                  disabled={busy}
-                  autoComplete="one-time-code"
-                  inputMode="numeric"
-                  maxLength={12}
-                  value={confirmationCode}
-                  onChange={(e) => setConfirmationCode(e.target.value)}
-                  className="mt-2 min-h-12 w-full rounded-xl bg-white px-4 text-slate-950"
-                />
-              </label>
+            {isRegister && confirmationPending && (
+              <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
+                <h2 className="font-semibold">Confirm your email using the link</h2>
+                <p className="mt-2">We sent a confirmation link to {email}. Open that email and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
+                <p className="mt-2">If you already clicked the link in another tab, select the button below to check this browser’s account session.</p>
+              </section>
             )}
             {isReset && recoveryCodeSent && (
               <>
@@ -358,7 +344,7 @@ export default function AuthPage({ mode = "login" }) {
                     : "Send recovery email"
                   : isRegister
                     ? confirmationPending
-                      ? "Confirm account"
+                      ? "I clicked the email link — continue"
                       : "Create account"
                     : "Sign in"}
             </button>
@@ -370,7 +356,7 @@ export default function AuthPage({ mode = "login" }) {
               onClick={resendConfirmation}
               className="mt-4 min-h-11 text-sm text-cyan-200 underline disabled:opacity-50"
             >
-              Resend confirmation email
+              Resend confirmation link
             </button>
           )}
           {/* Reset mode is email-only: a provider round-trip cannot set a new password. */}
