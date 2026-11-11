@@ -5,6 +5,20 @@ import {
   isRegisteredSandboxWebhook
 } from "../../../../../../worker/paypalSandboxSecurity.js";
 
+const sandboxReady=env=>Boolean(env?.IFUND_SANDBOX_BROKER && typeof env.IFUND_SANDBOX_BROKER.fetch==="function" &&
+  env.IFUND_PAYPAL_SANDBOX_ENABLED==="enabled" && typeof env.PAYPAL_WEBHOOK_ID==="string" &&
+  typeof env.SUPABASE_URL==="string") || sandboxConfigured(env);
+const brokerUrl=action=>"https://interplanetaryfund-migration.pages.dev/internal/"+action;
+async function broker(env,action,payload){
+ const response=await env.IFUND_SANDBOX_BROKER.fetch(brokerUrl(action),{
+   method:"POST",headers:{"content-type":"application/json","x-ifund-sandbox-internal":"1"},
+   ...(payload===undefined?{}:{body:JSON.stringify(payload)})
+ });
+ const data=await response.json().catch(()=>null);
+ if(!response.ok||data?.ok!==true)throw Error("Sandbox internal payment service unavailable");
+ return data;
+}
+
 const OUT="https://api-m.sandbox.paypal.com";
 const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{
   status,headers:{"content-type":"application/json; charset=utf-8",
@@ -43,6 +57,8 @@ async function bodyJson(request,max=32768){
   } finally {try{await reader.cancel()}catch{};try{reader.releaseLock()}catch{}}
 }
 async function rest(env,table,method,query="",payload){
+  if(env.IFUND_SANDBOX_BROKER){const data=await broker(env,"storage",{table,method,query,payload});
+    if(!Array.isArray(data.rows))throw Error("Invalid sandbox persistence response");return data.rows;}
   if(!["ifund_campaigns","ifund_paypal_sandbox_orders","ifund_paypal_sandbox_events"].includes(table))
     throw Error("Unsafe table");
   const endpoint=new URL(env.SUPABASE_URL);
@@ -60,6 +76,8 @@ async function rest(env,table,method,query="",payload){
   return result;
 }
 async function oauth(env){
+  if(env.IFUND_SANDBOX_BROKER){const data=await broker(env,"oauth");
+    if(typeof data.access_token!=="string"||!data.access_token)throw Error("Invalid sandbox OAuth response");return data.access_token;}
   const response=await fetch(OUT+"/v1/oauth2/token",{
     method:"POST",
     headers:{"authorization":"Basic "+btoa(env.PAYPAL_CLIENT_ID+":"+env.PAYPAL_CLIENT_SECRET),
@@ -90,7 +108,7 @@ async function registeredWebhook(env,request,access){
 async function status(env,request){
   const notReady={mode:"sandbox",enabled:false,webhook_ready:false,
     database_ready:false,live_payments_enabled:false};
-  if(!sandboxHost(request)||!sandboxConfigured(env))return json(notReady);
+  if(!sandboxHost(request)||!sandboxReady(env))return json(notReady);
   let verified=false;
   try{
     const access=await oauth(env);
@@ -270,7 +288,7 @@ export async function onRequest({request,env,params}){
     return status(env,request);
   if(!["orders","capture","webhook"].includes(route))return fail("Route not found",404);
   if(request.method!=="POST")return fail("Method not allowed",405);
-  if(!sandboxConfigured(env))return fail("PayPal sandbox is not configured",503);
+  if(!sandboxReady(env))return fail("PayPal sandbox is not configured",503);
   if(!sandboxHost(request))return fail("Invalid preview host",403);
   try{
     if(route==="orders")return await orders(env,request);
