@@ -34,6 +34,7 @@ export default function Atlas() {
   const mapped = useMemo(() => campaigns.filter(c =>
     c.map_opt_in === true &&
     typeof c.location === "string" && c.location.trim().length > 1 &&
+    c.latitude !== null && c.longitude !== null &&
     Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude)) &&
     Math.abs(Number(c.latitude)) <= 90 && Math.abs(Number(c.longitude)) <= 180
   ), [campaigns]);
