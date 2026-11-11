@@ -167,11 +167,26 @@ async function createOrder(req,env) {
    ||!Number.isSafeInteger(gift)||gift<100||gift>100000000
    ||!Number.isSafeInteger(tip)||tip<0||tip>Math.round(gift*0.1))return asError("invalid_donation_request");
   const total=quote(gift,tip,channel);
-  const checkoutToken=crypto.randomUUID().replace(/-/g,"")+crypto.randomUUID().replace(/-/g,"");
+  // The browser supplies a cryptographically random token that remains stable
+  // across retries of the same payment request. Old clients can still use the
+  // server-generated token until all existing deployments have refreshed.
+  if(input.checkout_token!==undefined &&
+     (typeof input.checkout_token!=="string"||!/^[a-f0-9]{64}$/.test(input.checkout_token)))
+    return asError("invalid_checkout_token");
+  const checkoutToken=input.checkout_token||
+    (crypto.randomUUID().replace(/-/g,"")+crypto.randomUUID().replace(/-/g,""));
   const tokenHash=await hash(checkoutToken);
-  await signLedger(env,"begin",{campaign_id:input.campaign_id,request_key:input.request_key,
+  const claim=await signLedger(env,"begin",{campaign_id:input.campaign_id,request_key:input.request_key,
     gift_cents:gift,optional_support_cents:tip,total_cents:total,
     payment_channel:channel,environment:"live",checkout_token_hash:tokenHash});
+  // A completed bind is authoritative. Never create another PayPal order
+  // after an HTTP timeout or retry with the same request key.
+  if(claim.order_id){
+    if(!ORDER_ID.test(claim.order_id)||!["created","approved","captured"].includes(claim.status))
+      return asError("checkout_requires_reconciliation",409);
+    return asJson({ok:true,id:claim.order_id,checkout_token:checkoutToken,
+      amount_cents:total,gift_cents:gift,optional_support_cents:tip,currency:"USD",environment:"live"});
+  }
   const customId=["ifund",input.campaign_id,gift,tip,channel].join("|");
   const order=await paypal(env,"/v2/checkout/orders","POST",{
     intent:"CAPTURE",
