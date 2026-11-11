@@ -115,3 +115,24 @@ test("verified completed-capture webhook creates a separate idempotent event rec
   assert.deepEqual(h.ledger.map(e=>e.op),["get","finalize","event"]);
   assert.equal(h.ledger[2].data.paypal_event_id,eventId);
 });
+
+test("disabled live payment mode refuses provider capture before ledger or PayPal calls",async()=>{
+  let outgoing=0;
+  const sandbox={crypto:webcrypto,TextEncoder,URL,Response,Request,atob,btoa,console,
+    fetch:async()=>{outgoing++;throw Error("Network must not be contacted");}};
+  vm.runInNewContext(source,sandbox,{filename:"worker.js"});
+  const request=new Request("https://interplanetaryfund.com/api/payments/capture-order",{
+    method:"POST",headers:{origin:"https://interplanetaryfund.com","content-type":"application/json"},
+    body:JSON.stringify({order_id:orderId,checkout_token:"a".repeat(64)})
+  });
+  for(const settings of [
+    {IFUND_PAYMENTS_ENABLED:"false",IFUND_PAYPAL_MODE:"live"},
+    {IFUND_PAYMENTS_ENABLED:"true",IFUND_PAYPAL_MODE:"sandbox"}
+  ]){
+    const response=await sandbox.__paymentWorker.fetch(request.clone(),{
+      ...settings,IFUND_ALLOWED_ORIGINS:"https://interplanetaryfund.com"});
+    assert.equal(response.status,503);
+    assert.equal((await response.json()).error,"payments_disabled");
+  }
+  assert.equal(outgoing,0,"disabled checkout must not access PayPal or mutate the ledger");
+});
