@@ -10,13 +10,17 @@ const web = (p) => new URL("../" + p, import.meta.url);
 const read = (p) => readFileSync(web(p), "utf8");
 const repo = (p) => new URL("../../../" + p, import.meta.url);
 
-test("the SPA fallback rewrites deep links to the shell without changing the URL", () => {
+test("Cloudflare Pages native SPA fallback preserves deep links without a rejected catch-all", () => {
+  assert.ok(existsSync(web("index.html")), "SPA entry point must exist");
+  assert.ok(!existsSync(web("public/404.html")), "a top-level 404.html disables Pages native SPA fallback");
   assert.ok(existsSync(web("public/_redirects")), "public/_redirects must exist");
-  const rules = read("public/_redirects");
-  // A 200 rewrite keeps the path so React Router can resolve it; a 301/302 would
-  // move the visitor to "/" and every deep link would land on Home.
-  assert.match(rules, /^\/\*\s+\/index\.html\s+200\s*$/m, "must rewrite /* to /index.html with 200");
-  assert.doesNotMatch(rules, /\s(301|302)\s*$/, "must not redirect (only rewrite)");
+  const rules = read("public/_redirects").split("\n")
+    .map(line => line.trim()).filter(line => line && !line.startsWith("#")).join("\n");
+  // Cloudflare Pages rejects /* /index.html 200 as an infinite loop. Its native
+  // fallback serves index.html on deep links when no top-level 404.html exists.
+  assert.doesNotMatch(rules, /^\/\*\s+\/index\.html\s+200\s*$/m,
+    "must not restore the rejected infinite-loop rewrite");
+  assert.doesNotMatch(rules, /\s(?:301|302)\s*$/m, "must not redirect SPA deep links away");
 });
 
 test("security headers are set without white-screening the app", () => {
