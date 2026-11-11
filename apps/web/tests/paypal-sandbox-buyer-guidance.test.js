@@ -22,3 +22,13 @@ test("sandbox order creation accepts only PayPal Sandbox approval links",()=>{
   assert.match(demo,/u\.hostname!=="www\.sandbox\.paypal\.com"/);
   assert.match(demo,/window\.location\.assign\(u\.href\)/);
 });
+
+test("judge entrypoints keep PayPal sandbox and live checkout separate",()=>{
+  assert.match(demo,/Choose a payment environment/);
+  assert.match(demo,/feature-paypal-sandbox-secur\.interplanetaryfund-migration\.pages\.dev\/hackathon/);
+  assert.match(demo,/https:\/\/interplanetaryfund\.com\/discover/);
+  assert.match(demo,/Sandbox payments use test buyer credentials and never create real donations/);
+  assert.match(demo,/Live campaign checkout uses real money and is available only when/);
+  assert.match(demo,/sandboxHost &&/);
+  assert.doesNotMatch(demo,/sandbox\.paypal\.com\/sdk\/js/);
+});
