@@ -1,0 +1,36 @@
+name: IFund payment reconciliation tests
+on:
+  push:
+    branches:
+      - repair/payment-reconciliation-20261110
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-payment-code:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Install exact frontend dependencies
+        working-directory: apps/web
+        run: npm ci --no-audit --no-fund
+      - name: Run payment receipt and existing frontend tests
+        working-directory: apps/web
+        run: npm test
+      - name: Verify production frontend bundle compiles
+        working-directory: apps/web
+        run: npm run build
+
+      - name: Smoke-test isolated Cloudflare payment preview (payments must remain disabled)
+        run: |
+          response=$(curl --fail --silent --show-error --retry 2 --max-time 15 \
+            https://518029e8-ifund-payments.interplanetary-fund.workers.dev/api/payments/health)
+          node -e 'const data = JSON.parse(process.argv[1]); if (data.ok !== true || data.service !== "ifund-payments" || data.enabled !== false) process.exit(1)' "$response"

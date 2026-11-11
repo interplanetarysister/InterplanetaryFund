@@ -114,14 +114,47 @@ async function webhook(req,env) {
     if(!ORDER_ID.test(orderId||""))return asError("webhook_order_unresolved",409);
     const claim=await signLedger(env,"get",{paypal_order_id:orderId});
     if(claim.intent.environment!=="live")return asError("unexpected_payment_environment",409);
+    // Reject invalid capture references before any ledger mutation.
+    if(!ORDER_ID.test(payload.id||"")||!ORDER_ID.test(payload.resource?.id||""))
+      return asError("webhook_capture_reference_mismatch",409);
+    // Check the signed notification's capture against PayPal's current order
+    // BEFORE posting any financial ledger mutation.
+    const proof=await verifyCapture(env,orderId,claim.intent);
+    if(payload.resource.id!==proof.capture_id)
+      return asError("webhook_capture_reference_mismatch",409);
     const completed=await finalize(env,orderId,claim.intent);
+    await signLedger(env,"event",{paypal_event_id:payload.id,paypal_order_id:orderId,
+      paypal_capture_id:completed.capture_id,event_type:kind});
     return asJson({ok:true,recorded:true,donation_id:completed.donation_id});
   }
   if(["PAYMENT.CAPTURE.REFUNDED","PAYMENT.CAPTURE.REVERSED"].includes(kind)){
-    const captureId=payload.resource?.supplementary_data?.related_ids?.capture_id
-      || (kind==="PAYMENT.CAPTURE.REVERSED"?payload.resource?.id:null);
-    if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||""))return asError("reversal_reference_missing",409);
-    const reversed=await signLedger(env,"reverse",{paypal_capture_id:captureId,paypal_event_id:payload.id,event_type:kind});
+    // A completed refund event identifies a REFUND in resource.id, not a capture.
+    // Its canonical capture may be carried by the provider's rel=up link.
+    const related=payload.resource?.supplementary_data?.related_ids?.capture_id;
+    const links=Array.isArray(payload.resource?.links)?payload.resource.links:[];
+    const linkedCaptures=new Set();
+    for(const link of links){
+      if(link?.rel!=="up"||typeof link.href!=="string")continue;
+      try{
+        const u=new URL(link.href);
+        if(u.protocol!=="https:"||u.port||u.search||u.hash
+          ||!["api.paypal.com","api-m.paypal.com"].includes(u.hostname))continue;
+        const match=u.pathname.match(/^\/v2\/payments\/captures\/([A-Za-z0-9_-]{8,100})$/);
+        if(match)linkedCaptures.add(match[1]);
+      }catch(_){}
+    }
+    const linked=linkedCaptures.size===1?[...linkedCaptures][0]:null;
+    const captureId=related||linked||(kind==="PAYMENT.CAPTURE.REVERSED"?payload.resource?.id:null);
+    if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||"")
+      ||(linked&&related&&linked!==related)||linkedCaptures.size>1)
+      return asError("reversal_reference_missing",409);
+    // Supabase requires a verified amount to reject partial or mismatched reversals.
+    // A signed event with missing amount must be reconciled, not silently accepted.
+    const amount=payload.resource?.amount;
+    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount.value||""))
+      ||cents(amount.value)<1)return asError("reversal_amount_unverified",409);
+    const reversed=await signLedger(env,"reverse",{paypal_capture_id:captureId,
+      paypal_event_id:payload.id,event_type:kind,refunded_cents:cents(amount.value)});
     return asJson({ok:true,reversed:true,donation_id:reversed.donation_id});
   }
   return asJson({ok:true,ignored:true});
