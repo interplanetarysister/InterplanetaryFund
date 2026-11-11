@@ -37,5 +37,7 @@ test("platform support is separate from campaign giving",()=>{
   const app=readFileSync(new URL("../src/App.jsx",import.meta.url),"utf8");
   assert.match(demo,/IFUND_PLATFORM_SUPPORT_PAYMENT_LINK/);
   assert.match(demo,/real charge, not a campaign donation/);
-  assert.match(app,/"\/hackathon"\]\.includes\(location\.pathname\)/);
+  // Global support buttons are real-money checkout. They must not appear in the sandbox guide.
+  assert.equal(app.includes('"/hackathon"].includes(location.pathname)'), false);
+  assert.equal(app.includes('"/download"].includes(location.pathname)'), true);
 });

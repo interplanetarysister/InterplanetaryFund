@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { financeDemoRows, demoFinanceStats } from "@/lib/hackathonFinanceDemo.mjs";
+import DemoJourney from "@/components/hackathon/DemoJourney";
 
 const financeColumns = [
   { field: "id", headerName: "Example record", minWidth: 150 },
@@ -36,7 +37,8 @@ export default function HackathonDemo() {
   // Judges can reach the configured sandbox without enabling test payments on the live site.
   // This is a public location, never a credential or a secret.
   const sandboxDemoUrl = "https://feature-paypal-sandbox-secur.interplanetaryfund-migration.pages.dev/hackathon";
-  const sandboxHost = window.location.origin === new URL(sandboxDemoUrl).origin;
+  // Every Cloudflare Pages preview is sandbox-only, even if payment is unavailable there.
+  const sandboxHost = window.location.hostname.endsWith(".interplanetaryfund-migration.pages.dev");
   useEffect(() => {
     let alive=true;
     fetch("/api/paypal/sandbox/status",{cache:"no-store"})
@@ -90,7 +92,7 @@ export default function HackathonDemo() {
     catch(e){setMessage(e.message)}
     finally{setWorking(false)}
   }
-  return <main className="mx-auto max-w-3xl space-y-7 px-4 py-10 pb-24">
+  return <main className="mx-auto max-w-6xl space-y-7 px-4 py-10 pb-24">
     <header>
       <nav aria-label="Demo navigation" className="mb-5 flex flex-wrap gap-3 text-sm">
         <Link to="/" className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold">IFund home</Link>
@@ -98,32 +100,35 @@ export default function HackathonDemo() {
         <Link to="/hackathon/tracker" className="inline-flex min-h-11 items-center rounded-xl border border-cyan-400/40 px-4 font-semibold text-cyan-300">Organizer demo tracker</Link>
       </nav>
       <p className="text-xs font-semibold uppercase tracking-[.22em] text-cyan-400">PayPal AI Hackathon · 2026</p>
-      <h1 className="mt-3 text-3xl font-bold text-foreground">IFund PayPal + AI demo</h1>
-      <p className="mt-3 text-muted-foreground">See how AI helps people prepare a fundraiser, then approve a sample donation through PayPal's free sandbox. No real money is collected here.</p>
+      <h1 className="mt-3 text-3xl font-bold text-foreground">The complete iFund guided demo</h1>
+      <p className="mt-3 text-muted-foreground">One guided experience connects campaign discovery, AI story planning, social promotion, PayPal sandbox checkout, financial reporting and the AI agent ecosystem. No real money is collected on preview.</p>
     </header>
+    <DemoJourney onFinanceFilter={setFinanceSearch} />
     <section className="rounded-2xl border border-cyan-400/40 bg-card p-5" aria-label="Choose PayPal payment environment">
       <h2 className="text-lg font-semibold">Choose a payment environment</h2>
       <p className="mt-2 text-sm text-muted-foreground">These are separate PayPal experiences. Sandbox payments use test buyer credentials and never create real donations. Live campaign checkout uses real money and is available only when the production payment health check enables it.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <a href={sandboxDemoUrl} className="flex min-h-12 items-center justify-center rounded-xl border border-cyan-400/60 px-4 text-center text-sm font-semibold text-cyan-300">Test with PayPal Sandbox — no real money</a>
+        {window.location.origin === new URL(sandboxDemoUrl).origin
+          ? <p className="rounded-xl border border-cyan-400/50 bg-cyan-400/10 p-3 text-center text-sm font-semibold text-cyan-200">You're on the designated PayPal sandbox preview.</p>
+          : <a href={sandboxDemoUrl} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-cyan-400/60 px-4 text-center text-sm font-semibold text-cyan-300">Open configured PayPal sandbox preview — no real money</a>}
         {!sandboxHost && <a href="https://interplanetaryfund.com/discover" className="flex min-h-12 items-center justify-center rounded-xl border border-amber-400/60 px-4 text-center text-sm font-semibold text-amber-200">Browse live campaigns — real payments if enabled</a>}
         {!sandboxHost && <a href={IFUND_PLATFORM_SUPPORT_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-amber-400/60 px-4 text-center text-sm font-semibold sm:col-span-2">Optional LIVE platform support — real charge, not a campaign donation</a>}
         {sandboxHost && <p className="rounded-xl border border-cyan-400/40 bg-cyan-400/5 p-3 text-sm text-cyan-100 sm:col-span-2">Sandbox judge environment: only test payments are offered here. Live campaign and platform-support payment links are intentionally hidden to prevent accidental real charges.</p>}
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Judges: use a Personal PayPal Sandbox test buyer for sandbox checkout, not a merchant account or personal live PayPal credentials. Do not enter real card information in sandbox. Only the live checkout can create a real charge; confirm the amount and merchant before approving. No login credentials are supplied on this page.</p>
-      {!sandboxHost && <p role="status" className="mt-3 rounded-lg border border-amber-500/40 p-3 text-sm">You're viewing the production website. The sandbox checkout runs on the separate secure preview linked above. Sandbox controls below are intentionally unavailable here.</p>}
+      {!sandboxHost && <p role="status" className="mt-3 rounded-lg border border-amber-500/40 p-3 text-sm">This is the production website. Use the linked isolated preview for sandbox checkout. Demo examples never create real donations.</p>}
     </section>
-    <section className="rounded-2xl border border-border bg-card p-5">
-      <h2 className="text-lg font-semibold">1. AI campaign preparation</h2>
+    <section id="ai-live-tools" className="rounded-2xl border border-border bg-card p-5">
+      <h2 className="text-lg font-semibold">Live AI writing workspace</h2>
       <p className="mt-2 text-sm text-muted-foreground">Open the existing AI writing workspace to draft and review campaign wording before publication. Availability depends on verified account access.</p>
       <div className="mt-3 flex flex-wrap gap-3">
         <Link to="/agents" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Open AI writing workspace (sign-in required)</Link>
         <Link to="/create" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Try campaign drafting as a guest</Link>
       </div>
     </section>
-    <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
-      <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
-        <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals. Sandbox checkout is disabled unless the server explicitly confirms sandbox-only readiness.</p></div>
+    <section id="sandbox-checkout" className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
+      <div><h2 className="text-lg font-semibold">Step 4 · PayPal sandbox checkout</h2>
+        <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2. The sandbox order must reference an actually published campaign from the Supabase list below, not the fictional showcase scenario in steps 1–3. Every confirmed sandbox receipt is isolated from real fundraising totals; checkout stays disabled unless the server confirms readiness.</p></div>
       <aside className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-sm" aria-label="PayPal sandbox buyer login guidance">
         <h3 className="font-semibold">Before signing into PayPal Sandbox</h3>
         <p className="mt-1 text-muted-foreground">
@@ -187,7 +192,7 @@ export default function HackathonDemo() {
     <section id="finance-demo" aria-label="AG Grid Community example financial dashboard" className="space-y-4 rounded-2xl border border-cyan-400/40 bg-slate-950 p-5 text-slate-100 sm:p-6">
       <div>
         <p className="text-xs font-bold uppercase tracking-widest text-cyan-300">Sponsor technology · AG Grid Community</p>
-        <h2 className="mt-2 text-xl font-bold">3. Interactive financial dashboard</h2>
+        <h2 className="mt-2 text-xl font-bold">Step 5 · Interactive financial dashboard</h2>
         <p className="mt-2 text-sm text-slate-300">Sort columns, filter examples, page through records, or export the example CSV. This grid runs inside iFund at no extra backend cost.</p>
       </div>
       <p role="note" className="rounded-xl border border-amber-400/50 bg-amber-400/10 p-3 text-sm font-semibold text-amber-100">
@@ -210,6 +215,38 @@ export default function HackathonDemo() {
       <a className="inline-flex min-h-11 items-center text-sm font-semibold text-cyan-300 underline"
         href="/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json"
         target="_blank" rel="noopener noreferrer">View Postman PayPal sandbox test collection</a>
+    </section>
+    <section id="mission-control" className="space-y-4 rounded-2xl border border-cyan-400/40 bg-[#09132c] p-5 text-slate-100 sm:p-6" aria-label="Connected iFund tools and AI agents">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-300">Step 6 · Mission Control & developer evidence</p>
+      <h2 className="text-xl font-bold">One platform, connected services</h2>
+      <p className="text-sm text-slate-300">Explore the actual iFund features through the links below. Protected features require sign-in; provider status varies. These links open separately so this guided page stays your entry point.</p>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {[
+          ["/agents","AI Story Agent & specialist identities","Story writing requires an eligible account; specialist chat is not fully connected"],
+          ["/create","AI-assisted campaign creator","Five title choices, two summaries, editable story sections"],
+          ["/discover","Campaign discovery","Browse actually published campaigns"],
+          ["/social","IFund Social","Explore community posts and engagement"],
+          ["/connections","Account connections","View available providers and consent settings"],
+          ["/giving","Personal finance dashboard","Verified owner/donor accounting, sign-in required"],
+        ].map(([to,name,description])=><Link key={to} to={to} target="_blank" rel="noopener noreferrer"
+          className="rounded-xl border border-slate-700 bg-slate-950/70 p-4 transition hover:border-cyan-400">
+          <strong className="text-sm text-cyan-200">{name}</strong>
+          <p className="mt-2 text-xs text-slate-300">{description}</p>
+        </Link>)}
+      </div>
+      <div className="rounded-xl border border-cyan-400/40 bg-slate-950/70 p-4">
+        <h3 className="font-semibold">Original Base44 iFund integration</h3>
+        <p className="mt-2 text-sm text-slate-300">The original Base44 application now has a matching six-stage hackathon companion with AG Grid Community and links to its real campaign creator, AI agents, social connection controls, interactive campaign globe and protected ledger. The companion and this demo share example content, not donation ledgers or authentication sessions.</p>
+        <a href="https://interplanetaryfund.base44.app/hackathon" target="_blank" rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 text-sm font-semibold text-cyan-200">Explore Base44 iFund companion</a>
+      </div>
+      <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
+        <h3 className="font-semibold">Hackathon sponsor tools</h3>
+        <p className="mt-2 text-sm text-slate-300">AG Grid Community powers the interactive example financial table above and a protected real-data admin finance dashboard. A free Postman v2.1 collection verifies read-only PayPal sandbox API contracts; it cannot prove a payment was captured.</p>
+        <a href="/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json" target="_blank" rel="noopener noreferrer"
+          className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 text-sm font-semibold text-cyan-200">Open Postman sandbox collection</a>
+      </div>
+      <a href="#journey" className="inline-flex min-h-11 items-center rounded-xl border border-cyan-300/40 px-4 text-sm font-semibold text-cyan-200">Return to step 1</a>
     </section>
     <p className="text-xs text-muted-foreground">Demo receipts require successful server-side verification and database persistence. Sandbox transactions never count toward public campaign totals. The live PayPal platform-support button is a separate integration.</p>
   </main>;
