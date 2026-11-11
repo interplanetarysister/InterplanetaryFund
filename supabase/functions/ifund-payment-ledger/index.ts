@@ -96,6 +96,28 @@ Deno.serve(async req=>{
          p_capture_status:p.capture_status,p_currency:p.currency});
       return Response.json({ok:true,donation_id:r});
     }
+    if(body.op==="event"){
+      const p=body.data||{};
+      const validId=v=>typeof v==="string"&&/^[A-Za-z0-9_-]{8,100}$/.test(v);
+      if(!validId(p.paypal_event_id)||!validId(p.paypal_order_id)
+        ||!validId(p.paypal_capture_id)||p.event_type!=="PAYMENT.CAPTURE.COMPLETED")
+        return fail("Invalid signed provider event");
+      const donation=await findOne("ifund_donations?select=id,status,paypal_capture_id,paypal_capture_verified_at&paypal_order_id=eq."+encodeURIComponent(p.paypal_order_id));
+      if(!donation||donation.status!=="captured"||!donation.paypal_capture_verified_at
+        ||donation.paypal_capture_id!==p.paypal_capture_id)
+        return fail("Captured donation not verified",409);
+      try{
+        await db("ifund_payment_events","POST",{
+          paypal_event_id:p.paypal_event_id,paypal_order_id:p.paypal_order_id,
+          paypal_capture_id:p.paypal_capture_id,event_type:p.event_type,
+        });
+      }catch(error){if(error.status!==409)throw error;}
+      const recorded=await findOne("ifund_payment_events?select=paypal_order_id,paypal_capture_id,event_type&paypal_event_id=eq."+encodeURIComponent(p.paypal_event_id));
+      if(!recorded||recorded.paypal_order_id!==p.paypal_order_id
+        ||recorded.paypal_capture_id!==p.paypal_capture_id||recorded.event_type!==p.event_type)
+        return fail("PayPal event identity conflict",409);
+      return Response.json({ok:true,recorded:true});
+    }
     if(body.op==="reverse"){
       const p=body.data||{};
       const r=await db("rpc/ifund_reverse_verified_live_paypal_capture","POST",{
