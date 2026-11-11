@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import PayPalMerchantReceipts from "@/components/payments/PayPalMerchantReceipts";
 
 const cents = value => {
   const n = Number(value);
@@ -15,7 +16,7 @@ function SummaryCard({ label, value }) {
   </div>;
 }
 export default function FinanceDashboard() {
-  const [state, setState] = useState({ status: "loading", owned: [], donated: [], error: "" });
+  const [state, setState] = useState({ status: "loading", owned: [], donated: [], merchantReceipts: [], adminVerified: false, error: "" });
   useEffect(() => {
     let active = true;
     async function refresh() {
@@ -30,11 +31,23 @@ export default function FinanceDashboard() {
         if (owner.error || receipts.error || !Array.isArray(owner.data) || !Array.isArray(receipts.data)) {
           throw Error("Verified financial records could not be loaded. Please retry.");
         }
+        // Never request or render merchant reconciliation data for ordinary members.
+        const privilege = await client.rpc("ifund_current_user_is_verified_admin");
+        const adminVerified = privilege.error==null && privilege.data===true;
+        let merchantReceipts=[];
+        if(adminVerified){
+          const result=await client.rpc("ifund_admin_paypal_merchant_receipts");
+          if(result.error||!Array.isArray(result.data))
+            throw Error("Verified merchant receipts could not be loaded. Please retry.");
+          merchantReceipts=result.data;
+        }
         const fresh = await client.auth.getUser();
         if (fresh.error || fresh.data?.user?.id !== session.data.user.id) throw Error("Your session changed. Reload your finances.");
-        if (active) setState({status:"ready", owned:owner.data, donated:receipts.data, error:""});
+        if (active) setState({status:"ready", owned:owner.data, donated:receipts.data,
+          merchantReceipts,adminVerified,error:""});
       } catch(e) {
-        if(active) setState({status:"error",owned:[],donated:[],error:e.message||"Finance service unavailable."});
+        if(active) setState({status:"error",owned:[],donated:[],merchantReceipts:[],adminVerified:false,
+          error:e.message||"Finance service unavailable."});
       }
     }
     refresh();
@@ -74,6 +87,7 @@ export default function FinanceDashboard() {
             <strong className="tabular-nums">{cents(r.amount_cents)}</strong>
           </div>)}</div>}
       </section>
+      {state.adminVerified && <PayPalMerchantReceipts rows={state.merchantReceipts}/>}
     </>}
   </main>;
 }
