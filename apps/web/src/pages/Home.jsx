@@ -76,8 +76,8 @@ export default function Home() {
           </div>
           <div className="mt-7 mx-auto max-w-md rounded-2xl border border-cyan-400/30 bg-slate-950/65 px-5 py-5 text-center">
             <p className="text-lg font-semibold text-white">Be here from the beginning.</p>
-            <p className="mt-1 mb-4 text-sm text-slate-300">Join the free InterplanetaryFund founding community and get early-access updates.</p>
-            <Link to="/founding-members" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Join Founding Members <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <p className="mt-1 mb-4 text-sm text-slate-300">Create a free Interplanetary Fund account to follow campaigns, share ideas and start building a fundraiser.</p>
+            <Link to="/register" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-cyan-500 px-5 py-2 text-sm font-semibold text-slate-950 hover:bg-cyan-400">Create your free account <ArrowRight className="ml-2 h-4 w-4" /></Link>
           </div>
           {!isAuthenticated && (
             <p className="mt-8 text-sm text-slate-400">Already have an account? <Link to="/login" className="text-cyan-300 hover:text-cyan-200 font-medium">Log in</Link> · <Link to="/register" className="text-cyan-300 hover:text-cyan-200 font-medium">Create one</Link></p>
