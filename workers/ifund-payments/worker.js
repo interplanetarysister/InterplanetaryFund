@@ -117,10 +117,12 @@ async function webhook(req,env) {
     // Reject invalid capture references before any ledger mutation.
     if(!ORDER_ID.test(payload.id||"")||!ORDER_ID.test(payload.resource?.id||""))
       return asError("webhook_capture_reference_mismatch",409);
-    const completed=await finalize(env,orderId,claim.intent);
-    // Only record a signed PayPal event after matching the provider's completed capture.
-    if(payload.resource.id!==completed.capture_id)
+    // Check the signed notification's capture against PayPal's current order
+    // BEFORE posting any financial ledger mutation.
+    const proof=await verifyCapture(env,orderId,claim.intent);
+    if(payload.resource.id!==proof.capture_id)
       return asError("webhook_capture_reference_mismatch",409);
+    const completed=await finalize(env,orderId,claim.intent);
     await signLedger(env,"event",{paypal_event_id:payload.id,paypal_order_id:orderId,
       paypal_capture_id:completed.capture_id,event_type:kind});
     return asJson({ok:true,recorded:true,donation_id:completed.donation_id});
