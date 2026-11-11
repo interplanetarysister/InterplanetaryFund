@@ -190,6 +190,10 @@ async function capture(env,request){
   const access=await oauth(env);
   const path="/v2/checkout/orders/"+encodeURIComponent(input.order_id);
   let order=await paypal(access,"GET",path);
+  // An order created by PayPal is not an authorization to take sandbox funds.
+  // Return an actionable conflict instead of a generic gateway failure.
+  if(order.status!=="APPROVED" && order.status!=="COMPLETED")
+    return fail("PayPal sandbox buyer approval is required before capture",409);
   if(order.status==="APPROVED"){
     try {
       await paypal(access,"POST",path+"/capture",{},
