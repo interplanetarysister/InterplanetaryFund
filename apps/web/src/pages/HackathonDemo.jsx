@@ -94,6 +94,28 @@ export default function HackathonDemo() {
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="PayPal sandbox checkout">
       <div><h2 className="text-lg font-semibold">2. PayPal sandbox checkout</h2>
         <p className="mt-1 text-sm text-muted-foreground">This uses PayPal REST Orders v2 rather than the live platform-support payment button. Every receipt is isolated from real fundraising totals. Sandbox checkout is disabled unless the server explicitly confirms sandbox-only readiness.</p></div>
+      <aside className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-4 text-sm" aria-label="PayPal sandbox buyer login guidance">
+        <h3 className="font-semibold">Before signing into PayPal Sandbox</h3>
+        <p className="mt-1 text-muted-foreground">
+          Use a <strong>Personal sandbox buyer</strong> account different from the
+          <strong> Business sandbox merchant</strong> that receives IFund test payments.
+          PayPal blocks payments to your own merchant account.
+        </p>
+        <p className="mt-2 text-muted-foreground">
+          If PayPal says your account is associated with the merchant, sign out of
+          PayPal Sandbox and choose another Personal test account. You can create a
+          separate buyer in{" "}
+          <a href="https://developer.paypal.com/sandbox-testing/accounts" target="_blank"
+             rel="noopener noreferrer" className="font-semibold underline">
+            PayPal Developer Sandbox Accounts
+          </a>. Do not use a real PayPal account or real funds.
+        </p>
+        <p className="mt-2 text-muted-foreground">
+          Start a new checkout here, and keep the same browser session through PayPal
+          approval and the return to IFund. Confirm the PayPal login address begins
+          with <code>https://www.sandbox.paypal.com/</code>.
+        </p>
+      </aside>
       {statusError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{statusError}</p>}
       {missingApprovalToken&&<p role="alert" className="rounded-lg border border-amber-500/40 p-3 text-sm">PayPal returned without an order token. No payment has been captured. Start a new sandbox checkout; do not treat this approval as a donation.</p>}
       {ready===null ? <p role="status">Checking sandbox readiness…</p>:
