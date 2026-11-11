@@ -9,11 +9,12 @@ test("guest visitors can open the campaign creator without a login redirect", ()
   assert.doesNotMatch(app, /path="\/create" element=\{<MemberAccess>/);
 });
 
-test("guest drafts survive login and are cleared only after successful save", () => {
+test("guest drafts stay local until cloud save and never require login", () => {
   const creator = read("../src/pages/CreateCampaign.jsx");
   assert.match(creator, /rememberBrowserCampaign\(sessionStorage, ownerId, form,/);
   assert.match(creator, /forgetBrowserCampaign\(sessionStorage\)/);
   assert.match(creator, /key=\{[^}]*ownerId \|\| "guest"/);
-  assert.match(creator, /navigate\("\/login\?returnTo="/);
-  assert.match(creator, /encodeURIComponent\(window\.location\.pathname \+ window\.location\.search\)/);
+  assert.match(creator, /rememberBrowserCampaign\(sessionStorage, null, form,/);
+  assert.doesNotMatch(creator, /navigate\("\/login\?returnTo="/);
+  assert.match(creator, /Draft saved in this browser tab only/);
 });
