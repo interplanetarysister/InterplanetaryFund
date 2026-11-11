@@ -49,15 +49,15 @@ export default function Dashboard() {
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
   if (state === "guest") return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8">
     <h1 className="font-display text-3xl font-bold">Welcome to your iFund workspace</h1>
-    <p className="max-w-2xl text-muted-foreground">No identity verification is needed to explore or prepare a campaign. Your draft can stay in this browser until you choose a recoverable account. Cloud saving and publication require a secure, owner-bound account session.</p>
-    {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest mode is active on this device. Keep this browser open for your draft or link a recoverable account to protect your work across devices.</p>}
-    <div className="flex flex-wrap gap-4"><Link className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white" to="/create">Start or resume a campaign draft</Link><Link to="/discover" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Explore campaigns</Link><Link to="/register" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Make an account recoverable</Link></div>
+    <p className="max-w-2xl text-muted-foreground">Explore campaigns as a visitor. To create, save, or publish your own content, sign up with an email address. Two-factor authentication is only required when you request your first withdrawal.</p>
+    {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest browsing is active on this device. Create a verified email account before writing or publishing campaign content.</p>}
+    <div className="flex flex-wrap gap-4"><Link className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white" to="/register?returnTo=%2Fcreate">Create a campaign with email</Link><Link to="/discover" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Explore campaigns</Link><Link to="/register" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Sign up with email</Link></div>
     <p className="text-sm"><Link to="/withdrawals" className="underline">Withdrawal identity verification</Link> is only needed before a payout can be requested.</p>
   </main>;
   if (state === "error") return <main role="alert" className="mx-auto max-w-5xl p-8">Account services are unavailable. <Link className="underline" to="/login">Return to sign in</Link>.</main>;
   return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-8">
     <header className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="font-display text-3xl font-bold">Your dashboard</h1><p className="mt-2 text-muted-foreground">{user?.is_anonymous ? "Private guest account on this device" : "Signed in as " + user?.email}</p></div>
+      <div><h1 className="font-display text-3xl font-bold">Your dashboard</h1><p className="mt-2 text-muted-foreground">{"Signed in as " + user?.email}</p></div>
       <button onClick={signOut} className="min-h-11 rounded-xl border border-border px-5 py-2">Sign out</button>
     </header>
     <section className="rounded-2xl border border-border bg-card p-6">
