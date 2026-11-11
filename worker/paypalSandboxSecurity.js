@@ -14,6 +14,20 @@ export function sandboxConfigured(env) {
     required.every(name => typeof env[name] === "string" && env[name].trim().length > 0) &&
     (() => { try { const u = new URL(env.SUPABASE_URL); return u.protocol === "https:" && !u.username && !u.password; } catch { return false; } })();
 }
+// The provider must confirm the registered webhook, its exact sandbox endpoint,
+// and the event subscription. A configured ID alone is not readiness evidence.
+export function isRegisteredSandboxWebhook(webhook, id) {
+  if (!validId(id) || webhook?.id !== id || typeof webhook?.url !== "string") return false;
+  let endpoint;
+  try { endpoint = new URL(webhook.url); } catch { return false; }
+  if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password ||
+      endpoint.port || endpoint.search || endpoint.hash ||
+      endpoint.pathname !== "/api/paypal/sandbox/webhook" ||
+      !/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/.test(endpoint.hostname)) return false;
+  const names = Array.isArray(webhook.event_types) ? webhook.event_types.map(x => x?.name) : [];
+  return names.includes("PAYMENT.CAPTURE.COMPLETED") || names.includes("*");
+}
+
 export function confirmCapturedOrder(order, record) {
   if (!validId(record?.paypal_order_id) || order?.id !== record.paypal_order_id || order?.status !== "COMPLETED") {
     throw new SandboxVerificationError("Unconfirmed PayPal order");
