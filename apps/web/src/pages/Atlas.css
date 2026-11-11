@@ -1,0 +1,22 @@
+/* Shared free Atlas orthographic globe. Scoped so other IFund routes retain styling. */
+.ifund-atlas-shell .demo-globe-panel { background:radial-gradient(circle at 55% 30%,#1a3d62,#08142f 70%);color:#d0e8fb;border-radius:22px;border:1px solid #2a5673;padding:18px;overflow:hidden; }
+.ifund-atlas-shell .demo-globe-panel h2,.ifund-atlas-shell .demo-globe-panel h3{color:#f0fbff}
+.ifund-atlas-shell .demo-globe-panel .eyebrow{font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#79dae9;}
+.ifund-atlas-shell .globe-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.ifund-atlas-shell .globe-header h2{font-size:clamp(1.3rem,3vw,2.1rem);font-weight:750}
+.ifund-atlas-shell .globe-header p{max-width:56ch;font-size:.9rem;color:#c1d8eb}
+.ifund-atlas-shell .globe-controls{display:flex;gap:8px;flex-wrap:wrap}
+.ifund-atlas-shell .globe-controls button{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;padding:10px;border:1px solid #6aa6c0;background:#17304f;color:#fff;border-radius:12px}
+.ifund-atlas-shell .globe-controls button:focus-visible{outline:3px solid #3de3ef;outline-offset:2px}
+.ifund-atlas-shell .globe-layout{display:grid;grid-template-columns:minmax(0,3fr) minmax(210px,1fr);gap:22px;align-items:center}
+.ifund-atlas-shell .campaign-globe{display:block;width:100%;max-height:590px;touch-action:pan-y;user-select:none;cursor:grab}
+.ifund-atlas-shell .campaign-globe:active{cursor:grabbing}
+.ifund-atlas-shell .globe-pin{cursor:pointer;outline:none}
+.ifund-atlas-shell .globe-pin:focus-visible circle:first-child,.ifund-atlas-shell .globe-pin:hover circle:first-child{stroke:#fff;stroke-width:4}
+.ifund-atlas-shell .globe-aside{border-left:1px solid #365778;padding-left:22px}
+.ifund-atlas-shell .globe-aside strong{font-size:1.15rem;color:#adf6fc}
+.ifund-atlas-shell .globe-aside .meta{font-size:.85rem;color:#bfdbef}
+.ifund-atlas-shell .globe-selected{border:1px solid #447396;border-radius:14px;padding:16px;background:#0b2543}
+.ifund-atlas-shell .globe-selected p{color:#c3e0ee}
+.ifund-atlas-shell .globe-selected .button{display:inline-flex;align-items:center;min-height:44px;border-radius:10px;background:#0895a8;color:#fff;font-weight:600;padding:10px 15px;margin-top:12px}
+@media(max-width:760px){.ifund-atlas-shell .globe-layout{grid-template-columns:minmax(0,1fr);gap:10px}.ifund-atlas-shell .campaign-globe{max-height:440px}.ifund-atlas-shell .globe-aside{border-left:0;border-top:1px solid #365778;padding:16px 0 0}}
