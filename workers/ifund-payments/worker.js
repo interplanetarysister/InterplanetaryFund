@@ -123,9 +123,26 @@ async function webhook(req,env) {
     return asJson({ok:true,recorded:true,donation_id:completed.donation_id});
   }
   if(["PAYMENT.CAPTURE.REFUNDED","PAYMENT.CAPTURE.REVERSED"].includes(kind)){
-    const captureId=payload.resource?.supplementary_data?.related_ids?.capture_id
-      || (kind==="PAYMENT.CAPTURE.REVERSED"?payload.resource?.id:null);
-    if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||""))return asError("reversal_reference_missing",409);
+    // A completed refund event identifies a REFUND in resource.id, not a capture.
+    // Its canonical capture may be carried by the provider's rel=up link.
+    const related=payload.resource?.supplementary_data?.related_ids?.capture_id;
+    const links=Array.isArray(payload.resource?.links)?payload.resource.links:[];
+    const linkedCaptures=new Set();
+    for(const link of links){
+      if(link?.rel!=="up"||typeof link.href!=="string")continue;
+      try{
+        const u=new URL(link.href);
+        if(u.protocol!=="https:"||u.port||u.search||u.hash
+          ||!["api.paypal.com","api-m.paypal.com"].includes(u.hostname))continue;
+        const match=u.pathname.match(/^\\/v2\\/payments\\/captures\\/([A-Za-z0-9_-]{8,100})$/);
+        if(match)linkedCaptures.add(match[1]);
+      }catch(_){}
+    }
+    const linked=linkedCaptures.size===1?[...linkedCaptures][0]:null;
+    const captureId=related||linked||(kind==="PAYMENT.CAPTURE.REVERSED"?payload.resource?.id:null);
+    if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||"")
+      ||(linked&&related&&linked!==related)||linkedCaptures.size>1)
+      return asError("reversal_reference_missing",409);
     // Supabase requires a verified amount to reject partial or mismatched reversals.
     // A signed event with missing amount must be reconciled, not silently accepted.
     const amount=payload.resource?.amount;
