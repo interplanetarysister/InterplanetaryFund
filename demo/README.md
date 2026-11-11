@@ -47,3 +47,13 @@ The demo worker uses:
 - `/api/admin/tracker` — administrator-only verification tracker
 
 **License:** repository [AGPL-3.0](../LICENSE); third-party dependencies retain their respective licenses. Do not reuse trademarked assets or copyrighted materials without permission.
+
+## One-command public judge smoke test
+
+From a fresh clone with Node.js 20 or newer, execute:
+
+```sh
+node demo/scripts/judge-acceptance.mjs
+```
+
+This zero-dependency script requests the **real hosted** public demo over HTTPS, verifies the React shell and assets, published fictional campaign data with image paths, sandbox-only status with withdrawals disabled, anonymous session state, and fail-closed privacy on sandbox PayPal status, finance, admin tracker and owner-only campaigns. It exits nonzero on failure. Point it at a distinct sandbox URL with `IFUND_DEMO_BASE_URL`; never use a production URL that may accept real payments. The script intentionally does **not** create PayPal orders or spoof a sandbox buyer, capture, webhook or successful finance record. It is an acceptance test artifact and is not evidence of a completed user-approval flow until separately executed and observed. The repo's historical provider database verification is described in [VERIFICATION.md](VERIFICATION.md).
