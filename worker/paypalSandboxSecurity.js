@@ -16,14 +16,15 @@ export function sandboxConfigured(env) {
 }
 // The provider must confirm the registered webhook, its exact sandbox endpoint,
 // and the event subscription. A configured ID alone is not readiness evidence.
-export function isRegisteredSandboxWebhook(webhook, id) {
+export function isRegisteredSandboxWebhook(webhook, id, expectedOrigin) {
   if (!validId(id) || webhook?.id !== id || typeof webhook?.url !== "string") return false;
   let endpoint;
   try { endpoint = new URL(webhook.url); } catch { return false; }
+  if (typeof expectedOrigin !== "string" || endpoint.origin !== expectedOrigin) return false;
   if (endpoint.protocol !== "https:" || endpoint.username || endpoint.password ||
       endpoint.port || endpoint.search || endpoint.hash ||
       endpoint.pathname !== "/api/paypal/sandbox/webhook" ||
-      !/^(?:[a-z0-9-]+\\.)?interplanetaryfund-migration\\.pages\\.dev$/.test(endpoint.hostname)) return false;
+      !/^(?:[a-z0-9-]+\.)?interplanetaryfund-migration\.pages\.dev$/.test(endpoint.hostname)) return false;
   const names = Array.isArray(webhook.event_types) ? webhook.event_types.map(x => x?.name) : [];
   return names.includes("PAYMENT.CAPTURE.COMPLETED") || names.includes("*");
 }
