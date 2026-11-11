@@ -310,12 +310,6 @@ export async function onRequest({request,env,params}){
     return status(env,request);
   if(route==="diagnostics"&&request.method==="GET")
     return diagnostics(env,request);
-  if(route==="migrate-webhook"&&request.method==="POST"){
-    if(!browserPost(request))return fail("Same-origin preview only",403);
-    if(!sandboxReady(env))return fail("Sandbox unavailable",503);
-    try{return json(await broker(env,"migrate-webhook"));}
-    catch{return fail("Provider webhook update not verified",502);}
-  }
   if(!["orders","capture","webhook"].includes(route))return fail("Route not found",404);
   if(request.method!=="POST")return fail("Method not allowed",405);
   if(!sandboxReady(env))return fail("PayPal sandbox is not configured",503);
