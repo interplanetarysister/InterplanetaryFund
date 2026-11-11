@@ -1,101 +1,161 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { authRedirectUrl } from "@/lib/authFlow";
-import { guestIdentity, payoutIdentity } from "@/lib/guestAccess";
+import { payoutIdentity } from "@/lib/guestAccess";
+
+// MFA is deliberately NOT part of login, registration, content creation or
+// account browsing. It is a step-up gate on the first withdrawal journey.
+// This screen never initiates a payout or treats client state as approval.
+function WithdrawalMfaGate() {
+  const [state, setState] = useState("loading");
+  const [factor, setFactor] = useState(null);
+  const [enrollment, setEnrollment] = useState(null);
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const inspect = useCallback(async () => {
+    const auth = authClient().auth;
+    const [assurance, factors] = await Promise.all([
+      auth.mfa.getAuthenticatorAssuranceLevel(),
+      auth.mfa.listFactors(),
+    ]);
+    if (assurance.error) throw assurance.error;
+    if (factors.error) throw factors.error;
+    if (assurance.data?.currentLevel === "aal2") {
+      setState("verified");
+    } else {
+      const verified = factors.data?.totp?.find(item => item.status === "verified");
+      if (verified) { setFactor(verified); setState("challenge"); }
+      else setState("enroll");
+    }
+  }, []);
+  useEffect(() => {
+    let live = true;
+    inspect().catch(() => { if (live) setState("error"); });
+    return () => { live = false; };
+  }, [inspect]);
+  async function beginEnrollment() {
+    if (busy) return;
+    setBusy(true); setError("");
+    try {
+      const result = await authClient().auth.mfa.enroll({ factorType: "totp" });
+      if (result.error) throw result.error;
+      if (!result.data?.id || !result.data?.totp?.secret)
+        throw new Error("Authenticator setup did not return an enrollment.");
+      setEnrollment({
+        id: result.data.id,
+        qr: result.data.totp.qr_code,
+        secret: result.data.totp.secret,
+      });
+      setState("confirm-enrollment");
+    } catch (cause) {
+      setError(cause.message || "Authenticator setup is unavailable.");
+    } finally { setBusy(false); }
+  }
+  async function verifyCode(event) {
+    event.preventDefault();
+    const factorId = enrollment?.id || factor?.id;
+    if (busy || !factorId || !/^\d{6}$/.test(code.trim())) return;
+    setBusy(true); setError("");
+    try {
+      const auth = authClient().auth;
+      const challenge = await auth.mfa.challenge({ factorId });
+      if (challenge.error || !challenge.data?.id)
+        throw challenge.error || new Error("Challenge unavailable.");
+      const check = await auth.mfa.verify({
+        factorId, challengeId: challenge.data.id, code: code.trim(),
+      });
+      if (check.error) throw check.error;
+      const assurance = await auth.mfa.getAuthenticatorAssuranceLevel();
+      if (assurance.error || assurance.data?.currentLevel !== "aal2")
+        throw new Error("Second-factor verification could not be confirmed.");
+      setCode(""); setEnrollment(null);
+      setState("verified");
+    } catch (cause) {
+      setError(cause.message || "The authenticator code was not accepted.");
+    } finally { setBusy(false); }
+  }
+  return <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
+    <h2 className="text-xl font-semibold">Step 2: Two-factor authentication</h2>
+    <p className="text-sm text-muted-foreground">
+      An authenticator code is required for withdrawals, not to register or
+      create campaigns. A verified second factor does not by itself authorize
+      a payout; financial identity, ownership and available balance must also
+      be confirmed by the payment service.
+    </p>
+    {state === "loading" && <p role="status">Checking authenticator security…</p>}
+    {state === "error" && <p role="alert">The authenticator service is unavailable. Withdrawals remain blocked.</p>}
+    {state === "enroll" && <button type="button" disabled={busy} onClick={beginEnrollment}
+      className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white disabled:opacity-50">
+      {busy ? "Preparing…" : "Set up authenticator for first withdrawal"}
+    </button>}
+    {state === "confirm-enrollment" && enrollment && <div className="space-y-3">
+      <p className="text-sm">Open your authenticator app and scan this code or enter the setup key.</p>
+      {typeof enrollment.qr === "string" && enrollment.qr.startsWith("data:image/") &&
+        <img className="h-48 w-48 rounded-xl bg-white p-2" src={enrollment.qr} alt="Authenticator enrollment QR code"/>}
+      <code className="block break-all rounded-lg border p-3 text-sm">{enrollment.secret}</code>
+    </div>}
+    {(state === "confirm-enrollment" || state === "challenge") && <form onSubmit={verifyCode} className="space-y-3">
+      <label className="block text-sm font-medium">Six-digit code from your authenticator
+        <input required type="text" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code"
+          value={code} disabled={busy} onChange={e=>setCode(e.target.value.replace(/\D/g,"").slice(0,6))}
+          className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"/>
+      </label>
+      <button disabled={busy || code.length !== 6} className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white disabled:opacity-50">
+        {busy ? "Verifying…" : "Verify second factor"}
+      </button>
+    </form>}
+    {state === "verified" && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">
+      Your authenticator has been verified for this session (AAL2).
+      Payout requests still require processor approval and server-side checks;
+      withdrawals cannot be initiated from this screen.
+    </p>}
+    {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
+  </section>;
+}
 
 export default function WithdrawalVerification() {
-  const [user, setUser] = useState(null);
-  const [status, setStatus] = useState("loading");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
+  const [state, setState] = useState({ phase: "loading", user: null });
   useEffect(() => {
-    let alive = true;
-    let subscription;
+    let live = true;
+    let sub;
     try {
       const client = authClient();
       client.auth.getUser().then(({ data, error }) => {
-        if (!alive) return;
-        setUser(error ? null : data?.user || null);
-        setStatus(error && !String(error.message || "").toLowerCase().includes("missing") ? "error" : "ready");
-      }).catch(() => { if (alive) setStatus("error"); });
-      const result = client.auth.onAuthStateChange((_, session) => {
-        if (!alive) return;
-        setUser(session?.user || null);
-        setStatus("ready");
+        if (!live) return;
+        setState({phase: error && !/missing/i.test(error.message || "") ? "error" : "ready", user: error ? null : data?.user || null});
+      }).catch(() => { if (live) setState({phase: "error", user: null}); });
+      const changed = client.auth.onAuthStateChange((event, session) => {
+        if (live) setState({phase:"ready", user:session?.user || null});
       });
-      subscription = result.data?.subscription;
-    } catch { setStatus("error"); }
-    return () => { alive = false; subscription?.unsubscribe(); };
+      sub = changed.data?.subscription;
+    } catch { setState({phase:"error",user:null}); }
+    return () => { live = false; sub?.unsubscribe(); };
   }, []);
-  async function linkEmail(event) {
-    event.preventDefault();
-    if (!guestIdentity(user) || busy) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const client = authClient();
-      const result = await client.auth.updateUser(
-        { email: email.trim() },
-        { emailRedirectTo: authRedirectUrl(window.location.origin, "/withdrawals") },
-      );
-      if (result.error) throw result.error;
-      setNotice("Please verify the email address using the latest link in your inbox. Your guest campaign ownership remains tied to this account.");
-    } catch (cause) {
-      setError(cause?.message || "Email verification could not be started. Retry or contact support.");
-    } finally { setBusy(false); }
-  }
-  async function setRecoveryPassword(event) {
-    event.preventDefault();
-    if (!payoutIdentity(user) || busy || password.length < 8) return;
-    setBusy(true); setError(""); setNotice("");
-    try {
-      const result = await authClient().auth.updateUser({ password });
-      if (result.error) throw result.error;
-      setPassword("");
-      setNotice("Your recovery password has been updated. Financial identity and payout-provider checks remain required before withdrawing.");
-    } catch (cause) {
-      setError(cause?.message || "Your recovery password could not be set.");
-    } finally { setBusy(false); }
-  }
   return <main className="mx-auto max-w-2xl space-y-6 px-5 py-10 sm:px-8">
     <header className="space-y-3">
       <p className="text-sm font-semibold uppercase tracking-widest text-cyan-500">Financial security</p>
-      <h1 className="font-display text-3xl font-bold">Verify your account before withdrawing</h1>
-      <p className="text-muted-foreground">You can discover campaigns and prepare a fundraiser without proving your identity. To receive money, IFund must verify account ownership and satisfy payment-provider identity, fraud, and payout requirements.</p>
+      <h1 className="font-display text-3xl font-bold">Verify before your first withdrawal</h1>
+      <p className="text-muted-foreground">
+        Registration and content creation require an email account but not
+        two-factor authentication. MFA is only requested when you begin your
+        first withdrawal. Applicable financial identity and payout checks are separate.
+      </p>
     </header>
-    {status === "loading" && <p role="status">Checking your account…</p>}
-    {status === "error" && <p role="alert">Account verification is currently unavailable. No withdrawal can proceed. Retry later.</p>}
-    {status === "ready" && !user && <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-xl font-semibold">Keep using iFund without verification</h2>
-      <p className="text-sm text-muted-foreground">You are using a browser-only guest workspace. To request a withdrawal, first create or sign in to a recoverable account so your campaign can be tied to an identified owner.</p>
-      <Link className="inline-flex min-h-11 items-center rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white" to="/register?returnTo=%2Fwithdrawals">Set up a recoverable account</Link>
-      <Link className="ml-4 underline" to="/create">Continue your draft instead</Link>
+    {state.phase === "loading" && <p role="status">Checking your account…</p>}
+    {state.phase === "error" && <p role="alert">Account verification is unavailable. No withdrawal can proceed.</p>}
+    {state.phase === "ready" && !payoutIdentity(state.user) && <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
+      <h2 className="text-xl font-semibold">Step 1: Confirm your email account</h2>
+      <p className="text-sm text-muted-foreground">
+        Guests can browse freely. Sign up using an email account before creating
+        content or requesting a withdrawal. If you have already registered,
+        confirm your email address and sign in.
+      </p>
+      <Link className="inline-flex min-h-11 items-center rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white"
+        to="/register?returnTo=%2Fwithdrawals">Register an email account</Link>
+      <Link className="ml-4 underline" to="/login?returnTo=%2Fwithdrawals">Sign in</Link>
     </section>}
-    {status === "ready" && guestIdentity(user) && <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-xl font-semibold">Secure your guest account</h2>
-      <p className="text-sm text-muted-foreground">Your guest campaigns are associated with this device's private Supabase account ID. Add and verify an email to keep this account accessible across devices. Do not sign out or clear browser data before verification.</p>
-      <form className="space-y-4" onSubmit={linkEmail}>
-        <label className="block text-sm font-medium">Email to verify
-          <input type="email" autoComplete="email" required maxLength={254} disabled={busy} value={email} onChange={event=>setEmail(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"/>
-        </label>
-        <button type="submit" disabled={busy || !email.trim()} className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Requesting verification…" : "Verify my email for withdrawals"}</button>
-      </form>
-    </section>}
-    {status === "ready" && payoutIdentity(user) && <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
-      <h2 className="text-xl font-semibold">Email ownership confirmed</h2>
-      <p className="text-sm text-muted-foreground">Your email is confirmed. If this account began as a guest account, set a password so you can recover access later. Identity checks, payout destination verification, and processor approval are still required before any withdrawal.</p>
-      <form onSubmit={setRecoveryPassword} className="space-y-3">
-        <label className="block text-sm font-medium">Set or change recovery password (optional)
-          <input type="password" autoComplete="new-password" minLength={8} required disabled={busy} value={password} onChange={event=>setPassword(event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
-        </label>
-        <button disabled={busy || password.length < 8} type="submit" className="min-h-12 rounded-xl border border-border px-5 py-3 font-semibold disabled:opacity-50">{busy ? "Saving…" : "Save recovery password"}</button>
-      </form>
-      <p className="text-sm">Review your <Link to="/ledger" className="underline">verified campaign records</Link>. Payout initiation remains unavailable unless the current payment service and compliance checks authorize it.</p>
-    </section>}
-    {notice && <p role="status" className="rounded-xl border border-cyan-500/40 p-4 text-sm">{notice}</p>}
-    {error && <p role="alert" className="rounded-xl border border-red-500/40 p-4 text-sm">{error}</p>}
+    {state.phase === "ready" && payoutIdentity(state.user) && <WithdrawalMfaGate/>}
+    <p className="text-sm text-muted-foreground">The 7% platform fee is deducted at withdrawal. No payout succeeds without verified funds, account ownership, approved payout details, and the required checks.</p>
   </main>;
 }
