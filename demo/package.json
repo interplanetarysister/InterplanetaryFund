@@ -1,0 +1,16 @@
+{
+  "name": "ifund-paypal-ai-hackathon-demo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:worker": "esbuild worker/index.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=worker/app.js --sourcemap=external",
+    "check": "npm run typecheck && npm run build:worker",
+    "judge:smoke": "node scripts/judge-acceptance.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "typescript": "5.8.3"
+  }
+}
