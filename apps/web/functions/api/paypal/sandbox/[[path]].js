@@ -260,8 +260,14 @@ async function webhook(env,request){
   if(!check.ok)return fail("Webhook verification unavailable",503);
   const verified=await check.json();
   if(verified.verification_status!=="SUCCESS")return fail("Webhook signature rejected",401);
-  if(!validId(event?.id)||event.event_type!=="PAYMENT.CAPTURE.COMPLETED")
-    return fail("Webhook event type not accepted",422);
+  if(!validId(event?.id)||typeof event.event_type!=="string"||!event.event_type)
+    return fail("Invalid webhook event",400);
+  // PayPal may send additional subscribed event types. Once the provider
+  // signature is verified, acknowledge events we intentionally do not process
+  // so PayPal does not retry them indefinitely. Never mutate the sandbox
+  // receipt or live finance tables for ignored events.
+  if(event.event_type!=="PAYMENT.CAPTURE.COMPLETED")
+    return json({ok:true,mode:"sandbox",verified:true,ignored:true});
   const orderId=event.resource?.supplementary_data?.related_ids?.order_id;
   if(!validId(orderId))return fail("Webhook order reference absent",422);
   const record=await orderRecord(env,orderId);
