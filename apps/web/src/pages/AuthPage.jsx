@@ -7,7 +7,7 @@ import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { rememberSignupAgreement, finalizeSignupAgreement, recordLegalAcceptance } from "@/lib/legalAcceptance";
-import { enterGuestMode } from "@/lib/guestAccess";
+import { enterGuestMode, payoutIdentity } from "@/lib/guestAccess";
 
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
@@ -41,8 +41,8 @@ export default function AuthPage({ mode = "login" }) {
       });
       // A local-only guest has no server ownership. Never route directly to
       // protected financial or private-data screens without an identity.
-      const destination = result.mode === "account" ? afterLogin
-        : (afterLogin.startsWith("/create") ? afterLogin : "/dashboard");
+      const destination = result.mode === "account" && payoutIdentity(result.user)
+        ? afterLogin : "/discover";
       navigate(destination, { replace: true });
     } catch (cause) {
       setGuestError(cause?.message || "We could not open guest access. Please retry.");
@@ -91,7 +91,7 @@ export default function AuthPage({ mode = "login" }) {
           const { error: verifyError } = await auth.verifyOtp({
             email: email.trim(),
             token: confirmationCode.trim(),
-            type: "signup",
+            type: (await auth.getUser()).data?.user?.is_anonymous ? "email_change" : "signup",
           });
           if (verifyError) throw verifyError;
           const verified = await verifiedAuthUser(auth);
@@ -101,10 +101,18 @@ export default function AuthPage({ mode = "login" }) {
           return;
         }
         const { data: current } = await auth.getUser();
-        if (current?.user?.is_anonymous)
-          throw new Error("You already have a guest account. Link your email on the withdrawal verification screen to preserve its campaigns.");
         if (password !== confirmPassword)
           throw new Error("Your passwords do not match.");
+        if (current?.user?.is_anonymous) {
+          const linked = await auth.updateUser({ email: email.trim() }, {
+            emailRedirectTo: authRedirectUrl(window.location.origin, afterLogin),
+          });
+          if (linked.error) throw linked.error;
+          rememberSignupAgreement(sessionStorage, email.trim());
+          setConfirmationPending(true);
+          setMessage("Confirm the email address using the latest link or code. Your guest account will become an email account. Two-factor setup is not required to post.");
+          return;
+        }
         const { data, error: err } = await auth.signUp({
           email: email.trim(),
           password,
@@ -125,7 +133,7 @@ export default function AuthPage({ mode = "login" }) {
         } else {
           setConfirmationPending(true);
           setMessage(
-            "Your account request is saved. Email confirmation is required to recover this account later, but you can continue exploring and writing drafts on this device now.",
+            "Check your email to confirm your account and start creating content. No two-factor authentication is required until your first withdrawal.",
           );
         }
       } else {
