@@ -44,9 +44,39 @@ function SourceCard({source,campaign}) {
   </article>;
 }
 
+function OpportunityCard({opportunity,campaign}) {
+  const matching=campaign && opportunity.cause_tags?.some(t=>causeTokens(campaign).includes(t));
+  const isOpen=opportunity.status==="open";
+  return <article className="rounded-2xl border border-emerald-500/30 bg-card p-5 shadow-sm">
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="rounded-full bg-cyan-600 px-3 py-1 text-xs font-semibold text-white">{opportunity.type==="grant"?"Grant":opportunity.type==="volunteer"?"Volunteering":"Business"}</span>
+      <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">{isOpen?"Official application window":"Verified program · individual listings vary"}</span>
+      {matching&&<span className="text-xs font-semibold text-emerald-600">Related campaign cause</span>}
+    </div>
+    <h3 className="mt-3 text-xl font-bold">{opportunity.title}</h3>
+    <p className="mt-1 text-sm text-muted-foreground">{opportunity.provider} · {opportunity.geography||"Eligibility varies"}</p>
+    <p className="mt-3 text-sm leading-6 text-muted-foreground">{opportunity.description}</p>
+    {opportunity.estimated_value&&<p className="mt-2 text-sm"><strong>Program value:</strong> {opportunity.estimated_value}</p>}
+    {opportunity.deadline_date&&<p className="mt-1 text-sm"><strong>Published deadline:</strong> {opportunity.deadline_date}</p>}
+    <p className="mt-2 text-sm"><strong>Who may qualify:</strong> {opportunity.eligibility}</p>
+    {campaign&&<p className="mt-3 rounded-lg bg-slate-500/10 p-3 text-xs">{matching
+      ?"Category relevance only; the organizer must still meet the external provider's eligibility rules."
+      :"This program is a general reference, not a verified match for the selected campaign."}</p>}
+    {opportunity.source_note&&<p className="mt-2 text-xs text-muted-foreground">{opportunity.source_note}</p>}
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+      <a href={opportunity.url} target="_blank" rel="noopener noreferrer"
+        className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-bold text-white hover:bg-cyan-700">
+        {isOpen?"Review official application":"View official provider"} <ArrowUpRight className="h-4 w-4"/>
+      </a>
+      <span className="text-xs text-muted-foreground">Source checked {String(opportunity.verified_at||"").slice(0,10)||"not recorded"}</span>
+    </div>
+  </article>;
+}
+
 export default function Institutions() {
   const {id}=useParams();
   const [sources,setSources]=useState([]);
+  const [opportunities,setOpportunities]=useState([]);
   const [campaigns,setCampaigns]=useState([]);
   const [selectedCampaign,setSelectedCampaign]=useState("");
   const [type,setType]=useState("all");
@@ -61,9 +91,9 @@ export default function Institutions() {
       try {
         const result=await fetch("/api/public/opportunity-sources",{cache:"no-store",signal:AbortSignal.timeout(9000)});
         const body=await result.json().catch(()=>({}));
-        if(!result.ok || !Array.isArray(body.sources) || body.source!=="canonical_supabase_rls")
+        if(!result.ok || !Array.isArray(body.sources) || !Array.isArray(body.opportunities) || body.source!=="canonical_supabase_rls")
           throw new Error("Verified institution sources could not be loaded.");
-        if(active) {setSources(body.sources);setState("ready");}
+        if(active) {setSources(body.sources);setOpportunities(body.opportunities);setState("ready");}
       } catch(e){if(active){setError("Live institution research sources are temporarily unavailable. No unverified listings were substituted.");setState("error");}}
     })();
     listActiveCampaigns({limit:100}).then(items=>{if(active)setCampaigns(items);}).catch(()=>{});
@@ -74,6 +104,14 @@ export default function Institutions() {
     (type==="all"||s.industry===type) &&
     (!query||[s.name,s.description,s.mission,s.causes_supported,s.location].join(" ").toLowerCase().includes(query.toLowerCase())))
     .sort((a,b)=>ranking(b,selected)-ranking(a,selected)||a.name.localeCompare(b.name)),[sources,type,query,selected,id]);
+  const matchedOpportunities=useMemo(()=>opportunities
+    .filter(o=>(!id || o.id===id) &&
+      (type==="all" || (type==="grants" && o.type==="grant") ||
+        (type==="business" && o.type==="business") || (type==="volunteer" && o.type==="volunteer")) &&
+      (!query || [o.title,o.description,o.provider,o.eligibility,o.geography,...(o.cause_tags||[])].join(" ").toLowerCase().includes(query.toLowerCase()))
+    ).sort((a,b)=>Number((b.cause_tags||[]).some(tag=>causeTokens(selected).includes(tag)))-
+                      Number((a.cause_tags||[]).some(tag=>causeTokens(selected).includes(tag))) ||
+                      a.title.localeCompare(b.title)),[opportunities,id,type,query,selected]);
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-3">
       <p className="flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-5 w-5"/> Worldwide opportunity research</p>
@@ -102,6 +140,14 @@ export default function Institutions() {
     {state==="loading" && <p role="status">Loading canonical institution research sources…</p>}
     {state==="error" && <div role="alert" className="rounded-xl border border-red-400/30 p-4"><p>{error}</p><button className="mt-2 min-h-11 rounded-lg border border-border px-4" type="button" onClick={()=>setReload(n=>n+1)}>Try again</button></div>}
     {state==="ready" && <>
+      <section aria-label="Source-verified external opportunities" className="space-y-3">
+        <h2 className="text-2xl font-bold">Verified programs & applications</h2>
+        <p className="text-sm text-muted-foreground">{matchedOpportunities.length} independently sourced program{matchedOpportunities.length===1?"":"s"}.
+          A program listing is not a guarantee of an available award, vacancy, partnership, or eligibility. Applications stay with official providers.</p>
+        {matchedOpportunities.length===0 ? <p className="rounded-xl border border-border p-4">No source-verified programs match these filters. Broader research directories appear below.</p> :
+          <div className="grid gap-4 md:grid-cols-2">{matchedOpportunities.map(o=><OpportunityCard key={o.id} opportunity={o} campaign={selected}/>)}</div>}
+      </section>
+      <h2 className="text-xl font-bold">Additional research directories</h2>
       <p className="text-sm text-muted-foreground">{visible.length} verified research source{visible.length===1?"":"s"} · Specific offers must be checked on the linked provider.</p>
       {visible.length===0?<p role="status" className="rounded-xl border border-border p-5">No sources match those filters. Try another cause or category.</p>:
       <div className="grid gap-4 md:grid-cols-2">{visible.map(s=><SourceCard key={s.id} source={s} campaign={selected}/>)}</div>}
