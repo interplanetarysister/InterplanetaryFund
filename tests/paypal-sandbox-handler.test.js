@@ -131,8 +131,10 @@ test("unapproved sandbox order cannot trigger capture or write a receipt",async(
   const response=await call("capture","POST",fakeConfig,{order_id:orderId},{
    cookie:binding.setCookie.split(";")[0]
   });
-  assert.equal(response.status,502,"a buyer must approve sandbox checkout");
-  assert.equal((await response.json()).ok,false);
+  assert.equal(response.status,409,"a buyer must approve sandbox checkout");
+  const rejected=await response.json();
+  assert.equal(rejected.ok,false);
+  assert.match(rejected.error,/buyer approval is required/i);
   assert.equal(captureCalls,0,"never call PayPal capture before buyer approval");
   assert.equal(writeCalls,0,"unapproved order cannot create a captured receipt");
  }finally{globalThis.fetch=previousFetch;}
