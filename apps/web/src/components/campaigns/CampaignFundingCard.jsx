@@ -1,7 +1,6 @@
 import React from "react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import PayPalDonateButton from "@/components/payments/PayPalDonateButton";
 import { format } from "date-fns";
 import { Users, CalendarDays, Heart, ShieldCheck } from "lucide-react";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
@@ -45,17 +44,12 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
       {platformOnlyMode ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center">
           <p className="text-xs font-semibold text-amber-900">Platform support only</p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-amber-800">Your campaign is published and shareable. Campaign donations are currently paused; the separate platform donation link supports Interplanetary Fund, not this campaign.</p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-amber-800">Campaign donations are currently paused. No payment will be initiated for this campaign. Platform support is separate from campaign gifts and is available on non-campaign pages.</p>
         </div>
       ) : (
         <p className="flex items-center justify-center gap-1.5 text-xs text-stone-400 mt-3">
           <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" /> Secure PayPal checkout · other methods available
         </p>
-      )}
-      {platformOnlyMode && (
-        <div className="mt-4 pt-4 border-t border-stone-100">
-          <PayPalDonateButton label="Support Interplanetary Fund" />
-        </div>
       )}
     </div>
   );
