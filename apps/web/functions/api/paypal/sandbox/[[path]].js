@@ -286,7 +286,8 @@ async function webhook(env,request){
 async function diagnostics(env,request){
  const result={mode:"sandbox",configured:sandboxHost(request)&&sandboxReady(env),
   oauth_ready:false,webhook_registration_ready:false,webhook_origin_matches:false,
-  database_ready:false,live_payments_enabled:false};
+  registered_callback_origin:null,registered_callback_path:null,
+  capture_event_subscribed:false,database_ready:false,live_payments_enabled:false};
  if(!result.configured)return json(result);
  try{
   const access=await oauth(env);
@@ -295,6 +296,18 @@ async function diagnostics(env,request){
    const registered=await paypal(access,"GET","/v1/notifications/webhooks/"+encodeURIComponent(env.PAYPAL_WEBHOOK_ID));
    result.webhook_registration_ready=Boolean(registered?.id===env.PAYPAL_WEBHOOK_ID);
    result.webhook_origin_matches=isRegisteredSandboxWebhook(registered,env.PAYPAL_WEBHOOK_ID,new URL(request.url).origin);
+   if(result.webhook_registration_ready && typeof registered.url==="string") {
+     try {
+       const target=new URL(registered.url);
+       if(target.protocol==="https:" && !target.username && !target.password) {
+         // Callback is public provider configuration; never return credentials.
+         result.registered_callback_origin=target.origin;
+         result.registered_callback_path=target.pathname;
+       }
+     }catch{}
+   }
+   result.capture_event_subscribed=Array.isArray(registered.event_types) &&
+     registered.event_types.some(x=>x.name==="PAYMENT.CAPTURE.COMPLETED"||x.name==="*");
   }catch{}
  }catch{}
  try {
