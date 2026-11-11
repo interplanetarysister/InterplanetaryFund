@@ -122,7 +122,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   },[open,campaign?.id,campaign?.status,gift,tip,valid]);
   const field="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
   return <Dialog open={open} onOpenChange={value=>{
-    if(!value&&checkoutLocked)return;
+    if(!value&&status==="capturing")return;
     if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
