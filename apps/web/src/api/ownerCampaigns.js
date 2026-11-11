@@ -18,7 +18,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Only columns already used by other owner reads in this app, so a deployment
 // missing a newer column cannot break the management page.
 export const OWNER_CAMPAIGN_COLUMNS =
-  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at";
+  "id,owner_id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
 
 async function verifiedOwner(client) {
   const { data, error } = await client.auth.getUser();
