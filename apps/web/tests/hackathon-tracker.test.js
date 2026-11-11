@@ -15,6 +15,7 @@ test("completed step requires evidence and a test result", () => {
   const row={...blankRecord("capture-v2"),status:"completed"};
   assert.match(validateRecord(row),/require/);
   assert.equal(validateRecord({...row,evidence_links:["https://example.com/a"],test_result:"Provider receipt checked"}),"");
+  assert.equal(validateRecord({...row,screenshot_links:["https://example.com/screenshot.png"],test_result:"Screenshot and provider receipt reviewed"}),"");
 });
 test("only HTTPS links, no duplicates or javascript",()=>{
   assert.deepEqual(parseLinks("https://example.com/a\nhttps://example.com/a"),["https://example.com/a"]);
