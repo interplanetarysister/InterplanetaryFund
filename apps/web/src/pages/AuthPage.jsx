@@ -95,6 +95,10 @@ export default function AuthPage({ mode = "login" }) {
           });
           if (verifyError) throw verifyError;
           const verified = await verifiedAuthUser(auth);
+          if (password && verified.email_confirmed_at) {
+            const { error: pwError } = await auth.updateUser({ password });
+            if (pwError) throw pwError;
+          }
           try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
           catch { navigate("/dashboard", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
@@ -225,18 +229,18 @@ export default function AuthPage({ mode = "login" }) {
         <section className="ifund-auth-card mt-7 rounded-3xl p-7 sm:p-10">
           <h1 className="text-3xl font-semibold">{heading}</h1>
           <p className="mt-3 text-sm text-slate-300">
-            {isRegister ? "Step 2 of 2 · Start without identity verification, or add email for a recoverable account." : "Sign in securely to Interplanetary Fund."}
+            {isRegister ? "Step 2 of 2 · Email signup is required to create content. Two-factor authentication comes at your first withdrawal." : "Sign in securely to Interplanetary Fund."}
           </p>
           {isRegister && !confirmationPending && (
             <button type="button" onClick={() => { setLegalReviewed(false); setLegalAgreed(false); }} className="mt-3 text-sm text-cyan-200 underline">Review the policies again</button>
           )}
           {isRegister && !confirmationPending && <section className="mt-6 rounded-2xl border border-cyan-400/40 bg-cyan-500/10 p-4">
-            <h2 className="text-lg font-semibold">Start using iFund now</h2>
-            <p className="mt-2 text-sm text-slate-300">No email, password, or identity documents required to explore and draft. If anonymous account access is unavailable, drafts remain on this browser only until you link a recoverable account. Withdrawals always require verification.</p>
-            <button type="button" onClick={continueAsGuest} disabled={guestBusy || busy} className="mt-4 min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">{guestBusy ? "Opening iFund…" : "Continue without verification"}</button>
+            <h2 className="text-lg font-semibold">Browse iFund as a guest</h2>
+            <p className="mt-2 text-sm text-slate-300">No email is required to browse campaigns. To write, save, or publish content, create an email account below. A second authentication factor is only requested at your first withdrawal.</p>
+            <button type="button" onClick={continueAsGuest} disabled={guestBusy || busy} className="mt-4 min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">{guestBusy ? "Opening iFund…" : "Browse without an account"}</button>
             {guestError && <p role="alert" className="mt-3 text-sm text-red-200">{guestError}</p>}
           </section>}
-          {isRegister && !confirmationPending && <p className="mt-6 text-sm font-semibold text-slate-200">Or create a recoverable email account</p>}
+          {isRegister && !confirmationPending && <p className="mt-6 text-sm font-semibold text-slate-200">Create your email account to post or fundraise</p>}
           <form onSubmit={submit} className="mt-4 space-y-4">
             <label className="block text-sm font-medium">
               Email address
@@ -359,7 +363,7 @@ export default function AuthPage({ mode = "login" }) {
                     : "Sign in"}
             </button>
           </form>
-          {isRegister && confirmationPending && <Link to={afterLogin.startsWith("/create") ? afterLogin : "/dashboard"} className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Continue using iFund without waiting for email verification</Link>}
+          {isRegister && confirmationPending && <Link to="/discover" className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Browse campaigns while your email is being confirmed</Link>}
           {!isReset && (
             <button
               disabled={busy || !email.trim()}
