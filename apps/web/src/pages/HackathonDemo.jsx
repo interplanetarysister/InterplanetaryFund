@@ -208,7 +208,7 @@ export default function HackathonDemo() {
         search={financeSearch} allowExport csvName="ifund-fictional-example-finance.csv" />
       <p className="text-xs text-slate-400">Developer API testing: a Postman collection is included in the public GitHub repository. Postman readiness checks do not create orders or verify captures.</p>
       <a className="inline-flex min-h-11 items-center text-sm font-semibold text-cyan-300 underline"
-        href="https://github.com/interplanetarysister/InterplanetaryFund/blob/main/apps/web/docs/hackathon/postman/ifund-paypal-sandbox-readonly.postman_collection.json"
+        href="/docs/postman/ifund-paypal-sandbox-readonly.postman_collection.json"
         target="_blank" rel="noopener noreferrer">View Postman PayPal sandbox test collection</a>
     </section>
     <p className="text-xs text-muted-foreground">Demo receipts require successful server-side verification and database persistence. Sandbox transactions never count toward public campaign totals. The live PayPal platform-support button is a separate integration.</p>
