@@ -26,7 +26,7 @@ function loadCharts() {
 function usd(dollars) {
   return new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(dollars);
 }
-function DonutChart({ data, title, valueText }) {
+export function DonutChart({ data, title, valueText }) {
   const host = useRef(null);
   const [unavailable, setUnavailable] = useState(false);
   const rows = useMemo(() => (data || []).filter(x => Number.isFinite(x.value) && x.value > 0), [data]);
