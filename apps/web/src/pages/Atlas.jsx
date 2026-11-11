@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Compass, Globe2, MapPin, Search, ShieldCheck } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
 import CampaignGlobe from "@/components/atlas/CampaignGlobe";
+import { DonutChart } from "@/components/analytics/CampaignMetrics";
+import FinanceDataGrid from "@/components/finance/FinanceDataGrid";
 import "./Atlas.css";
 
 export default function Atlas() {
@@ -40,6 +42,50 @@ export default function Atlas() {
     !query || [c.title,c.category,c.location].join(" ").toLowerCase().includes(query.trim().toLowerCase())
   ), [mapped,query]);
 
+  const analytics = useMemo(() => {
+    const byCause = new Map();
+    let verifiedRaised = 0;
+    let verifiedDonors = 0;
+    for (const campaign of campaigns) {
+      const cause = String(campaign.category || "other").replace(/_/g, " ");
+      byCause.set(cause, (byCause.get(cause) || 0) + 1);
+      const raised = Number(campaign.raised_amount);
+      const donors = Number(campaign.donor_count);
+      if (Number.isFinite(raised) && raised >= 0) verifiedRaised += raised;
+      if (Number.isSafeInteger(donors) && donors >= 0) verifiedDonors += donors;
+    }
+    const causeRows = [...byCause].map(([name, value]) => ({ name, value, label: value + " active campaigns" }))
+      .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
+    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+    return {
+      causeRows,
+      verifiedRaised,
+      verifiedDonors,
+      money,
+      rows: campaigns.map(c => ({
+        id: c.id,
+        title: c.title,
+        category: String(c.category || "other").replace(/_/g, " "),
+        location: c.map_opt_in ? c.location : "Location not shared",
+        raised: Number(c.raised_amount),
+        goal: Number(c.goal_amount),
+        donorCount: Number(c.donor_count),
+      })),
+    };
+  }, [campaigns]);
+
+  const atlasColumns = useMemo(() => [
+    { field: "title", headerName: "Live campaign", minWidth: 235 },
+    { field: "category", headerName: "Cause", minWidth: 150 },
+    { field: "location", headerName: "Organizer-approved location", minWidth: 185 },
+    { field: "raised", headerName: "Verified raised", minWidth: 150,
+      valueFormatter: ({value}) => Number.isFinite(value) && value >= 0 ? analytics.money.format(value) : "Not verified" },
+    { field: "goal", headerName: "Published goal", minWidth: 155,
+      valueFormatter: ({value}) => Number.isFinite(value) && value >= 0 ? analytics.money.format(value) : "Not reported" },
+    { field: "donorCount", headerName: "Verified supporters", minWidth: 160,
+      valueFormatter: ({value}) => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : "Not verified" },
+  ], [analytics.money]);
+
   return (
     <main className="ifund-atlas-shell mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
       <header className="space-y-3">
@@ -72,6 +118,41 @@ export default function Atlas() {
           </label>
         </div>
         <CampaignGlobe campaigns={matches} />
+        <section className="grid gap-5 lg:grid-cols-2" aria-label="Live Atlas campaign analytics">
+          <div className="ifund-chart-card">
+            <p className="ifund-chart-eyebrow">AG Charts Community · Live published campaigns</p>
+            <h2>Campaigns by cause</h2>
+            <DonutChart
+              data={analytics.causeRows}
+              title="Live active campaign categories, not personal demographics"
+              valueText={campaigns.length + " active campaigns by cause"}
+            />
+            <p className="mt-3 text-sm text-muted-foreground">These are actual campaign categories in the live IFund database. They are not estimates of supporters' ages, identities, or locations.</p>
+          </div>
+          <div className="ifund-chart-card">
+            <p className="ifund-chart-eyebrow">Live verified activity · No sandbox figures</p>
+            <h2>Atlas funding and location coverage</h2>
+            <DonutChart
+              data={[
+                { name:"Approved public map markers", value:mapped.length, label:mapped.length + " opted-in campaigns" },
+                { name:"Locations not shared", value:campaigns.length - mapped.length, label:(campaigns.length - mapped.length) + " private/unmapped campaigns" },
+              ]}
+              title="Organizer-approved public location coverage"
+              valueText={mapped.length + " mapped of " + campaigns.length + " published campaigns"}
+            />
+            <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
+              <div><span className="block text-muted-foreground">Verified campaign funds</span><strong className="tabular-nums">{analytics.money.format(analytics.verifiedRaised)}</strong></div>
+              <div><span className="block text-muted-foreground">Confirmed donor counts</span><strong className="tabular-nums">{analytics.verifiedDonors.toLocaleString()}</strong></div>
+            </div>
+            <p className="mt-3 text-xs text-muted-foreground">Verified public funding totals only. Donor counts are summed per campaign (not a deduplicated count of people). No sandbox payments or implied personal demographics.</p>
+          </div>
+        </section>
+        <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Live campaign data explorer">
+          <h2 className="text-xl font-semibold">AG Grid · Explore live campaigns</h2>
+          <p className="text-sm text-muted-foreground">Sort, filter and page through the same verified live campaign records that feed the Atlas. Missing public locations remain private.</p>
+          <FinanceDataGrid rows={analytics.rows} columns={atlasColumns} label="AG Grid live campaign Atlas explorer" search={query} />
+        </section>
+
         {!mapped.length && <div className="rounded-xl border border-cyan-500/30 p-5">
           <h2 className="font-semibold">Atlas is ready for organizer-approved locations</h2>
           <p className="mt-2 text-sm text-muted-foreground">Existing campaigns predate the public map field, so none were geolocated without their owners' permission. To appear, an organizer can edit their campaign and opt in to a broad city/region location.</p>
