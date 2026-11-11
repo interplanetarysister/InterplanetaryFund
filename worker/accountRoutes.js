@@ -19,7 +19,7 @@ export async function routeAccountRequest(request, env, fetcher = fetch) {
     }
     return response(404, { error: 'Not found.' });
   }
-  if (!migrationReady(env)) {
+  if (!migrationReady(env) && !(path === "/api/account/connections" && env.OAUTH_API_ENABLED === "true")) {
     return response(503, { error: 'Independent migration API not enabled.' });
   }
 

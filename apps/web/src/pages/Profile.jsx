@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserRound } from "lucide-react";
+import DriveImageButton from "@/components/DriveImageButton";
 import { authClient } from "@/api/auth";
 import { avatarUrl, loadMyProfile, profilePhotoRequest, saveMyProfile } from "@/lib/memberProfile";
 
@@ -124,6 +125,7 @@ export default function Profile() {
             }} />
           <span className="text-xs text-muted-foreground">JPEG, PNG, or WebP. Up to 2 MB.</span>
         </label>
+        <DriveImageButton onFile={updatePhoto} disabled={Boolean(busy)} maxBytes={2 * 1024 * 1024} className={action} />
         {photoKey && <button type="button" className={action} disabled={Boolean(busy)} onClick={() => updatePhoto(null)}>Remove photo</button>}
       </div>
       {photoError && <p role="alert" className="text-sm">{photoError}</p>}

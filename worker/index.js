@@ -2,6 +2,7 @@ import { routeReadRequest, response } from './reads.js';
 import { routeCampaignWrite } from './campaignWrites.js';
 import { routeCommunityWrite } from './communityWrites.js';
 import { routeAccountRequest } from './accountRoutes.js';
+import { oauthCorsOrigin, routeOAuthRequest } from './oauth.js';
 import { serviceGateway } from './services/gateway.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest } from './studioRoutes.js';
 
@@ -9,6 +10,20 @@ import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, 
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname.startsWith('/api/oauth/')) {
+      const origin = oauthCorsOrigin(request, env);
+      if (request.method === 'OPTIONS' && !origin) return response(403, { error: 'Origin not allowed.' });
+      const result = request.method === 'OPTIONS'
+        ? new Response(null, { status: 204 })
+        : await routeOAuthRequest(request, env);
+      if (!origin) return result;
+      const headers = new Headers(result.headers);
+      headers.set('Access-Control-Allow-Origin', origin);
+      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+      headers.append('Vary', 'Origin');
+      return new Response(result.body, { status: result.status, headers });
+    }
     if (pathname === '/api/services' || pathname.startsWith('/api/services/')) return serviceGateway(request, env);
     if (pathname === '/api/studio/pages' || /^\/api\/studio\/pages\/[0-9a-f-]+$/i.test(pathname)) return routeStudioRequest(request, env);
     if (pathname === '/api/studio/generate') return routeStudioGenerateRequest(request, env);

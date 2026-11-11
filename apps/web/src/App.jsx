@@ -40,6 +40,7 @@ const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
 const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
+const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
@@ -91,6 +92,7 @@ function AppRoutes() {
     <Route path="/register" element={<AuthPage key="register" mode="register" />} />
     <Route path="/forgot-password" element={<AuthPage key="forgot-password" mode="forgot-password" />} />
     <Route path="/reset-password" element={<ResetPassword />} />
+    <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />

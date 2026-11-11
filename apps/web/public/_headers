@@ -25,3 +25,7 @@
 # The shell must be revalidated so a new deploy is picked up immediately.
 /index.html
   Cache-Control: public, max-age=0, must-revalidate
+
+/oauth/callback/*
+  Referrer-Policy: no-referrer
+  Cache-Control: no-store
