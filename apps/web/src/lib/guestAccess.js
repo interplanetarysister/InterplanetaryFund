@@ -24,7 +24,10 @@ export function hasGuestNotice(storage, version) {
 // editor only; no cloud save, public publishing, or financial access.
 export async function enterGuestMode({ auth, client, store, version, record }) {
   const current = await auth.getUser();
-  if (current.error) throw current.error;
+  // Supabase returns AuthSessionMissingError for a first-time visitor.
+  // That is an expected guest state, not a backend failure.
+  if (current.error && current.error.name !== "AuthSessionMissingError" &&
+      !/auth session missing/i.test(current.error.message || "")) throw current.error;
   if (current.data?.user?.id) {
     if (guestIdentity(current.data.user) || payoutIdentity(current.data.user)) {
       await record(client, current.data.user);
