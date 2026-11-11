@@ -62,7 +62,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
     campaign,
     point: project(campaign.latitude, campaign.longitude, rotation),
   })).filter((marker) => marker.point.front), [campaigns, rotation]);
-  const rotate = (delta: number) => {
+  const rotate = (delta) => {
     setRotation((previous) => ((previous + delta + 540) % 360) - 180);
   };
   function down(e) {
