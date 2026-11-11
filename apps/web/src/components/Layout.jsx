@@ -11,6 +11,7 @@ import PlatformSupportHostedButton from "@/components/payments/PlatformSupportHo
 import ErrorBoundary from "@/components/ErrorBoundary";
 import BackToTop from "@/components/BackToTop";
 import QuickActions from "@/components/QuickActions";
+import ScrollableNav from "@/components/ScrollableNav";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
@@ -24,9 +25,9 @@ const PAGE_TITLES = {
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/subscriptions": "Plans", "/withdrawals": "Withdrawals",
-  "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "Profile", "/notifications": "Notifications",
+  "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
-  "/social": "Social", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
+  "/social": "Social", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
@@ -69,6 +70,7 @@ const navSections = [
       { to: "/social", label: "IFund Social", icon: Radio },
       { to: "/community", label: "Community", icon: Users },
       { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
+      { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
       { to: "/institutions", label: "Institutions", icon: Building2 },
       { to: "/communications", label: "Messages", icon: MessageSquare },
@@ -86,7 +88,7 @@ const navSections = [
   {
     label: "Account & Help",
     items: [
-      { to: "/profile", label: "Profile", icon: User },
+      { to: "/profile", label: "My Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
       { to: "/subscriptions", label: "Plans", icon: CreditCard },
       { to: "/help", label: "Help Center", icon: CircleHelp },
@@ -118,6 +120,7 @@ const publicNavItems = [
   { to: "/social", label: "IFund Social", icon: Radio },
   { to: "/globe", label: "Global Globe", icon: Globe2 },
   { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
+  { to: "/news", label: "IFund Newscaster", icon: Radio },
   { to: "/help", label: "Help Center", icon: CircleHelp },
 ];
 
@@ -193,7 +196,7 @@ export default function Layout() {
   }, [open]);
 
   const nav = (
-    <nav aria-label="Main navigation" className="ifund-sidebar-nav flex min-h-0 flex-1 flex-col gap-3 px-2 overflow-y-auto overscroll-contain scrollbar-hide pb-[calc(7rem+env(safe-area-inset-bottom))]">
+    <ScrollableNav>
       {!user ? (
         <div>
           <p className="ifund-nav-section-title px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400/90">Explore</p>
@@ -232,7 +235,7 @@ export default function Layout() {
           </div>
         </div>
       ))}
-    </nav>
+    </ScrollableNav>
   );
 
   return (

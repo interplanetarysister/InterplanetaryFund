@@ -37,7 +37,7 @@ export default function BlogArticle(){
   <Link to="/blogs" className="text-sm text-blue-700 underline">All stories</Link>
   <div className="mt-4 bg-white border border-stone-200 rounded-2xl p-5 sm:p-8">
    <p className="text-xs font-bold uppercase tracking-wide text-cyan-800">
-    {entry.type==="newsletter"?"IFund Reporter · Featured newsletter":"Community blog"}
+    {blog?.type==="official"?(entry.type==="newsletter"?"IFund Reporter · Newsletter":"IFund Reporter · Article"):"Community blog"}
    </p>
    <h1 className="text-3xl font-display text-slate-950 font-semibold mt-3">{entry.title}</h1>
    <p className="text-sm text-slate-600 mt-3">{blog?.title||"IFund"}

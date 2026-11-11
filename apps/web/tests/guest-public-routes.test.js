@@ -7,8 +7,8 @@ const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
 test("guest users can browse public campaigns, social posts, blogs, publications and help articles", () => {
   for (const [route, component] of [
     ["/", "Home"], ["/discover", "Discover"], ["/campaign/:id", "CampaignDetail"],
-    ["/social", "SocialFeedPage"], ["/community", "SocialFeedPage"],
-    ["/blogs", "Blogs"], ["/blogs/:id", "BlogArticle"],
+    ["/social", "SocialRoute"], ["/community", "SocialFeedPage"],
+    ["/blogs", "Blogs"], ["/news", "Blogs"], ["/u/:id", "PublicMemberProfile"], ["/blogs/:id", "BlogArticle"],
     ["/publications/:id", "PublicationArticle"],
     ["/help", "Help"], ["/help/:slug", "HelpArticle"],
     ["/about", "About"], ["/terms", "Terms"], ["/privacy", "Privacy"],

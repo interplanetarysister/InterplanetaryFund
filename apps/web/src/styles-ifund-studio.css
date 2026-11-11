@@ -406,3 +406,12 @@ body {
 .dark .ifund-drawer {
   background: rgb(16 27 52 / .88);
 }
+
+@media (pointer: fine) {
+  .ifund-sidebar-nav { cursor: grab; }
+  .ifund-sidebar-nav[data-dragging],
+  .ifund-sidebar-nav[data-dragging] * { cursor: grabbing; user-select: none; }
+}
+.ifund-drawer .ifund-sidebar-nav {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}

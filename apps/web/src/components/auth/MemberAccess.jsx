@@ -161,9 +161,10 @@ export default function MemberAccess({ children }) {
       <main className="mx-auto max-w-2xl space-y-4 p-8">
         <h1 className="text-2xl font-semibold">Register an email account to create content</h1>
         <p>Anonymous visitors can browse freely. Creating campaigns, posting, or saving private account content requires confirmed email signup. Two-factor authentication is not required here; it is requested before the first withdrawal.</p>
-        <Link to={loginTarget} className="underline">
-          Create an email account
-        </Link>
+        <div className="flex flex-wrap gap-4">
+          <Link to={loginTarget} className="underline">Create an email account</Link>
+          <Link to={"/login?returnTo=" + encodeURIComponent(safeReturnTo(requested))} className="underline">Sign in</Link>
+        </div>
       </main>
     );
   if (state.phase === "error")

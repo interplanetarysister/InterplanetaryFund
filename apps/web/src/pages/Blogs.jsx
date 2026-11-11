@@ -1,62 +1,79 @@
-import React,{useCallback,useEffect,useState} from "react";
-import {Link,useSearchParams} from "react-router-dom";
-import {Newspaper,BookOpen,Loader2} from "lucide-react";
-import {listPublishedStories} from "@/lib/editorial";
-import {Image} from "@/components/ui/image";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { BookOpen, Newspaper, Radio } from "lucide-react";
+import { listFinalPublications, listPublishedStories } from "@/lib/editorial";
+import { Image } from "@/components/ui/image";
 
-// Independent editorial page preserving the established layout and copy.
-export default function Blogs(){
- const [params]=useSearchParams(),author=params.get("author")||"";
- const [items,setItems]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
- const load=useCallback(async()=>{
-  setLoading(true);setError("");
-  try{setItems(await listPublishedStories({author,limit:100}));}
-  catch{setError("Unable to load stories.");}
-  finally{setLoading(false);}
- },[author]);
- useEffect(()=>{let live=true;setLoading(true);setError("");
-  listPublishedStories({author,limit:100})
-   .then(data=>{if(live)setItems(data);})
-   .catch(()=>{if(live)setError("Unable to load stories.");})
-   .finally(()=>{if(live)setLoading(false);});
-  return()=>{live=false;};
- },[author]);
- const featured=items.filter(e=>e.type==="newsletter");
- const members=items.filter(e=>e.type!=="newsletter");
- return <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-  <header className="flex flex-wrap items-start justify-between gap-3">
-   <div><h1 className="text-3xl font-display font-semibold text-slate-950">IFund Stories & Blogs</h1>
-    <p className="mt-2 text-slate-600">Our insider reporter’s diary, community stories, ideas and member journalism.</p></div>
-   <div className="flex flex-wrap items-center gap-3">
-    <Link to="/social?tab=publications" className="text-blue-800 underline font-medium text-sm">All IFund publications</Link>
-    <span className="rounded-xl border border-slate-300 px-4 py-2 text-sm text-slate-600" aria-disabled="true" title="Blog writing will be enabled after the creator write service and subscription entitlement are verified">Blog writing is not yet available</span>
-   </div>
-  </header>
-  {loading&&<p role="status" className="flex items-center gap-2"><Loader2 className="animate-spin w-4 h-4"/>Loading stories…</p>}
-  {error&&<p role="alert" className="text-red-700">{error} <button type="button" onClick={load} className="underline">Retry</button></p>}
-  {author&&<Link to="/blogs" className="text-blue-700 underline text-sm">See all stories</Link>}
-  {!loading&&!error&&<>
-   <section><h2 className="text-xl font-semibold text-slate-950 flex items-center gap-2"><Newspaper/>Interplanetary Fund Reporter</h2>
-    <p className="text-sm text-slate-600 mb-3">The official diary, featured newsletters, and what the IFund team is building.</p>
-    <div className="grid sm:grid-cols-2 gap-4">{featured.length?featured.map(e=><ArticleTeaser key={e.id} entry={e}/>):
-     <p className="text-slate-600 bg-white border rounded-xl p-5">The reporter’s first featured issue has not been published yet.</p>}</div>
-   </section>
-   <section><h2 className="text-xl font-semibold text-slate-950 flex items-center gap-2"><BookOpen/>Community Blogs</h2>
-    <p className="text-sm text-slate-600 mb-3">Fundraising, local events, passions, and community perspectives.</p>
-    <div className="grid sm:grid-cols-2 gap-4">{members.length?members.map(e=><ArticleTeaser key={e.id} entry={e}/>):
-      <p className="text-slate-600 bg-white border rounded-xl p-5">No published member stories yet. Anyone can read; subscribed creators can write.</p>}</div>
-   </section>
-  </>}
- </div>;
+export default function Blogs({ news = false }) {
+  const [params] = useSearchParams();
+  const author = news ? "" : params.get("author") || "";
+  const [result, setResult] = useState({ loading: true });
+  const [revision, retry] = useState(0);
+
+  const load = useCallback(async () => {
+    const [stories, publications] = await Promise.allSettled([
+      listPublishedStories({ author }),
+      news ? listFinalPublications() : Promise.resolve([]),
+    ]);
+    return { stories, publications, loading: false };
+  }, [author, news]);
+
+  useEffect(() => {
+    let active = true;
+    setResult({ loading: true });
+    load().then(data => { if (active) setResult(data); });
+    return () => { active = false; };
+  }, [load, revision]);
+
+  const stories = result.stories?.value || [];
+  const reporter = stories.filter(entry => entry.blog.type === "official");
+  const community = stories.filter(entry => entry.blog.type !== "official");
+  const publications = result.publications?.value || [];
+  const hasError = result.stories?.status === "rejected" || result.publications?.status === "rejected";
+
+  return <div className="mx-auto max-w-5xl space-y-8 px-4 py-8 sm:px-6">
+    <header>
+      <h1 className="font-display text-3xl font-bold">{news ? "IFund Newscaster" : "IFund Stories & Blogs"}</h1>
+      <p className="mt-2 text-muted-foreground">{news ? "Official updates, newsletters, and announcements from Interplanetary Fund." : "Member stories, fundraising ideas, and the Interplanetary Fund Reporter."}</p>
+    </header>
+    <nav aria-label="Editorial pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
+      <Link to="/blogs" aria-current={news ? undefined : "page"}>Stories &amp; Blogs</Link>
+      <Link to="/news" aria-current={news ? "page" : undefined}>Newscaster</Link>
+      <Link to="/my-blog">My Blog</Link>
+      <Link to="/social">IFund Social</Link>
+    </nav>
+    {author && <Link to="/blogs" className="text-primary underline">See all stories</Link>}
+    {result.loading && <p role="status">Loading stories…</p>}
+    {hasError && <p role="alert">Some content could not be loaded. <button type="button" className="min-h-11 text-primary underline" onClick={() => retry(n => n + 1)}>Retry</button></p>}
+    {result.stories?.status === "fulfilled" && <>
+      {(!author || reporter.length > 0) && <StorySection title="Interplanetary Fund Reporter" icon={Newspaper}
+        entries={reporter} empty="No published reporter stories yet." />}
+      {!news && <StorySection title="Community Blogs" icon={BookOpen}
+        entries={community} empty="No published member stories yet." />}
+    </>}
+    {news && result.publications?.status === "fulfilled" && <section aria-labelledby="publications-heading" className="space-y-3">
+      <h2 id="publications-heading" className="flex items-center gap-2 text-xl font-semibold"><Radio aria-hidden="true" /> Official publications</h2>
+      {publications.length ? <div className="grid gap-4 sm:grid-cols-2">{publications.map(item =>
+        <Link className="block rounded-2xl border border-border bg-card p-5 hover:border-primary" key={item.id} to={`/publications/${encodeURIComponent(item.id)}`}>
+          <h3 className="break-words text-lg font-semibold">{item.title}</h3>
+          {item.summary && <p className="mt-2 line-clamp-3 text-muted-foreground">{item.summary}</p>}
+        </Link>
+      )}</div> : <p className="text-muted-foreground">No approved announcements or reports are available yet.</p>}
+    </section>}
+  </div>;
 }
 
-function ArticleTeaser({entry:e}){
- return <Link to={"/blogs/"+encodeURIComponent(e.id)} className="block rounded-2xl border border-stone-200 bg-white p-5 hover:border-cyan-400 transition-colors">
-  {e.blog?.cover_image_url&&<Image src={e.blog.cover_image_url} alt="" className="mb-3 h-36 w-full rounded-xl object-cover"/>}
-  <p className="text-xs uppercase font-semibold text-cyan-800">{e.type==="newsletter"?"Featured newsletter":"Member blog"}</p>
-  <h3 className="mt-2 text-lg font-semibold text-slate-950">{e.title}</h3>
-  <p className="text-sm text-slate-600 mt-2 line-clamp-3">{e.summary||"Read the story"}</p>
-  <p className="text-xs text-slate-500 mt-4">{e.blog?.author_display_name||"IFund"}
-   {e.published_at&&" · "+new Date(e.published_at).toLocaleDateString()}</p>
- </Link>;
+function StorySection({ title, icon: Icon, entries, empty }) {
+  return <section className="space-y-3">
+    <h2 className="flex items-center gap-2 text-xl font-semibold"><Icon aria-hidden="true" /> {title}</h2>
+    {entries.length ? <div className="grid gap-4 sm:grid-cols-2">{entries.map(entry =>
+      <Link key={entry.id} to={`/blogs/${encodeURIComponent(entry.id)}`} className="block rounded-2xl border border-border bg-card p-5 hover:border-primary">
+        {entry.blog.cover_image_url && <Image src={entry.blog.cover_image_url} alt="" loading="lazy" className="mb-3 h-36 w-full rounded-xl object-cover" />}
+        <p className="text-xs font-semibold uppercase text-primary">{entry.type === "newsletter" ? "Newsletter" : entry.blog.title}</p>
+        <h3 className="mt-2 break-words text-lg font-semibold">{entry.title}</h3>
+        {entry.summary && <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{entry.summary}</p>}
+        {entry.published_at && <time className="mt-3 block text-xs text-muted-foreground" dateTime={entry.published_at}>{new Date(entry.published_at).toLocaleDateString()}</time>}
+      </Link>
+    )}</div> : <p className="text-muted-foreground">{empty}</p>}
+  </section>;
 }
