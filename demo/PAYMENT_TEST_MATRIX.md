@@ -21,3 +21,15 @@ Last evidence check: 2026-11-11 20:55 UTC. **Never use live PayPal credentials, 
 | Browser/mobile visual | N/A | /discover at 390×844: 85/85 image elements loaded; /hackathon rendered | Pass for media rendering only | Checkout and finance browser journey after Cloudflare browser quota reset |
 
 **Current release reported by deployed /api/status:** `ce7fd0a49ae17f6a95d69b60a65c1400bdf2503e`. No new Worker deployment or new capture in this audit. Test amounts above are coverage targets, not payments made. R2 image provenance remains separately documented in [MEDIA_SOURCE_MANIFEST.md](MEDIA_SOURCE_MANIFEST.md). No 7% withdrawal fee is applied to fictional demo transactions.
+
+
+## Independent database-only regression audit — 2026-11-11 22:03 UTC (automation)
+
+Read-only queries against canonical Supabase project's **isolated** `public.ifund_demo_*` tables; no new PayPal Orders v2 provider request, buyer approval, webhook delivery or financial write was performed. This is **stored-data consistency**, not fresh provider verification.
+
+- 83 demo campaigns; **0 non-fictional**, **0 blank image paths**, 81 Wikimedia references, 2 existing `/api/media/` paths and 20 distinct image references. Remote image availability and license for every campaign were **not** rechecked during this pass; retain the previous 85/85 browser rendering evidence with its original timestamp, not as a new check.
+- 6 orders: 3 marked captured totaling **2,700 USD cents** and 3 created totaling **300 cents**. Captured orders join to exactly 3 capture records and 3 receipts; uncaptured orders join to **0** captures and receipts.
+- **0 captured-row anomalies** across the following invariants: matching order/capture amount and currency, provider-status field `COMPLETED`, joined receipt, exactly two ledger entries per capture, net ledger amount zero, credit amount equal captured amount and debit magnitude equal captured amount. This check confirms stored values, not their independent authenticity.
+- 3 stored webhook event IDs, 3 distinct IDs, 0 missing/short payload hashes and 1 event with `delivery_count > 1`. This does not establish a fresh signed webhook replay or prove a provider signature without the original PayPal verification response.
+- Requested **$2.50, $3.33, $5.00, $10.00 and $25.00** fresh buyer-approved sandbox cases remain **unverified**. Do not write synthetic completed orders or ledger entries. No payout/withdrawal actions.
+- No image replacements, database mutations, Worker deployment or paid provider calls were made in this run. Existing release SHA remains the **last documented** `ce7fd0a49ae17f6a95d69b60a65c1400bdf2503e`, not a newly observed deployment hash. Next: obtain fresh authorized sandbox buyer approval and independent provider-side capture lookup; test role-scoped finance pages and cancellations/refunds, then rerun production isolation cross-check.
