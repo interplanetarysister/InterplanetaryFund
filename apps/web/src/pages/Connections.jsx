@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 
@@ -40,10 +40,15 @@ export default function Connections() {
   const [recordStatus, setRecordStatus] = useState("loading");
   const [providerReady, setProviderReady] = useState({});
   const [apiStatus, setApiStatus] = useState("loading");
-  const [connecting, setConnecting] = useState("");
+  const [action, setAction] = useState(null);
+  const [confirm, setConfirm] = useState("");
+  const [notice, setNotice] = useState("");
+  const [reload, setReload] = useState(0);
+  const busy = useRef(false);
   const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
+    setRecordStatus("loading");
     (async () => {
       try {
         const client = authClient();
@@ -68,10 +73,12 @@ export default function Connections() {
       }
     })();
     return () => { live = false; };
-  }, []);
+  }, [reload]);
 
   useEffect(() => {
     let live = true;
+    setApiStatus("loading");
+    setProviderReady({});
     (async () => {
       try {
         const client = authClient();
@@ -97,7 +104,7 @@ export default function Connections() {
       }
     })();
     return () => { live = false; };
-  }, []);
+  }, [reload]);
 
   const rowsByProvider = useMemo(() => new Map(
     PROVIDERS.map((provider) => {
@@ -106,32 +113,49 @@ export default function Connections() {
     })
   ), [rows]);
 
-  const connect = useCallback(async (providerId) => {
-    if (connecting) return;
-    if (apiStatus !== "ready" || providerReady[providerId] !== true) {
-      setError("This provider is not configured for user connections in this environment yet.");
-      return;
-    }
-    setConnecting(providerId);
+  async function manage(provider, operation) {
+    if (busy.current || (operation !== "disconnect" && providerReady[provider.id] !== true)) return;
+    busy.current = true;
+    setAction({ id: provider.id, operation });
     setError("");
+    setNotice("");
+    let leaving = false;
     try {
-      const client = authClient();
-      const { data: { session }, error: sessionError } = await client.auth.getSession();
-      if (sessionError || !session?.access_token) throw new Error("Sign in again before connecting a provider.");
-      const response = await fetch("/api/oauth/" + providerId + "/start", {
+      const { data: { session }, error: sessionError } = await authClient().auth.getSession();
+      if (sessionError || !session?.access_token) throw new Error("Sign in again to manage connections.");
+      const response = await fetch("/api/oauth/" + provider.id + "/" + operation, {
         method: "POST",
         headers: { Authorization: "Bearer " + session.access_token },
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok || typeof payload.authorization_url !== "string") {
-        throw new Error(payload.error || "Could not start provider authorization.");
+      if (!response.ok) throw new Error(payload.error || "The connection action could not be completed.");
+      if (operation === "start") {
+        const destination = new URL(payload.authorization_url);
+        if (destination.protocol !== "https:" || destination.username || destination.password) {
+          throw new Error("Provider authorization could not be opened.");
+        }
+        window.location.assign(destination.href);
+        leaving = true;
+      } else {
+        const expected = operation === "disconnect" ? "disconnected" : "connected";
+        if (payload.provider !== provider.id || payload.status !== expected) {
+          throw new Error("The updated connection could not be verified.");
+        }
+        setConfirm("");
+        setNotice(operation === "disconnect"
+          ? provider.name + " was disconnected from iFund. You can remove iFund’s permission in your provider account settings."
+          : provider.name + " connection refreshed.");
+        setReload(value => value + 1);
       }
-      window.location.assign(payload.authorization_url);
-    } catch (connectError) {
-      setError(connectError?.message || "Could not start provider authorization.");
-      setConnecting("");
+    } catch (cause) {
+      setError(cause.message || "The connection action could not be completed.");
+    } finally {
+      if (!leaving) {
+        busy.current = false;
+        setAction(null);
+      }
     }
-  }, [apiStatus, connecting, providerReady]);
+  }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -145,24 +169,26 @@ export default function Connections() {
         </div>
         <Link to="/profile" className="text-sm font-medium text-primary hover:underline">Back to profile</Link>
       </div>
+      {notice && <p role="status" className="mt-5 rounded-xl border border-border bg-card p-3 text-sm">{notice}</p>}
       {error && (
         <div role="alert" className="mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
       )}
       {apiStatus === "unavailable" && (
         <div role="status" className="mt-5 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-          Secure provider authorization is not enabled in this environment yet. Connect buttons stay disabled until server-side credentials and approvals are verified.
+          New authorizations are unavailable. You can still view and disconnect saved iFund connections.
         </div>
       )}
       {recordStatus === "loading" && <p className="mt-6 text-sm text-muted-foreground">Loading your connection records…</p>}
       {recordStatus === "sign-in" && <p className="mt-6 text-sm text-muted-foreground"><Link to="/login" className="text-primary hover:underline">Sign in</Link> to view your connections.</p>}
-      {recordStatus === "error" && <p role="alert" className="mt-6 text-sm text-destructive">Connection records are unavailable.</p>}
+      {recordStatus === "error" && <div className="mt-6 space-y-2"><p role="alert" className="text-sm text-destructive">Connection records are unavailable.</p><button type="button" className="min-h-11 underline" onClick={() => setReload(value => value + 1)}>Retry loading connections</button></div>}
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
         {PROVIDERS.map((provider) => {
           const row = rowsByProvider.get(provider.id);
           const label = provider.adminOnly ? "Admin setup" : provider.linkOnly ? "Campaign URL" : provider.unavailable ? "Not enabled" : getConnectionLabel(row);
           const ready = providerReady[provider.id] === true;
           const canConnect = !provider.adminOnly && !provider.linkOnly && !provider.unavailable &&
-            ready && apiStatus === "ready" && recordStatus === "ready" && !connecting;
+            ready && apiStatus === "ready" && recordStatus === "ready" && !action;
+          const manageable = row?.provider === provider.id && row.status !== "disconnected";
           return (
             <section key={provider.id} className="flex min-h-48 flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div>
@@ -172,19 +198,36 @@ export default function Connections() {
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">{provider.description}</p>
               </div>
-              <div className="mt-5 flex items-center justify-between gap-3">
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
                 {provider.adminOnly ? <span className="text-xs text-muted-foreground">Admin-managed integration</span>
                   : provider.linkOnly ? <span className="text-xs text-muted-foreground">Add a campaign link when creating a campaign</span>
                   : provider.unavailable ? <span className="text-xs text-muted-foreground">User authorization is disabled</span>
                   : ready ? <span className="text-xs text-muted-foreground">Secure authorization available</span>
                   : <span className="text-xs text-muted-foreground">Provider setup pending</span>}
                 {!provider.adminOnly && !provider.linkOnly && !provider.unavailable && (
-                  <button type="button" onClick={() => connect(provider.id)} disabled={!canConnect}
+                  <button type="button" onClick={() => manage(provider, "start")} disabled={!canConnect}
                     className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40">
-                    {connecting === provider.id ? "Opening…" : row ? "Reconnect" : "Connect"}
+                    {action?.id === provider.id && action.operation === "start" ? "Opening…" : manageable ? "Reconnect" : "Connect"}
                   </button>
                 )}
               </div>
+              {manageable && (
+                <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-border pt-3">
+                  {ready && row.status === "connected" && <button type="button" className="min-h-11 px-2 text-sm underline"
+                    disabled={!!action || recordStatus !== "ready"} onClick={() => manage(provider, "refresh")}>
+                    {action?.id === provider.id && action.operation === "refresh" ? "Refreshing…" : "Refresh connection"}
+                  </button>}
+                  {confirm === provider.id ? <>
+                    <p className="w-full text-sm">Remove iFund’s saved access to this account?</p>
+                    <button type="button" className="min-h-11 px-2 text-sm font-semibold text-destructive"
+                      disabled={!!action} onClick={() => manage(provider, "disconnect")}>
+                      {action?.id === provider.id && action.operation === "disconnect" ? "Disconnecting…" : "Confirm disconnect"}
+                    </button>
+                    <button type="button" className="min-h-11 px-2 text-sm" disabled={!!action} onClick={() => setConfirm("")}>Cancel</button>
+                  </> : <button type="button" className="min-h-11 px-2 text-sm underline"
+                    disabled={!!action || recordStatus !== "ready"} onClick={() => setConfirm(provider.id)}>Disconnect</button>}
+                </div>
+              )}
             </section>
           );
         })}

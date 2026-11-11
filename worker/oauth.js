@@ -485,7 +485,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
 
 async function refreshConnection(provider, account, config, env, fetcher) {
   const query = new URLSearchParams({
-    select: 'provider_subject,token_ciphertext,granted_scopes',
+    select: 'provider_subject,token_ciphertext,granted_scopes,updated_at',
     status: 'eq.active',
     owner_id: 'eq.' + account.uid,
     provider: 'eq.' + provider,
@@ -528,7 +528,7 @@ async function refreshConnection(provider, account, config, env, fetcher) {
       : previous.refresh_expires_at || null,
   };
   const encryptedTokens = await encryptOAuthValue(tokenPayload, env);
-  await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v2', {
+  const saved = await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v3', {
     method: 'POST',
     body: JSON.stringify({
       p_owner_id: account.uid, p_provider: provider,
@@ -536,9 +536,10 @@ async function refreshConnection(provider, account, config, env, fetcher) {
       p_granted_scopes: scopes,
       p_expires_at: tokenPayload.expires_at,
       p_refresh_expires_at: tokenPayload.refresh_expires_at,
-      p_key_version: 1, p_event_type: 'refreshed',
+      p_key_version: 1, p_event_type: 'refreshed', p_authorized_at: rows[0].updated_at,
     }),
   }, fetcher);
+  if (await saved.json() !== true) return response(409, { error: 'The connection changed. Reload and try again.' });
   return response(200, {
     provider, status: 'connected', refreshed: true,
     expires_at: tokenPayload.expires_at,
@@ -574,10 +575,37 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
     return response(200, { enabled: true, providers });
   }
-  const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh)$/.exec(url.pathname);
+  const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh|disconnect)$/.exec(url.pathname);
   if (!match) return response(404, { error: 'Not found.' });
   const [, provider, action] = match;
   if (!Object.hasOwn(PROVIDERS, provider)) return response(404, { error: 'Provider not supported.' });
+  if (action === 'disconnect') {
+    if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
+    if (url.protocol !== 'https:' || request.headers.get('origin') !== url.origin) {
+      return response(403, { error: 'Origin not allowed.' });
+    }
+    if (!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL || '') ||
+        !env.SUPABASE_PUBLISHABLE_KEY) {
+      return response(503, { error: 'Connection management is unavailable.' });
+    }
+    const account = await activeOAuthAccount(request, env, fetcher);
+    if (!account) return response(401, { error: 'Sign in before disconnecting a provider.' });
+    try {
+      const result = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_disconnect_provider', {
+        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
+        headers: {
+          apikey: env.SUPABASE_PUBLISHABLE_KEY,
+          authorization: 'Bearer ' + account.jwt,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ p_provider: provider }),
+      });
+      if (!result.ok || await result.json() !== true) throw new Error();
+      return response(200, { provider, status: 'disconnected' });
+    } catch {
+      return response(503, { error: 'The connection could not be disconnected.' });
+    }
+  }
   if (!oauthRuntimeReady(env)) return response(503, { error: 'Provider connections are not configured.' });
 
   const origin = oauthCorsOrigin(request, env);
@@ -658,7 +686,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
 
     const hash = await digest(state);
     const params = new URLSearchParams({
-      select: 'state_hash,owner_id,provider,verifier_ciphertext,redirect_uri,expires_at',
+      select: 'state_hash,owner_id,provider,verifier_ciphertext,redirect_uri,expires_at,created_at',
       state_hash: 'eq.' + hash, provider: 'eq.' + provider,
       owner_id: 'eq.' + account.uid,
       expires_at: 'gt.' + new Date().toISOString(),
@@ -704,16 +732,17 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     // Granted scopes must come from the provider token/permission response,
     // never from a browser-supplied callback query parameter.
     const scopes = identity.grantedScopes;
-    await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v2', {
+    const saved = await supabaseRequest(env, 'rpc/ifund_store_provider_connection_v3', {
       method: 'POST', body: JSON.stringify({
         p_owner_id: rows[0].owner_id, p_provider: provider,
         p_provider_subject: identity.subject, p_token_ciphertext: encryptedTokens,
         p_granted_scopes: scopes,
         p_expires_at: tokenPayload.expires_at,
         p_refresh_expires_at: tokenPayload.refresh_expires_at,
-        p_key_version: 1, p_event_type: 'connected',
+        p_key_version: 1, p_event_type: 'connected', p_authorized_at: rows[0].created_at,
       }),
     }, fetcher);
+    if (await saved.json() !== true) return response(409, { error: 'The connection changed. Start a new authorization.' });
     return response(200, { provider, status: 'connected', verified: true });
   } catch {
     return response(400, { error: 'Provider authorization could not be verified.' });

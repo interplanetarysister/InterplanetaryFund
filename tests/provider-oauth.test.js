@@ -302,7 +302,7 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
   const state = 'meta-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
-    state_hash: await hash(state), owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext,
+    state_hash: await hash(state), owner_id: uid, provider: 'facebook_pages', verifier_ciphertext: verifierCiphertext, created_at: "2026-11-11T08:00:00Z",
     redirect_uri: base + '/oauth/callback/facebook_pages',
   };
   const fetcher = async (url, options = {}) => {
@@ -334,7 +334,7 @@ test('Meta callback verifies granted Page scopes and a publishable Page before s
       assert.equal(body.p_provider, 'facebook_pages');
       assert.equal(body.p_provider_subject, 'meta-user-1');
       assert.deepEqual(body.p_granted_scopes.sort(), ['pages_manage_posts', 'pages_read_engagement', 'pages_show_list']);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -351,7 +351,7 @@ test('Instagram callback exchanges short token for long-lived token before encry
   const state = 'instagram-state-token';
   const verifierCiphertext = await encryptOAuthValue({ verifier: 'unused-verifier' }, env);
   const tx = {
-    state_hash: await hash(state), owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext,
+    state_hash: await hash(state), owner_id: uid, provider: 'instagram', verifier_ciphertext: verifierCiphertext, created_at: "2026-11-11T08:00:00Z",
     redirect_uri: base + '/oauth/callback/instagram',
   };
   const fetcher = async (url, options = {}) => {
@@ -384,7 +384,7 @@ test('Instagram callback exchanges short token for long-lived token before encry
       assert.equal(body.p_provider, 'instagram');
       assert.equal(body.p_provider_subject, 'instagram-user-1');
       assert.ok(body.p_token_ciphertext.ciphertext);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -404,7 +404,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
   const stateHash = await hash(state);
   const verifierCiphertext = await encryptOAuthValue({ verifier }, env);
   const tx = {
-    state_hash: stateHash, owner_id: uid, provider: 'google', verifier_ciphertext: verifierCiphertext,
+    state_hash: stateHash, owner_id: uid, provider: 'google', verifier_ciphertext: verifierCiphertext, created_at: "2026-11-11T08:00:00Z",
     redirect_uri: base + '/oauth/callback/google',
   };
   const calls = [];
@@ -433,7 +433,7 @@ test('callback consumes one-use state, verifies identity, and persists only encr
       assert.equal(body.p_event_type, 'connected');
       assert.ok(body.p_expires_at === null || typeof body.p_expires_at === 'string');
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /secret-access-token|secret-refresh-token/);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -466,7 +466,7 @@ test('Google refresh rotates the access token, preserves an omitted refresh toke
     if (target.includes('/rest/v1/ifund_provider_tokens?')) {
       return Response.json([{
         provider_subject: 'google-user-1',
-        token_ciphertext: stored,
+        token_ciphertext: stored, updated_at: "2026-11-11T08:00:00Z",
         granted_scopes: ['openid', 'email', 'profile'],
       }]);
     }
@@ -492,7 +492,7 @@ test('Google refresh rotates the access token, preserves an omitted refresh toke
       assert.equal(body.p_event_type, 'refreshed');
       assert.ok(body.p_expires_at === null || typeof body.p_expires_at === 'string');
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /new-google-access-token|stable-google-refresh-token/);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -514,7 +514,7 @@ test('refresh rejects a saved connection without a refresh token without contact
     if (String(url).includes('/rest/v1/ifund_provider_tokens?')) {
       return Response.json([{
         provider_subject: 'google-user-1',
-        token_ciphertext: stored,
+        token_ciphertext: stored, updated_at: "2026-11-11T08:00:00Z",
         granted_scopes: [],
       }]);
     }
@@ -599,7 +599,7 @@ test('X confidential OAuth code exchange uses Basic auth without duplicate clien
       assert.equal(body.p_provider_subject, 'x-user-1');
       assert.deepEqual(body.p_granted_scopes, ['users.read', 'tweet.read', 'offline.access']);
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /x-access-token|x-refresh-token/);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -631,7 +631,7 @@ test('X confidential refresh uses Basic auth without duplicate client_id', async
     if (target.includes('/rest/v1/ifund_provider_tokens?')) {
       return Response.json([{
         provider_subject: 'x-user-1',
-        token_ciphertext: stored,
+        token_ciphertext: stored, updated_at: "2026-11-11T08:00:00Z",
         granted_scopes: ['users.read', 'tweet.read', 'offline.access'],
       }]);
     }
@@ -657,7 +657,7 @@ test('X confidential refresh uses Basic auth without duplicate client_id', async
       const body = JSON.parse(options.body);
       assert.equal(body.p_provider_subject, 'x-user-1');
       assert.doesNotMatch(JSON.stringify(body.p_token_ciphertext), /new-x-access-token|rotated-x-refresh-token/);
-      return new Response(null, { status: 204 });
+      return Response.json(true);
     }
     throw Error('unexpected fetch: ' + target);
   };
@@ -715,4 +715,30 @@ test('callback rejects replayed or mismatched state without exchanging a code', 
   });
   assert.equal(r.status, 400);
   assert.equal(tokenCalls, 0);
+});
+
+test('disconnect uses only the authenticated member JWT and works with provider credentials disabled', async () => {
+  const request = new Request(base + '/api/oauth/google/disconnect', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+    body: JSON.stringify({ owner_id: 'another-user' }),
+  });
+  const result = await routeOAuthRequest(request, { ...env, OAUTH_API_ENABLED: 'false' }, async (url, options) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    assert.ok(String(url).endsWith('/rpc/ifund_disconnect_provider'));
+    assert.equal(options.headers.authorization, 'Bearer verified.test.jwt');
+    assert.equal(options.headers.apikey, env.SUPABASE_PUBLISHABLE_KEY);
+    assert.deepEqual(JSON.parse(options.body), { p_provider: 'google' });
+    return Response.json(true);
+  });
+  assert.equal(result.status, 200);
+  assert.deepEqual(await result.json(), { provider: 'google', status: 'disconnected' });
+});
+
+test('disconnect denies an unrelated origin or missing member', async () => {
+  for (const [origin, status] of [['https://other.example', 403], [base, 401]]) {
+    const result = await routeOAuth(new Request(base + '/api/oauth/google/disconnect', {
+      method: 'POST', headers: { origin },
+    }), env, () => assert.fail('no upstream call expected'));
+    assert.equal(result.status, status);
+  }
 });
