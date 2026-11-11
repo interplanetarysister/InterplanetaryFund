@@ -128,7 +128,6 @@ const json=(data,status=200,extra={})=>new Response(JSON.stringify(data),{
     "cache-control":"no-store","x-content-type-options":"nosniff",...extra}
 });
 const fail=(message,status=400)=>json({ok:false,error:message},status);
-const validId=s=>typeof s==="string" && /^[A-Za-z0-9-]{8,128}$/.test(s);
 const money=n=>(n/100).toFixed(2);
 const sandboxHost=request=>{
   const u=new URL(request.url);
