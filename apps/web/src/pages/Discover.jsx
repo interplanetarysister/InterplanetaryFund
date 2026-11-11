@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { listActiveCampaigns } from "@/api/publicData";
-import { Search, LifeBuoy } from "lucide-react";
+import { Search, LifeBuoy, Globe2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import RecommendedCampaigns from "@/components/discover/RecommendedCampaigns";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
@@ -66,7 +66,7 @@ export default function Discover() {
             What if your support changed everything for someone today? These causes need help right now.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">{helpLink}<PageTips pageId="discover" /></div>
+        <div className="flex flex-wrap items-center gap-2"><Link to="/globe" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
       <RecommendedCampaigns allCampaigns={campaigns} />
