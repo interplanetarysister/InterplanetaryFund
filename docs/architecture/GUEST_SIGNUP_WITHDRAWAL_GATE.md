@@ -1,28 +1,27 @@
-# Guest signup, ownership, and withdrawal verification (2026-11-10)
+# Interplanetary Fund: guest browsing, email signup, and deferred MFA (2026-11-10)
 
-**Canonical application:** `apps/web` of `interplanetarysister/InterplanetaryFund`. Production Cloudflare Pages project: `interplanetaryfund-migration`. Production Supabase project: `ssibsfmtodgximseeqsv`.
+Canonical frontend: `apps/web` on Cloudflare Pages `interplanetaryfund-migration`. Canonical Supabase: `ssibsfmtodgximseeqsv`. This document supersedes the earlier proposal to let anonymous accounts publish content.
 
-## Intended user journey
+## Verified requirement
 
-1. Public pages and campaign creation are accessible without email, password, identity documents, or a login wall.
-2. On `/register`, review current public Terms and Privacy documents and explicitly confirm age 18+ and agreement to `2026-11-10-v4`.
-3. "Continue without verification" first attempts a Supabase-issued **anonymous session**. When the Auth provider permits anonymous sign-in, the user obtains an **owner-bound ID**, a protected profile, and an explicit legal acceptance receipt; server-validated ownership and RLS permit account-scoped features while preserving financial safeguards.
-4. **Current production constraint (verified against Auth `GET /auth/v1/settings` on Nov 10):** `external.anonymous_users=false`. If anonymous sign-in fails, **do not claim the user owns a cloud account**. Offer a browser-only editor and session-storage draft, with an explicit notice: not uploaded, not published, not recoverable on another device, may be lost after the tab closes. Never show fake save/publish success.
-5. Email/password signup is optional at onboarding for cross-device recovery. Supabase currently has `mailer_autoconfirm=false` and `disable_signup=false`; email confirmation may remain pending, but public guest editing is accessible without completing it.
-6. On `/withdrawals`, prompt anonymous account users to verify an email via `auth.updateUser({email})` and the Supabase email-change callback. After verification, offer password setup. This merely verifies **account access**, not legal KYC or payout eligibility. Existing payment features must still require processor authorization, verified campaign ownership, reconciled funds, and any regulated identity checks. Do not enable transfers via a client-side flag.
+1. **Visitors** may browse public pages without registering. Supabase Anonymous Sign-Ins are allowed for optional, non-authoring guest sessions when that provider switch is enabled. A guest may not post, create a campaign, edit a profile, or write any server-side content.
+2. **Content creators** complete the legal-first `/register` flow and verify an email account. Signup uses ordinary email/password authentication, **not** an authenticator app or two-factor verification. OAuth providers with provider-confirmed email may also be accepted by existing authentication policy.
+3. **Withdrawals** require the email owner to complete a first-withdrawal authenticator step-up. `/withdrawals` supports TOTP factor enrollment and challenge/verification, and requires an `aal2` session before reporting an authenticated second factor. This **does not enable payments or certify KYC**.
+4. **Server guarantees** always take precedence over UI guards: `ifund_private.verified_email_creator()` reads `auth.users.email_confirmed_at` and `auth.users.is_anonymous` for `auth.uid()`. Restrictive RLS write policies protect `ifund_campaigns`, `ifund_posts`, `ifund_campaign_creation_state`, `ifund_campaign_translation`, `ifund_campaign_update`, and `ifund_profiles` against anonymous writes. They compose with prior ownership, account lifecycle, and terms policies.
+5. `ifund_private.withdrawal_mfa_ready()` requires confirmed email **and** JWT `aal='aal2'`. A future payout Worker/RPC must independently require this security level, validate funds, campaign ownership, approved provider account, identity/KYC compliance, and preserve the established 7% fee deducted at withdrawal. No client flag is ever a payout authorization.
+6. New `/create` route and member tools require a verified email account; visitors get the registration screen. This avoids a false impression that an anonymous account may publish.
+7. Guests can browse `/discover`, `/social`, public campaign pages and `/dashboard` guest landing. `/register` retains a **Browse without an account** option after the legal review. If anonymous Auth sessions are enabled later, they remain guest-browsing identities only. The URL returnTo cannot route a guest directly to protected content.
+8. An existing anonymous browser session can be linked to an email through `auth.updateUser({email})` rather than duplicating the owner identity. The email must be confirmed before content authoring; registration can set a password once the emailed code is verified. Password recovery remains available.
 
-## Security and privacy invariants
+## Supabase provider configuration
 
-- Supabase anonymous Auth users have role `authenticated` **but** a distinct JWT identity claim `is_anonymous=true`. They are *not* equivalent to public requests using the publishable/anon key without a session. All account writes remain owner-scoped to server-validated `auth.uid()` and protected by RLS.
-- Do not loosen `isVerifiedEmailUser` globally. `guestIdentity` applies only to non-financial account operations, and `payoutIdentity` must exclude anonymous accounts. Production backend payout authorization must independently confirm identity.
-- Legal acceptance is never inferred from `localStorage`. Cloud agreement receipts are stored **only** in `public.ifund_legal_acceptances`, after explicit confirmation and server-side owner verification. A browser-only guest acknowledgement is **not** a recorded account acceptance.
-- The server-side `ifund_current_user_has_current_terms()` RLS helper now checks `2026-11-10-v4`, matching signup and `apps/web/src/lib/legalPolicy.js`. Applied via `20261110_ifund_current_legal_terms_sync.sql`.
-- Guest campaigns may be publicly posted only when their owner identity is backed by a valid Supabase session and explicit agreement, and only through the standard campaign lifecycle and RLS. No service-role or temporary publish bypass.
-- Never map an old Base44 profile by matching email alone; preserve strict migration-owner mapping.
-- If anonymous sign-ins are enabled later, configure and test anti-automation protection (CAPTCHA/Turnstile and rate limits), account recovery, spam moderation, anonymous account cleanup, RLS, session/device loss, and payout denial before broadly advertising cloud guest publishing. Supabase anonymous Auth is currently disabled and cannot be enabled through the available Supabase MCP management tools.
+The authoritative management setting is `external_anonymous_users_enabled` (Supabase Management API PATCH `/v1/projects/{ref}/config/auth`) or the **Anonymous Sign-Ins** toggle under Authentication → Providers. It is separate from `disable_signup` and `mailer_autoconfirm`, neither of which should be changed to bypass two-factor authentication.
+
+**Connection constraint:** The Supabase tools currently connected to this conversation can query database, apply migrations and deploy functions but expose no project Auth configuration write action. Do **not** claim the toggle was enabled without the management API's authorized success response and a re-check of the project's `/auth/v1/settings` endpoint. If the toggle is still false, guest browsing continues without anonymous database identity; this does not block public browsing or email registration.
 
 ## Verification
 
-- Focused unit tests in `apps/web/tests/guestAccess.test.js`, `guest-auth-return.test.js`, `guest-public-routes.test.js`, and `owner-campaigns.test.js` cover one-click guest route, no-session fallback, ownership isolation, unverified-email rejection, and payout boundary.
-- Cloudflare Pages preview builds execute `npm ci && npm test && npm run build`. Verify the exact branch SHA and runtime HTML before promoting.
-- Supabase confirmed a *rolled-back* authenticated insert of the current terms receipt and successful `ifund_current_user_has_current_terms()`, with no persistent test acceptance left behind.
+- SQL transactional checks: a verified email account passes `ifund_private.verified_email_creator()` but without `aal2` fails `ifund_private.withdrawal_mfa_ready()`. Unconfirmed email fails the authoring check.
+- Restrictive policies confirmed in `pg_policies` for all six content-bearing tables.
+- Client tests cover guest-but-not-author identity, private content RLS boundary, email account sign-up, and TOTP AAL2 challenge.
+- Preview build must pass `npm ci && npm test && npm run build` and live route smoke tests before main promotion.

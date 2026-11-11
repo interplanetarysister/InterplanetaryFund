@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { memberIdentity } from "@/lib/guestAccess";
+import { payoutIdentity } from "@/lib/guestAccess";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 
 // Client gating is UX only: the Supabase RLS policies remain authoritative.
@@ -37,7 +37,7 @@ export default function MemberAccess({ children }) {
       setError("");
       try {
         const { data, error: authError } = await auth.auth.getUser();
-        if (authError || !memberIdentity(data?.user)) {
+        if (authError || !payoutIdentity(data?.user)) {
           if (current()) setState({ phase: "login", user: null });
           return;
         }
@@ -77,7 +77,7 @@ export default function MemberAccess({ children }) {
     verify();
     const { data: sub } = auth.auth.onAuthStateChange((event, session) => {
       if (!alive) return;
-      const nextIdentity = memberIdentity(session?.user)
+      const nextIdentity = payoutIdentity(session?.user)
         ? session.user.id
         : null;
       // Token refresh and tab focus can emit SIGNED_IN for the same identity.
@@ -159,10 +159,10 @@ export default function MemberAccess({ children }) {
   if (state.phase === "login")
     return (
       <main className="mx-auto max-w-2xl space-y-4 p-8">
-        <h1 className="text-2xl font-semibold">Account-bound data is not available in browser-only mode</h1>
-        <p>You can keep exploring and creating a browser draft without verifying your identity. To sync private member data across devices, connect a recoverable account. Verification for payouts remains separate.</p>
+        <h1 className="text-2xl font-semibold">Register an email account to create content</h1>
+        <p>Anonymous visitors can browse freely. Creating campaigns, posting, or saving private account content requires confirmed email signup. Two-factor authentication is not required here; it is requested before the first withdrawal.</p>
         <Link to={loginTarget} className="underline">
-          Set up an account
+          Create an email account
         </Link>
       </main>
     );

@@ -7,7 +7,7 @@ import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { rememberSignupAgreement, finalizeSignupAgreement, recordLegalAcceptance } from "@/lib/legalAcceptance";
-import { enterGuestMode } from "@/lib/guestAccess";
+import { enterGuestMode, payoutIdentity } from "@/lib/guestAccess";
 
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
@@ -41,8 +41,8 @@ export default function AuthPage({ mode = "login" }) {
       });
       // A local-only guest has no server ownership. Never route directly to
       // protected financial or private-data screens without an identity.
-      const destination = result.mode === "account" ? afterLogin
-        : (afterLogin.startsWith("/create") ? afterLogin : "/dashboard");
+      const destination = result.mode === "account" && payoutIdentity(result.user)
+        ? afterLogin : "/discover";
       navigate(destination, { replace: true });
     } catch (cause) {
       setGuestError(cause?.message || "We could not open guest access. Please retry.");
@@ -91,20 +91,32 @@ export default function AuthPage({ mode = "login" }) {
           const { error: verifyError } = await auth.verifyOtp({
             email: email.trim(),
             token: confirmationCode.trim(),
-            type: "signup",
+            type: (await auth.getUser()).data?.user?.is_anonymous ? "email_change" : "signup",
           });
           if (verifyError) throw verifyError;
           const verified = await verifiedAuthUser(auth);
+          if (password && verified.email_confirmed_at) {
+            const { error: pwError } = await auth.updateUser({ password });
+            if (pwError) throw pwError;
+          }
           try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
           catch { navigate("/dashboard", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
           return;
         }
         const { data: current } = await auth.getUser();
-        if (current?.user?.is_anonymous)
-          throw new Error("You already have a guest account. Link your email on the withdrawal verification screen to preserve its campaigns.");
         if (password !== confirmPassword)
           throw new Error("Your passwords do not match.");
+        if (current?.user?.is_anonymous) {
+          const linked = await auth.updateUser({ email: email.trim() }, {
+            emailRedirectTo: authRedirectUrl(window.location.origin, afterLogin),
+          });
+          if (linked.error) throw linked.error;
+          rememberSignupAgreement(sessionStorage, email.trim());
+          setConfirmationPending(true);
+          setMessage("Confirm the email address using the latest link or code. Your guest account will become an email account. Two-factor setup is not required to post.");
+          return;
+        }
         const { data, error: err } = await auth.signUp({
           email: email.trim(),
           password,
@@ -125,7 +137,7 @@ export default function AuthPage({ mode = "login" }) {
         } else {
           setConfirmationPending(true);
           setMessage(
-            "Your account request is saved. Email confirmation is required to recover this account later, but you can continue exploring and writing drafts on this device now.",
+            "Check your email to confirm your account and start creating content. No two-factor authentication is required until your first withdrawal.",
           );
         }
       } else {
@@ -217,18 +229,18 @@ export default function AuthPage({ mode = "login" }) {
         <section className="ifund-auth-card mt-7 rounded-3xl p-7 sm:p-10">
           <h1 className="text-3xl font-semibold">{heading}</h1>
           <p className="mt-3 text-sm text-slate-300">
-            {isRegister ? "Step 2 of 2 · Start without identity verification, or add email for a recoverable account." : "Sign in securely to Interplanetary Fund."}
+            {isRegister ? "Step 2 of 2 · Email signup is required to create content. Two-factor authentication comes at your first withdrawal." : "Sign in securely to Interplanetary Fund."}
           </p>
           {isRegister && !confirmationPending && (
             <button type="button" onClick={() => { setLegalReviewed(false); setLegalAgreed(false); }} className="mt-3 text-sm text-cyan-200 underline">Review the policies again</button>
           )}
           {isRegister && !confirmationPending && <section className="mt-6 rounded-2xl border border-cyan-400/40 bg-cyan-500/10 p-4">
-            <h2 className="text-lg font-semibold">Start using iFund now</h2>
-            <p className="mt-2 text-sm text-slate-300">No email, password, or identity documents required to explore and draft. If anonymous account access is unavailable, drafts remain on this browser only until you link a recoverable account. Withdrawals always require verification.</p>
-            <button type="button" onClick={continueAsGuest} disabled={guestBusy || busy} className="mt-4 min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">{guestBusy ? "Opening iFund…" : "Continue without verification"}</button>
+            <h2 className="text-lg font-semibold">Browse iFund as a guest</h2>
+            <p className="mt-2 text-sm text-slate-300">No email is required to browse campaigns. To write, save, or publish content, create an email account below. A second authentication factor is only requested at your first withdrawal.</p>
+            <button type="button" onClick={continueAsGuest} disabled={guestBusy || busy} className="mt-4 min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60">{guestBusy ? "Opening iFund…" : "Browse without an account"}</button>
             {guestError && <p role="alert" className="mt-3 text-sm text-red-200">{guestError}</p>}
           </section>}
-          {isRegister && !confirmationPending && <p className="mt-6 text-sm font-semibold text-slate-200">Or create a recoverable email account</p>}
+          {isRegister && !confirmationPending && <p className="mt-6 text-sm font-semibold text-slate-200">Create your email account to post or fundraise</p>}
           <form onSubmit={submit} className="mt-4 space-y-4">
             <label className="block text-sm font-medium">
               Email address
@@ -351,7 +363,7 @@ export default function AuthPage({ mode = "login" }) {
                     : "Sign in"}
             </button>
           </form>
-          {isRegister && confirmationPending && <Link to={afterLogin.startsWith("/create") ? afterLogin : "/dashboard"} className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Continue using iFund without waiting for email verification</Link>}
+          {isRegister && confirmationPending && <Link to="/discover" className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Browse campaigns while your email is being confirmed</Link>}
           {!isReset && (
             <button
               disabled={busy || !email.trim()}

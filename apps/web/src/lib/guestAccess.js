@@ -5,7 +5,8 @@ export function guestIdentity(user) {
   return Boolean(user?.id && user.is_anonymous === true);
 }
 export function memberIdentity(user) {
-  return Boolean(user?.id && (guestIdentity(user) || user.email_confirmed_at));
+  // Anonymous sessions are for browsing, not for creating member content.
+  return payoutIdentity(user);
 }
 export function payoutIdentity(user) {
   return Boolean(user?.id && !guestIdentity(user) && user.email_confirmed_at);
@@ -20,8 +21,8 @@ export function hasGuestNotice(storage, version) {
   } catch { return false; }
 }
 
-// Never fake a server user or receipt. Disabled anonymous auth means browser
-// editor only; no cloud save, public publishing, or financial access.
+// Never fake a server user or receipt. An anonymous session permits guest
+// browsing only. Content writes require a verified email account via RLS.
 export async function enterGuestMode({ auth, client, store, version, record }) {
   const current = await auth.getUser();
   // Supabase returns AuthSessionMissingError for a first-time visitor.
@@ -48,7 +49,7 @@ export async function enterGuestMode({ auth, client, store, version, record }) {
     // don't downgrade it silently to a false browser-only 'success'.
     const retry = await auth.getUser();
     if (!retry.error && guestIdentity(retry.data?.user))
-      throw new Error("The account was created but its legal agreement could not be saved. Retry before saving to the cloud.");
+      throw new Error("The guest session was created but its legal agreement could not be saved. Retry before continuing.");
     rememberGuestNotice(store, version);
     return { mode: "local", reason: error?.message || "guest-auth-unavailable" };
   }

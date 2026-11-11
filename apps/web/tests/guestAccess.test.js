@@ -4,8 +4,8 @@ import { guestIdentity, memberIdentity, payoutIdentity, enterGuestMode, hasGuest
 function store() {const d=new Map();return {getItem:k=>d.get(k)||null,setItem:(k,v)=>d.set(k,v)};}
 const anon={id:"1",is_anonymous:true,email_confirmed_at:null};
 const full={id:"2",is_anonymous:false,email_confirmed_at:"2026-11-10"};
-test("anonymous identity can own drafts but never satisfies payout verification",()=>{
-  assert.equal(memberIdentity(anon),true);
+test("anonymous identity may browse but cannot become an email content creator or withdraw",()=>{
+  assert.equal(memberIdentity(anon),false);
   assert.equal(payoutIdentity(anon),false);
   assert.equal(payoutIdentity(full),true);
   assert.equal(memberIdentity({id:"3",email_confirmed_at:null}),false);

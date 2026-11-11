@@ -180,16 +180,14 @@ test("another member's rows are rejected even if the network returns them", asyn
   await assert.rejects(loadOwnerCampaign(fakeClient({ rows: [campaign({ owner_id: OTHER })] }).client, DRAFT_ID), /not found for your account/);
 });
 
-test("an anonymous Supabase member is a valid owner but an unverified email is not", async () => {
+test("anonymous Supabase sessions cannot become content owners", async () => {
   const f = fakeClient({ anonymousUser: true });
-  const rows = await listOwnerCampaigns(f.client);
-  assert.equal(rows.length, 1);
-  assert.equal(rows[0].owner_id, OWNER);
-  assert.ok(f.calls.some(call => call.table === "ifund_profiles"));
+  await assert.rejects(listOwnerCampaigns(f.client), /confirm your email account/);
+  assert.ok(!f.calls.some(call => call.table === "ifund_campaigns"));
 });
 
 test("an unverified email or inactive account cannot manage campaigns", async () => {
-  await assert.rejects(listOwnerCampaigns(fakeClient({ unverifiedEmail: true }).client), /guest account or sign in/);
+  await assert.rejects(listOwnerCampaigns(fakeClient({ unverifiedEmail: true }).client), /confirm your email account/);
   await assert.rejects(listOwnerCampaigns(fakeClient({ profileActive: false }).client), /no longer available/);
   await assert.rejects(saveOwnerCampaign(fakeClient({ profileActive: false }).client, {}, { status: "draft" }), /no longer available/);
 });
@@ -411,7 +409,7 @@ test("the dashboard list keeps the verified transport and adds no funding totals
     assert.equal(row.raised_amount, null);
     assert.equal(row.donor_count, null);
   }
-  await assert.rejects(listMyCampaigns(fakeClient({ unverifiedEmail: true }).client), /guest account or sign in/);
+  await assert.rejects(listMyCampaigns(fakeClient({ unverifiedEmail: true }).client), /confirm your email account/);
   await assert.rejects(listMyCampaigns(fakeClient({ profileActive: false }).client), /no longer available/);
   await assert.rejects(listMyCampaigns(fakeClient({ failSelect: true }).client), /could not be loaded/);
 });
