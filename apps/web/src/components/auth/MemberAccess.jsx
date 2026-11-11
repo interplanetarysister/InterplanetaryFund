@@ -2,7 +2,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { confirmedUser } from "@/lib/authFlow";
+import { memberIdentity } from "@/lib/guestAccess";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 
 // Client gating is UX only: the Supabase RLS policies remain authoritative.
@@ -37,7 +37,7 @@ export default function MemberAccess({ children }) {
       setError("");
       try {
         const { data, error: authError } = await auth.auth.getUser();
-        if (authError || !confirmedUser(data?.user)) {
+        if (authError || !memberIdentity(data?.user)) {
           if (current()) setState({ phase: "login", user: null });
           return;
         }
@@ -77,7 +77,7 @@ export default function MemberAccess({ children }) {
     verify();
     const { data: sub } = auth.auth.onAuthStateChange((event, session) => {
       if (!alive) return;
-      const nextIdentity = confirmedUser(session?.user)
+      const nextIdentity = memberIdentity(session?.user)
         ? session.user.id
         : null;
       // Token refresh and tab focus can emit SIGNED_IN for the same identity.
@@ -220,7 +220,7 @@ export default function MemberAccess({ children }) {
             className="mt-1 h-5 w-5"
           />
           <span>
-            I have reviewed and agree to the Terms of Service and Privacy Policy
+            I agree to the Terms of Service and acknowledge the Privacy Policy
             for the version listed above.
           </span>
         </label>
