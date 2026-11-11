@@ -169,8 +169,6 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   function change(key, value) { setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
   async function save(status) {
     if (saveLock.current || disabled) return;
-    const problems = validateCampaignForm(form, { publish: status === "active" });
-    if (problems.length) { setError(problems[0]); return; }
     saveLock.current = true;
     setBusy(status); setError(""); setSaved("");
     try {
@@ -191,6 +189,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         } catch { throw new Error("Browser storage is unavailable. Copy your draft before leaving."); }
         return;
       }
+      const problems = validateCampaignForm(form, { publish: status === "active" });
+      if (problems.length) { setError(problems[0]); return; }
       const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status, expectedStatus: "draft" });
       // Set the receipt before routing so another click cannot insert a second
       // campaign while React is committing the new URL.
@@ -302,7 +302,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
-      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser only. It has not been uploaded or published. Keep using this device until your account is linked.</p>}
+      {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
     </form>
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
