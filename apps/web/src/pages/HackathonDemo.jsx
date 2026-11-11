@@ -5,6 +5,7 @@ import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { financeDemoRows, demoFinanceStats } from "@/lib/hackathonFinanceDemo.mjs";
 import DemoJourney from "@/components/hackathon/DemoJourney";
+import AgentPreviewLab from "@/components/hackathon/AgentPreviewLab";
 
 const financeColumns = [
   { field: "id", headerName: "Example record", minWidth: 150 },
@@ -103,7 +104,16 @@ export default function HackathonDemo() {
       <h1 className="mt-3 text-3xl font-bold text-foreground">The complete iFund guided demo</h1>
       <p className="mt-3 text-muted-foreground">One guided experience connects campaign discovery, AI story planning, social promotion, PayPal sandbox checkout, financial reporting and the AI agent ecosystem. No real money is collected on preview.</p>
     </header>
+    <section className="rounded-2xl border-2 border-cyan-400/60 bg-gradient-to-br from-cyan-950/40 to-violet-950/40 p-5 sm:p-7" aria-label="Live AI campaign Studio hero">
+      <p className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Start here · Actual Workers AI generation</p>
+      <h2 className="mt-2 text-2xl font-bold">Watch a real AI build a campaign story</h2>
+      <p className="mt-2 text-sm text-slate-200">The separate judge sandbox offers real five-title and two-description generation, a long story, and per-section rewriting. Sign in with a demo account; this is not a prewritten sample or a Base44-builder turn.</p>
+      <a href="https://ifund-hackathon-demo.interplanetary-fund.workers.dev/create" target="_blank" rel="noopener noreferrer"
+        className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-cyan-300 px-5 font-bold text-slate-950">Open functioning AI Campaign Studio</a>
+      <a href="#agent-preview" className="ml-3 mt-4 inline-flex min-h-12 items-center rounded-xl border border-violet-400 px-4 font-semibold text-violet-100">Preview AI agent conversations</a>
+    </section>
     <DemoJourney onFinanceFilter={setFinanceSearch} />
+    <AgentPreviewLab />
     <section className="rounded-2xl border border-cyan-400/40 bg-card p-5" aria-label="Choose PayPal payment environment">
       <h2 className="text-lg font-semibold">Choose a payment environment</h2>
       <p className="mt-2 text-sm text-muted-foreground">These are separate PayPal experiences. Sandbox payments use test buyer credentials and never create real donations. Live campaign checkout uses real money and is available only when the production payment health check enables it.</p>
