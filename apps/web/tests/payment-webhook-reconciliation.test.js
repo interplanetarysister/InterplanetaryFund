@@ -47,7 +47,10 @@ async function makeHarness(event, { intent = null, providerOrder = null } = {}) 
 
 const orderId="123456789ORDER", captureId="123456789CAPTURE", eventId="WH-EVENT-123456";
 const reversal={id:eventId,event_type:"PAYMENT.CAPTURE.REFUNDED",resource:{
-  supplementary_data:{related_ids:{capture_id:captureId}},
+  // PayPal refund events identify the refund in resource.id, and reference
+  // the originating capture through a verified rel=up API link.
+  id:"RFND-123456789",status:"COMPLETED",
+  links:[{rel:"up",href:"https://api-m.paypal.com/v2/payments/captures/"+captureId}],
   amount:{currency_code:"USD",value:"1.00"}
 }};
 test("verified webhook reversal forwards required cents to atomic ledger",async()=>{
@@ -61,6 +64,20 @@ test("verified webhook reversal forwards required cents to atomic ledger",async(
 });
 test("invalid reversal amount fails closed without a ledger mutation",async()=>{
   const h=await makeHarness({...reversal,resource:{...reversal.resource,amount:{currency_code:"EUR",value:"1.00"}}});
+  const response=await h.response();
+  assert.equal(response.status,409);
+  assert.equal(h.ledger.length,0);
+});
+test("untrusted refund capture links do not reach the ledger",async()=>{
+  const h=await makeHarness({...reversal,resource:{...reversal.resource,
+    links:[{rel:"up",href:"https://evil.example/v2/payments/captures/"+captureId}]}});
+  const response=await h.response();
+  assert.equal(response.status,409);
+  assert.equal(h.ledger.length,0);
+});
+test("conflicting signed refund identifiers fail closed",async()=>{
+  const h=await makeHarness({...reversal,resource:{...reversal.resource,
+    supplementary_data:{related_ids:{capture_id:"DIFFERENT123456"}}}});
   const response=await h.response();
   assert.equal(response.status,409);
   assert.equal(h.ledger.length,0);
