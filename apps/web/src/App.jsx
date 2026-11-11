@@ -16,6 +16,7 @@ const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
+const Atlas = lazy(() => import("./pages/Atlas"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -63,7 +64,7 @@ const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 // navigation and land on a branded "Coming soon" page instead of breaking.
 const STANDALONE_COMING_SOON = [
   "/onboarding",
-  "/globe", "/oauth/consent", "/activate",
+  "/oauth/consent", "/activate",
 ];
 const LAYOUT_COMING_SOON = [
   "/community/:id",
@@ -101,6 +102,8 @@ function AppRoutes() {
     {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
+      <Route path="/globe" element={<Atlas />} />
+      <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/ledger" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
