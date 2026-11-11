@@ -15,10 +15,14 @@
     "build:android": "npm run build && cap add android && capacitor-assets generate --android --iconBackgroundColor '#050816' --splashBackgroundColor '#050816' && cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
+    "@capacitor/android": "8.4.3",
+    "@capacitor/core": "8.4.3",
     "@radix-ui/react-dialog": "^1.1.6",
     "@radix-ui/react-progress": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@supabase/supabase-js": "^2.49.0",
+    "ag-grid-community": "36.3.0",
+    "ag-grid-react": "36.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -28,9 +32,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.18.4",
     "tailwind-merge": "^3.0.1",
-    "tailwindcss-animate": "^1.0.7",
-    "@capacitor/android": "8.4.3",
-    "@capacitor/core": "8.4.3"
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
