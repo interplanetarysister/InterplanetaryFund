@@ -45,3 +45,19 @@ values
 ('live-gated','paypal-live','/api/payments/*','live-disabled','runtime-configuration','passed','Production Worker flag false confirmed','Checkout intentionally paused'),
 ('sandbox-ledger-isolation','sandbox-database','ifund_paypal_sandbox_orders; ifund_paypal_sandbox_events','sandbox','database-reconciliation','unverified','Zero sandbox orders/events and zero donations at audit','Real sandbox transaction required')
 on conflict (case_key) do nothing;
+
+-- Additional prospective incoming-payment channels and failure/abuse cases.
+insert into public.ifund_payment_path_test_evidence(case_key,channel,entrypoint,environment,evidence_kind,result,details,blocker) values
+('sandbox-venmo','venmo','/api/payments/create-order','sandbox','source-review','unverified','Live Worker allows venmo channel','No sandbox SDK/approval/capture evidence'),
+('sandbox-applepay','applepay','/api/payments/create-order','sandbox','source-review','unverified','Live Worker allows applepay channel','No sandbox wallet/device proof'),
+('sandbox-googlepay','googlepay','/api/payments/create-order','sandbox','source-review','unverified','Live Worker allows googlepay channel','No sandbox wallet proof'),
+('sandbox-guest','guest-card-paypal','CampaignDonationDialog','sandbox','source-review','unverified','Frontend claims account-free checkout','No guest transaction acceptance evidence'),
+('sandbox-cancel','buyer-cancellation','/hackathon?paypal=cancelled','sandbox','source-review','unverified','Return/cancel URL configured','No real cancellation event tested'),
+('sandbox-provider-error','provider-error','/api/paypal/sandbox/orders','sandbox','source-review','unverified','Fail-closed provider response handling','No timeout/retry recovery proof'),
+('sandbox-amount-boundary','amount-validation','/api/paypal/sandbox/orders','sandbox','source-review','unverified','Input range $1-$100 in integer cents','Boundary cases not provider-tested'),
+('sandbox-duplicate-webhook','webhook-idempotency','/api/paypal/sandbox/webhook','sandbox','source-review','unverified','Idempotent event processing in source','No duplicate signed delivery test'),
+('sandbox-cross-campaign','ownership-isolation','/api/paypal/sandbox/capture','sandbox','source-review','unverified','Captured order tied to stored campaign','No provider-backed mismatch rejection test'),
+('sandbox-partial-refund','partial-refund','/api/paypal/sandbox/webhook','sandbox','source-review','unverified','Sandbox handler supports completed-capture only','Partial refund path not implemented'),
+('sandbox-dispute','dispute-reversal','/api/paypal/sandbox/webhook','sandbox','source-review','unverified','Sandbox handler supports completed-capture only','Dispute/reversal path not implemented'),
+('sandbox-merchant-receipt','receipt-display','/hackathon','sandbox','source-review','unverified','Capture returns order and capture IDs','Persisted user receipt/admin finance display not verified')
+on conflict(case_key) do nothing;
