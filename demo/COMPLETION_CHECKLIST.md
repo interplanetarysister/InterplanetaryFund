@@ -157,3 +157,24 @@ Pilot image source URL returned image bytes in a browser-independent image looku
 - Post-write Supabase verification: **83 campaigns, 78 blank image paths**, with **three** new Wikimedia-hosted CC0/public-domain URLs (plus two existing media paths). All three writes were guarded by `fictional=true` and a blank `image_path` predicate; no live photos touched.
 - Confirmed `iFund Sandbox Media & Ledger` automation enabled, overlapping `iFund Studio Release` automation paused, and other release/frontend/backend tasks enabled. Requested the active sandbox agent's immediate run; its host reported an inline run in this conversation, not a detached completed external task. Do not claim additional asynchronous photo or payment work from that result.
 - Operational limitation: direct image URLs are still a **pilot** pending actual browser CSP/render and long-term storage checks. Do not mark entire photo acceptance gate complete or assume three photos means three different R2 objects.
+
+
+## 2026-11-11 20:38 UTC — completed direct image coverage / repair and rerun audits
+
+**This record supersedes previous image-missing counts of 81, 78, 33 or 3.** The current canonical independent judge-demo `ifund_demo_campaigns` schema contains 83 published fictional campaigns and **zero null/blank image_path values**. The actual public demo's `GET /api/campaigns` was requested through Supabase `pg_net` and returned HTTP 200 JSON containing all 83 campaigns, each with a nonempty image path.
+
+**Completed implementation:**
+- Assigned licensed, theme-relevant photo URL references across all previously blank fictional campaigns, reusing sources for their legitimate campaign-family variants rather than uploading 83 separate images. Applied conditional Supabase updates to `fictional=true` rows with empty image paths; no Base44/real fundraising images changed.
+- Added `demo/MEDIA_SOURCE_MANIFEST.md` source, photographer and licensing provenance; current unique image URL count is 20: 18 distinct Commons URLs used by 81 fictional campaigns plus two original `/api/media/<id>` records. Entries are thematic illustrations, not photos of the fictional actual beneficiaries.
+- Committed and ran `demo/sql/sandbox-media-audit.sql`: **83/83 paths populated; 81 correctly hashed Commons paths, two internal media paths, zero invalid paths, zero unresolved media records**.
+- Ran HTTP byte-range probes for 19 original external images: 17 responded 200/206 `image/jpeg`; one shelter photo got 429 (remote throttling), and one FEMA thumbnail got 400. **Repaired all eight affected campaign references**: the Comet Haven campaign uses an existing HTTP-200 CC0 dog photo, three Starlight Wildlife Rescue campaigns use the verified HTTP-200 CC0 rescued baby squirrel photo, and four disaster-relief campaigns use the verified HTTP-206 public-domain emergency shelter photo. Subsequent SQL media audit passed; source manifest marks the two bad URLs superseded.
+- Verified public judge demo /api/campaigns HTTP 200 using an unauthenticated request (not a privileged in-app account); confirms live API exposes image fields, not visual display in browser.
+- Executed `demo/sql/sandbox-integrity-audit.sql` after all media updates. **3 stored captured sandbox orders totaling $27.00; 3 receipts, 3 webhook events, 6 ledger journal rows, no anomalies, no orphan/malformed rows or ledger groups.** This verifies persisted financial consistency, not a new provider REST reconciliation or buyer-approved capture. **No new payments were initiated.**
+
+**Still open; do not falsely mark complete:**
+- Real browser rendering, mobile cropping, image origin/CSP and full-image download verification. Byte-range GET validates URL reachability/type, not browser-level render; the two original internal media objects have not had fresh browser checks.
+- Long-term durability, hotlink dependence and optional optimized R2 copies only when useful and free. Current external photos are remote URL references, not new R2 objects.
+- Independent PayPal SANDBOX buyer-authorized new capture, provider-side order inspection, signed webhook replay/negative tests, refund and $2.50/$3.33/$5/$10 amount coverage. The separate 1,400 simulated activity rows do **not** count as payments, receipts, captures, or ledger settlement.
+- Actual Devpost submission contents/confirmation and public YouTube evidence, fresh-source build, complete judge login and role navigation acceptance.
+
+**Release discipline:** No deployment/publish claim from a GitHub documentation commit; live demo database updates were independently checked via the public judge API. Never market recorded fictional activity as real donations or allow it into real financial tables. If another agent modifies these rows concurrently, refresh and reconcile before any further writes.
