@@ -35,6 +35,7 @@ const EditCampaign = lazy(() => import("./pages/EditCampaign"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Connections = lazy(() => import("./pages/Connections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
@@ -60,7 +61,7 @@ const LAYOUT_COMING_SOON = [
   "/community/:id", "/u/:id",
   "/communications", "/mission", "/ai-images",
   "/institutions", "/institutions/:id", "/my-blog", "/devices",
-  "/donors", "/subscriptions", "/withdrawals",
+  "/donors", "/subscriptions",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
 
@@ -92,9 +93,10 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
-      <Route path="/dashboard" element={<MemberAccess><Dashboard /></MemberAccess>} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/ledger" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
       <Route path="/giving" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
+      <Route path="/withdrawals" element={<WithdrawalVerification />} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><AdminFinance /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialFeedPage />} />
