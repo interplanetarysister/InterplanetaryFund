@@ -17,7 +17,22 @@ This is a separate **fictional, sandbox-only** demo for PayPal AI Hackathon 2026
 
 ## Reproducible Worker deployment
 
-The files under `worker/` are a **2026-11-11 export of the currently deployed Cloudflare Worker JavaScript modules**, including compiled frontend assets. They are published for judge inspection and reproducibility; source-map paths refer to the original modules. The demo's authored source and build pipeline should additionally be retained and published before claiming a source-build reproduction from first principles.
+The demo now contains **six restored authored TypeScript modules recovered from the deployed Worker's own source map** (`worker/core.ts`, `worker/paypal.ts`, `worker/ai.ts`, `worker/campaigns.ts`, `worker/index.ts`, and `src/sandbox-liability.ts`). The missing `worker/types.ts` declarations and independent TypeScript/esbuild build configuration have been reconstructed; `worker/app.js` remains the deployed compiled JavaScript snapshot and `worker/assets.js` holds the compiled frontend assets. This exposes inspectable payment/AI/campaign source and a repeatable Worker build. The **original authored frontend component sources are not yet recovered**, and no successful clean-source rebuild has been confirmed until the CI job passes. Do not claim fully complete first-principles frontend reproducibility.
+
+### Build and source validation
+
+From a clean clone, using Node.js 22:
+
+```sh
+cd demo
+npm install --no-audit --no-fund
+npm run typecheck
+npm run build:worker
+node --check worker/app.js
+node scripts/judge-acceptance.mjs
+```
+
+The first four commands type-check and rebuild the Worker from authored TypeScript; the final command checks the publicly deployed judge demo without making PayPal transactions. The published compiled frontend assets remain a snapshot. This process requires no PayPal or Supabase credentials until you explicitly deploy.
 
 Prerequisites: Cloudflare account with Workers enabled, an R2 bucket for fictional media, Cloudflare Workers AI entitlement, PayPal sandbox REST app, and a separate Supabase demo schema plus signed Edge Function. Use the existing canonical project and avoid creating live payment connections.
 
