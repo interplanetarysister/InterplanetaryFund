@@ -660,3 +660,11 @@ only; it does not certify the separate open migration drafts listed in GitHub.
 Cloudflare Pages preview automation was re-enabled on 2026-11-03 for this
 feature branch only. Production-branch deployments remain disabled. The next
 push is the explicit preview trigger for this validated candidate.
+
+
+## VERIFIED PRODUCTION DEPENDENCY: public.ifund_public_campaign_funding_totals
+
+Verified on the canonical Supabase project on 2026-11-10 Pacific. The existing
+`ifund_public_campaign_funding_totals(p_campaign_ids uuid[])` routine supplies
+public campaign funding totals. Its database definition predates the checked-in
+atomic rollup migration. Preserve that dependency when provisioning another environment.
