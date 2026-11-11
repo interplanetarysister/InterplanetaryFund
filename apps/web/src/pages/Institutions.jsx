@@ -56,7 +56,7 @@ function OpportunityCard({opportunity,campaign}) {
     {opportunity.deadline_date&&<p className="mt-1 text-sm"><strong>Published deadline:</strong> {opportunity.deadline_date}</p>}
     <p className="mt-2 text-sm"><strong>Who may qualify:</strong> {opportunity.eligibility}</p>
     {campaign&&<p className="mt-3 rounded-lg bg-slate-500/10 p-3 text-xs">{matching
-      ?"Category relevance only; the organizer must still meet the external provider's eligibility rules."
+      ?relevance.summary
       :"This program is a general reference, not a verified match for the selected campaign."}</p>}
     {opportunity.source_note&&<p className="mt-2 text-xs text-muted-foreground">{opportunity.source_note}</p>}
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
