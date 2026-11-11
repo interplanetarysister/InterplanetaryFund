@@ -14,7 +14,7 @@ This guide is intentionally **not** a certification of a functioning payment dem
    ```bash
    git clone https://github.com/interplanetarysister/InterplanetaryFund.git
    cd InterplanetaryFund
-   git checkout feature/paypal-hackathon-sandbox-compliance-20261109
+   git checkout main
    git rev-parse HEAD
    npm ci --no-audit --no-fund
    npm test
@@ -62,7 +62,7 @@ Inspect the second response's **HTTP status, Content-Type, and parsed JSON statu
 ## Evidence register
 | Gate | Evidence URL / identifier | Result |
 | --- | --- | --- |
-| Cloudflare preview deployment provenance | `16cfa7ed.interplanetaryfund-migration.pages.dev` · deployment `16cfa7ed-4151-4d22-9cc5-6f0a4ed76161` · source `0a9b0e1fd5287616dcc6a1e308ed9a33efc8f585` · deploy/success at 2026-11-10 14:02:40 UTC (see compliance ledger) | Deployment metadata verified; HTTP routes/functions unverified |
+| Cloudflare preview deployment provenance | `a559ec8f.interplanetaryfund-migration.pages.dev` · source `8a85eeb8e3b31349f79ca6175369f32fad43454f` · deploy/success on 2026-11-10 (Cloudflare metadata). Production source `08dbad71faf122e68cac12ebd7e9decedd196b89` also deploy/success, but sandbox checkout is not activated. | Deployment metadata verified; HTTP routes/functions unverified |
 | Real sandbox order and capture | Pending | Unverified |
 | Signed webhook and deduplication | Pending | Unverified |
 | Isolated Supabase receipt / RLS | Supabase project `ssibsfmtodgximseeqsv`, catalog inspection 2026-11-10 12:19 Pacific: both sandbox tables exist, RLS enabled, zero policies, anon/authenticated SELECT and INSERT privileges denied; both tables contained 0 rows (see compliance ledger) | Catalog-level isolation verified; negative API tests and real provider-backed receipt still unverified |
