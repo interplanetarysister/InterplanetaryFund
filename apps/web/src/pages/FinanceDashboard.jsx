@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { DonutChart } from "@/components/analytics/CampaignMetrics";
+import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 
 const cents = value => {
   const n = Number(value);
@@ -56,6 +58,22 @@ export default function FinanceDashboard() {
         <SummaryCard label="Verified campaign gifts received" value={cents(totalRaised)}/>
         <SummaryCard label="Your verified donations to campaigns" value={cents(totalGiven)}/>
       </div>
+      <section className="ifund-chart-card" aria-label="Owner verified campaign funding distribution">
+        <p className="ifund-chart-eyebrow">AG Charts Community · verified captured donations only</p>
+        <h2>Fundraising by your campaigns</h2>
+        {state.owned.length===0 ? <p className="text-sm text-muted-foreground">No owned campaign funds to chart.</p> : <>
+          <DonutChart data={state.owned
+            .filter(row=>Number.isSafeInteger(Number(row.raised_cents)) && Number(row.raised_cents)>0)
+            .map(row=>({name:row.campaign_title||"Campaign",value:Number(row.raised_cents),label:cents(row.raised_cents)}))}
+            title="Verified campaign donations by owned campaign" valueText={cents(totalRaised)+" verified received"} />
+          <p className="text-sm text-muted-foreground">Verified received amounts are in cents from the owner finance RPC; sandbox test payments, unverified pledges and platform support are excluded.</p>
+          <FinanceDataGrid rows={state.owned} label="Owner campaigns sorted by verified captures"
+            columns={[{field:"campaign_title",headerName:"Campaign",minWidth:230},
+              {field:"campaign_status",headerName:"Status",minWidth:130},
+              {field:"raised_cents",headerName:"Verified captured",minWidth:175,valueFormatter:({value})=>formatUsdCents(value)},
+              {field:"captured_payments",headerName:"Captures",minWidth:135}]} />
+        </>}
+      </section>
       <section className="rounded-2xl border border-border bg-card p-5">
         <h2 className="text-xl font-semibold">Campaign fundraising</h2>
         {state.owned.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">You have no owned campaigns with financial records to display.</p> :
