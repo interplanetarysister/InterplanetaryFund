@@ -1,0 +1,44 @@
+name: PayPal AI Demo - Source Rebuild
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'demo/worker/**/*.ts'
+      - 'demo/src/**/*.ts'
+      - 'demo/package.json'
+      - 'demo/tsconfig.json'
+      - '.github/workflows/demo-source-build.yml'
+permissions:
+  contents: read
+jobs:
+  build-demo-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-audit --no-fund
+        working-directory: demo
+      - run: npm run typecheck
+        working-directory: demo
+      - run: npm run build:worker
+        working-directory: demo
+      - run: node --check worker/app.js
+        working-directory: demo
+      - name: Ensure source package contains no credential literals
+        run: |
+          if grep -R -E --include='*.ts' '-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----|sk_live_[A-Za-z0-9]+' demo/worker demo/src; then
+            echo 'Potential credential literal in source'; exit 1
+          fi
+      - name: Publish compiled Worker artifact for reproducibility
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-worker-built-from-source
+          path: |
+            demo/worker/app.js
+            demo/worker/app.js.map
+            demo/worker/index.js
+            demo/worker/assets.js
+          retention-days: 7
