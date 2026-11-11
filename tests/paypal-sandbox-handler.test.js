@@ -256,3 +256,26 @@ test("invalid PayPal sandbox webhook signatures and certificate origins never wr
    assert.equal(writes,0);
  }finally{globalThis.fetch=prev}
 });
+
+test("missing checkout cookie returns an explicit refusal without provider capture",async()=>{
+ const prior=globalThis.fetch;
+ const orderId="TESTORDER1234567";
+ const record={paypal_order_id:orderId,campaign_id:"a2251322-cac2-23ca-253e-274af4682a9a",
+   gift_cents:100,status:"created",paypal_capture_id:null,checkout_token_hash:"a".repeat(64)};
+ let writes=0,providerCalls=0;
+ try{
+   globalThis.fetch=async(url,options={})=>{
+     const u=String(url);
+     if(u.includes("/rest/v1/ifund_paypal_sandbox_orders")&&options.method==="GET")
+       return Response.json([record]);
+     if(u.includes("paypal.com"))providerCalls++;
+     if(options.method==="PATCH"||options.method==="POST")writes++;
+     throw Error("No other call authorized");
+   };
+   const response=await call("capture","POST",fakeConfig,{order_id:orderId});
+   assert.equal(response.status,403);
+   assert.deepEqual(await response.json(),{ok:false,error:"Checkout session missing or invalid"});
+   assert.equal(providerCalls,0,"must not touch PayPal without cookie");
+   assert.equal(writes,0,"must not update sandbox receipts without cookie");
+ }finally{globalThis.fetch=prior;}
+});
