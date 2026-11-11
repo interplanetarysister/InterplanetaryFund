@@ -282,12 +282,14 @@ async function limitedJson(res) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('OAuth provider returned an invalid response.');
   return data;
 }
+// Workers supports manual redirects. The non-2xx checks below reject redirects
+// without forwarding provider secrets or member authorization to a new URL.
 async function supabaseRequest(env, path, options = {}, fetcher = fetch) {
   const res = await fetcher(env.SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
     signal: options.signal || AbortSignal.timeout(10000),
     headers: { ...serviceHeaders(env), ...(options.headers || {}) },
-    redirect: 'error',
+    redirect: 'manual',
   });
   if (!res.ok) throw new Error('OAuth credential storage failed.');
   return res;
@@ -316,14 +318,14 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
     const target = new URL(endpoint);
     for (const [key, value] of form) target.searchParams.set(key, value);
     endpoint = target.toString();
-    options = { method: 'GET', headers, redirect: 'error', signal: AbortSignal.timeout(10000) };
+    options = { method: 'GET', headers, redirect: 'manual', signal: AbortSignal.timeout(10000) };
   } else {
     headers['content-type'] = 'application/x-www-form-urlencoded';
     if (config.tokenAuth === 'basic') {
       headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
     }
     options = {
-      method: 'POST', headers, body: form.toString(), redirect: 'error',
+      method: 'POST', headers, body: form.toString(), redirect: 'manual',
       signal: AbortSignal.timeout(10000),
     };
   }
@@ -345,7 +347,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
     longLived.searchParams.set('access_token', token.access_token);
     const longResponse = await fetcher(longLived.toString(), {
       method: 'GET', headers: { accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'manual', signal: AbortSignal.timeout(10000),
     });
     const longToken = await limitedJson(longResponse);
     if (typeof longToken.access_token !== 'string' || !longToken.access_token) {
@@ -358,7 +360,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
 async function fetchIdentity(config, token, fetcher) {
   const res = await fetcher(config.profile, {
     headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-    redirect: 'error', signal: AbortSignal.timeout(10000),
+    redirect: 'manual', signal: AbortSignal.timeout(10000),
   });
   const data = await limitedJson(res);
   const subject = config.subject(data);
@@ -373,7 +375,7 @@ async function fetchIdentity(config, token, fetcher) {
   if (config.permissions) {
     const permissionResponse = await fetcher(config.permissions, {
       headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'manual', signal: AbortSignal.timeout(10000),
     });
     const permissionData = await limitedJson(permissionResponse);
     grantedScopes = (Array.isArray(permissionData.data) ? permissionData.data : [])
@@ -388,7 +390,7 @@ async function fetchIdentity(config, token, fetcher) {
   if (config.capability) {
     const capabilityResponse = await fetcher(config.capability, {
       headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'manual', signal: AbortSignal.timeout(10000),
     });
     const capabilityData = await limitedJson(capabilityResponse);
     if (typeof config.verifyCapability === 'function' && !config.verifyCapability(capabilityData)) {
@@ -411,7 +413,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     endpoint.searchParams.set('access_token', previous.access_token);
     const res = await fetcher(endpoint.toString(), {
       method: 'GET', headers: { accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'manual', signal: AbortSignal.timeout(10000),
     });
     const refreshed = await limitedJson(res);
     if (typeof refreshed.access_token !== 'string' || !refreshed.access_token) {
@@ -452,7 +454,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     for (const [key, value] of form) target.searchParams.set(key, value);
     endpoint = target.toString();
     options = {
-      method: 'GET', headers, redirect: 'error',
+      method: 'GET', headers, redirect: 'manual',
       signal: AbortSignal.timeout(10000),
     };
   } else {
@@ -461,7 +463,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
       headers.authorization = 'Basic ' + btoa(config.clientId + ':' + config.clientSecret);
     }
     options = {
-      method: 'POST', headers, body: form.toString(), redirect: 'error',
+      method: 'POST', headers, body: form.toString(), redirect: 'manual',
       signal: AbortSignal.timeout(10000),
     };
   }
@@ -548,10 +550,11 @@ async function refreshConnection(provider, account, config, env, fetcher) {
 
 async function activeOAuthAccount(request, env, fetcher) {
   try {
-    const account = await authenticatedUser(request, env, fetcher);
+    const account = await authenticatedUser(request, env, (url, options) =>
+      fetcher(url, { ...options, redirect: 'manual', signal: AbortSignal.timeout(10000) }));
     if (!account) return null;
     const active = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_account_is_active', {
-      method: 'POST',
+      method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(10000),
       headers: {
         apikey: env.SUPABASE_PUBLISHABLE_KEY,
         authorization: 'Bearer ' + account.jwt,
@@ -592,7 +595,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     if (!account) return response(401, { error: 'Sign in before disconnecting a provider.' });
     try {
       const result = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_disconnect_provider', {
-        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
+        method: 'POST', redirect: 'manual', signal: AbortSignal.timeout(10000),
         headers: {
           apikey: env.SUPABASE_PUBLISHABLE_KEY,
           authorization: 'Bearer ' + account.jwt,
