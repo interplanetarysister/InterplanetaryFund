@@ -131,3 +131,14 @@ This section consolidates the reported findings from the proposed photo/payment 
 - [ ] No production, live PayPal, real donor, or Base44 financial data changed.
 - [ ] Independent evidence and any production-safe code improvements recorded with deployed version and rollback plan.
 
+
+
+## Implemented in current engineering pass — 2026-11-11
+
+1. **INV-01 partially accepted:** Direct Supabase query verified 83 published fictional campaigns and 81 missing image paths at start; older 10-campaign count was a historical snapshot rather than the current inventory. Categories total 83 (education 23, community 19, creative 13, environment 10, animals 7, disaster relief 5, emergency 4, medical 1, science 1).
+2. **LED-01/LED-02 implemented as executable audit:** `demo/sql/sandbox-integrity-audit.sql` was committed and executed against canonical demo tables. At 2026-11-11 20:16:30 UTC it returned three captured sandbox orders totaling 2,700 cents, three matching receipts, three event rows, six journal entries, zero anomalous orders, zero orphan captures, receipts, webhooks or ledger groups, and zero malformed journal groups. Provider status is from stored database evidence; a fresh PayPal REST GET remains required.
+3. **IMG-01/IMG-02 pilot implemented:** One public-domain photograph from Wikimedia Commons (creator Klest; explicit public-domain release) was researched, checked via exact image URL, and assigned only to the fictional campaign "A little garden for a whole neighborhood" (UUID `10000000-0000-4000-8000-000000000005`) using a conditional update from empty image path. Original public-domain source and license documented in `demo/MEDIA_SOURCE_MANIFEST.md`. Immediately after the update, database count was **80 image paths missing**, three populated. This is a direct Commons URL pilot, not an R2 object migration. Browser/CSP rendering verification is still pending.
+4. **No new PayPal payment attempted:** A payment capture is not automatable without an authorized independent sandbox buyer session. No synthetic captures or real charges created. Three outstanding created orders remain uncounted.
+5. **Next acceptance work:** verify pilot image in the judge browser and migrate a licensed/attributed optimized asset into the existing R2 media path if needed; complete remaining imagery; test real provider approval/capture and negative cases; connect recurring integrity audit to a controlled read-only run; finish judge browser/Devpost evidence.
+
+Recorded GitHub commits: `189bd345c981` (SQL audit), `70334fac8fbf` (webhook assertions), `3964c784274f` (media license provenance). These are source commits, not proof of worker deployment. Do not mark all IMG or PAY acceptance cases complete until verified.
