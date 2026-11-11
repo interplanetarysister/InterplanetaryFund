@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { IFUND_PLATFORM_SUPPORT_PAYMENT_LINK } from "@/lib/paypalLink";
 
 // A genuine PayPal Orders v2 SANDBOX demo. This page never uses hosted live buttons.
 export default function HackathonDemo() {
@@ -93,6 +94,7 @@ export default function HackathonDemo() {
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <a href={sandboxDemoUrl} className="flex min-h-12 items-center justify-center rounded-xl border border-cyan-400/60 px-4 text-center text-sm font-semibold text-cyan-300">Test with PayPal Sandbox — no real money</a>
         <a href="https://interplanetaryfund.com/discover" className="flex min-h-12 items-center justify-center rounded-xl border border-amber-400/60 px-4 text-center text-sm font-semibold text-amber-200">Browse live campaigns — real payments if enabled</a>
+        <a href={IFUND_PLATFORM_SUPPORT_PAYMENT_LINK} target="_blank" rel="noopener noreferrer" className="flex min-h-12 items-center justify-center rounded-xl border border-border px-4 text-center text-sm font-semibold sm:col-span-2">Optional live platform support — real charge, not a campaign donation</a>
       </div>
       <p className="mt-3 text-xs text-muted-foreground">Judges: use a Personal PayPal Sandbox test buyer for sandbox checkout, not a merchant account or personal live PayPal credentials. Do not enter real card information in sandbox. Only the live checkout can create a real charge; confirm the amount and merchant before approving. No login credentials are supplied on this page.</p>
       {!sandboxHost && <p role="status" className="mt-3 rounded-lg border border-amber-500/40 p-3 text-sm">You're viewing the production website. The sandbox checkout runs on the separate secure preview linked above. Sandbox controls below are intentionally unavailable here.</p>}
