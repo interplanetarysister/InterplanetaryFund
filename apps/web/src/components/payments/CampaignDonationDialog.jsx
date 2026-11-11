@@ -78,7 +78,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     (async()=>{
       try{
         const config=await api("/api/payments/config");
-        if(cancelled||config.environment!=="live"||!config.client_id)return;
+        if(cancelled)return;
+        if(config.environment!=="live"||!config.client_id)throw new Error("Live checkout is unavailable. No payment was started.");
         const paypal=await loadPayPal(config.client_id);
         if(cancelled)return;
         const onApprove=async data=>{
