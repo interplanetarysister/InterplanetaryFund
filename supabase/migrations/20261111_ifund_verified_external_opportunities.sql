@@ -18,7 +18,7 @@ ALTER TABLE public.ifund_opportunity ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.ifund_opportunity FROM anon, authenticated;
 GRANT SELECT (id,title,type,description,estimated_value,eligibility,required_actions,
  confidence,source,status,official_url,official_provider,verified_at,cause_tags,
- geography,deadline_date,source_note) ON public.ifund_opportunity TO anon,authenticated;
+ geography,deadline_date,source_note,source_system) ON public.ifund_opportunity TO anon,authenticated;
 DROP POLICY IF EXISTS ifund_external_verified_opportunity_public ON public.ifund_opportunity;
 CREATE POLICY ifund_external_verified_opportunity_public ON public.ifund_opportunity
  FOR SELECT TO anon,authenticated USING (source_system='ifund_external_verified_v1'
