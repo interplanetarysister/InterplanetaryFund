@@ -149,3 +149,11 @@ Recorded GitHub commits: `189bd345c981` (SQL audit), `70334fac8fbf` (webhook ass
 Read-only PostgreSQL catalog query on `ifund_demo_campaigns`, `ifund_demo_media`, `ifund_demo_orders`, `ifund_demo_captures`, `ifund_demo_receipts`, `ifund_demo_events`, and `ifund_demo_ledger` confirmed **RLS enabled** on all seven; neither `anon` nor `authenticated` has direct SELECT or INSERT privilege on any. This passes the table-grant check but is not a substitute for live horizontal-authorization browser tests through the Worker.
 
 Pilot image source URL returned image bytes in a browser-independent image lookup; source page declares uploader-surrendered public-domain rights. The `image_path` was inserted in canonical demo Supabase, re-read and counted: 83 fictional campaigns, **80** blank image paths, one newly linked public-domain image and two existing media paths. Direct deployed-browser rendering, remote-image CSP and longer-term R2 residency remain outstanding.
+
+
+### Further direct implementation and reconciliation — 2026-11-11
+
+- Added CC0 telescope imagery to fictional `Asteroid Observatory Nights` and CC0 digital classroom imagery to fictional `Aurora Harbor Learning Labs`; exact source URLs, creators, licenses and campaign IDs retained in `demo/MEDIA_SOURCE_MANIFEST.md`.
+- Post-write Supabase verification: **83 campaigns, 78 blank image paths**, with **three** new Wikimedia-hosted CC0/public-domain URLs (plus two existing media paths). All three writes were guarded by `fictional=true` and a blank `image_path` predicate; no live photos touched.
+- Confirmed `iFund Sandbox Media & Ledger` automation enabled, overlapping `iFund Studio Release` automation paused, and other release/frontend/backend tasks enabled. Requested the active sandbox agent's immediate run; its host reported an inline run in this conversation, not a detached completed external task. Do not claim additional asynchronous photo or payment work from that result.
+- Operational limitation: direct image URLs are still a **pilot** pending actual browser CSP/render and long-term storage checks. Do not mark entire photo acceptance gate complete or assume three photos means three different R2 objects.
