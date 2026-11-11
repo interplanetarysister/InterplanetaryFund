@@ -14,6 +14,7 @@ import PullToRefresh from "@/components/mobile/PullToRefresh";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import PageError from "@/components/PageError";
+import { CampaignFundingDonut, CampaignAgentFocus } from "@/components/analytics/CampaignMetrics";
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
@@ -128,6 +129,11 @@ export default function CampaignDetail() {
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
         </div>
       </div>
+
+      <section className="mt-9 grid gap-5 lg:grid-cols-2" aria-label="Campaign analytics">
+        <CampaignFundingDonut campaign={campaign} />
+        <CampaignAgentFocus campaignId={campaign.id} />
+      </section>
 
       {related.length > 0 && (
         <section className="mt-10">
