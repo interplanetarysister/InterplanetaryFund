@@ -230,6 +230,10 @@ export default {
       try {return await webhook(request,env)}catch(_) {return asError("webhook_retry_required",503)}
     }
     if(path==="/api/payments/capture-order"&&request.method==="POST") {
+      // Webhook verification stays available while payments are paused, but
+      // a paused payment switch must never allow another provider capture.
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
       try {const response=await captureOrder(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"capture_failed_check_receipt_before_retry"},502,cors)}
     }
