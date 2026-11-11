@@ -10,7 +10,8 @@ test("merchant receipts require verified admin authorization and exclude anonymo
   assert.match(sql, /ifund_current_user_is_verified_admin\(\)/);
   assert.match(sql, /revoke all on function public\.ifund_admin_paypal_merchant_receipts\(\) from public, anon/i);
   assert.match(sql, /grant execute on function public\.ifund_admin_paypal_merchant_receipts\(\) to authenticated/i);
-  assert.match(sql, /allocation_status in \('platform_support','unattributed'\)/);
+  assert.match(sql, /x\.allocation_status,x\.last_provider_verified_at/);
+  assert.match(sql, /auth\.uid\(\) is null/);
   assert.match(sql, /provider_status = 'S'/);
   assert.doesNotMatch(sql, /insert into public\.ifund_donations|update public\.ifund_ledger_entries/i);
 });
@@ -24,4 +25,6 @@ test("admin financial screen displays unallocated merchant receipts separately",
   assert.match(ui, /platform\.reduce/);
   assert.match(ui, /IFund platform donation/);
   assert.match(ui, /unmatched\.length/);
+  assert.match(ui, /allocation_status==="platform_support"/);
+  assert.match(ui, /allocation_status==="unattributed"/);
 });
