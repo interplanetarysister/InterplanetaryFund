@@ -17,6 +17,7 @@ const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
 const Atlas = lazy(() => import("./pages/Atlas"));
+const Institutions = lazy(() => import("./pages/Institutions"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -69,7 +70,7 @@ const STANDALONE_COMING_SOON = [
 const LAYOUT_COMING_SOON = [
   "/community/:id",
   "/communications", "/mission", "/ai-images",
-  "/institutions", "/institutions/:id", "/devices",
+  "/devices",
   "/donors", "/subscriptions",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
@@ -103,6 +104,8 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/globe" element={<Atlas />} />
+      <Route path="/institutions" element={<Institutions />} />
+      <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/dashboard" element={<Dashboard />} />
