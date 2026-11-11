@@ -33,3 +33,9 @@ test("failed consent receipt after successful anonymous auth is not a silent suc
  await assert.rejects(enterGuestMode({auth,client:{},store:s,version:"v4",record:async()=>{throw Error("denied")}}));
  assert.equal(hasGuestNotice(s,"v4"),false);
 });
+
+test("first-visit AuthSessionMissingError uses the no-login guest path",async()=>{
+  const s=store();const auth={getUser:async()=>({data:{user:null},error:{name:"AuthSessionMissingError",message:"Auth session missing!"}}),signInAnonymously:async()=>({error:{message:"Anonymous sign-ins are disabled"}})};
+  const result=await enterGuestMode({auth,client:{},store:s,version:"v4",record:async()=>{throw Error("not called")}});
+  assert.equal(result.mode,"local");assert.equal(hasGuestNotice(s,"v4"),true);
+});
