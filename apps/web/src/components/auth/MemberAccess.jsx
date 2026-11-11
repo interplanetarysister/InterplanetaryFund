@@ -147,7 +147,7 @@ export default function MemberAccess({ children }) {
   }
   const requested = location.pathname + location.search + location.hash;
   const loginTarget =
-    "/login?returnTo=" + encodeURIComponent(safeReturnTo(requested));
+    "/register?returnTo=" + encodeURIComponent(safeReturnTo(requested));
   if (state.phase === "ready")
     return <Fragment key={state.user.id}>{children}</Fragment>;
   if (state.phase === "loading")
@@ -159,10 +159,10 @@ export default function MemberAccess({ children }) {
   if (state.phase === "login")
     return (
       <main className="mx-auto max-w-2xl space-y-4 p-8">
-        <h1 className="text-2xl font-semibold">Sign in to continue</h1>
-        <p>Your account is required for this action.</p>
+        <h1 className="text-2xl font-semibold">Account-bound data is not available in browser-only mode</h1>
+        <p>You can keep exploring and creating a browser draft without verifying your identity. To sync private member data across devices, connect a recoverable account. Verification for payouts remains separate.</p>
         <Link to={loginTarget} className="underline">
-          Sign in
+          Set up an account
         </Link>
       </main>
     );
