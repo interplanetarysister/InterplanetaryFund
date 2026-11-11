@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
+import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 const money = n => {
   const x = Number(n);
   return Number.isSafeInteger(x) && x >= 0
     ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(x/100) : "Unavailable";
 };
+const campaignColumns = [
+  { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
+  { field: "raised_cents", headerName: "Verified gifts", minWidth: 150, valueFormatter: ({ value }) => formatUsdCents(value) },
+  { field: "captured_payments", headerName: "Verified captures", minWidth: 160 },
+  { field: "refund_count", headerName: "Refund records", minWidth: 160 },
+];
 export default function AdminFinance() {
   const [state,setState] = useState({status:"loading",rows:[],receipts:[],error:""});
   useEffect(()=>{
@@ -67,15 +74,12 @@ export default function AdminFinance() {
           {shown.length===0&&<p className="py-4 text-sm text-muted-foreground">No provider-confirmed platform or unmatched merchant receipts found.</p>}
         </div>
       </section>
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-        <table className="min-w-full text-left text-sm"><thead className="border-b border-border"><tr>
-          <th className="p-4">Campaign</th><th className="p-4">Verified gifts</th><th className="p-4">Captures</th><th className="p-4">Refund records</th>
-        </tr></thead><tbody>{state.rows.map(row=><tr key={row.campaign_id} className="border-b border-border">
-          <td className="p-4">{row.campaign_title}</td><td className="p-4 tabular-nums">{money(row.raised_cents)}</td>
-          <td className="p-4 tabular-nums">{row.captured_payments}</td><td className="p-4 tabular-nums">{row.refund_count}</td>
-        </tr>)}</tbody></table>
-        {state.rows.length===0&&<p className="p-5 text-sm text-muted-foreground">No verified campaign finance records are available. No sample totals were inserted.</p>}
-      </div>
+      <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Verified campaign finance dashboard">
+        <h2 className="text-lg font-semibold">AG Grid · Verified campaign finance</h2>
+        <p className="text-sm text-muted-foreground">Live records from the existing authorization-checked Supabase finance RPC. Sort, filter, or resize columns. No sandbox or example data is included in this admin report.</p>
+        <FinanceDataGrid rows={state.rows} columns={campaignColumns} label="Verified authorized campaign accounting" />
+        {state.rows.length === 0 && <p className="text-sm text-muted-foreground">No verified campaign finance records are available. No sample totals were inserted.</p>}
+      </section>
     </>}
   </main>;
 }
