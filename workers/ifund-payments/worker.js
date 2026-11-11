@@ -114,9 +114,12 @@ async function webhook(req,env) {
     if(!ORDER_ID.test(orderId||""))return asError("webhook_order_unresolved",409);
     const claim=await signLedger(env,"get",{paypal_order_id:orderId});
     if(claim.intent.environment!=="live")return asError("unexpected_payment_environment",409);
+    // Reject invalid capture references before any ledger mutation.
+    if(!ORDER_ID.test(payload.id||"")||!ORDER_ID.test(payload.resource?.id||""))
+      return asError("webhook_capture_reference_mismatch",409);
     const completed=await finalize(env,orderId,claim.intent);
     // Only record a signed PayPal event after matching the provider's completed capture.
-    if(!ORDER_ID.test(payload.id||"")||payload.resource?.id!==completed.capture_id)
+    if(payload.resource.id!==completed.capture_id)
       return asError("webhook_capture_reference_mismatch",409);
     await signLedger(env,"event",{paypal_event_id:payload.id,paypal_order_id:orderId,
       paypal_capture_id:completed.capture_id,event_type:kind});
@@ -146,7 +149,7 @@ async function webhook(req,env) {
     // Supabase requires a verified amount to reject partial or mismatched reversals.
     // A signed event with missing amount must be reconciled, not silently accepted.
     const amount=payload.resource?.amount;
-    if(amount?.currency_code!=="USD"||!/^\\d+(?:\\.\\d{1,2})?$/.test(String(amount.value||""))
+    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount.value||""))
       ||cents(amount.value)<1)return asError("reversal_amount_unverified",409);
     const reversed=await signLedger(env,"reverse",{paypal_capture_id:captureId,
       paypal_event_id:payload.id,event_type:kind,refunded_cents:cents(amount.value)});
