@@ -70,3 +70,11 @@ test("Guest drafts retain map consent without crossing a second owner", () => {
   assert.deepEqual(restoreBrowserCampaign(storage,"owner-a").map_opt_in,true);
   assert.equal(restoreBrowserCampaign(storage,"owner-b").map_opt_in,false);
 });
+
+test("Map consent validation is independent of user-provided fundraising values", () => {
+  const form={...sample(),map_opt_in:true,public_location_label:"New York metro area",map_latitude:"40.7",map_longitude:"-74.0",goal_amount:"100.25"};
+  assert.deepEqual(validateCampaignForm(form,{publish:true}),[]);
+  assert.equal(buildCampaignPayload(form,"active").goal_amount,100.25);
+  form.map_opt_in=false;
+  assert.equal(buildCampaignPayload(form,"active").map_longitude,null);
+});
