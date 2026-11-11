@@ -78,6 +78,9 @@ export default function HackathonTracker() {
     setDirty(false);
     setNotice("");
     setEditError("");
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      window.requestAnimationFrame(() => document.getElementById("hackathon-step-detail")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    }
   };
   const change = (patch) => { setDraft(row => ({ ...row, ...patch })); setDirty(true); setNotice(""); setEditError(""); };
   const save = async () => {
