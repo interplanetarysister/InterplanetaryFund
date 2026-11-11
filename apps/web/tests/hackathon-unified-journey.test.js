@@ -48,3 +48,10 @@ test("Demo exposes original optional features and sponsor artifacts without perm
   assert.match(page, /\/discover/);
   assert.match(journey, /\[FICTIONAL JUDGE DEMO\]/);
 });
+
+test("The global live payment support button never appears on the hackathon tour", () => {
+  const app = readFileSync(new URL("../src/App.jsx", import.meta.url), "utf8");
+  const match = app.match(/\[\s*"\/",\s*"\/about"[\s\S]*?\]\.includes\(location\.pathname\)\) && <PlatformSupportHostedButton/);
+  assert.ok(match,"could not find the restricted global support button placement");
+  assert.doesNotMatch(match[0], /"\/hackathon"/);
+});
