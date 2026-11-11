@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ifund-hackathon-demo",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-11",
+  "workers_dev": true,
+  "ai": { "binding": "AI" },
+  "r2_buckets": [
+    { "binding": "MEDIA", "bucket_name": "ifund-hackathon-demo-media" }
+  ],
+  "vars": {
+    "DEMO_ENABLED": "true",
+    "AI_ENABLED": "true",
+    "SETUP_ENABLED": "false",
+    "DEMO_ORIGIN": "https://ifund-hackathon-demo.interplanetary-fund.workers.dev",
+    "SUPABASE_URL": "https://ssibsfmtodgximseeqsv.supabase.co",
+    "PAYPAL_WEBHOOK_ID": "0J666367KD493980V",
+    "RELEASE_SHA": "94b6e010b25ea68e3194535d94198cf76fc8f5ad"
+  }
+}
