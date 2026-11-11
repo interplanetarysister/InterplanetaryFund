@@ -134,7 +134,7 @@ async function webhook(req,env) {
         const u=new URL(link.href);
         if(u.protocol!=="https:"||u.port||u.search||u.hash
           ||!["api.paypal.com","api-m.paypal.com"].includes(u.hostname))continue;
-        const match=u.pathname.match(/^\\/v2\\/payments\\/captures\\/([A-Za-z0-9_-]{8,100})$/);
+        const match=u.pathname.match(/^\/v2\/payments\/captures\/([A-Za-z0-9_-]{8,100})$/);
         if(match)linkedCaptures.add(match[1]);
       }catch(_){}
     }
