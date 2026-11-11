@@ -46,8 +46,8 @@ export function validateRecord(record) {
     try { if (new URL(record.preview_url).protocol !== "https:") throw Error(); }
     catch { return "Preview URL must use HTTPS."; }
   }
-  if (record.status === "completed" && (!record.evidence_links.length || !record.test_result.trim()))
-    return "Completed steps require at least one evidence link and a documented test result. A manual status is not automatic provider verification.";
+  if (record.status === "completed" && (!(record.evidence_links.length || record.screenshot_links.length) || !record.test_result.trim()))
+    return "Completed steps require at least one evidence or screenshot link and a documented test result. A manual status is not automatic provider verification.";
   return "";
 }
 export function readiness(records) {
