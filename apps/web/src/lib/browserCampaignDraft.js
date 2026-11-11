@@ -35,7 +35,8 @@ function campaignForm(value) {
   return Object.fromEntries(
     Object.entries(emptyCampaignForm()).map(([key, fallback]) => [
       key,
-      typeof value[key] === "string" ? value[key] : fallback,
+      typeof fallback === "boolean" ? value[key] === true :
+        typeof value[key] === "string" ? value[key] : fallback,
     ]),
   );
 }
