@@ -82,6 +82,22 @@ test("conflicting signed refund identifiers fail closed",async()=>{
   assert.equal(response.status,409);
   assert.equal(h.ledger.length,0);
 });
+test("mismatched signed capture never finalizes a donation",async()=>{
+  const campaign="a48d705e-2118-4464-b97d-605e116d91d2";
+  const intent={campaign_id:campaign,gift_cents:100,optional_support_cents:0,
+    total_cents:155,payment_channel:"paypal",status:"created",environment:"live"};
+  const order={status:"COMPLETED",purchase_units:[{
+    reference_id:campaign,custom_id:"ifund|"+campaign+"|100|0|paypal",
+    payments:{captures:[{id:captureId,status:"COMPLETED",amount:{currency_code:"USD",value:"1.55"}}]}
+  }]};
+  const event={id:eventId,event_type:"PAYMENT.CAPTURE.COMPLETED",resource:{
+    id:"DIFFERENT123456",supplementary_data:{related_ids:{order_id:orderId}}
+  }};
+  const h=await makeHarness(event,{intent,providerOrder:order});
+  const response=await h.response();
+  assert.equal(response.status,409);
+  assert.deepEqual(h.ledger.map(e=>e.op),["get"]);
+});
 test("verified completed-capture webhook creates a separate idempotent event receipt",async()=>{
   const campaign="a48d705e-2118-4464-b97d-605e116d91d2";
   const intent={campaign_id:campaign,gift_cents:100,optional_support_cents:0,
