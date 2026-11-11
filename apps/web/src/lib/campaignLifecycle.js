@@ -98,7 +98,7 @@ export function validateCampaignForm(form, { publish = false } = {}) {
     for (const [field, range] of [["map_latitude", 90], ["map_longitude", 180]]) {
       const input = text(value[field]);
       const n = Number(input);
-      if (!/^-?\\d{1,3}(?:\\.\\d)?$/.test(input) || !Number.isFinite(n) || Math.abs(n) > range) {
+      if (!/^-?\d{1,3}(?:\.\d)?$/.test(input) || !Number.isFinite(n) || Math.abs(n) > range) {
         errors.push("Use approximate public latitude and longitude with at most one decimal place. Never use an exact home address.");
         break;
       }
