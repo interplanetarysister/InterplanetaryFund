@@ -282,10 +282,18 @@ async function limitedJson(res) {
   if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('OAuth provider returned an invalid response.');
   return data;
 }
+function oauthRequestSignal() {
+  // Pages deployments can use a Workers runtime without AbortSignal.timeout.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  timer?.unref?.();
+  return controller.signal;
+}
+
 async function supabaseRequest(env, path, options = {}, fetcher = fetch) {
   const res = await fetcher(env.SUPABASE_URL + '/rest/v1/' + path, {
     ...options,
-    signal: options.signal || AbortSignal.timeout(10000),
+    signal: options.signal || oauthRequestSignal(),
     headers: { ...serviceHeaders(env), ...(options.headers || {}) },
     redirect: 'error',
   });
@@ -316,7 +324,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
     const target = new URL(endpoint);
     for (const [key, value] of form) target.searchParams.set(key, value);
     endpoint = target.toString();
-    options = { method: 'GET', headers, redirect: 'error', signal: AbortSignal.timeout(10000) };
+    options = { method: 'GET', headers, redirect: 'error', signal: oauthRequestSignal() };
   } else {
     headers['content-type'] = 'application/x-www-form-urlencoded';
     if (config.tokenAuth === 'basic') {
@@ -324,7 +332,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
     }
     options = {
       method: 'POST', headers, body: form.toString(), redirect: 'error',
-      signal: AbortSignal.timeout(10000),
+      signal: oauthRequestSignal(),
     };
   }
 
@@ -345,7 +353,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
     longLived.searchParams.set('access_token', token.access_token);
     const longResponse = await fetcher(longLived.toString(), {
       method: 'GET', headers: { accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'error', signal: oauthRequestSignal(),
     });
     const longToken = await limitedJson(longResponse);
     if (typeof longToken.access_token !== 'string' || !longToken.access_token) {
@@ -358,7 +366,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
 async function fetchIdentity(config, token, fetcher) {
   const res = await fetcher(config.profile, {
     headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-    redirect: 'error', signal: AbortSignal.timeout(10000),
+    redirect: 'error', signal: oauthRequestSignal(),
   });
   const data = await limitedJson(res);
   const subject = config.subject(data);
@@ -373,7 +381,7 @@ async function fetchIdentity(config, token, fetcher) {
   if (config.permissions) {
     const permissionResponse = await fetcher(config.permissions, {
       headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'error', signal: oauthRequestSignal(),
     });
     const permissionData = await limitedJson(permissionResponse);
     grantedScopes = (Array.isArray(permissionData.data) ? permissionData.data : [])
@@ -388,7 +396,7 @@ async function fetchIdentity(config, token, fetcher) {
   if (config.capability) {
     const capabilityResponse = await fetcher(config.capability, {
       headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'error', signal: oauthRequestSignal(),
     });
     const capabilityData = await limitedJson(capabilityResponse);
     if (typeof config.verifyCapability === 'function' && !config.verifyCapability(capabilityData)) {
@@ -411,7 +419,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     endpoint.searchParams.set('access_token', previous.access_token);
     const res = await fetcher(endpoint.toString(), {
       method: 'GET', headers: { accept: 'application/json' },
-      redirect: 'error', signal: AbortSignal.timeout(10000),
+      redirect: 'error', signal: oauthRequestSignal(),
     });
     const refreshed = await limitedJson(res);
     if (typeof refreshed.access_token !== 'string' || !refreshed.access_token) {
@@ -453,7 +461,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     endpoint = target.toString();
     options = {
       method: 'GET', headers, redirect: 'error',
-      signal: AbortSignal.timeout(10000),
+      signal: oauthRequestSignal(),
     };
   } else {
     headers['content-type'] = 'application/x-www-form-urlencoded';
@@ -462,7 +470,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
     }
     options = {
       method: 'POST', headers, body: form.toString(), redirect: 'error',
-      signal: AbortSignal.timeout(10000),
+      signal: oauthRequestSignal(),
     };
   }
 
@@ -551,7 +559,7 @@ async function activeOAuthAccount(request, env, fetcher) {
     const account = await authenticatedUser(request, env, fetcher);
     if (!account) return null;
     const active = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_account_is_active', {
-      method: 'POST',
+      method: 'POST', redirect: 'error', signal: oauthRequestSignal(),
       headers: {
         apikey: env.SUPABASE_PUBLISHABLE_KEY,
         authorization: 'Bearer ' + account.jwt,
@@ -592,7 +600,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     if (!account) return response(401, { error: 'Sign in before disconnecting a provider.' });
     try {
       const result = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_disconnect_provider', {
-        method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10000),
+        method: 'POST', redirect: 'error', signal: oauthRequestSignal(),
         headers: {
           apikey: env.SUPABASE_PUBLISHABLE_KEY,
           authorization: 'Bearer ' + account.jwt,

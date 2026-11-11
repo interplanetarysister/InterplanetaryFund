@@ -742,3 +742,17 @@ test('disconnect denies an unrelated origin or missing member', async () => {
     assert.equal(result.status, status);
   }
 });
+
+test('signed-in disconnect works when the runtime lacks AbortSignal.timeout', async (t) => {
+  t.mock.method(AbortSignal, 'timeout', () => { throw new Error('Unavailable in this Pages runtime'); });
+  const request = new Request(base + '/api/oauth/google/disconnect', {
+    method: 'POST', headers: { authorization: 'Bearer verified.test.jwt', origin: base },
+  });
+  const result = await routeOAuthRequest(request, { ...env, OAUTH_API_ENABLED: 'false' }, async (url, options) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    assert.ok(String(url).endsWith('/rpc/ifund_disconnect_provider'));
+    assert.ok(options.signal instanceof AbortSignal);
+    return Response.json(true);
+  });
+  assert.equal(result.status, 200);
+});
