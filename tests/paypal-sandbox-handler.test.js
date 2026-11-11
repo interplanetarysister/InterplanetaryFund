@@ -187,3 +187,72 @@ test("verified sandbox webhook retry is idempotent and never reaches live tables
   assert.equal(written[0].paypal_resource_id,captureId);
  }finally{globalThis.fetch=previousFetch;}
 });
+
+
+test("signed, unrelated sandbox webhook events receive one acknowledgement and no ledger writes",async()=>{
+ const previousFetch=globalThis.fetch;
+ const headers={
+   "paypal-transmission-id":"signed-event-test",
+   "paypal-transmission-time":"2026-11-10T20:00:00Z",
+   "paypal-cert-url":"https://api-m.sandbox.paypal.com/v1/notifications/certs/CERT-EXAMPLE",
+   "paypal-auth-algo":"SHA256withRSA",
+   "paypal-transmission-sig":"not-a-live-signature"
+ };
+ const event={id:"SIGNED-EVENT123456",event_type:"PAYMENT.CAPTURE.PENDING",
+   resource:{id:"CAPTURE123456",status:"PENDING"}};
+ let calls=0,writes=0;
+ try {
+   globalThis.fetch=async(url,opts={})=>{
+     const u=String(url);
+     calls++;
+     if(opts.method==="PATCH"||u.includes("/rest/v1/")) writes++;
+     if(u.endsWith("/v1/oauth2/token"))return Response.json({
+       access_token:"isolated-mock-token",token_type:"Bearer"
+     });
+     if(u.endsWith("/v1/notifications/verify-webhook-signature"))
+       return Response.json({verification_status:"SUCCESS"});
+     throw Error("Unexpected API call: "+u);
+   };
+   const reply=await call("webhook","POST",fakeConfig,event,headers);
+   assert.equal(reply.status,200);
+   assert.deepEqual(await reply.json(),{
+     ok:true,mode:"sandbox",verified:true,ignored:true
+   });
+   assert.equal(calls,2,"only PayPal OAuth and verification requests allowed");
+   assert.equal(writes,0,"signed unrelated events must never touch any receipt or ledger");
+ }finally{globalThis.fetch=previousFetch}
+});
+
+test("invalid PayPal sandbox webhook signatures and certificate origins never write to storage",async()=>{
+ const prev=globalThis.fetch;
+ const headers={
+   "paypal-transmission-id":"invalid-signature-event",
+   "paypal-transmission-time":"2026-11-10T20:00:00Z",
+   "paypal-cert-url":"https://api-m.sandbox.paypal.com/v1/notifications/certs/CERT-EXAMPLE",
+   "paypal-auth-algo":"SHA256withRSA",
+   "paypal-transmission-sig":"invalid"
+ };
+ const event={id:"INVALID-SIGNATURE123",event_type:"PAYMENT.CAPTURE.COMPLETED",
+   resource:{id:"CAPTURE123456"}};
+ let writes=0;
+ try{
+   globalThis.fetch=async(url,opts={})=>{
+     const u=String(url);
+     if(opts.method==="PATCH"||u.includes("/rest/v1/"))writes++;
+     if(u.endsWith("/v1/oauth2/token"))return Response.json({
+       access_token:"isolated-mock-token",token_type:"Bearer"
+     });
+     if(u.endsWith("/v1/notifications/verify-webhook-signature"))
+       return Response.json({verification_status:"FAILURE"});
+     throw Error("Provider request outside verification: "+u);
+   };
+   const rejected=await call("webhook","POST",fakeConfig,event,headers);
+   assert.equal(rejected.status,401);
+   assert.equal((await rejected.json()).ok,false);
+   const hostRejected=await call("webhook","POST",fakeConfig,event,{
+     ...headers,"paypal-cert-url":"https://api-m.sandbox.paypal.com.attacker.example/certs"
+   });
+   assert.equal(hostRejected.status,400);
+   assert.equal(writes,0);
+ }finally{globalThis.fetch=prev}
+});
