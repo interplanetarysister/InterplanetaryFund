@@ -101,14 +101,15 @@ export default function HackathonDemo() {
       {campaignError&&<p role="alert" className="rounded-lg border border-red-500/40 p-3 text-sm">{campaignError}</p>}
       {!campaignLoading&&!campaignError&&campaigns.length===0&&<p role="status" className="rounded-lg border border-amber-500/40 p-3 text-sm">No active campaign is available for a real sandbox checkout. <Link to="/discover" className="underline">Browse campaigns</Link> or ask the demo organizer to publish an authentic test campaign.</p>}
       <label className="block text-sm font-medium">Demo campaign
-        <select aria-label="Demo campaign" disabled={campaignLoading} value={campaignId} onChange={e=>setCampaignId(e.target.value)}
+        <select aria-label="Demo campaign" disabled={campaignLoading||working||approved} value={campaignId} onChange={e=>setCampaignId(e.target.value)}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
           {campaigns.length===0&&<option value="">No published demo campaigns available</option>}
           {campaigns.map(c=><option value={c.id} key={c.id}>{c.title}</option>)}
         </select>
       </label>
+      {campaignId&&<p className="text-sm text-muted-foreground">Review the selected published campaign before testing checkout: <Link to={`/campaign/${encodeURIComponent(campaignId)}`} className="font-semibold underline underline-offset-2">View real campaign</Link>. This sandbox demo does not change its public donation totals.</p>}
       <label className="block text-sm font-medium">Sandbox donation amount
-        <select aria-label="Sandbox donation amount" value={cents} onChange={e=>setCents(Number(e.target.value))}
+        <select aria-label="Sandbox donation amount" disabled={working||approved} value={cents} onChange={e=>setCents(Number(e.target.value))}
           className="mt-2 min-h-12 w-full rounded-xl border bg-background p-3">
           <option value={100}>$1.00</option><option value={500}>$5.00</option><option value={1000}>$10.00</option>
         </select>
