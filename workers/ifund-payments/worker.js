@@ -110,10 +110,11 @@ async function subscriptionReadiness(env) {
   const webhookReady=hook?.id===webhookId&&typeof hook?.url==="string"&&
     [...SUBSCRIPTION_EVENTS].every(name=>names.has(name)||names.has("*"));
   if(planReady){
-    await signLedger(env,"subscription_plan_verified",{
+    await signLedger(env,"subscription_plan_readiness",{
       tier:BASIC_MONTHLY_PLAN.tier,interval:BASIC_MONTHLY_PLAN.interval,
       amount_cents:BASIC_MONTHLY_PLAN.amount_cents,paypal_plan_id:BASIC_MONTHLY_PLAN.plan_id,
-      paypal_product_id:plan.product_id
+      paypal_product_id:plan.product_id,plan_ready:planReady,webhook_ready:webhookReady,
+      paypal_webhook_id:webhookReady?webhookId:null
     });
   }
   return {ready:planReady&&webhookReady,plan_ready:planReady,webhook_ready:webhookReady};

@@ -41,6 +41,11 @@ test("only the owner supplied basic monthly plan is initially eligible",()=>{
   assert.match(worker,/P-6YD2273006199630KNLDXBLA/);
   assert.match(worker,/amount_cents:1200/);
   assert.match(worker,/exactBasicPlan/);
+  assert.match(worker,/subscription_plan_readiness/);
+  assert.match(worker,/plan_ready:planReady,webhook_ready:webhookReady/);
+  assert.match(worker,/ready:planReady&&webhookReady/);
+  assert.match(edge,/subscription_plan_readiness/);
+  assert.match(edge,/active:p\.plan_ready&&p\.webhook_ready/);
   assert.match(migration,/\('basic','monthly',1200,'USD','2026-10-v1','P-6YD2273006199630KNLDXBLA'\)/);
   assert.match(worker,/subscription_plan_unavailable/);
 });
