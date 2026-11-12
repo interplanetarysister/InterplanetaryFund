@@ -37,10 +37,12 @@ test("withdrawal step up challenges, verifies, and requires AAL2", async()=>{
  const b=mock("aal1");
  await assert.rejects(confirmWithdrawalFactor(b.auth,email,"factor-1","123456"),/not confirmed/);
 });
-test("withdrawal screen offers MFA-protected review holds, never provider payout",()=>{
+test("withdrawal screen is MFA-protected and fail-closed until payout readiness",()=>{
  const s=readFileSync(new URL("../src/pages/WithdrawalVerification.jsx",import.meta.url),"utf8");
  assert.match(s,/mfa\.enroll\(\{ factorType: "totp" \}\)/);
  assert.match(s,/confirmWithdrawalFactor/);
  assert.match(s,/only requested when you begin your/);
- assert.match(s,/\.rpc\(["']ifund_request_withdrawal/);
+ assert.match(s,/ifund_owner_payout_readiness/);
+ assert.match(s,/execution remains closed/);
+ assert.doesNotMatch(s,/\.rpc\(["']ifund_request_withdrawal/);
 });
