@@ -14,6 +14,10 @@ const MEDIA_EXTENSIONS = Object.freeze({
 });
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export function isVerifiedCoverOwner(user) {
+  return Boolean(isVerifiedEmailUser(user) && payoutIdentity(user) && UUID.test(user?.id || ""));
+}
+
 export function validateCoverFile(file) {
   if (!file || typeof file.size !== "number" || file.size < 1 || file.size > MAX_COVER_BYTES)
     return "Select a cover image smaller than 5 MB.";
@@ -27,7 +31,7 @@ export async function uploadCampaignCover(client, file, { makeId = () => crypto.
   if (inputError) throw Error(inputError);
   const { data: session, error: sessionError } = await client.auth.getUser();
   const user = session?.user;
-  if (sessionError || !isVerifiedEmailUser(user) || !payoutIdentity(user) || !UUID.test(user?.id || ""))
+  if (sessionError || !isVerifiedCoverOwner(user))
     throw Error("Sign in with a confirmed email account to upload a campaign cover.");
   const lifecycle = await verifyAccountLifecycle(client, user);
   if (!lifecycle.ok) throw Error(lifecycle.message || "Your account could not be verified.");
