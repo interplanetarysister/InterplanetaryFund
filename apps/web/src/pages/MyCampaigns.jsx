@@ -7,6 +7,7 @@ import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
+import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import { Pencil, PlusCircle, Loader2, Eye, PauseCircle, PlayCircle, Trash2, Compass } from "lucide-react";
 
 const money = (value) => {
@@ -18,6 +19,7 @@ const money = (value) => {
 // member and enforced by Supabase row level security; publishing makes a
 // campaign publicly discoverable but never enables donations.
 export default function MyCampaigns() {
+  const donationsEnabled = usePublicCampaignFundraising();
   const alive = useRef(true);
   const generation = useRef(0);
   const lock = useRef(false);
@@ -57,7 +59,7 @@ export default function MyCampaigns() {
       setRows((current) => current.map((row) => (row.id === saved.id ? saved : row)));
       setNotice(
         status === "active"
-          ? `"${saved.title}" is published and visible on Discover. Donations stay paused.`
+          ? `"${saved.title}" is published and visible on Discover. ${donationsEnabled ? "Supporters may donate through verified PayPal checkout." : "Donations are temporarily unavailable."}`
           : `"${saved.title}" was paused and is hidden from Discover.`
       );
     } catch (cause) {
@@ -107,7 +109,7 @@ export default function MyCampaigns() {
       <div>
         <h1 className="font-display text-3xl font-bold sm:text-4xl">My campaigns</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Save a private draft, publish it to Discover, or pause it at any time. Publishing never enables donations, which remain paused platform-wide.
+          Save a private draft, publish it to Discover, or pause it at any time. {donationsEnabled ? "Published, active campaigns can receive verified PayPal donations." : "Donation checkout is currently unavailable."}
         </p>
       </div>
       <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
@@ -115,7 +117,7 @@ export default function MyCampaigns() {
       </Link>
     </header>
 
-    <PrelaunchNotice compact />
+    {!donationsEnabled && <PrelaunchNotice compact />}
 
     <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       <div className="rounded-2xl border border-border bg-card p-4">
