@@ -10,6 +10,13 @@ const SUBSCRIPTION_ID = /^I-[A-Z0-9]{10,30}$/;
 const PAYPAL_PLAN_ID = /^P-[A-Z0-9]{20,32}$/;
 const PAYPAL_EVENT_ID = /^WH-[A-Z0-9-]{8,90}$/;
 const BASIC_MONTHLY_PLAN = Object.freeze({tier:"basic",interval:"monthly",amount_cents:1200,plan_id:"P-6YD2273006199630KNLDXBLA"});
+const PAYOUT_SCOPE = "https://uri.paypal.com/payments/payouts";
+const PAYOUT_EVENTS = new Set([
+  "PAYMENT.PAYOUTSBATCH.DENIED","PAYMENT.PAYOUTSBATCH.PROCESSING","PAYMENT.PAYOUTSBATCH.SUCCESS",
+  "PAYMENT.PAYOUTS-ITEM.BLOCKED","PAYMENT.PAYOUTS-ITEM.CANCELED","PAYMENT.PAYOUTS-ITEM.FAILED",
+  "PAYMENT.PAYOUTS-ITEM.HELD","PAYMENT.PAYOUTS-ITEM.REFUNDED","PAYMENT.PAYOUTS-ITEM.RETURNED",
+  "PAYMENT.PAYOUTS-ITEM.SUCCEEDED","PAYMENT.PAYOUTS-ITEM.UNCLAIMED"
+]);
 const SUBSCRIPTION_EVENTS = new Set([
   "BILLING.SUBSCRIPTION.ACTIVATED","BILLING.SUBSCRIPTION.UPDATED",
   "BILLING.SUBSCRIPTION.SUSPENDED","BILLING.SUBSCRIPTION.CANCELLED",
@@ -44,7 +51,7 @@ async function signLedger(env,op,data) {
   if(!response.ok||content.ok!==true){const error=new Error("ledger_rejected");error.status=response.status;throw error}
   return content;
 }
-async function accessToken(env) {
+async function oauthDetails(env) {
   const id=await getSecret(env.PAYPAL_CLIENT_ID), secret=await getSecret(env.PAYPAL_CLIENT_SECRET);
   if(!id||!secret) throw new Error("paypal_credentials_unavailable");
   const response=await fetch(PAYPAL_API+"/v1/oauth2/token",{
@@ -53,7 +60,10 @@ async function accessToken(env) {
   });
   if(!response.ok)throw new Error("paypal_oauth_rejected");
   const data=await response.json(); if(!data.access_token)throw new Error("paypal_oauth_token_missing");
-  return data.access_token;
+  return data;
+}
+async function accessToken(env) {
+  return (await oauthDetails(env)).access_token;
 }
 async function paypal(env,path,method="GET",body,requestId) {
   const token=await accessToken(env);
@@ -98,6 +108,25 @@ function exactBasicPlan(plan) {
     cents(cycle?.pricing_scheme?.fixed_price?.value)===BASIC_MONTHLY_PLAN.amount_cents&&
     typeof plan?.product_id==="string"&&plan.product_id.length>=6);
 }
+async function payoutReadiness(env) {
+  const [oauth, webhookId] = await Promise.all([
+    oauthDetails(env),
+    getSecret(env.PAYPAL_WEBHOOK_ID)
+  ]);
+  const scopes=new Set(String(oauth.scope||"").split(/\s+/).filter(Boolean));
+  let webhookReady=false;
+  if(webhookId){
+    try{
+      const hook=await paypal(env,"/v1/notifications/webhooks/"+encodeURIComponent(webhookId));
+      const names=new Set(Array.isArray(hook?.event_types)?hook.event_types.map(x=>x?.name):[]);
+      webhookReady=hook?.id===webhookId&&[...PAYOUT_EVENTS].every(name=>names.has(name)||names.has("*"));
+    }catch(_){}
+  }
+  return {ok:true,environment:env.IFUND_PAYPAL_MODE||"unset",
+    payouts_scope:scopes.has(PAYOUT_SCOPE),payout_webhook_ready:webhookReady,
+    ready:scopes.has(PAYOUT_SCOPE)&&webhookReady};
+}
+
 async function subscriptionReadiness(env) {
   const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
   if(!webhookId)return {ready:false,plan_ready:false,webhook_ready:false};
@@ -410,6 +439,10 @@ export default {
     const path=url.pathname;
     if(path==="/api/payments/health")return asJson({ok:true,service:"ifund-payments",enabled:env.IFUND_PAYMENTS_ENABLED==="true",
       mode:env.IFUND_PAYPAL_MODE||"unset",version:"verified-ledger-v1"},200,cors);
+    if(path==="/api/payments/payouts/readiness"&&request.method==="GET"){
+      try{return asJson(await payoutReadiness(env),200,cors)}
+      catch(_){return asJson({ok:false,error:"payout_readiness_unavailable"},503,cors)}
+    }
     if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
       try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
       catch(_){return asJson({ok:false,error:"subscription_status_unavailable"},503,cors)}
