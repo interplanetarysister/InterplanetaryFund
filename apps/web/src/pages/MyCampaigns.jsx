@@ -222,7 +222,7 @@ export default function MyCampaigns() {
             </div>
             {campaign.status === "active" && (
               <div className="mt-4">
-                <CampaignShareButton campaign={campaign} />
+                <CampaignShareButton campaign={campaign} ownerView />
               </div>
             )}
             {campaign.status !== "draft" && (
