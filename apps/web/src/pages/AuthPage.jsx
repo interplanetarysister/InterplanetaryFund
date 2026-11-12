@@ -99,7 +99,17 @@ export default function AuthPage({ mode = "login" }) {
           navigate(afterLogin, { replace: true });
           return;
         }
-        const { data: current } = await auth.getUser();
+        const { data: current, error: currentError } = await auth.getUser();
+        // A signed-in member must not submit a second signup request. Supabase
+        // returns a generic repeated-signup response, which otherwise looks
+        // like a new account was created but leaves the browser in limbo.
+        if (!currentError && current?.user && !current.user.is_anonymous && current.user.email_confirmed_at) {
+          if (current.user.email?.toLowerCase() !== email.trim().toLowerCase()) {
+            throw new Error("You are already signed in with a different email. Sign out before creating another account.");
+          }
+          navigate(afterLogin, { replace: true });
+          return;
+        }
         if (password !== confirmPassword)
           throw new Error("Your passwords do not match.");
         if (current?.user?.is_anonymous) {
