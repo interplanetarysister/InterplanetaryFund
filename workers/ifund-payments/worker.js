@@ -71,6 +71,16 @@ function quote(gift,tip,channel) {
   return gift + tip;
 }
 function usd(centsValue) { return (centsValue / 100).toFixed(2); }
+function providerApprovalUrl(order) {
+  const links=Array.isArray(order?.links)?order.links:[];
+  const href=links.find(link=>link?.rel==="approve"&&typeof link?.href==="string")?.href||"";
+  if(!href)return "";
+  try{
+    const u=new URL(href);
+    if(u.protocol!=="https:"||u.port||!["paypal.com","www.paypal.com"].includes(u.hostname))return "";
+    return u.toString();
+  }catch(_){return ""}
+}
 function paypalOrderBreakdown(gift,tip) {
   const amount = {currency_code:"USD",value:usd(gift+tip)};
   const items = [{
@@ -367,7 +377,11 @@ async function createOrder(req,env) {
   if(claim.order_id){
     if(!ORDER_ID.test(claim.order_id)||!["created","approved","captured"].includes(claim.status))
       return asError("checkout_requires_reconciliation",409);
-    return asJson({ok:true,id:claim.order_id,checkout_token:checkoutToken,
+    let approval_url="";
+    if(claim.status!=="captured"){
+      try{approval_url=providerApprovalUrl(await paypal(env,"/v2/checkout/orders/"+encodeURIComponent(claim.order_id)))}catch(_){}
+    }
+    return asJson({ok:true,id:claim.order_id,checkout_token:checkoutToken,approval_url,
       amount_cents:total,gift_cents:gift,optional_support_cents:tip,currency:"USD",environment:"live"});
   }
   const customId=["ifund",input.campaign_id,gift,tip,channel].join("|");
@@ -376,10 +390,17 @@ async function createOrder(req,env) {
     purchase_units:[{reference_id:input.campaign_id,custom_id:customId,
       description:"Interplanetary Fund · campaign donation",
       ...paypalOrderBreakdown(gift,tip)}],
+    application_context:{
+      brand_name:"Interplanetary Fund",user_action:"PAY_NOW",
+      return_url:"https://interplanetaryfund.com/live-charge-test?paypal=return",
+      cancel_url:"https://interplanetaryfund.com/live-charge-test?paypal=cancel"
+    }
   },input.request_key);
   if(!ORDER_ID.test(order.id||""))return asError("invalid_provider_order",502);
+  const approvalUrl=providerApprovalUrl(order);
+  if(!approvalUrl)return asError("paypal_approval_unavailable",502);
   await signLedger(env,"bind",{request_key:input.request_key,paypal_order_id:order.id});
-  return asJson({ok:true,id:order.id,checkout_token:checkoutToken,
+  return asJson({ok:true,id:order.id,checkout_token:checkoutToken,approval_url:approvalUrl,
     amount_cents:total,gift_cents:gift,optional_support_cents:tip,currency:"USD",environment:"live"});
 }
 async function captureOrder(req,env) {
