@@ -15,7 +15,7 @@ test("donor charge matches the production Worker quote in integer cents", () => 
         assert.equal(estimate.totalCents, serverQuote(gift, support, channel),
           `gift=${gift},support=${support},channel=${channel}`);
         assert.equal(estimate.totalCents, estimate.giftCents + estimate.optionalSupportCents + estimate.processingCents);
-        assert.ok(estimate.processingCents > 0);
+        assert.equal(estimate.processingCents, 0, "PayPal acceptance must not surcharge the donor");
       }
     }
   }
@@ -30,10 +30,19 @@ test("invalid quote inputs do not produce charge estimates", () => {
 test("checkout UI shows processing charges before provider approval", () => {
   const src=readFileSync(new URL("../src/components/payments/CampaignDonationDialog.jsx",import.meta.url),"utf8");
   assert.match(src, /paymentQuoteCents\(gift, tip\)/);
-  assert.match(src, /Estimated payment processing/);
-  assert.match(src, /Estimated PayPal\/card charge/);
-  assert.match(src, /do not approve if it differs/);
+  assert.match(src, /PayPal processing surcharge/);
+  assert.match(src, /Total you approve in PayPal/);
+  assert.match(src, /IFund covers payment processing costs/);
+  assert.match(src, /7% IFund platform fee is deducted from the organizer/);
   assert.match(src, /data\.amount_cents!==paymentQuoteCents\(gift,tip,channel\)\?\.totalCents/);
   assert.match(src, /The payment charge changed/);
   assert.doesNotMatch(src, /Today's total/);
+});
+
+test("PayPal order has itemized gift and optional support without a mandatory surcharge", () => {
+  assert.match(workerSource, /function paypalOrderBreakdown\(gift,tip\)/);
+  assert.match(workerSource, /name:"IFund campaign gift"/);
+  assert.match(workerSource, /name:"Optional IFund support"/);
+  assert.match(workerSource, /breakdown:\{item_total:amount\}/);
+  assert.match(workerSource, /\.\.\.paypalOrderBreakdown\(gift,tip\)/);
 });
