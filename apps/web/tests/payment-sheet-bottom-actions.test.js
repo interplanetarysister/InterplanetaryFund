@@ -14,7 +14,7 @@ test("mobile payment sheet keeps verified checkout actions at the bottom",()=>{
   assert.match(dialog,/sticky bottom-0/);
   assert.match(dialog,/env\(safe-area-inset-bottom\)/);
   assert.match(dialog,/aria-pressed=\{Number\(amount\)===value\}/);
-  assert.ok(dialog.includes("Estimated PayPal/card charge"));
+  assert.ok(dialog.includes("Total you approve in PayPal"));
 });
 
 test("payment buttons remain provider controlled with verified capture",()=>{
