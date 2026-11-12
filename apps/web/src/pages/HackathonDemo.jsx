@@ -38,6 +38,7 @@ export default function HackathonDemo() {
   // Judges can reach the configured sandbox without enabling test payments on the live site.
   // This is a public location, never a credential or a secret.
   const sandboxDemoUrl = "https://feature-paypal-sandbox-secur.interplanetaryfund-migration.pages.dev/hackathon";
+  const independentJudgeDemoUrl = "https://ifund-hackathon-demo.interplanetary-fund.workers.dev/hackathon";
   // Every Cloudflare Pages preview is sandbox-only, even if payment is unavailable there.
   const sandboxHost = window.location.hostname.endsWith(".interplanetaryfund-migration.pages.dev");
   useEffect(() => {
@@ -111,6 +112,9 @@ export default function HackathonDemo() {
       <a href="https://ifund-hackathon-demo.interplanetary-fund.workers.dev/create" target="_blank" rel="noopener noreferrer"
         className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-cyan-300 px-5 font-bold text-slate-950">Open functioning AI Campaign Studio</a>
       <a href="#agent-preview" className="ml-3 mt-4 inline-flex min-h-12 items-center rounded-xl border border-violet-400 px-4 font-semibold text-violet-100">Preview AI agent conversations</a>
+      <p className="mt-4 text-sm text-slate-200">The judge environment uses fictional campaigns and separate demo accounts, receipts and ledger records; it never credits production IFund fundraising.</p>
+      <a href={independentJudgeDemoUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-12 items-center justify-center rounded-xl border border-cyan-400/60 px-4 text-center text-sm font-semibold text-cyan-300">Open the complete independent judge walkthrough — sandbox only</a>
+      <a href="https://github.com/interplanetarysister/paypal-ai-crowdfunder/blob/main/docs/RELEASE.md" target="_blank" rel="noopener noreferrer" className="mt-3 block text-sm underline">Read its dated release evidence and verification limits</a>
     </section>
     <DemoJourney onFinanceFilter={setFinanceSearch} />
     <AgentPreviewLab />

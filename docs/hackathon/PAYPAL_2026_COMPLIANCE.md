@@ -1,8 +1,31 @@
 # IFund PayPal AI Hackathon 2026 — verification ledger
 
+## Independent judge build — November 12, 2026
+
+The independent judge environment is now linked from the canonical frontend's
+`/hackathon` companion page:
+https://ifund-hackathon-demo.interplanetary-fund.workers.dev/hackathon.
+Its separate public source and dated acceptance evidence are maintained at
+https://github.com/interplanetarysister/paypal-ai-crowdfunder/blob/main/docs/RELEASE.md.
+
+This is a separate demo deployment with fictional campaigns, separate demo
+accounts and isolated sandbox accounting. Its verified captures and AI execution
+must **not** be represented as production IFund donations or proof that this
+repository's older Pages sandbox flow, production financial views or Base44
+runtime have passed the same checks. Existing Pages sandbox configuration and
+current production payment settings are preserved. The sections below describe
+the earlier Pages sandbox implementation and its verification gaps; they are
+historical evidence, not current production payment status or the standalone
+demo's acceptance results. The separate source repository's dated release record
+is the authority for that demo's verified captures, AI runs and remaining gates.
+
+Canonical frontend source: `apps/web` in this repository; the original Base44
+app/source is the read-only visual and workflow reference. The standalone demo
+has its own public source, deployment and isolated sandbox financial records.
+
 **Official rules:** https://paypalaihackathon.devpost.com/rules
 **Submission deadline:** November 12, 2026, 12:00 PM Pacific.
-**Canonical frontend:** original `interplanetary-fund2` Base44 app. **Independent demo/runtime:** `InterplanetaryFund` Cloudflare Pages/Workers + Supabase. **No Base44 runtime fallback.**
+**Earlier Pages sandbox implementation:** `InterplanetaryFund` Cloudflare Pages/Workers + Supabase. **No Base44 runtime fallback.**
 
 ## What actually exists
 

@@ -38,6 +38,22 @@ test('disconnect removes only the member’s grant and prevents stale OAuth writ
     for (const migration of migrations) {
       await db.exec(await readFile(new URL('../supabase/migrations/' + migration, import.meta.url), 'utf8'));
     }
+    for (const signature of [
+      'public.ifund_store_provider_connection(uuid,text,text,jsonb,text[])',
+      'public.ifund_store_provider_connection_v2(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text)',
+      'public.ifund_store_provider_connection_v3(uuid,text,text,jsonb,text[],timestamptz,timestamptz,smallint,text,timestamptz)',
+    ]) {
+      for (const role of ['anon','authenticated','service_role']) {
+        const { rows: [privilege] } = await db.query(
+          'select has_function_privilege($1,$2,\'EXECUTE\') as permitted', [role,signature],
+        );
+        assert.equal(privilege.permitted, role === 'service_role', `${role}: ${signature}`);
+      }
+    }
+    const { rows: [disconnectPrivilege] } = await db.query(
+      "select has_function_privilege('anon','public.ifund_disconnect_provider(text)','EXECUTE') as permitted",
+    );
+    assert.equal(disconnectPrivilege.permitted, false);
     async function store(owner, authorizedAt, event = 'connected') {
       const result = await db.query(`select public.ifund_store_provider_connection_v3(
         $1,'google','subject','{}'::jsonb,'{}',null,null,1::smallint,$2,$3

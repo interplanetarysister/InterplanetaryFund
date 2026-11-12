@@ -1,4 +1,98 @@
 # Migration status — 2026-10-24
+
+## Canonical build review — November 12, 2026
+
+Reconciled the saved source repair with remote main
+`53200db9b3b84d3b24c0c034a3ec31cd30890d54`, retaining its new AI Campaign Studio
+and agent-preview sections. This is a source-only review; current production
+configuration is not inferred from older status entries below.
+
+Source repair keeps the security guard intact. The reviewed OAuth vault writers
+are executable only by service_role; member disconnect derives auth.uid(), checks
+active membership and serializes its owner/provider mutations. All pin
+search_path. The real-Postgres lifecycle test now checks EXECUTE grants for all
+three storage RPC signatures and denies anonymous disconnect. The owner's
+activity aggregate performs only ownership/active checks and SELECT/GROUP BY, so
+its source definition is now correctly STABLE. The forward migration
+`20261112123500_ifund_owner_agent_focus_stable.sql` corrects already-applied
+VOLATILE catalogs using only ALTER FUNCTION. Its executable PostgreSQL test
+proves that the body, owner, EXECUTE grants, SECURITY DEFINER setting and pinned
+search_path are unchanged; replay, owner-only counts, anonymous/cross-owner,
+inactive-account and missing-identity denials are covered. No remote migration
+was applied by this source/build task. The release coordinator separately reviewed
+the live body, ACL and pinned search_path, then successfully applied the identical
+ALTER through Supabase `apply_migration` as `ifund_owner_agent_focus_stable`.
+The coordinator independently verified the resulting live catalog:
+`provolatile=s`, `prosecdef=true`, empty pinned search_path, unchanged
+postgres/service_role/authenticated ACL and body hash
+`effddb7b7d97f2e227b9f0b9e6d6d45c`. Production payment configuration and records
+were untouched by that correction.
+The Help test now checks conditional checkout availability, provider-confirmed
+reconciled gifts and separate platform support, instead of a stale blanket
+assertion that donations are paused. Withdrawal-unavailable guidance remains
+covered.
+
+The `/hackathon` companion links the independent judge walkthrough and its
+separate release evidence. It does not change the existing Pages sandbox API
+origin, credential bindings or current production payment settings. No provider,
+data, DNS or deployment mutation is included. The OAuth changes overlap the
+allowlist portion of open PR #234; they must be reconciled rather than merged as
+a second broad provider implementation.
+
+Local verification on Node v24.22.1:
+
+- Root `npm test`: **353/353 pass**, including the added executable catalog and
+  authorization test after dependency repairs (125.4 seconds, exit 0).
+- Affected checks (function security, provider lifecycle, Help and forward
+  migration): **13/13 pass**.
+- Canonical `apps/web` after dependency repairs: **274/274 tests pass**; production
+  build passes (11.7 seconds).
+- Historical root frontend: production build passes on Vite 6.4.6 (3.1 seconds).
+- Required baseline-clean public-surface and new-test Prettier checks: pass.
+- Both lockfiles reproduce unchanged through package-lock-only installation.
+- `demo/npm run check`: TypeScript check, Worker source bundle and **18/18
+  synthetic ledger/payment-edge tests pass**. Generated bundle/map/lockfile were
+  retained only as ignored work artifacts, not substituted for the release.
+- The public judge HTTP script could not fetch any endpoint from this shell;
+  public runtime acceptance is **NOT VERIFIED by this check**. This does not
+  establish a deployed application failure or a successful provider transaction.
+
+Dependency verification after compatible build-tool repairs:
+
+| Audit scope | High | Moderate | Total |
+| --- | ---: | ---: | ---: |
+| Root, all dependencies | 0 | 0 | 0 |
+| Canonical web, all dependencies | 0 | 4 | 4 |
+| Root, production dependencies only | 0 | 0 | 0 |
+| Canonical web, production dependencies only | 0 | 0 | 0 |
+
+Root Vite was patched from 6.4.3 to 6.4.6; PostCSS's source-map-js was patched
+from 1.2.1 to 1.2.2 and selector-parser from 6.1.4 to 6.1.6. The two prior high
+alerts affected development/build tooling, not the deployed static Pages
+runtime. Canonical web's compatible rimraf 6.1.4 patch brings its maintained
+internal glob/minimatch dependencies. No direct major upgrade, forced audit fix
+or override was used.
+
+The remaining four moderate dependency nodes all report the same
+[uuid advisory](https://github.com/advisories/GHSA-w5hq-g745-h8pq), through
+`@capacitor/assets -> @trapezedev/project -> xcode -> uuid`. This is native
+artwork CLI tooling, absent from production dependencies and browser imports.
+The inspected xcode call is `uuid.v4()` without a supplied buffer; the advisory's
+v3/v5/v6 buffer APIs are not called there. npm's proposed automated fix is a
+breaking assets downgrade, so it was not forced. An upstream compatible fix
+remains outstanding; no APK build is claimed by this review.
+
+Hosted CI is externally **BLOCKED**. Both initial PR #263 jobs stopped before
+any steps because GitHub reported: "The job was not started because your account
+is locked due to a billing issue." See
+[root release-candidate run](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/43219407380)
+and [frontend run](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/43219407430).
+Local test/build passes are not represented as successful hosted CI; no paid
+service or billing change was made.
+
+Local tests do not establish production migration parity, real provider financial
+reconciliation, sandbox capture/webhook verification or judge readiness. Those
+remain separate release gates; no payout or withdrawal execution was enabled.
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
 Latest campaign-creator increment and production/preview reconciliation:

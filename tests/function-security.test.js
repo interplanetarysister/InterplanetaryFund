@@ -57,6 +57,15 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_set_my_avatar",
   "public.ifund_create_member_blog",
   "public.ifund_save_blog_story",
+  // OAuth token writes are service-role-only and persist ciphertext, never
+  // browser-supplied connection claims. The member disconnect routine derives
+  // auth.uid(), checks active membership and serializes owner/provider changes.
+  // provider-connection-lifecycle.test.js executes the grants, owner isolation,
+  // disconnect barrier and stale-refresh denial against PostgreSQL.
+  "public.ifund_store_provider_connection",
+  "public.ifund_store_provider_connection_v2",
+  "public.ifund_store_provider_connection_v3",
+  "public.ifund_disconnect_provider",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
