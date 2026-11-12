@@ -6,6 +6,7 @@ on:
       - 'demo/worker/**/*.ts'
       - 'demo/src/**/*.ts'
       - 'demo/package.json'
+      - 'demo/scripts/*test.mjs'
       - 'demo/tsconfig.json'
       - '.github/workflows/demo-source-build.yml'
 permissions:
@@ -32,6 +33,9 @@ jobs:
           path: demo/typecheck.log
           retention-days: 2
       - run: npm run build:worker
+        working-directory: demo
+      - name: Sandbox ledger and payment edge-case regression tests
+        run: npm run test:ledger
         working-directory: demo
       - run: node --check worker/app.js
         working-directory: demo
