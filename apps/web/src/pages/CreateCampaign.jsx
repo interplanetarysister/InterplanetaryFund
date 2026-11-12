@@ -11,6 +11,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
+import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 
 export default function CreateCampaign() {
   const [params] = useSearchParams();
@@ -31,6 +32,7 @@ function NewCampaign({ draftId = null }) {
 }
 
 function CampaignComposer({ memberAccess = false, ownerId = null }) {
+  const donationsEnabled = usePublicCampaignFundraising();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const draftId = params.get("draft");
@@ -313,7 +315,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>
           : <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">{readiness.missing.map(item => <li key={item}>{item}</li>)}</ul>}
       </div>
-      <p className="text-sm text-muted-foreground">Campaign donations are currently paused.</p>
+      <p className="text-sm text-muted-foreground">{donationsEnabled ? "Publishing makes this active campaign eligible for verified PayPal donations." : "Campaign checkout is temporarily unavailable; you can still save and publish."}</p>
       {actions}
     </section>
   </main>;
