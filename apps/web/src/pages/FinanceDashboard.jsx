@@ -48,7 +48,7 @@ export default function FinanceDashboard() {
     return () => { active = false; };
   }, []);
   const totalRaised = state.owned.reduce((sum, x) => sum + (Number(x.raised_cents)||0), 0);
-  const totalGiven = state.donated.reduce((sum, x) => sum + (Number(x.amount_cents)||0), 0);
+  const totalGiven = state.donated.filter(x=>x.receipt_status==="captured").reduce((sum,x)=>sum+(Number(x.amount_cents)||0),0);
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
       <h1 className="text-3xl font-bold">Financial center</h1>
@@ -96,11 +96,12 @@ export default function FinanceDashboard() {
       </section>
       <section id="giving-receipts" className="rounded-2xl border border-border bg-card p-5">
         <h2 className="text-xl font-semibold">Your donation receipts</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Provider-verified refunds remain visible for your records, but are excluded from active giving and campaign totals.</p>
         {state.donated.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No verified captured donations recorded for your account.</p> :
           <div className="mt-3 space-y-3">{state.donated.map(r => <div key={r.donation_id} className="flex flex-wrap justify-between gap-3 border-b border-border py-3">
             <div><Link to={"/campaign/"+r.campaign_id} className="underline">{r.campaign_title}</Link>
-              <p className="text-xs text-muted-foreground">Captured · {new Date(r.captured_at).toLocaleDateString()}</p></div>
-            <strong className="tabular-nums">{cents(r.amount_cents)}</strong>
+              <p className="text-xs text-muted-foreground">{r.receipt_status==="refunded"?"Refunded / reversed":"Captured"} · {new Date(r.captured_at).toLocaleDateString()}</p></div>
+            <strong className={"tabular-nums "+(r.receipt_status==="refunded"?"text-muted-foreground line-through":"")}>{cents(r.amount_cents)}</strong>
           </div>)}</div>}
       </section>
     </>}

@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart } from "lucide-react";
 import { paymentQuoteCents } from "@/lib/paymentQuote";
+import { authClient } from "@/api/auth";
+import { Link } from "react-router-dom";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
@@ -59,7 +61,15 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
       checkoutToken=crypto.randomUUID().replace(/-/g,"")+crypto.randomUUID().replace(/-/g,"");
       checkoutTokens.current.set(key,checkoutToken);
     }
-    const data=await api("/api/payments/create-order",{method:"POST",body:JSON.stringify({
+    // The financial service verifies this JWT against Supabase Auth. A missing
+    // authenticated session remains an anonymous guest donation.
+    const {data:sessionData,error:sessionError}=await authClient().auth.getSession();
+    if(sessionError) throw new Error("Account session could not be checked. Sign in again before donating.");
+    const session=sessionData?.session;
+    const accessToken=session && !session.user?.is_anonymous ? session.access_token : null;
+    const data=await api("/api/payments/create-order",{method:"POST",
+      headers:accessToken?{"authorization":"Bearer "+accessToken}:{},
+      body:JSON.stringify({
       campaign_id:campaign.id,gift_cents:gift,optional_support_cents:tip,
       payment_channel:channel,request_key:key,checkout_token:checkoutToken,
     })});
@@ -146,7 +156,11 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <DialogTitle className="pr-9 text-xl font-bold leading-snug text-[#11264b] sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
         <DialogDescription className="text-sm text-slate-600">Review your entire payment before approving it securely with PayPal. No IFund account is needed.</DialogDescription>
       </DialogHeader>
-      {complete?<p role="status" className="m-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 font-semibold text-emerald-800">Donation verified with PayPal and recorded. Thank you!</p>:
+      {complete?<div role="status" className="m-5 space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+        <p className="font-bold"><CircleCheck className="mr-2 inline h-5 w-5" />Donation verified with PayPal and recorded. Thank you!</p>
+        <p className="text-sm">Signed-in donors can find their verified campaign receipts in My Giving. Guest donations remain private and are not automatically assigned to an account.</p>
+        <Link to="/giving" className="inline-flex min-h-11 items-center rounded-xl border border-emerald-300 bg-white px-4 py-2 text-sm font-bold text-emerald-900 hover:bg-emerald-100">View My Giving</Link>
+      </div>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
         <div className="space-y-2">
           <p className="text-sm font-semibold text-slate-900">Choose your donation</p>

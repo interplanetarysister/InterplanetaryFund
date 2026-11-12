@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { payoutIdentity } from "@/lib/guestAccess";
@@ -7,6 +7,138 @@ import { confirmWithdrawalFactor } from "@/lib/withdrawalMfa";
 // MFA is deliberately NOT part of login, registration, content creation or
 // account browsing. It is a step-up gate on the first withdrawal journey.
 // This screen never initiates a payout or treats client state as approval.
+
+function usd(cents) {
+  return Number.isSafeInteger(Number(cents))
+    ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents)/100)
+    : "Unavailable";
+}
+function parseUsdCents(raw) {
+  if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) return null;
+  const [whole,fraction=""]=raw.split(".");
+  const value=Number(whole)*100+Number(fraction.padEnd(2,"0"));
+  return Number.isSafeInteger(value) ? value : null;
+}
+
+// The only user action here is an atomic, owner-only hold for payout REVIEW.
+// No money is disbursed by this UI; an independently verified provider clearing
+// record and a separate approved payout processor are still required.
+function WithdrawalBalancePanel() {
+  const [state,setState]=useState({phase:"loading",balances:[],requests:[],error:""});
+  const [campaign,setCampaign]=useState("");
+  const [amount,setAmount]=useState("");
+  const [busy,setBusy]=useState(false);
+  const [error,setError]=useState("");
+  const [notice,setNotice]=useState("");
+  const requestRef=useRef(null);
+  const refresh=useCallback(async()=>{
+    const client=authClient();
+    const [balances,requests]=await Promise.all([
+      client.rpc("ifund_owner_withdrawal_balances"),
+      client.rpc("ifund_my_withdrawal_requests")
+    ]);
+    if(balances.error||requests.error||!Array.isArray(balances.data)||!Array.isArray(requests.data))
+      throw Error("Provider-cleared withdrawal balances could not be verified.");
+    setState({phase:"ready",balances:balances.data,requests:requests.data,error:""});
+  },[]);
+  useEffect(()=>{
+    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],error:e.message}));
+  },[refresh]);
+  const selected=state.balances.find(row=>row.campaign_id===campaign);
+  const gross=parseUsdCents(amount);
+  const fee=gross===null?null:Number((BigInt(gross)*7n+50n)/100n);
+  const valid=gross!==null&&gross>=1000&&gross<=100000000
+    &&gross<=Number(selected?.available_cents||0);
+  async function requestWithdrawal(event) {
+    event.preventDefault();
+    if(busy||!valid)return;
+    setBusy(true);setError("");setNotice("");
+    try {
+      const {data:assurance,error:authError}=await authClient().auth.mfa.getAuthenticatorAssuranceLevel();
+      if(authError||assurance?.currentLevel!=="aal2")throw Error("Reverify your authenticator before requesting a withdrawal.");
+      if(!requestRef.current)requestRef.current=crypto.randomUUID().replace(/-/g,"");
+      const result=await authClient().rpc("ifund_request_withdrawal",{
+        p_campaign_id:campaign,p_gross_cents:gross,p_request_key:requestRef.current
+      });
+      if(result.error||!result.data)throw Error(result.error?.message||"Withdrawal reservation was not confirmed.");
+      requestRef.current=null;setAmount("");
+      await refresh();
+      setNotice("Your funds are reserved for payout review. No transfer has been sent.");
+    }catch(cause){setError(cause.message||"Unable to reserve available funds.");}
+    finally{setBusy(false);}
+  }
+  async function cancel(id) {
+    if(busy)return;setBusy(true);setError("");setNotice("");
+    try{
+      const result=await authClient().rpc("ifund_cancel_withdrawal_request",{p_withdrawal_id:id});
+      if(result.error||result.data!==true)throw Error(result.error?.message||"Cancellation not confirmed.");
+      await refresh();setNotice("The pending reservation was cancelled. No transfer was sent.");
+    }catch(cause){setError(cause.message||"Unable to cancel the request.");}
+    finally{setBusy(false);}
+  }
+  return <section className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
+    <h2 className="text-xl font-bold">Step 3: Verified available funds</h2>
+    <p className="text-sm text-muted-foreground">
+      A completed donation is not automatically cleared for payout. Only provider-cleared,
+      unreversed live funds are eligible. A withdrawal request reserves funds for review;
+      it does not send a PayPal payout.
+    </p>
+    {state.phase==="loading"&&<p role="status">Checking provider-cleared balances and existing holds…</p>}
+    {state.phase==="error"&&<p role="alert" className="text-red-600">{state.error} No new hold can be created.</p>}
+    {state.phase==="ready"&&<>
+      {state.balances.length===0&&<p>You do not own any campaigns eligible for a withdrawal review.</p>}
+      {state.balances.map(item=><div key={item.campaign_id} className="rounded-xl border border-border p-4">
+        <h3 className="font-bold">{item.campaign_title}</h3>
+        <dl className="mt-3 grid grid-cols-2 gap-3 text-sm">
+          <div><dt className="text-muted-foreground">Provider-cleared</dt><dd className="font-semibold tabular-nums">{usd(item.provider_cleared_cents)}</dd></div>
+          <div><dt className="text-muted-foreground">Reserved for review</dt><dd className="font-semibold tabular-nums">{usd(item.reserved_gross_cents)}</dd></div>
+          <div><dt className="text-muted-foreground">Previously paid (gross)</dt><dd className="font-semibold tabular-nums">{usd(item.paid_gross_cents)}</dd></div>
+          <div><dt className="text-muted-foreground">Available to request</dt><dd className="font-bold tabular-nums">{usd(item.available_cents)}</dd></div>
+        </dl>
+      </div>)}
+      {state.balances.some(row=>Number(row.available_cents)>=1000)&&
+        <form onSubmit={requestWithdrawal} className="space-y-3 rounded-xl border border-cyan-500/30 p-4">
+          <h3 className="font-bold">Reserve funds for payout review</h3>
+          <label className="block text-sm font-medium">Your campaign
+            <select required value={campaign} disabled={busy} onChange={e=>{setCampaign(e.target.value);requestRef.current=null;}}
+              className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-3">
+              <option value="">Select a campaign</option>
+              {state.balances.filter(row=>Number(row.available_cents)>=1000).map(row=>
+                <option key={row.campaign_id} value={row.campaign_id}>{row.campaign_title} — {usd(row.available_cents)} available</option>)}
+            </select>
+          </label>
+          <label className="block text-sm font-medium">Gross amount in USD (minimum $10)
+            <input required value={amount} disabled={busy} inputMode="decimal" placeholder="10.00"
+              onChange={e=>{setAmount(e.target.value);requestRef.current=null;}}
+              className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"/>
+          </label>
+          {gross!==null&&gross>0&&<p className="rounded-xl bg-muted p-3 text-sm">
+            Gross reservation {usd(gross)} − 7% platform fee {usd(fee)} = estimated payout {usd(gross-fee)}.
+            The fee is recognized once only after a verified payout, not on this request.
+          </p>}
+          <button type="submit" disabled={busy||!valid}
+            className="min-h-12 w-full rounded-xl bg-cyan-600 px-5 py-3 font-bold text-white disabled:opacity-40">
+            {busy?"Verifying reservation…":"Request payout review"}
+          </button>
+        </form>}
+      {state.requests.length>0&&<section aria-label="My withdrawal requests" className="space-y-3">
+        <h3 className="text-lg font-bold">Your withdrawal requests</h3>
+        {state.requests.map(row=><div key={row.withdrawal_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm">
+          <div><strong className="tabular-nums">{usd(row.gross_cents)}</strong>
+            <p className="text-muted-foreground">7% fee {usd(row.fee_cents)} · estimated net {usd(row.net_cents)}</p>
+            <p className="text-muted-foreground">Status: {row.request_status.replace(/_/g," ")}</p></div>
+          {row.request_status==="under_review"&&<button type="button" disabled={busy}
+            onClick={()=>cancel(row.withdrawal_id)} className="min-h-11 rounded-lg border border-border px-4 font-semibold disabled:opacity-40">
+            Cancel hold
+          </button>}
+        </div>)}
+      </section>}
+    </>}
+    {error&&<p role="alert" className="text-sm text-red-600">{error}</p>}
+    {notice&&<p role="status" className="text-sm font-semibold text-emerald-600">{notice}</p>}
+  </section>;
+}
+
 function WithdrawalMfaGate({ authUser }) {
   const [state, setState] = useState("loading");
   const [factor, setFactor] = useState(null);
@@ -96,11 +228,7 @@ function WithdrawalMfaGate({ authUser }) {
         {busy ? "Verifying…" : "Verify second factor"}
       </button>
     </form>}
-    {state === "verified" && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">
-      Your authenticator has been verified for this session (AAL2).
-      Payout requests still require processor approval and server-side checks;
-      withdrawals cannot be initiated from this screen.
-    </p>}
+    {state === "verified" && <WithdrawalBalancePanel />}
     {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
   </section>;
 }
@@ -130,7 +258,7 @@ export default function WithdrawalVerification() {
       <p className="text-muted-foreground">
         Registration and content creation require an email account but not
         two-factor authentication. MFA is only requested when you begin your
-        first withdrawal. Applicable financial identity and payout checks are separate.
+        first withdrawal. Provider-cleared funds and payout review are separate.
       </p>
     </header>
     {state.phase === "loading" && <p role="status">Checking your account…</p>}
