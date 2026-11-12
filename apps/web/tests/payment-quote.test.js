@@ -33,5 +33,7 @@ test("checkout UI shows processing charges before provider approval", () => {
   assert.match(src, /Estimated payment processing/);
   assert.match(src, /Estimated PayPal\/card charge/);
   assert.match(src, /do not approve if it differs/);
+  assert.match(src, /data\.amount_cents!==paymentQuoteCents\(gift,tip,channel\)\?\.totalCents/);
+  assert.match(src, /The payment charge changed/);
   assert.doesNotMatch(src, /Today's total/);
 });
