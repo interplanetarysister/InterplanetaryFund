@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Share2, Copy, Check, Mail, Code2 } from "lucide-react";
 import {
   campaignShareUrl, campaignEmbedSnippet, shareTargets, buildSharePayload, canUseWebShare,
@@ -8,7 +9,7 @@ import {
 // the visitor's own share sheet or a third-party compose page with a
 // pre-filled, percent-encoded link. Nothing is sent to IFund and no tracking
 // identifier is added, so this works for anonymous visitors too.
-export default function CampaignShareButton({ campaign }) {
+export default function CampaignShareButton({ campaign, ownerView = false }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
@@ -77,14 +78,17 @@ export default function CampaignShareButton({ campaign }) {
         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 px-4 py-3 font-semibold text-stone-800 hover:border-primary/40"
       >
         <Share2 aria-hidden="true" className="h-4 w-4" />
-        {open ? "Close sharing options" : "Help share this campaign!"}
+        {open ? "Close sharing options" : ownerView ? "Connect and publish updates" : "Help share this campaign!"}
       </button>
 
       {open && (
         <div id="campaign-share-panel" className="mt-3 space-y-3">
           <p className="text-xs text-stone-500">
-            Help this fundraiser reach more people. Choose where to share its public link. Nothing is posted on your behalf, and no account connection is needed.
+            {ownerView
+              ? "Share this published campaign now, or manage your connected accounts to prepare updates. Opening a share option does not automatically publish a post."
+              : "Help this fundraiser reach more people. Choose where to share its public link. Nothing is posted on your behalf, and no account connection is needed."}
           </p>
+          {ownerView && <Link to="/connections" className="inline-flex min-h-11 items-center rounded-xl border border-primary/30 px-4 py-2 text-sm font-semibold text-primary">Manage connected platforms</Link>}
           <ul className="space-y-2">
             {shareSheetAvailable && (
               <li>
