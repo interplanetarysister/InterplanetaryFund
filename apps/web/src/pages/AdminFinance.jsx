@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 const money = n => {
@@ -14,7 +16,9 @@ const campaignColumns = [
   { field: "refund_count", headerName: "Refund records", minWidth: 160 },
 ];
 export default function AdminFinance({ embedded = false }) {
-  const [state,setState] = useState({status:"loading",rows:[],receipts:[],error:""});
+  const { user } = useAuthSession();
+  const superAdminStatus = useSuperAdminAccess(user);
+  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,error:""});
   useEffect(()=>{
     let active=true;
     (async()=>{
@@ -23,16 +27,18 @@ export default function AdminFinance({ embedded = false }) {
         const before=await client.auth.getUser();
         if(before.error||!before.data?.user?.id)throw Error("Sign in required.");
         // Server-side RPC checks verified administrator authority independently.
-        const [report, merchant] = await Promise.all([
+        const [report, merchant, income] = await Promise.all([
           client.rpc("ifund_admin_finance_summary"),
           client.rpc("ifund_admin_paypal_merchant_receipts"),
+          client.rpc("ifund_super_admin_platform_income_summary"),
         ]);
         if(report.error||!Array.isArray(report.data)||merchant.error||!Array.isArray(merchant.data))
           throw Error("Administrator financial reporting is unavailable or you do not have verified access.");
+        const incomeRow = !income.error && Array.isArray(income.data) ? income.data[0] || null : null;
         const after=await client.auth.getUser();
         if(after.error||after.data?.user?.id!==before.data.user.id)throw Error("Your session changed. Reload to continue.");
-        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,error:""});
-      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],error:e.message||"Unavailable"});}
+        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,error:""});
+      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,error:e.message||"Unavailable"});}
     })();
     return ()=>{active=false};
   },[]);
@@ -53,6 +59,23 @@ export default function AdminFinance({ embedded = false }) {
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count}</p></div>
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Campaigns in reporting</p><p className="mt-2 text-2xl font-semibold">{state.rows.length}</p></div>
       </div>
+      {superAdminStatus === "super-admin" && state.income && <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-5 space-y-4" aria-label="IFund platform income">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">Super admin · IFund platform income</p>
+          <h2 className="mt-1 text-xl font-semibold">Realized platform income</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Provider-backed platform revenue only. Campaign principal is excluded.</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Total realized income</p><p className="mt-2 text-2xl font-semibold tabular-nums">{money(state.income.total_realized_platform_income_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Platform support · gross</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.platform_support_gross_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">PayPal processing fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.platform_support_processing_fee_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Platform support · net</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.platform_support_net_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription receipts · gross</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_gross_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription refunds/reversals</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_refund_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription ledger · net</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_net_cents)}</p></div>
+          <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Realized 7% withdrawal fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.realized_withdrawal_fee_cents)}</p></div>
+        </div>
+      </section>}
       <section className="ifund-chart-card" aria-label="Verified platform finance composition">
         <p className="ifund-chart-eyebrow">AG Charts Community · independently attributed finance</p>
         <h3>Verified campaign gifts by campaign</h3>
