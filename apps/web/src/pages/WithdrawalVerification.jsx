@@ -14,7 +14,7 @@ function usd(cents) {
     : "Unavailable";
 }
 function parseUsdCents(raw) {
-  if (!/^\\d+(?:\\.\\d{1,2})?$/.test(raw)) return null;
+  if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) return null;
   const [whole,fraction=""]=raw.split(".");
   const value=Number(whole)*100+Number(fraction.padEnd(2,"0"));
   return Number.isSafeInteger(value) ? value : null;
