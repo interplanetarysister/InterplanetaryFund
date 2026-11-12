@@ -64,6 +64,9 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     })});
     if(!data.id||data.checkout_token!==checkoutToken||data.environment!=="live")
       throw new Error("Payment checkout requires reconciliation");
+    if(!Number.isSafeInteger(data.amount_cents)||
+       data.amount_cents!==paymentQuoteCents(gift,tip,channel)?.totalCents)
+      throw new Error("The payment charge changed. Do not approve checkout. Please retry.");
     tokens.current.set(data.id,checkoutToken);
     return data.id;
   };
