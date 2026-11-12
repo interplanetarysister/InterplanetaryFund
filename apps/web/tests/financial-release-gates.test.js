@@ -74,7 +74,7 @@ test("client cannot claim request approval or transfer just because MFA succeede
   assert.match(withdrawals,/getAuthenticatorAssuranceLevel/);
   assert.match(withdrawals,/No transfer has been sent/);
   assert.doesNotMatch(withdrawals,/PAYPAL_CLIENT_SECRET|service_role/);
-  assert.doesNotMatch(withdrawals,//v1/payments/payouts/);
+  assert.doesNotMatch(withdrawals,/\/v1\/payments\/payouts/);
 });
 test("homepage support popup states precisely what provider-hosted checkout can prove",()=>{
   assert.match(platform,/DialogContent/);
