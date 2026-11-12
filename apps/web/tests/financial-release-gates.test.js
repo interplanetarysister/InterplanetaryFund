@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 const file = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const donorSql=file("../../../supabase/migrations/20261112_ifund_authenticated_donor_capture.sql");
 const reservationSql=file("../../../supabase/migrations/20261112_ifund_cleared_withdrawal_reservations.sql");
+const withdrawalRepairSql=file("../../../supabase/migrations/20261112231500_ifund_refund_aware_withdrawal_journal.sql");
 const edge=file("../../../supabase/functions/ifund-payment-ledger/index.ts");
 const worker=file("../../../workers/ifund-payments/worker.js");
 const dialog=file("../src/components/payments/CampaignDonationDialog.jsx");
@@ -64,15 +65,18 @@ test("single 7% fee is calculated at reservation; not recognized as earned befor
     assert.equal(cents-fee+fee,cents);
   }
   assert.match(reservationSql,/v_fee:=round\(p_gross_cents::numeric\*0\.07\)::bigint/);
-  assert.match(withdrawals,/BigInt\(gross\)\*7n\+50n/);
-  assert.doesNotMatch(reservationSql,/insert into public\.ifund_ledger_entries/i);
+  assert.match(withdrawalRepairSql,/v_fee:=round\(p_gross_cents::numeric\*0\.07\)::bigint/);
+  assert.match(withdrawalRepairSql,/holding_ledger_entry/);
+  assert.match(withdrawalRepairSql,/'reserve','reserved','withdrawal'/);
+  assert.doesNotMatch(withdrawals,/BigInt\(gross\)\*7n\+50n/);
 });
 test("client cannot claim request approval or transfer just because MFA succeeded",()=>{
   assert.match(withdrawals,/ifund_owner_withdrawal_balances/);
-  assert.match(withdrawals,/ifund_request_withdrawal/);
+  assert.doesNotMatch(withdrawals,/\.rpc\(["']ifund_request_withdrawal/);
+  assert.match(withdrawals,/ifund_owner_payout_readiness/);
   assert.match(withdrawals,/ifund_cancel_withdrawal_request/);
   assert.match(withdrawals,/getAuthenticatorAssuranceLevel/);
-  assert.match(withdrawals,/No transfer has been sent/);
+  assert.match(withdrawals,/execution remains closed/);
   assert.doesNotMatch(withdrawals,/PAYPAL_CLIENT_SECRET|service_role/);
   assert.doesNotMatch(withdrawals,/\/v1\/payments\/payouts/);
 });
