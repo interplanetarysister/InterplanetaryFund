@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import { uploadCampaignCover, validateCoverFile } from "@/api/campaignCovers";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
@@ -38,6 +39,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const draftId = params.get("draft");
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
+  const coverUploadLock = useRef(false);
   const writingLock = useRef(false);
   const writingRequests = useRef(new Map());
   const alive = useRef(true);
@@ -70,6 +72,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     return { title: "", summary: "", story: "", category: "community", goal_amount: "", cover_image_url: "", map_opt_in: false, public_location_label: "", map_latitude: "", map_longitude: "" };
   });
   const [busy, setBusy] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverUploadMessage, setCoverUploadMessage] = useState("");
   const [handoffBusy, setHandoffBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
@@ -167,9 +171,29 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }); }
     catch { /* session storage unavailable */ }
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
-  const disabled = Boolean(busy || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
+  async function handleCoverUpload(file) {
+    if (coverUploadLock.current || !file) return;
+    const problem = validateCoverFile(file);
+    if (problem) { setError(problem); return; }
+    coverUploadLock.current = true;
+    setCoverUploading(true);
+    setCoverUploadMessage("");
+    setError("");
+    try {
+      const url = await uploadCampaignCover(authClient(), file);
+      if (!alive.current) return;
+      change("cover_image_url", url);
+      setCoverUploadMessage("Your cover image uploaded. Save this draft or publish to attach it to your campaign.");
+    } catch (cause) {
+      if (alive.current) setError(cause?.message || "The cover image could not be uploaded. Try a smaller JPG or PNG.");
+    } finally {
+      coverUploadLock.current = false;
+      if (alive.current) setCoverUploading(false);
+    }
+  }
   async function save(status) {
     if (saveLock.current || disabled) return;
     saveLock.current = true;
@@ -302,7 +326,28 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Your story<textarea aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <label className="block font-semibold">Cover image URL (optional)<input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} onChange={e=>change("cover_image_url",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <div className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
+        <div>
+          <h3 className="font-semibold">Campaign cover image (optional)</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission.</p>
+        </div>
+        <label className="block text-sm font-semibold">Upload your cover
+          <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={disabled}
+            onChange={event => { const file=event.currentTarget.files?.[0]; event.currentTarget.value=""; if(file) void handleCoverUpload(file); }}
+            className="mt-2 block w-full rounded-xl border border-input bg-background p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-primary-foreground" />
+        </label>
+        {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
+        {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
+        <label className="block text-sm font-semibold">Or paste an image URL
+          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
+            onChange={event => { change("cover_image_url",event.target.value); setCoverUploadMessage(""); }}
+            className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+        </label>
+        {form.cover_image_url && <div className="rounded-xl border border-border p-3">
+          <p className="mb-2 text-xs text-muted-foreground">Cover preview — confirm the image displays before publishing</p>
+          <img src={form.cover_image_url} alt="Campaign cover preview" loading="lazy" className="max-h-56 w-full rounded-lg object-contain" />
+        </div>}
+      </div>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
