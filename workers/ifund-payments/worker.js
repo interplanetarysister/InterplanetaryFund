@@ -180,6 +180,12 @@ async function createOrder(req,env) {
    ||!Number.isSafeInteger(gift)||gift<100||gift>100000000
    ||!Number.isSafeInteger(tip)||tip<0||tip>Math.round(gift*0.1))return asError("invalid_donation_request");
   const total=quote(gift,tip,channel);
+  // Carry a browser session only to the trusted signed-ledger broker. Never
+  // trust a donor UUID supplied by checkout and never persist the bearer token.
+  const authHeader=req.headers.get("authorization");
+  if(authHeader && !/^Bearer [A-Za-z0-9._-]{40,8192}$/.test(authHeader))
+    return asError("invalid_donor_session",401);
+  const donorToken=authHeader?authHeader.slice(7):null;
   // The browser supplies a cryptographically random token that remains stable
   // across retries of the same payment request. Old clients can still use the
   // server-generated token until all existing deployments have refreshed.
@@ -191,7 +197,8 @@ async function createOrder(req,env) {
   const tokenHash=await hash(checkoutToken);
   const claim=await signLedger(env,"begin",{campaign_id:input.campaign_id,request_key:input.request_key,
     gift_cents:gift,optional_support_cents:tip,total_cents:total,
-    payment_channel:channel,environment:"live",checkout_token_hash:tokenHash});
+    payment_channel:channel,environment:"live",checkout_token_hash:tokenHash,
+    donor_access_token:donorToken});
   // A completed bind is authoritative. Never create another PayPal order
   // after an HTTP timeout or retry with the same request key.
   if(claim.order_id){
