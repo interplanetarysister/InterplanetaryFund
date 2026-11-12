@@ -146,7 +146,13 @@ export function judgeTourClient() {
     state.step = restart ? 0 : state.step;
     if (!inRoute(steps[state.step], location.pathname)) {
       const matching = steps.findIndex(s => inRoute(s, location.pathname));
-      state.step = matching >= 0 ? matching : 0;
+      if (matching < 0 && location.pathname !== "/login") {
+        state.step = 0;
+        save();
+        navigate("/hackathon");
+        return;
+      }
+      state.step = matching >= 0 ? matching : state.step;
     }
     save();
     panel.hidden = false;
@@ -169,6 +175,11 @@ export function judgeTourClient() {
     window.location.assign(path);
   }
   next.addEventListener("click", () => {
+    if (location.pathname === "/login") {
+      status.textContent = "Finish signing in on this page. The walkthrough will resume automatically.";
+      findTarget('form input[autocomplete="username"]')?.focus({preventScroll:true});
+      return;
+    }
     if (state.step === steps.length - 1) {
       stop();
       return;
@@ -235,8 +246,16 @@ export function judgeTourClient() {
 
   function position() {
     raf = 0;
-    if (!state.active || panel.hidden) return;
-    target = findTarget(steps[state.step].target);
+    if (!state.active ||
+        (!inRoute(steps[state.step], location.pathname) && location.pathname !== "/login")) return;
+    target = location.pathname === "/login"
+      ? findTarget('form input[autocomplete="username"]')
+      : findTarget(steps[state.step].target);
+    if (scrollOnStep && target) {
+      scrollOnStep = false;
+      target.scrollIntoView({block:"center", inline:"nearest", behavior:reduceMotion ? "auto" : "smooth"});
+      window.setTimeout(schedulePosition, reduceMotion ? 0 : 300);
+    }
     const vw = document.documentElement.clientWidth;
     const vh = window.innerHeight;
     const maxCardWidth = Math.min(348, vw - 28);
