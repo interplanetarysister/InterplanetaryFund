@@ -22,8 +22,11 @@ inactive-account and missing-identity denials are covered. No remote migration
 was applied by this source/build task. The release coordinator separately reviewed
 the live body, ACL and pinned search_path, then successfully applied the identical
 ALTER through Supabase `apply_migration` as `ifund_owner_agent_focus_stable`.
-Independent post-application catalog verification remains a coordinator gate;
-production payment configuration and records were untouched by that correction.
+The coordinator independently verified the resulting live catalog:
+`provolatile=s`, `prosecdef=true`, empty pinned search_path, unchanged
+postgres/service_role/authenticated ACL and body hash
+`effddb7b7d97f2e227b9f0b9e6d6d45c`. Production payment configuration and records
+were untouched by that correction.
 The Help test now checks conditional checkout availability, provider-confirmed
 reconciled gifts and separate platform support, instead of a stale blanket
 assertion that donations are paused. Withdrawal-unavailable guidance remains
@@ -39,18 +42,53 @@ a second broad provider implementation.
 Local verification on Node v24.22.1:
 
 - Root `npm test`: **353/353 pass**, including the added executable catalog and
-  authorization test (176.1 seconds, exit 0).
+  authorization test after dependency repairs (125.4 seconds, exit 0).
 - Affected checks (function security, provider lifecycle, Help and forward
   migration): **13/13 pass**.
-- Canonical `apps/web`: **274/274 tests pass**; production build passes.
-- Historical root frontend: production build passes.
+- Canonical `apps/web` after dependency repairs: **274/274 tests pass**; production
+  build passes (11.7 seconds).
+- Historical root frontend: production build passes on Vite 6.4.6 (3.1 seconds).
 - Required baseline-clean public-surface and new-test Prettier checks: pass.
+- Both lockfiles reproduce unchanged through package-lock-only installation.
 - `demo/npm run check`: TypeScript check, Worker source bundle and **18/18
   synthetic ledger/payment-edge tests pass**. Generated bundle/map/lockfile were
   retained only as ignored work artifacts, not substituted for the release.
 - The public judge HTTP script could not fetch any endpoint from this shell;
   public runtime acceptance is **NOT VERIFIED by this check**. This does not
   establish a deployed application failure or a successful provider transaction.
+
+Dependency verification after compatible build-tool repairs:
+
+| Audit scope | High | Moderate | Total |
+| --- | ---: | ---: | ---: |
+| Root, all dependencies | 0 | 0 | 0 |
+| Canonical web, all dependencies | 0 | 4 | 4 |
+| Root, production dependencies only | 0 | 0 | 0 |
+| Canonical web, production dependencies only | 0 | 0 | 0 |
+
+Root Vite was patched from 6.4.3 to 6.4.6; PostCSS's source-map-js was patched
+from 1.2.1 to 1.2.2 and selector-parser from 6.1.4 to 6.1.6. The two prior high
+alerts affected development/build tooling, not the deployed static Pages
+runtime. Canonical web's compatible rimraf 6.1.4 patch brings its maintained
+internal glob/minimatch dependencies. No direct major upgrade, forced audit fix
+or override was used.
+
+The remaining four moderate dependency nodes all report the same
+[uuid advisory](https://github.com/advisories/GHSA-w5hq-g745-h8pq), through
+`@capacitor/assets -> @trapezedev/project -> xcode -> uuid`. This is native
+artwork CLI tooling, absent from production dependencies and browser imports.
+The inspected xcode call is `uuid.v4()` without a supplied buffer; the advisory's
+v3/v5/v6 buffer APIs are not called there. npm's proposed automated fix is a
+breaking assets downgrade, so it was not forced. An upstream compatible fix
+remains outstanding; no APK build is claimed by this review.
+
+Hosted CI is externally **BLOCKED**. Both initial PR #263 jobs stopped before
+any steps because GitHub reported: "The job was not started because your account
+is locked due to a billing issue." See
+[root release-candidate run](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/43219407380)
+and [frontend run](https://github.com/interplanetarysister/InterplanetaryFund/actions/runs/43219407430).
+Local test/build passes are not represented as successful hosted CI; no paid
+service or billing change was made.
 
 Local tests do not establish production migration parity, real provider financial
 reconciliation, sandbox capture/webhook verification or judge readiness. Those
