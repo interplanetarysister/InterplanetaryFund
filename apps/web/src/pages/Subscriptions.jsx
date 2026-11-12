@@ -116,7 +116,7 @@ export default function Subscriptions(){
         return <article key={plan.tier+plan.interval} className="rounded-2xl border border-border bg-card p-5">
           <h2 className="text-lg font-semibold">{name}</h2>
           <p className="mt-1 text-sm capitalize text-muted-foreground">{plan.interval}</p>
-          <p className="mt-4 text-3xl font-bold">$${(plan.amount_cents/100).toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
+          <p className="mt-4 text-3xl font-bold">${(plan.amount_cents/100).toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
           <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>PayPal recurring billing</div>
           <button type="button" disabled={!available||busy!==""||!!status&&["active","pending","past_due","approval_pending"].includes(status.status)}
             onClick={()=>subscribe(plan)}
