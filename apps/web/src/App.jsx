@@ -29,7 +29,6 @@ const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
-const AdminFinance = lazy(() => import("./pages/AdminFinance"));
 function SocialRoute() {
   const { search } = useLocation();
   return new URLSearchParams(search).get("tab") === "publications"
@@ -109,10 +108,11 @@ function AppRoutes() {
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/ledger" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
-      <Route path="/giving" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
+      <Route path="/finances" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
+      <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
+      <Route path="/giving" element={<Navigate to="/finances#giving-receipts" replace />} />
       <Route path="/withdrawals" element={<WithdrawalVerification />} />
-      <Route path="/admin/finance" element={<MemberAccess><AdminAccess><AdminFinance /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
       <Route path="/community" element={<SocialFeedPage community />} />
