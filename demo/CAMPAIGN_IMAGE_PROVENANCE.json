@@ -2,13 +2,15 @@
   "schema": "ifund-demo-campaign-media-provenance-v1",
   "source": "read-only public.ifund_demo_campaigns + public.ifund_demo_media + demo/MEDIA_SOURCE_MANIFEST.md",
   "as_of_utc": "2026-11-12T14:42:51Z",
-  "limitations": "No fresh image-license provider lookup or R2 binary ownership audit in this pass. No asset replacement is authorized by this manifest.",
+  "limitations": "No fresh image-license provider lookup or R2 binary ownership audit in this pass. No asset replacement is authorized by this manifest. Cloudflare R2 list-objects API confirmed all three internal keys and byte lengths without reading or duplicating the assets; rights remain unresolved.",
   "counts": {
     "total": 84,
     "external": 81,
     "internal": 3,
     "unmatched": 0,
-    "missingStorage": 0
+    "missingStorage": 0,
+    "r2_object_metadata_confirmed": 3,
+    "r2_rights_still_unverified": 3
   },
   "records": [
     {
@@ -32,11 +34,16 @@
         "object_mime": "image/jpeg",
         "created_at": "2026-11-12 12:37:16.879701+00",
         "ai_run_id": "56ed62b7-bbbc-4d8a-9fcd-3e871c8bcac2",
-        "origin_remote_url": null
+        "origin_remote_url": null,
+        "object_listed_in_r2": true,
+        "object_size_bytes": 656188,
+        "object_last_modified": "2026-11-12T12:37:16.743Z",
+        "verified_bucket": "ifund-hackathon-demo-media",
+        "object_metadata_verified_on": "2026-11-12"
       },
       "production_campaign": false,
       "approved_for_new_replacement": false,
-      "next_action": "Verify ownership/asset origin and license before reuse"
+      "next_action": "R2 object metadata exists; separately validate licensing/ownership and displayed image contents before reuse"
     },
     {
       "campaign_id": "090c61c7-e2bc-4608-8f0b-e1e800a2d7aa",
@@ -383,11 +390,16 @@
         "object_mime": "image/jpeg",
         "created_at": "2026-11-11 16:36:17.488235+00",
         "ai_run_id": "8d2f1ced-3fab-4826-81ef-e08d97e035b4",
-        "origin_remote_url": null
+        "origin_remote_url": null,
+        "object_listed_in_r2": true,
+        "object_size_bytes": 730889,
+        "object_last_modified": "2026-11-11T16:36:17.174Z",
+        "verified_bucket": "ifund-hackathon-demo-media",
+        "object_metadata_verified_on": "2026-11-12"
       },
       "production_campaign": false,
       "approved_for_new_replacement": false,
-      "next_action": "Verify ownership/asset origin and license before reuse"
+      "next_action": "R2 object metadata exists; separately validate licensing/ownership and displayed image contents before reuse"
     },
     {
       "campaign_id": "15e13154-4afc-448d-841b-c0e93c3680be",
@@ -1733,11 +1745,16 @@
         "object_mime": "image/jpeg",
         "created_at": "2026-11-11 09:37:53.521829+00",
         "ai_run_id": "29812bc8-1f56-435a-96b8-7f3c5c3063ea",
-        "origin_remote_url": null
+        "origin_remote_url": null,
+        "object_listed_in_r2": true,
+        "object_size_bytes": 687729,
+        "object_last_modified": "2026-11-11T09:37:53.246Z",
+        "verified_bucket": "ifund-hackathon-demo-media",
+        "object_metadata_verified_on": "2026-11-12"
       },
       "production_campaign": false,
       "approved_for_new_replacement": false,
-      "next_action": "Verify ownership/asset origin and license before reuse"
+      "next_action": "R2 object metadata exists; separately validate licensing/ownership and displayed image contents before reuse"
     },
     {
       "campaign_id": "c2eba9bc-4d16-4b5d-8896-bc62e26c774a",
