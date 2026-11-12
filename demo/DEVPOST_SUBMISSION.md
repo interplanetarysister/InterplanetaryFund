@@ -14,6 +14,7 @@ Cloudflare Workers AI uses the Llama 3.3 70B Instruct model for campaign draftin
 
 ## Judge links
 
+- **New guided walkthrough:** https://ifund-hackathon-demo.interplanetary-fund.workers.dev/api/judge-guide — seven steps, no guide popup covering highlighted controls; existing sandbox React app remains interactive.
 - Demo: https://ifund-hackathon-demo.interplanetary-fund.workers.dev/
 - Alternate entry point: https://ifund-demo-ai-check.interplanetary-fund.workers.dev/
 - Source: https://github.com/interplanetarysister/InterplanetaryFund/tree/main/demo
