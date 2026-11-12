@@ -79,6 +79,8 @@ test("the share button is public, published-only, and honest about failures", ()
   assert.match(button, /rel=\{target\.id === "email" \? undefined : "noopener noreferrer"\}/);
   // A denied clipboard must never report success.
   assert.match(button, /Copying is unavailable in this browser/);
+  assert.match(button, /Help share this campaign!/);
+  assert.match(button, /Connect and publish updates/);
 });
 
 test("CampaignDetail renders the share kit for visitors", () => {
@@ -149,7 +151,7 @@ test("the owner dashboard shares active campaigns in place", () => {
   const page = source("src/pages/MyCampaigns.jsx");
   assert.match(page, /import CampaignShareButton from "@\/components\/campaigns\/CampaignShareButton"/);
   // Only an active row gets the kit: drafts and paused campaigns have no public page.
-  assert.match(page, /campaign\.status === "active" && \(\s*<div className="mt-4">\s*<CampaignShareButton campaign=\{campaign\} \/>/);
+  assert.match(page, /campaign\.status === "active" && \(\s*<div className="mt-4">\s*<CampaignShareButton campaign=\{campaign\} ownerView \/>/);
 });
 
 test("Bluesky opens a draft composer with the campaign text and canonical link", () => {
