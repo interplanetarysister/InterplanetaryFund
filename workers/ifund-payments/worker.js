@@ -440,8 +440,13 @@ export default {
     if(path==="/api/payments/health")return asJson({ok:true,service:"ifund-payments",enabled:env.IFUND_PAYMENTS_ENABLED==="true",
       mode:env.IFUND_PAYPAL_MODE||"unset",version:"verified-ledger-v1"},200,cors);
     if(path==="/api/payments/payouts/readiness"&&request.method==="GET"){
-      try{return asJson(await payoutReadiness(env),200,cors)}
-      catch(_){return asJson({ok:false,error:"payout_readiness_unavailable"},503,cors)}
+      try{
+        const readiness=await payoutReadiness(env);
+        const response=asJson(readiness,200,cors);
+        response.headers.set("x-ifund-payouts-scope",readiness.payouts_scope?"present":"missing");
+        response.headers.set("x-ifund-payout-webhook",readiness.payout_webhook_ready?"ready":"missing");
+        return response;
+      }catch(_){return asJson({ok:false,error:"payout_readiness_unavailable"},503,cors)}
     }
     if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
       try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
