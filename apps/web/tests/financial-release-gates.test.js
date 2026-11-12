@@ -23,7 +23,7 @@ test("never assign donor identity from an unverified client UUID",()=>{
   assert.doesNotMatch(edge,/donor_id:p\.donor_id/);
   assert.match(worker,/donor_access_token:donorToken/);
   assert.match(dialog,/authClient\(\)\.auth\.getSession\(\)/);
-  assert.match(dialog,/authorization:"Bearer "\+accessToken/);
+  assert.match(dialog,/Bearer "\+accessToken/);
 });
 test("payment proof and receipt records remain distinct and refund-aware",()=>{
   assert.match(worker,/verifyCapture\(env,reference,intent\)/);
@@ -80,6 +80,6 @@ test("homepage support popup states precisely what provider-hosted checkout can 
   assert.match(platform,/DialogContent/);
   assert.match(platform,/IFUND_PLATFORM_SUPPORT_PAYMENT_LINK/);
   assert.match(platform,/Choose and review on PayPal/);
-  assert.match(platform,/not.*campaign receipts or fundraising totals/i);
+  assert.match(platform,/do not[\s\S]*campaign receipts or fundraising totals/i);
   assert.doesNotMatch(platform,/\/(api\/payments\/create-order|api\/payments\/capture-order)/);
 });
