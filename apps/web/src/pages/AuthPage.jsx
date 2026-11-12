@@ -133,6 +133,14 @@ export default function AuthPage({ mode = "login" }) {
           },
         });
         if (err) throw err;
+        // Supabase intentionally returns an obfuscated user (with no identities)
+        // for an already-registered email. In that case no new confirmation
+        // email is sent, even though signUp itself reports no error.
+        if (!data?.session && (!data?.user || (Array.isArray(data.user.identities) && data.user.identities.length === 0))) {
+          setConfirmationPending(false);
+          setMessage("No new registration was confirmed. If you've used this email before, sign in or reset your password. If you're registering for the first time, retry with your email address. For privacy, we cannot disclose whether an address has an existing account.");
+          return;
+        }
         rememberSignupAgreement(sessionStorage, email.trim());
         if (data.session) {
           const verified = await verifiedAuthUser(auth);
@@ -142,7 +150,7 @@ export default function AuthPage({ mode = "login" }) {
         } else {
           setConfirmationPending(true);
           setMessage(
-            "Open the confirmation link we emailed you to finish creating your account. No code entry or two-factor authentication is needed to create content.",
+            "If your account requires verification, follow the confirmation link sent by the email provider. If no email arrives, try signing in or resetting your password instead. No signup code or two-factor setup is required.",
           );
         }
       } else {
@@ -175,7 +183,7 @@ export default function AuthPage({ mode = "login" }) {
       });
       if (error) throw error;
       setMessage(
-        "If this account needs confirmation, a new verification link is on its way. Open the latest email and click Confirm email address.",
+        "If this account still needs confirmation, a new verification link may be sent. If no email arrives, try signing in or resetting your password.",
       );
     } catch {
       setError("We could not send another email. Wait a moment and try again.");
@@ -299,7 +307,7 @@ export default function AuthPage({ mode = "login" }) {
             {isRegister && confirmationPending && (
               <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
                 <h2 className="font-semibold">Confirm your email using the link</h2>
-                <p className="mt-2">We sent a confirmation link to {email}. Open that email and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
+                <p className="mt-2">If a confirmation email was issued to {email}, open the latest message and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
                 <p className="mt-2">If you already clicked the link in another tab, select the button below to check this browser’s account session.</p>
               </section>
             )}
@@ -360,6 +368,7 @@ export default function AuthPage({ mode = "login" }) {
             </button>
           </form>
           {isRegister && confirmationPending && <Link to="/discover" className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Browse campaigns while your email is being confirmed</Link>}
+          {isRegister && <p className="mt-3 text-sm text-slate-300">Already registered? <Link className="text-cyan-200 underline" to={"/login?returnTo=" + encodeURIComponent(afterLogin)}>Sign in</Link> or <Link className="text-cyan-200 underline" to={"/forgot-password?returnTo=" + encodeURIComponent(afterLogin)}>reset your password</Link>.</p>}
           {!isReset && (
             <button
               disabled={busy || !email.trim()}
