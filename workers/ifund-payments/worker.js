@@ -6,6 +6,16 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER_ID = /^[A-Za-z0-9_-]{8,100}$/;
 const INTENT = /^[A-Za-z0-9_-]{16,100}$/;
 const EDGE_FUNCTION = "/functions/v1/ifund-payment-ledger";
+const SUBSCRIPTION_ID = /^I-[A-Z0-9]{10,30}$/;
+const PAYPAL_PLAN_ID = /^P-[A-Z0-9]{20,32}$/;
+const PAYPAL_EVENT_ID = /^WH-[A-Z0-9-]{8,90}$/;
+const BASIC_MONTHLY_PLAN = Object.freeze({tier:"basic",interval:"monthly",amount_cents:1200,plan_id:"P-6YD2273006199630KNLDXBLA"});
+const SUBSCRIPTION_EVENTS = new Set([
+  "BILLING.SUBSCRIPTION.ACTIVATED","BILLING.SUBSCRIPTION.UPDATED",
+  "BILLING.SUBSCRIPTION.SUSPENDED","BILLING.SUBSCRIPTION.CANCELLED",
+  "BILLING.SUBSCRIPTION.EXPIRED","BILLING.SUBSCRIPTION.PAYMENT.FAILED",
+  "PAYMENT.SALE.COMPLETED","PAYMENT.SALE.REFUNDED","PAYMENT.SALE.REVERSED"
+]);
 
 const asJson=(data,status=200,headers={})=>new Response(JSON.stringify(data),{status,headers:{"content-type":"application/json","cache-control":"no-store",...headers}});
 const asError=(code,status=400)=>asJson({ok:false,error:code},status);
@@ -74,6 +84,157 @@ function paypalOrderBreakdown(gift,tip) {
   return {amount:{...amount,breakdown:{item_total:amount}},items};
 }
 
+
+function memberToken(req) {
+  const header=req.headers.get("authorization")||"";
+  if(!/^Bearer [A-Za-z0-9._-]{40,8192}$/.test(header)) return "";
+  return header.slice(7);
+}
+function exactBasicPlan(plan) {
+  const cycle=plan?.billing_cycles?.find(row=>row.tenure_type==="REGULAR");
+  return Boolean(plan?.id===BASIC_MONTHLY_PLAN.plan_id&&plan?.status==="ACTIVE"&&
+    cycle?.frequency?.interval_unit==="MONTH"&&Number(cycle?.frequency?.interval_count||1)===1&&
+    Number(cycle?.total_cycles)===0&&cycle?.pricing_scheme?.fixed_price?.currency_code==="USD"&&
+    cents(cycle?.pricing_scheme?.fixed_price?.value)===BASIC_MONTHLY_PLAN.amount_cents&&
+    typeof plan?.product_id==="string"&&plan.product_id.length>=6);
+}
+async function subscriptionReadiness(env) {
+  const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
+  if(!webhookId)return {ready:false,plan_ready:false,webhook_ready:false};
+  const [plan,hook]=await Promise.all([
+    paypal(env,"/v1/billing/plans/"+encodeURIComponent(BASIC_MONTHLY_PLAN.plan_id)).catch(()=>null),
+    paypal(env,"/v1/notifications/webhooks/"+encodeURIComponent(webhookId)).catch(()=>null),
+  ]);
+  const planReady=exactBasicPlan(plan);
+  const names=new Set(Array.isArray(hook?.event_types)?hook.event_types.map(x=>x?.name):[]);
+  const webhookReady=hook?.id===webhookId&&typeof hook?.url==="string"&&
+    [...SUBSCRIPTION_EVENTS].every(name=>names.has(name)||names.has("*"));
+  if(planReady){
+    await signLedger(env,"subscription_plan_verified",{
+      tier:BASIC_MONTHLY_PLAN.tier,interval:BASIC_MONTHLY_PLAN.interval,
+      amount_cents:BASIC_MONTHLY_PLAN.amount_cents,paypal_plan_id:BASIC_MONTHLY_PLAN.plan_id,
+      paypal_product_id:plan.product_id
+    });
+  }
+  return {ready:planReady&&webhookReady,plan_ready:planReady,webhook_ready:webhookReady};
+}
+async function reconcileSubscription(env,subscriptionReference,token="",providerReference=null) {
+  const lookup=await signLedger(env,token?"subscription_get":"subscription_lookup",{
+    paypal_subscription_id:subscriptionReference,
+    ...(token?{member_access_token:token}:{})
+  });
+  const intent=lookup.intent;
+  const subscription=await paypal(env,"/v1/billing/subscriptions/"+encodeURIComponent(subscriptionReference));
+  if(subscription?.id!==subscriptionReference||subscription?.plan_id!==intent.paypal_plan_id||
+    subscription?.custom_id!==intent.custom_id) throw new Error("subscription_provider_identity_mismatch");
+  const payment=subscription?.billing_info?.last_payment;
+  const amount=payment?.amount;
+  const lastPaymentCents=amount?.currency_code==="USD"&&/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||""))
+    ?cents(amount.value):null;
+  const result=await signLedger(env,"subscription_reconcile",{
+    paypal_subscription_id:subscriptionReference,paypal_plan_id:subscription.plan_id,
+    custom_id:subscription.custom_id,provider_status:String(subscription.status||"").toUpperCase(),
+    last_payment_cents:lastPaymentCents,last_payment_at:payment?.time||null,
+    currency:amount?.currency_code||null,
+    next_billing_time:subscription?.billing_info?.next_billing_time||null,
+    failed_payments_count:Number(subscription?.billing_info?.failed_payments_count||0),
+    provider_reference:providerReference
+  });
+  return {ok:true,status:result.status,tier:intent.tier,interval:intent.interval,
+    subscription_id:subscriptionReference,next_billing_time:subscription?.billing_info?.next_billing_time||null};
+}
+async function subscriptionPlans(env) {
+  const readiness=await subscriptionReadiness(env);
+  const catalog=await signLedger(env,"subscription_plans",{});
+  return {ok:true,readiness,plans:(catalog.plans||[]).map(row=>({
+    tier:row.tier,interval:row.interval,amount_cents:row.amount_cents,currency:row.currency,
+    available:Boolean(row.active&&row.paypal_plan_id&&readiness.webhook_ready),
+    verified:Boolean(row.active&&row.verified_at)
+  }))};
+}
+async function startSubscription(req,env,origin) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const body=await readBody(req);
+  if(body.tier!=="basic"||body.interval!=="monthly")return asError("subscription_plan_unavailable",409);
+  const readiness=await subscriptionReadiness(env);
+  if(!readiness.ready)return asError("subscription_billing_not_ready",503);
+  const intent=await signLedger(env,"subscription_begin",{
+    member_access_token:token,tier:body.tier,interval:body.interval
+  });
+  const created=await paypal(env,"/v1/billing/subscriptions","POST",{
+    plan_id:intent.plan_id,custom_id:intent.custom_id,
+    application_context:{
+      brand_name:"Interplanetary Fund",user_action:"SUBSCRIBE_NOW",
+      return_url:origin+"/subscriptions?paypal_checkout=return",
+      cancel_url:origin+"/subscriptions?paypal_checkout=cancel"
+    }
+  },"ifund-sub-"+intent.intent_id);
+  const approve=Array.isArray(created?.links)?created.links.find(x=>x?.rel==="approve")?.href:"";
+  if(!SUBSCRIPTION_ID.test(created?.id||"")||typeof approve!=="string")
+    return asError("subscription_approval_unavailable",502);
+  let approved;
+  try{approved=new URL(approve)}catch(_){return asError("subscription_approval_unavailable",502)}
+  if(approved.protocol!=="https:"||!["www.paypal.com","paypal.com"].includes(approved.hostname))
+    return asError("subscription_approval_unavailable",502);
+  await signLedger(env,"subscription_bind",{intent_id:intent.intent_id,paypal_subscription_id:created.id});
+  return asJson({ok:true,approval_url:approve,subscription_id:created.id});
+}
+async function confirmSubscription(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const body=await readBody(req);
+  if(!SUBSCRIPTION_ID.test(body.subscription_id||""))return asError("invalid_subscription_reference");
+  return asJson(await reconcileSubscription(env,body.subscription_id,token));
+}
+async function subscriptionStatus(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const stored=await signLedger(env,"subscription_status",{member_access_token:token});
+  if(!stored.subscription?.paypal_subscription_id)return asJson({ok:true,subscription:stored.subscription||null});
+  try{
+    const refreshed=await reconcileSubscription(env,stored.subscription.paypal_subscription_id,token);
+    const latest=await signLedger(env,"subscription_status",{member_access_token:token});
+    return asJson({ok:true,subscription:latest.subscription||null,provider_verified:true,provider_status:refreshed.status});
+  }catch(_){
+    return asJson({ok:true,subscription:stored.subscription,provider_verified:false});
+  }
+}
+async function cancelSubscription(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("sign_in_required",401);
+  const stored=await signLedger(env,"subscription_status",{member_access_token:token});
+  const id=stored.subscription?.paypal_subscription_id;
+  if(!SUBSCRIPTION_ID.test(id||""))return asError("no_active_subscription",409);
+  await signLedger(env,"subscription_get",{paypal_subscription_id:id,member_access_token:token});
+  await paypal(env,"/v1/billing/subscriptions/"+encodeURIComponent(id)+"/cancel","POST",
+    {reason:"Canceled by Interplanetary Fund member"},"ifund-cancel-"+id);
+  return asJson(await reconcileSubscription(env,id,token));
+}
+async function subscriptionWebhook(payload,env) {
+  const kind=String(payload.event_type||"");
+  const id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
+    String(payload.resource?.id||"");
+  if(!SUBSCRIPTION_ID.test(id))return asJson({ok:true,ignored:true,reason:"no_subscription_reference"});
+  if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
+  if(kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED"){
+    const amount=payload.resource?.amount;
+    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||"")))
+      return asError("subscription_reversal_amount_unverified",409);
+    await signLedger(env,"subscription_reversal",{
+      paypal_subscription_id:id,paypal_event_id:payload.id,event_type:kind,
+      amount_cents:cents(amount.value),currency:"USD",occurred_at:payload.create_time,
+      provider_reference:payload.resource?.id||payload.id
+    });
+  }
+  const providerReference=kind==="PAYMENT.SALE.COMPLETED"?payload.resource?.id||null:null;
+  const reconciled=await reconcileSubscription(env,id,"",providerReference);
+  await signLedger(env,"subscription_event",{
+    paypal_event_id:payload.id,paypal_subscription_id:id,event_type:kind
+  });
+  return asJson({ok:true,subscription_status:reconciled.status});
+}
+
 function captureFromOrder(order) {
   const units=order?.purchase_units;
   if(!Array.isArray(units)||units.length!==1)return null;
@@ -122,6 +283,7 @@ async function webhook(req,env) {
   });
   if(verification.verification_status!=="SUCCESS")return asError("invalid_paypal_signature",401);
   const kind=payload.event_type;
+  if(SUBSCRIPTION_EVENTS.has(kind))return await subscriptionWebhook(payload,env);
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
     if(!ORDER_ID.test(orderId||""))return asError("webhook_order_unresolved",409);
@@ -247,6 +409,29 @@ export default {
     const path=url.pathname;
     if(path==="/api/payments/health")return asJson({ok:true,service:"ifund-payments",enabled:env.IFUND_PAYMENTS_ENABLED==="true",
       mode:env.IFUND_PAYPAL_MODE||"unset",version:"verified-ledger-v1"},200,cors);
+    if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
+      try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
+      catch(_){return asJson({ok:false,error:"subscription_status_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/subscriptions/status"&&request.method==="GET"){
+      try{const response=await subscriptionStatus(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"subscription_status_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/subscriptions/start"&&request.method==="POST"){
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{const response=await startSubscription(request,env,origin);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"subscription_start_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/subscriptions/confirm"&&request.method==="POST"){
+      try{const response=await confirmSubscription(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"subscription_confirmation_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/subscriptions/cancel"&&request.method==="POST"){
+      try{const response=await cancelSubscription(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"subscription_cancellation_unavailable"},503,cors)}
+    }
     if(path==="/api/payments/webhook"&&request.method==="POST") {
       try {return await webhook(request,env)}catch(_) {return asError("webhook_retry_required",503)}
     }
