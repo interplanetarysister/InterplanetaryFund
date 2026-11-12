@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { validateCoverFile, uploadCampaignCover, isVerifiedCoverOwner, MAX_COVER_BYTES, COVER_BUCKET } from "../src/api/campaignCovers.js";
+import { isVerifiedEmailUser } from "../src/lib/verifiedEmailUser.js";
+import { payoutIdentity } from "../src/lib/guestAccess.js";
 
 const owner="11111111-1111-4111-8111-111111111111";
 const fileId="22222222-2222-4222-8222-222222222222";
@@ -37,7 +39,10 @@ test("owner upload requires verified email and account status",async()=>{
 test("upload confirms owner-only path and the public URL before attaching",async()=>{
   const x=clientFor();
   const observed=await x.client.auth.getUser();
-  assert.equal(isVerifiedCoverOwner(observed.data.user),true);
+  assert.equal(isVerifiedEmailUser(observed.data.user),true,"email-confirmed user fixture");
+  assert.equal(payoutIdentity(observed.data.user),true,"member payout identity fixture");
+  assert.match(observed.data.user.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  assert.equal(isVerifiedCoverOwner(observed.data.user),true,"cover owner authorization fixture");
   const url=await uploadCampaignCover(x.client,{size:1024,type:"image/png"},{makeId:()=>fileId});
   assert.equal(x.calls.length,1);
   assert.equal(x.calls[0].path,owner+"/"+fileId+".png");
@@ -47,7 +52,10 @@ test("upload confirms owner-only path and the public URL before attaching",async
 test("upload failure must not be reported as successful",async()=>{
   const x=clientFor();
   const observed=await x.client.auth.getUser();
-  assert.equal(isVerifiedCoverOwner(observed.data.user),true);
+  assert.equal(isVerifiedEmailUser(observed.data.user),true,"email-confirmed user fixture");
+  assert.equal(payoutIdentity(observed.data.user),true,"member payout identity fixture");
+  assert.match(observed.data.user.id,/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  assert.equal(isVerifiedCoverOwner(observed.data.user),true,"cover owner authorization fixture");
   x.storage.upload=async()=>({error:{message:"denied"},data:null});
   await assert.rejects(uploadCampaignCover(x.client,{size:1024,type:"image/png"},{makeId:()=>fileId}),/could not be uploaded/);
 });
