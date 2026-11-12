@@ -14,7 +14,7 @@ async function harness(enabled=true) {
   const key=await webcrypto.subtle.generateKey(
     {name:"ECDSA",namedCurve:"P-256"},true,["sign","verify"]);
   const jwk=await webcrypto.subtle.exportKey("jwk",key.privateKey);
-  const events=[],intents=new Map();
+  const events=[],intents=new Map(),beginData=[];
   let created=0;
   const sandbox={crypto:webcrypto,TextEncoder,URL,Response,Request,atob,btoa,console};
   sandbox.fetch=async (url,opts={})=>{
@@ -22,6 +22,7 @@ async function harness(enabled=true) {
     if(path.endsWith("/functions/v1/ifund-payment-ledger")){
       const {op,data}=JSON.parse(opts.body);events.push(op);
       if(op==="begin"){
+        beginData.push(data);
         const existing=intents.get(data.request_key);
         if(existing){
           const valid=["campaign_id","gift_cents","optional_support_cents",
@@ -55,16 +56,16 @@ async function harness(enabled=true) {
     IFUND_PAYMENTS_EDGE_SIGNING_PRIVATE_JWK:JSON.stringify(jwk),
     PAYPAL_CLIENT_ID:"mock-id",PAYPAL_CLIENT_SECRET:"mock-secret"};
   return {
-    async create(checkoutToken=token,request_key=requestKey){
+    async create(checkoutToken=token,request_key=requestKey,donorToken=null){
       const body={campaign_id:campaignId,gift_cents:100,optional_support_cents:0,
         payment_channel:"paypal",request_key,checkout_token:checkoutToken};
       const req=new Request("https://interplanetaryfund.com/api/payments/create-order",
         {method:"POST",headers:{origin:"https://interplanetaryfund.com",
-          "content-type":"application/json"},body:JSON.stringify(body)});
+          "content-type":"application/json",...(donorToken===null?{}:{authorization:donorToken})},body:JSON.stringify(body)});
       const res=await sandbox.__worker.fetch(req,env);
       return {status:res.status,data:await res.json()};
     },
-    events,orders:()=>created,intents
+    events,orders:()=>created,intents,beginData
   };
 }
 
@@ -113,4 +114,27 @@ test("browser checkout submits the same proof on idempotent retries",()=>{
   assert.match(frontend,/checkoutTokens\.current\.get\(key\)/);
   assert.match(frontend,/request_key:key,checkout_token:checkoutToken/);
   assert.match(frontend,/data\.checkout_token!==checkoutToken/);
+});
+
+test("authenticated donor bearer propagates solely into signed payment intent request",async()=>{
+  const h=await harness();
+  const bearer="Bearer "+"eyJ"+".JWT_SESSION_TOKEN".repeat(8);
+  const result=await h.create(token,requestKey,bearer);
+  assert.equal(result.status,200);
+  assert.equal(h.beginData.length,1);
+  assert.equal(h.beginData[0].donor_access_token,bearer.slice(7));
+  assert.equal(h.orders(),1);
+});
+test("guest checkout carries no donor account identity",async()=>{
+  const h=await harness();
+  const result=await h.create();
+  assert.equal(result.status,200);
+  assert.equal(h.beginData[0].donor_access_token,null);
+});
+test("malformed donor session cannot create intent or provider order",async()=>{
+  const h=await harness();
+  const result=await h.create(token,requestKey,"Bearer invalid");
+  assert.equal(result.status,401);
+  assert.equal(h.orders(),0);
+  assert.deepEqual(h.events,[]);
 });
