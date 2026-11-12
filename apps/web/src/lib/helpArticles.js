@@ -13,14 +13,14 @@ export const helpArticles = Object.freeze([
     category: "Campaigns",
     question: "How do I create a campaign?",
     description: "Campaign editing and publication during the migration.",
-    answer: "Campaign creation, editing, publishing and agent-assisted artwork are being reconnected to the independent account and data system. Do not assume a campaign has been saved or published unless IFund shows a confirmed result from its independent backend. Until account migration and ownership checks finish, the new site does not offer live campaign creation."
+    answer: "Signed-in members can create, save, edit and publish campaigns. A draft is private until IFund confirms publication. Image uploads and AI image processing may still be unavailable in parts of the migration; do not assume content was saved until the backend confirms it."
   },
   {
     slug: "campaign-donations",
     category: "Donations",
     question: "Can I donate to a campaign right now?",
-    description: "Why campaign donation controls are paused.",
-    answer: "Campaign donations are paused on this migration build. Only provider-confirmed, reconciled gifts will appear in a campaign's raised totals. A separate platform-support payment, if offered, does not count toward any individual campaign. No payment is initiated from this help article."
+    description: "How live campaign donations are verified.",
+    answer: "Published active campaigns can accept PayPal donations when the secure checkout is enabled. The Donate Now button on a campaign page follows the live payment-service status. Only provider-confirmed, reconciled gifts count toward a campaign's raised totals. A separate platform-support payment does not fund a campaign. No payment starts from this help article."
   },
   {
     slug: "payment-holding-and-withdrawals",
