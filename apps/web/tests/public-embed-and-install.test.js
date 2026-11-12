@@ -17,7 +17,8 @@ test("embeds only show real published campaign and never accept money inside ifr
   assert.match(embed,/getCampaignDetail\(id\)/);
   assert.match(embed,/verifiedFundingProgress/);
   assert.match(embed,/target="_blank" rel="noopener noreferrer"/);
-  assert.match(embed,/donations are currently paused/);
+  assert.match(embed,/Payment is never handled inside an embedded card/);
+  assert.match(embed,/Campaign donations are temporarily unavailable/);
   assert.doesNotMatch(embed,/base44|service_role|PayPalDonateButton|createDonation|checkout|onPayment/i);
   assert.equal(verifiedFundingProgress({raised_amount:null,goal_amount:100}),null);
   assert.deepEqual(verifiedFundingProgress({raised_amount:20,goal_amount:100}),{raised:20,goal:100,percentage:20});
