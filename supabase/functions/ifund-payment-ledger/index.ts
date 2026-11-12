@@ -33,6 +33,25 @@ async function verifiedBody(req) {
   if(!valid) throw new Error("Invalid service signature");
   return JSON.parse(raw);
 }
+// Donor identities are resolved by Supabase Auth, never from client-provided IDs.
+// A missing token represents a guest; an invalid token must not silently become a guest.
+async function resolveVerifiedDonor(token) {
+  if (token === null || token === undefined) return null;
+  if (typeof token !== "string" || token.length < 40 || token.length > 8192 ||
+      !/^[A-Za-z0-9._-]+$/.test(token))
+    throw Object.assign(new Error("Malformed donor session"), {status:401});
+  const response = await fetch(URL_BASE + "/auth/v1/user", {
+    headers:{"apikey":key(),"authorization":"Bearer " + token},
+    cache:"no-store"
+  });
+  if (!response.ok)
+    throw Object.assign(new Error("Donor session expired or invalid"), {status:401});
+  const user=await response.json();
+  if (!patternId.test(user.id || "") || user.is_anonymous === true ||
+      !user.email_confirmed_at)
+    throw Object.assign(new Error("Verified member session required"), {status:401});
+  return user.id;
+}
 const findOne=async(path)=>(await db(path))[0]||null;
 Deno.serve(async req=>{
   if(req.method!=="POST") return fail("Method not allowed",405);
@@ -48,6 +67,7 @@ Deno.serve(async req=>{
         || p.optional_support_cents>Math.round(p.gift_cents*0.1)
         || !Number.isSafeInteger(p.total_cents)||p.total_cents<p.gift_cents+p.optional_support_cents
         || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")) return fail("Invalid payment quote");
+      const donorId=await resolveVerifiedDonor(p.donor_access_token);
       const campaign=await findOne("ifund_campaigns?select=id,status&id=eq."+p.campaign_id);
       if(!campaign||campaign.status!=="active") return fail("Campaign is not accepting donations",409);
       let existing=await findOne("ifund_payment_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));
@@ -55,7 +75,7 @@ Deno.serve(async req=>{
         try{
           const created=await db("ifund_payment_intents","POST",{request_key:p.request_key,campaign_id:p.campaign_id,
              gift_cents:p.gift_cents,optional_support_cents:p.optional_support_cents,total_cents:p.total_cents,
-             environment:p.environment,payment_channel:p.payment_channel,currency:"USD",checkout_token_hash:p.checkout_token_hash,status:"creating"});
+             environment:p.environment,payment_channel:p.payment_channel,currency:"USD",checkout_token_hash:p.checkout_token_hash,donor_id:donorId,status:"creating"});
           existing=created[0];
         }catch(error){
           if(error.status===409) existing=await findOne("ifund_payment_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));
@@ -65,7 +85,7 @@ Deno.serve(async req=>{
       if(!existing|| existing.campaign_id!==p.campaign_id||existing.environment!==p.environment
          ||existing.gift_cents!==p.gift_cents||existing.optional_support_cents!==p.optional_support_cents
          ||existing.total_cents!==p.total_cents||existing.payment_channel!==p.payment_channel
-         ||existing.checkout_token_hash!==p.checkout_token_hash) return fail("Checkout request conflicts with existing intent",409);
+         ||existing.checkout_token_hash!==p.checkout_token_hash || existing.donor_id!==donorId) return fail("Checkout request conflicts with existing intent",409);
       return Response.json({ok:true,status:existing.status,order_id:existing.paypal_order_id||null});
     }
     if(body.op==="bind"){
@@ -126,6 +146,8 @@ Deno.serve(async req=>{
     }
     return fail("Unsupported operation",404);
   }catch(err){
-    return fail(err.status===409?"Payment state conflict. Reconciliation required.":"Financial operation unavailable",err.status===409?409:503);
+    return fail(err.status===401 ? "Your session expired. Sign in again before donating."
+      : err.status===409 ? "Payment state conflict. Reconciliation required."
+      : "Financial operation unavailable", err.status===401?401:err.status===409?409:503);
   }
 });
