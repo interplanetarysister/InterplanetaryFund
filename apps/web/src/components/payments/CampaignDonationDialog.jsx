@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { CreditCard, Loader2, ShieldCheck } from "lucide-react";
+import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart } from "lucide-react";
 import { paymentQuoteCents } from "@/lib/paymentQuote";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
@@ -137,11 +137,14 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
-    <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-h-[min(90dvh,52rem)] sm:max-w-xl">
-      <DialogHeader className="space-y-2 border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-5 pb-5 pt-6 text-left text-white sm:px-6">
-        <p className="text-[11px] font-bold uppercase tracking-[.22em] text-cyan-300">Secure donation</p>
-        <DialogTitle className="pr-9 text-xl font-bold leading-snug sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
-        <DialogDescription className="text-sm text-slate-200">Choose an amount and payment method. No IFund account is needed.</DialogDescription>
+    <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl border border-[#dce4f2] bg-white p-0 shadow-[0_24px_80px_rgba(0,48,135,.2)] sm:max-h-[min(90dvh,52rem)] sm:max-w-xl">
+      <DialogHeader className="space-y-3 border-b border-[#e5ebf5] bg-gradient-to-b from-[#f2f7ff] to-white px-5 pb-5 pt-6 text-left sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 pr-8">
+          <p className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[.16em] text-[#003087]"><HandHeart className="h-4 w-4" /> Interplanetary Fund</p>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#c5d6ee] bg-white px-3 py-1 text-[11px] font-semibold text-[#003087]"><LockKeyhole className="h-3.5 w-3.5" /> Secure checkout by PayPal</span>
+        </div>
+        <DialogTitle className="pr-9 text-xl font-bold leading-snug text-[#11264b] sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
+        <DialogDescription className="text-sm text-slate-600">Review your entire payment before approving it securely with PayPal. No IFund account is needed.</DialogDescription>
       </DialogHeader>
       {complete?<p role="status" className="m-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5 font-semibold text-emerald-800">Donation verified with PayPal and recorded. Thank you!</p>:
       <div className="space-y-4 px-5 py-5 sm:px-6">
@@ -158,17 +161,23 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <label className="block text-sm font-semibold text-slate-900">Other amount (USD)
           <input type="number" className={field} min="1" max="1000000" step="0.01" disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
-        <label className="flex items-start gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-800">
+        <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
           <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
-          <span>Add optional 10% support for the IFund platform <span className="block text-xs text-slate-500">This is separate from your campaign gift and not required.</span></span>
+          <span className="font-semibold">Add 10% optional support for Interplanetary Fund <span className="mt-1 block text-xs font-normal text-slate-600">Entirely optional, separate from the campaign donation; unchecked by default.</span></span>
         </label>
-        {valid&&<div aria-live="polite" className="rounded-xl border border-slate-200 bg-blue-50/60 p-3 text-sm text-slate-800">
-          <div className="flex justify-between gap-3"><span>Campaign donation</span><strong>{"$"+(gift/100).toFixed(2)}</strong></div>
-          {support&&<div className="mt-1 flex justify-between gap-3"><span>Optional IFund support</span><strong>{"$"+(tip/100).toFixed(2)}</strong></div>}
-          {quote && <div className="mt-1 flex justify-between gap-3"><span>Estimated payment processing</span><strong>{"$"+(quote.processingCents/100).toFixed(2)}</strong></div>}
-          <div className="mt-2 flex justify-between gap-3 border-t border-slate-200 pt-2 font-bold"><span>Estimated PayPal/card charge</span><span>{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</span></div>
-          <p className="mt-1 text-[11px] text-slate-500">Processing costs are added to the gift. The provider shows the actual charge for approval; do not approve if it differs from the amount displayed here.</p>
-        </div>}
+        {valid&&<section aria-label="Your PayPal payment summary" aria-live="polite" className="overflow-hidden rounded-2xl border border-[#c9d9f1] bg-[#f6f9ff] text-sm text-[#183153] shadow-sm">
+          <div className="flex items-center justify-between border-b border-[#dce6f5] bg-white px-4 py-3">
+            <h3 className="font-bold text-[#003087]">Your payment summary</h3>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#127549]"><CircleCheck className="h-3.5 w-3.5" /> Reviewed before payment</span>
+          </div>
+          <dl className="space-y-2 px-4 py-4">
+            <div className="flex justify-between gap-4"><dt>Campaign donation</dt><dd className="font-semibold tabular-nums">{"$"+(gift/100).toFixed(2)}</dd></div>
+            <div className="flex justify-between gap-4"><dt>Optional IFund platform support</dt><dd className="font-semibold tabular-nums">{"$"+(tip/100).toFixed(2)}</dd></div>
+            <div className="flex justify-between gap-4"><dt>PayPal processing surcharge</dt><dd className="font-semibold tabular-nums">$0.00</dd></div>
+            <div className="flex justify-between gap-4 border-t border-[#c9d9f1] pt-3 text-base font-extrabold text-[#003087]"><dt>Total you approve in PayPal</dt><dd className="tabular-nums">{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</dd></div>
+          </dl>
+          <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
+        </section>}
         {!valid?<p className="text-xs text-red-700">Enter a gift of at least $1.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
@@ -184,14 +193,14 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             </section>
             {eligible===false&&<p className="text-xs text-slate-500">Direct card fields are unavailable for this account or device. PayPal may offer guest card checkout.</p>}
             <section aria-label="Payment actions" className="sticky bottom-0 z-10 -mx-5 -mb-5 space-y-3 border-t border-slate-200 bg-white/95 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 shadow-[0_-12px_25px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:-mx-6 sm:px-6">
-              <h3 className="text-center text-sm font-bold text-slate-900">Choose how to pay</h3>
+              <div className="space-y-1 text-center"><h3 className="text-sm font-bold text-[#003087]">Pay securely with PayPal</h3><p className="text-xs text-slate-600">You will approve {"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD before any capture.</p></div>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
                 {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
               </button>}
               <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
-              <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-cyan-600"/> Secure PayPal checkout · Other payment methods appear only if PayPal offers them.</p>
+              <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#003087]"/> Checkout and card fields securely provided by PayPal. Your payment details are never stored by IFund.</p>
             </section>
           </>}
         {status==="capturing"&&<p role="status">Verifying PayPal capture and saving your donation… Please keep checkout open.</p>}
