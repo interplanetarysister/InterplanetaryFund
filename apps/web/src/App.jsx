@@ -59,6 +59,7 @@ const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
 const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
+const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
 // navigation and land on a branded "Coming soon" page instead of breaking.
@@ -70,7 +71,7 @@ const LAYOUT_COMING_SOON = [
   "/community/:id",
   "/communications", "/mission", "/ai-images",
   "/devices",
-  "/donors", "/subscriptions",
+  "/donors",
   "/ops", "/platform", "/analytics", "/connect", "/admin/*",
 ];
 
@@ -112,6 +113,7 @@ function AppRoutes() {
       <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
       <Route path="/giving" element={<Navigate to="/finances#giving-receipts" replace />} />
       <Route path="/withdrawals" element={<WithdrawalVerification />} />
+      <Route path="/subscriptions" element={<MemberAccess><Subscriptions /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
