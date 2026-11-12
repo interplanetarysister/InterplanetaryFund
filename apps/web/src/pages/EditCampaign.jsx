@@ -9,6 +9,7 @@ import {
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
+import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
@@ -22,6 +23,7 @@ const fieldClass = "mt-2 min-h-12 w-full rounded-xl border border-input bg-backg
 // Owner campaign editor. Loads exactly one campaign owned by the signed-in
 // member, blocks saving until that load succeeds, and confirms every write.
 export default function EditCampaign() {
+  const donationsEnabled = usePublicCampaignFundraising();
   const { user } = useAuthSession();
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,7 +83,7 @@ export default function EditCampaign() {
       const saved = await saveOwnerCampaign(authClient(), form, { id, status: nextStatus });
       setStatus(saved.status);
       setNotice(nextStatus === "active"
-        ? "Your campaign is published and visible on Discover. Donations stay paused."
+        ? "Your campaign is published and visible on Discover."
         : "Your campaign changes were saved.");
     } catch (cause) {
       setError(cause?.message || "Your campaign changes were not saved.");
@@ -102,7 +104,7 @@ export default function EditCampaign() {
       const saved = await setCampaignStatus(authClient(), id, next);
       setStatus(saved.status);
       setNotice(next === "active"
-        ? "Your campaign is published and visible on Discover. Donations stay paused."
+        ? "Your campaign is published and visible on Discover."
         : "Your campaign is paused and hidden from Discover.");
     } catch (cause) {
       setError(cause?.message || "The campaign status change was not saved.");
@@ -139,10 +141,10 @@ export default function EditCampaign() {
           {campaignStatusLabel(status)}
         </span>
       </div>
-      <p className="text-muted-foreground">Changes are private until you publish. Donations remain paused platform-wide.</p>
+      <p className="text-muted-foreground">Changes are private until you publish. {donationsEnabled ? "Published, active campaigns can accept verified PayPal donations." : "Donations are temporarily unavailable."}</p>
     </header>
 
-    <PrelaunchNotice compact />
+    {!donationsEnabled && <PrelaunchNotice compact />}
 
     <form className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8" onSubmit={(event) => { event.preventDefault(); save(status); }}>
       <label className="block font-semibold">Campaign title
