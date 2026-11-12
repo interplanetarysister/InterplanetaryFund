@@ -137,7 +137,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     if(!value){tokens.current.clear();keys.current.clear();checkoutTokens.current.clear();setComplete(false);setError("");}
     onOpenChange?.(value);
   }}>
-    <DialogContent className="gap-0 overflow-x-hidden rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-w-xl">
+    <DialogContent className="flex max-h-[calc(100dvh-1rem)] flex-col gap-0 overflow-x-hidden overflow-y-auto overscroll-contain rounded-3xl border border-slate-200 bg-white p-0 shadow-2xl sm:max-h-[min(90dvh,52rem)] sm:max-w-xl">
       <DialogHeader className="space-y-2 border-b border-slate-200 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 px-5 pb-5 pt-6 text-left text-white sm:px-6">
         <p className="text-[11px] font-bold uppercase tracking-[.22em] text-cyan-300">Secure donation</p>
         <DialogTitle className="pr-9 text-xl font-bold leading-snug sm:text-2xl">Support {campaign?.title || "this campaign"}</DialogTitle>
