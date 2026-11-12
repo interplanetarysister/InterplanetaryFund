@@ -31,7 +31,8 @@ WITH checks AS (
  WHERE amount_cents<=0 OR currency IS NULL OR currency<>'USD'
  UNION ALL
  SELECT 'demo_order_ids_in_live_donations',count(*) FROM public.ifund_demo_orders o
- JOIN public.ifund_donations d ON d.paypal_order_id=o.id::text
+ JOIN public.ifund_donations d ON d.paypal_order_id=o.paypal_order_id
+ WHERE o.paypal_order_id IS NOT NULL
  UNION ALL
  SELECT 'demo_capture_ids_in_live_donations',count(*) FROM public.ifund_demo_captures c
  JOIN public.ifund_donations d ON d.paypal_capture_id=c.capture_id
@@ -42,6 +43,7 @@ WITH checks AS (
 SELECT now() AS inspected_at,check_name,anomaly_count,
  CASE WHEN anomaly_count=0 THEN 'PASS_DB_ONLY' ELSE 'INVESTIGATE' END AS status
 FROM checks ORDER BY check_name;
+-- Provider order IDs must be compared with provider order IDs, never internal UUIDs.
 -- Important: column names of live financial tables must be checked against the
 -- current schema before executing. These comparisons do not prove global isolation.
 -- A real provider reconciliation separately requires PayPal sandbox GET order/capture,
