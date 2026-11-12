@@ -96,7 +96,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         };
         buttons=paypal.Buttons({
           createOrder:()=>begin("paypal"),onApprove,
-          onError:()=>{if(!cancelled){setStatus("error");setError("PayPal could not complete the donation");}},
+          onError:()=>{if(!cancelled){setStatus("error");setError("PayPal reported an error. If you approved a payment, check your receipt or donation history before retrying.");}},
           onCancel:()=>{if(!cancelled)setStatus("ready");},
           style:{layout:"vertical",shape:"rect",label:"paypal"},
         });
@@ -104,7 +104,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         if(typeof paypal.CardFields==="function"){
           const card=paypal.CardFields({
             createOrder:()=>begin("card"),onApprove,
-            onError:()=>{if(!cancelled){setStatus("error");setError("Card payment could not be completed");}},
+            onError:()=>{if(!cancelled){setStatus("error");setError("Card checkout reported an error. If you approved a payment, check your receipt or donation history before retrying.");}},
             onCancel:()=>{if(!cancelled)setStatus("ready");},
           });
           if(card.isEligible()){
@@ -186,7 +186,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
               <h3 className="text-center text-sm font-bold text-slate-900">Choose how to pay</h3>
               {eligible===true&&<button type="button" className="min-h-12 w-full rounded-xl bg-[#003087] px-4 font-semibold text-white shadow-sm hover:bg-[#002466] disabled:opacity-50"
                 disabled={status!=="ready"||!eligible}
-                onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card payment failed. Check the details or use PayPal.");}}}>
+                onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
                 {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
               </button>}
               <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
