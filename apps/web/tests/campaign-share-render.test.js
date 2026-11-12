@@ -16,7 +16,7 @@ const render = (campaign) => renderToStaticMarkup(createElement(CampaignShareBut
 
 test("the share kit renders for an active campaign and hides its panel by default", () => {
   const html = render(active);
-  assert.match(html, /Share this campaign/);
+  assert.match(html, /Help share this campaign!/);
   assert.match(html, /aria-expanded="false"/);
   assert.match(html, /aria-controls="campaign-share-panel"/);
   // The panel, and therefore the public link, is not in the collapsed markup.
