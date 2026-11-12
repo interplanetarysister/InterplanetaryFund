@@ -18,5 +18,5 @@ FOR INSERT TO authenticated
 WITH CHECK (
   bucket_id = 'ifund-campaign-covers'
   AND (storage.foldername(name))[1] = (SELECT auth.uid())::text
-  AND name ~ '^[a-f0-9-]{36}/[a-f0-9-]{36}\\.(jpg|png|webp|avif)$'
+  AND name ~ '^[a-f0-9-]{36}/[a-f0-9-]{36}[.](jpg|png|webp|avif)$'
 );
