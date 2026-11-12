@@ -205,7 +205,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         const result = await client.auth.getUser();
         if (!result.error) user = result.data?.user;
       } catch { /* Guest editor remains available without an account. */ }
-      if (!user?.id || (!user.email_confirmed_at && user.is_anonymous !== true)) {
+      if (!user?.id || user.is_anonymous === true || !user.email_confirmed_at) {
         if (status === "active") {
           setError("Publishing requires a secure account with a verified owner ID. Your draft remains in this browser; you can continue without verifying your identity, but public publishing is not available in browser-only mode.");
           return;
