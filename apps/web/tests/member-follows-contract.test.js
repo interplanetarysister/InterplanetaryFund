@@ -10,7 +10,7 @@ const sql=read("../../supabase/migrations/pending/20261101_ifund_legal_acceptanc
 test("source-aligned following is implemented as a real guarded route",()=>{
   assert.match(app, /path="\/following" element={<MemberAccess><FollowedCampaigns \/><\/MemberAccess>}/);
   for(const p of ["/profile","/connections","/campaigns"]) assert.match(app,new RegExp('path="'+p+'".*<MemberAccess>'));
-  assert.match(app, /path="\/create" element={<MemberAccess><CreateCampaign \/><\/MemberAccess>}/);
+  assert.ok(app.includes('path="/create" element={<CreateCampaign />}'), "guest authoring must be available without registration");
   assert.match(app, /path="\/dashboard" element={<Dashboard \/>}/);
   assert.doesNotMatch(source,/base44Client|service_role|SUPABASE_SERVICE_ROLE_KEY/);
 });
