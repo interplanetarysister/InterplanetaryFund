@@ -22,6 +22,25 @@ import {
 } from "./core.ts";
 import { approvalUrl, paypal, paypalCardClientToken, reconcile, verifyWebhook } from "./paypal.ts";
 import { generate } from "./ai.ts";
+import { judgeTourClient } from "./judge-tour-client.js";
+import { judgeTourStyles } from "./judge-tour-style.js";
+
+const GUIDE_SCRIPT_PATH = "/assets/ifund-judge-guide.js";
+const GUIDE_STYLE_PATH = "/assets/ifund-judge-guide.css";
+const GUIDE_SCRIPT = "(" + judgeTourClient.toString() + ")();";
+
+function guideAsset(request: Request, value: string, type: string): Response {
+  return new Response(request.method === "HEAD" ? null : value, {
+    status: 200,
+    headers: {
+      "content-type": type,
+      "cache-control": "public, max-age=300",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-origin",
+    },
+  });
+}
+
 import {
   campaignInput,
   publicCampaignFields,
@@ -36,6 +55,12 @@ export async function handle(
   const u = new URL(request.url),
     path = u.pathname;
   if (!path.startsWith("/api/")) {
+    if ((request.method === "GET" || request.method === "HEAD") &&
+        path === GUIDE_SCRIPT_PATH)
+      return guideAsset(request, GUIDE_SCRIPT, "text/javascript; charset=utf-8");
+    if ((request.method === "GET" || request.method === "HEAD") &&
+        path === GUIDE_STYLE_PATH)
+      return guideAsset(request, judgeTourStyles, "text/css; charset=utf-8");
     const res = env.ASSETS
       ? await env.ASSETS.fetch(request)
       : new Response("Build the frontend first", { status: 503 });
@@ -55,6 +80,22 @@ export async function handle(
           .get("content-security-policy")!
           .replace("frame-ancestors 'self'", "frame-ancestors *"),
       );
+    if (request.method === "GET" && res.ok &&
+        !path.startsWith("/embed/") &&
+        res.headers.get("content-type")?.includes("text/html")) {
+      const html = await res.text();
+      if (html.includes("</head>")) {
+        const tags = '<link rel="stylesheet" href="' + GUIDE_STYLE_PATH +
+          '"><script defer src="' + GUIDE_SCRIPT_PATH + '"></script>';
+        headers.delete("content-length");
+        headers.delete("etag");
+        headers.set("cache-control", "no-store");
+        return new Response(html.replace("</head>", tags + "</head>"), {
+          status: res.status, headers,
+        });
+      }
+      return new Response(html, { status: res.status, headers });
+    }
     return new Response(res.body, { status: res.status, headers });
   }
   try {
