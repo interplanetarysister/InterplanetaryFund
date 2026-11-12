@@ -52,6 +52,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   };
   const begin=async channel=>{
     if(!valid||!campaign?.id)throw new Error("Enter a donation of at least $1");
+    if(campaign.status!=="active"||campaign.preview_only)throw new Error("This campaign is not accepting donations.");
     const key=requestKey(channel);
     let checkoutToken=checkoutTokens.current.get(key);
     if(!checkoutToken){
@@ -81,7 +82,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     tokens.current.delete(id);setComplete(true);setStatus("complete");latestPaid.current?.(result);
   };
   useEffect(()=>{
-    if(!open||!valid||!campaign?.id||campaign.status!=="active")return;
+    if(!open||!valid||!campaign?.id||campaign.status!=="active"||campaign.preview_only)return;
     let cancelled=false,buttons=null;
     setError("");setStatus("loading");setEligible(null);
     (async()=>{
@@ -129,7 +130,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         try{node?.replaceChildren();}catch(_){}
       }
     };
-  },[open,campaign?.id,campaign?.status,gift,tip,valid]);
+  },[open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid]);
   const field="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
   return <Dialog open={open} onOpenChange={value=>{
     if(!value&&status==="capturing")return;
