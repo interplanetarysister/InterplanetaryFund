@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { DonutChart } from "@/components/analytics/CampaignMetrics";
 const money = n => {
   const x = Number(n);
   return Number.isSafeInteger(x) && x >= 0
@@ -12,7 +13,7 @@ const campaignColumns = [
   { field: "captured_payments", headerName: "Verified captures", minWidth: 160 },
   { field: "refund_count", headerName: "Refund records", minWidth: 160 },
 ];
-export default function AdminFinance() {
+export default function AdminFinance({ embedded = false }) {
   const [state,setState] = useState({status:"loading",rows:[],receipts:[],error:""});
   useEffect(()=>{
     let active=true;
@@ -40,8 +41,9 @@ export default function AdminFinance() {
   const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
   const platform=shown.filter(r=>r.allocation_status==="platform_support");
   const unmatched=shown.filter(r=>r.allocation_status==="unattributed");
-  return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
-    <header><h1 className="text-3xl font-bold">Platform finance oversight</h1>
+  const Wrapper = embedded ? "div" : "main";
+  return <Wrapper className={embedded ? "space-y-6 border-t border-border pt-7" : "mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8"}>
+    <header><h2 className="text-2xl font-bold">Platform finance oversight</h2>
       <p className="mt-2 text-sm text-muted-foreground">Read-only verified donation totals. No payout controls, donor private details, sandbox payments or unconfirmed captures.</p></header>
     {state.status==="loading"&&<p role="status">Verifying administrator authorization and accounting records…</p>}
     {state.status==="error"&&<section role="alert" className="rounded-xl border border-red-500/50 p-5">{state.error}</section>}
@@ -51,6 +53,14 @@ export default function AdminFinance() {
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count}</p></div>
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Campaigns in reporting</p><p className="mt-2 text-2xl font-semibold">{state.rows.length}</p></div>
       </div>
+      <section className="ifund-chart-card" aria-label="Verified platform finance composition">
+        <p className="ifund-chart-eyebrow">AG Charts Community · independently attributed finance</p>
+        <h3>Verified campaign gifts by campaign</h3>
+        <DonutChart data={state.rows.filter(r=>Number.isSafeInteger(Number(r.raised_cents)) && Number(r.raised_cents)>0).map(r=>({
+          name:r.campaign_title || "Campaign", value:Number(r.raised_cents), label:money(r.raised_cents),
+        }))} title="Administrator verified campaign gift distribution" valueText={money(total)+" verified campaign gifts"}/>
+        <p className="text-xs text-muted-foreground">Only completed provider-verified captures are included; merchant platform support and unmatched receipts are not combined with campaign gifts.</p>
+      </section>
       <section className="rounded-2xl border border-border bg-card p-5 space-y-3" aria-label="Platform support and unmatched PayPal receipts">
         <p className="text-xs text-muted-foreground">{unmatched.length} unmatched merchant receipt{unmatched.length === 1 ? "" : "s"} awaiting allocation review.</p>
         <h2 className="text-lg font-semibold">PayPal platform donations and merchant receipts</h2>
@@ -81,5 +91,5 @@ export default function AdminFinance() {
         {state.rows.length === 0 && <p className="text-sm text-muted-foreground">No verified campaign finance records are available. No sample totals were inserted.</p>}
       </section>
     </>}
-  </main>;
+  </Wrapper>;
 }
