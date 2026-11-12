@@ -13,6 +13,44 @@ create table if not exists ifund_finance.paypal_cleared_captures (
   proof_source text not null check (proof_source = 'paypal_reporting_settled'),
   environment text not null default 'live' check (environment = 'live')
 );
+-- Reject fabricated/over-allocated clearing rows even when the service inserts.
+-- The caller must separately authenticate PayPal settlement evidence; this
+-- trigger proves only canonical donation/capture consistency, not settlement.
+create or replace function ifund_finance.verify_cleared_capture_row()
+returns trigger language plpgsql security invoker set search_path = ''
+as $guard$
+declare v_gift bigint;
+begin
+  if tg_op <> 'INSERT' then
+    raise exception 'Clearing assertions are immutable; reconcile by controlled correction'
+      using errcode='42501';
+  end if;
+  select d.gift_cents into v_gift
+  from public.ifund_donations d
+  join public.ifund_payment_intents pi on pi.paypal_order_id=d.paypal_order_id
+  join public.ifund_ledger_entries le on le.donation_id=d.id
+    and le.operation_key='paypal:live:capture:'||d.paypal_capture_id
+  where d.id=new.donation_id and d.status='captured'
+    and d.paypal_capture_verified_at is not null
+    and d.paypal_capture_id=new.paypal_capture_id
+    and pi.environment='live' and pi.status='captured'
+    and pi.paypal_capture_id=new.paypal_capture_id
+    and le.environment='live' and le.entry_type='capture'
+    and le.amount_cents=d.gift_cents
+  for update of d;
+  if v_gift is null or new.cleared_campaign_cents>v_gift
+     or new.provider_cleared_at>now() then
+    raise exception 'Cleared amount, provider time, or verified capture does not reconcile'
+      using errcode='23514';
+  end if;
+  return new;
+end $guard$;
+drop trigger if exists ifund_verify_cleared_capture_row on ifund_finance.paypal_cleared_captures;
+create trigger ifund_verify_cleared_capture_row
+before insert or update or delete on ifund_finance.paypal_cleared_captures
+for each row execute function ifund_finance.verify_cleared_capture_row();
+revoke all on function ifund_finance.verify_cleared_capture_row() from public,anon,authenticated;
+
 alter table ifund_finance.paypal_cleared_captures enable row level security;
 revoke all on ifund_finance.paypal_cleared_captures from public, anon, authenticated;
 grant select, insert on ifund_finance.paypal_cleared_captures to service_role;
