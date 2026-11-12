@@ -25,3 +25,11 @@ test("signup and resends keep an approved first-party callback origin", () => {
   assert.match(src, /auth\.resend\(\{/);
   assert.match(src, /type: "signup"/);
 });
+
+test("repeated signup does not falsely claim a confirmation email was sent", () => {
+  assert.match(src, /Array\.isArray\(data\.user\.identities\) && data\.user\.identities\.length === 0/);
+  assert.match(src, /setConfirmationPending\(false\);\s*setMessage\("No new registration was confirmed/);
+  assert.match(src, /If no email arrives, try signing in or resetting your password/);
+  assert.doesNotMatch(src, /We sent a confirmation link to \{email\}/);
+  assert.match(src, /reset your password<\/Link>/);
+});
