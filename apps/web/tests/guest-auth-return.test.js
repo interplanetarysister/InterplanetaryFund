@@ -5,7 +5,7 @@ const read = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("content creation is gated by an email account while public browsing stays open", () => {
   const app = read("../src/App.jsx");
-  assert.match(app, /path="\/create" element=\{<MemberAccess><CreateCampaign \/><\/MemberAccess>\}/);
+  assert.ok(app.includes('path="/create" element={<CreateCampaign />}'), "guest authoring must be available without registration");
   assert.doesNotMatch(app, /path="\/discover" element=\{<MemberAccess>/);
 });
 
