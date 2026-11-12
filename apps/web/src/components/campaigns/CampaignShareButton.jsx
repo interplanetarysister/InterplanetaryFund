@@ -77,13 +77,13 @@ export default function CampaignShareButton({ campaign }) {
         className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-stone-200 px-4 py-3 font-semibold text-stone-800 hover:border-primary/40"
       >
         <Share2 aria-hidden="true" className="h-4 w-4" />
-        {open ? "Close share options" : "Share this campaign"}
+        {open ? "Close sharing options" : "Help share this campaign!"}
       </button>
 
       {open && (
         <div id="campaign-share-panel" className="mt-3 space-y-3">
           <p className="text-xs text-stone-500">
-            Share a public link. Nothing is posted on your behalf and no account connection is needed.
+            Help this fundraiser reach more people. Choose where to share its public link. Nothing is posted on your behalf, and no account connection is needed.
           </p>
           <ul className="space-y-2">
             {shareSheetAvailable && (
