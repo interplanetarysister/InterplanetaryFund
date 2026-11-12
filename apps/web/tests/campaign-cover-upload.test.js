@@ -55,3 +55,9 @@ test("composer disables saving and publishing during upload and attaches returne
   assert.match(src,/type="file"/);
   assert.match(src,/Save this draft or publish to attach/);
 });
+
+test("anonymous guest campaign saves remain browser-only instead of calling owner writes",()=>{
+  const src=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
+  assert.match(src,/user\.is_anonymous === true \|\| !user\.email_confirmed_at/);
+  assert.match(src,/rememberBrowserCampaign\(sessionStorage, null, form/);
+});
