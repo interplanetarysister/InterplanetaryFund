@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { payoutIdentity } from "@/lib/guestAccess";
@@ -13,24 +13,14 @@ function usd(cents) {
     ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(Number(cents)/100)
     : "Unavailable";
 }
-function parseUsdCents(raw) {
-  if (!/^\d+(?:\.\d{1,2})?$/.test(raw)) return null;
-  const [whole,fraction=""]=raw.split(".");
-  const value=Number(whole)*100+Number(fraction.padEnd(2,"0"));
-  return Number.isSafeInteger(value) ? value : null;
-}
-
 // The only user action here is an atomic, owner-only hold for payout REVIEW.
 // No money is disbursed by this UI; an independently verified provider clearing
 // record and a separate approved payout processor are still required.
 function WithdrawalBalancePanel() {
   const [state,setState]=useState({phase:"loading",balances:[],requests:[],error:""});
-  const [campaign,setCampaign]=useState("");
-  const [amount,setAmount]=useState("");
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
-  const requestRef=useRef(null);
   const refresh=useCallback(async()=>{
     const client=authClient();
     const [balances,requests]=await Promise.all([
@@ -44,29 +34,6 @@ function WithdrawalBalancePanel() {
   useEffect(()=>{
     refresh().catch(e=>setState({phase:"error",balances:[],requests:[],error:e.message}));
   },[refresh]);
-  const selected=state.balances.find(row=>row.campaign_id===campaign);
-  const gross=parseUsdCents(amount);
-  const fee=gross===null?null:Number((BigInt(gross)*7n+50n)/100n);
-  const valid=gross!==null&&gross>=1000&&gross<=100000000
-    &&gross<=Number(selected?.available_cents||0);
-  async function requestWithdrawal(event) {
-    event.preventDefault();
-    if(busy||!valid)return;
-    setBusy(true);setError("");setNotice("");
-    try {
-      const {data:assurance,error:authError}=await authClient().auth.mfa.getAuthenticatorAssuranceLevel();
-      if(authError||assurance?.currentLevel!=="aal2")throw Error("Reverify your authenticator before requesting a withdrawal.");
-      if(!requestRef.current)requestRef.current=crypto.randomUUID().replace(/-/g,"");
-      const result=await authClient().rpc("ifund_request_withdrawal",{
-        p_campaign_id:campaign,p_gross_cents:gross,p_request_key:requestRef.current
-      });
-      if(result.error||!result.data)throw Error(result.error?.message||"Withdrawal reservation was not confirmed.");
-      requestRef.current=null;setAmount("");
-      await refresh();
-      setNotice("Your funds are reserved for payout review. No transfer has been sent.");
-    }catch(cause){setError(cause.message||"Unable to reserve available funds.");}
-    finally{setBusy(false);}
-  }
   async function cancel(id) {
     if(busy)return;setBusy(true);setError("");setNotice("");
     try{
@@ -96,31 +63,11 @@ function WithdrawalBalancePanel() {
           <div><dt className="text-muted-foreground">Available to request</dt><dd className="font-bold tabular-nums">{usd(item.available_cents)}</dd></div>
         </dl>
       </div>)}
-      {state.balances.some(row=>Number(row.available_cents)>=1000)&&
-        <form onSubmit={requestWithdrawal} className="space-y-3 rounded-xl border border-cyan-500/30 p-4">
-          <h3 className="font-bold">Reserve funds for payout review</h3>
-          <label className="block text-sm font-medium">Your campaign
-            <select required value={campaign} disabled={busy} onChange={e=>{setCampaign(e.target.value);requestRef.current=null;}}
-              className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-3">
-              <option value="">Select a campaign</option>
-              {state.balances.filter(row=>Number(row.available_cents)>=1000).map(row=>
-                <option key={row.campaign_id} value={row.campaign_id}>{row.campaign_title} — {usd(row.available_cents)} available</option>)}
-            </select>
-          </label>
-          <label className="block text-sm font-medium">Gross amount in USD (minimum $10)
-            <input required value={amount} disabled={busy} inputMode="decimal" placeholder="10.00"
-              onChange={e=>{setAmount(e.target.value);requestRef.current=null;}}
-              className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4"/>
-          </label>
-          {gross!==null&&gross>0&&<p className="rounded-xl bg-muted p-3 text-sm">
-            Gross reservation {usd(gross)} − 7% platform fee {usd(fee)} = estimated payout {usd(gross-fee)}.
-            The fee is recognized once only after a verified payout, not on this request.
-          </p>}
-          <button type="submit" disabled={busy||!valid}
-            className="min-h-12 w-full rounded-xl bg-cyan-600 px-5 py-3 font-bold text-white disabled:opacity-40">
-            {busy?"Verifying reservation…":"Request payout review"}
-          </button>
-        </form>}
+      <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+        New withdrawal reservations are temporarily unavailable while refund-adjusted balances and
+        balanced reservation accounting undergo independent verification. Existing requests can
+        still be reviewed or cancelled. No payout can be initiated here.
+      </p>
       {state.requests.length>0&&<section aria-label="My withdrawal requests" className="space-y-3">
         <h3 className="text-lg font-bold">Your withdrawal requests</h3>
         {state.requests.map(row=><div key={row.withdrawal_id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3 text-sm">
