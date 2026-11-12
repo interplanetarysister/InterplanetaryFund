@@ -17,22 +17,26 @@ function usd(cents) {
 // No money is disbursed by this UI; an independently verified provider clearing
 // record and a separate approved payout processor are still required.
 function WithdrawalBalancePanel() {
-  const [state,setState]=useState({phase:"loading",balances:[],requests:[],error:""});
+  const [state,setState]=useState({phase:"loading",balances:[],requests:[],payoutReady:false,readinessReason:"",error:""});
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const refresh=useCallback(async()=>{
     const client=authClient();
-    const [balances,requests]=await Promise.all([
+    const [balances,requests,readiness]=await Promise.all([
       client.rpc("ifund_owner_withdrawal_balances"),
-      client.rpc("ifund_my_withdrawal_requests")
+      client.rpc("ifund_my_withdrawal_requests"),
+      client.rpc("ifund_owner_payout_readiness")
     ]);
-    if(balances.error||requests.error||!Array.isArray(balances.data)||!Array.isArray(requests.data))
-      throw Error("Provider-cleared withdrawal balances could not be verified.");
-    setState({phase:"ready",balances:balances.data,requests:requests.data,error:""});
+    if(balances.error||requests.error||readiness.error||!Array.isArray(balances.data)||
+       !Array.isArray(requests.data)||!Array.isArray(readiness.data))
+      throw Error("Provider-cleared withdrawal readiness could not be verified.");
+    const gate=readiness.data[0]||{};
+    setState({phase:"ready",balances:balances.data,requests:requests.data,
+      payoutReady:gate.payout_account_ready===true,readinessReason:gate.readiness_reason||"",error:""});
   },[]);
   useEffect(()=>{
-    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],error:e.message}));
+    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],payoutReady:false,readinessReason:"",error:e.message}));
   },[refresh]);
   async function cancel(id) {
     if(busy)return;setBusy(true);setError("");setNotice("");
@@ -63,10 +67,12 @@ function WithdrawalBalancePanel() {
           <div><dt className="text-muted-foreground">Available to request</dt><dd className="font-bold tabular-nums">{usd(item.available_cents)}</dd></div>
         </dl>
       </div>)}
-      <p role="status" className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
-        New withdrawal reservations are temporarily unavailable while refund-adjusted balances and
-        balanced reservation accounting undergo independent verification. Existing requests can
-        still be reviewed or cancelled. No payout can be initiated here.
+      <p role="status" className={"rounded-xl border p-4 text-sm "+(state.payoutReady
+        ?"border-cyan-500/40 bg-cyan-500/10"
+        :"border-amber-500/40 bg-amber-500/10")}>
+        Refund-adjusted balances and atomic reserve/release accounting are enabled. New withdrawal
+        execution remains closed until PayPal Payouts authorization and a verified owner payout
+        destination are both confirmed. {state.readinessReason}
       </p>
       {state.requests.length>0&&<section aria-label="My withdrawal requests" className="space-y-3">
         <h3 className="text-lg font-bold">Your withdrawal requests</h3>
