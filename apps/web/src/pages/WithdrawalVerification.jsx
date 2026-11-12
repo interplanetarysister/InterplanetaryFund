@@ -46,7 +46,7 @@ function WithdrawalBalancePanel() {
   },[refresh]);
   const selected=state.balances.find(row=>row.campaign_id===campaign);
   const gross=parseUsdCents(amount);
-  const fee=gross===null?null:Math.round(gross*0.07);
+  const fee=gross===null?null:Number((BigInt(gross)*7n+50n)/100n);
   const valid=gross!==null&&gross>=1000&&gross<=100000000
     &&gross<=Number(selected?.available_cents||0);
   async function requestWithdrawal(event) {
