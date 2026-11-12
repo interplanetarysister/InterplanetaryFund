@@ -22,7 +22,11 @@ async function api(path, options={}) {
   const response = await fetch(path,{...options,cache:"no-store",
     headers:{"content-type":"application/json",...(options.headers||{})}});
   const data=await response.json().catch(()=>({}));
-  if(!response.ok||data.ok===false) throw new Error(data.error||"Payment API unavailable");
+  if(!response.ok||data.ok===false) {
+    if(data.error==="payments_disabled") throw new Error("Campaign checkout is temporarily unavailable. No payment was started.");
+    if(data.error==="capture_failed_check_receipt_before_retry") throw new Error("Payment confirmation is delayed. Check your receipt or donation history before attempting another payment.");
+    throw new Error(data.error||"Payment API unavailable");
+  }
   return data;
 }
 export default function CampaignDonationDialog({ campaign, open, onOpenChange, onPaid }) {
