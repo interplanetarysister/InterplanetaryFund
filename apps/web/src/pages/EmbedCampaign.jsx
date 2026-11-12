@@ -4,10 +4,12 @@ import { getCampaignDetail } from "@/api/publicData";
 import { Image } from "@/components/ui/image";
 import { FALLBACK_IMAGE } from "@/components/brand/brand";
 import { verifiedFundingProgress } from "@/lib/fundingTotals";
+import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 
 // Public iframe card for a real, active Supabase campaign only.
 // No payment action runs in a third-party iframe.
 export default function EmbedCampaign() {
+  const donationsEnabled = usePublicCampaignFundraising();
   const { id } = useParams();
   const [view, setView] = useState({ phase: "loading", campaign: null });
   useEffect(() => {
@@ -24,15 +26,15 @@ export default function EmbedCampaign() {
   const campaign = view.campaign;
   const totals = verifiedFundingProgress(campaign);
   return <main className="mx-auto max-w-sm bg-transparent p-2">
-    <a href={"/campaign/" + encodeURIComponent(campaign.id)} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lg" aria-label={"View " + campaign.title + " on Interplanetary Fund in a new tab"}>
+    <a href={"/campaign/" + encodeURIComponent(campaign.id) + "#campaign-funding"} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-lg" aria-label={"View " + campaign.title + " on Interplanetary Fund in a new tab"}>
       <Image src={campaign.cover_image_url || FALLBACK_IMAGE} alt={campaign.title} className="h-40 w-full object-cover bg-stone-900" />
       <div className="space-y-3 p-4">
         <h1 className="font-display text-lg font-semibold leading-snug text-stone-900">{campaign.title}</h1>
         {campaign.summary && <p className="text-sm text-stone-600">{campaign.summary}</p>}
         {totals ? <p className="text-sm text-stone-600">${totals.raised.toLocaleString()} raised of ${totals.goal.toLocaleString()}</p> :
           <p className="text-sm text-stone-600">Verified fundraising totals are not available.</p>}
-        <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Individual campaign donations are currently paused. Platform donations do not fund this campaign.</p>
-        <span className="inline-block rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">View campaign</span>
+        {donationsEnabled ? <p className="rounded-lg border border-cyan-200 bg-cyan-50 p-3 text-xs text-cyan-900">Open this campaign on IFund to donate securely. Payment is never handled inside an embedded card.</p> : <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Campaign donations are temporarily unavailable. Platform support does not fund this campaign.</p>}
+        <span className="inline-block rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">{donationsEnabled ? "Open campaign to donate" : "View campaign"}</span>
       </div>
     </a>
     <p className="mt-2 text-center text-xs text-stone-500">Powered by Interplanetary Fund</p>
