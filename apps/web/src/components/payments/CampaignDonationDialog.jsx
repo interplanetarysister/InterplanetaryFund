@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CreditCard, Loader2, ShieldCheck } from "lucide-react";
+import { paymentQuoteCents } from "@/lib/paymentQuote";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
@@ -43,6 +44,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const gift=Math.round(Number(amount)*100);
   const valid=Number.isSafeInteger(gift)&&gift>=100&&gift<=100000000;
   const tip=valid&&support?Math.round(gift*.10):0;
+  const quote = valid ? paymentQuoteCents(gift, tip) : null;
   const requestKey=channel=>{
     const key=[campaign?.id,gift,tip,channel].join("|");
     if(!keys.current.has(key))keys.current.set(key,crypto.randomUUID().replace(/-/g,""));
@@ -159,8 +161,9 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         {valid&&<div aria-live="polite" className="rounded-xl border border-slate-200 bg-blue-50/60 p-3 text-sm text-slate-800">
           <div className="flex justify-between gap-3"><span>Campaign donation</span><strong>{"$"+(gift/100).toFixed(2)}</strong></div>
           {support&&<div className="mt-1 flex justify-between gap-3"><span>Optional IFund support</span><strong>{"$"+(tip/100).toFixed(2)}</strong></div>}
-          <div className="mt-2 flex justify-between gap-3 border-t border-slate-200 pt-2 font-bold"><span>Today's total</span><span>{"$"+((gift+tip)/100).toFixed(2)} USD</span></div>
-          <p className="mt-1 text-[11px] text-slate-500">Review the final amount before approving with your payment provider.</p>
+          {quote && <div className="mt-1 flex justify-between gap-3"><span>Estimated payment processing</span><strong>{"$"+(quote.processingCents/100).toFixed(2)}</strong></div>}
+          <div className="mt-2 flex justify-between gap-3 border-t border-slate-200 pt-2 font-bold"><span>Estimated PayPal/card charge</span><span>{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</span></div>
+          <p className="mt-1 text-[11px] text-slate-500">Processing costs are added to the gift. The provider shows the actual charge for approval; do not approve if it differs from the amount displayed here.</p>
         </div>}
         {!valid?<p className="text-xs text-red-700">Enter a gift of at least $1.</p>:
           <>
