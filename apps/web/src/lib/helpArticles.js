@@ -55,7 +55,7 @@ export const helpArticles = Object.freeze([
     category: "Subscriptions",
     question: "Are subscriptions active?",
     description: "Subscriptions and membership entitlements.",
-    answer: "Subscription controls and PayPal entitlement events have not yet passed independent migration verification. The new site must confirm real provider events and recorded membership before presenting an active subscription. No subscription purchase can be completed from this article."
+    answer: "Signed-in members can open /subscriptions to view and manage PayPal recurring plans. The Basic monthly plan is currently available only after IFund verifies the live PayPal plan and recurring-billing webhook configuration. PayPal approval alone does not grant paid access: IFund records an active subscription only after provider-confirmed payment evidence is reconciled into the member-scoped subscription ledger. Other plan options remain unavailable until their PayPal plans are independently verified. No subscription purchase starts from this help article."
   },
   {
     slug: "community",
