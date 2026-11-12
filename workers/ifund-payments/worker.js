@@ -54,13 +54,26 @@ async function paypal(env,path,method="GET",body,requestId) {
   if(!response.ok){const error=new Error("paypal_request_failed");error.status=response.status;throw error}
   return data;
 }
+// PayPal's U.S. terms prohibit adding a surcharge for accepting PayPal.
+// The supporter pays only the chosen campaign gift and any explicitly opted-in
+// platform contribution. Merchant processing costs are not donor surcharges.
 function quote(gift,tip,channel) {
-  const wallet=["googlepay","applepay"].includes(channel);
-  const rate=wallet?0.0289:0.0349, fixed=wallet?29:49;
-  let total=Math.ceil((gift+tip+fixed)/(1-rate));
-  while(total-Math.round(total*rate+fixed)<gift+tip)total++;
-  return total;
+  return gift + tip;
 }
+function usd(centsValue) { return (centsValue / 100).toFixed(2); }
+function paypalOrderBreakdown(gift,tip) {
+  const amount = {currency_code:"USD",value:usd(gift+tip)};
+  const items = [{
+    name:"IFund campaign gift",quantity:"1",category:"DONATION",
+    unit_amount:{currency_code:"USD",value:usd(gift)},
+  }];
+  if (tip > 0) items.push({
+    name:"Optional IFund support",quantity:"1",category:"DONATION",
+    unit_amount:{currency_code:"USD",value:usd(tip)},
+  });
+  return {amount:{...amount,breakdown:{item_total:amount}},items};
+}
+
 function captureFromOrder(order) {
   const units=order?.purchase_units;
   if(!Array.isArray(units)||units.length!==1)return null;
@@ -191,7 +204,8 @@ async function createOrder(req,env) {
   const order=await paypal(env,"/v2/checkout/orders","POST",{
     intent:"CAPTURE",
     purchase_units:[{reference_id:input.campaign_id,custom_id:customId,
-      amount:{currency_code:"USD",value:(total/100).toFixed(2)}}],
+      description:"Interplanetary Fund · campaign donation",
+      ...paypalOrderBreakdown(gift,tip)}],
   },input.request_key);
   if(!ORDER_ID.test(order.id||""))return asError("invalid_provider_order",502);
   await signLedger(env,"bind",{request_key:input.request_key,paypal_order_id:order.id});
