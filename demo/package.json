@@ -8,7 +8,7 @@
     "build:worker": "esbuild worker/index.ts --bundle --platform=browser --format=esm --target=es2022 --outfile=worker/app.js --sourcemap=external",
     "check": "npm run typecheck && npm run build:worker && npm run test:ledger",
     "judge:smoke": "node scripts/judge-acceptance.mjs",
-    "test:ledger": "node --test scripts/sandbox-ledger-invariants.test.mjs scripts/sandbox-payment-edgecases.test.mjs"
+    "test:ledger": "node --test scripts/sandbox-ledger-invariants.test.mjs scripts/sandbox-payment-edgecases.test.mjs scripts/judge-embedded-guide.test.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",

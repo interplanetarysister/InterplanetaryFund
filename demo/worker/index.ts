@@ -22,6 +22,7 @@ import {
 } from "./core.ts";
 import { approvalUrl, paypal, paypalCardClientToken, reconcile, verifyWebhook } from "./paypal.ts";
 import { generate } from "./ai.ts";
+import { judgeGuideHtml, judgeGuideCss, judgeGuideScript } from "./judge-embedded-guide.js";
 import {
   campaignInput,
   publicCampaignFields,
@@ -35,6 +36,24 @@ export async function handle(
 ): Promise<Response> {
   const u = new URL(request.url),
     path = u.pathname;
+  // The walkthrough is an entirely separate, read-only interface surrounding
+  // the unchanged sandbox React app. Instructions occupy space outside the iframe,
+  // so no step card can obscure or intercept highlighted demo controls.
+  if (request.method === "GET" && path.startsWith("/api/judge-guide")) {
+    const type = path === "/api/judge-guide" ? "text/html; charset=utf-8"
+      : path === "/api/judge-guide.js" ? "text/javascript; charset=utf-8"
+      : path === "/api/judge-guide.css" ? "text/css; charset=utf-8" : null;
+    if (type) {
+      const text = path.endsWith(".js") ? judgeGuideScript
+        : path.endsWith(".css") ? judgeGuideCss : judgeGuideHtml;
+      const headers: Record<string,string> = {
+        "content-type": type, "cache-control": "no-store",
+        "x-content-type-options": "nosniff", "referrer-policy": "same-origin",
+        "content-security-policy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+      };
+      return new Response(text, { status:200, headers });
+    }
+  }
   if (!path.startsWith("/api/")) {
     const res = env.ASSETS
       ? await env.ASSETS.fetch(request)
