@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { paymentQuoteCents } from "../src/lib/paymentQuote.js";
 
 const workerSource = readFileSync(new URL("../../../workers/ifund-payments/worker.js", import.meta.url), "utf8");
-const serverQuote = vm.runInNewContext(workerSource + "\nquote", { URL, TextEncoder, Response, Request });
+const serverQuote = vm.runInNewContext(workerSource.replace("export default {", "globalThis.__paymentWorker = {") + "\nquote", { URL, TextEncoder, Response, Request });
 
 test("donor charge matches the production Worker quote in integer cents", () => {
   for (const gift of [100, 250, 333, 500, 1000, 2500, 9999, 100000]) {
