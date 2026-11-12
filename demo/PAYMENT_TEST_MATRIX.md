@@ -37,3 +37,19 @@ Read-only queries against canonical Supabase project's **isolated** `public.ifun
 ## Fresh read-only count checkpoint — 2026-11-12 01:00 UTC
 
 Direct Supabase SQL against `ssibsfmtodgximseeqsv` confirmed 83 `ifund_demo_campaigns`, 6 `ifund_demo_orders`, 3 `ifund_demo_receipts`, and 6 `ifund_demo_ledger` rows. Grouping order rows by `status,currency` confirmed 3 `captured` USD orders totaling **2700 cents** and 3 `created` USD orders totaling **300 cents**. These are newly queried **database counts**, not newly authenticated PayPal captures, signed webhook proof, provider-side reconciliation, role-specific financial views, or production-isolation proof. No sandbox or production rows were written. The existing synthetic regression suite was reviewed in source, but execution could not be confirmed in this run because the container could not resolve GitHub raw content; do not mark it passing. Existing release SHA remains historical until live `/api/status` is rechecked. Preserve the existing image provenance and do not replace media without verified per-campaign license and permissions.
+
+## Post-release read-only sandbox reconciliation — 2026-11-12 14:42 UTC
+
+The newly deployed guide is presentation only; it did not create, approve, capture or refund a payment. This checkpoint queried the isolated `public.ifund_demo_*` tables directly after the guide release:
+
+| Check | Direct database observation | Interpretation |
+|---|---|---|
+| Fictional campaigns | 84, with 0 non-fictional and 0 blank image references | Existing fictional inventory; not new imagery or license proof |
+| Image sources | 81 Wikimedia-hosted references; 3 `/api/media/` references; 21 distinct image paths | Licenses and R2 provenance still require per-campaign review |
+| Sandbox orders | 7 total: 4 recorded `captured` for **2,800 USD cents**, 3 `created` for **300 cents** | Created orders excluded; stored statuses are not independent PayPal authentication |
+| Receipts/events/ledger | 4 receipts, 4 webhook event rows, 8 ledger entries | Persisted records; events not freshly signature-verified |
+| Ledger totals | 3 campaign credits +2,700 cents; 1 platform-support credit +100 cents; 4 clearing debits −2,800 cents | Recorded journal sums to zero; platform support is distinct from campaign support |
+| Captured receipt/ledger joins | 4 captured orders; **0** missing or imbalanced across capture ID, 1 receipt, 2 journal entries and net-zero entries | Internal consistency only, no fresh provider-side verification |
+| Production isolation | 0 `ifund_donations`, 0 `ifund_ledger_entries`; 0 matches on provider order ID, capture ID or ledger capture ID | No production contamination in those specifically checked records |
+
+New judge guide: `https://ifund-hackathon-demo.interplanetary-fund.workers.dev/api/judge-guide`. Cloudflare confirmed Worker version `0d6ddd00-6f45-428c-be84-cbe69c1ea720` at 100%. The sandbox buyer-backed $2.50/$3.33/$5/$10/$25 runs, refund, signed webhook and owner/admin finance browser journeys remain **not verified in this run**. No synthetic completed transactions were generated.
