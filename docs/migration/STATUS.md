@@ -13,7 +13,17 @@ active membership and serializes its owner/provider mutations. All pin
 search_path. The real-Postgres lifecycle test now checks EXECUTE grants for all
 three storage RPC signatures and denies anonymous disconnect. The owner's
 activity aggregate performs only ownership/active checks and SELECT/GROUP BY, so
-its source definition is now correctly STABLE. No remote migration was applied.
+its source definition is now correctly STABLE. The forward migration
+`20261112123500_ifund_owner_agent_focus_stable.sql` corrects already-applied
+VOLATILE catalogs using only ALTER FUNCTION. Its executable PostgreSQL test
+proves that the body, owner, EXECUTE grants, SECURITY DEFINER setting and pinned
+search_path are unchanged; replay, owner-only counts, anonymous/cross-owner,
+inactive-account and missing-identity denials are covered. No remote migration
+was applied by this source/build task. The release coordinator separately reviewed
+the live body, ACL and pinned search_path, then successfully applied the identical
+ALTER through Supabase `apply_migration` as `ifund_owner_agent_focus_stable`.
+Independent post-application catalog verification remains a coordinator gate;
+production payment configuration and records were untouched by that correction.
 The Help test now checks conditional checkout availability, provider-confirmed
 reconciled gifts and separate platform support, instead of a stale blanket
 assertion that donations are paused. Withdrawal-unavailable guidance remains
@@ -28,11 +38,13 @@ a second broad provider implementation.
 
 Local verification on Node v24.22.1:
 
-- Root `npm test`: **352/352 tests pass**, including the repaired Help guidance
-  assertion and executable PostgreSQL privilege checks (131.6 seconds).
+- Root `npm test`: **353/353 pass**, including the added executable catalog and
+  authorization test (176.1 seconds, exit 0).
+- Affected checks (function security, provider lifecycle, Help and forward
+  migration): **13/13 pass**.
 - Canonical `apps/web`: **274/274 tests pass**; production build passes.
 - Historical root frontend: production build passes.
-- Required baseline-clean public-surface Prettier check: passes.
+- Required baseline-clean public-surface and new-test Prettier checks: pass.
 - `demo/npm run check`: TypeScript check, Worker source bundle and **18/18
   synthetic ledger/payment-edge tests pass**. Generated bundle/map/lockfile were
   retained only as ignored work artifacts, not substituted for the release.
