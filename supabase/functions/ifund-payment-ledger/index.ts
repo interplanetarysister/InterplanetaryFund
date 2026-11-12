@@ -148,23 +148,31 @@ Deno.serve(async req=>{
       return Response.json({ok:true,donation_id:r});
     }
 
-    if(body.op==="subscription_plan_verified"){
+    if(body.op==="subscription_plan_readiness"){
       const p=body.data||{};
       if(!["basic","outreach","professional","enterprise","nonprofit"].includes(p.tier)
         ||!["monthly","annual"].includes(p.interval)||!planId.test(p.paypal_plan_id||"")
         ||typeof p.paypal_product_id!=="string"||p.paypal_product_id.length<6
-        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1)
-        return fail("Invalid subscription plan verification");
+        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1
+        ||typeof p.plan_ready!=="boolean"||typeof p.webhook_ready!=="boolean"
+        ||(p.paypal_webhook_id!==null&&p.paypal_webhook_id!==undefined&&
+          (typeof p.paypal_webhook_id!=="string"||p.paypal_webhook_id.length<8)))
+        return fail("Invalid subscription provider readiness");
       const row=await findOne("ifund_subscription_plans?select=*&tier=eq."+encodeURIComponent(p.tier)
         +"&interval=eq."+encodeURIComponent(p.interval));
       if(!row||row.amount_cents!==p.amount_cents||row.currency!=="USD")
         return fail("Subscription catalog mismatch",409);
       if(row.paypal_plan_id&&row.paypal_plan_id!==p.paypal_plan_id)
         return fail("Subscription provider plan conflict",409);
+      const now=new Date().toISOString();
       const updated=await db("ifund_subscription_plans?tier=eq."+encodeURIComponent(p.tier)
         +"&interval=eq."+encodeURIComponent(p.interval),"PATCH",{
           paypal_plan_id:p.paypal_plan_id,paypal_product_id:p.paypal_product_id,
-          active:true,verified_at:new Date().toISOString(),updated_at:new Date().toISOString()
+          paypal_webhook_id:p.webhook_ready?p.paypal_webhook_id:null,
+          active:p.plan_ready&&p.webhook_ready,
+          verified_at:p.plan_ready?now:null,
+          webhook_verified_at:p.webhook_ready?now:null,
+          updated_at:now
         });
       return Response.json({ok:true,plan:updated[0]||null});
     }
