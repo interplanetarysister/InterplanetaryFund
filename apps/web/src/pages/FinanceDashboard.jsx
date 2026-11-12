@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
+import AdminFinance from "@/pages/AdminFinance";
 import { authClient } from "@/api/auth";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
@@ -17,6 +20,8 @@ function SummaryCard({ label, value }) {
   </div>;
 }
 export default function FinanceDashboard() {
+  const { user } = useAuthSession();
+  const adminStatus = useAdminAccess(user);
   const [state, setState] = useState({ status: "loading", owned: [], donated: [], error: "" });
   useEffect(() => {
     let active = true;
@@ -46,8 +51,14 @@ export default function FinanceDashboard() {
   const totalGiven = state.donated.reduce((sum, x) => sum + (Number(x.amount_cents)||0), 0);
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
-      <h1 className="text-3xl font-bold">Your finances</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Only PayPal-confirmed, captured donations are included. Sandbox and pending payments are excluded. Withdrawals are not enabled.</p>
+      <h1 className="text-3xl font-bold">Financial center</h1>
+      <p className="mt-2 text-sm text-muted-foreground">Your verified campaign receipts, owner fundraising and financial records in one place. Sandbox and pending payments are excluded. Withdrawals are not enabled.</p>
+      <nav aria-label="Financial center sections" className="mt-4 flex flex-wrap gap-2 text-sm">
+        <a href="#campaign-finances" className="rounded-xl border border-border px-4 py-3 font-semibold">Campaign finances</a>
+        <a href="#giving-receipts" className="rounded-xl border border-border px-4 py-3 font-semibold">My giving</a>
+        <Link to="/withdrawals" className="rounded-xl border border-border px-4 py-3 font-semibold">Withdrawal verification</Link>
+        {adminStatus === "admin" && <a href="#platform-finance" className="rounded-xl border border-border px-4 py-3 font-semibold">Platform oversight</a>}
+      </nav>
     </header>
     {state.status==="loading" && <p role="status">Verifying your donation records…</p>}
     {state.status==="error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
@@ -58,7 +69,7 @@ export default function FinanceDashboard() {
         <SummaryCard label="Verified campaign gifts received" value={cents(totalRaised)}/>
         <SummaryCard label="Your verified donations to campaigns" value={cents(totalGiven)}/>
       </div>
-      <section className="ifund-chart-card" aria-label="Owner verified campaign funding distribution">
+      <section id="campaign-finances" className="ifund-chart-card" aria-label="Owner verified campaign funding distribution">
         <p className="ifund-chart-eyebrow">AG Charts Community · verified captured donations only</p>
         <h2>Fundraising by your campaigns</h2>
         {state.owned.length===0 ? <p className="text-sm text-muted-foreground">No owned campaign funds to chart.</p> : <>
@@ -83,7 +94,7 @@ export default function FinanceDashboard() {
             <strong className="tabular-nums">{cents(c.raised_cents)}</strong>
           </div>)}</div>}
       </section>
-      <section className="rounded-2xl border border-border bg-card p-5">
+      <section id="giving-receipts" className="rounded-2xl border border-border bg-card p-5">
         <h2 className="text-xl font-semibold">Your donation receipts</h2>
         {state.donated.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">No verified captured donations recorded for your account.</p> :
           <div className="mt-3 space-y-3">{state.donated.map(r => <div key={r.donation_id} className="flex flex-wrap justify-between gap-3 border-b border-border py-3">
@@ -93,5 +104,6 @@ export default function FinanceDashboard() {
           </div>)}</div>}
       </section>
     </>}
+    {adminStatus === "admin" && <section id="platform-finance" aria-label="Verified administrator finance oversight"><AdminFinance embedded /></section>}
   </main>;
 }
