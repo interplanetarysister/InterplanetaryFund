@@ -28,5 +28,5 @@ test("guest dashboard and editor stay public, while account data remains guarded
   const dashboard = app.split("\n").find(line => line.includes('path="/dashboard"'));
   assert.ok(dashboard?.includes("<Dashboard />") && !dashboard.includes("<MemberAccess>"), "guest dashboard must be accessible");
   const create = app.split("\n").find(line => line.includes('path="/create"'));
-  assert.ok(create?.includes("<MemberAccess><CreateCampaign />"), "campaign authoring requires email registration");
+  assert.ok(create?.includes("<CreateCampaign />") && !create.includes("<MemberAccess>"), "guest campaign composition must remain available before registration");
 });
