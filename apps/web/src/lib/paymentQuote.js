@@ -1,20 +1,16 @@
-// This mirrors the production payment Worker's integer-cent fee gross-up.
-// The backend remains authoritative; PayPal must display the charge to approve.
+// PayPal's U.S. User Agreement prohibits adding a payment-method surcharge.
+// The donor pays their selected campaign amount and optional IFund support;
+// IFund bears provider processing costs, while the existing 7% platform fee
+// remains assessed to the campaign owner at withdrawal, not during checkout.
 export function paymentQuoteCents(giftCents, optionalSupportCents = 0, channel = "paypal") {
   if (!Number.isSafeInteger(giftCents) || giftCents < 100 ||
       !Number.isSafeInteger(optionalSupportCents) || optionalSupportCents < 0 ||
       optionalSupportCents > Math.round(giftCents * 0.1)) return null;
-  const wallet = channel === "googlepay" || channel === "applepay";
-  const rate = wallet ? 0.0289 : 0.0349;
-  const fixed = wallet ? 29 : 49;
-  let totalCents = Math.ceil((giftCents + optionalSupportCents + fixed) / (1 - rate));
-  while (totalCents - Math.round(totalCents * rate + fixed) <
-         giftCents + optionalSupportCents) totalCents += 1;
   return {
     giftCents,
     optionalSupportCents,
-    processingCents: totalCents - giftCents - optionalSupportCents,
-    totalCents,
+    processingCents: 0,
+    totalCents: giftCents + optionalSupportCents,
     currency: "USD",
   };
 }
