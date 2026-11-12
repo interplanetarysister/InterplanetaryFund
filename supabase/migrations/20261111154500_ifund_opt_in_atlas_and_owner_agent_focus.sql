@@ -33,7 +33,7 @@ comment on column public.ifund_campaigns.public_location_label is 'Opt-in approx
 -- Raw agent activity and descriptions are never publicly revealed.
 create or replace function public.ifund_owner_campaign_agent_focus(p_campaign_id uuid)
 returns table(category text, status text, activity_count bigint)
-language plpgsql security definer set search_path = ''
+language plpgsql stable security definer set search_path = ''
 as $$
 begin
   if auth.uid() is null or

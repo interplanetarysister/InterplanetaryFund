@@ -1,4 +1,48 @@
 # Migration status — 2026-10-24
+
+## Canonical build review — November 12, 2026
+
+Reconciled the saved source repair with remote main
+`53200db9b3b84d3b24c0c034a3ec31cd30890d54`, retaining its new AI Campaign Studio
+and agent-preview sections. This is a source-only review; current production
+configuration is not inferred from older status entries below.
+
+Source repair keeps the security guard intact. The reviewed OAuth vault writers
+are executable only by service_role; member disconnect derives auth.uid(), checks
+active membership and serializes its owner/provider mutations. All pin
+search_path. The real-Postgres lifecycle test now checks EXECUTE grants for all
+three storage RPC signatures and denies anonymous disconnect. The owner's
+activity aggregate performs only ownership/active checks and SELECT/GROUP BY, so
+its source definition is now correctly STABLE. No remote migration was applied.
+The Help test now checks conditional checkout availability, provider-confirmed
+reconciled gifts and separate platform support, instead of a stale blanket
+assertion that donations are paused. Withdrawal-unavailable guidance remains
+covered.
+
+The `/hackathon` companion links the independent judge walkthrough and its
+separate release evidence. It does not change the existing Pages sandbox API
+origin, credential bindings or current production payment settings. No provider,
+data, DNS or deployment mutation is included. The OAuth changes overlap the
+allowlist portion of open PR #234; they must be reconciled rather than merged as
+a second broad provider implementation.
+
+Local verification on Node v24.22.1:
+
+- Root `npm test`: **352/352 tests pass**, including the repaired Help guidance
+  assertion and executable PostgreSQL privilege checks (131.6 seconds).
+- Canonical `apps/web`: **274/274 tests pass**; production build passes.
+- Historical root frontend: production build passes.
+- Required baseline-clean public-surface Prettier check: passes.
+- `demo/npm run check`: TypeScript check, Worker source bundle and **18/18
+  synthetic ledger/payment-edge tests pass**. Generated bundle/map/lockfile were
+  retained only as ignored work artifacts, not substituted for the release.
+- The public judge HTTP script could not fetch any endpoint from this shell;
+  public runtime acceptance is **NOT VERIFIED by this check**. This does not
+  establish a deployed application failure or a successful provider transaction.
+
+Local tests do not establish production migration parity, real provider financial
+reconciliation, sandbox capture/webhook verification or judge readiness. Those
+remain separate release gates; no payout or withdrawal execution was enabled.
 Authority: [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137)
 
 Latest campaign-creator increment and production/preview reconciliation:

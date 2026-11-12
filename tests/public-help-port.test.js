@@ -39,7 +39,13 @@ test("Help remains read-only and does not fake agent, provider or financial acti
     source("src/lib/helpArticles.js"),
   ]).then((parts) => parts.join("\n"));
   assert.doesNotMatch(code, /@base44\/|base44Client|db\.from\(|\.functions\.invoke\(|fetch\(/);
-  assert.match(code, /donations are paused/i);
+  const donations = helpArticles.find((article) => article.slug === "campaign-donations");
+  assert.ok(donations, "Donation guidance must exist");
+  assert.match(donations.answer, /when the secure checkout is enabled/i);
+  assert.match(donations.answer, /follows the live payment-service status/i);
+  assert.match(donations.answer, /only provider-confirmed, reconciled gifts count/i);
+  assert.match(donations.answer, /separate platform-support payment does not fund a campaign/i);
+  assert.match(donations.answer, /no payment starts from this help article/i);
   assert.match(code, /executors are not yet active/i);
   assert.match(code, /not currently enabled/i);
 });
