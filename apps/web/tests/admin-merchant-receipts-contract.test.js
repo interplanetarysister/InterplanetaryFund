@@ -21,7 +21,7 @@ test("admin financial screen displays unallocated merchant receipts separately",
   assert.match(ui, /PayPal platform donations and merchant receipts/);
   assert.match(ui, /Neither group is included in campaign fundraising or owner withdrawals/);
   assert.match(ui, /source_site === "unattributed" \? "Unverified"/);
-  assert.match(ui, /state\.rows\.reduce/);
+  assert.match(ui, /sumVerifiedCounts\(state\.rows, "captured_payments"\)/);
   assert.match(ui, /platform\.reduce/);
   assert.match(ui, /IFund platform donation/);
   assert.match(ui, /unmatched\.length/);
