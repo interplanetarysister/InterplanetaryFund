@@ -69,6 +69,7 @@ create or replace function public.ifund_social_report(p_post uuid,p_reason text)
 returns boolean language plpgsql security definer set search_path = '' as $$
 begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
+ perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text,7821));
  if length(trim(coalesce(p_reason,''))) not between 15 and 1500
  then raise exception 'Please provide an explanation (15 to 1500 characters)' using errcode='22023'; end if;
  if not exists(select 1 from public.ifund_posts p where p.id=p_post
@@ -265,6 +266,7 @@ create or replace function public.ifund_social_archive_report(p_archive text,p_r
 returns boolean language plpgsql security definer set search_path = '' as $$
 begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
+ perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text,7821));
  if length(trim(coalesce(p_reason,''))) not between 15 and 1500 then raise exception 'Explanation must be 15–1500 characters' using errcode='22023'; end if;
  if p_archive is null or length(p_archive)>128 or not exists(
   select 1 from public.ifund_social_post p where p.id=p_archive
