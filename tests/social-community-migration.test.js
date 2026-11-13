@@ -17,7 +17,12 @@ test("community migration creates permissioned native/archive discussions and mo
     create schema auth;
     create function auth.uid() returns uuid language sql stable
     as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
-    create table auth.users(id uuid primary key);
+    create table auth.users(
+      id uuid primary key, email_confirmed_at timestamptz,
+      is_anonymous boolean default false);
+    create function public.ifund_current_user_has_current_terms()
+      returns boolean language sql stable as $
+      select coalesce(current_setting('test.terms_accepted',true),'yes')='yes' $;
     create table public.ifund_profiles(
       id uuid primary key, display_name text,
       public_profile_enabled boolean default true,
@@ -41,8 +46,11 @@ test("community migration creates permissioned native/archive discussions and mo
     create function public.ifund_my_profile_settings() returns jsonb
       language sql stable security definer set search_path = '' as $$
       select to_jsonb(p) from public.ifund_profiles p
+      join auth.users u on u.id=p.id
       where p.id=auth.uid() and p.account_status='active'
-      and not p.account_deletion_pending $$;
+      and not p.account_deletion_pending
+      and u.email_confirmed_at is not null and not u.is_anonymous
+      and public.ifund_current_user_has_current_terms() $;
     create function public.ifund_current_user_is_verified_admin()
       returns boolean language sql stable security definer set search_path = ''
       as $$ select auth.uid()='cccccccc-cccc-4ccc-cccc-cccccccccccc'::uuid $$;
@@ -58,10 +66,10 @@ test("community migration creates permissioned native/archive discussions and mo
     create policy legacy_permissive_insert on public.ifund_posts for insert to authenticated with check(true);
     create policy legacy_permissive_update on public.ifund_posts for update to authenticated using(true) with check(true);
     create policy legacy_permissive_delete on public.ifund_posts for delete to authenticated using(true);
-    insert into auth.users values
-      ('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'),
-      ('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb'),
-      ('cccccccc-cccc-4ccc-cccc-cccccccccccc');
+    insert into auth.users(id,email_confirmed_at) values
+      ('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa',now()),
+      ('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb',now()),
+      ('cccccccc-cccc-4ccc-cccc-cccccccccccc',now());
     insert into public.ifund_profiles(id,display_name)
       values ('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa','Creator'),
       ('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb','Reader'),
@@ -79,6 +87,22 @@ test("community migration creates permissioned native/archive discussions and mo
     await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);
     await db.exec("set role "+role);
   };
+  await who(reporter);
+  await db.query("select set_config('test.terms_accepted','no',false)");
+  await assert.rejects(
+    query("select public.ifund_social_like($1,true)",[native]),
+    /Active verified member required/
+  );
+  await db.query("select set_config('test.terms_accepted','yes',false)");
+  await db.exec("reset role");
+  await db.query("update auth.users set email_confirmed_at=null where id=$1",[reporter]);
+  await who(reporter);
+  await assert.rejects(
+    query("select public.ifund_social_reply($1,'Unverified reply')",[native]),
+    /Active verified member required/
+  );
+  await db.exec("reset role");
+  await db.query("update auth.users set email_confirmed_at=now() where id=$1",[reporter]);
   await who(reporter);
   await assert.rejects(
     query("insert into public.ifund_posts(id,author_id,body) values(gen_random_uuid(),$1,'impersonation')",[owner]),
