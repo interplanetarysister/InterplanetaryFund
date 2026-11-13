@@ -1,15 +1,8 @@
 name: Build IFund Android app
 
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - apps/web/capacitor.config.json
-      - apps/web/assets/**
-      - apps/web/package.json
-      - .github/workflows/android-apk.yml
 
 permissions:
   contents: read
