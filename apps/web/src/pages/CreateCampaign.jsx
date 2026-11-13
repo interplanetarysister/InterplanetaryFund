@@ -239,7 +239,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts are held on this device; a secure guest or email account is required for cloud saving and publishing.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
+    <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
