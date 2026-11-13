@@ -9,7 +9,8 @@ const identity=AGENT_WORKSPACES.find(x=>x.service==="communications_agent");
 
 test("ECHO is a free owner-scoped drafting tool, not an unapproved broadcast mechanism",()=>{
   assert.match(ui,/\.eq\("owner_id",user\.id\)/);
-  assert.match(ui,/authClient\(\)\.auth\.getUser\(\)/);
+  assert.match(ui,/const client=authClient\(\)/);
+  assert.match(ui,/client\.auth\.getUser\(\)/);
   assert.match(ui,/manual review and sharing/);
   assert.match(ui,/does not call an AI model or send email/);
   assert.doesNotMatch(ui,/sendCommunication|sendEmail|publishPost|\/v1\/messages|Mailgun|Resend|SMTP/);
