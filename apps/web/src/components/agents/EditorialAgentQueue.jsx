@@ -12,6 +12,21 @@ export default function EditorialAgentQueue() {
   const [open,setOpen] = useState(false);
   const [refresh,setRefresh] = useState(0);
   const [state,setState] = useState({phase:"idle",rows:[],error:""});
+  const [acknowledging,setAcknowledging] = useState("");
+  const [notice,setNotice] = useState("");
+  async function acknowledge(item) {
+    if(acknowledging)return;
+    setAcknowledging(item.review_id);setNotice("");
+    try {
+      const {data,error}=await authClient().rpc("ifund_acknowledge_editorial_review",{
+        p_review_id:item.review_id,
+      });
+      if(error||data!==true)throw new Error(error?.message||"Review acknowledgment was not confirmed.");
+      setNotice("Your review acknowledgment was recorded. This does not certify an agent action.");
+      setRefresh(v=>v+1);
+    }catch(e){setNotice(e.message||"Unable to update review.");}
+    finally{setAcknowledging("")}
+  }
   useEffect(()=>{
     if(!open)return;
     let active=true;
@@ -37,6 +52,7 @@ export default function EditorialAgentQueue() {
       {open && <button type="button" onClick={()=>setRefresh(n=>n+1)} className="min-h-11 rounded-xl border px-4">Refresh</button>}
     </div>
     {open && <div>
+      {notice && <p role="status" className="text-sm">{notice}</p>}
       {state.phase==="loading" && <p role="status">Loading authorized reviews…</p>}
       {state.phase==="error" && <p role="alert" className="text-red-600">{state.error}</p>}
       {state.phase==="ready" && (state.rows.length===0
@@ -51,6 +67,11 @@ export default function EditorialAgentQueue() {
               <p className="mt-1">{note.text}</p>
             </li>)}</ol>}
           <Link className="inline-flex min-h-11 items-center underline" to={`/campaigns/${encodeURIComponent(item.campaign_id)}/edit`}>Review and improve campaign</Link>
+          {item.review_status!=="acknowledged" &&
+            <button type="button" disabled={Boolean(acknowledging)}
+              onClick={()=>acknowledge(item)} className="ml-3 min-h-11 rounded-xl border px-3 text-sm disabled:opacity-50">
+              {acknowledging===item.review_id?"Recording…":"I reviewed this suggestion"}
+            </button>}
         </li>)}</ul>)}
     </div>}
   </section>;
