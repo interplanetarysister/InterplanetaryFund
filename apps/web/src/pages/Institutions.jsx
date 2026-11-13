@@ -41,7 +41,7 @@ function SourceCard({source,campaign}) {
   </article>;
 }
 
-function OpportunityCard({opportunity,campaign}) {
+function OpportunityCard({opportunity,campaign,watched,onWatch,watchBusy,watchStatus}) {
   const relevance=matchOpportunity(opportunity,campaign);
   const matching=campaign && relevance.score>0;
   const expired=Boolean(opportunity.deadline_date && opportunity.deadline_date < new Date().toISOString().slice(0,10));
@@ -63,6 +63,15 @@ function OpportunityCard({opportunity,campaign}) {
       ?relevance.summary
       :"This program is a general reference, not a verified match for the selected campaign."}</p>}
     {opportunity.source_note&&<p className="mt-2 text-xs text-muted-foreground">{opportunity.source_note}</p>}
+    <div className="mt-3">
+      {watchStatus==="ready" ? <button type="button" disabled={Boolean(watchBusy)}
+        onClick={()=>onWatch(opportunity.id,!watched)} className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold disabled:opacity-40">
+        {watchBusy===opportunity.id?"Saving watch…":watched?"Stop deadline alerts":"Watch deadline/status updates"}
+      </button> : <p className="text-xs text-muted-foreground">
+        {watchStatus==="sign-in" ? "Sign in to opt in to deadline-change alerts." : "Deadline watch status is currently unavailable."}
+      </p>}
+      <p className="mt-1 text-xs text-muted-foreground">Alerts occur only when the verified iFund opportunity record is updated; this does not continuously monitor the provider website.</p>
+    </div>
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
       <a href={opportunity.url} target="_blank" rel="noopener noreferrer"
         className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-bold text-white hover:bg-cyan-700">
@@ -80,6 +89,10 @@ export default function Institutions() {
   const [publicCampaigns,setPublicCampaigns]=useState([]);
   const [ownerCampaigns,setOwnerCampaigns]=useState([]);
   const [ownerLoadWarning,setOwnerLoadWarning]=useState("");
+  const [watched,setWatched]=useState([]);
+  const [watchStatus,setWatchStatus]=useState("loading");
+  const [watchBusy,setWatchBusy]=useState("");
+  const [watchNotice,setWatchNotice]=useState("");
   const [selectedCampaign,setSelectedCampaign]=useState("");
   const [type,setType]=useState("all");
   const [query,setQuery]=useState("");
@@ -147,6 +160,35 @@ export default function Institutions() {
     }catch{setOwnerCampaigns([]);}
     return ()=>{active=false;++revision;subscription?.unsubscribe();};
   },[reload]);
+  useEffect(()=>{
+    let active=true;
+    setWatchStatus("loading");setWatched([]);
+    (async()=>{
+      try{
+        const client=authClient();
+        const before=await client.auth.getUser();
+        if(before.error||!before.data?.user?.id){if(active)setWatchStatus("sign-in");return;}
+        const {data,error}=await client.rpc("ifund_my_opportunity_watches");
+        if(error||!Array.isArray(data))throw new Error("Opportunity watch status unavailable.");
+        const after=await client.auth.getUser();
+        if(after.error||after.data?.user?.id!==before.data.user.id)throw new Error("Session changed.");
+        if(active){setWatched(data.map(x=>x.opportunity_id));setWatchStatus("ready");}
+      }catch{if(active)setWatchStatus("error");}
+    })();
+    return ()=>{active=false;};
+  },[reload]);
+  async function toggleOpportunityWatch(opportunityId,enabled){
+    if(watchBusy||watchStatus!=="ready")return;
+    setWatchBusy(opportunityId);setWatchNotice("");
+    try{
+      const client=authClient();
+      const {data,error}=await client.rpc("ifund_set_opportunity_watch",{p_opportunity_id:opportunityId,p_enabled:enabled});
+      if(error||data!==enabled)throw new Error(error?.message||"Watch change was not verified.");
+      setWatched(items=>enabled?[...new Set([...items,opportunityId])]:items.filter(x=>x!==opportunityId));
+      setWatchNotice(enabled?"Source-change alerts enabled for the selected opportunity.":"Opportunity watch disabled.");
+    }catch(e){setWatchNotice(e.message||"Unable to update opportunity watch.");}
+    finally{setWatchBusy("")}
+  }
   const campaigns=[...ownerCampaigns,...publicCampaigns.filter(c=>!ownerCampaigns.some(o=>o.id===c.id))];
   const selected=campaigns.find(c=>c.id===selectedCampaign)||null;
   const visible=useMemo(()=>sources.filter(s=>(!id||s.id===id) &&
@@ -178,6 +220,7 @@ export default function Institutions() {
         {campaigns.map(c=><option key={c.id} value={c.id}>{c.isOwned?"Your campaign · ":""}{c.title||"Untitled campaign"}{c.isOwned&&c.status!=="active"?" (private or unpublished)":""}</option>)}
       </select>
       {ownerLoadWarning&&<p role="status" className="mt-2 text-xs text-amber-700">{ownerLoadWarning}</p>}
+      {watchNotice&&<p role="status" className="mt-2 text-xs">{watchNotice}</p>}
     </section>
     <div className="flex flex-wrap gap-2" aria-label="Opportunity categories">
       {KINDS.map(k=><button type="button" key={k.id} aria-pressed={type===k.id} onClick={()=>setType(k.id)}
@@ -194,7 +237,7 @@ export default function Institutions() {
         <p className="text-sm text-muted-foreground">{matchedOpportunities.length} independently sourced program{matchedOpportunities.length===1?"":"s"}.
           A program listing is not a guarantee of an available award, vacancy, partnership, or eligibility. Applications stay with official providers.</p>
         {matchedOpportunities.length===0 ? <p className="rounded-xl border border-border p-4">No source-verified programs match these filters. Broader research directories appear below.</p> :
-          <div className="grid gap-4 md:grid-cols-2">{matchedOpportunities.map(o=><OpportunityCard key={o.id} opportunity={o} campaign={selected}/>)}</div>}
+          <div className="grid gap-4 md:grid-cols-2">{matchedOpportunities.map(o=><OpportunityCard key={o.id} opportunity={o} campaign={selected} watched={watched.includes(o.id)} watchStatus={watchStatus} watchBusy={watchBusy} onWatch={toggleOpportunityWatch}/>)}</div>}
       </section>
       <h2 className="text-xl font-bold">Additional research directories</h2>
       <p className="text-sm text-muted-foreground">{visible.length} verified research source{visible.length===1?"":"s"} · Specific offers must be checked on the linked provider.</p>
