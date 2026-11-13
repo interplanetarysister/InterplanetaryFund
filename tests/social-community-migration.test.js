@@ -50,7 +50,7 @@ test("community migration creates permissioned native/archive discussions and mo
       where p.id=auth.uid() and p.account_status='active'
       and not p.account_deletion_pending
       and u.email_confirmed_at is not null and not u.is_anonymous
-      and public.ifund_current_user_has_current_terms() $;
+      and public.ifund_current_user_has_current_terms() $$;
     create function public.ifund_current_user_is_verified_admin()
       returns boolean language sql stable security definer set search_path = ''
       as $$ select auth.uid()='cccccccc-cccc-4ccc-cccc-cccccccccccc'::uuid $$;
