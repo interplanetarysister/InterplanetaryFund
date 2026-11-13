@@ -86,14 +86,14 @@ returns table(id uuid, post_id uuid, body text, reason text, created_at timestam
 language sql stable security definer set search_path = '' as $$
  select r.id,r.post_id,p.body,r.reason,r.created_at,r.status
  from public.ifund_social_reports r join public.ifund_posts p on p.id=r.post_id
- where public.ifund_current_user_is_verified_super_admin()
+ where public.ifund_current_user_is_verified_admin()
  order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
 $$;
 create or replace function public.ifund_social_review(p_report uuid,p_action text)
 returns boolean language plpgsql security definer set search_path = '' as $$
 declare v_post uuid;
 begin
- if not public.ifund_current_user_is_verified_super_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
+ if not public.ifund_current_user_is_verified_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
  if p_action not in ('restore','remove') then raise exception 'Invalid decision' using errcode='22023'; end if;
  select post_id into v_post from public.ifund_social_reports where id=p_report and status='open' for update;
  if v_post is null then raise exception 'Report not found or already reviewed' using errcode='22023'; end if;
@@ -216,14 +216,14 @@ returns table(id uuid,post_id text,body text,reason text,created_at timestamptz,
 language sql stable security definer set search_path = '' as $
  select r.id,r.archive_id,p.content,r.reason,r.created_at,r.status
  from public.ifund_social_archive_reports r join public.ifund_social_post p on p.id=r.archive_id
- where public.ifund_current_user_is_verified_super_admin()
+ where public.ifund_current_user_is_verified_admin()
  order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
 $;
 create or replace function public.ifund_social_archive_review(p_report uuid,p_action text)
 returns boolean language plpgsql security definer set search_path = '' as $
 declare v_archive text;
 begin
- if not public.ifund_current_user_is_verified_super_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
+ if not public.ifund_current_user_is_verified_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
  if p_action not in ('restore','remove') then raise exception 'Invalid decision' using errcode='22023'; end if;
  select archive_id into v_archive from public.ifund_social_archive_reports
  where id=p_report and status='open' for update;
