@@ -15,7 +15,7 @@ export default function EchoApprovedMessaging({campaignId,campaignStatus,message
  useEffect(()=>{
   let alive=true;
   setHistory({phase:"loading",rows:[],error:""});
-  authClient().rpc("ifund_my_echo_inapp_deliveries").then(({data,error})=>{
+  authClient().rpc("ifund_my_echo_delivery_read_receipts").then(({data,error})=>{
    if(!alive)return;
    if(error||!Array.isArray(data))throw new Error("Delivery history could not be verified.");
    setHistory({phase:"ready",rows:data,error:""});
@@ -62,9 +62,10 @@ export default function EchoApprovedMessaging({campaignId,campaignStatus,message
   {history.phase==="error"&&<p role="alert" className="text-xs">{history.error}</p>}
   {history.phase==="ready"&&<div>
    <h3 className="text-sm font-semibold">Recorded in-app deliveries</h3>
+   <p className="text-xs text-muted-foreground">Read counts describe in-app notification flags, not email delivery, message replies or confirmed human attention. Recipient identities remain private.</p>
    {history.rows.length===0?<p className="text-xs text-muted-foreground">No successful notification batches recorded.</p>:
     <ul className="mt-2 space-y-2">{history.rows.slice(0,10).map(row=><li key={row.delivery_id} className="text-xs">
-     {new Date(row.created_at).toLocaleString()} · {row.recipient_count} notifications recorded
+     {new Date(row.created_at).toLocaleString()} · {row.notifications_recorded} expected recipients · {row.notifications_stored ?? "Unavailable"} in-app notifications recorded · {row.notifications_marked_read ?? "Unavailable"} marked read
     </li>)}</ul>}
   </div>}
  </section>;
