@@ -122,3 +122,19 @@ test("preview R2 paths are not available through production", async (t) => {
   });
   assert.equal(response.status, 503);
 });
+
+test("numeric Content-Length accepts a valid image and rejects invalid or oversized lengths", async (t) => {
+  withAuth(t);
+  let writes = 0;
+  const bucket = {
+    put: async () => { writes++; },
+    head: async () => ({ size: jpeg.byteLength }),
+    get: async () => null,
+  };
+  assert.equal((await upload({ request: makeRequest(jpeg, { "content-length": String(jpeg.byteLength) }), env: env(bucket) })).status, 201);
+  assert.equal(writes, 1);
+  for (const length of ["invalid", "0", String(5 * 1024 * 1024 + 1)]) {
+    assert.equal((await upload({ request: makeRequest(jpeg, { "content-length": length }), env: env(bucket) })).status, 413);
+  }
+  assert.equal(writes, 1);
+});
