@@ -54,7 +54,7 @@ returns boolean language plpgsql security definer set search_path = '' as $$
 begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
  if not exists(select 1 from public.ifund_posts p where p.id=p_post
- and not exists(select 1 from public.ifund_social_reports r where r.post_id=p.id and r.status='open'))
+ and not exists(select 1 from public.ifund_social_reports r where r.post_id=p.id and r.status in ('open','removed')))
  then raise exception 'Post unavailable' using errcode='22023'; end if;
  if p_like then
    insert into public.ifund_social_likes(post_id,member_id) values(p_post,auth.uid()) on conflict do nothing;
@@ -200,9 +200,20 @@ language sql stable security definer set search_path = '' as $$
  where p_before is null or (f.posted_at,f.id)<(p_before,p_before_id)
  order by f.posted_at desc,f.id desc limit 24
 $$;
--- IMPORTANT: Deny direct public table reads of hidden posts; use the vetted feed RPC.
-revoke select on public.ifund_posts from anon,authenticated;
--- Other legacy authenticated features may require their own restricted read RPC.
+-- Protect all direct table reads as well as the public RPC, while keeping
+-- INSERT ... RETURNING supported for authenticated members.
+create or replace function public.ifund_post_visible(p_post uuid)
+returns boolean language sql stable security definer set search_path = '' as $
+ select not exists(select 1 from public.ifund_social_reports r
+ where r.post_id=p_post and r.status in ('open','removed'))
+$;
+revoke all on function public.ifund_post_visible(uuid) from public,anon,authenticated;
+grant execute on function public.ifund_post_visible(uuid) to anon,authenticated;
+drop policy if exists ifund_posts_public_read on public.ifund_posts;
+create policy ifund_posts_public_read on public.ifund_posts for select to anon,authenticated
+ using (public.ifund_post_visible(id));
+-- The reports table has no direct grants or RLS read policy; encapsulate its
+-- lookup in a security definer function to avoid RLS recursion/permission errors.
 -- Retain insert rights but enforce lifecycle at database boundary.
 drop policy if exists ifund_posts_insert on public.ifund_posts;
 create policy ifund_posts_insert on public.ifund_posts for insert to authenticated
@@ -223,3 +234,18 @@ begin
 end $$;
 grant execute on function public.ifund_social_replies_read(uuid),
  public.ifund_social_like_summary(uuid[]) to anon;
+
+-- Only expose the existence of a published member blog when a campaign is public.
+create or replace function public.ifund_public_campaign_blog_author(p_campaign uuid)
+returns uuid language sql stable security definer set search_path = '' as $$
+ select c.owner_id
+ from public.ifund_campaigns c
+ where c.id=p_campaign and c.status='active'
+ and exists(select 1 from public.ifund_blogs b
+   join public.ifund_blog_entries e on e.blog_id=b.id
+   where b.owner_auth_user_id=c.owner_id and b.type='member'
+     and b.status='active' and e.status='published')
+ limit 1
+$$;
+revoke all on function public.ifund_public_campaign_blog_author(uuid) from public,anon,authenticated;
+grant execute on function public.ifund_public_campaign_blog_author(uuid) to anon,authenticated;
