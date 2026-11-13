@@ -28,6 +28,10 @@ export function reviewCampaignWideEditorial(form = {}) {
   if (repeatedLines(story).length > 0) add("story_redundancy", "story", "polaris", "Remove repeated story sentences", "Consider removing exact duplicated sentences; retain important context.");
   const normSummary = normalize(summary), normStory = normalize(story), normTitle = normalize(title);
   if (normSummary.length >= 45 && normStory.includes(normSummary)) add("cross_field_summary", "story", "polaris", "Avoid repeating the short description", "Make the full story add useful detail instead of duplicating its entire summary.");
+  const summarySentences = sentenceParts(summary).map(normalize).filter(s=>s.length >= 45);
+  const storySentences = new Set(sentenceParts(story).map(normalize).filter(s=>s.length >= 45));
+  if (summarySentences.some(sentence=>storySentences.has(sentence)))
+    add("cross_field_sentences", "story", "polaris", "Review sentences repeated across description and story", "Use the story to build on the summary; retain exact repetition only where it aids clarity.");
   if (normTitle.length >= 18 && normSummary.includes(normTitle) && normStory.includes(normTitle)) add("cross_field_title", "summary", "echo", "Review repeated headline wording", "The headline appears in multiple fields. Keep purposeful repetition only.");
   return issues;
 }
