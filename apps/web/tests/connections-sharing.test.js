@@ -21,7 +21,7 @@ test("Connections owner sharing only targets published campaigns and reviewable 
  }
 });
 test("Connections stays within member identity and admin-only diagnostics",()=>{
- assert.match(hub,/\\.eq\("owner_id",user\\.id\)/);
+ assert.match(hub,/\.eq\("owner_id",user\.id\)/);
  assert.match(hub,/ifund_my_public_links/);
  assert.match(hub,/ifund_my_share_choices/);
  assert.match(hub,/adminStatus==="admin" && <details/);
