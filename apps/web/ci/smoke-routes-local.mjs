@@ -71,7 +71,10 @@ async function checkRoutes(browser, width, records) {
         waitUntil: "domcontentloaded", timeout: 15000,
       });
       status = response?.status() || 0;
-      await delay(450);
+      // Lazy pages and remote auth initialization vary by device; do not
+      // misclassify a transitional Suspense skeleton as an empty route.
+      await page.waitForFunction(() => document.body?.innerText?.length >= 45,
+        { timeout: 5000 }).catch(() => {});
       text = await page.locator("body").innerText();
       overflow = await page.evaluate(() =>
         document.documentElement.scrollWidth - window.innerWidth);
