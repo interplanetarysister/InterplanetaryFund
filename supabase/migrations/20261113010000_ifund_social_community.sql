@@ -112,6 +112,9 @@ begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
  if p_target is null or p_target=auth.uid() then raise exception 'Invalid member' using errcode='22023'; end if;
  if p_action='request' then
+   -- Serialize reciprocal invitations to avoid two pending rows for one pair.
+   perform pg_advisory_xact_lock(hashtextextended(
+    least(auth.uid()::text,p_target::text)||':'||greatest(auth.uid()::text,p_target::text),7802));
    if not exists(select 1 from public.ifund_profiles p where p.id=p_target and p.public_profile_enabled and p.account_status='active' and not p.account_deletion_pending)
    then raise exception 'Member unavailable' using errcode='22023'; end if;
    if exists(select 1 from public.ifund_social_friendships where
