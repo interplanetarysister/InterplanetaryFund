@@ -251,3 +251,18 @@ returns uuid language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function public.ifund_public_campaign_blog_author(uuid) from public,anon,authenticated;
 grant execute on function public.ifund_public_campaign_blog_author(uuid) to anon,authenticated;
+
+-- Friend requests appear only in the recipient's private workspace.
+create or replace function public.ifund_social_friend_requests()
+returns table(member_id uuid,display_name text,created_at timestamptz)
+language sql stable security definer set search_path = '' as $$
+ select f.requester_id,coalesce(nullif(p.display_name,''),'IFund member'),f.created_at
+ from public.ifund_social_friendships f
+ join public.ifund_profiles p on p.id=f.requester_id
+ where f.addressee_id=auth.uid() and f.status='pending'
+ and p.account_status='active' and not p.account_deletion_pending
+ and public.ifund_social_member_ok()
+ order by f.created_at desc limit 100
+$$;
+revoke all on function public.ifund_social_friend_requests() from public,anon,authenticated;
+grant execute on function public.ifund_social_friend_requests() to authenticated;
