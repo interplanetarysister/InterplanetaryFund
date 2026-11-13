@@ -46,9 +46,9 @@ export async function createCommunity(input) {
   const { client, memberId } = await verifiedMember();
   const { data, error } = await client.from("ifund_member_communities")
     .insert({ owner_id: memberId, name, description, location })
-    .select("id,owner_id,name").single();
+    .select("id,name").single();
   check(error, "Community creation requires an active account and accepted terms.");
-  if (!data?.id || data.owner_id !== memberId)
+  if (!data?.id)
     throw new Error("Community creation could not be confirmed.");
   return data;
 }
