@@ -8,6 +8,7 @@ import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 import WithdrawalFeeEstimator from "@/components/agents/WithdrawalFeeEstimator";
+import OwnerRefundTrends from "@/components/agents/OwnerRefundTrends";
 
 const cents = value => value === null || value === undefined || value === "" ? "Unavailable" : formatUsdCents(value);
 function SummaryCard({ label, value }) {
@@ -104,6 +105,7 @@ export default function FinanceDashboard() {
           </div>)}</div>}
       </section>
     </>}
+    <OwnerRefundTrends />
     {adminStatus === "admin" && <section id="platform-finance" aria-label="Verified administrator finance oversight"><AdminFinance embedded /></section>}
   </main>;
 }
