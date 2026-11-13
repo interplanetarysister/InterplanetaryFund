@@ -33,7 +33,14 @@ export default function AIImageStudio() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const objectUrl = useRef("");
-  useEffect(() => () => { if (objectUrl.current) URL.revokeObjectURL(objectUrl.current); }, []);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
+    };
+  }, []);
 
   function clearArtwork() {
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
@@ -89,6 +96,7 @@ export default function AIImageStudio() {
       const after = await client.auth.getUser();
       if (after.error || after.data?.user?.id !== before.data.user.id)
         throw new Error("Your account changed before the image could be shown.");
+      if (!mounted.current) return;
       const url = URL.createObjectURL(jpeg);
       objectUrl.current = url;
       setFile(jpeg);
@@ -111,6 +119,7 @@ export default function AIImageStudio() {
     setBusy("upload"); setError(""); setMessage("");
     try {
       const url = await uploadCampaignCover(authClient(), file);
+      if (!mounted.current) return;
       setSavedUrl(url);
       setMessage("The image was saved to your IFund public cover storage. It is not attached to a campaign until you choose it in the campaign editor and save.");
     } catch (cause) { setError(cause?.message || "Artwork could not be saved."); }
