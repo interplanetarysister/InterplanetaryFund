@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS ifund_ops.ai_image_daily (
 );
 
 ALTER TABLE ifund_ops.ai_image_daily ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ifund_ops.ai_image_daily FORCE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE ifund_ops.ai_image_daily FROM PUBLIC, anon, authenticated;
 -- No browser-facing SELECT/INSERT/UPDATE/DELETE grants or policies.
 
@@ -68,7 +67,7 @@ BEGIN
   WHERE q.attempts < 3
   RETURNING attempts INTO v_attempts;
 
-  RETURN v_attempts BETWEEN 1 AND 3;
+  RETURN COALESCE(v_attempts BETWEEN 1 AND 3, FALSE);
 END;
 $quota$;
 
