@@ -1,6 +1,6 @@
 # IFund agent and prepublication assessment — complete implementation register
 
-**Release state (November 12, 2026):** Owner released the build-permission hold. Eight agent/prepublication migrations and one bounded NEXUS cron schedule are now applied in canonical Supabase. A successful migration is not proof of each member-facing or external-provider end-to-end journey.
+**Release state (November 13, 2026):** LATEST OWNER INSTRUCTION: code and verification work accumulate with **no new preview/production builds** until an explicit BUILD instruction. Eight earlier agent/prepublication migrations and one bounded NEXUS cron schedule were applied in canonical Supabase before this source-only continuation. SQL deployment and frontend compilation of the new amendments below remain pending. A migration or preview result does not prove a live member journey.
 
 Statuses: **existing** = source capability precedes this change but live journey may be unverified; **staged** = source/SQL/tests committed, not compiled or deployed; **partial** = meaningful implementation exists but key acceptance/behavior remains; **pending** = not implemented.
 
@@ -66,3 +66,24 @@ Statuses: **existing** = source capability precedes this change but live journey
 - Browser owner acceptance, independent agent AI peer processing, external OAuth write scopes, provider message delivery and source polling remain **unverified**. Do not present these as completed features.
 
 **Frontend improvements in this release batch:** prepublication findings link to their actual title/summary/story fields; NEXUS uses verified 7/30-day captures when available and never turns missing data into zero. Source tests added. Only one consolidated production build should be triggered after completing checks, with Cloudflare Git auto-deploy disabled immediately afterward.
+
+## Source-only continuation — November 13 (not built or published)
+
+The original 35 improvement items remain in the register above. Additional changes have been staged, without triggering this turn's build:
+
+- **Publication:** existing live database trigger enforces 3,500 characters on *new* active publication and resumption. A new additive SQL migration aligns trimming of leading/trailing whitespace; it has **not** been applied. Existing grandfathered active campaigns remain untouched.
+- **Campaign-wide editorial:** reusable punctuation and repeated-sentence proposals now cover title, description and story, detect full-summary duplication, shared complete sentences and headline duplication. Every proposed edit requires owner review and acceptance; review never invents facts. Both Create and Edit support the multi-field proposals.
+- **Team handoff:** the owner-initiated review button checks that the local text matches the saved campaign; it queues **all** applicable findings in sequential batches of at most 12 to avoid silent truncation. New issue categories and a private owner-comment RPC are in `20261113_ifund_editorial_campaignwide_discussions.sql`, **staged only**. Owner replies are not autonomous AI responses.
+- **NEXUS:** missing/acknowledged editorial tasks now affect priority ranking; acknowledged means owner reviewed the suggestion, never that an agent executed a rewrite.
+- **POLARIS:** specific editorial checks derived from the owner campaign direct to the exact editor field; the campaign editor handles deep-link focus. No claim of context-aware AI generation.
+- **ECHO:** staged `20261113_ifund_echo_inapp_read_receipts.sql` counts stored and marked-read notifications without exposing recipient identities. This is not email/provider delivery or replies.
+- **LINK:** member interface places connection summaries and selectable platform marks above a single provider context, with more understandable status/permission language. Another independently authored `feature/connections-icon-hub-20261112` branch exists; reconcile its more extensive provider catalog and campaign-share features before merging to avoid duplicate UI/logic.
+- **Tests added:** `campaign-wide-editorial-review.test.js`, `agent-editorial-handoff-and-receipts.test.js`, `connection-selection-audit.test.js`, and `ifund-prepublication-whitespace-and-discussion.test.js`. These are **committed but not executed** in this source-only turn.
+- **Do not claim complete:** independent agent-to-agent AI discussion, provider messaging replies, verified external policy data, automated provider opportunity polling, verified full authenticated journeys, and acceptance across all screens remain incomplete. Preserve the source release hold and provider financial gates.
+
+### Source release gates remaining
+1. Review new SQL against live Supabase schemas and apply only through a separately authorized, reviewed migration.
+2. Reconcile overlapping LINK icon-hub branches and shared components before the single consolidated build.
+3. Run full frontend/backend/security tests and repair failures; no build was run in this continuation.
+4. On explicit BUILD instruction, perform one preview-first build of the cumulative canonical commit; promote the **same** artifact only after separate production authorization.
+5. Verify real login, campaign publication, owner discussions, agent roles, provider consent and financial/provider operations without inventing success or test payments.
