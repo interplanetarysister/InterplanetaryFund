@@ -6,6 +6,7 @@ import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead } from
 import { safeNoticeDestination } from "@/lib/notifications";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { moderationQueue } from "@/lib/socialCommunity";
 
 function localDestination(value) {
   const safe = safeNoticeDestination(value);
@@ -26,6 +27,12 @@ export default function Inbox() {
   const [params] = useSearchParams();
   const { user } = useAuthSession();
   const isAdmin = useAdminAccess(user) === "admin";
+  const [reports, setReports] = useState([]);
+  useEffect(() => {
+    let active = true;
+    if (isAdmin) moderationQueue().then(rows => { if (active) setReports(rows.filter(row => row.status === "open")); }).catch(() => {});
+    return () => { active = false; };
+  }, [isAdmin]);
   const requestedCampaign = params.get("campaign") || "all";
   const [campaignFilter, setCampaignFilter] = useState(requestedCampaign);
   const [items, setItems] = useState([]);
@@ -90,7 +97,11 @@ export default function Inbox() {
         </div>
       </header>
 
-      {isAdmin && <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center rounded-xl border border-primary/40 bg-card px-4 font-medium text-primary">Review community post reports</Link>}
+      {isAdmin && <section aria-label="Community moderation alerts" className="space-y-2 rounded-2xl border border-primary/30 bg-card p-4">
+        <h2 className="font-semibold">Community moderation · {reports.length} open reports</h2>
+        {reports.slice(0, 3).map(report => <p className="line-clamp-2 text-sm" key={report.id}>{report.reason}</p>)}
+        <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center text-primary underline">Review community post reports</Link>
+      </section>}
       <section className="flex flex-wrap gap-2" aria-label="Inbox filters">
         {["open", "done", "all"].map(value => (
           <button key={value} type="button" onClick={() => setTab(value)}
