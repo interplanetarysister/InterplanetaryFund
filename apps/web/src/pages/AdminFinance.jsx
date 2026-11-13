@@ -5,6 +5,7 @@ import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { sumVerifiedCents, sumVerifiedCounts } from "@/lib/verifiedMoney.mjs";
+import { merchantReceiptExceptions } from "@/lib/merchantReconciliation.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
 const operationalCount = n => n === null || n === undefined || n === "" || typeof n === "boolean" ? "Unavailable" : Number.isSafeInteger(Number(n)) && Number(n) >= 0 ? String(n) : "Unavailable";
 const campaignColumns = [
@@ -84,6 +85,7 @@ export default function AdminFinance({ embedded = false }) {
   const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
   const platform=shown.filter(r=>r.allocation_status==="platform_support");
   const unmatched=shown.filter(r=>r.allocation_status==="unattributed");
+  const reconciliation=merchantReceiptExceptions(state.receipts);
   const Wrapper = embedded ? "div" : "main";
   return <Wrapper className={embedded ? "space-y-6 border-t border-border pt-7" : "mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8"}>
     <header><h2 className="text-2xl font-bold">Platform finance oversight</h2>
@@ -96,6 +98,19 @@ export default function AdminFinance({ embedded = false }) {
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count===null?"Unavailable":count}</p></div>
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Campaigns in reporting</p><p className="mt-2 text-2xl font-semibold">{state.rows.length}</p></div>
       </div>
+      {superAdminStatus === "super-admin" && !state.income &&
+        <p role="alert" className="rounded-xl border border-amber-500/50 p-4 text-sm">
+          Provider-backed platform income could not be verified. This is not a confirmed zero balance.
+        </p>}
+      {superAdminStatus === "super-admin" && reconciliation && reconciliation.length>0 &&
+        <section aria-label="ORBIT reconciliation exceptions" className="rounded-xl border border-amber-500/40 bg-card p-5 space-y-3">
+          <h2 className="text-lg font-semibold">ORBIT · Reconciliation exceptions ({reconciliation.length})</h2>
+          <p className="text-sm text-muted-foreground">Read-only alerts. Missing origin or amount mismatches require provider evidence; this report does not allocate merchant receipts.</p>
+          <ul className="space-y-2">{reconciliation.map((r,i)=><li key={r.id+":"+i} className="rounded-lg border border-border p-3 text-sm">
+            <strong className="font-mono">{r.id}</strong>
+            <ul className="mt-1 list-disc pl-5">{r.issues.map(issue=><li key={issue}>{issue}</li>)}</ul>
+          </li>)}</ul>
+        </section>}
       {superAdminStatus === "super-admin" && state.income && <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-5 space-y-4" aria-label="IFund platform income">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">Super admin · IFund platform income</p>
