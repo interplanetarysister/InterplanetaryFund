@@ -20,7 +20,7 @@ test("embeds only show real published campaign and never accept money inside ifr
   assert.match(embed,/Payment is never handled inside an embedded card/);
   assert.match(embed,/Live campaign donations are enabled/);
   assert.match(embed,/secure checkout could not be verified/);
-  assert.doesNotMatch(embed,/base44|service_role|PayPalDonateButton|createDonation|checkout|onPayment/i);
+  assert.doesNotMatch(embed,/base44|service_role|PayPalDonateButton|createDonation|create-order|capture-order|onPayment/i);
   assert.equal(verifiedFundingProgress({raised_amount:null,goal_amount:100}),null);
   assert.deepEqual(verifiedFundingProgress({raised_amount:20,goal_amount:100}),{raised:20,goal:100,percentage:20});
 });
