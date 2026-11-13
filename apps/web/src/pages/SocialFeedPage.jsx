@@ -2,6 +2,7 @@ import "@/styles-sacred-social.css";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getCampaignDetail } from "@/api/publicData";
+import { getPublishedStory } from "@/lib/editorial";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
@@ -12,6 +13,7 @@ export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
   const [params] = useSearchParams();
   const campaignToShare = params.get("shareCampaign");
+  const storyToShare = params.get("shareStory");
   const [hasMore, setHasMore] = useState(false);
   const { user, status } = useAuthSession();
   const [canPost, setCanPost] = useState(false);
@@ -80,6 +82,18 @@ export default function SocialFeedPage({ community = false }) {
       setPublishError("Copy was unavailable on this device.");
     }
   }
+
+  useEffect(() => {
+    const id = storyToShare;
+    if (!id || !/^[A-Za-z0-9_-]{1,128}$/.test(id)) return;
+    let active = true;
+    getPublishedStory(id).then(story => {
+      if (!active || !story) return;
+      const url = `${window.location.origin}/blogs/${encodeURIComponent(story.id)}`;
+      setBody(previous => previous || `Let's discuss: ${story.title}\n${url}`.slice(0,MAX_POST_LENGTH));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [storyToShare]);
 
   function saveDraft() {
     if (!draftKey) return;
