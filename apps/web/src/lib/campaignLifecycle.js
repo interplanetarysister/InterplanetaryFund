@@ -1,3 +1,5 @@
+import { reviewCampaignPublication } from "./prepublicationReview.mjs";
+
 // Owner campaign lifecycle rules for the independent IFund frontend.
 //
 // The database is authoritative, not this file:
@@ -107,15 +109,17 @@ export function validateCampaignForm(form, { publish = false } = {}) {
   if (publish) {
     if (!summary) errors.push("Add a short description before publishing.");
     if (!story) errors.push("Add your campaign story before publishing.");
+    if (story) errors.push(...reviewCampaignPublication(value).blockers);
     if (!goal) errors.push("Set a fundraising goal before publishing.");
   }
   return errors;
 }
 
-/** The publish checklist shown to the owner. Mirrors ifund_publish_complete. */
+/** Prepublication checklist; database transition trigger is authoritative. */
 export function publishReadiness(form) {
   const missing = validateCampaignForm(form, { publish: true });
-  return { ready: missing.length === 0, missing };
+  const editorial = reviewCampaignPublication(form);
+  return { ready: missing.length === 0, missing, editorial, improvements: editorial.findings };
 }
 
 /** Normalized column values. Never includes owner_id or server-owned fields. */
