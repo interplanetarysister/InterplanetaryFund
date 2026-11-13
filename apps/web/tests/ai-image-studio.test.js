@@ -106,7 +106,7 @@ test("page gates access and routes images into existing verified cover storage",
   assert.ok(app.includes('path="/ai-images" element={<MemberAccess><AIImageStudio'));
   assert.ok(worker.includes("routeImageStudio(request, env)"));
   assert.match(page, /uploadCampaignCover\(authClient\(\), file\)/);
-  assert.match(page, /Paste it into the campaign cover URL field/);
+  assert.match(page, /paste this link into the cover URL field/i);
   assert.doesNotMatch(page, /base44/i, "independent image studio must not depend on Base44");
 });
 
