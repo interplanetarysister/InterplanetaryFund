@@ -4,7 +4,7 @@ export const AUTH_TABS = Object.freeze(['/agents','/profile','/social','/communi
 export const PUBLIC_TABS = Object.freeze(['/agents','/profile','/social','/community']);
 const PREFIXES=Object.freeze({
   '/agents':['/agents','/mission'],
-  '/profile':['/profile','/u','/my-blog','/devices','/giving','/following','/subscriptions','/withdrawals','/ledger'],
+  '/profile':['/profile','/u','/my-blog','/devices','/giving','/following','/subscriptions','/plans','/withdrawals','/ledger'],
   '/social':['/social'],
   '/community':['/community','/blogs'],
 });
