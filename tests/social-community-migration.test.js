@@ -78,11 +78,11 @@ test("community migration creates permissioned native/archive discussions and mo
   };
   await who(reporter);
   await query("select public.ifund_social_like($1,true)",[native]);
-  assert.equal((await query("select like_count from public.ifund_social_like_summary($1)",[[native]]))[0].like_count,1);
+  assert.equal(Number((await query("select like_count from public.ifund_social_like_summary($1)",[[native]]))[0].like_count),1);
   await query("select public.ifund_social_reply($1,'Helpful update')",[native]);
   assert.equal((await query("select body from public.ifund_social_replies_read($1)",[native]))[0].body,"Helpful update");
   await query("select public.ifund_social_archive_like('arc1',true)");
-  assert.equal((await query("select like_count from public.ifund_social_archive_like_summary(ARRAY['arc1'])"))[0].like_count,1);
+  assert.equal(Number((await query("select like_count from public.ifund_social_archive_like_summary(ARRAY['arc1'])"))[0].like_count),1);
   await query("select public.ifund_social_archive_reply('arc1','Hello from IFund')");
   assert.equal((await query("select body from public.ifund_social_archive_replies_read('arc1')"))[0].body,"Hello from IFund");
   await query("select public.ifund_social_report($1,'This post has misleading claims')",[native]);
