@@ -43,6 +43,8 @@ test("withdrawal screen is MFA-protected and fail-closed until payout readiness"
  assert.match(s,/confirmWithdrawalFactor/);
  assert.match(s,/only requested when you begin your/);
  assert.match(s,/ifund_owner_payout_readiness/);
- assert.match(s,/execution remains closed/);
- assert.doesNotMatch(s,/\.rpc\(["']ifund_request_withdrawal/);
+ assert.match(s,/ifund_connect_paypal_payout_to_verified_email/);
+ assert.match(s,/state\.payoutReady/);
+ assert.match(s,/\.rpc\(["']ifund_request_withdrawal/);
+ assert.doesNotMatch(s,/\/v1\/payments\/payouts/);
 });

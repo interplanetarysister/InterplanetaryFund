@@ -74,6 +74,41 @@ async function paypal(env,path,method="GET",body,requestId) {
   if(!response.ok){const error=new Error("paypal_request_failed");error.status=response.status;throw error}
   return data;
 }
+async function paypalDetailed(env,path,method="GET",body) {
+  const token=await accessToken(env);
+  const response=await fetch(PAYPAL_API+path,{
+    method,headers:{"authorization":"Bearer "+token,"content-type":"application/json"},
+    body:body===undefined?undefined:JSON.stringify(body)
+  });
+  const data=await response.json().catch(()=>({}));
+  return {ok:response.ok,status:response.status,data};
+}
+function payoutBatchIdFromLinks(links) {
+  for(const link of Array.isArray(links)?links:[]){
+    if(typeof link?.href!=="string")continue;
+    try{
+      const u=new URL(link.href);
+      if(u.protocol!=="https:"||u.port||!["api.paypal.com","api-m.paypal.com"].includes(u.hostname))continue;
+      const m=u.pathname.match(/^\/v1\/payments\/payouts\/([A-Za-z0-9_-]{8,64})$/);
+      if(m)return m[1];
+    }catch(_){}
+  }
+  return null;
+}
+function providerItemId(resource) {
+  const direct=resource?.payout_item_id||resource?.id;
+  if(typeof direct==="string"&&ORDER_ID.test(direct))return direct;
+  for(const link of Array.isArray(resource?.links)?resource.links:[]){
+    if(typeof link?.href!=="string")continue;
+    try{
+      const u=new URL(link.href);
+      if(u.protocol!=="https:"||u.port||!["api.paypal.com","api-m.paypal.com"].includes(u.hostname))continue;
+      const m=u.pathname.match(/^\/v1\/payments\/payouts-item\/([A-Za-z0-9_-]{8,128})$/);
+      if(m)return m[1];
+    }catch(_){}
+  }
+  return null;
+}
 // PayPal's U.S. terms prohibit adding a surcharge for accepting PayPal.
 // The supporter pays only the chosen campaign gift and any explicitly opted-in
 // platform contribution. Merchant processing costs are not donor surcharges.
@@ -125,6 +160,201 @@ async function payoutReadiness(env) {
   return {ok:true,environment:env.IFUND_PAYPAL_MODE||"unset",
     payouts_scope:scopes.has(PAYOUT_SCOPE),payout_webhook_ready:webhookReady,
     ready:scopes.has(PAYOUT_SCOPE)&&webhookReady};
+}
+
+async function applyPayoutItem(env,item,paypalEventId=null) {
+  const request=item?.payout_item||{};
+  const withdrawalId=request.sender_item_id;
+  if(!UUID.test(withdrawalId||"")||!ORDER_ID.test(item?.payout_item_id||""))
+    throw new Error("payout_item_identity_invalid");
+  const lookup=await signLedger(env,"payout_lookup",{withdrawal_id:withdrawalId});
+  const expected=lookup.payout;
+  const amount=request.amount;
+  if(!expected||String(request.receiver||"").toLowerCase()!==String(expected.receiver_email||"").toLowerCase()
+    || amount?.currency!=="USD"||!/^[0-9]+(?:\.[0-9]{1,2})?$/.test(String(amount?.value||""))
+    || cents(amount.value)!==Number(expected.net_cents))
+    throw new Error("payout_item_mismatch");
+  const batchId=item.payout_batch_id||expected.payout_batch_id;
+  if(!ORDER_ID.test(batchId||""))throw new Error("payout_batch_unresolved");
+  if(expected.payout_batch_id&&expected.payout_batch_id!==batchId)
+    throw new Error("payout_batch_mismatch");
+  const fee=item.payout_item_fee;
+  const feeCents=fee?.currency==="USD"&&/^[0-9]+(?:\.[0-9]{1,2})?$/.test(String(fee.value||""))
+    ?cents(fee.value):null;
+  const status=String(item.transaction_status||"").toUpperCase();
+  const allowed=["SUCCESS","FAILED","PENDING","UNCLAIMED","RETURNED","ONHOLD","BLOCKED","REFUNDED","CANCELED"];
+  if(!allowed.includes(status))throw new Error("payout_status_unrecognized");
+  await signLedger(env,"payout_state",{
+    withdrawal_id:withdrawalId,payout_batch_id:batchId,payout_item_id:item.payout_item_id,
+    transaction_status:status,provider_fee_cents:feeCents,paypal_event_id:paypalEventId
+  });
+  return {ok:true,withdrawal_id:withdrawalId,payout_batch_id:batchId,
+    payout_item_id:item.payout_item_id,status};
+}
+async function reconcilePayoutBatch(env,withdrawalId,batchId,paypalEventId=null) {
+  const lookup=await signLedger(env,"payout_lookup",{withdrawal_id:withdrawalId});
+  const expected=lookup.payout;
+  const batch=await paypal(env,"/v1/payments/payouts/"+encodeURIComponent(batchId)+"?page=1&page_size=10&total_required=true");
+  if(batch?.batch_header?.payout_batch_id!==batchId
+    ||batch?.batch_header?.sender_batch_header?.sender_batch_id!==expected.sender_batch_id)
+    throw new Error("payout_batch_identity_mismatch");
+  const items=Array.isArray(batch.items)?batch.items:[];
+  const matches=items.filter(row=>row?.payout_item?.sender_item_id===withdrawalId);
+  if(matches.length===1)return await applyPayoutItem(env,matches[0],paypalEventId);
+  if(matches.length>1)throw new Error("duplicate_provider_payout_items");
+  const batchStatus=String(batch?.batch_header?.batch_status||"").toUpperCase();
+  if(batchStatus==="DENIED"){
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:withdrawalId,payout_batch_id:batchId,outcome:"failed",error_code:"PAYPAL_BATCH_DENIED"
+    });
+    return {ok:false,withdrawal_id:withdrawalId,payout_batch_id:batchId,status:"DENIED"};
+  }
+  return {ok:true,withdrawal_id:withdrawalId,payout_batch_id:batchId,status:batchStatus||"PENDING"};
+}
+async function payoutItemWebhook(payload,env) {
+  const itemId=providerItemId(payload.resource);
+  if(!itemId||!ORDER_ID.test(payload.id||""))return asError("payout_item_reference_missing",409);
+  const item=await paypal(env,"/v1/payments/payouts-item/"+encodeURIComponent(itemId));
+  if(item?.payout_item_id!==itemId)return asError("payout_item_identity_mismatch",409);
+  const result=await applyPayoutItem(env,item,payload.id);
+  return asJson({...result,recorded:true});
+}
+async function payoutBatchWebhook(payload,env) {
+  if(!ORDER_ID.test(payload.id||""))return asError("payout_batch_event_invalid",409);
+  const resource=payload.resource||{};
+  let batchId=resource.batch_header?.payout_batch_id||resource.payout_batch_id||resource.id||null;
+  if(!ORDER_ID.test(batchId||"")) batchId=payoutBatchIdFromLinks(resource.links);
+  if(!ORDER_ID.test(batchId||""))return asError("payout_batch_reference_missing",409);
+  const batch=await paypal(env,"/v1/payments/payouts/"+encodeURIComponent(batchId)+"?page=1&page_size=10&total_required=true");
+  const senderBatchId=batch?.batch_header?.sender_batch_header?.sender_batch_id;
+  if(typeof senderBatchId!=="string"||!/^ifund-[0-9a-f]{32}$/.test(senderBatchId))
+    return asError("payout_sender_batch_unresolved",409);
+  const lookup=await signLedger(env,"payout_lookup_batch",{sender_batch_id:senderBatchId});
+  const withdrawalId=lookup.payout?.withdrawal_id;
+  if(!UUID.test(withdrawalId||""))return asError("payout_withdrawal_unresolved",409);
+  if(String(batch?.batch_header?.batch_status||"").toUpperCase()==="DENIED"){
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:withdrawalId,payout_batch_id:batchId,outcome:"failed",error_code:"PAYPAL_BATCH_DENIED"
+    });
+    return asJson({ok:true,recorded:true,status:"DENIED",withdrawal_id:withdrawalId});
+  }
+  return asJson({...await reconcilePayoutBatch(env,withdrawalId,batchId,payload.id),recorded:true});
+}
+async function executePayout(req,env) {
+  const token=memberToken(req);
+  if(!token)return asError("verified_super_admin_required",401);
+  const input=await readBody(req);
+  if(!UUID.test(input.withdrawal_id||""))return asError("invalid_withdrawal_reference");
+  const readiness=await payoutReadiness(env);
+  if(!readiness.ready)return asError("paypal_payouts_not_ready",503);
+  const prepared=await signLedger(env,"payout_prepare",{
+    withdrawal_id:input.withdrawal_id,admin_access_token:token
+  });
+  const payout=prepared.payout;
+  if(!payout)return asError("payout_preparation_failed",409);
+  if(payout.current_status==="paid")
+    return asJson({ok:true,status:"SUCCESS",withdrawal_id:payout.withdrawal_id,payout_batch_id:payout.payout_batch_id});
+  if(payout.payout_batch_id)
+    return asJson(await reconcilePayoutBatch(env,payout.withdrawal_id,payout.payout_batch_id));
+
+  const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
+    sender_batch_header:{
+      sender_batch_id:payout.sender_batch_id,recipient_type:"EMAIL",
+      email_subject:"Your Interplanetary Fund withdrawal",
+      email_message:"Your verified campaign withdrawal is being processed through PayPal."
+    },
+    items:[{
+      recipient_type:"EMAIL",
+      amount:{currency:"USD",value:usd(Number(payout.net_cents))},
+      receiver:payout.receiver_email,
+      sender_item_id:payout.sender_item_id,
+      note:"Interplanetary Fund campaign withdrawal after the 7% platform fee.",
+      purpose:"DONATIONS"
+    }]
+  });
+
+  if(!response.ok){
+    const duplicateBatch=payoutBatchIdFromLinks(response.data?.links);
+    if(duplicateBatch){
+      await signLedger(env,"payout_submitted",{withdrawal_id:payout.withdrawal_id,payout_batch_id:duplicateBatch});
+      return asJson(await reconcilePayoutBatch(env,payout.withdrawal_id,duplicateBatch));
+    }
+    const code=String(response.data?.name||response.data?.message||("HTTP_"+response.status)).slice(0,120);
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:payout.withdrawal_id,payout_batch_id:null,
+      outcome:response.status>=500?"unknown":"failed",error_code:code||"PAYPAL_PAYOUT_REJECTED"
+    });
+    return asError(response.status>=500?"payout_status_unknown_reconcile_before_retry":"payout_rejected",
+      response.status>=500?502:409);
+  }
+
+  const batchId=response.data?.batch_header?.payout_batch_id;
+  if(!ORDER_ID.test(batchId||"")){
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:payout.withdrawal_id,payout_batch_id:null,outcome:"unknown",
+      error_code:"PAYPAL_ACCEPTED_WITHOUT_BATCH_ID"
+    });
+    return asError("payout_status_unknown_reconcile_before_retry",502);
+  }
+  await signLedger(env,"payout_submitted",{withdrawal_id:payout.withdrawal_id,payout_batch_id:batchId});
+  return asJson(await reconcilePayoutBatch(env,payout.withdrawal_id,batchId));
+}
+
+async function retryApprovedPayout(env,withdrawalId) {
+  const lookup=await signLedger(env,"payout_lookup",{withdrawal_id:withdrawalId});
+  const payout=lookup.payout;
+  if(!payout)return {ok:false,status:"NOT_FOUND"};
+  if(payout.current_status==="paid")return {ok:true,status:"SUCCESS"};
+  if(payout.payout_batch_id)return await reconcilePayoutBatch(env,withdrawalId,payout.payout_batch_id);
+  if(payout.current_status!=="provider_status_unknown")return {ok:true,status:payout.current_status};
+
+  const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
+    sender_batch_header:{
+      sender_batch_id:payout.sender_batch_id,recipient_type:"EMAIL",
+      email_subject:"Your Interplanetary Fund withdrawal",
+      email_message:"Your verified campaign withdrawal is being processed through PayPal."
+    },
+    items:[{
+      recipient_type:"EMAIL",
+      amount:{currency:"USD",value:usd(Number(payout.net_cents))},
+      receiver:payout.receiver_email,
+      sender_item_id:payout.sender_item_id,
+      note:"Interplanetary Fund campaign withdrawal after the 7% platform fee.",
+      purpose:"DONATIONS"
+    }]
+  });
+  if(!response.ok){
+    const duplicateBatch=payoutBatchIdFromLinks(response.data?.links);
+    if(duplicateBatch){
+      await signLedger(env,"payout_submitted",{withdrawal_id:withdrawalId,payout_batch_id:duplicateBatch});
+      return await reconcilePayoutBatch(env,withdrawalId,duplicateBatch);
+    }
+    const code=String(response.data?.name||response.data?.message||("HTTP_"+response.status)).slice(0,120);
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:withdrawalId,payout_batch_id:null,
+      outcome:response.status>=500?"unknown":"failed",error_code:code||"PAYPAL_PAYOUT_REJECTED"
+    });
+    return {ok:false,status:response.status>=500?"UNKNOWN":"FAILED"};
+  }
+  const batchId=response.data?.batch_header?.payout_batch_id;
+  if(!ORDER_ID.test(batchId||"")){
+    await signLedger(env,"payout_submission_outcome",{
+      withdrawal_id:withdrawalId,payout_batch_id:null,outcome:"unknown",
+      error_code:"PAYPAL_ACCEPTED_WITHOUT_BATCH_ID"
+    });
+    return {ok:false,status:"UNKNOWN"};
+  }
+  await signLedger(env,"payout_submitted",{withdrawal_id:withdrawalId,payout_batch_id:batchId});
+  return await reconcilePayoutBatch(env,withdrawalId,batchId);
+}
+async function reconcilePendingPayouts(env) {
+  if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")return;
+  const readiness=await payoutReadiness(env);
+  if(!readiness.ready)return;
+  const pending=await signLedger(env,"payout_pending",{});
+  for(const withdrawalId of (pending.withdrawals||[]).slice(0,25)){
+    try{await retryApprovedPayout(env,withdrawalId)}catch(_){}
+  }
 }
 
 async function subscriptionReadiness(env) {
@@ -313,6 +543,10 @@ async function webhook(req,env) {
   });
   if(verification.verification_status!=="SUCCESS")return asError("invalid_paypal_signature",401);
   const kind=payload.event_type;
+  if(PAYOUT_EVENTS.has(kind)){
+    if(kind.startsWith("PAYMENT.PAYOUTS-ITEM."))return await payoutItemWebhook(payload,env);
+    return await payoutBatchWebhook(payload,env);
+  }
   if(SUBSCRIPTION_EVENTS.has(kind))return await subscriptionWebhook(payload,env);
   if(kind==="PAYMENT.CAPTURE.COMPLETED"){
     const orderId=payload.resource?.supplementary_data?.related_ids?.order_id;
@@ -448,6 +682,18 @@ export default {
         return response;
       }catch(_){return asJson({ok:false,error:"payout_readiness_unavailable"},503,cors)}
     }
+    if(path==="/api/payments/payouts/execute"&&request.method==="POST"){
+      if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+        return asJson({ok:false,error:"payments_disabled"},503,cors);
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{const response=await executePayout(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"payout_execution_unavailable"},503,cors)}
+    }
+    if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
+      try{const response=await executePayout(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
+      catch(_){return asJson({ok:false,error:"payout_reconciliation_unavailable"},503,cors)}
+    }
     if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
       try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
       catch(_){return asJson({ok:false,error:"subscription_status_unavailable"},503,cors)}
@@ -493,5 +739,8 @@ export default {
       catch(_){return asJson({ok:false,error:"checkout_start_unavailable"},503,cors)}
     }
     return asJson({ok:false,error:"not_found"},404,cors);
+  },
+  async scheduled(_event,env,ctx) {
+    ctx.waitUntil(reconcilePendingPayouts(env));
   },
 };

@@ -6,6 +6,7 @@ const file = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const donorSql=file("../../../supabase/migrations/20261112_ifund_authenticated_donor_capture.sql");
 const reservationSql=file("../../../supabase/migrations/20261112_ifund_cleared_withdrawal_reservations.sql");
 const withdrawalRepairSql=file("../../../supabase/migrations/20261112231500_ifund_refund_aware_withdrawal_journal.sql");
+const payoutSql=file("../../../supabase/migrations/20261112234000_ifund_live_paypal_payout_execution.sql");
 const edge=file("../../../supabase/functions/ifund-payment-ledger/index.ts");
 const worker=file("../../../workers/ifund-payments/worker.js");
 const dialog=file("../src/components/payments/CampaignDonationDialog.jsx");
@@ -72,13 +73,17 @@ test("single 7% fee is calculated at reservation; not recognized as earned befor
 });
 test("client cannot claim request approval or transfer just because MFA succeeded",()=>{
   assert.match(withdrawals,/ifund_owner_withdrawal_balances/);
-  assert.doesNotMatch(withdrawals,/\.rpc\(["']ifund_request_withdrawal/);
   assert.match(withdrawals,/ifund_owner_payout_readiness/);
+  assert.match(withdrawals,/ifund_connect_paypal_payout_to_verified_email/);
+  assert.match(withdrawals,/state\.payoutReady/);
+  assert.match(withdrawals,/\.rpc\(["']ifund_request_withdrawal/);
   assert.match(withdrawals,/ifund_cancel_withdrawal_request/);
   assert.match(withdrawals,/getAuthenticatorAssuranceLevel/);
-  assert.match(withdrawals,/execution remains closed/);
+  assert.match(withdrawals,/Withdrawal reserved for review/);
   assert.doesNotMatch(withdrawals,/PAYPAL_CLIENT_SECRET|service_role/);
   assert.doesNotMatch(withdrawals,/\/v1\/payments\/payouts/);
+  assert.match(payoutSql,/ifund_internal_prepare_paypal_payout/);
+  assert.match(payoutSql,/provider_transaction_status/);
 });
 test("homepage support popup states precisely what provider-hosted checkout can prove",()=>{
   assert.match(platform,/DialogContent/);

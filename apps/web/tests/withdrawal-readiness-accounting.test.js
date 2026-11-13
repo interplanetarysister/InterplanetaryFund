@@ -34,17 +34,21 @@ test("withdrawal request remains owner MFA and payout-destination gated",()=>{
   assert.match(migration,/round\(p_gross_cents::numeric\*0\.07\)/);
 });
 
-test("PayPal payout readiness is read only",()=>{
+test("PayPal payout readiness remains read only while execution is separately admin-gated",()=>{
   assert.match(worker,/PAYOUT_SCOPE/);
   assert.match(worker,/https:\/\/uri\.paypal\.com\/payments\/payouts/);
   assert.match(worker,/payout_webhook_ready/);
   assert.match(worker,/\/api\/payments\/payouts\/readiness/);
-  assert.doesNotMatch(worker,/\/v1\/payments\/payouts"\s*,\s*"POST"/);
+  assert.match(worker,/\/api\/payments\/payouts\/execute/);
+  assert.match(worker,/verified_super_admin_required/);
+  assert.match(worker,/payout_prepare/);
 });
 
 test("withdrawal UI stays fail closed while showing runtime gates",()=>{
   assert.match(page,/ifund_owner_payout_readiness/);
   assert.match(page,/Refund-adjusted balances and atomic reserve\/release accounting are enabled/);
-  assert.match(page,/execution remains closed/);
-  assert.doesNotMatch(page,/ifund_request_withdrawal/);
+  assert.match(page,/ifund_connect_paypal_payout_to_verified_email/);
+  assert.match(page,/state\.payoutReady/);
+  assert.match(page,/ifund_request_withdrawal/);
+  assert.doesNotMatch(page,/\/v1\/payments\/payouts/);
 });

@@ -55,6 +55,22 @@ async function resolveVerifiedDonor(token) {
     throw Object.assign(new Error("Verified member session required"), {status:401});
   return user.id;
 }
+async function resolveVerifiedSuperAdmin(token) {
+  const memberId=await resolveVerifiedDonor(token);
+  const response=await fetch(URL_BASE + "/auth/v1/user", {
+    headers:{"apikey":key(),"authorization":"Bearer " + token},
+    cache:"no-store"
+  });
+  if(!response.ok) throw Object.assign(new Error("Admin session expired or invalid"), {status:401});
+  const user=await response.json();
+  if(user.id!==memberId || user.app_metadata?.role!=="super_admin")
+    throw Object.assign(new Error("Verified super administrator required"), {status:403});
+  const profile=await findOne("ifund_profiles?select=id,account_status,account_deletion_pending,lifecycle_provenance&id=eq."+memberId);
+  if(!profile || profile.account_status!=="active" || profile.account_deletion_pending===true
+     || !["verified_source_owner_mapping","supabase_auth_signup"].includes(profile.lifecycle_provenance))
+    throw Object.assign(new Error("Verified super administrator required"), {status:403});
+  return memberId;
+}
 const findOne=async(path)=>(await db(path))[0]||null;
 Deno.serve(async req=>{
   if(req.method!=="POST") return fail("Method not allowed",405);
@@ -323,6 +339,83 @@ Deno.serve(async req=>{
       }
       return Response.json({ok:true,recorded:true});
     }
+    if(body.op==="payout_prepare"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")) return fail("Invalid withdrawal reference");
+      const adminId=await resolveVerifiedSuperAdmin(p.admin_access_token);
+      const rows=await db("rpc/ifund_internal_prepare_paypal_payout","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_admin_user_id:adminId
+      });
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout||payout.withdrawal_id!==p.withdrawal_id)
+        return fail("Withdrawal payout preparation failed",409);
+      return Response.json({ok:true,payout});
+    }
+    if(body.op==="payout_submitted"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")||typeof p.payout_batch_id!=="string"
+        ||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id))
+        return fail("Invalid payout submission");
+      const result=await db("rpc/ifund_internal_record_payout_submission","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
+    if(body.op==="payout_submission_outcome"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")||!["failed","unknown"].includes(p.outcome)
+        ||(p.payout_batch_id!==null&&p.payout_batch_id!==undefined
+          &&(typeof p.payout_batch_id!=="string"||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id)))
+        ||typeof p.error_code!=="string"||p.error_code.length<1||p.error_code.length>120)
+        return fail("Invalid payout submission outcome");
+      const result=await db("rpc/ifund_internal_record_payout_submission_outcome","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id??null,
+        p_outcome:p.outcome,p_error_code:p.error_code
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
+    if(body.op==="payout_lookup"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||""))return fail("Invalid withdrawal reference");
+      const rows=await db("rpc/ifund_internal_payout_lookup","POST",{p_withdrawal_id:p.withdrawal_id});
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout)return fail("Payout not found",404);
+      return Response.json({ok:true,payout});
+    }
+    if(body.op==="payout_pending"){
+      const rows=await db("rpc/ifund_internal_pending_payouts","POST",{});
+      return Response.json({ok:true,withdrawals:(Array.isArray(rows)?rows:[]).map(row=>row.withdrawal_id).filter(patternId.test.bind(patternId))});
+    }
+    if(body.op==="payout_lookup_batch"){
+      const p=body.data||{};
+      if(typeof p.sender_batch_id!=="string"||!/^ifund-[0-9a-f]{32}$/.test(p.sender_batch_id))
+        return fail("Invalid sender batch id");
+      const rows=await db("rpc/ifund_internal_payout_lookup_by_sender_batch","POST",{
+        p_sender_batch_id:p.sender_batch_id
+      });
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout)return fail("Payout not found",404);
+      return Response.json({ok:true,payout});
+    }
+    if(body.op==="payout_state"){
+      const p=body.data||{};
+      const statuses=["SUCCESS","FAILED","PENDING","UNCLAIMED","RETURNED","ONHOLD","BLOCKED","REFUNDED","CANCELED","DENIED"];
+      if(!patternId.test(p.withdrawal_id||"")||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id||"")
+        ||!/^[A-Za-z0-9_-]{8,128}$/.test(p.payout_item_id||"")
+        ||!statuses.includes(p.transaction_status)
+        ||(p.provider_fee_cents!==null&&p.provider_fee_cents!==undefined
+          &&(!Number.isSafeInteger(p.provider_fee_cents)||p.provider_fee_cents<0))
+        ||(p.paypal_event_id!==null&&p.paypal_event_id!==undefined
+          &&(typeof p.paypal_event_id!=="string"||!/^[A-Za-z0-9_-]{8,128}$/.test(p.paypal_event_id))))
+        return fail("Invalid payout provider state");
+      const result=await db("rpc/ifund_internal_record_payout_state","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id,
+        p_payout_item_id:p.payout_item_id,p_transaction_status:p.transaction_status,
+        p_provider_fee_cents:p.provider_fee_cents??null,p_paypal_event_id:p.paypal_event_id??null
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
+
     return fail("Unsupported operation",404);
   }catch(err){
     return fail(err.status===401 ? "Your session expired. Sign in again before donating."
