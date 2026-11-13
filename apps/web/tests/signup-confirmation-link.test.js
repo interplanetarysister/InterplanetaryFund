@@ -33,3 +33,10 @@ test("repeated signup does not falsely claim a confirmation email was sent", () 
   assert.doesNotMatch(src, /We sent a confirmation link to \{email\}/);
   assert.match(src, /reset your password<\/Link>/);
 });
+
+test("expired signup callback directs members to supported link-based recovery", () => {
+  const callbackPage = readFileSync(new URL("../src/pages/AuthCallback.jsx", import.meta.url), "utf8");
+  assert.match(callbackPage, /Request a new confirmation link/);
+  assert.match(callbackPage, /sign in and use password recovery/);
+  assert.doesNotMatch(callbackPage, /enter the confirmation code on the signup page/);
+});
