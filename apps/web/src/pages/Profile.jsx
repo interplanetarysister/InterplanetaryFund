@@ -185,7 +185,7 @@ export default function Profile() {
       <div className="flex flex-wrap gap-2">
         {[
           ["/campaigns", "My Campaigns"], ["/following", "Following"], ["/my-blog", "My Blog"],
-          ["/connections", "Connections"], ["/notifications", "Notifications"], ["/help", "Help Center"],
+          ["/connections", "Connections"], ["/notifications", "Notifications"], ["/preferences", "Communication preferences"], ["/help", "Help Center"],
         ].map(([to, label]) => <Link key={to} to={to} className={action}>{label}</Link>)}
         <button type="button" className={action} disabled={Boolean(busy)} onClick={() => act("sign-out", async () => {
           const { error: signOutError } = await authClient().auth.signOut();
