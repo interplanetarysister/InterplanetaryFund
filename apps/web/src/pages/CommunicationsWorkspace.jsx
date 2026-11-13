@@ -15,17 +15,40 @@ export default function CommunicationsWorkspace() {
   const [message,setMessage]=useState("");
   const [status,setStatus]=useState("");
   useEffect(()=>{
-    let active=true;
-    (async()=>{
-      const client=authClient();
-      const {data:{user},error:authError}=await client.auth.getUser();
-      if(authError||!user)throw new Error("Verified account required.");
-      const {data,error}=await client.from("ifund_campaigns")
-        .select("id,title,summary,status").eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
-      if(error||!Array.isArray(data))throw new Error("Your campaigns could not be loaded.");
-      if(active)setState({phase:"ready",campaigns:data,error:""});
-    })().catch(e=>{if(active)setState({phase:"error",campaigns:[],error:e.message||"Unavailable"});});
-    return ()=>{active=false};
+    let active=true, revision=0, observedId=null;
+    const client=authClient();
+    async function load(){
+      const ticket=++revision;
+      try{
+        const {data:{user},error:authError}=await client.auth.getUser();
+        if(!active||ticket!==revision)return;
+        if(authError||!user)throw new Error("Verified account required.");
+        observedId=user.id;
+        const {data,error}=await client.from("ifund_campaigns")
+          .select("id,title,summary,status").eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
+        if(!active||ticket!==revision)return;
+        if(error||!Array.isArray(data))throw new Error("Your campaigns could not be loaded.");
+        const fresh=await client.auth.getUser();
+        if(!active||ticket!==revision)return;
+        if(fresh.error||fresh.data?.user?.id!==user.id)throw new Error("Your session changed.");
+        setState({phase:"ready",campaigns:data,error:""});
+      }catch(e){
+        if(active&&ticket===revision)setState({phase:"error",campaigns:[],error:e.message||"Unavailable"});
+      }
+    }
+    const {data:subscriber}=client.auth.onAuthStateChange((event,session)=>{
+      const next=session?.user?.id||null;
+      if(!active||next===observedId)return;
+      observedId=next;
+      ++revision;
+      setCampaignId("");
+      setMessage("");
+      setStatus("");
+      setState({phase:"loading",campaigns:[],error:""});
+      queueMicrotask(()=>{if(active)load()});
+    });
+    load();
+    return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
   },[]);
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
