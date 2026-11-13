@@ -77,7 +77,7 @@ export default function EditCampaign() {
 
   async function save(nextStatus) {
     if (lock.current || handoffBusy || phase !== "ready") return;
-    const problems = validateCampaignForm(form, { publish: nextStatus === "active" });
+    const problems = validateCampaignForm(form, { publish: nextStatus === "active" && status !== "active" });
     if (problems.length) { setError(problems[0]); setNotice(""); return; }
     lock.current = true; setBusy(true); setError(""); setNotice("");
     try {
