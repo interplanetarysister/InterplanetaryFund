@@ -151,8 +151,8 @@ test("the owner dashboard shares active campaigns in place", () => {
   const page = source("src/pages/MyCampaigns.jsx");
   assert.match(page, /import CampaignShareButton from "@\/components\/campaigns\/CampaignShareButton"/);
   // Only an active row gets the kit: drafts and paused campaigns have no public page.
-  assert.match(page, /campaign\\.status === "active" && \\(\\s*<div className="mt-4">/);
-  assert.match(page, /<CampaignShareButton campaign=\\{campaign\\} ownerView \\/>/);
+  assert.match(page, /campaign\.status === "active" && \(\s*<div className="mt-4">/);
+  assert.match(page, /<CampaignShareButton campaign=\{campaign\} ownerView \/>/);
   assert.match(page, /Draft a public campaign update/);
 });
 
