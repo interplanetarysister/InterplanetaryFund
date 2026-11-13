@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
+import { evaluateGrowthTrend } from "@/lib/growthTrendReview.mjs";
 
 /** Free owner-only activity view; capture counts do not represent cash received. */
 export default function CampaignGrowthTrends({campaigns=[]}) {
@@ -42,6 +43,18 @@ export default function CampaignGrowthTrends({campaigns=[]}) {
             <dd className="mt-1 text-xl font-semibold tabular-nums">{display(row[key])}</dd>
           </div>)}
         </dl>
+        <div className="mt-4 space-y-2" aria-label="Growth trend alerts">
+          {[
+            ["New followers","new_follows_7d","new_follows_30d"],
+            ["Verified captures","new_verified_captures_7d","new_verified_captures_30d"],
+          ].map(([label,seven,thirty])=>{
+            const insight=evaluateGrowthTrend(row[seven],row[thirty],{label:label.toLowerCase()});
+            return <p key={label} role="status" className={"rounded-lg border p-3 text-sm "+(insight.status==="declining"?"border-amber-500/40":"border-border")}>
+              <strong>{label} · {insight.status === "declining" ? "Review suggested" : insight.status}</strong>
+              <span className="mt-1 block text-muted-foreground">{insight.message}</span>
+            </p>;
+          })}
+        </div>
       </article>)}</div>)}
   </section>;
 }
