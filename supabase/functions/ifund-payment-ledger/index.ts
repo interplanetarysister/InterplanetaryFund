@@ -382,6 +382,10 @@ Deno.serve(async req=>{
       if(!payout)return fail("Payout not found",404);
       return Response.json({ok:true,payout});
     }
+    if(body.op==="payout_pending"){
+      const rows=await db("rpc/ifund_internal_pending_payouts","POST",{});
+      return Response.json({ok:true,withdrawals:(Array.isArray(rows)?rows:[]).map(row=>row.withdrawal_id).filter(patternId.test.bind(patternId))});
+    }
     if(body.op==="payout_lookup_batch"){
       const p=body.data||{};
       if(typeof p.sender_batch_id!=="string"||!/^ifund-[0-9a-f]{32}$/.test(p.sender_batch_id))
