@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
+import SupportConversation from "@/components/support/SupportConversation";
 
 export default function SupportTickets() {
   const { user } = useAuthSession();
@@ -110,6 +111,7 @@ export default function SupportTickets() {
           <div className="flex justify-between gap-2"><strong>{t.subject}</strong><span className="text-sm capitalize">{t.ticket_status}</span></div>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm">{t.message}</p>
           <p className="mt-2 text-xs text-muted-foreground">Opened {new Date(t.submitted_at).toLocaleString()} · {t.ticket_id}</p>
+          <SupportConversation ticketId={t.ticket_id} ticketStatus={t.ticket_status} />
         </li>)}</ul>}
     </section>
     {access === "super-admin" && <section className="rounded-xl border border-border bg-card p-5" aria-label="Super admin support queue">
@@ -120,6 +122,7 @@ export default function SupportTickets() {
           <div className="flex flex-wrap justify-between gap-2"><strong>{t.subject}</strong><span className="text-sm capitalize">{t.ticket_status}</span></div>
           <p className="mt-2 whitespace-pre-wrap break-words text-sm">{t.message}</p>
           <p className="mt-2 text-xs text-muted-foreground">Owner: {t.owner_id} · Opened {new Date(t.submitted_at).toLocaleString()}</p>
+          <SupportConversation ticketId={t.ticket_id} ticketStatus={t.ticket_status} />
           {t.ticket_status === "open" && <button type="button" disabled={Boolean(closing)} onClick={() => close(t.ticket_id)}
             className="mt-3 min-h-11 rounded-lg border px-4 py-2 disabled:opacity-50">{closing === t.ticket_id ? "Closing…" : "Mark closed"}</button>}
         </li>)}</ul>}
