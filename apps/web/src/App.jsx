@@ -75,11 +75,12 @@ const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
+const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
 const STANDALONE_COMING_SOON = ["/oauth/consent"];
-const LAYOUT_COMING_SOON = ["/community/:id", "/ai-images"];
+const LAYOUT_COMING_SOON = ["/community/:id"];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -117,6 +118,7 @@ function AppRoutes() {
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/mission" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
