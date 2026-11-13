@@ -50,6 +50,7 @@ const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
@@ -68,20 +69,20 @@ const MarketingPreferences = lazy(() => import("./pages/MarketingPreferences"));
 const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
 const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
+const MemberOnboarding = lazy(() => import("./pages/MemberOnboarding"));
+const Devices = lazy(() => import("./pages/Devices"));
+const OperationsHub = lazy(() => import("./pages/OperationsHub"));
+const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
+const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
+const AdminAudit = lazy(() => import("./pages/AdminAudit"));
+const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
+const AdminConnections = lazy(() => import("./pages/AdminConnections"));
+const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
-// Pages from the Base44 app that are not ported yet. Their links stay in the
-// navigation and land on a branded "Coming soon" page instead of breaking.
-const STANDALONE_COMING_SOON = [
-  "/onboarding",
-  "/oauth/consent", "/activate",
-];
-const LAYOUT_COMING_SOON = [
-  "/community/:id",
-  "/mission", "/ai-images",
-  "/devices",
-  "/donors",
-  "/ops", "/platform", "/analytics", "/connect", "/admin/*",
-];
+// These two legacy routes still need independent, authorized backend parity.
+// A release gate prevents preview publication while either is a placeholder.
+const STANDALONE_COMING_SOON = ["/oauth/consent"];
+const LAYOUT_COMING_SOON = [];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -104,6 +105,8 @@ function AppRoutes() {
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/onboarding" element={<MemberAccess><MemberOnboarding /></MemberAccess>} />
+    <Route path="/activate" element={<Navigate to="/login" replace />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
@@ -116,6 +119,14 @@ function AppRoutes() {
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/mission" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
+      <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
+      <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/analytics" element={<MemberAccess><AnalyticsCenter /></MemberAccess>} />
+      <Route path="/donors" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
+      <Route path="/connect" element={<Navigate to="/connections" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/finances" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
       <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
@@ -130,10 +141,15 @@ function AppRoutes() {
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
       <Route path="/social/post/:id" element={<SocialPostPage />} />
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
@@ -154,6 +170,7 @@ function AppRoutes() {
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
+      <Route path="/admin/*" element={<PageNotFound />} />
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />

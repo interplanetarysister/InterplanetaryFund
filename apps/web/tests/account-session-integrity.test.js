@@ -6,5 +6,5 @@ test('sign-out errors prevent a false success redirect',()=>{
   assert.match(read('Dashboard.jsx'),/if \(error\) throw error/);
 });
 test('unverified providers are not shown as connected',()=>{
-  assert.match(read('Connections.jsx'),/pending verification/i);
+  assert.match(read('Connections.jsx'),/Finish connecting/);
 });

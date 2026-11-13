@@ -1,0 +1,808 @@
+{
+  "schema_version": 1,
+  "source": "apps/web/src/App.jsx",
+  "source_ref": "feature/route-completion-20261113",
+  "policy": "No preview build while any route is unimplemented or unverified. Do not mark source_ready without code and local/negative tests. Runtime acceptance requires separate evidence after preview.",
+  "routes": [
+    {
+      "route": "*",
+      "role": "public",
+      "component": "PageNotFound",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/",
+      "role": "public",
+      "component": "Home",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/about",
+      "role": "public",
+      "component": "About",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/activate",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/admin/*",
+      "role": "public",
+      "component": "PageNotFound",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/admin/audit",
+      "role": "super_admin",
+      "component": "AdminAudit",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
+    },
+    {
+      "route": "/admin/finance",
+      "role": "admin",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/admin/help",
+      "role": "super_admin",
+      "component": "AdminHelpEditor",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
+    },
+    {
+      "route": "/admin/integrations",
+      "role": "admin",
+      "component": "AdminConnections",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; explicit role-guarded App.jsx route",
+      "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics; no provider grants claimed",
+      "backend_evidence": "/api/oauth/status authenticates member session; admin page additionally gated by verified useAdminAccess/MemberAccess and AdminAccess. No OAuth provider success or secret exposure certified.",
+      "owner": "connections"
+    },
+    {
+      "route": "/admin/social-moderation",
+      "role": "admin",
+      "component": "SocialModeration",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/admin/studio",
+      "role": "super_admin",
+      "component": "AdminStudio",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/admin/sustainability",
+      "role": "admin",
+      "component": "AdminSustainability",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+data"
+    },
+    {
+      "route": "/agents",
+      "role": "member",
+      "component": "AgentsTeam",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/ai-images",
+      "role": "member",
+      "component": "AIImageStudio",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+ai+database"
+    },
+    {
+      "route": "/analytics",
+      "role": "member",
+      "component": "AnalyticsCenter",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/atlas",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/auth/callback",
+      "role": "public",
+      "component": "AuthCallback",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/blog",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/blogs",
+      "role": "public",
+      "component": "Blogs",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/blogs/:id",
+      "role": "public",
+      "component": "BlogArticle",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/campaign/:id",
+      "role": "public",
+      "component": "CampaignDetail",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/campaigns",
+      "role": "member",
+      "component": "MyCampaigns",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/campaigns/:id/edit",
+      "role": "member",
+      "component": "EditCampaign",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/communications",
+      "role": "member",
+      "component": "CommunicationsWorkspace",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/community",
+      "role": "public",
+      "component": "SocialFeedPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/community/:id",
+      "role": "public",
+      "component": "CommunityDetail",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/CommunityDetail.jsx; src/api/communityGroups.js; src/components/community/CommunityDirectory.jsx; route registered in src/App.jsx, grouped directory on /community",
+      "behavior_evidence": "apps/web/tests/community-groups-contract.test.js: four passing source/negative-boundary tests on 2026-11-13; no claim of authenticated browser acceptance",
+      "backend_evidence": "Applied Supabase migrations ifund_member_communities_verified_membership and ifund_community_verified_email_gate to project ssibsfmtodgximseeqsv; verified RLS enabled, anon SELECT-only groups, no anon membership access or INSERT grants. Authenticated creation/join requires verified email, active profile and v4 legal acceptance.",
+      "owner": "frontend"
+    },
+    {
+      "route": "/connect",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/connections",
+      "role": "member",
+      "component": "Connections",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/contact",
+      "role": "public",
+      "component": "Contact",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/create",
+      "role": "public",
+      "component": "CreateCampaign",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/dashboard",
+      "role": "public",
+      "component": "Dashboard",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/devices",
+      "role": "member",
+      "component": "Devices",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/discover",
+      "role": "public",
+      "component": "Discover",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/donors",
+      "role": "member",
+      "component": "CampaignEngagement",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/download",
+      "role": "public",
+      "component": "DownloadApp",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/embed/campaign/:id",
+      "role": "public",
+      "component": "EmbedCampaign",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/engagement",
+      "role": "member",
+      "component": "CampaignEngagement",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/finances",
+      "role": "member",
+      "component": "FinanceDashboard",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/following",
+      "role": "member",
+      "component": "FollowedCampaigns",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/forgot-password",
+      "role": "public",
+      "component": "AuthPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/founding-members",
+      "role": "public",
+      "component": "FoundingMembers",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/giving",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/globe",
+      "role": "public",
+      "component": "Atlas",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/hackathon",
+      "role": "public",
+      "component": "HackathonDemo",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/hackathon/tracker",
+      "role": "super_admin",
+      "component": "HackathonTracker",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/health-privacy",
+      "role": "public",
+      "component": "HealthPrivacy",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/help",
+      "role": "public",
+      "component": "Help",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/help/:slug",
+      "role": "public",
+      "component": "HelpArticle",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/inbox",
+      "role": "member",
+      "component": "Inbox",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/institutions",
+      "role": "public",
+      "component": "Institutions",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/institutions/:id",
+      "role": "public",
+      "component": "Institutions",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/ledger",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/login",
+      "role": "public",
+      "component": "AuthPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/mission",
+      "role": "member",
+      "component": "AgentsTeam",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/my-blog",
+      "role": "member",
+      "component": "MyPublication",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/my-profile",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/news",
+      "role": "public",
+      "component": "Blogs",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/notifications",
+      "role": "member",
+      "component": "Notifications",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/oauth/callback/:provider",
+      "role": "public",
+      "component": "OAuthCallback",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/oauth/consent",
+      "role": "public",
+      "component": "ComingSoon",
+      "source_status": "not_implemented",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/onboarding",
+      "role": "member",
+      "component": "MemberOnboarding",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/ops",
+      "role": "super_admin",
+      "component": "OperationsHub",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/p/:slug",
+      "role": "public",
+      "component": "StudioPublishedPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/plans",
+      "role": "public",
+      "component": "PublicSubscriptionPlans",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/platform",
+      "role": "super_admin",
+      "component": "OperationsHub",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/preferences",
+      "role": "member",
+      "component": "MarketingPreferences",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/privacy",
+      "role": "public",
+      "component": "Privacy",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/profile",
+      "role": "member",
+      "component": "Profile",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/publication",
+      "role": "member",
+      "component": "MyPublication",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/publications/:id",
+      "role": "public",
+      "component": "PublicationArticle",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/register",
+      "role": "public",
+      "component": "AuthPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/reset-password",
+      "role": "public",
+      "component": "ResetPassword",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/social",
+      "role": "public",
+      "component": "SocialRoute",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/social/post/:id",
+      "role": "public",
+      "component": "SocialPostPage",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/strategy",
+      "role": "member",
+      "component": "CampaignStrategy",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/subscriptions",
+      "role": "member",
+      "component": "Subscriptions",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/support",
+      "role": "member",
+      "component": "SupportTickets",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/terms",
+      "role": "public",
+      "component": "Terms",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/u/:id",
+      "role": "public",
+      "component": "PublicMemberProfile",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
+      "route": "/withdrawals",
+      "role": "public",
+      "component": "WithdrawalVerification",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    }
+  ]
+}

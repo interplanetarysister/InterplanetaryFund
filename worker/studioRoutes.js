@@ -186,6 +186,54 @@ export async function routePublicStudioPage(request, env, fetcher = fetch) {
 }
 
 
+/**
+ * Public Help Center index, deliberately reusing published Website Studio
+ * authorization/RLS. Return only approved answer text, never page metadata,
+ * drafts, versions, or arbitrary blocks. One read replaces N per-article hits.
+ */
+export async function routePublicHelpIndex(request, env, fetcher = fetch) {
+  if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
+  if (!studioReady(env)) return response(503, { error: 'Help Center updates are unavailable.' });
+  try {
+    const query = new URLSearchParams({
+      select: 'slug,status,content',
+      slug: 'like.help-*',
+      status: 'eq.published',
+      order: 'updated_at.desc',
+      limit: '50',
+    });
+    const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/ifund_studio_pages?' + query, {
+      method: 'GET',
+      headers: { apikey: env.SUPABASE_PUBLISHABLE_KEY, Accept: 'application/json' },
+    });
+    if (!upstream.ok) return response(503, { error: 'Help Center updates are unavailable.' });
+    const rows = await upstream.json();
+    if (!Array.isArray(rows) || rows.length > 50)
+      return response(503, { error: 'Help Center updates are unavailable.' });
+    const known = new Set();
+    const articles = [];
+    for (const item of rows) {
+      if (!item || item.status !== 'published' ||
+          typeof item.slug !== 'string' || !/^help-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug) ||
+          item.slug.length > 60 || known.has(item.slug)) {
+        return response(503, { error: 'Help Center updates are unavailable.' });
+      }
+      known.add(item.slug);
+      const content = item.content?.blocks;
+      if (!Array.isArray(content)) continue;
+      const matches = content.filter(block => block?.id === 'help-main' && block.type === 'text');
+      if (matches.length !== 1 || typeof matches[0].body !== 'string') continue;
+      const answer = matches[0].body.trim();
+      if (answer.length < 20 || answer.length > 4000) continue;
+      articles.push({ slug: item.slug.slice(5), answer });
+    }
+    return response(200, { articles });
+  } catch {
+    return response(503, { error: 'Help Center updates are unavailable.' });
+  }
+}
+
+
 /** Generate a validated visual layout draft using the Cloudflare Workers Free AI allocation. */
 export async function routeStudioGenerateRequest(request, env, fetcher = fetch) {
   if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });

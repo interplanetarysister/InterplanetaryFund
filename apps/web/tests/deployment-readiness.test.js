@@ -57,11 +57,10 @@ test("the deploy workflow exists and defaults to a preview, never production", (
   // Never deploy on pull_request: a PR must not be able to replace the live site.
   assert.doesNotMatch(wf, /^\s*pull_request:/m);
   assert.match(wf, /workflow_dispatch:/);
-  assert.match(wf, /production:/);
-  assert.match(wf, /default:\s*false/);
-  // Preview unless production was explicitly requested.
+  // The single manual release only publishes preview; production is a separate acceptance process.
+  assert.doesNotMatch(wf, /^\s*production:/m);
   assert.match(wf, /branch=preview/);
-  assert.match(wf, /branch=main/);
+  assert.doesNotMatch(wf, /branch=main/);
   assert.match(wf, /pages deploy dist/);
 });
 

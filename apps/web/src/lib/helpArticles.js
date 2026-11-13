@@ -6,14 +6,14 @@ export const helpArticles = Object.freeze([
     category: "Getting Started",
     question: "How do I find pages in IFund?",
     description: "Find your way through the same sidebar and mobile navigation.",
-    answer: "1. On a phone, open the menu at the top of the page.\n2. Choose Discover to view campaigns, or Help Center for assistance.\n3. On a larger screen, use the navigation on the left.\n4. You can switch between light and dark themes in the navigation.\n\nSome account, community and assistant pages are still being restored on the independent platform. A page appearing in the menu does not mean its service is active."
+    answer: "1. On a phone, open the menu at the top of the page.\n2. Choose Discover to view campaigns, or Help Center for assistance.\n3. On a larger screen, use the navigation on the left.\n4. You can switch between light and dark themes in the navigation.\n\nChoose the destination that matches your task. Private actions ask you to sign in; the service confirms whether a save, connection, or payment completed before IFund reports success."
   },
   {
     slug: "create-a-campaign",
     category: "Campaigns",
     question: "How do I create a campaign?",
     description: "Campaign editing and publication during the migration.",
-    answer: "Signed-in members can create, save, edit and publish campaigns. A draft is private until IFund confirms publication. Image uploads and AI image processing may still be unavailable in parts of the migration; do not assume content was saved until the backend confirms it."
+    answer: "Open New Campaign, describe your cause, add a fundraising goal and optional cover image, then save a draft. Review the full story and publication checks before selecting Publish. Only a confirmed saved draft or published campaign should be treated as complete; a preview is not a published fundraiser."
   },
   {
     slug: "campaign-donations",
@@ -27,21 +27,21 @@ export const helpArticles = Object.freeze([
     category: "Money & Withdrawals",
     question: "When can I withdraw campaign funds?",
     description: "Payout authorization, balance verification and platform fees.",
-    answer: "Withdrawals require a verified eligible account, reconciled campaign balance, provider-approved payout capability and a recorded transaction. IFund's planned 7% platform fee applies at withdrawal, with processor fees separately disclosed. Withdrawal is not currently enabled on the new migration site; no funds can be released from this article."
+    answer: "Withdrawals require a verified eligible account, reconciled campaign balance, provider-approved payout capability and a recorded transaction. IFund's planned 7% platform fee applies at withdrawal, with processor fees separately disclosed. The Withdrawals page checks your account and provider eligibility; it does not guarantee that every account can withdraw. No withdrawal starts from this help article."
   },
   {
     slug: "connect-another-platform",
     category: "Connections & Publishing",
     question: "How do I connect another app?",
     description: "Connection permissions and verification.",
-    answer: "After independent account access and external provider connections are restored, open Connections, choose a provider, complete its sign-in and consent process, and check the verified connection status. Saving credentials or seeing a provider icon is not a completed connection. Publishing, messaging and external synchronization are not active on this migration build."
+    answer: "Open Connections, select the platform you want to use, and follow that provider's sign-in and consent process. Check for an explicit verified connection result. A visible icon or unfinished authorization does not mean IFund can publish to that account. Publishing and messaging require each provider's approved permissions and your destination-specific choices."
   },
   {
     slug: "ai-platform-permissions",
     category: "AI Assistance",
     question: "What can IFund AI do with my connected accounts?",
     description: "Chief of Staff, specialists and permission controls.",
-    answer: "The original design includes a user-facing Chief of Staff and Support agent, with specialist agents working behind the scenes. Their identities and schedules have been inventoried but their replacement executors are not yet active. The independent platform must verify provider grants, consent, access boundaries and audit records before any agent acts on an outside account. An AI switch never authorizes payments or bypasses provider approval."
+    answer: "The AI Team workspace provides guided campaign preparation and writing assistance where its service is available. Drafts and suggestions are not automatically posted. Any specialist action on a connected account requires that provider's approved scope and your consent; an AI switch never authorizes payments or bypasses provider approval."
   },
   {
     slug: "account-access",
@@ -62,14 +62,14 @@ export const helpArticles = Object.freeze([
     category: "Community",
     question: "Where are community discussions?",
     description: "Public posts, publishing and private messages.",
-    answer: "Community routes are part of the original IFund experience. Public posts, member comments, notifications and direct messages require migrated records plus independent authorization and moderation checks. Do not infer that an empty new feed means earlier content was deleted."
+    answer: "Open Community or Social Feed to read public posts. Signed-in members can save private drafts, publish their own posts, and participate in moderated discussions when their account is eligible. Historical posts from other systems may have a separate import status; an empty feed alone is not proof that earlier posts were deleted."
   },
   {
     slug: "copyright-and-intellectual-property",
     category: "Legal & Policies",
     question: "Where are the legal and privacy documents?",
     description: "Public agreements, privacy and content permissions.",
-    answer: "Read the current Terms of Service at /terms and Privacy Policy at /privacy. Earlier help-center legal articles are being transferred and must not be replaced with invented contract language. Contact the platform for questions about particular content licenses or permissions."
+    answer: "Read the current Terms of Service at /terms and Privacy Policy at /privacy. Only the published, current legal documents control your rights; a help summary cannot replace their text. Contact the platform for questions about particular content licenses or permissions."
   }
 ]);
 export const helpArticleBySlug = (slug) => helpArticles.find((article) => article.slug === slug) || null;

@@ -8,7 +8,9 @@ name: Deploy branded frontend to Cloudflare Pages
 # THE SINGLE OWNER-TRIGGERED RELEASE PIPELINE. Automatic Pages preview and
 # production builds are deliberately disabled. Code/QA changes stack on main
 # until an explicit manual dispatch. Compile once; preview is always first.
-# If production is explicitly selected, publish exactly the same dist artifact.
+# Preview is the only output of this workflow. Production needs an independent,
+# separately authorized promotion process after actual preview acceptance.
+# Preserve the compiled dist artifact so a future verified release can reuse it.
 # Never re-enable Git push auto-deploy or trigger per-agent Pages releases.
 #
 # Required repository secrets:
@@ -24,11 +26,6 @@ name: Deploy branded frontend to Cloudflare Pages
 
 on:
   workflow_dispatch:
-    inputs:
-      production:
-        description: Deploy to the production branch instead of a preview
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -62,6 +59,9 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
+      - name: Block release until every navigation route is implemented
+        run: node apps/web/ci/verify-route-readiness.mjs
+
       - name: Refuse to deploy without a backend URL
         if: ${{ vars.VITE_SUPABASE_URL == '' }}
         run: |
@@ -88,6 +88,7 @@ jobs:
           set -euo pipefail
           find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/ifund-dist-files.sha256
           test -s /tmp/ifund-dist-files.sha256
+          sha256sum --check /tmp/ifund-dist-files.sha256
           echo "One immutable compiled artifact created from $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
           {
             echo "revision=$(git rev-parse HEAD)"
@@ -105,6 +106,7 @@ jobs:
             /tmp/ifund-release-tests.log
             /tmp/ifund-dist-files.sha256
             /tmp/ifund-release-evidence.txt
+            apps/web/dist/
           if-no-files-found: error
           retention-days: 14
 
@@ -129,19 +131,3 @@ jobs:
           case "$DEPLOYMENT_URL" in https://*.pages.dev|https://*.pages.dev/) ;; *) echo "::error::Unexpected preview URL"; exit 1;; esac
           curl --fail --silent --show-error --retry 4 --retry-delay 3 --retry-connrefused "$DEPLOYMENT_URL" -o /dev/null
 
-      - name: Confirm compiled files did not change after preview
-        if: ${{ inputs.production == true }}
-        working-directory: apps/web
-        run: sha256sum --check /tmp/ifund-dist-files.sha256
-
-      - name: Publish the identical compiled artifact to production (explicit approval only)
-        if: ${{ inputs.production == true }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/web
-          command: >-
-            pages deploy dist
-            --project-name=interplanetaryfund-migration
-            --branch=main

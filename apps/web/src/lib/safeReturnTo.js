@@ -17,6 +17,7 @@ export function safeReturnTo(value) {
         "/forgot-password",
         "/reset-password",
         "/auth/callback",
+        "/activate",
       ].includes(decoded.split(/[?#]/)[0])
     )
       return "/dashboard";
