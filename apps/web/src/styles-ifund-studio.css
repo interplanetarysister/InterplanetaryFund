@@ -503,3 +503,83 @@ body {
 @media print {
   .ifund-shell [data-page-scroll], .ifund-public:not(.ifund-auth) { background-image: none !important; }
 }
+
+
+/* Regenerative future: botanical linework growing alongside orbital geometry.
+   Decorative SVG only; no photo loading, tracking, layout shifts or animation. */
+:root {
+  --if-forest: 27 116 99;
+  --if-moss: 100 151 117;
+  --if-earth: 165 139 108;
+}
+.dark {
+  --if-forest: 110 225 184;
+  --if-moss: 146 205 154;
+  --if-earth: 196 180 150;
+}
+.ifund-shell [data-page-scroll] {
+  background-image:
+    radial-gradient(ellipse 48rem 36rem at 7% 86%, rgb(55 151 116 / .11), transparent 74%),
+    radial-gradient(ellipse 52rem 40rem at 87% 8%, rgb(102 147 217 / .11), transparent 74%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22720%22%20height%3D%22900%22%20viewBox%3D%220%200%20720%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22leaf%22%20x1%3D%220%22%20y1%3D%221%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20stop-color%3D%22%2332bfa5%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%2384d9b0%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%236dbce5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23c1a5ff%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url(%23leaf)%22%20stroke-width%3D%221%22%20opacity%3D%22.38%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M150%20820%20C180%20520%20255%20300%20590%20105%22%2F%3E%3Cpath%20d%3D%22M175%20690%20C75%20615%20100%20480%20215%20413%20C268%20517%20242%20632%20175%20690Z%22%2F%3E%3Cpath%20d%3D%22M208%20545%20C338%20543%20422%20462%20419%20323%20C285%20330%20226%20416%20208%20545Z%22%2F%3E%3Cpath%20d%3D%22M265%20405%20C185%20325%20224%20217%20328%20165%20C374%20271%20340%20352%20265%20405Z%22%2F%3E%3Cpath%20d%3D%22M358%20295%20C465%20289%20550%20231%20565%20145%20C456%20150%20388%20205%20358%20295Z%22%2F%3E%3Cpath%20d%3D%22M175%20690%20Q160%20555%20215%20413%20M208%20545%20Q313%20448%20419%20323%20M265%20405%20Q270%20288%20328%20165%20M358%20295%20Q468%20204%20565%20145%22%2F%3E%3Cpath%20d%3D%22M175%20617%20L124%20570%20M175%20617%20L215%20537%20M244%20500%20L318%20466%20M244%20500%20L255%20419%20M272%20364%20L245%20296%20M272%20364%20L324%20272%20M432%20248%20L468%20205%20M432%20248%20L502%20239%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    radial-gradient(ellipse 64rem 48rem at 90% 5%, rgb(117 124 242 / .095), transparent 75%);
+  background-size: auto, auto, min(50vw, 620px) min(68vw, 780px), auto;
+  background-position: center, center, left -220px bottom -195px, center;
+  background-repeat: no-repeat;
+}
+.dark .ifund-shell [data-page-scroll] {
+  background-image:
+    radial-gradient(ellipse 48rem 36rem at 7% 86%, rgb(44 176 130 / .11), transparent 74%),
+    radial-gradient(ellipse 52rem 40rem at 87% 8%, rgb(114 80 205 / .14), transparent 74%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22720%22%20height%3D%22900%22%20viewBox%3D%220%200%20720%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22leaf%22%20x1%3D%220%22%20y1%3D%221%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20stop-color%3D%22%2332bfa5%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%2384d9b0%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%236dbce5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23c1a5ff%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url(%23leaf)%22%20stroke-width%3D%221%22%20opacity%3D%22.38%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M150%20820%20C180%20520%20255%20300%20590%20105%22%2F%3E%3Cpath%20d%3D%22M175%20690%20C75%20615%20100%20480%20215%20413%20C268%20517%20242%20632%20175%20690Z%22%2F%3E%3Cpath%20d%3D%22M208%20545%20C338%20543%20422%20462%20419%20323%20C285%20330%20226%20416%20208%20545Z%22%2F%3E%3Cpath%20d%3D%22M265%20405%20C185%20325%20224%20217%20328%20165%20C374%20271%20340%20352%20265%20405Z%22%2F%3E%3Cpath%20d%3D%22M358%20295%20C465%20289%20550%20231%20565%20145%20C456%20150%20388%20205%20358%20295Z%22%2F%3E%3Cpath%20d%3D%22M175%20690%20Q160%20555%20215%20413%20M208%20545%20Q313%20448%20419%20323%20M265%20405%20Q270%20288%20328%20165%20M358%20295%20Q468%20204%20565%20145%22%2F%3E%3Cpath%20d%3D%22M175%20617%20L124%20570%20M175%20617%20L215%20537%20M244%20500%20L318%20466%20M244%20500%20L255%20419%20M272%20364%20L245%20296%20M272%20364%20L324%20272%20M432%20248%20L468%20205%20M432%20248%20L502%20239%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E"),
+    radial-gradient(ellipse 50rem 40rem at 0% 75%, rgb(47 194 218 / .07), transparent 74%);
+}
+.ifund-public:not(.ifund-auth) {
+  background-image:
+    radial-gradient(ellipse 52rem 42rem at 7% 83%, rgb(74 167 123 / .10), transparent 74%),
+    radial-gradient(ellipse 58rem 38rem at 76% 0%, rgb(102 137 235 / .10), transparent 75%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22720%22%20height%3D%22900%22%20viewBox%3D%220%200%20720%20900%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22leaf%22%20x1%3D%220%22%20y1%3D%221%22%20x2%3D%221%22%20y2%3D%220%22%3E%3Cstop%20stop-color%3D%22%2332bfa5%22%2F%3E%3Cstop%20offset%3D%22.42%22%20stop-color%3D%22%2384d9b0%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%236dbce5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23c1a5ff%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22url(%23leaf)%22%20stroke-width%3D%221%22%20opacity%3D%22.38%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M150%20820%20C180%20520%20255%20300%20590%20105%22%2F%3E%3Cpath%20d%3D%22M175%20690%20C75%20615%20100%20480%20215%20413%20C268%20517%20242%20632%20175%20690Z%22%2F%3E%3Cpath%20d%3D%22M208%20545%20C338%20543%20422%20462%20419%20323%20C285%20330%20226%20416%20208%20545Z%22%2F%3E%3Cpath%20d%3D%22M265%20405%20C185%20325%20224%20217%20328%20165%20C374%20271%20340%20352%20265%20405Z%22%2F%3E%3Cpath%20d%3D%22M358%20295%20C465%20289%20550%20231%20565%20145%20C456%20150%20388%20205%20358%20295Z%22%2F%3E%3Cpath%20d%3D%22M175%20690%20Q160%20555%20215%20413%20M208%20545%20Q313%20448%20419%20323%20M265%20405%20Q270%20288%20328%20165%20M358%20295%20Q468%20204%20565%20145%22%2F%3E%3Cpath%20d%3D%22M175%20617%20L124%20570%20M175%20617%20L215%20537%20M244%20500%20L318%20466%20M244%20500%20L255%20419%20M272%20364%20L245%20296%20M272%20364%20L324%20272%20M432%20248%20L468%20205%20M432%20248%20L502%20239%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-size: auto, auto, min(66vw, 700px) min(80vw, 880px);
+  background-position: center, center, left -270px bottom -285px;
+  background-repeat: no-repeat;
+}
+.ifund-sidebar {
+  border-right-color: rgb(95 151 137 / .20);
+  background-image:
+    radial-gradient(ellipse 24rem 22rem at -20% 105%, rgb(103 184 143 / .15), transparent 75%),
+    radial-gradient(ellipse 22rem 18rem at -15% -5%, rgb(160 128 242 / .13), transparent 78%),
+    linear-gradient(165deg, #fbfdfb, #edf3f8) !important;
+}
+.dark .ifund-sidebar {
+  background-image:
+    radial-gradient(ellipse 24rem 22rem at -20% 105%, rgb(60 167 129 / .13), transparent 75%),
+    radial-gradient(ellipse 25rem 25rem at -20% 0%, rgb(108 80 215 / .19), transparent 77%),
+    linear-gradient(165deg, #101d2b, #10182c 75%, #112634) !important;
+}
+/* Renewable accents are signals in the chrome, not substitutes for success/error semantics. */
+.ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  box-shadow: inset 3px 0 rgb(var(--if-forest) / .72);
+}
+.ifund-nav-section-title::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 8px;
+  vertical-align: 2px;
+  border-radius: 50%;
+  background: rgb(var(--if-moss) / .65);
+}
+@media (max-width: 767px) {
+  .ifund-shell [data-page-scroll] {
+    background-size: auto, auto, 420px 525px, auto;
+    background-position: center, center, left -255px bottom -150px, center;
+  }
+  .ifund-public:not(.ifund-auth) {
+    background-size: auto, auto, 420px 525px;
+    background-position: center, center, left -250px bottom -130px;
+  }
+}
+@media print {
+  .ifund-shell [data-page-scroll], .ifund-public:not(.ifund-auth) { background-image: none !important; }
+}
