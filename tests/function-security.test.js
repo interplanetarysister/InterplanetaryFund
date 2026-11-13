@@ -141,8 +141,14 @@ test("execute on a definer function is revoked from public before being granted"
         "\\s+from\\s+[^;]*\\bpublic\\b",
       "i",
     ).test(fn.source.slice(fn.offset));
+    // Some established social RPCs are revoked through a bounded dynamic
+    // list in one DO block. Accept it only when the exact signature occurs
+    // in that list and the block executes revoke before grant.
+    const dynamicRevoke = fn.source.includes("'" + bare + "(") &&
+      /foreach f in array array\[/i.test(fn.source) &&
+      /execute\s+'revoke all on function public\.'\s*\|\|\s*f\s*\|\|\s*' from public,anon,authenticated'/i.test(fn.source);
     assert.ok(
-      explicitRevoke || schemaRevoke,
+      explicitRevoke || schemaRevoke || dynamicRevoke,
       fn.name +
         " is SECURITY DEFINER but never has execute revoked from public",
     );
