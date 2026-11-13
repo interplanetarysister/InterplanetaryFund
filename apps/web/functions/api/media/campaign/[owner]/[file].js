@@ -4,6 +4,9 @@ const FILE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:
 const TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 export async function onRequest({ request, env, params }) {
   if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+  const hostname = new URL(request.url).hostname.toLowerCase();
+  if (hostname === "interplanetaryfund.com" || hostname === "www.interplanetaryfund.com" || env.CF_PAGES_BRANCH === "main")
+    return new Response("Preview media are not available in production", { status: 503 });
   const owner = String(params.owner || ""), file = String(params.file || "");
   if (!UUID.test(owner) || !FILE.test(file)) return new Response("Not found", { status: 404 });
   if (!env.IFUND_CAMPAIGN_MEDIA?.get) return new Response("Media unavailable", { status: 503 });

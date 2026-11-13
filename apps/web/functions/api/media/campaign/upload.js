@@ -13,6 +13,39 @@ function matchesSignature(bytes, type) {
   return false;
 }
 
+function isPreviewEnvironment(request, env) {
+  const hostname = new URL(request.url).hostname.toLowerCase();
+  // This implementation is preview-only, never read/write preview objects
+  // through the production custom domain or production-branch deployment.
+  return hostname !== "interplanetaryfund.com" &&
+    hostname !== "www.interplanetaryfund.com" && env.CF_PAGES_BRANCH !== "main";
+}
+
+async function boundedImageBody(request) {
+  if (!request.body) return new Uint8Array();
+  const reader = request.body.getReader();
+  const parts = [];
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > LIMIT) {
+        await reader.cancel("image-too-large").catch(() => {});
+        throw new RangeError("image-too-large");
+      }
+      parts.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const part of parts) { bytes.set(part, offset); offset += part.byteLength; }
+  return bytes;
+}
+
 async function authenticate(request, env) {
   const bearer = request.headers.get("authorization") || "";
   if (!/^Bearer [A-Za-z0-9._~-]+$/.test(bearer)) return null;
@@ -33,7 +66,8 @@ async function authenticate(request, env) {
 
 export async function onRequest({ request, env }) {
   if (request.method !== "POST") return json(405, { error: "Only POST is supported." });
-  if (!env.IFUND_CAMPAIGN_MEDIA?.put || !env.IFUND_CAMPAIGN_MEDIA?.get) return json(503, { error: "Campaign image uploads are not configured for this preview." });
+  if (!isPreviewEnvironment(request, env)) return json(503, { error: "Preview-only campaign media cannot run in production." });
+  if (!env.IFUND_CAMPAIGN_MEDIA?.put || !env.IFUND_CAMPAIGN_MEDIA?.get || !env.IFUND_CAMPAIGN_MEDIA?.head) return json(503, { error: "Campaign image uploads are not configured for this preview." });
   const type = (request.headers.get("content-type") || "").toLowerCase().split(";")[0].trim();
   if (!Object.hasOwn(TYPES, type)) return json(415, { error: "Choose a PNG, JPG, WEBP, or GIF image." });
   const lengthHeader = request.headers.get("content-length");
@@ -44,8 +78,12 @@ export async function onRequest({ request, env }) {
   catch { return json(503, { error: "Could not verify your account. Please retry." }); }
   if (!owner) return json(401, { error: "Sign in with a confirmed, active account before uploading." });
   let body;
-  try { body = new Uint8Array(await request.arrayBuffer()); }
-  catch { return json(400, { error: "Unable to read the image." }); }
+  try { body = await boundedImageBody(request); }
+  catch (error) {
+    if (error instanceof RangeError && error.message === "image-too-large")
+      return json(413, { error: "Images must be smaller than 5 MB." });
+    return json(400, { error: "Unable to read the image." });
+  }
   if (!body.length || body.length > LIMIT) return json(413, { error: "Images must be smaller than 5 MB." });
   if (!matchesSignature(body, type)) return json(415, { error: "Image bytes do not match the selected file type." });
   const file = crypto.randomUUID() + "." + TYPES[type];

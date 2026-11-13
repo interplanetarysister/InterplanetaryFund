@@ -30,7 +30,7 @@ function withAuth(t, { active = true, confirmed = true } = {}) {
 
 test("media endpoint rejects unauthenticated and mismatched content", async (t) => {
   withAuth(t);
-  const bucket = { put: async () => { throw Error("unexpected write"); }, get: async () => null };
+  const bucket = { put: async () => { throw Error("unexpected write"); }, head: async () => null, get: async () => null };
   const noAuth = new Request("https://preview.example/api/media/campaign/upload", {
     method: "POST", headers: { "content-type": "image/jpeg" }, body: jpeg,
   });
@@ -41,7 +41,7 @@ test("media endpoint rejects unauthenticated and mismatched content", async (t) 
 
 test("suspended and unconfirmed members cannot upload", async (t) => {
   withAuth(t, { active: false });
-  const bucket = { put: async () => { throw Error("unexpected write"); }, get: async () => null };
+  const bucket = { put: async () => { throw Error("unexpected write"); }, head: async () => null, get: async () => null };
   assert.equal((await upload({ request: makeRequest(), env: env(bucket) })).status, 401);
 });
 
@@ -80,4 +80,45 @@ test("storage missing fails closed without falsely reporting success", async (t)
   assert.equal(result.status, 503);
   assert.equal((await result.json()).error.includes("could not confirm"), true);
   assert.equal((await upload({ request: makeRequest(), env: {} })).status, 503);
+});
+
+test("oversized streamed media fails at the 5MB boundary without writing to R2", async (t) => {
+  withAuth(t);
+  let writes = 0;
+  const bucket = {
+    put: async () => { writes++; },
+    head: async () => null,
+    get: async () => null,
+  };
+  const huge = new ReadableStream({
+    start(controller) {
+      controller.enqueue(jpeg);
+      controller.enqueue(new Uint8Array(5 * 1024 * 1024));
+      controller.close();
+    },
+  });
+  const request = new Request("https://preview.example/api/media/campaign/upload", {
+    method: "POST", headers: { authorization: "Bearer test.jwt.token", "content-type": "image/jpeg" },
+    body: huge, duplex: "half",
+  });
+  const response = await upload({ request, env: env(bucket) });
+  assert.equal(response.status, 413);
+  assert.equal(writes, 0);
+});
+
+test("preview R2 paths are not available through production", async (t) => {
+  withAuth(t);
+  let writes = 0;
+  const bucket = { put: async () => { writes++; }, head: async () => null, get: async () => null };
+  const request = new Request("https://interplanetaryfund.com/api/media/campaign/upload", {
+    method: "POST", headers: { authorization: "Bearer test.jwt.token", "content-type": "image/jpeg" }, body: jpeg,
+  });
+  assert.equal((await upload({ request, env: env(bucket) })).status, 503);
+  assert.equal((await upload({ request: makeRequest(), env: { ...env(bucket), CF_PAGES_BRANCH: "main" } })).status, 503);
+  assert.equal(writes, 0);
+  const response = await readImage({
+    request: new Request("https://interplanetaryfund.com/api/media/campaign/" + OWNER + "/22222222-2222-4222-8222-222222222222.jpg"),
+    env: env(bucket), params: { owner: OWNER, file: "22222222-2222-4222-8222-222222222222.jpg" },
+  });
+  assert.equal(response.status, 503);
 });
