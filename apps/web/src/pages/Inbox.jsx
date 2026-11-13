@@ -28,9 +28,19 @@ export default function Inbox() {
   const { user } = useAuthSession();
   const isAdmin = useAdminAccess(user) === "admin";
   const [reports, setReports] = useState([]);
+  const [reportStatus, setReportStatus] = useState("loading");
   useEffect(() => {
     let active = true;
-    if (isAdmin) moderationQueue().then(rows => { if (active) setReports(rows.filter(row => row.status === "open")); }).catch(() => {});
+    if (isAdmin) {
+      setReportStatus("loading");
+      moderationQueue()
+        .then(rows => {
+          if (!active) return;
+          setReports(rows.filter(row => row.status === "open"));
+          setReportStatus("ready");
+        })
+        .catch(() => { if (active) setReportStatus("unavailable"); });
+    }
     return () => { active = false; };
   }, [isAdmin]);
   const requestedCampaign = params.get("campaign") || "all";
@@ -98,7 +108,7 @@ export default function Inbox() {
       </header>
 
       {isAdmin && <section aria-label="Community moderation alerts" className="space-y-2 rounded-2xl border border-primary/30 bg-card p-4">
-        <h2 className="font-semibold">Community moderation · {reports.length} open reports</h2>
+        <h2 className="font-semibold">Community moderation · {reportStatus === "ready" ? `${reports.length} open reports` : reportStatus === "loading" ? "Loading reports…" : "Reports unavailable"}</h2>
         {reports.slice(0, 3).map(report => <p className="line-clamp-2 text-sm" key={report.id}>{report.reason}</p>)}
         <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center text-primary underline">Review community post reports</Link>
       </section>}
