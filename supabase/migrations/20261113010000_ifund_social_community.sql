@@ -539,8 +539,8 @@ create policy ifund_posts_delete on public.ifund_posts
 create or replace function public.ifund_guard_social_post_insert()
 returns trigger language plpgsql security invoker set search_path = '' as $ifund$
 begin
- if current_user='authenticated' and
-    (auth.uid() is null or new.author_id is distinct from auth.uid()
+ if current_user in ('anon','authenticated') and
+    (current_user='anon' or auth.uid() is null or new.author_id is distinct from auth.uid()
      or not public.ifund_social_member_ok())
  then
   raise exception 'Verified owner account required for social posts' using errcode='42501';
@@ -553,8 +553,9 @@ begin
  if public.ifund_post_has_report(old.id) then
   raise exception 'Reported content is preserved for moderation review' using errcode='42501';
  end if;
- if current_user='authenticated' and
-    (auth.uid() is null or old.author_id is distinct from auth.uid())
+ if current_user in ('anon','authenticated') and
+    (current_user='anon' or auth.uid() is null or old.author_id is distinct from auth.uid()
+     or not public.ifund_social_member_ok())
  then
   raise exception 'Only a post owner may modify their content' using errcode='42501';
  end if;
