@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
+import { reviewCampaignWideEditorial } from "@/lib/campaignEditorialImprovements.mjs";
 import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
+
+const fieldId = finding => finding.field === "title" || finding.id === "title_repetition" ? "campaign-title"
+  : finding.field === "summary" || finding.id === "summary_repeated" ? "campaign-summary"
+  : finding.id === "budget_clarity" ? "campaign-goal" : "campaign-story";
 
 const CHECKS = [
   ["has_clear_title", "A specific, descriptive title", "State who needs help and why"],
@@ -29,7 +34,8 @@ export default function CampaignStrategy() {
       const owned=new Map(campaigns.map(c=>[c.id,c]));
       const items=data.map(item=>{
         const campaign=owned.get(item.campaign_id);
-        return {...item, editorial:campaign ? reviewCampaignPublication(campaign) : null};
+        return {...item, editorial:campaign ? reviewCampaignPublication(campaign) : null,
+          campaignWide:campaign ? reviewCampaignWideEditorial(campaign) : []};
       });
       setState({ status:"ready", items, error:"" });
     }).catch(e => { if (active) setState({ status: "error", items: [], error: e.message || "Unavailable" }); });
@@ -75,6 +81,17 @@ export default function CampaignStrategy() {
             </li>
           )}</ul>
           <p className="text-xs text-muted-foreground">Cover check verifies only that a reference exists, not that its image URL loads or that you have image rights.</p>
+          {item.editorial && [...item.editorial.findings, ...item.campaignWide.filter(f=>!item.editorial.findings.some(g=>g.id===f.id))].length>0 && <section className="space-y-3 rounded-xl border border-border p-3" aria-label="Contextual campaign writing guidance">
+            <h3 className="font-semibold">POLARIS · Writing improvements</h3>
+            <p className="text-xs text-muted-foreground">These recommendations come from this campaign's saved text. They never fabricate supporting facts or rewrite your story without approval.</p>
+            <ul className="space-y-3">{[...item.editorial.findings, ...item.campaignWide.filter(f=>!item.editorial.findings.some(g=>g.id===f.id))].slice(0,6).map(finding=><li key={finding.id} className="rounded-lg bg-muted/40 p-3 text-sm">
+              <p className="font-semibold">{finding.title}</p>
+              <p className="mt-1 text-muted-foreground">{finding.advice}</p>
+              <Link className="mt-2 inline-flex min-h-11 items-center underline" to={"/campaigns/"+encodeURIComponent(item.campaign_id)+"/edit#"+fieldId(finding)}>
+                Open the relevant campaign field
+              </Link>
+            </li>)}</ul>
+          </section>}
           <Link to={"/campaigns/" + encodeURIComponent(item.campaign_id) + "/edit#campaign-story"}
             className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-semibold">
             Edit campaign
