@@ -54,7 +54,10 @@ test("community migration creates permissioned native/archive discussions and mo
       for insert to authenticated with check(author_id=auth.uid());
     grant usage on schema public to anon,authenticated;
     grant select on public.ifund_posts to anon,authenticated;
-    grant insert on public.ifund_posts to authenticated;
+    grant insert,update,delete on public.ifund_posts to authenticated;
+    create policy legacy_permissive_insert on public.ifund_posts for insert to authenticated with check(true);
+    create policy legacy_permissive_update on public.ifund_posts for update to authenticated using(true) with check(true);
+    create policy legacy_permissive_delete on public.ifund_posts for delete to authenticated using(true);
     insert into auth.users values
       ('aaaaaaaa-aaaa-4aaa-aaaa-aaaaaaaaaaaa'),
       ('bbbbbbbb-bbbb-4bbb-bbbb-bbbbbbbbbbbb'),
@@ -77,6 +80,14 @@ test("community migration creates permissioned native/archive discussions and mo
     await db.exec("set role "+role);
   };
   await who(reporter);
+  await assert.rejects(
+    query("insert into public.ifund_posts(id,author_id,body) values(gen_random_uuid(),$1,'impersonation')",[owner]),
+    /Verified owner account required/
+  );
+  await assert.rejects(
+    query("update public.ifund_posts set body='tampered' where id=$1",[native]),
+    /Only a post owner may modify/
+  );
   await query("select public.ifund_social_like($1,true)",[native]);
   assert.equal(Number((await query("select like_count from public.ifund_social_like_summary($1)",[[native]]))[0].like_count),1);
   await query("select public.ifund_social_reply($1,'Helpful update')",[native]);
@@ -86,6 +97,7 @@ test("community migration creates permissioned native/archive discussions and mo
   await query("select public.ifund_social_archive_reply('arc1','Hello from IFund')");
   assert.equal((await query("select body from public.ifund_social_archive_replies_read('arc1')"))[0].body,"Hello from IFund");
   await query("select public.ifund_social_report($1,'This post has misleading claims')",[native]);
+  await assert.rejects(query("delete from public.ifund_posts where id=$1",[native]), /Reported content is preserved/);
   assert.equal((await query("select count(*)::int n from public.ifund_public_social_feed() where id=$1",["post-"+native]))[0].n,0);
   await assert.rejects(query("select public.ifund_social_reply($1,'not allowed')",[native]),/Post unavailable/);
   await who(admin);
