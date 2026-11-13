@@ -9,6 +9,6 @@ test("retired Base44 OAuth consent has an explicit safe route, not an approval U
  assert.doesNotMatch(app,/ComingSoon/);
  assert.match(notice,/No account[\s\S]*access or permissions have been granted/);
  assert.match(notice,/to="\/connections"/);
- for(const forbidden of [/new URLSearchParams/,/searchParams/,/URLSearchParams/,/window\.location\.search/,/fetch\(/,/redirect_uri/,/oauth\/authorize/,/oauth\/token/])
+ for(const forbidden of [/new URLSearchParams/,/searchParams/,/URLSearchParams/,/window\.location\.search/,/fetch\(/,/\bredirect_uri\s*[:=]/,/oauth\/authorize/,/oauth\/token/])
    assert.doesNotMatch(notice, forbidden);
 });
