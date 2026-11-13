@@ -590,6 +590,11 @@ async function refreshConnection(provider, account, config, env, fetcher) {
   // Identity-check-only fallback for OAuth grants without refresh tokens.
   if (provider !== 'facebook_pages' && provider !== 'instagram' &&
       typeof previous.refresh_token !== 'string') {
+    // Preserve the legacy seven-provider reconnect requirement. Only the
+    // new identity-only integrations may reverify a non-refreshable token.
+    if (!['discord','github','twitch','slack','patreon','eventbrite','pinterest','reddit'].includes(provider)) {
+      return response(409, { error: 'The provider connection needs to be reconnected.' });
+    }
     if (previous.expires_at && Date.parse(previous.expires_at) <= Date.now()) {
       return response(409, { error: 'The provider connection needs to be reconnected.' });
     }
