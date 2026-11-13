@@ -25,7 +25,7 @@ test("a 3,499-character full story is blocked, 3,500 is eligible", () => {
   assert.ok(validateCampaignForm({...complete(),story},{publish:true}).some(x=>x.includes("3,500")));
   assert.equal(publishReadiness({...complete(),story}).ready,false);
   assert.equal(publishReadiness({...complete(),story:story+"."}).ready,true);
-  assert.deepEqual(validateCampaignForm({...complete(),story},"draft"),[]);
+  assert.deepEqual(validateCampaignForm({...complete(),story},{publish:false}),[]);
 });
 
 test("draft saving is allowed before the campaign is publishable", () => {
