@@ -21,8 +21,8 @@ test("community migration creates permissioned native/archive discussions and mo
       id uuid primary key, email_confirmed_at timestamptz,
       is_anonymous boolean default false);
     create function public.ifund_current_user_has_current_terms()
-      returns boolean language sql stable as $
-      select coalesce(current_setting('test.terms_accepted',true),'yes')='yes' $;
+      returns boolean language sql stable as $terms$
+      select coalesce(current_setting('test.terms_accepted',true),'yes')='yes' $terms$;
     create table public.ifund_profiles(
       id uuid primary key, display_name text,
       public_profile_enabled boolean default true,
