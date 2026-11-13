@@ -37,6 +37,9 @@ export async function reportPost(postId, explanation) {
 export async function friendAction(memberId, action) {
   return call("ifund_social_friend", { p_target: memberId, p_action: action });
 }
+export async function myFriends() {
+  return (await call("ifund_social_my_friends", {})) || [];
+}
 export async function friendRequests() {
   return (await call("ifund_social_friend_requests", {})) || [];
 }
