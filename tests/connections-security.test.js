@@ -57,7 +57,15 @@ test("public page links and sharing choices are private and never count as OAuth
  assert.deepEqual(prefs,[{provider:"facebook",choice:"review"}]);
  await assert.rejects(query("select public.ifund_set_share_choice($1,$2)",["fake","review"]),/Invalid sharing preference/);
  await assert.rejects(query("select public.ifund_set_share_choice($1,$2)",["facebook","automatic"]),/Invalid sharing preference/);
+ await assert.rejects(query("select * from public.ifund_member_connection_assistance"),/permission denied/);
+ assert.equal((await query("select * from public.ifund_my_connection_assistance()")).rows.length,0);
+ assert.equal((await query("select public.ifund_set_connection_assistance($1) enabled",[true])).rows[0].enabled,true);
+ assert.equal((await query("select enabled from public.ifund_my_connection_assistance()")).rows[0].enabled,true);
+ assert.equal((await query("select public.ifund_set_connection_assistance($1) enabled",[false])).rows[0].enabled,true);
+ assert.equal((await query("select enabled from public.ifund_my_connection_assistance()")).rows[0].enabled,false);
+ await assert.rejects(query("select public.ifund_set_connection_assistance($1)",[null]),/Choose whether connection guidance/);
  await who(stranger);
+ assert.equal((await query("select * from public.ifund_my_connection_assistance()")).rows.length,0);
  assert.equal((await query("select * from public.ifund_my_public_links()")).rows.length,0);
  assert.equal((await query("select * from public.ifund_my_share_choices()")).rows.length,0);
  await db.exec("reset role");
@@ -70,5 +78,6 @@ test("public page links and sharing choices are private and never count as OAuth
  assert.equal((await query("select public.ifund_remove_public_link($1) removed",["gofundme"])).rows[0].removed,true);
  assert.equal((await query("select * from public.ifund_my_public_links()")).rows.length,0);
  await who(null,"anon");
+ await assert.rejects(query("select * from public.ifund_my_connection_assistance()"),/permission denied/);
  await assert.rejects(query("select * from public.ifund_my_public_links()"),/permission denied/);
 });
