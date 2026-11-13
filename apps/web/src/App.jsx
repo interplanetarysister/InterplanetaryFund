@@ -73,6 +73,8 @@ const Devices = lazy(() => import("./pages/Devices"));
 const OperationsHub = lazy(() => import("./pages/OperationsHub"));
 const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
+const AdminAudit = lazy(() => import("./pages/AdminAudit"));
+const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
@@ -136,6 +138,8 @@ function AppRoutes() {
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
       <Route path="/social/post/:id" element={<SocialPostPage />} />
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
