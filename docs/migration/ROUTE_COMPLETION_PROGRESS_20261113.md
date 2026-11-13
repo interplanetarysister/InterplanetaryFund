@@ -1,5 +1,18 @@
 # Interplanetary Fund full-route completion ledger — source-only increment
 
+## 2026-11-13 canonical website-first increment — community groups
+
+- Confirmed production `/institutions` already fetches same-origin `/api/public/opportunity-sources` and returns HTTP 200 with canonical records. The Base44 workaround is not needed on interplanetaryfund.com.
+- Confirmed main-site `/ai-images` and `/admin/integrations` still render the old ComingSoon UI. AI Image Studio source exists on this branch but has not cleared browser/provider acceptance; Admin Integrations is owned by separate draft PR #286 and must not be duplicated or promoted.
+- Implemented `/community/:id` with real canonical group lookup, public directory embedded on `/community`, owner-verified group creation, and confirmed member join/leave actions. Group-specific feed posts are **not** claimed to exist; groups link explicitly to the public discussion feed instead.
+- Applied the additive independent Supabase migrations `ifund_member_communities_verified_membership`, `ifund_community_verified_email_gate`, and `ifund_public_community_minimum_anon_columns`. Legacy `ifund_community` and member records remain untouched with zero imported rows.
+- Verified schema authorization: anon can read only public group columns (not owner UUID); anon cannot insert groups, inspect membership rows, or join; member creation/join additionally requires verified email, active account and current `2026-11-10-v4` legal acceptance. No unverified community data or user identities were seeded.
+- New `apps/web/tests/community-groups-contract.test.js` passes four scoped contracts. With existing route-increment tests, 8/8 targeted source tests pass. One `/community/:id` acceptance entry is now `source_ready` with evidence; there is **no** authenticated two-user browser acceptance or production page deployment claim.
+- Fail-closed `apps/web/ci/verify-route-readiness.mjs` remains blocking: 78 route acceptance records have no complete source/test evidence, `/oauth/consent` remains legacy unimplemented, ComingSoon is still referenced, and `/admin/integrations` is linked but not registered on this branch.
+- Production Pages remains on previously verified main deployment; **no new preview, production build, or route-promotion deployment** was triggered while the owner's full-site release gate is red.
+- Canonical priority now explicitly recorded in root `AGENTS.md` on main and this branch and propagated to the ten iFund recurring development automations. iFund.com is always priority one unless a prompt explicitly names Base44 or the separate demo.
+
+
 **Checkpoint:** 2026-11-13 UTC  
 **Canonical implementation:** `interplanetarysister/InterplanetaryFund`, `apps/web`  
 **Working branch:** `feature/route-completion-20261113`  
