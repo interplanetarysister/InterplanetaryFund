@@ -9,3 +9,8 @@ Target: existing Cloudflare Pages `interplanetaryfund-migration`, frontend `apps
 - Sharing: per-platform private planning preferences (manual/draft/review/off), never grant posting permission or dispatch external posts automatically.
 - Required checks: root PGlite security test, full frontend suite, Vite compile, preview render, signed-in saved-link and OAuth user journeys, admin diagnostics, live site regression across auth, payments, campaigns, Social Feed, finance and agent screens.
 - **Release hold:** Production must remain on the previously verified deployment until every required check can be confirmed. External providers still require real consent; do not assert a connection succeeded from a URL bookmark.
+
+## Preview QA round 1
+- Preview build `197c0361-2a48-478c-a2d5-1447a31ec0c9`: 3/3 PostgreSQL-compatible integration tests passed, 410/413 web tests passed. Three failures were assertions against the former provider-list page. Their root causes were reviewed; legacy provider aliases are now recognized and the tests assert real statuses and selected-icon behavior.
+- The rebuilt page now includes active-account chips, a filterable platform icon grid, an inline selected-platform guide, safe link/campaign pairing, member sharing preferences, campaign share actions, and recent connection activity.
+- Continue **preview only**. Database changes are staged in source but not applied to canonical production; link-saving on a preview against production will therefore remain gated until the approved release migration.
