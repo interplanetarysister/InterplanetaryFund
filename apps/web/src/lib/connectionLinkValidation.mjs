@@ -22,5 +22,6 @@ export function validatePublicConnectionLink(providerId,raw) {
   !hosts.some(host=>url.hostname===host||url.hostname.endsWith("."+host))) {
    return {ok:false,message:"Use the public page address on "+platform.name+"."};
  }
+ url.search=""; url.hash="";
  return {ok:true,url:url.href};
 }
