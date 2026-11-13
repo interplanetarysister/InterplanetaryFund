@@ -43,7 +43,7 @@ async function script(src){
 }
 function chosen(){
   const input=byId('amount').value;
-  if(!/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(input))
+  if(!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(input))
     throw Error('Choose a test amount from $1 to $100 with at most two decimal places');
   const parts=input.split('.');
   const cents=Number(BigInt(parts[0])*100n+BigInt((parts[1]||'').padEnd(2,'0')));
