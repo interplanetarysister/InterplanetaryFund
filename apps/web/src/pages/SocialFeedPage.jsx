@@ -12,6 +12,7 @@ export default function SocialFeedPage({ community = false }) {
   const { user, status } = useAuthSession();
   const [canPost, setCanPost] = useState(false);
   const [body, setBody] = useState("");
+  const draftKey = user?.id ? `ifund-social-draft:${user.id}` : null;
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [feedError, setFeedError] = useState("");
@@ -43,6 +44,17 @@ export default function SocialFeedPage({ community = false }) {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    if (!draftKey) { setBody(""); return; }
+    try { setBody(localStorage.getItem(draftKey) || ""); } catch { setBody(""); }
+  }, [draftKey]);
+
+  function saveDraft() {
+    if (!draftKey) return;
+    try { localStorage.setItem(draftKey, body); setNotice("Draft saved on this device. It has not been published or shared."); }
+    catch { setNotice("Draft could not be saved on this device."); }
+  }
+
   async function publish(event) {
     event.preventDefault();
     if (busy || !canPost || !body.trim()) return;
@@ -52,7 +64,8 @@ export default function SocialFeedPage({ community = false }) {
     try {
       await publishPost(authClient(), user, body);
       setBody("");
-      setNotice("Post published.");
+      try { if (draftKey) localStorage.removeItem(draftKey); } catch { /* local storage unavailable */ }
+      setNotice("Post published to IFund. External accounts have not been posted to.");
       await load();
     } catch (cause) {
       setPublishError(cause?.message || "Your post was not published. Please try again.");
@@ -63,11 +76,11 @@ export default function SocialFeedPage({ community = false }) {
 
   return <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header>
-      <h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social"}</h1>
+      <h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social Feed"}</h1>
       <p className="mt-2 text-muted-foreground">Share updates and discover community conversations.</p>
     </header>
     <nav aria-label="Community pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
-      <Link to="/social" aria-current={community ? undefined : "page"}>Social</Link>
+      <Link to="/social" aria-current={community ? undefined : "page"}>Social Feed</Link>
       <Link to="/community" aria-current={community ? "page" : undefined}>Community</Link>
       <Link to="/blogs">Stories &amp; Blogs</Link>
       <Link to="/news">IFund Newscaster</Link>
@@ -76,10 +89,14 @@ export default function SocialFeedPage({ community = false }) {
       <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
       <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body}
         onChange={e => setBody(e.target.value)} className="w-full rounded-xl border border-input bg-background p-3" />
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs text-muted-foreground">{body.length}/{MAX_POST_LENGTH}</span>
-        <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish"}</button>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={busy || !body.trim()} onClick={saveDraft} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Save draft</button>
+          <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">Drafts are stored only in this browser. Manage external accounts under <Link className="underline" to="/connections">Connections</Link>; publishing here does not automatically post elsewhere.</p>
     </form> : status !== "loading" && <p className="rounded-xl border border-border p-4">
       {user ? "Posting requires a verified, active account." : <><Link className="text-primary underline" to="/login?returnTo=%2Fsocial">Sign in</Link> to share a post.</>}
     </p>}
