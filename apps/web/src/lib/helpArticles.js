@@ -20,7 +20,7 @@ export const helpArticles = Object.freeze([
     category: "Donations",
     question: "Can I donate to a campaign right now?",
     description: "How live campaign donations are verified.",
-    answer: "Published active campaigns can accept PayPal donations when the secure checkout is enabled. The Donate Now button on a campaign page follows the live payment-service status. Only provider-confirmed, reconciled gifts count toward a campaign's raised totals. A separate platform-support payment does not fund a campaign. No payment starts from this help article."
+    answer: "Live PayPal campaign donations are enabled on published active campaigns. The Donate Now button follows the production payment-service health gate, and only provider-confirmed, reconciled gifts are recorded in campaign totals and receipts. Platform-support payments remain separate and do not fund individual campaigns. No payment starts from this help article."
   },
   {
     slug: "payment-holding-and-withdrawals",
