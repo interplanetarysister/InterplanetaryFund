@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   Search, LifeBuoy, Link2, ArrowRight, BookOpen, Rocket,
@@ -7,6 +7,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { HELP_CATEGORIES, helpArticlePath } from "@/lib/helpCenter";
 import { helpArticles } from "@/lib/helpArticles";
+import { parsePublicHelpIndex } from "@/lib/studioHelpContent.mjs";
 
 const CATEGORY_ICONS = { Rocket, Megaphone, HeartHandshake, Link2, Wallet, ShieldCheck, CreditCard, Bot, Users };
 
@@ -14,14 +15,27 @@ export default function Help() {
   const [params, setParams] = useSearchParams();
   const query = params.get("q") || "";
   const category = params.get("category") || "";
+  const [publishedAnswers, setPublishedAnswers] = useState({});
+  const [updates, setUpdates] = useState("loading");
+  useEffect(() => {
+    let active = true;
+    fetch("/api/public/help/index", { method: "GET", cache: "no-store" })
+      .then(async response => {
+        if (!response.ok) throw new Error("Published Help Center updates are unavailable.");
+        return parsePublicHelpIndex(await response.json(), helpArticles.map(article => article.slug));
+      })
+      .then(answers => { if (active) { setPublishedAnswers(answers); setUpdates("ready"); } })
+      .catch(() => { if (active) setUpdates("unavailable"); });
+    return () => { active = false; };
+  }, []);
   const filtered = useMemo(() => {
     const q = query.trim().toLocaleLowerCase();
     return helpArticles.filter((article) => {
       if (category && article.category !== category) return false;
-      return !q || [article.question, article.description, article.answer, article.category]
+      return !q || [article.question, article.description, publishedAnswers[article.slug] || article.answer, article.category]
         .join(" ").toLocaleLowerCase().includes(q);
     });
-  }, [query, category]);
+  }, [query, category, publishedAnswers]);
 
   function updateFilter(key, value) {
     const next = new URLSearchParams(params);
@@ -31,6 +45,7 @@ export default function Help() {
   }
 
   return <div className="w-full min-w-0">
+    {updates === "unavailable" && <p role="status" className="mx-auto max-w-5xl px-4 py-2 text-xs text-muted-foreground">Recent Help Center updates could not be checked; search uses bundled guidance.</p>}
     <header className="bg-slate-950 text-white border-b border-cyan-500/20 px-4 sm:px-8 py-10 sm:py-14">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-center mb-4">
