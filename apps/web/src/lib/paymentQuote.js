@@ -3,7 +3,7 @@
 // IFund bears provider processing costs, while the existing 7% platform fee
 // remains assessed to the campaign owner at withdrawal, not during checkout.
 export function paymentQuoteCents(giftCents, optionalSupportCents = 0, channel = "paypal") {
-  if (!Number.isSafeInteger(giftCents) || giftCents < 100 ||
+  if (!Number.isSafeInteger(giftCents) || giftCents < 100 || giftCents > 100000000 ||
       !Number.isSafeInteger(optionalSupportCents) || optionalSupportCents < 0 ||
       optionalSupportCents > Math.round(giftCents * 0.1)) return null;
   return {
