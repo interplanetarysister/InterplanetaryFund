@@ -1,4 +1,13 @@
 # Interplanetary Fund — mandatory builder instructions
+
+## Owner's non-negotiable platform work order (2026-11-13)
+
+**Priority 1: https://interplanetaryfund.com.** Before changing any other Interplanetary Fund version, inspect whether the corresponding feature, page, repair, integration, payment, or improvement is implemented and actually verified on the canonical Cloudflare Pages + Supabase website. If incomplete, do the canonical implementation first. The bulk of engineering, tests, QA, and release efforts belong there.
+
+**Priority 2: original Interplanetary Fund Base44 app.** Only work there first when the user explicitly requests that specific Base44 version. Likewise, work on the separate sandbox/hackathon demo first only when explicitly requested or the task unmistakably concerns the demo. A Base44-only feature, passing Base44 test, or Base44 deployment never establishes completion on interplanetaryfund.com. Do not copy retired Base44 SDK/financial patterns into the canonical stack.
+
+This work order does not bypass source-route acceptance, preview/production release conditions, payment-provider verification, data-preservation requirements, or user consent. Do not waste deployments; consolidate validated source work into the already-authorized release pipeline.
+
 Read [the canonical architecture and execution contract](docs/architecture/IFUND_BUILD_CONTRACT_2026-11-03.md) before changing code, SQL, Cloudflare, Supabase, or deployment settings. Track work against [issue #137](https://github.com/interplanetarysister/InterplanetaryFund/issues/137) and the 59-route/184-entrypoint parity inventories.
 
 ## Active platform: one system
