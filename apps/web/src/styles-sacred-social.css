@@ -15,7 +15,13 @@
     radial-gradient(circle at 15% 9%, rgba(74,213,241,.23), transparent 22rem),
     radial-gradient(circle at 90% 52%, rgba(170,107,255,.2), transparent 25rem),
     radial-gradient(circle at 42% 88%, rgba(244,112,184,.15), transparent 27rem),
-    repeating-radial-gradient(circle at 50% 18%, transparent 0 27px, rgba(119,173,238,.12) 28px 29px, transparent 30px 56px);
+    radial-gradient(circle 58px at 50% 18%, transparent 55px, rgba(119,173,238,.14) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% + 56px) 18%, transparent 55px, rgba(119,173,238,.11) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% - 56px) 18%, transparent 55px, rgba(119,173,238,.11) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% + 28px) calc(18% + 48px), transparent 55px, rgba(119,173,238,.12) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% - 28px) calc(18% + 48px), transparent 55px, rgba(119,173,238,.12) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% + 28px) calc(18% - 48px), transparent 55px, rgba(119,173,238,.12) 56px 57px, transparent 58px),
+    radial-gradient(circle 58px at calc(50% - 28px) calc(18% - 48px), transparent 55px, rgba(119,173,238,.12) 56px 57px, transparent 58px);
   mask-image: linear-gradient(to bottom, black, transparent 94%);
 }
 .ifund-social-card {
