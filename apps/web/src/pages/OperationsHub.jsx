@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import BuilderOperationalReview from "@/components/agents/BuilderOperationalReview";
+import WorkflowRegistry from "@/components/agents/WorkflowRegistry";
 
 /**
  * Super-admin read-only operational overview. Never turns an incident
@@ -20,6 +21,7 @@ export default function OperationsHub({ platform = false }) {
       <p className="text-sm text-muted-foreground">Verified super-administrator workspace. Live deployment, payout, media and provider actions require their own authorized and independently verified workflows; this page is read-only.</p>
     </header>
     <BuilderOperationalReview />
+    <WorkflowRegistry />
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
       <h2 className="text-xl font-semibold">Administration workspaces</h2>
       <div className="grid gap-3 sm:grid-cols-2">
