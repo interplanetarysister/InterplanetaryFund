@@ -241,6 +241,10 @@ async function payoutBatchWebhook(payload,env) {
   return asJson({...await reconcilePayoutBatch(env,withdrawalId,batchId,payload.id),recorded:true});
 }
 async function executePayout(req,env) {
+  // Defense in depth: never permit a provider payout from an internal caller
+  // unless the independent execution switch is explicitly enabled.
+  if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")return asError("payout_execution_disabled",503);
+  if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")return asError("payments_disabled",503);
   const token=memberToken(req);
   if(!token)return asError("verified_super_admin_required",401);
   const input=await readBody(req);
