@@ -616,3 +616,24 @@ language sql stable security definer set search_path = '' as $ifund$
 $ifund$;
 revoke all on function public.ifund_public_social_post(text) from public,anon,authenticated;
 grant execute on function public.ifund_public_social_post(text) to anon,authenticated;
+
+
+-- An account holder can see their accepted friends; never expose private
+-- profiles or email/contact information in this projection.
+create or replace function public.ifund_social_my_friends()
+returns table(member_id uuid,display_name text,handle text,connected_at timestamptz)
+language sql stable security definer set search_path = '' as $ifund$
+ select p.id,coalesce(nullif(p.display_name,''),'IFund member'),
+   p.handle,f.updated_at
+ from public.ifund_social_friendships f
+ join public.ifund_profiles p on p.id=case
+   when f.requester_id=auth.uid() then f.addressee_id else f.requester_id end
+ where public.ifund_social_member_ok()
+   and f.status='accepted'
+   and (f.requester_id=auth.uid() or f.addressee_id=auth.uid())
+   and p.public_profile_enabled and p.account_status='active'
+   and not p.account_deletion_pending
+ order by f.updated_at desc limit 100
+$ifund$;
+revoke all on function public.ifund_social_my_friends() from public,anon,authenticated;
+grant execute on function public.ifund_social_my_friends() to authenticated;
