@@ -4,6 +4,7 @@ import { ArrowUpRight, BriefcaseBusiness, Globe2, HeartHandshake, Search, Shield
 import { listActiveCampaigns } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { matchOpportunity } from "@/lib/opportunityMatch";
+import OpportunityEligibilityReview from "@/components/agents/OpportunityEligibilityReview";
 
 const KINDS = [
   {id:"all",label:"All research sources"},
@@ -57,6 +58,7 @@ function OpportunityCard({opportunity,campaign}) {
     {opportunity.estimated_value&&<p className="mt-2 text-sm"><strong>Program value:</strong> {opportunity.estimated_value}</p>}
     {opportunity.deadline_date&&<p className="mt-1 text-sm"><strong>Published deadline:</strong> {opportunity.deadline_date}</p>}
     <p className="mt-2 text-sm"><strong>Who may qualify:</strong> {opportunity.eligibility}</p>
+    <OpportunityEligibilityReview opportunity={opportunity}/>
     {campaign&&<p className="mt-3 rounded-lg bg-slate-500/10 p-3 text-xs">{matching
       ?relevance.summary
       :"This program is a general reference, not a verified match for the selected campaign."}</p>}
