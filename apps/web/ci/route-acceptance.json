@@ -597,11 +597,11 @@
     {
       "route": "/oauth/consent",
       "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "component": "LegacyAuthorizationNotice",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/LegacyAuthorizationNotice.jsx and explicit src/App.jsx route; deprecated Base44 MCP consent has no registered new-system server transaction",
+      "behavior_evidence": "apps/web/tests/legacy-oauth-consent-retirement.test.js verifies no opaque redirect, token or query approval in source; intentionally retired route",
+      "backend_evidence": "No server OAuth token issued, approval dispatched or provider scope granted by this route. New provider consents use independently validated /api/oauth provider gateway and must be approved separately.",
       "owner": "frontend"
     },
     {
