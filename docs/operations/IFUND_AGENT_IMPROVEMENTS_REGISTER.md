@@ -1,6 +1,6 @@
 # IFund agent and prepublication assessment — complete implementation register
 
-**Release state: SOURCE-STAGED ONLY.** Cloudflare Pages and GitHub build triggers remain held until owner explicitly authorizes BUILD. This document is not proof of live capability.
+**Release state (November 12, 2026):** Owner released the build-permission hold. Eight agent/prepublication migrations and one bounded NEXUS cron schedule are now applied in canonical Supabase. A successful migration is not proof of each member-facing or external-provider end-to-end journey.
 
 Statuses: **existing** = source capability precedes this change but live journey may be unverified; **staged** = source/SQL/tests committed, not compiled or deployed; **partial** = meaningful implementation exists but key acceptance/behavior remains; **pending** = not implemented.
 
@@ -43,10 +43,26 @@ Statuses: **existing** = source capability precedes this change but live journey
 | 35 | PREPUBLICATION | Cross-agent discussion | PARTIAL | Private task queue with role-based review prompts; independent AI peer processing remains unverified. |
 
 **Items: 35; existing 6; source-staged 22; partial 7; pending 0.**
-**Implementation gaps requiring further feature work: 7.** All 22 staged items require a single owner-authorized build, SQL preflight/migration, integration testing and live acceptance.
+**Implementation gaps requiring further work: 7 in the historical assessment.** The rows above preserve the original assessment status; use the activation evidence below for the updated backend state. Provider-backed acceptance and user-session tests are still required for externally connected features.
 
 **Do not activate independently:** no financial transfer, outbound posting, grant submission, OAuth scope claim, email deliverability claim or autonomous agent execution without provider proof and owner consent.
 
 **Existing active campaigns:** production audit found 26 active campaigns whose story length is below the new 3,500-character threshold. The staged database trigger restricts new publication/resumption only; preserve existing active records and guide owners to expand their stories.
 
-**Canonical frontend:** `apps/web`. **Release-staged migrations (NOT applied):** `20261113_ifund_prepublication_quality_and_agent_review.sql`, `20261113_ifund_echo_private_templates.sql`, `20261113_ifund_pulse_opportunity_watches.sql`, `20261113_ifund_growth_experiment_tracker.sql`, `20261113_ifund_owner_refund_trends.sql`, `20261113_ifund_story_voice_preferences.sql`, `20261113_ifund_nexus_scheduled_briefs.sql`, `20261113_ifund_echo_opted_in_updates.sql`. Enable NEXUS cron in a separately authorized release and verify real notification delivery. **No build or production migration triggered.**
+**Canonical frontend:** `apps/web`. **Migrations from the original staging register (now applied; see below):** `20261113_ifund_prepublication_quality_and_agent_review.sql`, `20261113_ifund_echo_private_templates.sql`, `20261113_ifund_pulse_opportunity_watches.sql`, `20261113_ifund_growth_experiment_tracker.sql`, `20261113_ifund_owner_refund_trends.sql`, `20261113_ifund_story_voice_preferences.sql`, `20261113_ifund_nexus_scheduled_briefs.sql`, `20261113_ifund_echo_opted_in_updates.sql`. NEXUS cron is now scheduled daily with a maximum 100 opted-in users per run; no subscribed users or delivered notifications have yet been verified. See activation evidence below.
+
+## Applied activation and safety evidence — November 12 Pacific
+
+**Canonical Supabase:** `ssibsfmtodgximseeqsv`, no changes to campaign payments, provider credentials or withdrawal execution.
+
+- ECHO: `ifund_echo_private_templates_20261113` (private owner templates), `ifund_echo_opted_in_updates_20261113` (approved in-app notifications only).
+- STORY: `ifund_story_voice_preferences_20261113` (private owner preferences).
+- FORGE: `ifund_growth_experiment_tracker_20261113` (owner experiment record; owner-count creation race repaired by a transaction-scoped lock).
+- PULSE: `ifund_pulse_opportunity_watches_20261113` (watch source-data changes; notification deduplication corrected per recipient, not only per opportunity).
+- ORBIT: `ifund_owner_refund_trends_20261113` (read-only provider-recorded monthly trends).
+- NEXUS: `ifund_nexus_scheduled_briefs_20261113` and `ifund_nexus_opted_in_daily_cron_20261113`. Verified `cron.job` `ifund-nexus-daily-briefs` active, at 15:00 UTC each day with at most 100 due, opted-in owner notifications.
+- PREPUBLICATION: `ifund_prepublication_quality_and_agent_review_20261113` applied. A new publish/resume transition enforces a 3,500-character story while preserving all 26 previously active short-story campaigns without modifying them.
+- Verified 16 audited private RPC grants: `anon` denied, `authenticated` granted, and privileged NEXUS dispatch restricted to `service_role`. All seven new private tables started empty; this is not simulated user completion.
+- Browser owner acceptance, independent agent AI peer processing, external OAuth write scopes, provider message delivery and source polling remain **unverified**. Do not present these as completed features.
+
+**Frontend improvements in this release batch:** prepublication findings link to their actual title/summary/story fields; NEXUS uses verified 7/30-day captures when available and never turns missing data into zero. Source tests added. Only one consolidated production build should be triggered after completing checks, with Cloudflare Git auto-deploy disabled immediately afterward.
