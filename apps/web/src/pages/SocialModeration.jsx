@@ -17,7 +17,7 @@ export default function SocialModeration() {
   async function decide(report, action) {
     setBusy(report.id); setError("");
     try {
-      await moderatePost(report.id, action);
+      await moderatePost(report.id, action, report.archive);
       await load();
     } catch (cause) { setError(cause.message); }
     finally { setBusy(""); }
