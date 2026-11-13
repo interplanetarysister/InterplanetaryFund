@@ -11,9 +11,9 @@ const PROVIDERS = [
   { id: "google", name: "Google Account", description: "Connect Google identity. Other Google products require their own approved scopes." },
   { id: "linkedin", name: "LinkedIn", description: "Connect LinkedIn identity. Posting requires the separately approved w_member_social permission." },
   { id: "tiktok", name: "TikTok", description: "Connect TikTok identity. Video upload is enabled only after TikTok app review." },
-  { id: "x", name: "X", description: "Connect your own X account. Read access depends on X developer-app approval; publishing requires separate API access approval." },
-  { id: "gofundme_pro", name: "GoFundMe Pro", description: "Organization-level API connection managed by IFund administrators; this is not per-user OAuth.", adminOnly: true },
-  { id: "gofundme", name: "GoFundMe", description: "Consumer GoFundMe campaigns are added by campaign URL. GoFundMe Pro API access is separate.", linkOnly: true },
+  { id: "x", name: "X", description: "Connect your X account. Viewing information and posting are available only when X has approved the required permissions." },
+  { id: "gofundme_pro", name: "GoFundMe Pro", description: "Business and nonprofit connections are arranged directly with the iFund team.", adminOnly: true },
+  { id: "gofundme", name: "GoFundMe", description: "Add a public GoFundMe campaign link. Business connections are arranged separately.", linkOnly: true },
 ];
 const ALIASES = {
   facebook_pages: ["facebook_pages", "facebook"],
@@ -39,6 +39,7 @@ function statusTone(label) {
 }
 export default function Connections() {
   const [rows, setRows] = useState([]);
+  const [selectedProvider, setSelectedProvider] = useState("facebook_pages");
   const [recordStatus, setRecordStatus] = useState("loading");
   const [providerReady, setProviderReady] = useState({});
   const [apiStatus, setApiStatus] = useState("loading");
@@ -108,6 +109,7 @@ export default function Connections() {
     return () => { live = false; };
   }, [reload]);
 
+  const SYMBOLS = { facebook_pages:"f",instagram:"◎",youtube:"▶",google:"G",linkedin:"in",tiktok:"♪",x:"X",gofundme_pro:"GF",gofundme:"Go" };
   const rowsByProvider = useMemo(() => new Map(
     PROVIDERS.map((provider) => {
       const aliases = ALIASES[provider.id] || [provider.id];
@@ -183,8 +185,38 @@ export default function Connections() {
       {recordStatus === "loading" && <p className="mt-6 text-sm text-muted-foreground">Loading your connection records…</p>}
       {recordStatus === "sign-in" && <p className="mt-6 text-sm text-muted-foreground"><Link to="/login" className="text-primary hover:underline">Sign in</Link> to view your connections.</p>}
       {recordStatus === "error" && <div className="mt-6 space-y-2"><p role="alert" className="text-sm text-destructive">Connection records are unavailable.</p><button type="button" className="min-h-11 underline" onClick={() => setReload(value => value + 1)}>Retry loading connections</button></div>}
-      <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        {PROVIDERS.map((provider) => {
+      <section className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Choose a platform">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <h2 className="text-sm font-semibold">Actively connected platforms</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{recordStatus==="ready"
+              ? (PROVIDERS.filter(provider=>getConnectionLabel(rowsByProvider.get(provider.id))==="Connected").map(provider=>provider.name).join(", ") || "None verified yet")
+              : "Checking saved connections…"}</p>
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold">Available to connect</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{apiStatus==="ready"
+              ? (PROVIDERS.filter(provider=>providerReady[provider.id]===true&&!provider.adminOnly&&!provider.linkOnly).map(provider=>provider.name).join(", ") || "No providers verified as available")
+              : "Checking available connections…"}</p>
+          </div>
+        </div>
+        <h2 className="text-sm font-semibold">Select a platform to manage</h2>
+        <div className="flex flex-wrap gap-3" role="group" aria-label="Available platform connections">
+          {PROVIDERS.map(provider=><button key={provider.id} type="button"
+            aria-pressed={selectedProvider===provider.id}
+            aria-label={"View "+provider.name+" connection"}
+            onClick={()=>{setSelectedProvider(provider.id);setConfirm("");setError("");}}
+            className={"flex min-w-20 flex-col items-center gap-2 rounded-xl border p-3 text-xs font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring "+
+              (selectedProvider===provider.id?"border-primary bg-primary/10":"border-border bg-background")}>
+            <span aria-hidden="true" className="flex h-11 w-11 items-center justify-center rounded-xl bg-muted text-base font-bold">{SYMBOLS[provider.id]||provider.name[0]}</span>
+            <span className="text-center">{provider.name}</span>
+            <span className="text-[10px] text-muted-foreground">{getConnectionLabel(rowsByProvider.get(provider.id))==="Connected"?"Connected":provider.adminOnly?"Admin setup":provider.linkOnly?"Link only":providerReady[provider.id]===true?"Available":"Not verified"}</span>
+          </button>)}
+        </div>
+        <p className="text-xs text-muted-foreground">Connection status and permission status are separate. Each provider controls what information and publishing permissions it grants. iFund does not assume that connecting an account authorizes sharing or marketing.</p>
+      </section>
+      <div className="mt-7 grid gap-4">
+        {PROVIDERS.filter(provider => provider.id === selectedProvider).map((provider) => {
           const row = rowsByProvider.get(provider.id);
           const label = provider.adminOnly ? "Admin setup" : provider.linkOnly ? "Campaign URL" : provider.unavailable ? "Not enabled" : getConnectionLabel(row);
           const ready = providerReady[provider.id] === true;
@@ -204,9 +236,9 @@ export default function Connections() {
                 {!provider.adminOnly && !provider.linkOnly && <div className="mt-2 rounded-lg border border-border p-3 text-xs" aria-label={provider.name+" publishing readiness"}>
                   <p><strong>LINK · Publishing readiness:</strong> {publishing.publishReady ? "Verified" : "Not verified"}</p>
                   <p className="mt-1 text-muted-foreground">{publishing.reason}</p>
-                  <p className="mt-1 text-muted-foreground">Connecting identity does not grant cross-posting consent. Check approved scopes and account permissions before publishing.</p>
-                  <p className="mt-2"><strong>Provider capability:</strong> {guide.permission}</p>
-                  <p className="mt-1"><strong>Safe alternative:</strong> {guide.alternative}</p>
+                  <p className="mt-1 text-muted-foreground">Connecting an account does not authorize campaign sharing. Review your approved permissions and choose where to publish.</p>
+                  <p className="mt-2"><strong>What this connection may do:</strong> {guide.permission}</p>
+                  <p className="mt-1"><strong>Other way to share:</strong> {guide.alternative}</p>
                 </div>}
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
