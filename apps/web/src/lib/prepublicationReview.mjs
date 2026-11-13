@@ -63,3 +63,13 @@ export function publicationAgentTasks(form) {
     finding_id:id, agent, title, advice,
   }));
 }
+
+/** A reversible punctuation/spacing proposal; never strips whole sentences. */
+export function proposePunctuationRepair(value) {
+  const original = String(value ?? "");
+  let proposal = original.replace(/([!?.,])\1{2,}/gu, "$1")
+    .replace(/[ \t]{3,}/gu,"  ");
+  const trimmed = proposal.trimEnd();
+  if (trimmed && !/[.!?…]["'’”)]?$/u.test(trimmed)) proposal = trimmed + "." + proposal.slice(trimmed.length);
+  return { original, proposal, changed: proposal !== original };
+}
