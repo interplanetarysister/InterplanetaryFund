@@ -35,7 +35,8 @@ export function validateImageRequest(input) {
 
 function validImageBase64(value) {
   if (typeof value !== 'string' || value.length < 64 || value.length > 7_000_000 ||
-      value.length % 4 !== 0 || !/^[a-zA-Z0-9+/]+={0,2}$/.test(value)) return false;
+      value.length % 4 !== 0 || !value.startsWith('/9j/') ||
+      !/^[a-zA-Z0-9+/]+={0,2}$/.test(value)) return false;
   const padding = value.endsWith('==') ? 2 : value.endsWith('=') ? 1 : 0;
   return (value.length * 3 / 4 - padding) <= MAX_IMAGE_BYTES;
 }
