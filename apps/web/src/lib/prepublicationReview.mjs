@@ -19,7 +19,7 @@ export function reviewCampaignPublication(form = {}) {
   if (story && !/[.!?…]["'’”)]?\s*$/u.test(story))
     add("story_terminal_punctuation", "story", "Finish the story with punctuation",
       "Review the final sentence and add a suitable full stop, question mark, or exclamation mark.");
-  if (/(?:[!?.,])\1{2,}/u.test(story))
+  if (/([!?.,])\1{2,}/u.test(story))
     add("excess_punctuation", "story", "Review repeated punctuation",
       "Replace excessive runs of punctuation with intentional sentence boundaries.");
   if (/[\p{L}\p{N}][ \t]{3,}[\p{L}\p{N}]/u.test(story))
