@@ -176,7 +176,7 @@ export default function EditCampaign() {
       </label>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
 
-      <PrepublicationGate form={form} campaignId={id} canSend={status !== "active"} disabled={disabled} onApply={value=>setForm(previous=>({...previous,story:value}))} />
+      <PrepublicationGate form={form} campaignId={id} canSend={status !== "active"} disabled={disabled} onApply={value=>setForm(previous=>({...previous,story:value}))} onApplyFields={fields=>{setForm(previous=>({...previous,...fields}));setNotice("");}} />
       {!readiness.ready && status === "draft" && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
           <p className="font-semibold">Before you can publish</p>
