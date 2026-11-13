@@ -143,7 +143,7 @@ function AppRoutes() {
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
       <Route path="/blogs" element={<Blogs />} />
-      <Route path="/blog" element={<Navigate to="/blogs" replace />} />
+      <Route path="/blog" element={<Navigate to="/social" replace />} />
       <Route path="/news" element={<Blogs news />} />
       <Route path="/blogs/:id" element={<BlogArticle />} />
       <Route path="/publications/:id" element={<PublicationArticle />} />
