@@ -426,6 +426,14 @@ export const CONNECTION_PLATFORMS = Object.freeze([
   }
 ].map(row=>Object.freeze(row)));
 export const OAUTH_PLATFORM_IDS = Object.freeze({ facebook:"facebook_pages",instagram:"instagram",youtube:"youtube",linkedin:"linkedin",tiktok:"tiktok",x:"x",google:"google" });
+export const CONNECTION_PROVIDER_ALIASES = Object.freeze({
+ facebook_pages:["facebook_pages","facebook"],instagram:["instagram","instagram_business"],
+ youtube:["youtube","youtube_channel"],google:["google","google_account"],
+ linkedin:["linkedin"],tiktok:["tiktok"],x:["x","twitter"]
+});
+export function matchesStoredConnection(row,providerId) {
+ return Boolean(row && (CONNECTION_PROVIDER_ALIASES[providerId] || [providerId]).includes(row.provider));
+}
 export const PLATFORM_KIND_NAMES = Object.freeze({all:"All platforms",crowdfunding:"Fundraising",social:"Social & sharing",app:"Apps & productivity"});
 export function selectedConnectionPlatform(id) { return CONNECTION_PLATFORMS.find(row=>row.id===id)||null; }
 export function connectionSteps(platform,{secure=false,hasSavedLink=false}={}) {
