@@ -4,6 +4,8 @@ import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadUniversalInbox, markInboxItemDone, markInboxNotificationRead } from "@/lib/inbox";
 import { safeNoticeDestination } from "@/lib/notifications";
+import { useAdminAccess } from "@/hooks/useAdminAccess";
+import { useAuthSession } from "@/hooks/useAuthSession";
 
 function localDestination(value) {
   const safe = safeNoticeDestination(value);
@@ -22,6 +24,8 @@ function localDestination(value) {
 
 export default function Inbox() {
   const [params] = useSearchParams();
+  const { user } = useAuthSession();
+  const isAdmin = useAdminAccess(user) === "admin";
   const requestedCampaign = params.get("campaign") || "all";
   const [campaignFilter, setCampaignFilter] = useState(requestedCampaign);
   const [items, setItems] = useState([]);
@@ -86,6 +90,7 @@ export default function Inbox() {
         </div>
       </header>
 
+      {isAdmin && <Link to="/admin/social-moderation" className="inline-flex min-h-11 items-center rounded-xl border border-primary/40 bg-card px-4 font-medium text-primary">Review community post reports</Link>}
       <section className="flex flex-wrap gap-2" aria-label="Inbox filters">
         {["open", "done", "all"].map(value => (
           <button key={value} type="button" onClick={() => setTab(value)}
