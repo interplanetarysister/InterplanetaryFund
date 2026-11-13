@@ -33,8 +33,8 @@ export default function EmbedCampaign() {
         {campaign.summary && <p className="text-sm text-stone-600">{campaign.summary}</p>}
         {totals ? <p className="text-sm text-stone-600">${totals.raised.toLocaleString()} raised of ${totals.goal.toLocaleString()}</p> :
           <p className="text-sm text-stone-600">Verified fundraising totals are not available.</p>}
-        {donationsEnabled ? <p className="rounded-lg border border-cyan-200 bg-cyan-50 p-3 text-xs text-cyan-900">Open this campaign on IFund to donate securely. Payment is never handled inside an embedded card.</p> : <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Campaign donations are temporarily unavailable. Platform support does not fund this campaign.</p>}
-        <span className="inline-block rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">{donationsEnabled ? "Open campaign to donate" : "View campaign"}</span>
+        {donationsEnabled ? <p className="rounded-lg border border-cyan-200 bg-cyan-50 p-3 text-xs text-cyan-900">Open this campaign on IFund to donate securely. Payment is never handled inside an embedded card.</p> : <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Live campaign donations are enabled, but secure checkout could not be verified from this embedded view. Open the campaign on IFund to check the current live payment status. Platform support does not fund this campaign.</p>}
+        <span className="inline-block rounded-xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white">{donationsEnabled ? "Open campaign to donate" : "Open campaign"}</span>
       </div>
     </a>
     <p className="mt-2 text-center text-xs text-stone-500">Powered by Interplanetary Fund</p>

@@ -39,7 +39,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
         aria-disabled={checkoutDisabled}
         className={platformOnlyMode ? "w-full rounded-xl h-12 text-base font-semibold bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/20 hover:opacity-90" : "w-full rounded-xl min-h-12 h-auto py-3 text-base font-bold bg-[#FFC439] text-[#003087] border-0 hover:bg-[#f2ba36] whitespace-normal"}
       >
-        <Heart className="w-5 h-5 mr-2" /> {!campaignActive ? "Campaign not accepting donations" : platformOnlyMode ? "Live donations unavailable" : "Donate Now"}
+        <Heart className="w-5 h-5 mr-2" /> {!campaignActive ? "Campaign not accepting donations" : platformOnlyMode ? "Check live checkout" : "Donate Now"}
       </Button>
       {platformOnlyMode ? (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-center">
