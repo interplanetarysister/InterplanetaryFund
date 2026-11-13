@@ -29,10 +29,6 @@ on:
         description: Deploy to the production branch instead of a preview
         type: boolean
         default: false
-      project:
-        description: Cloudflare Pages project name
-        required: false
-        default: interplanetaryfund-migration
 
 permissions:
   contents: read
@@ -102,7 +98,7 @@ jobs:
           workingDirectory: apps/web
           command: >-
             pages deploy dist
-            --project-name=${{ github.event.inputs.project || 'interplanetaryfund-migration' }}
+            --project-name=interplanetaryfund-migration
             --branch=preview
 
       - name: Smoke-test the preview before production promotion
@@ -128,5 +124,5 @@ jobs:
           workingDirectory: apps/web
           command: >-
             pages deploy dist
-            --project-name=${{ github.event.inputs.project || 'interplanetaryfund-migration' }}
+            --project-name=interplanetaryfund-migration
             --branch=main
