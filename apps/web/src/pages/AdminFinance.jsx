@@ -15,7 +15,7 @@ const campaignColumns = [
 export default function AdminFinance({ embedded = false }) {
   const { user } = useAuthSession();
   const superAdminStatus = useSuperAdminAccess(user);
-  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,payoutQueue:[],error:""});
+  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,payoutQueue:[],operational:null,error:""});
   const [payoutBusy,setPayoutBusy] = useState("");
   const [payoutMessage,setPayoutMessage] = useState("");
   useEffect(()=>{
@@ -26,11 +26,12 @@ export default function AdminFinance({ embedded = false }) {
         const before=await client.auth.getUser();
         if(before.error||!before.data?.user?.id)throw Error("Sign in required.");
         // Server-side RPC checks verified administrator authority independently.
-        const [report, merchant, income, payoutQueue] = await Promise.all([
+        const [report, merchant, income, payoutQueue, operational] = await Promise.all([
           client.rpc("ifund_admin_finance_summary"),
           client.rpc("ifund_admin_paypal_merchant_receipts"),
           client.rpc("ifund_super_admin_platform_income_summary"),
           client.rpc("ifund_super_admin_payout_queue"),
+          client.rpc("ifund_super_admin_operational_snapshot"),
         ]);
         if(report.error||!Array.isArray(report.data)||merchant.error||!Array.isArray(merchant.data))
           throw Error("Administrator financial reporting is unavailable or you do not have verified access.");
@@ -38,8 +39,9 @@ export default function AdminFinance({ embedded = false }) {
         const after=await client.auth.getUser();
         if(after.error||after.data?.user?.id!==before.data.user.id)throw Error("Your session changed. Reload to continue.");
         const queueRows = !payoutQueue.error && Array.isArray(payoutQueue.data) ? payoutQueue.data : [];
-        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,payoutQueue:queueRows,error:""});
-      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,payoutQueue:[],error:e.message||"Unavailable"});}
+        const operationalRow = !operational.error && Array.isArray(operational.data) ? operational.data[0] || null : null;
+        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,payoutQueue:queueRows,operational:operationalRow,error:""});
+      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,payoutQueue:[],operational:null,error:e.message||"Unavailable"});}
     })();
     return ()=>{active=false};
   },[]);
@@ -109,6 +111,29 @@ export default function AdminFinance({ embedded = false }) {
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription ledger · net</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_net_cents)}</p></div>
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Realized 7% withdrawal fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.realized_withdrawal_fee_cents)}</p></div>
         </div>
+      </section>}
+      {superAdminStatus === "super-admin" && <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="IFund operational monitoring">
+        <h2 className="text-xl font-semibold">Operational monitoring</h2>
+        <p className="text-sm text-muted-foreground">Read-only database snapshot; Cloudflare Workers uptime and external service health must be checked separately. No payment or administrative operation is triggered by this view.</p>
+        {state.operational ? <>
+          <p className="text-xs text-muted-foreground">Database snapshot: {new Date(state.operational.checked_at).toLocaleString()}</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              ["Queued database jobs", "queued_workflow_jobs"],
+              ["Failed database jobs", "failed_workflow_jobs"],
+              ["Overdue database jobs", "overdue_workflow_jobs"],
+              ["Job events · last 24h", "recent_workflow_events"],
+              ["Unresolved incident records", "unresolved_platform_incidents"],
+              ["Unattributed merchant receipts", "unattributed_merchant_receipts"],
+              ["Active subscription plans", "active_subscription_plans"],
+              ["Provider-verified plans", "provider_verified_subscription_plans"],
+            ].map(([label,key]) => <div key={key} className="rounded-xl border border-border p-4">
+              <p className="text-xs text-muted-foreground">{label}</p>
+              <p className="mt-2 text-xl font-semibold tabular-nums">{Number.isSafeInteger(Number(state.operational[key])) ? state.operational[key] : "Unavailable"}</p>
+            </div>)}
+          </div>
+          <p className="text-xs text-muted-foreground">Zero database jobs or incidents does not verify that external scheduled Workers ran successfully.</p>
+        </> : <p role="status" className="text-sm text-amber-700">Operational telemetry is unavailable or permission verification failed. No healthy status is inferred.</p>}
       </section>}
       {superAdminStatus === "super-admin" && <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="Owner payout execution queue">
         <div>
