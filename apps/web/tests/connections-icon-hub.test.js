@@ -40,3 +40,15 @@ test("public URL validation rejects credentials, HTTP, private hosts, fake provi
   assert.equal(validatePublicConnectionLink("custom","https://example.com/our-campaign").ok,true);
   assert.equal(validatePublicConnectionLink("gmail","https://mail.google.com/mail/u/0").ok,false);
 });
+
+test("revocable iFund help consent is explicit, member-scoped and cannot publish elsewhere",()=>{
+ assert.match(page,/ifund_my_connection_assistance/);
+ assert.match(page,/ifund_set_connection_assistance/);
+ assert.match(page,/Turn on help/);
+ assert.match(page,/Turn off help/);
+ assert.match(page,/never signs in to your outside accounts, sends messages, or publishes posts/);
+ const sql=readFileSync(new URL("../../../supabase/migrations/20261113080000_ifund_member_connections_hub.sql",import.meta.url),"utf8");
+ assert.match(sql,/ifund_member_connection_assistance enable row level security/);
+ assert.match(sql,/on conflict\(owner_id\) do update/);
+ assert.match(sql,/grant execute on function public\.ifund_set_connection_assistance\(boolean\) to authenticated/);
+});
