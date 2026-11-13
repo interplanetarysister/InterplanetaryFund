@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { listActiveCampaigns } from "@/api/publicData";
 
 const currency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-const validMoney = value => typeof value === "number" && Number.isFinite(value) && value >= 0;
+const moneyCents = value => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return null;
+  const raw = value * 100;
+  const cents = Math.round(raw);
+  return Number.isSafeInteger(cents) && Math.abs(raw - cents) < 0.000001 ? cents : null;
+};
 
 /**
  * Environmental campaign reporting derived only from public, verified-active
@@ -33,9 +38,11 @@ export default function AdminSustainability() {
   const stats = useMemo(() => {
     const total = state.campaigns.length;
     const publiclyMapped = state.campaigns.filter(c => c.map_opt_in === true).length;
-    const fundingComplete = state.campaigns.every(c => validMoney(c.raised_amount));
-    const verifiedRaised = fundingComplete ? state.campaigns.reduce((sum,c)=>sum+c.raised_amount,0) : null;
-    return { total, publiclyMapped, verifiedRaised };
+    const values = state.campaigns.map(c => moneyCents(c.raised_amount));
+    const fundingComplete = values.every(value => value !== null);
+    const totalCents = fundingComplete ? values.reduce((sum,value)=>sum+value,0) : null;
+    const verifiedRaisedCents = totalCents !== null && Number.isSafeInteger(totalCents) ? totalCents : null;
+    return { total, publiclyMapped, verifiedRaisedCents };
   }, [state.campaigns]);
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
@@ -56,7 +63,7 @@ export default function AdminSustainability() {
         {[
           ["Published environmental campaigns", stats.total.toLocaleString()],
           ["Campaigns opting into the public Atlas", stats.publiclyMapped.toLocaleString()],
-          ["Provider-verified fundraising", stats.verifiedRaised === null ? "Unavailable" : currency.format(stats.verifiedRaised)],
+          ["Provider-verified fundraising", stats.verifiedRaisedCents === null ? "Unavailable" : currency.format(stats.verifiedRaisedCents / 100)],
         ].map(([label,value]) => <div key={label} className="rounded-2xl border border-border bg-card p-5">
           <dt className="text-xs text-muted-foreground">{label}</dt>
           <dd className="mt-2 text-2xl font-semibold tabular-nums">{value}</dd>
@@ -72,7 +79,7 @@ export default function AdminSustainability() {
                 <Link className="font-semibold text-primary underline" to={"/campaign/"+encodeURIComponent(c.id)}>{c.title}</Link>
                 <p className="text-xs text-muted-foreground">{c.map_opt_in === true ? c.location || "Public location shared" : "Campaign location private"}</p>
               </div>
-              <span className="text-sm font-medium">{validMoney(c.raised_amount) ? currency.format(c.raised_amount) : "Funding unavailable"}</span>
+              <span className="text-sm font-medium">{moneyCents(c.raised_amount) !== null ? currency.format(moneyCents(c.raised_amount) / 100) : "Funding unavailable"}</span>
             </li>)}</ul>}
       </section>
       <p className="text-xs text-muted-foreground">Showing up to 500 most recently published campaigns in the canonical public API. Financial figures exclude pending, refunded, unverified and sandbox transactions. Environmental outcomes require separately validated measurement data.</p>
