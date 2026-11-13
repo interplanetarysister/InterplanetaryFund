@@ -382,6 +382,17 @@ Deno.serve(async req=>{
       if(!payout)return fail("Payout not found",404);
       return Response.json({ok:true,payout});
     }
+    if(body.op==="payout_lookup_batch"){
+      const p=body.data||{};
+      if(typeof p.sender_batch_id!=="string"||!/^ifund-[0-9a-f]{32}$/.test(p.sender_batch_id))
+        return fail("Invalid sender batch id");
+      const rows=await db("rpc/ifund_internal_payout_lookup_by_sender_batch","POST",{
+        p_sender_batch_id:p.sender_batch_id
+      });
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout)return fail("Payout not found",404);
+      return Response.json({ok:true,payout});
+    }
     if(body.op==="payout_state"){
       const p=body.data||{};
       const statuses=["SUCCESS","FAILED","PENDING","UNCLAIMED","RETURNED","ONHOLD","BLOCKED","REFUNDED","CANCELED","DENIED"];
