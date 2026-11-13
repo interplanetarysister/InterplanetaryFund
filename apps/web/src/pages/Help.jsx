@@ -136,8 +136,9 @@ export default function Help() {
       <section aria-labelledby="help-contact-heading" className="rounded-2xl border border-border bg-card p-5 sm:p-7">
         <h2 id="help-contact-heading" className="text-xl font-semibold text-foreground">Still need help?</h2>
         <p className="text-muted-foreground text-sm mt-1">
-          Online support forms are not active yet. Contact the team by email; never include passwords or payment card details.
+          Signed-in members can open a support ticket and track its status. Public email contact remains available; never include passwords, authentication codes, or card details.
         </p>
+        <Link to="/support" className="inline-flex min-h-11 items-center mt-4 mr-4 text-cyan-700 font-semibold underline underline-offset-4">Open a support ticket <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" /></Link>
         <a href="mailto:support@interplanetaryfund.com" className="inline-flex min-h-11 items-center mt-4 text-cyan-700 font-semibold underline underline-offset-4">
           Email IFund support <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
         </a>
