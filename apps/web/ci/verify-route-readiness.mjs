@@ -35,6 +35,8 @@ for (const path of navigation) {
 // All explicit routes and mapped legacy routes must have individual source
 // and negative-case evidence before the one consolidated preview build.
 const acceptanceRoutes = new Set([...declaredRoutes, ...mappedLegacyRoutes]);
+const allowedRoles = new Set(["public", "member", "admin", "super_admin"]);
+const allowedStatuses = new Set(["not_implemented", "not_verified", "source_ready"]);
 try {
   const register = JSON.parse(read("ci/route-acceptance.json"));
   if (register.schema_version !== 1 || !Array.isArray(register.routes))
@@ -48,10 +50,19 @@ try {
     byRoute.set(entry.route, entry);
     if (!acceptanceRoutes.has(entry.route))
       unfinished.push("Stale acceptance route: " + entry.route);
+    if (!allowedRoles.has(entry.role))
+      unfinished.push("Invalid route role: " + entry.route);
+    if (!allowedStatuses.has(entry.source_status))
+      unfinished.push("Invalid route source state: " + entry.route);
     if (entry.source_status !== "source_ready" ||
         typeof entry.source_evidence !== "string" || !entry.source_evidence.trim() ||
         typeof entry.behavior_evidence !== "string" || !entry.behavior_evidence.trim())
       unfinished.push("Missing source and test acceptance: " + entry.route);
+    // A protected route cannot be accepted based only on a rendered page.
+    // Require negative-case server authorization/RLS evidence for each role.
+    if (entry.role !== "public" &&
+        (typeof entry.backend_evidence !== "string" || !entry.backend_evidence.trim()))
+      unfinished.push("Missing backend authorization evidence: " + entry.route);
   }
   for (const route of acceptanceRoutes)
     if (!byRoute.has(route)) unfinished.push("Untracked source route: " + route);
