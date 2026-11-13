@@ -1,0 +1,62 @@
+name: IFund emergency Pages rollback (owner approval only)
+
+# This action changes production routing but NEVER recompiles code.
+# It must not be run during the owner release hold without a NEW explicit rollback order.
+on:
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: "Previously successful PRODUCTION Pages deployment UUID"
+        required: true
+        type: string
+      confirm:
+        description: "Type ROLLBACK to confirm the production change"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-single-pages-release
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify exact user approval and deployment UUID
+        env:
+          ID: ${{ inputs.deployment_id }}
+          CONFIRM: ${{ inputs.confirm }}
+          BRANCH: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          test "$BRANCH" = "refs/heads/main" || { echo "::error::Only main may dispatch production rollback"; exit 1; }
+          test "$CONFIRM" = "ROLLBACK" || { echo "::error::Explicit rollback confirmation required"; exit 1; }
+          [[ "$ID" =~ ^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$ ]] || { echo "::error::Invalid deployment UUID"; exit 1; }
+      - name: Verify rollback target is successful production, then restore it
+        env:
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ID: ${{ inputs.deployment_id }}
+        run: |
+          set -euo pipefail
+          test -n "$CF_ACCOUNT" && test -n "$CF_TOKEN"
+          BASE="https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT/pages/projects/interplanetaryfund-migration"
+          TARGET=$(curl -fsS --retry 2 -H "Authorization: Bearer $CF_TOKEN" "$BASE/deployments/$ID")
+          echo "$TARGET" | jq -e --arg id "$ID" '
+            .success == true and .result.id == $id
+            and .result.environment == "production"
+            and .result.latest_stage.status == "success"' >/dev/null || {
+            echo "::error::Target must be a verified successful production deployment"; exit 1;
+          }
+          LIVE=$(curl -fsS --retry 2 -H "Authorization: Bearer $CF_TOKEN" "$BASE")
+          echo "$LIVE" | jq -e --arg id "$ID" '.success == true and .result.canonical_deployment.id != $id' >/dev/null || {
+            echo "::error::Target is already live, or live state is unknown"; exit 1;
+          }
+          curl -fsS --retry 2 -X POST -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" "$BASE/deployments/$ID/rollback" --data '{}' \
+            | jq -e '.success == true' >/dev/null
+          echo "Production rollback request succeeded for $ID; confirm host health and payment/Worker version separately." >> "$GITHUB_STEP_SUMMARY"
