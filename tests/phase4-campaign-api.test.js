@@ -16,7 +16,7 @@ const origin = 'https://api.example.org';
 const headers = { authorization: 'Bearer signed.test.jwt', 'content-type': 'application/json' };
 const valid = {
   title: 'Beach cleanup', summary: 'Community cleanup',
-  story: 'Remove trash safely', category: 'community',
+  story: ('The team will remove trash safely, document budgeted expenses, and share progress with supporters. ').repeat(39), category: 'community',
   goal_amount: 500, status: 'active',
 };
 function request(data, path = '/api/campaigns', method = 'POST', h = headers) {
