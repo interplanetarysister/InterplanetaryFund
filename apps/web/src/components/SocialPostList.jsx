@@ -38,9 +38,9 @@ function SocialItem({ post, likes, onHidden, user }) {
   }
   async function submitReport(event) {
     event.preventDefault();
-    if (!id || !user || working) return;
+    if ((!id && !post.id?.startsWith("archive-")) || !user || working) return;
     setWorking(true); setError("");
-    try { await reportPost(id, reason); setReportOpen(false); onHidden?.(post.id); }
+    try { await reportPost(id || post.id, reason); setReportOpen(false); onHidden?.(post.id); }
     catch (cause) { setError(cause.message); }
     finally { setWorking(false); }
   }
@@ -79,12 +79,12 @@ function SocialItem({ post, likes, onHidden, user }) {
       {id && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
       <button type="button" className="inline-flex min-h-11 items-center gap-2 text-primary" onClick={() => sharePost(post)}><Share2 size={17} /> Share</button>
       {post.profile_id && <Link className="inline-flex min-h-11 items-center text-primary underline" to={`/u/${post.profile_id}`}>View member</Link>}
-      {id && user && <button type="button" onClick={() => setReportOpen(v => !v)} className="ml-auto inline-flex min-h-11 items-center gap-1 text-muted-foreground"><Flag size={16} /> Report</button>}
+      {(id || post.id?.startsWith("archive-")) && user && <button type="button" onClick={() => setReportOpen(v => !v)} className="ml-auto inline-flex min-h-11 items-center gap-1 text-muted-foreground"><Flag size={16} /> Report</button>}
     </div>
     {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     {reportOpen && <form onSubmit={submitReport} className="space-y-2 rounded-xl border border-border p-3">
-      <label htmlFor={`report-${id}`} className="block text-sm font-medium">Why are you reporting this post?</label>
-      <textarea id={`report-${id}`} required minLength={15} maxLength={1500} rows={3} value={reason} onChange={e => setReason(e.target.value)}
+      <label htmlFor={`report-${post.id}`} className="block text-sm font-medium">Why are you reporting this post?</label>
+      <textarea id={`report-${post.id}`} required minLength={15} maxLength={1500} rows={3} value={reason} onChange={e => setReason(e.target.value)}
         className="w-full rounded-lg border border-input bg-background p-3" />
       <p className="text-xs text-muted-foreground">Reports temporarily hide the post pending an administrator review. Misuse may be restricted.</p>
       <div className="flex gap-2"><button disabled={working || reason.trim().length < 15} className="rounded-lg bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50">Submit report</button>
