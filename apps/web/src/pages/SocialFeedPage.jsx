@@ -8,6 +8,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
 import { FEED_PAGE_SIZE, listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
+import CommunityDirectory from "@/components/community/CommunityDirectory";
 import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
 import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 
@@ -181,6 +182,7 @@ export default function SocialFeedPage({ community = false }) {
       <Link to="/blogs">Stories &amp; Blogs</Link>
       <Link to="/news">IFund Newscaster</Link>
     </nav>
+    {community && <CommunityDirectory />}
     {canPost ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
       {shareSuggestion && body.trim() && !body.includes(shareSuggestion.split("\n").at(-1)) && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
         <p>Your saved draft was preserved. Add this campaign to your post when you’re ready.</p>
