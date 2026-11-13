@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
-import { reviewCampaignPublication, proposePunctuationRepair } from "@/lib/prepublicationReview.mjs";
+import { reviewCampaignPublication, proposePunctuationRepair, proposeRedundancyRepair } from "@/lib/prepublicationReview.mjs";
 
 /** Free, local prepublication editor with an optional owner-authorized team queue. */
 export default function PrepublicationGate({ form, campaignId, onApply, disabled = false, canSend = true }) {
   const audit = useMemo(() => reviewCampaignPublication(form), [form]);
   const punctuation = useMemo(() => proposePunctuationRepair(form?.story), [form?.story]);
+  const duplication = useMemo(() => proposeRedundancyRepair(form?.story), [form?.story]);
   const [preview, setPreview] = useState(false);
+  const [previewDuplication, setPreviewDuplication] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -65,6 +67,21 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
         <button type="button" disabled={disabled || !onApply} onClick={() => { onApply?.(punctuation.proposal); setPreview(false); setMessage("Punctuation proposal applied locally. Save your draft to preserve it."); }}
           className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
           Apply reviewed punctuation changes
+        </button>
+      </div>}
+    </div>}
+    {duplication.changed && <div className="space-y-2" aria-label="Repetition removal proposal">
+      <button type="button" disabled={disabled} onClick={()=>setPreviewDuplication(v=>!v)}
+        className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">
+        {previewDuplication ? "Hide" : "Preview"} {duplication.removed} exact repeated sentence{duplication.removed===1?"":"s"}
+      </button>
+      {previewDuplication && <div className="space-y-2">
+        <p className="text-sm text-muted-foreground">Only exact duplicated long sentences are proposed for removal. Review carefully before accepting; first occurrences remain.</p>
+        <textarea aria-label="Proposed de-duplicated story" readOnly value={duplication.proposal}
+          className="min-h-44 w-full rounded-xl border border-border bg-background p-3 text-sm" />
+        <button type="button" disabled={disabled || !onApply} onClick={() => { onApply?.(duplication.proposal); setPreviewDuplication(false); setMessage("Repetition proposal applied locally. Save your draft to preserve it."); }}
+          className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
+          Apply reviewed duplicate removal
         </button>
       </div>}
     </div>}
