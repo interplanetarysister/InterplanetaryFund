@@ -683,6 +683,10 @@ export default {
       }catch(_){return asJson({ok:false,error:"payout_readiness_unavailable"},503,cors)}
     }
     if(path==="/api/payments/payouts/execute"&&request.method==="POST"){
+      // Explicit, independent production authorization is required for money movement.
+      // Absence of this binding MUST fail closed, even when donations are live.
+      if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")
+        return asJson({ok:false,error:"payout_execution_disabled"},503,cors);
       if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
         return asJson({ok:false,error:"payments_disabled"},503,cors);
       if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
