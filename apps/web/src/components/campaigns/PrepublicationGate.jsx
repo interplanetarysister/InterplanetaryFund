@@ -2,14 +2,21 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { reviewCampaignPublication, proposePunctuationRepair, proposeRedundancyRepair } from "@/lib/prepublicationReview.mjs";
+import { reviewCampaignWideEditorial, proposeCampaignWidePunctuation, proposeCampaignWideRedundancy } from "@/lib/campaignEditorialImprovements.mjs";
 
 /** Free, local prepublication editor with an optional owner-authorized team queue. */
-export default function PrepublicationGate({ form, campaignId, onApply, disabled = false, canSend = true }) {
+export default function PrepublicationGate({ form, campaignId, onApply, onApplyFields, disabled = false, canSend = true }) {
   const audit = useMemo(() => reviewCampaignPublication(form), [form]);
   const punctuation = useMemo(() => proposePunctuationRepair(form?.story), [form?.story]);
   const duplication = useMemo(() => proposeRedundancyRepair(form?.story), [form?.story]);
+  const campaignIssues = useMemo(() => reviewCampaignWideEditorial(form), [form]);
+  const campaignPunctuation = useMemo(() => proposeCampaignWidePunctuation(form), [form]);
+  const campaignRepetition = useMemo(() => proposeCampaignWideRedundancy(form), [form]);
+  const combinedFindings = useMemo(() => [...audit.findings, ...campaignIssues.filter(i => !audit.findings.some(a => a.id === i.id))], [audit.findings, campaignIssues]);
   const [preview, setPreview] = useState(false);
   const [previewDuplication, setPreviewDuplication] = useState(false);
+  const [previewCampaign, setPreviewCampaign] = useState(false);
+  const [previewCampaignRedundancy, setPreviewCampaignRedundancy] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -30,16 +37,24 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
       setError("Save this campaign as a private draft first, then submit its improvement proposals.");
       return;
     }
-    if (sending || disabled || audit.findings.length === 0) return;
+    if (sending || disabled || combinedFindings.length === 0) return;
     setSending(true);
     try {
-      const { data, error: issue } = await authClient().rpc("ifund_queue_editorial_agent_review", {
+      const client = authClient();
+      // A local unsaved edit must never create a review against stale database text.
+      const { data: savedCampaign, error: readError } = await client.from("ifund_campaigns")
+        .select("title,summary,story").eq("id", campaignId).single();
+      if (readError || !savedCampaign) throw new Error("Saved draft could not be verified. Save and retry.");
+      if (["title", "summary", "story"].some(key => String(savedCampaign[key] ?? "").trim() !== String(form?.[key] ?? "").trim()))
+        throw new Error("Save your current campaign edits before sending improvements to the agents.");
+      const selectedFindings = combinedFindings.slice(0, 12);
+      const { data, error: issue } = await client.rpc("ifund_queue_editorial_agent_review", {
         p_campaign_id: campaignId,
-        p_finding_ids: audit.findings.map(item => item.id),
+        p_finding_ids: selectedFindings.map(item => item.id),
       });
-      if (issue || !Array.isArray(data) || data.length !== audit.findings.length)
+      if (issue || !Array.isArray(data) || data.length !== selectedFindings.length)
         throw new Error(issue?.message || "Editorial work could not be confirmed in the agent queue.");
-      setMessage(`${data.length} editorial work items recorded in the private agent review queue.`);
+      setMessage(`${data.length} editorial improvement proposals added to the private agent team discussion queue.${combinedFindings.length > data.length ? " Additional findings remain in the editor; send another batch after resolving the first." : ""}`);
     } catch (e) { setError(e.message || "Unable to queue editorial feedback."); }
     finally { setSending(false); }
   }
@@ -57,10 +72,10 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
     </div>
     {audit.blockers.length > 0 && <ul className="list-disc space-y-1 pl-6 text-sm text-amber-700">{audit.blockers.map(v=><li key={v}>{v}</li>)}</ul>}
     <div className="space-y-2">
-      <h3 className="font-semibold">Editorial improvements ({audit.findings.length})</h3>
-      {audit.findings.length===0
+      <h3 className="font-semibold">Editorial improvements ({combinedFindings.length})</h3>
+      {combinedFindings.length===0
         ? <p className="text-sm text-muted-foreground">No heuristic punctuation or redundancy issues detected. Verify all claims yourself.</p>
-        : <ul className="space-y-2">{audit.findings.map(item=><li key={item.id} className="rounded-xl border border-border p-3 text-sm">
+        : <ul className="space-y-2">{combinedFindings.map(item=><li key={item.id} className="rounded-xl border border-border p-3 text-sm">
           <strong>{item.title}</strong> <span className="text-xs text-muted-foreground">· {item.agent.toUpperCase()}</span>
           <p className="mt-1 text-muted-foreground">{item.advice}</p>
           <button type="button" disabled={disabled} onClick={() => focusImprovementField(item.id)} className="mt-2 inline-flex min-h-11 items-center text-primary underline disabled:opacity-50">Go to suggested field</button>
@@ -96,8 +111,41 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
         </button>
       </div>}
     </div>}
+    <div className="space-y-3 rounded-xl border border-border p-4" aria-label="Campaign-wide editorial improvement proposals">
+      <h3 className="font-semibold">Improve the entire campaign</h3>
+      <p className="text-xs text-muted-foreground">Check title, short description and full story together. Suggestions are local and reversible; no changes are saved or published without your approval.</p>
+      {campaignPunctuation.hasChanges && <div>
+        <button type="button" disabled={disabled} className="min-h-11 rounded-lg border px-3 text-sm" onClick={()=>setPreviewCampaign(v=>!v)}>
+          {previewCampaign?"Hide":"Preview"} punctuation and spacing across {campaignPunctuation.changed.join(", ")}
+        </button>
+        {previewCampaign && <div className="mt-3 space-y-3">
+          {campaignPunctuation.changed.map(field=><label key={field} className="block text-sm font-semibold capitalize">{field}
+            <textarea readOnly value={campaignPunctuation.after[field]} aria-label={"Proposed "+field+" punctuation"} className="mt-1 min-h-20 w-full rounded-lg border bg-background p-3 text-sm" />
+          </label>)}
+          <button type="button" disabled={disabled || !onApplyFields} onClick={()=>{onApplyFields?.(campaignPunctuation.after);setPreviewCampaign(false);setMessage("Campaign-wide punctuation proposal applied locally. Save the draft to keep it.");}} className="min-h-11 rounded-lg bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
+            Apply reviewed campaign-wide punctuation
+          </button>
+        </div>}
+      </div>}
+      {campaignRepetition.hasChanges && <div>
+        <button type="button" disabled={disabled} className="min-h-11 rounded-lg border px-3 text-sm" onClick={()=>setPreviewCampaignRedundancy(v=>!v)}>
+          {previewCampaignRedundancy?"Hide":"Preview"} repeated-sentence removal across {campaignRepetition.changed.join(", ")}
+        </button>
+        {previewCampaignRedundancy && <div className="mt-3 space-y-3">
+          <p className="text-xs text-muted-foreground">Only exact repeated long sentences inside a field are proposed for removal. Repetition between fields is flagged for human review, never removed automatically. Review the 3,500-character story minimum again afterwards.</p>
+          {campaignRepetition.changed.map(field=><label key={field} className="block text-sm font-semibold capitalize">{field}
+            <textarea readOnly value={campaignRepetition.after[field]} aria-label={"Proposed "+field+" redundancy removal"} className="mt-1 min-h-20 w-full rounded-lg border bg-background p-3 text-sm" />
+          </label>)}
+          <button type="button" disabled={disabled || !onApplyFields} onClick={()=>{onApplyFields?.(campaignRepetition.after);setPreviewCampaignRedundancy(false);setMessage("Campaign-wide repetition proposal applied locally. Recheck story length and save your draft.");}} className="min-h-11 rounded-lg bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
+            Apply reviewed campaign-wide redundancy removal
+          </button>
+        </div>}
+      </div>}
+      {!campaignPunctuation.hasChanges && !campaignRepetition.hasChanges &&
+        <p className="text-sm text-muted-foreground">No automatically reversible formatting or exact-sentence duplication changes found. The editorial findings above may still need manual work.</p>}
+    </div>
     <div className="space-y-2">
-      <button type="button" disabled={disabled || sending || !canSend || audit.findings.length===0}
+      <button type="button" disabled={disabled || sending || !canSend || combinedFindings.length===0}
         onClick={sendToAgents} className="min-h-11 rounded-xl border border-cyan-500 px-4 font-semibold disabled:opacity-50">
         {sending ? "Recording review…" : "Send improvement proposals to agent team"}
       </button>
