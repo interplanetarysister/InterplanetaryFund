@@ -46,3 +46,10 @@
 **Updated preflight:** 77 route records, 3 ComingSoon paths, 3 unresolved navigation paths, and 1 residual ComingSoon component => **84 blocking findings** in an isolated JS-level gate evaluation. No actual Node/Vite or browser-suite execution was claimed.
 
 **Release decision: HOLD.** No unverified route is accepted. Source implementation and consolidated QA continue before preview.
+
+## Additional release-gate hardening — 2026-11-13
+
+- The source preflight now rejects unknown route roles and invalid `source_status` values. For each `member`, `admin`, or `super_admin` route, it additionally requires non-empty `backend_evidence` documenting server-side authorization and negative-case RLS/provider checks. Browser-only source evidence cannot be used to certify a protected route.
+- Added `apps/web/tests/route-readiness-auth-evidence.test.js`. Six isolated Node tests passed against the preflight in a temporary route fixture. These tests do **not** exercise the full application, a real Supabase identity, Cloudflare Pages, or live payment providers.
+- The route register still holds 77 unaccepted entries; of those, 29 are protected routes with empty backend-authorization evidence. With the unchanged three placeholder routes, three missing admin navigation routes, and one residual placeholder component, the new **strict** source preflight is expected to report **113 findings** (84 previous findings + 29 independently required backend evidence findings). This is an increased evidence standard, not 29 newly broken product features. No route has been marked accepted.
+- No Pages preview, production deploy, Worker change, database migration, PayPal transaction, or PR reconciliation is authorized by these tests. **Release remains on HOLD** until independent source, backend, and runtime acceptance is complete.
