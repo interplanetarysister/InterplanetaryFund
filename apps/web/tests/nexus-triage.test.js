@@ -27,3 +27,15 @@ test("NEXUS only reads owner scope and never executes mutations or calls Base44"
  assert.match(source,/No checklist priorities were identified/);
  assert.match(team,/selected === "nexus"/);
 });
+
+test("NEXUS highlights verified recent capture dropoffs, without inventing income",()=>{
+ const rows=[{campaign_id:"a",campaign_title:"A",campaign_status:"active",verified_captures:4,active_followers:6}];
+ const trend=[{campaign_id:"a",new_verified_captures_7d:0,new_verified_captures_30d:4}];
+ const actions=nexusCampaignPriorities(rows,trend);
+ assert.equal(actions[0].campaignId,"a");
+ assert.match(actions[0].label,/past week's fundraising momentum/);
+ assert.match(actions[0].why,/provider-verified/);
+ assert.deepEqual(nexusCampaignPriorities(rows,[{campaign_id:"a",new_verified_captures_7d:null,new_verified_captures_30d:4}]),[]);
+ const source=read("../src/components/agents/NexusBrief.jsx");
+ assert.match(source,/rpc\("ifund_owner_growth_trends"\)/);
+});
