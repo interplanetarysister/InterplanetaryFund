@@ -1,9 +1,8 @@
 name: IFund payment reconciliation tests
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  push:
-    branches:
-      - repair/payment-reconciliation-20261110
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
