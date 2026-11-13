@@ -14,6 +14,7 @@ export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
   const [params] = useSearchParams();
   const campaignToShare = params.get("shareCampaign");
+  const sharingUpdate = params.get("kind") === "update";
   const storyToShare = params.get("shareStory");
   const publicationToShare = params.get("sharePublication");
   const [hasMore, setHasMore] = useState(false);
@@ -64,10 +65,11 @@ export default function SocialFeedPage({ community = false }) {
     getCampaignDetail(id).then(campaign => {
       if (!active || !campaign) return;
       const url = `${window.location.origin}/campaign/${encodeURIComponent(campaign.id)}`;
-      setBody(previous => previous || `Support ${campaign.title} on Interplanetary Fund!\n${url}`.slice(0, MAX_POST_LENGTH));
+      const intro = sharingUpdate ? `Campaign update: ${campaign.title}\n\n` : `Support ${campaign.title} on Interplanetary Fund!\n`;
+      setBody(previous => previous || `${intro}${url}`.slice(0, MAX_POST_LENGTH));
     }).catch(() => {});
     return () => { active = false; };
-  }, [campaignToShare]);
+  }, [campaignToShare, sharingUpdate]);
 
   async function shareDraftExternally() {
     if (!body.trim()) return;
