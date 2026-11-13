@@ -11,7 +11,7 @@ export default function OperationsHub({ platform = false }) {
     { to: "/admin/studio", label: "Website Studio", detail: "Edit and review approved site content" },
     { to: "/admin/social-moderation", label: "Community moderation", detail: "Review reported community content" },
     { to: "/finances#platform-finance", label: "Verified financial reporting", detail: "Provider-confirmed records and authorized reconciliation" },
-    { to: "/admin/integrations", label: "Provider connections", detail: "Inspect approved integration readiness and access" },
+    { to: "/connections", label: "Member connections", detail: "Review account-scoped provider connections" },
     { to: "/hackathon/tracker", label: "Judge demo tracker", detail: "Separate sandbox evidence and acceptance records" },
   ];
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
