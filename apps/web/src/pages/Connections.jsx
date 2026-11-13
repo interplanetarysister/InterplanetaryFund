@@ -188,7 +188,7 @@ export default function Connections() {
           const ready = providerReady[provider.id] === true;
           const canConnect = !provider.adminOnly && !provider.linkOnly && !provider.unavailable &&
             ready && apiStatus === "ready" && recordStatus === "ready" && !action;
-          const manageable = row?.provider === provider.id && row.status !== "disconnected";
+          const manageable = Boolean(row && (ALIASES[provider.id] || [provider.id]).includes(row.provider) && row.status !== "disconnected");
           return (
             <section key={provider.id} className="flex min-h-48 flex-col justify-between rounded-2xl border border-border bg-card p-5 shadow-sm">
               <div>
