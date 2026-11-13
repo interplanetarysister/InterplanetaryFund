@@ -64,9 +64,11 @@ export async function moderationQueue() {
     .sort((a,b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1)
       || new Date(b.created_at) - new Date(a.created_at));
 }
-export async function moderatePost(reportId, action, archive = false) {
+export async function moderatePost(reportId, action, archive = false, note = "") {
   if (!["restore", "remove"].includes(action)) throw new Error("Invalid moderation action.");
-  return call(archive ? "ifund_social_archive_review" : "ifund_social_review", { p_report: reportId, p_action: action });
+  if (action === "remove" && (note.trim().length < 10 || note.trim().length > 500))
+    throw new Error("Please explain the removal in 10–500 characters.");
+  return call(archive ? "ifund_social_archive_review" : "ifund_social_review", { p_report: reportId, p_action: action, p_note: note.trim() || null });
 }
 
 export async function loadServerSocialDraft() {
