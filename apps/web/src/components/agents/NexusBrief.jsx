@@ -23,7 +23,9 @@ export default function NexusBrief() {
       if (error || !Array.isArray(data)) throw Error("Owner campaign status could not be verified.");
       const growth = growthResult.status === "fulfilled" && !growthResult.value.error && Array.isArray(growthResult.value.data)
         ? growthResult.value.data : null;
-      const actions=nexusCampaignPriorities(data,growth || []);
+      const editorialRows=editorialResult.status==="fulfilled" && !editorialResult.value.error &&
+        Array.isArray(editorialResult.value.data) ? editorialResult.value.data : null;
+      const actions=nexusCampaignPriorities(data,growth || [],editorialRows);
       const editorial=editorialResult.status==="fulfilled"&&
         !editorialResult.value.error&&Array.isArray(editorialResult.value.data)
         ? editorialResult.value.data.filter(row=>row.review_status!=="acknowledged").length : null;
@@ -55,7 +57,7 @@ export default function NexusBrief() {
             <p className="text-xs text-muted-foreground">Priority {index+1} · {item.title}</p>
             <p className="mt-1 font-semibold">{item.label}</p>
             <p className="mt-1 text-sm text-muted-foreground">{item.why}</p>
-            <Link to={"/campaigns/"+item.campaignId+"/edit"} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline">Review campaign</Link>
+            <Link to={item.path || "/campaigns/"+item.campaignId+"/edit"} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline">{item.path ? "Open agent team review" : "Review campaign"}</Link>
           </li>)}</ol>)}
     <NexusBriefSchedule />
   </section>;
