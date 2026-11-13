@@ -6,6 +6,7 @@ import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDat
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
+const operationalCount = n => n === null || n === undefined || n === "" || typeof n === "boolean" ? "Unavailable" : Number.isSafeInteger(Number(n)) && Number(n) >= 0 ? String(n) : "Unavailable";
 const campaignColumns = [
   { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
   { field: "raised_cents", headerName: "Verified gifts", minWidth: 150, valueFormatter: ({ value }) => formatUsdCents(value) },
@@ -129,7 +130,7 @@ export default function AdminFinance({ embedded = false }) {
               ["Provider-verified plans", "provider_verified_subscription_plans"],
             ].map(([label,key]) => <div key={key} className="rounded-xl border border-border p-4">
               <p className="text-xs text-muted-foreground">{label}</p>
-              <p className="mt-2 text-xl font-semibold tabular-nums">{Number.isSafeInteger(Number(state.operational[key])) ? state.operational[key] : "Unavailable"}</p>
+              <p className="mt-2 text-xl font-semibold tabular-nums">{operationalCount(state.operational[key])}</p>
             </div>)}
           </div>
           <p className="text-xs text-muted-foreground">Zero database jobs or incidents does not verify that external scheduled Workers ran successfully.</p>
