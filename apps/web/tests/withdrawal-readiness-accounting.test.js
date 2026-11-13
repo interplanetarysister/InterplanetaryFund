@@ -83,3 +83,16 @@ test("all payout submission paths independently fail closed when payouts are dis
   assert.match(reconcileGate,/payout_execution_disabled/);
   assert.match(worker,/if\(payout\.payout_batch_id\)return await reconcilePayoutBatch/);
 });
+
+
+test("internal payout execution helper independently fails closed before token or provider calls",()=>{
+  const start=worker.indexOf("async function executePayout(req,env) {");
+  const end=worker.indexOf("async function retryApprovedPayout",start);
+  assert.ok(start>=0 && end>start);
+  const body=worker.slice(start,end);
+  const killSwitch=body.indexOf('if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")return asError("payout_execution_disabled",503)');
+  const modeGate=body.indexOf('if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")return asError("payments_disabled",503)');
+  const token=body.indexOf("const token=memberToken(req)");
+  const provider=body.indexOf('paypalDetailed(env,"/v1/payments/payouts","POST"');
+  assert.ok(killSwitch>=0 && modeGate>killSwitch && token>modeGate && provider>token);
+});
