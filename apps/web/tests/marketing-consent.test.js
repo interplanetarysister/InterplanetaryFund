@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const read=p=>readFileSync(new URL(p,import.meta.url),"utf8");
 const migration=read("../../../supabase/migrations/20261113_ifund_explicit_marketing_consent.sql");
+const audit=read("../../../supabase/migrations/20261113_ifund_marketing_consent_audit.sql");
 const page=read("../src/pages/MarketingPreferences.jsx");
 const profile=read("../src/pages/Profile.jsx");
 const app=read("../src/App.jsx");
@@ -24,4 +25,11 @@ test("owner controls are gated and cannot silently submit consent",()=>{
   assert.match(page,/disabled=\{busy\|\|state\.optIn===state\.original\}/);
   assert.match(page,/No marketing permission is inferred from existing notification settings/);
   assert.match(profile,/Communication preferences/);
+});
+
+test("consent audit appends only on initial choice or explicit changes",()=>{
+  assert.match(audit,/after insert or update of outreach_opt_in/);
+  assert.match(audit,/old\.outreach_opt_in is distinct from new\.outreach_opt_in/);
+  assert.match(audit,/ifund_marketing_consent_audit/);
+  assert.match(audit,/revoke all on public\.ifund_marketing_consent_audit from public,anon,authenticated/);
 });
