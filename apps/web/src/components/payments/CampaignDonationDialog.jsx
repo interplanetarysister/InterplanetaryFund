@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart } from "lucide-react";
 import { paymentQuoteCents } from "@/lib/paymentQuote";
+import { parseDonationCents } from "@/lib/donationAmount.mjs";
 import GooglePayDonationButton from "./GooglePayDonationButton";
 import { authClient } from "@/api/auth";
 import { Link } from "react-router-dom";
@@ -44,8 +45,9 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
   const checkoutLocked=status==="capturing"||complete;
-  const gift=Math.round(Number(amount)*100);
-  const valid=Number.isSafeInteger(gift)&&gift>=100&&gift<=100000000;
+  const parsedGift=parseDonationCents(amount);
+  const gift=parsedGift ?? 0;
+  const valid=parsedGift !== null;
   const tip=valid&&support?Math.round(gift*.10):0;
   const quote = valid ? paymentQuoteCents(gift, tip) : null;
   const requestKey=channel=>{
@@ -166,15 +168,15 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         <div className="space-y-2">
           <p className="text-sm font-semibold text-slate-900">Choose your donation</p>
           <div className="grid grid-cols-4 gap-2">
-            {[5,10,25,50].map(value=><button key={value} type="button" disabled={checkoutLocked} aria-pressed={Number(amount)===value}
-              className={Number(amount)===value
+            {[5,10,25,50].map(value=><button key={value} type="button" disabled={checkoutLocked} aria-pressed={amount===String(value)}
+              className={amount===String(value)
                 ? "min-h-11 rounded-xl border-2 border-cyan-500 bg-cyan-50 text-sm font-bold text-blue-950 shadow-sm"
                 : "min-h-11 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-700 hover:border-cyan-500"}
               onClick={()=>setAmount(String(value))}>{"$"+value}</button>)}
           </div>
         </div>
         <label className="block text-sm font-semibold text-slate-900">Other amount (USD)
-          <input type="number" className={field} min="1" max="1000000" step="0.01" disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
+          <input type="text" inputMode="decimal" autoComplete="off" className={field} disabled={checkoutLocked} value={amount} onChange={e=>setAmount(e.target.value)}/>
         </label>
         <label className="flex items-start gap-3 rounded-xl border border-[#dbe6f5] bg-[#f9fbff] px-4 py-4 text-sm text-[#173764]">
           <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
@@ -193,7 +195,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           </dl>
           <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
         </section>}
-        {!valid?<p className="text-xs text-red-700">Enter a gift of at least $1.</p>:
+        {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
