@@ -112,8 +112,19 @@ begin
    if not exists(select 1 from public.ifund_profiles p where p.id=p_target and p.public_profile_enabled and p.account_status='active' and not p.account_deletion_pending)
    then raise exception 'Member unavailable' using errcode='22023'; end if;
    if exists(select 1 from public.ifund_social_friendships where
-     (requester_id=auth.uid() and addressee_id=p_target) or (requester_id=p_target and addressee_id=auth.uid()))
+     ((requester_id=auth.uid() and addressee_id=p_target)
+     or (requester_id=p_target and addressee_id=auth.uid()))
+     and status in ('pending','accepted'))
    then raise exception 'Friend request already exists' using errcode='23505'; end if;
+   if exists(select 1 from public.ifund_social_friendships where
+     ((requester_id=auth.uid() and addressee_id=p_target)
+     or (requester_id=p_target and addressee_id=auth.uid()))
+     and status='declined' and updated_at > now()-interval '30 days')
+   then raise exception 'Please respect the previous decline and try later' using errcode='42501'; end if;
+   delete from public.ifund_social_friendships where
+     ((requester_id=auth.uid() and addressee_id=p_target)
+     or (requester_id=p_target and addressee_id=auth.uid()))
+     and status='declined' and updated_at <= now()-interval '30 days';
    insert into public.ifund_social_friendships(requester_id,addressee_id) values(auth.uid(),p_target);
    return 'pending';
  elsif p_action in ('accept','decline') then
