@@ -24,3 +24,15 @@ Read [the canonical architecture and execution contract](docs/architecture/IFUND
 
 ## Completion standard
 A feature is complete only when its source, API, SQL/RLS, auth, frontend state, error states, responsive mobile behavior and preview/live checks are reconciled and documented. `NOT TESTED` is not `PASS`. Never merge overlapping grant migrations without a single reconciled policy owner.
+
+## Release freeze — owner-controlled, build-on-command (2026-11-12)
+
+**Authoritative: code changes accumulate; builds and deployments happen only after the owner explicitly says to build or release.** This overrides earlier instructions that encouraged builders, scheduled agents, or CI tasks to deploy after each successful feature.
+
+- Cloudflare Pages project `interplanetaryfund-migration` has Git-connected production **and** preview auto-deploy disabled. Do not re-enable either trigger, change project source, or call `POST /deployments` while preparing features, running reviews, merging, or fixing bugs.
+- All builders/agents commit reviewed implementation, migrations, and tests to the canonical `InterplanetaryFund` repository. Record tests runnable locally, negative cases, security checks, dependency readiness and a release manifest **without** uploading a Pages artifact on each commit. Never claim a queued build is published.
+- Use the single manual `.github/workflows/deploy-web-pages.yml` workflow as the controlled release route. The owner saying **build** authorizes one consolidated immutable commit to be tested and published to **preview**. Production promotion requires the owner's explicit **production / go live** instruction. Never infer production approval from a generic code-completion request.
+- One build of `apps/web` per authorized release. Run tests and compile **once**; upload that exact `dist` artifact to preview and, only if approved and preview checks pass, production. Avoid parallel manual Pages deployments, duplicate branch deployments, or separate per-agent releases. Stop on build failure, keep the previous healthy production deployment and its rollback reference.
+- Cloudflare Workers, Supabase Edge Functions, SQL migrations, R2 operations, and Base44 are **not** implicitly deployed by a Pages publish. Include their exact versions, separate approval/validation, and runtime dependencies in the release manifest. In particular do not silently execute financial/provider writes.
+- Preserve ALL Git history, SQL rows, Supabase projects, R2 objects, existing successful production/preview deployments, and the original Base44 reference. Never delete completed deployments as a queue-cleanup shortcut. Pending duplicate Pages jobs may be removed only after verifying they never built, without touching successful releases.
+- No agent or scheduled automation may issue a production or preview deployment unless the owner specifically requested a build in the active task. Scheduled auditing, code review and preparations remain allowed; do not interpret prior standing 'deploy live' language as ongoing release permission.
