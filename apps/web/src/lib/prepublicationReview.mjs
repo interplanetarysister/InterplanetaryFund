@@ -78,3 +78,23 @@ export function proposePunctuationRepair(value) {
   if (trimmed && !/[.!?…]["'’”)]?$/u.test(trimmed)) proposal = trimmed + "." + proposal.slice(trimmed.length);
   return { original, proposal, changed: proposal !== original };
 }
+
+/**
+ * Remove only exact duplicated long sentences from a reversible local proposal.
+ * The first occurrence is always retained; the user must approve every change.
+ */
+export function proposeRedundancyRepair(value) {
+  const original=String(value??"");
+  const fragments=original.split(/(?<=[.!?…])\s+/u);
+  const seen=new Set();
+  let removed=0;
+  const kept=fragments.filter(fragment=>{
+    const normalized=fragment.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/gu," ").trim();
+    if(normalized.length<50)return true;
+    if(seen.has(normalized)){removed++;return false;}
+    seen.add(normalized);
+    return true;
+  });
+  const proposal=removed>0?kept.join(" "):original;
+  return {original,proposal,removed,changed:proposal!==original};
+}
