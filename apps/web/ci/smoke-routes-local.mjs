@@ -113,10 +113,12 @@ async function main() {
     browser = await chromium.launch({
       headless: true, args: ["--no-sandbox", "--disable-dev-shm-usage"],
     });
-    const buckets = widths.map((_, i) =>
-      routes.filter((_, index) => index % widths.length === i));
-    await Promise.all(widths.map((width, i) =>
-      checkRoutes(browser, width, buckets[i])));
+    // Exercise EVERY tracked route at EVERY viewport. Splitting routes into
+    // viewport buckets hid mobile-only failures on three quarters of routes.
+    // Run sequentially to bound local browser/network resource consumption.
+    for (const width of widths) {
+      await checkRoutes(browser, width, routes);
+    }
     const summary = {
       total: results.length, passed: results.length - errors.length,
       failed: errors.length, screenWidths: widths,
