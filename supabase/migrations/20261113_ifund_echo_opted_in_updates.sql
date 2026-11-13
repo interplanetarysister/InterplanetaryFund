@@ -19,7 +19,7 @@ create or replace function public.ifund_echo_send_opted_in_update(
 language plpgsql volatile security definer set search_path='' set row_security='off'
 as $$
 declare
- v_owner uuid:=auth.uid();v_count integer;v_message_id uuid;v_eligible integer;v_actual integer;
+ v_owner uuid:=auth.uid();v_count integer;v_message_id uuid;v_eligible integer;v_actual integer;v_previous_body text;
 begin
  if v_owner is null or not coalesce(public.ifund_current_account_is_active(),false)
   or not exists(select 1 from auth.users u where u.id=v_owner and u.is_anonymous is false and u.email_confirmed_at is not null)
@@ -30,10 +30,13 @@ begin
  if not exists(select 1 from public.ifund_campaigns c
    where c.id=p_campaign_id and c.owner_id=v_owner and c.status='active')
  then raise exception 'Only an active owned campaign can send updates' using errcode='42501';end if;
- select d.id,d.recipient_count into v_message_id,v_count
+ select d.id,d.recipient_count,d.body into v_message_id,v_count,v_previous_body
  from public.ifund_echo_inapp_deliveries d
  where d.id=p_request_id and d.owner_id=v_owner and d.campaign_id=p_campaign_id;
  if v_message_id is not null then
+   if v_previous_body<>btrim(p_body) then
+     raise exception 'Request reference belongs to different text' using errcode='22023';
+   end if;
    return query select v_message_id,v_count;return;
  end if;
  if exists(select 1 from public.ifund_echo_inapp_deliveries d
