@@ -52,3 +52,12 @@ test("withdrawal UI stays fail closed while showing runtime gates",()=>{
   assert.match(page,/ifund_request_withdrawal/);
   assert.doesNotMatch(page,/\/v1\/payments\/payouts/);
 });
+
+test("withdrawal retry reuses operation key until acknowledgement and refreshed balance",()=>{
+  assert.match(page,/useRef\(new Map\(\)\)/);
+  assert.match(page,/pendingRequestKeys\.current\.get\(requestIdentity\)/);
+  assert.match(page,/pendingRequestKeys\.current\.set\(requestIdentity,requestKey\)/);
+  assert.match(page,/p_request_key:requestKey/);
+  assert.match(page,/await refresh\(\);\s*pendingRequestKeys\.current\.delete\(requestIdentity\)/);
+  assert.doesNotMatch(page,/const requestKey="wd-"\+crypto\.randomUUID\(\)/);
+});
