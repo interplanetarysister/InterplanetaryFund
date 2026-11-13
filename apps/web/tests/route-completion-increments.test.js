@@ -80,3 +80,12 @@ test("anonymous auth sessions retain guest draft scope for verified-account hand
   assert.match(browserDraft, /record\.owner_id !== null && record\.owner_id !== ownerId/,
     "drafts attributed to a different account must not be restored");
 });
+
+
+test("guest owner declaration survives source comments and remains executable", () => {
+  const composer = page("CreateCampaign");
+  assert.match(composer, /\/\/ Anonymous Supabase sessions[^\n]*\n\s*\/\/ Keep their browser draft[^\n]*\n\s*const ownerId\s*=/,
+    "ownerId must be on a real source line, not swallowed by a single-line comment");
+  assert.doesNotMatch(composer, /\/\/ Anonymous Supabase sessions[^\n]*\\\\n[^\n]*const ownerId/,
+    "literal backslash-n in comments must not comment out the owner declaration");
+});
