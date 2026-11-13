@@ -9,7 +9,7 @@ function check(error, message) {
 export async function listPublicCommunities() {
   const { data, error } = await authClient()
     .from("ifund_member_communities")
-    .select("id,name,description,location,created_at,owner_id")
+    .select("id,name,description,location,created_at")
     .eq("status", "published")
     .order("created_at", { ascending: false })
     .limit(LIMIT);
@@ -21,7 +21,7 @@ export async function getPublicCommunity(id) {
   if (!UUID.test(String(id || ""))) return null;
   const { data, error } = await authClient()
     .from("ifund_member_communities")
-    .select("id,name,description,location,status,owner_id,created_at")
+    .select("id,name,description,location,status,created_at")
     .eq("id", id)
     .eq("status", "published")
     .maybeSingle();
