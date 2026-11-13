@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
+import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
 
 const TEMPLATES = {
   share: "I'm sharing a campaign that's important to me. Please read the details and consider sharing it with someone who may want to help.",
@@ -98,6 +99,9 @@ export default function CommunicationsWorkspace() {
           value={message} onChange={e=>setMessage(e.target.value)} />
       </label>
       <EchoSavedTemplates message={message} onApply={setMessage}/>
+      <EchoApprovedMessaging campaignId={campaignId}
+        campaignStatus={state.campaigns.find(item=>item.id===campaignId)?.status||""}
+        message={message}/>
       <button type="button" onClick={copy} disabled={!message.trim()}
         className="min-h-11 rounded-lg border border-border px-4 py-2 font-semibold disabled:opacity-50">Copy for manual sharing</button>
       {status&&<p role="status" className="text-sm text-muted-foreground">{status}</p>}
