@@ -476,7 +476,7 @@ as $fn$
     and w.provider_sender_batch_id is not null
     and w.status in ('processing','provider_status_unknown','reconciliation_pending')
   order by coalesce(w.provider_last_verified_at,w.approved_at,w.migration_recorded_at) asc
-  limit 100
+  limit 100;
 $fn$;
 
 create or replace function public.ifund_internal_record_payout_state(
