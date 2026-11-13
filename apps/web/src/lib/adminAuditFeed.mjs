@@ -47,3 +47,21 @@ export function auditCursor(rows) {
   return last ? { p_before_at: last.occurred_at, p_before_id: last.event_id } :
     { p_before_at: null, p_before_id: null };
 }
+
+/** Prevent overlapping reads within one session without starving a new session.
+ * An old request must never clear the in-flight lock for a newer identity.
+ */
+export function createAuditRequestGate() {
+  let inFlightGeneration = null;
+  return {
+    tryBegin(generation) {
+      if (!Number.isSafeInteger(generation) || generation < 0 ||
+          inFlightGeneration === generation) return false;
+      inFlightGeneration = generation;
+      return true;
+    },
+    finish(generation) {
+      if (inFlightGeneration === generation) inFlightGeneration = null;
+    },
+  };
+}
