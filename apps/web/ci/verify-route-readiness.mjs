@@ -30,6 +30,36 @@ for (const path of navigation) {
     unfinished.push("Navigation has no explicit route: " + path);
   }
 }
+// All explicit routes and mapped legacy routes must have individual source
+// and negative-case evidence before the one consolidated preview build.
+const acceptanceRoutes = new Set(declaredRoutes);
+for (const key of ["STANDALONE_COMING_SOON", "LAYOUT_COMING_SOON"]) {
+  const block = app.match(new RegExp("const\\\\s+" + key + "\\\\s*=\\\\s*\\\\[([\\\\s\\\\S]*?)\\\\]\\\\s*;"));
+  if (block) for (const matched of block[1].matchAll(/["'](\\/[^"']+)["']/g)) acceptanceRoutes.add(matched[1]);
+}
+try {
+  const register = JSON.parse(read("ci/route-acceptance.json"));
+  if (register.schema_version !== 1 || !Array.isArray(register.routes))
+    throw Error("Unsupported or missing route inventory schema");
+  const byRoute = new Map();
+  for (const entry of register.routes) {
+    if (!entry || typeof entry.route !== "string" || byRoute.has(entry.route)) {
+      unfinished.push("Duplicate or invalid route acceptance row");
+      continue;
+    }
+    byRoute.set(entry.route, entry);
+    if (!acceptanceRoutes.has(entry.route))
+      unfinished.push("Stale acceptance route: " + entry.route);
+    if (entry.source_status !== "source_ready" ||
+        typeof entry.source_evidence !== "string" || !entry.source_evidence.trim() ||
+        typeof entry.behavior_evidence !== "string" || !entry.behavior_evidence.trim())
+      unfinished.push("Missing source and test acceptance: " + entry.route);
+  }
+  for (const route of acceptanceRoutes)
+    if (!byRoute.has(route)) unfinished.push("Untracked source route: " + route);
+} catch (error) {
+  unfinished.push("Route acceptance manifest unreadable: " + error.message);
+}
 if (unfinished.length) {
   process.stderr.write("IFund release gate: route completion is NOT certified.\n" +
     unfinished.map(item => " - " + item).join("\n") + "\n" +
