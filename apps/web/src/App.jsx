@@ -50,6 +50,7 @@ const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
 const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
@@ -80,7 +81,7 @@ const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
 const STANDALONE_COMING_SOON = ["/oauth/consent"];
-const LAYOUT_COMING_SOON = ["/community/:id"];
+const LAYOUT_COMING_SOON = [];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -146,6 +147,7 @@ function AppRoutes() {
       <Route path="/social/post/:id" element={<SocialPostPage />} />
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
