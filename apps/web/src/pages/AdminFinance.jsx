@@ -4,11 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
-const money = n => {
-  const x = Number(n);
-  return Number.isSafeInteger(x) && x >= 0
-    ? new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(x/100) : "Unavailable";
-};
+const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
 const campaignColumns = [
   { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
   { field: "raised_cents", headerName: "Verified gifts", minWidth: 150, valueFormatter: ({ value }) => formatUsdCents(value) },
