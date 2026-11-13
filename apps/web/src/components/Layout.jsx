@@ -105,7 +105,6 @@ const navSections = [
       { to: "/admin/audit", label: "Audit Log", icon: Server },
       { to: "/admin/sustainability", label: "Planet Impact", icon: Leaf },
       { to: "/admin/help", label: "Help Center Editor", icon: BookOpen },
-      { to: "/admin/founding-members", label: "Founding Members", icon: Users },
     ],
   },
 ];
