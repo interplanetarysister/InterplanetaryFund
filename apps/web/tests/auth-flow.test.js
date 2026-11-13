@@ -25,6 +25,7 @@ test("callback URL is fixed and post-auth redirects cannot escape or loop", () =
     "/\\evil.test",
     "/%0a/evil.test",
     "/auth/callback",
+    "/activate",
   ])
     assert.equal(
       new URL(
@@ -123,4 +124,12 @@ test("already-issued dashboard and login links are rescued before member guards"
     legacyAuthCallbackUrl("https://interplanetaryfund.com/discover"),
     null,
   );
+});
+
+test("activation links are exchanged once and never redirect to the activation alias", async () => {
+  const legacy = legacyAuthCallbackUrl("https://interplanetaryfund.com/activate?token_hash=hash&type=signup");
+  assert.equal(new URL(legacy, "https://interplanetaryfund.com").pathname, "/auth/callback");
+  assert.equal(new URL(legacy, "https://interplanetaryfund.com").searchParams.get("returnTo"), "/dashboard");
+  const result = await completeAuthCallback(makeAuth(), "https://interplanetaryfund.com" + legacy);
+  assert.equal(result.returnTo, "/dashboard");
 });
