@@ -85,6 +85,16 @@
       "owner": "frontend+database"
     },
     {
+      "route": "/admin/integrations",
+      "role": "admin",
+      "component": "AdminConnections",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; explicit role-guarded App.jsx route",
+      "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics; no provider grants claimed",
+      "backend_evidence": "/api/oauth/status authenticates member session; admin page additionally gated by verified useAdminAccess/MemberAccess and AdminAccess. No OAuth provider success or secret exposure certified.",
+      "owner": "connections"
+    },
+    {
       "route": "/admin/social-moderation",
       "role": "admin",
       "component": "SocialModeration",
