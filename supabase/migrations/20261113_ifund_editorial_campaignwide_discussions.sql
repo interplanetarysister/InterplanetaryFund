@@ -50,7 +50,8 @@ begin
       ('summary_redundancy','polaris','Review repeated summary sentences','Remove exact repeated sentences only after confirming meaning.'),
       ('story_redundancy','polaris','Review repeated story sentences','Retain first occurrences; do not remove necessary detail.'),
       ('cross_field_summary','polaris','Avoid duplicating the entire summary in the story','Add verified supporting facts rather than repeating the short description.'),
-      ('cross_field_title','echo','Review repeated campaign headline','Keep purposeful repetition and improve clarity where needed.')
+      ('cross_field_title','echo','Review repeated campaign headline','Keep purposeful repetition and improve clarity where needed.'),
+      ('cross_field_sentences','polaris','Review repeated description and story sentences','Retain useful detail while removing unneeded sentence duplication.')
     ) as m(id,agent,title,advice) where m.id=v_id;
     if v_agent is null then raise exception 'Unknown editorial finding' using errcode='22023'; end if;
     v_lead_review := case v_agent
@@ -107,7 +108,7 @@ begin
     where r.id=p_review_id and r.owner_id=v_owner for update;
   if not found then raise exception 'Private review not found' using errcode='42501';end if;
   v_count:=pg_catalog.jsonb_array_length(v_record.discussion);
-  if v_count>=30 then raise exception 'Discussion limit reached; start a new review when needed' using errcode='22023';end if;
+  if v_count>=29 then raise exception 'Discussion limit reached; start a new review when needed' using errcode='22023';end if;
   update public.ifund_editorial_agent_reviews r set
     discussion=r.discussion || pg_catalog.jsonb_build_array(
       pg_catalog.jsonb_build_object(
