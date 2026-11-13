@@ -7,12 +7,7 @@ import { authClient } from "@/api/auth";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 
-const cents = value => {
-  const n = Number(value);
-  return Number.isSafeInteger(n) && n >= 0
-    ? new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n / 100)
-    : "Unavailable";
-};
+const cents = value => value === null || value === undefined || value === "" ? "Unavailable" : formatUsdCents(value);
 function SummaryCard({ label, value }) {
   return <div className="rounded-2xl border border-border bg-card p-5">
     <p className="text-sm text-muted-foreground">{label}</p>
@@ -52,7 +47,7 @@ export default function FinanceDashboard() {
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
       <h1 className="text-3xl font-bold">Financial center</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Your verified campaign receipts, owner fundraising and financial records in one place. Sandbox and pending payments are excluded. Withdrawals are not enabled.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Your verified campaign receipts, owner fundraising and financial records in one place. Sandbox and pending payments are excluded. Withdrawal availability depends on verified account eligibility, cleared funds, and provider confirmation.</p>
       <nav aria-label="Financial center sections" className="mt-4 flex flex-wrap gap-2 text-sm">
         <a href="#campaign-finances" className="rounded-xl border border-border px-4 py-3 font-semibold">Campaign finances</a>
         <a href="#giving-receipts" className="rounded-xl border border-border px-4 py-3 font-semibold">My giving</a>
