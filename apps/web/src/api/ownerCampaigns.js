@@ -125,7 +125,10 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   if (legalError || acceptance?.owner_id !== owner || acceptance?.terms_version !== TERMS_VERSION || acceptance?.explicit_consent !== true) {
     throw new Error("Review and accept the current member agreement before saving or publishing.");
   }
-  const problems = validateCampaignForm(form, { publish: status === "active" });
+  // Existing active campaigns predate the new 3,500-character gate.
+  // Preserve the ability to edit them; only a new publication or resume
+  // must pass the entire new prepublication checklist.
+  const problems = validateCampaignForm(form, { publish: status === "active" && id === null });
   if (problems.length) throw new Error(problems[0]);
   const payload = buildCampaignPayload(form, status);
 
@@ -151,6 +154,10 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
     throw new Error("That campaign was not found for your account.");
   }
   if (expectedStatus !== undefined && existing.status !== expectedStatus) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
+  if (status === "active" && existing.status !== "active") {
+    const publishProblems = validateCampaignForm(form, { publish: true });
+    if (publishProblems.length) throw new Error(publishProblems[0]);
+  }
   if (!canTransition(existing.status, status)) {
     throw new Error(`A ${existing.status} campaign cannot be saved as ${status}.`);
   }
