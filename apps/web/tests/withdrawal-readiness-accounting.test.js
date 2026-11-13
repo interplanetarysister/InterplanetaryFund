@@ -76,6 +76,10 @@ test("all payout submission paths independently fail closed when payouts are dis
   assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)\s*return asJson\(\{ok:false,error:"payout_execution_disabled"\},503,cors\)/);
   assert.match(worker,/async function retryApprovedPayout\(env,withdrawalId\)/);
   assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)return \{ok:false,status:"PAYOUT_EXECUTION_DISABLED"\}/);
-  assert.match(worker,/if\(path==="/api\/payments\/payouts\/reconcile"&&request\.method==="POST"\)\{\s*if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)/);
+  const reconcileRoute = worker.indexOf('if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){');
+  assert.ok(reconcileRoute >= 0, "Payout reconciliation route must exist.");
+  const reconcileGate = worker.slice(reconcileRoute, reconcileRoute + 350);
+  assert.match(reconcileGate,/IFUND_PAYOUT_EXECUTION_ENABLED!=="true"/);
+  assert.match(reconcileGate,/payout_execution_disabled/);
   assert.match(worker,/if\(payout\.payout_batch_id\)return await reconcilePayoutBatch/);
 });
