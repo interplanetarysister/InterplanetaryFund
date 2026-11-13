@@ -1,0 +1,29 @@
+/* Subtle sacred geometry: sixfold circles and concentric mandala motifs are
+   low-contrast decorative surfaces, never controls or text overlays. */
+.ifund-sacred-social {
+  position: relative;
+  isolation: isolate;
+}
+.ifund-sacred-social::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+  inset: 0 -1rem;
+  opacity: .3;
+  background:
+    radial-gradient(circle at 15% 9%, rgba(74,213,241,.23), transparent 22rem),
+    radial-gradient(circle at 90% 52%, rgba(170,107,255,.2), transparent 25rem),
+    radial-gradient(circle at 42% 88%, rgba(244,112,184,.15), transparent 27rem),
+    repeating-radial-gradient(circle at 50% 18%, transparent 0 27px, rgba(119,173,238,.12) 28px 29px, transparent 30px 56px);
+  mask-image: linear-gradient(to bottom, black, transparent 94%);
+}
+.ifund-social-card {
+  backdrop-filter: blur(12px);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(64,191,224,.055), transparent 35%),
+    radial-gradient(circle at 4% 100%, rgba(147,80,204,.045), transparent 32%);
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ifund-social-card { backdrop-filter: none; }
+}
