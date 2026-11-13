@@ -17,33 +17,14 @@ create or replace function public.ifund_store_provider_connection(
 language plpgsql
 security definer
 set search_path = ''
-as $$
+as $
 begin
-  if p_provider not in ('google','youtube','linkedin','x','tiktok','facebook_pages','instagram','discord','github','twitch','slack','patreon','eventbrite','pinterest','reddit')
-     or p_provider_subject is null or length(p_provider_subject) = 0
-     or p_token_ciphertext is null then
-    raise exception 'Invalid provider connection payload';
-  end if;
-
-  insert into public.ifund_provider_tokens
-    (owner_id, provider, provider_subject, token_ciphertext, granted_scopes, status, updated_at)
-  values
-    (p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
-     coalesce(p_granted_scopes, '{}'), 'active', now())
-  on conflict (owner_id, provider) do update set
-    provider_subject = excluded.provider_subject,
-    token_ciphertext = excluded.token_ciphertext,
-    granted_scopes = excluded.granted_scopes,
-    status = 'active',
-    updated_at = now();
-
-  insert into public.ifund_connections (owner_id, provider, status, verified_at)
-  values (p_owner_id, p_provider, 'connected', now())
-  on conflict (owner_id, provider) do update set
-    status = 'connected',
-    verified_at = now();
+  perform public.ifund_store_provider_connection_v2(
+    p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
+    p_granted_scopes, null, null, 1::smallint, 'connected'
+  );
 end;
-$$;
+$;
 
 create or replace function public.ifund_store_provider_connection_v2(
   p_owner_id uuid,
