@@ -61,3 +61,24 @@
 - An isolated read of the pinned branch's `App.jsx`, `Layout.jsx`, and route register using the same fail-closed conditions reports **115 blockers**: 79 missing source/test acceptance records, 31 protected routes missing backend authorization evidence, three placeholder routes, one placeholder component reference, and one missing explicit navigation route (`/admin/integrations`, owned by draft Connections PR #286).
 - The higher count follows the additional admin route declarations and strict authorization evidence requirement; it is not proof of 115 user-visible defects. There has been no complete Vite or authenticated-browser acceptance for this branch.
 - Cloudflare Pages read-only API reconfirmed both Git-connected automatic deployment flags disabled. No preview for this route-completion branch was present in the five most recent Pages deployments; those were Connections-branch previews.
+
+## Follow-up: verified-source admin audit and editable Help Center — 2026-11-13
+
+**Implemented in branch source:**
+
+- `/admin/audit`: bounded, chronological, cursor-paginated super-admin audit view with strict response parsing, no private event details or actor identifiers in the UI. `AdminAudit.jsx` prevents stale account responses from being shown after a session change.
+- `supabase/migrations/pending/20261113_ifund_super_admin_audit_feed.sql`: **NOT APPLIED**. Uses the existing verified super-admin database function and restricted `SECURITY DEFINER`; revokes `PUBLIC`/`anon` execution, returns only a sanitized event class, date, and opaque hashed reference. Sources are existing workflow execution, administrative mail audit and platform incident records; this is not represented as a complete payment/account audit.
+- `/admin/help`: real authoring view for answers to the canonical bundled Help topics, using the existing super-admin-only Website Studio draft/publish/versioned API. A previously published answer remains public until the revision is explicitly published. `/help/:slug` reads a published override or shows bundled guidance without displaying a draft.
+- `GET /api/public/help/index`: one read-only, published-only same-origin Worker request returns validated Help answer overrides for searchable results. Never returns raw Studio row metadata, draft revisions or credentials; member-specific writes remain authenticated.
+- Navigation now checks the server-verified super-admin role before displaying Audit, Help Editor, Ops, Platform and Website Studio links.
+- Existing `/admin/integrations` work remains assigned to PR #286; no duplicate provider code or migration was added.
+
+**Verification without a build:**
+
+- **8/8** isolated exact-helper JavaScript checks passed for published/draft Help overrides and audit response validation, duplicate rejection, ordering, and opaque-field stripping.
+- **7/7** isolated Worker Help-index cases passed against mocked upstream data, including draft rejection, unknown slugs, duplicate rejection, disabled runtime, and method denial. Additional Node test files are source-staged (`apps/web/tests/admin-help-audit.test.js` and `apps/web/tests/public-help-index.test.js`), but **the complete Node test suite has not been executed**.
+- A read-only zero-row query on production Supabase confirmed the three-source audit union is structurally valid without retrieving any events or applying a migration.
+- The current repository tree resolves imports for **11** modified application, Worker and test entrypoints; **0 broken local imports** found in that targeted scan. This does not prove Vite JSX compilation or authenticated behavior.
+- The 79-route stringent acceptance gate currently produces **115 findings** (79 route evidence, 31 backend authorization evidence, 3 placeholders, 1 unknown admin integrations destination, 1 residual ComingSoon reference). It correctly blocks all Pages builds. No route was marked accepted solely because source code exists.
+
+**Deferred to integrated release:** apply the audit migration only after the complete release dependency audit, run authenticated negative-case RLS tests for non-admin/admin/super-admin identities, run full Node/Vite and browser E2E, reconcile PR #286 and PR #240, and only then trigger the single compiled preview. Live payments and withdrawals remain separately protected.
