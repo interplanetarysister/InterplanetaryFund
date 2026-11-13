@@ -7,6 +7,7 @@ import { authClient } from "@/api/auth";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
+import WithdrawalFeeEstimator from "@/components/agents/WithdrawalFeeEstimator";
 
 const cents = value => value === null || value === undefined || value === "" ? "Unavailable" : formatUsdCents(value);
 function SummaryCard({ label, value }) {
@@ -57,6 +58,7 @@ export default function FinanceDashboard() {
         {adminStatus === "admin" && <a href="#platform-finance" className="rounded-xl border border-border px-4 py-3 font-semibold">Platform oversight</a>}
       </nav>
     </header>
+    <WithdrawalFeeEstimator />
     {state.status==="loading" && <p role="status">Verifying your donation records…</p>}
     {state.status==="error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button type="button" onClick={()=>window.location.reload()} className="mt-3 min-h-11 rounded-xl border px-4">Retry</button>
