@@ -84,6 +84,7 @@ begin
       ('repeated_sentences','polaris','Remove repeated passages','Compare sections and remove genuine duplication only.'),
       ('summary_repeated','polaris','Make story add new information','Remove a verbatim summary duplicate from the full story.'),
       ('title_repetition','echo','Reduce headline repetition','Check title repetition across campaign fields.'),
+      ('claim_evidence','polaris','Verify numerical and absolute claims','Check figures and guarantees against independent source evidence; remove unsupported claims.'),
       ('budget_clarity','orbit','Clarify use of funds','Detail known budget categories; do not fabricate costs.'),
       ('timeline_updates','nexus','Clarify milestones and updates','Outline realistic updates and milestones where known.')
     ) as m(id,agent,title,advice) where m.id=v_id;
