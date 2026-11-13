@@ -48,6 +48,7 @@ returns boolean language sql stable security definer set search_path = '' as $$
  select auth.uid() is not null and public.ifund_my_profile_settings() is not null
 $$;
 revoke all on function public.ifund_social_member_ok() from public,anon,authenticated;
+grant execute on function public.ifund_social_member_ok() to authenticated;
 
 create or replace function public.ifund_social_like(p_post uuid,p_like boolean)
 returns boolean language plpgsql security definer set search_path = '' as $$
@@ -133,8 +134,9 @@ returns text language sql stable security definer set search_path = '' as $$
  when f.requester_id=auth.uid() then 'sent'
  when f.addressee_id=auth.uid() then 'received'
  else null end from public.ifund_social_friendships f
- where (f.requester_id=auth.uid() and f.addressee_id=p_target)
- or (f.requester_id=p_target and f.addressee_id=auth.uid()) limit 1
+ where f.status in ('pending','accepted') and (
+ (f.requester_id=auth.uid() and f.addressee_id=p_target)
+ or (f.requester_id=p_target and f.addressee_id=auth.uid())) limit 1
 $$;
 create or replace function public.ifund_social_reply(p_post uuid,p_body text)
 returns uuid language plpgsql security definer set search_path = '' as $$
