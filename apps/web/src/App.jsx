@@ -36,6 +36,7 @@ function SocialRoute() {
     : <SocialFeedPage />;
 }
 const SocialFeedPage = lazy(() => import("./pages/SocialFeedPage"));
+const SocialPostPage = lazy(() => import("./pages/SocialPostPage"));
 const SocialModeration = lazy(() => import("./pages/SocialModeration"));
 const CreateCampaign = lazy(() => import("./pages/CreateCampaign"));
 const MyCampaigns = lazy(() => import("./pages/MyCampaigns"));
@@ -130,6 +131,7 @@ function AppRoutes() {
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
+      <Route path="/social/post/:id" element={<SocialPostPage />} />
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<CreateCampaign />} />
