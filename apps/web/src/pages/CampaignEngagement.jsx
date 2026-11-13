@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import GrowthExperimentTracker from "@/components/agents/GrowthExperimentTracker";
 import CampaignGrowthTrends from "@/components/agents/CampaignGrowthTrends";
 
 export default function CampaignEngagement() {
@@ -32,6 +33,7 @@ export default function CampaignEngagement() {
       </p>
     </header>
     <CampaignGrowthTrends campaigns={state.phase === "ready" ? state.rows : []} />
+    {state.phase === "ready" && <GrowthExperimentTracker campaigns={state.rows} />}
     {state.phase === "loading" && <p role="status">Verifying owned campaigns and supporter activity…</p>}
     {state.phase === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button type="button" onClick={() => setRefresh(n => n + 1)}
