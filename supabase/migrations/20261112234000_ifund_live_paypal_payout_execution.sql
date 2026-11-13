@@ -465,6 +465,20 @@ begin
 end
 $fn$;
 
+create or replace function public.ifund_internal_pending_payouts()
+returns table(withdrawal_id uuid)
+language sql stable security definer
+set search_path='' set row_security='off'
+as $fn$
+  select w.id
+  from ifund_finance.withdrawal w
+  where w.approved_by_auth_uid is not null
+    and w.provider_sender_batch_id is not null
+    and w.status in ('processing','provider_status_unknown','reconciliation_pending')
+  order by coalesce(w.provider_last_verified_at,w.approved_at,w.migration_recorded_at) asc
+  limit 100
+$fn$;
+
 create or replace function public.ifund_internal_record_payout_state(
   p_withdrawal_id uuid,
   p_payout_batch_id text,
@@ -621,10 +635,12 @@ revoke all on function public.ifund_internal_record_payout_submission(uuid,text)
 revoke all on function public.ifund_internal_record_payout_submission_outcome(uuid,text,text,text) from public,anon,authenticated;
 revoke all on function public.ifund_internal_payout_lookup(uuid) from public,anon,authenticated;
 revoke all on function public.ifund_internal_payout_lookup_by_sender_batch(text) from public,anon,authenticated;
+revoke all on function public.ifund_internal_pending_payouts() from public,anon,authenticated;
 revoke all on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) from public,anon,authenticated;
 grant execute on function public.ifund_internal_prepare_paypal_payout(uuid,uuid) to service_role;
 grant execute on function public.ifund_internal_record_payout_submission(uuid,text) to service_role;
 grant execute on function public.ifund_internal_record_payout_submission_outcome(uuid,text,text,text) to service_role;
 grant execute on function public.ifund_internal_payout_lookup(uuid) to service_role;
 grant execute on function public.ifund_internal_payout_lookup_by_sender_batch(text) to service_role;
+grant execute on function public.ifund_internal_pending_payouts() to service_role;
 grant execute on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) to service_role;
