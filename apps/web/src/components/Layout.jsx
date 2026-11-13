@@ -27,7 +27,7 @@ const PAGE_TITLES = {
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
-  "/social": "Social", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
+  "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
 function pageTitle(pathname) {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
@@ -68,9 +68,8 @@ const navSections = [
   {
     label: "Community",
     items: [
-      { to: "/social", label: "IFund Social", icon: Radio },
+      { to: "/social", label: "Social Feed", icon: Radio },
       { to: "/community", label: "Community", icon: Users },
-      { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
       { to: "/institutions", label: "Institutions", icon: Building2 },
@@ -118,9 +117,8 @@ const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
   { to: "/community", label: "Community", icon: Users },
-  { to: "/social", label: "IFund Social", icon: Radio },
+  { to: "/social", label: "Social Feed", icon: Radio },
   { to: "/globe", label: "Global Globe", icon: Globe2 },
-  { to: "/blogs", label: "Stories & Blogs", icon: BookOpen },
   { to: "/news", label: "IFund Newscaster", icon: Radio },
   { to: "/help", label: "Help Center", icon: CircleHelp },
 ];
