@@ -1,11 +1,8 @@
 name: Update IFund web lockfile
 
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  push:
-    branches:
-      - feature/ifund-full-frontend-20261103
-    paths:
-      - apps/web/package.json
+  workflow_dispatch:
 
 permissions:
   contents: write
