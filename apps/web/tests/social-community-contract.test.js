@@ -12,6 +12,12 @@ test("community actions require database-level lifecycle checks and private writ
     "ifund_social_friend", "ifund_social_archive_report", "ifund_social_archive_like"]) {
     assert.match(sql, new RegExp("function public\\." + name + "\\("));
   }
+  assert.match(sql, /ifund_guard_social_post_insert_trigger/);
+  assert.match(sql, /ifund_guard_social_post_mutation_trigger/);
+  assert.match(sql, /ifund_post_has_report\(old\.id\)/);
+  assert.match(sql, /review_note/);
+  assert.match(sql, /ifund_my_social_draft\(\)/);
+  assert.match(sql, /ifund_social_archive_reply\(/);
   assert.match(sql, /create policy ifund_posts_public_read/);
   assert.match(sql, /public\.ifund_post_visible\(id\)/);
   assert.match(sql, /ifund_social_archive_reports r[\s\S]*r\.status in \('open','removed'\)/);
