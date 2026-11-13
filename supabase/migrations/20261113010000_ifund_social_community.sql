@@ -14,6 +14,7 @@ create table if not exists public.ifund_social_reports (
  created_at timestamptz not null default now(),
  reviewed_at timestamptz,
  reviewed_by uuid references auth.users(id),
+ review_note text check (review_note is null or length(review_note) <= 500),
  unique(post_id,reporter_id)
 );
 create index if not exists ifund_social_reports_open_idx on public.ifund_social_reports(status,created_at desc);
@@ -89,17 +90,19 @@ language sql stable security definer set search_path = '' as $$
  where public.ifund_current_user_is_verified_admin()
  order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
 $$;
-create or replace function public.ifund_social_review(p_report uuid,p_action text)
+create or replace function public.ifund_social_review(p_report uuid,p_action text,p_note text default null)
 returns boolean language plpgsql security definer set search_path = '' as $$
 declare v_post uuid;
 begin
  if not public.ifund_current_user_is_verified_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
  if p_action not in ('restore','remove') then raise exception 'Invalid decision' using errcode='22023'; end if;
+ if p_action='remove' and length(trim(coalesce(p_note,''))) not between 10 and 500
+ then raise exception 'Removal requires a moderation note of 10–500 characters' using errcode='22023'; end if;
  select post_id into v_post from public.ifund_social_reports where id=p_report and status='open' for update;
  if v_post is null then raise exception 'Report not found or already reviewed' using errcode='22023'; end if;
  -- All open reports on the same post are resolved consistently.
  update public.ifund_social_reports set status=case when p_action='restore' then 'restored' else 'removed' end,
- reviewed_at=now(),reviewed_by=auth.uid() where post_id=v_post and status='open';
+ reviewed_at=now(),reviewed_by=auth.uid(),review_note=nullif(trim(p_note),'') where post_id=v_post and status='open';
  return true;
 end $$;
 create or replace function public.ifund_social_friend(p_target uuid,p_action text)
@@ -197,6 +200,7 @@ create table if not exists public.ifund_social_archive_reports (
  created_at timestamptz not null default now(),
  reviewed_at timestamptz,
  reviewed_by uuid references auth.users(id),
+ review_note text check (review_note is null or length(review_note) <= 500),
  unique(archive_id,reporter_id)
 );
 alter table public.ifund_social_archive_reports enable row level security;
@@ -274,26 +278,28 @@ language sql stable security definer set search_path = '' as $$
  where public.ifund_current_user_is_verified_admin()
  order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
 $$;
-create or replace function public.ifund_social_archive_review(p_report uuid,p_action text)
+create or replace function public.ifund_social_archive_review(p_report uuid,p_action text,p_note text default null)
 returns boolean language plpgsql security definer set search_path = '' as $$
 declare v_archive text;
 begin
  if not public.ifund_current_user_is_verified_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
  if p_action not in ('restore','remove') then raise exception 'Invalid decision' using errcode='22023'; end if;
+ if p_action='remove' and length(trim(coalesce(p_note,''))) not between 10 and 500
+ then raise exception 'Removal requires a moderation note of 10–500 characters' using errcode='22023'; end if;
  select archive_id into v_archive from public.ifund_social_archive_reports
  where id=p_report and status='open' for update;
  if v_archive is null then raise exception 'Report already resolved' using errcode='22023'; end if;
  update public.ifund_social_archive_reports
  set status=case when p_action='restore' then 'restored' else 'removed' end,
- reviewed_at=now(),reviewed_by=auth.uid()
+ reviewed_at=now(),reviewed_by=auth.uid(),review_note=nullif(trim(p_note),'')
  where archive_id=v_archive and status='open';
  return true;
 end $$;
 revoke all on function public.ifund_social_archive_report(text,text),
- public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text)
+ public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text,text)
  from public,anon,authenticated;
 grant execute on function public.ifund_social_archive_report(text,text),
- public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text) to authenticated;
+ public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text,text) to authenticated;
 
 create or replace function public.ifund_public_social_feed(
  p_before timestamptz default null,p_before_id text default null,p_author uuid default null)
@@ -349,7 +355,7 @@ declare f text;
 begin
  foreach f in array array[
  'ifund_social_like(uuid,boolean)','ifund_social_report(uuid,text)',
- 'ifund_social_moderation_queue()','ifund_social_review(uuid,text)',
+ 'ifund_social_moderation_queue()','ifund_social_review(uuid,text,text)',
  'ifund_social_friend(uuid,text)','ifund_social_friend_status(uuid)',
  'ifund_social_reply(uuid,text)','ifund_social_replies_read(uuid)',
  'ifund_social_like_summary(uuid[])'] loop
