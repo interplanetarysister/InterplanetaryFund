@@ -21,9 +21,9 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  function focusImprovementField(findingId) {
-    const target = findingId === "title_repetition" ? "campaign-title"
-      : findingId === "summary_repeated" ? "campaign-summary" : "campaign-story";
+  function focusImprovementField(item) {
+    const field = item.field || (item.id === "title_repetition" ? "title" : item.id === "summary_repeated" ? "summary" : "story");
+    const target = field === "title" ? "campaign-title" : field === "summary" ? "campaign-summary" : "campaign-story";
     const field = document.getElementById(target);
     if (!field) { setError("The requested editor field is unavailable."); return; }
     field.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -47,14 +47,21 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
       if (readError || !savedCampaign) throw new Error("Saved draft could not be verified. Save and retry.");
       if (["title", "summary", "story"].some(key => String(savedCampaign[key] ?? "").trim() !== String(form?.[key] ?? "").trim()))
         throw new Error("Save your current campaign edits before sending improvements to the agents.");
-      const selectedFindings = combinedFindings.slice(0, 12);
-      const { data, error: issue } = await client.rpc("ifund_queue_editorial_agent_review", {
-        p_campaign_id: campaignId,
-        p_finding_ids: selectedFindings.map(item => item.id),
-      });
-      if (issue || !Array.isArray(data) || data.length !== selectedFindings.length)
-        throw new Error(issue?.message || "Editorial work could not be confirmed in the agent queue.");
-      setMessage(`${data.length} editorial improvement proposals added to the private agent team discussion queue.${combinedFindings.length > data.length ? " Additional findings remain in the editor; send another batch after resolving the first." : ""}`);
+      // Each RPC accepts at most 12 finding identifiers. Send ALL findings,
+      // sequentially, without discarding later campaign-wide issues.
+      let acknowledged = 0;
+      for (let offset = 0; offset < combinedFindings.length; offset += 12) {
+        const batch = combinedFindings.slice(offset, offset + 12);
+        const { data, error: issue } = await client.rpc("ifund_queue_editorial_agent_review", {
+          p_campaign_id: campaignId,
+          p_finding_ids: batch.map(item => item.id),
+        });
+        if (issue || !Array.isArray(data) || data.length !== batch.length)
+          throw new Error((issue?.message || "Agent review confirmation failed.") +
+            (acknowledged ? " " + acknowledged + " earlier proposals were recorded; check the team queue before retrying." : ""));
+        acknowledged += data.length;
+      }
+      setMessage(acknowledged + " editorial improvement proposals recorded in your private agent discussion queue.");
     } catch (e) { setError(e.message || "Unable to queue editorial feedback."); }
     finally { setSending(false); }
   }
@@ -78,7 +85,7 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
         : <ul className="space-y-2">{combinedFindings.map(item=><li key={item.id} className="rounded-xl border border-border p-3 text-sm">
           <strong>{item.title}</strong> <span className="text-xs text-muted-foreground">· {item.agent.toUpperCase()}</span>
           <p className="mt-1 text-muted-foreground">{item.advice}</p>
-          <button type="button" disabled={disabled} onClick={() => focusImprovementField(item.id)} className="mt-2 inline-flex min-h-11 items-center text-primary underline disabled:opacity-50">Go to suggested field</button>
+          <button type="button" disabled={disabled} onClick={() => focusImprovementField(item)} className="mt-2 inline-flex min-h-11 items-center text-primary underline disabled:opacity-50">Go to suggested field</button>
         </li>)}</ul>}
     </div>
     {punctuation.changed && <div className="space-y-2">
