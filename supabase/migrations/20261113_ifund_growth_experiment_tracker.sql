@@ -29,6 +29,7 @@ begin
  if p_channel not in ('email','social','community','in_person','other')
    or p_hypothesis is null or char_length(btrim(p_hypothesis)) not between 15 and 500
  then raise exception 'Invalid experiment details' using errcode='22023'; end if;
+ perform pg_catalog.pg_advisory_xact_lock(31641,pg_catalog.hashtext(v_owner::text));
  if (select count(*) from public.ifund_growth_experiments e
      where e.owner_id=v_owner and e.status='planned')>=20 then
    raise exception 'Too many open experiments' using errcode='22023'; end if;
