@@ -48,3 +48,10 @@ This manual Pages release does not automatically deploy the PayPal payment Worke
 - Applied the matching migration `ifund_social_community_20261113` to canonical Supabase `ssibsfmtodgximseeqsv`. Verified 2 native and 18 archived posts preserved, 9 social-related tables have RLS, reports and drafts were initially empty, and the public feed returns 20 rows.
 - Social feed likes/replies/friends/reports/admin moderation/private drafts and published-blog links are present. Manual X/Bluesky compose is not provider API auto-publishing.
 - Production release may use a single controlled Git-triggered build because the source project has no manual workflow-dispatch API exposed to the current integration; restore production and preview auto-deploy settings to disabled immediately once build is accepted. Preserve preceding production deployment `f866dc50-8283-4da5-a05b-f588820450da` for rollback.
+
+## Consolidated agent-audit follow-up release (2026-11-12 Pacific)
+- Eight original agent/prepublication migrations applied in canonical Supabase and their owner-specific grants verified. NEXUS cron created and active with zero preexisting opted-in subscriptions.
+- PULSE notifications fixed to use per-recipient operation keys, FORGE experiment quota serializes concurrent requests.
+- Prepublication owner edit screens include field-level navigation; NEXUS trends use only verified 7/30-day capture counts.
+- Root PGlite release suite now covers both Social Feed and new-publication grandfathering. Production build must pass both and the `apps/web` regression suite before publication.
+- Keep existing production deployment `58527559-a278-4cc7-ae48-9b2d88c9ede7` for rollback; restore Git-based automatic builds to disabled after this single release trigger.
