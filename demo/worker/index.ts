@@ -560,7 +560,7 @@ export async function handle(
 async function createOrder(request: Request, env: DemoEnv, db: DB, user: User) {
   const input = await body(request);
   const method = input.checkout_method === undefined ? "paypal" : input.checkout_method;
-  demand(["paypal", "card", "googlepay"].includes(method), "Invalid sandbox checkout method");
+  demand(typeof method === "string" && ["paypal", "card", "googlepay"].includes(method), "Invalid sandbox checkout method");
   demand(uuid(input.key), "A checkout idempotency key is required");
   demand(
     input.purpose === "campaign" || input.purpose === "platform_support",
