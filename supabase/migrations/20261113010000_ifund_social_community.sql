@@ -192,6 +192,50 @@ alter table public.ifund_social_archive_reports enable row level security;
 revoke all on public.ifund_social_archive_reports from public,anon,authenticated;
 create index if not exists ifund_archive_reports_open_idx
  on public.ifund_social_archive_reports(status,created_at desc);
+
+create table if not exists public.ifund_social_archive_likes (
+ archive_id text not null,
+ member_id uuid not null references auth.users(id) on delete cascade,
+ created_at timestamptz not null default now(),
+ primary key(archive_id,member_id)
+);
+alter table public.ifund_social_archive_likes enable row level security;
+revoke all on public.ifund_social_archive_likes from public,anon,authenticated;
+create or replace function public.ifund_social_archive_like(p_archive text,p_like boolean)
+returns boolean language plpgsql security definer set search_path = '' as $
+begin
+ if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
+ if p_archive is null or length(p_archive)>128 or not exists(
+  select 1 from public.ifund_social_post p where p.id=p_archive
+  and p.source_system='base44_public_social_archive')
+ or exists(select 1 from public.ifund_social_archive_reports r
+   where r.archive_id=p_archive and r.status in ('open','removed'))
+ then raise exception 'Archive post unavailable' using errcode='22023'; end if;
+ if p_like then
+  insert into public.ifund_social_archive_likes(archive_id,member_id)
+  values(p_archive,auth.uid()) on conflict do nothing;
+ else
+  delete from public.ifund_social_archive_likes where archive_id=p_archive and member_id=auth.uid();
+ end if;
+ return p_like;
+end $;
+create or replace function public.ifund_social_archive_like_summary(p_archives text[])
+returns table(post_id text,like_count bigint,liked boolean)
+language sql stable security definer set search_path = '' as $
+ select 'archive-'||p.id,count(l.member_id),coalesce(bool_or(l.member_id=auth.uid()),false)
+ from public.ifund_social_post p
+ left join public.ifund_social_archive_likes l on l.archive_id=p.id
+ where p.id=any(p_archives) and cardinality(p_archives)<=30
+ and p.source_system='base44_public_social_archive'
+ and not exists(select 1 from public.ifund_social_archive_reports r
+  where r.archive_id=p.id and r.status in ('open','removed'))
+ group by p.id
+$;
+revoke all on function public.ifund_social_archive_like(text,boolean),
+ public.ifund_social_archive_like_summary(text[]) from public,anon,authenticated;
+grant execute on function public.ifund_social_archive_like(text,boolean) to authenticated;
+grant execute on function public.ifund_social_archive_like_summary(text[]) to anon,authenticated;
+
 create or replace function public.ifund_social_archive_report(p_archive text,p_reason text)
 returns boolean language plpgsql security definer set search_path = '' as $
 begin
