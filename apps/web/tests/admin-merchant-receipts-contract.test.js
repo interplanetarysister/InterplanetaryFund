@@ -22,7 +22,9 @@ test("admin financial screen displays unallocated merchant receipts separately",
   assert.match(ui, /Neither group is included in campaign fundraising or owner withdrawals/);
   assert.match(ui, /source_site === "unattributed" \? "Unverified"/);
   assert.match(ui, /sumVerifiedCounts\(state\.rows, "captured_payments"\)/);
-  assert.match(ui, /platform\.reduce/);
+  assert.match(ui, /sumVerifiedCents\(platform, "gross_cents"\)/);
+  assert.match(ui, /sumVerifiedCents\(platform, "net_cents"\)/);
+  assert.doesNotMatch(ui, /Number\(r\.(gross_cents|net_cents)\|\|0\)/);
   assert.match(ui, /IFund platform donation/);
   assert.match(ui, /unmatched\.length/);
   assert.match(ui, /allocation_status==="platform_support"/);
