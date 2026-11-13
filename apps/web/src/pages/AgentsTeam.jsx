@@ -6,7 +6,7 @@ import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 
-const TEAM = AGENT_WORKSPACES.map(agent => agent.identity);
+const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent => agent.identity);
 /**
  * The independent application has an authorized Story service, but does not
  * yet have a verified seven-specialist conversational endpoint. Never send
