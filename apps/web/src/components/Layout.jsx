@@ -24,7 +24,7 @@ const PAGE_TITLES = {
   "/discover": "Discover", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "Messages", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
-  "/analytics": "Command Center", "/subscriptions": "Plans", "/withdrawals": "Withdrawals",
+  "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
   "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
   "/social": "Social", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
@@ -91,7 +91,7 @@ const navSections = [
     items: [
       { to: "/profile", label: "My Profile", icon: User },
       { to: "/connections", label: "Connections", icon: Link2 },
-      { to: "/subscriptions", label: "Plans", icon: CreditCard },
+      { to: "/plans", label: "Plans", icon: CreditCard },
       { to: "/help", label: "Help Center", icon: CircleHelp },
     ],
   },
