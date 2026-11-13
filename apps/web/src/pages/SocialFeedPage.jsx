@@ -8,6 +8,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
 import { FEED_PAGE_SIZE, listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
+import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
@@ -108,10 +109,27 @@ export default function SocialFeedPage({ community = false }) {
     return () => { active = false; };
   }, [publicationToShare]);
 
-  function saveDraft() {
-    if (!draftKey) return;
-    try { localStorage.setItem(draftKey, body); setNotice("Draft saved on this device. It has not been published or shared."); }
-    catch { setNotice("Draft could not be saved on this device."); }
+  useEffect(() => {
+    if (!draftKey || !canPost) return;
+    let active = true;
+    loadServerSocialDraft().then(saved => {
+      if (active && saved) setBody(previous => previous || saved);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [draftKey, canPost]);
+
+  async function saveDraft() {
+    if (!draftKey || !body.trim()) return;
+    let localSaved = false;
+    try { localStorage.setItem(draftKey, body); localSaved = true; } catch { /* browser storage disabled */ }
+    try {
+      await saveServerSocialDraft(body);
+      setNotice("Private draft saved to your IFund account. Not published or shared.");
+    } catch {
+      setNotice(localSaved
+        ? "Draft saved on this device only. Account sync is unavailable; nothing was published."
+        : "Draft could not be saved. Copy your text before leaving; nothing was published.");
+    }
   }
 
   async function publish(event) {
@@ -124,7 +142,11 @@ export default function SocialFeedPage({ community = false }) {
       await publishPost(authClient(), user, body);
       setBody("");
       try { if (draftKey) localStorage.removeItem(draftKey); } catch { /* local storage unavailable */ }
-      setNotice("Post published to IFund. External accounts have not been posted to.");
+      let cleared = true;
+      try { await clearServerSocialDraft(); } catch { cleared = false; }
+      setNotice(cleared
+        ? "Post published to IFund. External accounts have not been posted to."
+        : "Post published to IFund, but your account draft could not be cleared. External accounts were not posted to.");
       await load();
     } catch (cause) {
       setPublishError(cause?.message || "Your post was not published. Please try again.");
@@ -156,7 +178,7 @@ export default function SocialFeedPage({ community = false }) {
           <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">Drafts are stored only in this browser. Manage external accounts under <Link className="underline" to="/connections">Connections</Link>; publishing here does not automatically post elsewhere.</p>
+      <p className="text-xs text-muted-foreground">Drafts sync privately to your IFund account when available; otherwise they stay on this device. Manage external accounts under <Link className="underline" to="/connections">Connections</Link>; publishing here does not automatically post elsewhere.</p>
     </form> : status !== "loading" && <p className="rounded-xl border border-border p-4">
       {user ? "Posting requires a verified, active account." : <><Link className="text-primary underline" to="/login?returnTo=%2Fsocial">Sign in</Link> to share a post.</>}
     </p>}
