@@ -68,3 +68,15 @@ test("guest navigation exposes campaign drafting without bypassing account prote
   assert.match(composer, /rememberBrowserCampaign\(sessionStorage, null, form/,
     "guest draft saves must remain browser-local");
 });
+
+
+test("anonymous auth sessions retain guest draft scope for verified-account handoff", () => {
+  const composer = page("CreateCampaign");
+  assert.match(composer, /session\.user\?\.is_anonymous === true \? null : \(session\.user\?\.id \|\| null\)/,
+    "anonymous Supabase identities must not claim the draft under a transient account ID");
+  assert.match(composer, /key=\{\(draftId \|\| "new"\) \+ ":" \+ \(ownerId \|\| "guest"\)\}/,
+    "the editor must remount when a verified account takes ownership");
+  const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
+  assert.match(browserDraft, /record\.owner_id !== null && record\.owner_id !== ownerId/,
+    "drafts attributed to a different account must not be restored");
+});
