@@ -15,16 +15,19 @@ export default function NexusBrief() {
     Promise.allSettled([
       client.rpc("ifund_owner_campaign_engagement"),
       client.rpc("ifund_my_editorial_agent_reviews"),
-    ]).then(([campaignResult,editorialResult])=>{
+      client.rpc("ifund_owner_growth_trends"),
+    ]).then(([campaignResult,editorialResult,growthResult])=>{
       if (!active) return;
       if(campaignResult.status!=="fulfilled")throw Error("Owner campaign status could not be verified.");
       const {data,error}=campaignResult.value;
       if (error || !Array.isArray(data)) throw Error("Owner campaign status could not be verified.");
-      const actions=nexusCampaignPriorities(data);
+      const growth = growthResult.status === "fulfilled" && !growthResult.value.error && Array.isArray(growthResult.value.data)
+        ? growthResult.value.data : null;
+      const actions=nexusCampaignPriorities(data,growth || []);
       const editorial=editorialResult.status==="fulfilled"&&
         !editorialResult.value.error&&Array.isArray(editorialResult.value.data)
         ? editorialResult.value.data.filter(row=>row.review_status!=="acknowledged").length : null;
-      setState({phase:"ready",actions:actions||[],campaignCount:data.length,editorialCount:editorial,error:""});
+      setState({phase:"ready",actions:actions||[],campaignCount:data.length,editorialCount:editorial,trendVerified:growth !== null,error:""});
     }).catch(e=>{if(active)setState({phase:"error",actions:[],campaignCount:null,editorialCount:null,error:e.message||"Unavailable"});});
     return ()=>{active=false};
   },[refresh]);
@@ -42,6 +45,7 @@ export default function NexusBrief() {
     {state.phase==="ready" && <p className="rounded-xl border border-border p-3 text-sm">
       <strong>Agent editorial handoffs awaiting owner review:</strong> {state.editorialCount===null?"Unavailable":state.editorialCount}
       <span className="block text-muted-foreground">Tasks and rule-based discussion proposals are recorded; no autonomous agent completion is inferred.</span>
+      <span className="block text-muted-foreground">{state.trendVerified ? "Recent fundraising momentum uses verified capture counts." : "Recent trend data is unavailable; basic campaign priorities remain visible."}</span>
     </p>}
     {state.phase==="ready"&& (state.campaignCount===0
       ? <p>No owned campaigns were returned. <Link className="underline" to="/create">Start a campaign</Link> to create a mission.</p>
