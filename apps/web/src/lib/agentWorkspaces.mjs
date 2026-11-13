@@ -2,7 +2,7 @@
 // Each service ID matches the canonical database registry, never a frontend alias.
 export const AGENT_WORKSPACES = Object.freeze([
   { identity:"story", service:"story_agent", tool:"Private AI campaign writing", path:"/agents", liveTool:true, evidence:"Provider-backed Story draft recorded in preview; hosted production member acceptance remains unverified." },
-  { identity:"polaris", service:"strategy_agent", tool:"Verified opportunity research", path:"/institutions", liveTool:false, evidence:"Research page exists; direct Strategy chat and its owner-scoped agent execution remain unverified." },
+  { identity:"polaris", service:"strategy_agent", tool:"Free campaign readiness review", path:"/strategy", liveTool:true, evidence:"Owner-only Strategy checklist is available without inference; direct Strategy AI chat and provider-backed execution remain unverified." },
   { identity:"forge", service:"growth_agent", tool:"Owner campaign engagement metrics", path:"/engagement", liveTool:true, evidence:"Aggregate engagement reporting deployed; independent Growth AI execution is not verified." },
   { identity:"echo", service:"communications_agent", tool:"Private inbox and support", path:"/inbox", liveTool:true, evidence:"Inbox and support case tools exist; external automatic sending is disabled and specialist chat is unverified." },
   { identity:"link", service:"managed_connection_agent", tool:"Manage authorized connections", path:"/connections", liveTool:false, evidence:"Connection workspace exists; automated provider publishing must pass individual OAuth and consent verification." },
