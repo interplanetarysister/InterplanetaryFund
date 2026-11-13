@@ -9,7 +9,7 @@ const sentenceParts = value => text(value).match(/[^.!?…\n]+(?:[.!?…]+(?=\s|
 function formatText(value, terminal = false) {
   let next = text(value).replace(/[ \t]{3,}/gu, "  ").replace(/([!?.,])\1{2,}/gu, "$1");
   const trimmed = next.trimEnd();
-  if (terminal && trimmed && !/[.!?…][\"'’”)]?$/u.test(trimmed)) next = trimmed + "." + next.slice(trimmed.length);
+  if (terminal && trimmed && !/[.!?…]["'’”)]?$/u.test(trimmed)) next = trimmed + "." + next.slice(trimmed.length);
   return next;
 }
 function repeatedLines(value) {
