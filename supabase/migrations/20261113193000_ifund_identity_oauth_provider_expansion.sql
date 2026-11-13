@@ -17,14 +17,14 @@ create or replace function public.ifund_store_provider_connection(
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 begin
   perform public.ifund_store_provider_connection_v2(
     p_owner_id, p_provider, p_provider_subject, p_token_ciphertext,
     p_granted_scopes, null, null, 1::smallint, 'connected'
   );
 end;
-$;
+$$;
 
 create or replace function public.ifund_store_provider_connection_v2(
   p_owner_id uuid,
