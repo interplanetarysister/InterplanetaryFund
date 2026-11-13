@@ -24,21 +24,29 @@ export default function CampaignStrategy() {
     let active = true;
     setState({ status: "loading", items: [], error: "" });
     const client=authClient();
-    Promise.all([
-      client.rpc("ifund_owner_campaign_strategy_readiness"),
-      listOwnerCampaigns(client),
-    ]).then(([{data,error},campaigns]) => {
-      if (!active) return;
-      if (error || !Array.isArray(data) || !Array.isArray(campaigns))
-        throw new Error("Your private campaign readiness could not be verified.");
-      const owned=new Map(campaigns.map(c=>[c.id,c]));
-      const items=data.map(item=>{
+    (async()=>{
+      const before=await client.auth.getUser();
+      const owner=before?.data?.user?.id;
+      if(before?.error||!owner)throw Error("Sign in to review your strategy.");
+      const [{data,error},campaigns]=await Promise.all([
+        client.rpc("ifund_owner_campaign_strategy_readiness"),
+        listOwnerCampaigns(client),
+      ]);
+      const after=await client.auth.getUser();
+      if(!active)return;
+      if(after?.error||after?.data?.user?.id!==owner)
+        throw Error("Your account changed. Reload strategy before viewing its recommendations.");
+      if(error||!Array.isArray(data)||!Array.isArray(campaigns))
+        throw Error("Your private campaign readiness could not be verified.");
+      const owned=new Map(campaigns.filter(c=>c.owner_id===owner).map(c=>[c.id,c]));
+      const items=data.filter(item=>owned.has(item.campaign_id)).map(item=>{
         const campaign=owned.get(item.campaign_id);
-        return {...item, editorial:campaign ? reviewCampaignPublication(campaign) : null,
-          campaignWide:campaign ? reviewCampaignWideEditorial(campaign) : []};
+        return {...item,editorial:reviewCampaignPublication(campaign),
+          campaignWide:reviewCampaignWideEditorial(campaign)};
       });
-      setState({ status:"ready", items, error:"" });
-    }).catch(e => { if (active) setState({ status: "error", items: [], error: e.message || "Unavailable" }); });
+      if(items.length!==data.length)throw Error("Strategy results did not match your owned campaigns.");
+      setState({status:"ready",items,error:""});
+    })().catch(e => {if(active)setState({status:"error",items:[],error:e.message||"Unavailable"});});
     return () => { active = false };
   }, [retry]);
 
