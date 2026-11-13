@@ -23,7 +23,7 @@ small{color:#cbd5e1}footer{margin-top:24px;border-top:1px solid #254263;padding-
 <p>Test total: <span class="amount" id="total">$5.00</span></p>
 <div id="pay" aria-label="Google Pay sandbox button"></div><p id="receipt" role="alert"></p></section>
 <footer><a href="/hackathon">Return to the sandbox demo</a> · <a href="/api/judge-guide">Judge walkthrough</a></footer></main>
-<script src="/google-pay.js" defer></script></body></html>`;
+<script src="/api/google-pay.js" defer></script></body></html>`;
 export const googlePayScript = String.raw`
 const byId = id => document.getElementById(id);
 const status = (msg,bad=false)=>{byId('status').textContent=msg;byId('status').className=bad?'danger':''};
