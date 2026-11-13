@@ -13,6 +13,7 @@ import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
+import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
@@ -175,6 +176,7 @@ export default function EditCampaign() {
       </label>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
 
+      <PrepublicationGate form={form} campaignId={id} canSend={status !== "active"} disabled={disabled} onApply={value=>setForm(previous=>({...previous,story:value}))} />
       {!readiness.ready && status === "draft" && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
           <p className="font-semibold">Before you can publish</p>
