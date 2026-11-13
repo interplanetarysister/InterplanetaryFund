@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowUpRight, BriefcaseBusiness, Globe2, HeartHandshake, Search, ShieldCheck, Sparkles } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
+import { authClient } from "@/api/auth";
 import { matchOpportunity } from "@/lib/opportunityMatch";
 
 const KINDS = [
@@ -74,7 +75,9 @@ export default function Institutions() {
   const {id}=useParams();
   const [sources,setSources]=useState([]);
   const [opportunities,setOpportunities]=useState([]);
-  const [campaigns,setCampaigns]=useState([]);
+  const [publicCampaigns,setPublicCampaigns]=useState([]);
+  const [ownerCampaigns,setOwnerCampaigns]=useState([]);
+  const [ownerLoadWarning,setOwnerLoadWarning]=useState("");
   const [selectedCampaign,setSelectedCampaign]=useState("");
   const [type,setType]=useState("all");
   const [query,setQuery]=useState("");
@@ -93,9 +96,22 @@ export default function Institutions() {
         if(active) {setSources(body.sources);setOpportunities(body.opportunities);setState("ready");}
       } catch(e){if(active){setError("Live institution research sources are temporarily unavailable. No unverified listings were substituted.");setState("error");}}
     })();
-    listActiveCampaigns({limit:100}).then(items=>{if(active)setCampaigns(items);}).catch(()=>{});
+    listActiveCampaigns({limit:100}).then(items=>{if(active)setPublicCampaigns(items);}).catch(()=>{});
+    (async()=>{
+      try {
+        const client=authClient();
+        const {data:{user},error:userError}=await client.auth.getUser();
+        if(userError||!user)return; // public research is usable without a login.
+        const {data,error:ownError}=await client.from("ifund_campaigns")
+          .select("id,title,summary,story,category,status")
+          .eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
+        if(ownError||!Array.isArray(data))throw new Error("Your private campaign list could not be verified.");
+        if(active)setOwnerCampaigns(data.map(c=>({...c,isOwned:true})));
+      }catch(err){if(active)setOwnerLoadWarning("Private draft matching is temporarily unavailable; public research is still available.");}
+    })();
     return ()=>{active=false};
   },[reload]);
+  const campaigns=[...ownerCampaigns,...publicCampaigns.filter(c=>!ownerCampaigns.some(o=>o.id===c.id))];
   const selected=campaigns.find(c=>c.id===selectedCampaign)||null;
   const visible=useMemo(()=>sources.filter(s=>(!id||s.id===id) &&
     (type==="all"||s.industry===type) &&
@@ -118,13 +134,14 @@ export default function Institutions() {
     <section className="rounded-xl border border-cyan-500/30 bg-cyan-500/5 p-4">
       <div className="flex gap-2"><Sparkles className="h-5 w-5 shrink-0 text-cyan-600"/><div>
         <strong>Agent-guided campaign matching</strong>
-        <p className="mt-1 text-sm text-muted-foreground">Select a real public campaign for a cause-category relevance preview. Research agents will continually validate new opportunities, their deadlines and eligibility. This current matching preview uses published categories, not model-generated claims or automatic applications.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Select a published campaign or one of your private drafts to preview category relevance. Matching runs locally in your browser: private draft content is not sent to external providers. This is not a guarantee of eligibility or an automatic application.</p>
       </div></div>
       <label className="mt-4 block text-sm font-semibold" htmlFor="inst-campaign">Compare with campaign</label>
       <select id="inst-campaign" value={selectedCampaign} onChange={e=>setSelectedCampaign(e.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3">
         <option value="">Browse all research sources</option>
-        {campaigns.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}
+        {campaigns.map(c=><option key={c.id} value={c.id}>{c.isOwned?"Your campaign · ":""}{c.title||"Untitled campaign"}{c.isOwned&&c.status!=="active"?" (private or unpublished)":""}</option>)}
       </select>
+      {ownerLoadWarning&&<p role="status" className="mt-2 text-xs text-amber-700">{ownerLoadWarning}</p>}
     </section>
     <div className="flex flex-wrap gap-2" aria-label="Opportunity categories">
       {KINDS.map(k=><button type="button" key={k.id} aria-pressed={type===k.id} onClick={()=>setType(k.id)}
