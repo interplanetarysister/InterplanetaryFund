@@ -114,6 +114,7 @@ test("staged quota SQL is atomic and does not grant anonymous image attempts", (
   const sql = readFileSync(new URL("../../../supabase/migrations/pending/20261113_ifund_ai_image_free_quota.sql", import.meta.url), "utf8");
   assert.match(sql, /ifund_ai_image_consume_free_quota/);
   assert.match(sql, /pg_advisory_xact_lock/);
+  assert.match(sql, /DELETE FROM ifund_ops\.ai_image_daily/, "quota identifiers must expire");
   assert.match(sql, /v_total >= 50/);
   assert.match(sql, /q\.attempts < 3/);
   assert.match(sql, /email_confirmed_at IS NOT NULL/);
