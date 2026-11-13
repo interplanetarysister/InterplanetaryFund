@@ -2,10 +2,19 @@
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FILE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(?:png|jpg|webp|gif)$/i;
 const TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
+function isPreviewEnvironment(request, env) {
+  const url = new URL(request.url);
+  const hostname = url.hostname.toLowerCase();
+  const branch = env.CF_PAGES_BRANCH;
+  // Require the exact Cloudflare Pages project domain, not merely a nonproduction host.
+  // Branch identity is an independent fail-closed check; a missing branch is not preview.
+  return url.protocol === "https:" &&
+    /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)?interplanetaryfund-migration\.pages\.dev$/.test(hostname) &&
+    typeof branch === "string" && branch.length > 0 && branch !== "main";
+}
 export async function onRequest({ request, env, params }) {
   if (request.method !== "GET" && request.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
-  const hostname = new URL(request.url).hostname.toLowerCase();
-  if (hostname === "interplanetaryfund.com" || hostname === "www.interplanetaryfund.com" || env.CF_PAGES_BRANCH === "main")
+  if (!isPreviewEnvironment(request, env))
     return new Response("Preview media are not available in production", { status: 503 });
   const owner = String(params.owner || ""), file = String(params.file || "");
   if (!UUID.test(owner) || !FILE.test(file)) return new Response("Not found", { status: 404 });
