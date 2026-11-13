@@ -523,3 +523,48 @@ drop policy if exists ifund_posts_delete on public.ifund_posts;
 create policy ifund_posts_delete on public.ifund_posts
  for delete to authenticated
  using (author_id=auth.uid() and not public.ifund_post_has_report(id));
+
+
+-- The live schema also has permissive legacy ifund_email_content_* policies.
+-- PostgreSQL ORs permissive policies: replacing one policy alone cannot secure
+-- writes. BEFORE triggers below are the mandatory authorization boundary,
+-- independent of all existing or later permissive policies.
+create or replace function public.ifund_guard_social_post_insert()
+returns trigger language plpgsql security invoker set search_path = '' as $ifund$
+begin
+ if current_user='authenticated' and
+    (auth.uid() is null or new.author_id is distinct from auth.uid()
+     or not public.ifund_social_member_ok())
+ then
+  raise exception 'Verified owner account required for social posts' using errcode='42501';
+ end if;
+ return new;
+end $ifund$;
+create or replace function public.ifund_guard_social_post_mutation()
+returns trigger language plpgsql security invoker set search_path = '' as $ifund$
+begin
+ if public.ifund_post_has_report(old.id) then
+  raise exception 'Reported content is preserved for moderation review' using errcode='42501';
+ end if;
+ if current_user='authenticated' and
+    (auth.uid() is null or old.author_id is distinct from auth.uid())
+ then
+  raise exception 'Only a post owner may modify their content' using errcode='42501';
+ end if;
+ if tg_op='UPDATE' then
+  if new.author_id is distinct from old.author_id or new.id is distinct from old.id
+  then raise exception 'Post identity cannot be changed' using errcode='42501'; end if;
+  return new;
+ end if;
+ return old;
+end $ifund$;
+revoke all on function public.ifund_guard_social_post_insert(),
+ public.ifund_guard_social_post_mutation() from public,anon,authenticated;
+drop trigger if exists ifund_guard_social_post_insert_trigger on public.ifund_posts;
+create trigger ifund_guard_social_post_insert_trigger
+ before insert on public.ifund_posts for each row
+ execute function public.ifund_guard_social_post_insert();
+drop trigger if exists ifund_guard_social_post_mutation_trigger on public.ifund_posts;
+create trigger ifund_guard_social_post_mutation_trigger
+ before update or delete on public.ifund_posts for each row
+ execute function public.ifund_guard_social_post_mutation();
