@@ -8,7 +8,7 @@ import {
 const complete = () => ({
   title: "Solar benches for the plaza",
   summary: "Twelve solar benches so the plaza stays lit after dark.",
-  story: "The plaza loses light at dusk and people stopped using it.",
+  story: ("The plaza loses light at dusk. The community has confirmed the lighting need. We will explain each budget item and provide transparent monthly progress updates. ").repeat(26),
   category: "community",
   goal_amount: "1200",
   cover_image_url: "https://example.org/bench.jpg",
@@ -18,6 +18,14 @@ test("a complete campaign passes both draft and publish validation", () => {
   assert.deepEqual(validateCampaignForm(complete()), []);
   assert.deepEqual(validateCampaignForm(complete(), { publish: true }), []);
   assert.equal(publishReadiness(complete()).ready, true);
+});
+
+test("a 3,499-character full story is blocked, 3,500 is eligible", () => {
+  const story = "A".repeat(3499);
+  assert.ok(validateCampaignForm({...complete(),story},{publish:true}).some(x=>x.includes("3,500")));
+  assert.equal(publishReadiness({...complete(),story}).ready,false);
+  assert.equal(publishReadiness({...complete(),story:story+"."}).ready,true);
+  assert.deepEqual(validateCampaignForm({...complete(),story},"draft"),[]);
 });
 
 test("draft saving is allowed before the campaign is publishable", () => {
