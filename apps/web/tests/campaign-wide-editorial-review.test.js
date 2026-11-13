@@ -70,7 +70,7 @@ test("owner-only discussion RPC rejects anonymous and cross-owner posting and av
  const sql=source("../../../supabase/migrations/20261113_ifund_editorial_campaignwide_discussions.sql");
  const board=source("../src/components/agents/EditorialAgentQueue.jsx");
  for(const id of ["title_spacing","summary_punctuation","story_punctuation",
-  "summary_redundancy","story_redundancy","cross_field_summary","cross_field_title"])
+  "summary_redundancy","story_redundancy","cross_field_summary","cross_field_title","cross_field_sentences"])
    assert.ok(sql.includes("'"+id+"'"),id);
  assert.match(sql,/ifund_current_account_is_active\(\)/);
  assert.match(sql,/u\.email_confirmed_at is not null/);
@@ -79,4 +79,21 @@ test("owner-only discussion RPC rejects anonymous and cross-owner posting and av
  assert.match(sql,/rule_based_next_step/);
  assert.match(board,/ifund_add_editorial_review_comment/);
  assert.match(board,/not proof of live agent discussion/);
+});
+
+test("server gate trims whitespace consistently before counting publication length",()=>{
+ const sql=source("../../../supabase/migrations/20261113_ifund_prepublication_whitespace_alignment.sql");
+ assert.match(sql,/regexp_replace/);
+ assert.match(sql,/\[\[:space:\]\]/);
+ assert.match(sql,/pg_catalog\.char_length\(v_story\)<3500/);
+ assert.match(sql,/old\.status is distinct from 'active'/);
+});
+
+test("individual repeated sentences between summary and story are queued for review",()=>{
+ const s="The community plans to document every repair expense and publish monthly progress reports.";
+ const findings=reviewCampaignWideEditorial({
+  title:"Neighborhood improvement",summary:s+" Additional context is here.",
+  story:"The project was proposed by local neighbors. "+s+" Further details follow."
+ });
+ assert.ok(findings.some(f=>f.id==="cross_field_sentences"));
 });
