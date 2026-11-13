@@ -48,7 +48,8 @@ test("planet reporting is restricted to administrators and counts verified publi
   const source = page("AdminSustainability");
   assert.match(source, /listActiveCampaigns\(\{ limit: 500 \}\)/);
   assert.match(source, /row\.category === "environment"/);
-  assert.match(source, /validMoney\(c\.raised_amount\)/);
+  assert.match(source, /moneyCents\(c\.raised_amount\)/);
+  assert.match(source, /Number\.isSafeInteger\(totalCents\)/, "aggregate only safe integer cents");
   assert.doesNotMatch(source, /\b(fetch|POST|INSERT|UPDATE|DELETE)\b\s*\(/i, "read-only reporting cannot mutate campaign records");
   assert.match(source, /No estimated carbon savings/, "no unsupported impact outcomes");
 });
