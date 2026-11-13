@@ -1,6 +1,6 @@
 # iFund cumulative release staging manifest
 
-**Release policy updated:** 2026-11-12 Pacific. **Status:** BUILDS AND VERIFIED DEPLOYMENTS AUTHORIZED WITHOUT REPEATED OWNER APPROVAL; MINIMIZE BUILD FREQUENCY.
+**Release policy updated:** 2026-11-12 Pacific. **Current policy (November 13):** blanket freeze removed; builds and releases follow explicit owner authorization and its conditions. See AGENTS.md.
 
 ## Release identity and preservation
 
@@ -8,7 +8,7 @@
 - **Frontend:** `apps/web` exclusively; historical root code and Base44 remain preserved.
 - **Cloudflare Pages project:** `interplanetaryfund-migration`.
 - **Last verified canonical production at hold:** `f866dc50-8283-4da5-a05b-f588820450da` at commit `9a332875d41a94645ba3b7a16b87eb6f438ef3a5`. This is a checkpoint, not proof of complete app functionality. Verify again at authorized release.
-- **Cloudflare Git integration:** `deployments_enabled=false`, `production_deployments_enabled=false`, `preview_deployment_setting=none`. Keep these disabled by default to suppress unnecessary Git-triggered builds; manually initiated consolidated builds and deployments are now authorized.
+- **Cloudflare Git integration:** `deployments_enabled=false`, `production_deployments_enabled=false`, `preview_deployment_setting=none`. Keep these disabled by default to suppress unnecessary Git-triggered builds; manually initiated consolidated builds and deployments require the applicable explicit authorization.
 - **GitHub:** all relevant automated build/verification workflow triggers changed to manual-only; one authorized Pages release entry point: `.github/workflows/deploy-web-pages.yml`.
 - **Data:** Supabase project `ssibsfmtodgximseeqsv`, media R2 `ifund-media`. No release-control action may delete or reset data, source history, successful deployment artifacts, existing payment ledgers, or Base44 data.
 
