@@ -27,7 +27,7 @@ test("claim queue is capped, leased, and cannot be invoked by a logged-in member
  assert.match(sql,/p_limit not between 1 and 10/);
  assert.match(sql,/review_attempts<3/);
  assert.match(sql,/interval '20 minutes'/);
- assert.match(sql,/for update skip locked limit p_limit/);
+ assert.match(sql,/limit p_limit for update skip locked/);
  assert.match(sql,/revoke all on function public\.ifund_claim_editorial_agent_reviews\(integer\) from public,anon,authenticated/);
  assert.match(sql,/grant execute on function public\.ifund_claim_editorial_agent_reviews\(integer\) to service_role/);
 });
