@@ -104,7 +104,7 @@ begin
         r.review_claimed_at < now()-interval '20 minutes')
    )
    order by r.created_at asc,r.id
-   for update skip locked limit p_limit
+   limit p_limit for update skip locked
  ),claimed as (
    update public.ifund_editorial_agent_reviews r
      set review_status='under_review',
