@@ -26,6 +26,9 @@ import {
 const PENDING = [
   "supabase/migrations/pending/20261102_ifund_member_schema_completion.sql",
   "supabase/migrations/pending/20261102_ifund_blog_entry_ownership_fix.sql",
+  // New canonical community tables are independently reviewed and already applied
+  // to production; include their DDL in this isolated schema-contract harness.
+  "supabase/migrations/20261113_ifund_public_community_groups.sql",
 ];
 
 const PGlite = await loadPGlite();
