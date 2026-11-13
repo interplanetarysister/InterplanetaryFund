@@ -181,9 +181,9 @@ export default function SocialFeedPage({ community = false }) {
       <Link to="/news">IFund Newscaster</Link>
     </nav>
     {canPost ? <form onSubmit={publish} className="space-y-3 rounded-2xl border border-border bg-card p-5">
-      {shareSuggestion && body.trim() && !body.includes(shareSuggestion.split("\\n").at(-1)) && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
+      {shareSuggestion && body.trim() && !body.includes(shareSuggestion.split("\n").at(-1)) && <div className="rounded-xl border border-primary/30 bg-primary/5 p-3 text-sm">
         <p>Your saved draft was preserved. Add this campaign to your post when you’re ready.</p>
-        <button type="button" className="mt-2 min-h-11 text-primary underline" onClick={() => setBody(current => `${current.trim()}\\n\\n${shareSuggestion}`.slice(0,MAX_POST_LENGTH))}>Add campaign reference to draft</button>
+        <button type="button" className="mt-2 min-h-11 text-primary underline" onClick={() => setBody(current => `${current.trim()}\n\n${shareSuggestion}`.slice(0,MAX_POST_LENGTH))}>Add campaign reference to draft</button>
       </div>}
       <label htmlFor="ifund-post" className="font-semibold">Share an update</label>
       <textarea id="ifund-post" required maxLength={MAX_POST_LENGTH} rows={4} value={body}
