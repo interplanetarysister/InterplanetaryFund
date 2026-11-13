@@ -4,6 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
+import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
 const campaignColumns = [
   { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
@@ -75,7 +76,7 @@ export default function AdminFinance({ embedded = false }) {
     finally{setPayoutBusy("");}
   }
 
-  const total=state.rows.reduce((s,row)=>s+(Number(row.raised_cents)||0),0);
+  const total=sumVerifiedCents(state.rows, "raised_cents");
   const count=state.rows.reduce((s,row)=>s+(Number(row.captured_payments)||0),0);
   const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
   const platform=shown.filter(r=>r.allocation_status==="platform_support");
