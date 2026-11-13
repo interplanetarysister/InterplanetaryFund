@@ -16,7 +16,9 @@ test("community migration creates permissioned native/archive discussions and mo
     create role anon; create role authenticated;
     create schema auth;
     create function auth.uid() returns uuid language sql stable
-    as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
+    as $ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $;
+    grant usage on schema auth to anon,authenticated;
+    grant execute on function auth.uid() to anon,authenticated;
     create table auth.users(
       id uuid primary key, email_confirmed_at timestamptz,
       is_anonymous boolean default false);
@@ -127,7 +129,7 @@ test("community migration creates permissioned native/archive discussions and mo
   await who(admin);
   const report=(await query("select id from public.ifund_social_moderation_queue() where post_id=$1",[native]))[0];
   assert.ok(report);
-  await query("select public.ifund_social_review($1,'restore')",[report.id]);
+  await query("select public.ifund_social_review($1,'restore',null)",[report.id]);
   await who(reporter);
   assert.equal((await query("select count(*)::int n from public.ifund_public_social_feed() where id=$1",["post-"+native]))[0].n,1);
   await query("select public.ifund_social_friend($1,'request')",[owner]);
