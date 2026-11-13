@@ -71,7 +71,10 @@ begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
  if length(trim(coalesce(p_reason,''))) not between 15 and 1500
  then raise exception 'Please provide an explanation (15 to 1500 characters)' using errcode='22023'; end if;
- if not exists(select 1 from public.ifund_posts where id=p_post and author_id <> auth.uid())
+ if not exists(select 1 from public.ifund_posts p where p.id=p_post
+   and p.author_id <> auth.uid()
+   and not exists(select 1 from public.ifund_social_reports r
+     where r.post_id=p.id and r.status in ('open','removed')))
  then raise exception 'Cannot report this post' using errcode='22023'; end if;
  -- one report per person/post, and rate-limit reports to reduce abuse.
  if exists(select 1 from (
@@ -266,6 +269,8 @@ begin
  if p_archive is null or length(p_archive)>128 or not exists(
   select 1 from public.ifund_social_post p where p.id=p_archive
     and p.source_system='base44_public_social_archive')
+ or exists(select 1 from public.ifund_social_archive_reports r
+   where r.archive_id=p_archive and r.status in ('open','removed'))
  then raise exception 'Archive post unavailable' using errcode='22023'; end if;
  if exists(select 1 from (
   select created_at from public.ifund_social_reports where reporter_id=auth.uid()
