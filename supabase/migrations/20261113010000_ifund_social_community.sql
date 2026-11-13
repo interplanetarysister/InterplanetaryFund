@@ -508,3 +508,18 @@ returns boolean language sql stable security definer set search_path = '' as $if
 $ifund$;
 revoke all on function public.ifund_member_owns_active_campaign(uuid) from public,anon,authenticated;
 grant execute on function public.ifund_member_owns_active_campaign(uuid) to authenticated;
+
+
+-- Preserve the report, original content and administrator decision for audit.
+-- Authors retain delete rights on their unreported posts only.
+create or replace function public.ifund_post_has_report(p_post uuid)
+returns boolean language sql stable security definer set search_path = '' as $ifund$
+ select exists(select 1 from public.ifund_social_reports r
+ where r.post_id=p_post)
+$ifund$;
+revoke all on function public.ifund_post_has_report(uuid) from public,anon,authenticated;
+grant execute on function public.ifund_post_has_report(uuid) to authenticated;
+drop policy if exists ifund_posts_delete on public.ifund_posts;
+create policy ifund_posts_delete on public.ifund_posts
+ for delete to authenticated
+ using (author_id=auth.uid() and not public.ifund_post_has_report(id));
