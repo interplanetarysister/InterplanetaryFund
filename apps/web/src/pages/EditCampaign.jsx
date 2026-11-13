@@ -141,7 +141,7 @@ export default function EditCampaign() {
           {campaignStatusLabel(status)}
         </span>
       </div>
-      <p className="text-muted-foreground">Changes are private until you publish. {donationsEnabled ? "Published, active campaigns can accept verified PayPal donations." : "Donations are temporarily unavailable."}</p>
+      <p className="text-muted-foreground">Changes are private until you publish. {donationsEnabled ? "Published, active campaigns can accept verified PayPal donations." : "Live donation checkout is temporarily unavailable."}</p>
     </header>
 
     {!donationsEnabled && <PrelaunchNotice compact />}
