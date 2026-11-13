@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { connectionCapabilityReadiness } from "@/lib/connectionCapabilityReadiness.mjs";
+import { providerConnectionGuide } from "@/lib/providerConnectionGuide.mjs";
 
 const PROVIDERS = [
   { id: "facebook_pages", name: "Facebook Pages", description: "Connect a Page you manage. Publishing requires approved Page permissions and content-creation access." },
@@ -188,6 +189,7 @@ export default function Connections() {
           const label = provider.adminOnly ? "Admin setup" : provider.linkOnly ? "Campaign URL" : provider.unavailable ? "Not enabled" : getConnectionLabel(row);
           const ready = providerReady[provider.id] === true;
           const publishing=connectionCapabilityReadiness({record:row,authorizationEnabled:ready});
+          const guide=providerConnectionGuide(provider.id);
           const canConnect = !provider.adminOnly && !provider.linkOnly && !provider.unavailable &&
             ready && apiStatus === "ready" && recordStatus === "ready" && !action;
           const manageable = Boolean(row && (ALIASES[provider.id] || [provider.id]).includes(row.provider) && row.status !== "disconnected");
@@ -203,6 +205,8 @@ export default function Connections() {
                   <p><strong>LINK · Publishing readiness:</strong> {publishing.publishReady ? "Verified" : "Not verified"}</p>
                   <p className="mt-1 text-muted-foreground">{publishing.reason}</p>
                   <p className="mt-1 text-muted-foreground">Connecting identity does not grant cross-posting consent. Check approved scopes and account permissions before publishing.</p>
+                  <p className="mt-2"><strong>Provider capability:</strong> {guide.permission}</p>
+                  <p className="mt-1"><strong>Safe alternative:</strong> {guide.alternative}</p>
                 </div>}
               </div>
               <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
