@@ -9,7 +9,7 @@
     "check": "npm run typecheck && npm run build:worker && npm run test:ledger && npm run test:frontend",
     "judge:smoke": "node scripts/judge-acceptance.mjs",
     "test:ledger": "node --test scripts/sandbox-ledger-invariants.test.mjs scripts/sandbox-payment-edgecases.test.mjs scripts/judge-embedded-guide.test.mjs scripts/googlepay-wallet-contract.test.mjs",
-    "test:frontend": "node --test tests/frontend-payment-matrix.test.mjs tests/googlepay-real-frontend.test.mjs"
+    "test:frontend": "node --test tests/frontend-payment-matrix.test.mjs tests/googlepay-real-frontend.test.mjs tests/five-financial-surfaces.test.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.12",
