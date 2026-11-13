@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
 
 /** Free owner-only activity view; capture counts do not represent cash received. */
-export default function CampaignGrowthTrends() {
+export default function CampaignGrowthTrends({campaigns=[]}) {
   const [state,setState]=useState({phase:"loading",rows:[],error:""});
   const [retry,setRetry]=useState(0);
   useEffect(()=>{
@@ -32,7 +32,7 @@ export default function CampaignGrowthTrends() {
     {state.phase==="ready"&&(state.rows.length===0?
       <p className="mt-3 text-sm text-muted-foreground">No campaigns available for this account.</p>:
       <div className="mt-4 space-y-4">{state.rows.map(row=><article key={row.campaign_id} className="rounded-lg border border-border p-4">
-        <p className="text-xs text-muted-foreground">Campaign {String(row.campaign_id).slice(0,8)}</p>
+        <p className="font-semibold">{campaigns.find(item=>item.campaign_id===row.campaign_id)?.campaign_title||"Campaign "+String(row.campaign_id).slice(0,8)}</p>
         <dl className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[
             ["New follows · 7d","new_follows_7d"],["New follows · 30d","new_follows_30d"],
