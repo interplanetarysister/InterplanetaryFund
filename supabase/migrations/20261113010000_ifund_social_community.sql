@@ -172,6 +172,14 @@ begin
  if not exists(select 1 from public.ifund_posts p where p.id=p_post
   and not exists(select 1 from public.ifund_social_reports r where r.post_id=p.id and r.status in ('open','removed')))
  then raise exception 'Post unavailable' using errcode='22023'; end if;
+ -- Serialize each member's reply submissions across native and archived posts.
+ perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text,7822));
+ if (select count(*) from (
+   select created_at from public.ifund_social_replies where author_id=auth.uid()
+   union all
+   select created_at from public.ifund_social_archive_replies where author_id=auth.uid()
+ ) recent where recent.created_at > now()-interval '1 minute') >= 10
+ then raise exception 'Reply rate limit reached; please try again later' using errcode='22023'; end if;
  insert into public.ifund_social_replies(post_id,author_id,body)
  values(p_post,auth.uid(),trim(p_body)) returning id into v_id;
  return v_id;
@@ -441,6 +449,14 @@ begin
    or exists(select 1 from public.ifund_social_archive_reports r
      where r.archive_id=p_archive and r.status in ('open','removed'))
  then raise exception 'Post unavailable' using errcode='22023'; end if;
+ -- Serialize each member's reply submissions across native and archived posts.
+ perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text,7822));
+ if (select count(*) from (
+   select created_at from public.ifund_social_replies where author_id=auth.uid()
+   union all
+   select created_at from public.ifund_social_archive_replies where author_id=auth.uid()
+ ) recent where recent.created_at > now()-interval '1 minute') >= 10
+ then raise exception 'Reply rate limit reached; please try again later' using errcode='22023'; end if;
  insert into public.ifund_social_archive_replies(archive_id,author_id,body)
  values(p_archive,auth.uid(),trim(p_body)) returning id into v_id;
  return v_id;
@@ -637,3 +653,8 @@ language sql stable security definer set search_path = '' as $ifund$
 $ifund$;
 revoke all on function public.ifund_social_my_friends() from public,anon,authenticated;
 grant execute on function public.ifund_social_my_friends() to authenticated;
+
+create index if not exists ifund_social_replies_author_rate_idx
+ on public.ifund_social_replies(author_id,created_at desc);
+create index if not exists ifund_social_archive_replies_author_rate_idx
+ on public.ifund_social_archive_replies(author_id,created_at desc);
