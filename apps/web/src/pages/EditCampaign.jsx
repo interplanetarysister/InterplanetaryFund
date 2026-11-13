@@ -149,11 +149,11 @@ export default function EditCampaign() {
 
     <form className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8" onSubmit={(event) => { event.preventDefault(); save(status); }}>
       <label className="block font-semibold">Campaign title
-        <input required maxLength={TITLE_MAX} value={form.title} disabled={disabled}
+        <input id="campaign-title" required maxLength={TITLE_MAX} value={form.title} disabled={disabled}
           onChange={(e) => change("title", e.target.value)} className={fieldClass} />
       </label>
       <label className="block font-semibold">Short description
-        <textarea aria-label="Short description" rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
+        <textarea id="campaign-summary" aria-label="Short description" rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
           onChange={(e) => change("summary", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Your story
@@ -167,7 +167,7 @@ export default function EditCampaign() {
         </select>
       </label>
       <label className="block font-semibold">Fundraising goal (USD)
-        <input inputMode="decimal" value={form.goal_amount} disabled={disabled}
+        <input id="campaign-goal" inputMode="decimal" value={form.goal_amount} disabled={disabled}
           onChange={(e) => change("goal_amount", e.target.value)} className={fieldClass} />
       </label>
       <label className="block font-semibold">Cover image URL (optional)
