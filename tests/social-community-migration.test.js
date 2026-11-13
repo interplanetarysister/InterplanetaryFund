@@ -26,7 +26,7 @@ test("community migration creates permissioned native/archive discussions and mo
       returns boolean language sql stable as $terms$
       select coalesce(current_setting('test.terms_accepted',true),'yes')='yes' $terms$;
     create table public.ifund_profiles(
-      id uuid primary key, display_name text,
+      id uuid primary key, display_name text, handle text,
       public_profile_enabled boolean default true,
       account_status text default 'active',
       account_deletion_pending boolean default false,
