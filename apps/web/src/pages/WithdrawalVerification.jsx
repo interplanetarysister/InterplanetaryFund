@@ -16,28 +16,76 @@ function usd(cents) {
 // The only user action here is an atomic, owner-only hold for payout REVIEW.
 // No money is disbursed by this UI; an independently verified provider clearing
 // record and a separate approved payout processor are still required.
-function WithdrawalBalancePanel() {
-  const [state,setState]=useState({phase:"loading",balances:[],requests:[],payoutReady:false,readinessReason:"",error:""});
+function WithdrawalBalancePanel({ authUser }) {
+  const [state,setState]=useState({phase:"loading",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:""});
   const [busy,setBusy]=useState(false);
+  const [attest,setAttest]=useState(false);
+  const [amounts,setAmounts]=useState({});
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const refresh=useCallback(async()=>{
     const client=authClient();
-    const [balances,requests,readiness]=await Promise.all([
+    const [balances,requests,readiness,destination]=await Promise.all([
       client.rpc("ifund_owner_withdrawal_balances"),
       client.rpc("ifund_my_withdrawal_requests"),
-      client.rpc("ifund_owner_payout_readiness")
+      client.rpc("ifund_owner_payout_readiness"),
+      client.rpc("ifund_owner_payout_destination")
     ]);
-    if(balances.error||requests.error||readiness.error||!Array.isArray(balances.data)||
-       !Array.isArray(requests.data)||!Array.isArray(readiness.data))
+    if(balances.error||requests.error||readiness.error||destination.error||!Array.isArray(balances.data)||
+       !Array.isArray(requests.data)||!Array.isArray(readiness.data)||!Array.isArray(destination.data))
       throw Error("Provider-cleared withdrawal readiness could not be verified.");
     const gate=readiness.data[0]||{};
     setState({phase:"ready",balances:balances.data,requests:requests.data,
-      payoutReady:gate.payout_account_ready===true,readinessReason:gate.readiness_reason||"",error:""});
+      destination:destination.data[0]||null,payoutReady:gate.payout_account_ready===true,
+      readinessReason:gate.readiness_reason||"",error:""});
   },[]);
   useEffect(()=>{
-    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],payoutReady:false,readinessReason:"",error:e.message}));
+    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:e.message}));
   },[refresh]);
+  async function connectDestination() {
+    if(busy||!attest)return;
+    setBusy(true);setError("");setNotice("");
+    try{
+      const result=await authClient().rpc("ifund_connect_paypal_payout_to_verified_email",{p_attest:true});
+      if(result.error||!Array.isArray(result.data)||!result.data[0]?.payouts_enabled)
+        throw Error(result.error?.message||"PayPal payout destination could not be saved.");
+      setAttest(false);
+      await refresh();
+      setNotice("Your verified IFund account email is now the PayPal payout recipient. PayPal will require any provider-side account verification before funds can settle.");
+    }catch(cause){setError(cause.message||"Unable to connect the payout destination.");}
+    finally{setBusy(false);}
+  }
+  async function disconnectDestination() {
+    if(busy)return;
+    setBusy(true);setError("");setNotice("");
+    try{
+      const result=await authClient().rpc("ifund_disconnect_paypal_payout_destination");
+      if(result.error||result.data!==true)throw Error(result.error?.message||"Payout destination could not be disconnected.");
+      await refresh();setNotice("The PayPal payout destination was disabled.");
+    }catch(cause){setError(cause.message||"Unable to disconnect the payout destination.");}
+    finally{setBusy(false);}
+  }
+  async function requestWithdrawal(item) {
+    if(busy||!state.payoutReady)return;
+    const dollars=Number(amounts[item.campaign_id]);
+    const gross=Math.round(dollars*100);
+    if(!Number.isSafeInteger(gross)||gross<1000||gross>Number(item.available_cents)){
+      setError("Enter at least $10.00 and no more than the verified available balance.");return;
+    }
+    setBusy(true);setError("");setNotice("");
+    try{
+      const requestKey="wd-"+crypto.randomUUID().replace(/-/g,"");
+      const result=await authClient().rpc("ifund_request_withdrawal",{
+        p_campaign_id:item.campaign_id,p_gross_cents:gross,p_request_key:requestKey
+      });
+      if(result.error||!result.data)throw Error(result.error?.message||"Withdrawal reservation was not confirmed.");
+      setAmounts(v=>({...v,[item.campaign_id]:""}));
+      await refresh();
+      setNotice("Withdrawal reserved for review. The 7% platform fee is calculated server-side; no payout has been sent yet.");
+    }catch(cause){setError(cause.message||"Unable to reserve the withdrawal.");}
+    finally{setBusy(false);}
+  }
+
   async function cancel(id) {
     if(busy)return;setBusy(true);setError("");setNotice("");
     try{
@@ -57,6 +105,27 @@ function WithdrawalBalancePanel() {
     {state.phase==="loading"&&<p role="status">Checking provider-cleared balances and existing holds…</p>}
     {state.phase==="error"&&<p role="alert" className="text-red-600">{state.error} No new hold can be created.</p>}
     {state.phase==="ready"&&<>
+      <section className="rounded-xl border border-border p-4 space-y-3" aria-label="PayPal payout destination">
+        <h3 className="font-bold">PayPal payout destination</h3>
+        {state.destination?.payouts_enabled ? <>
+          <p className="text-sm">Recipient: <strong>{state.destination.recipient_email}</strong></p>
+          <p className="text-xs text-muted-foreground">This is your confirmed IFund account email. PayPal controls recipient onboarding and provider-side identity verification; IFund marks a withdrawal paid only after PayPal reports SUCCESS.</p>
+          <button type="button" disabled={busy} onClick={disconnectDestination}
+            className="min-h-11 rounded-lg border border-border px-4 font-semibold disabled:opacity-40">
+            Disconnect payout destination
+          </button>
+        </> : <>
+          <p className="text-sm text-muted-foreground">Use your confirmed IFund account email as the PayPal payout recipient. This never sends money by itself.</p>
+          <label className="flex gap-3 text-sm">
+            <input type="checkbox" checked={attest} onChange={e=>setAttest(e.target.checked)} disabled={busy}/>
+            <span>I confirm <strong>{authUser?.email||"my verified account email"}</strong> is mine and I can receive PayPal payouts there. I understand PayPal may require sign-in or identity verification before funds can settle.</span>
+          </label>
+          <button type="button" disabled={busy||!attest} onClick={connectDestination}
+            className="min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-40">
+            Connect verified email for PayPal payouts
+          </button>
+        </>}
+      </section>
       {state.balances.length===0&&<p>You do not own any campaigns eligible for a withdrawal review.</p>}
       {state.balances.map(item=><div key={item.campaign_id} className="rounded-xl border border-border p-4">
         <h3 className="font-bold">{item.campaign_title}</h3>
@@ -66,6 +135,20 @@ function WithdrawalBalancePanel() {
           <div><dt className="text-muted-foreground">Previously paid (gross)</dt><dd className="font-semibold tabular-nums">{usd(item.paid_gross_cents)}</dd></div>
           <div><dt className="text-muted-foreground">Available to request</dt><dd className="font-bold tabular-nums">{usd(item.available_cents)}</dd></div>
         </dl>
+        {state.payoutReady && Number(item.available_cents)>=1000 && <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-end">
+          <label className="flex-1 text-sm font-medium">Withdrawal amount
+            <input type="number" min="10" step="0.01" max={(Number(item.available_cents)/100).toFixed(2)}
+              value={amounts[item.campaign_id]||""}
+              onChange={e=>setAmounts(v=>({...v,[item.campaign_id]:e.target.value}))}
+              disabled={busy}
+              className="mt-2 min-h-11 w-full rounded-lg border border-input bg-background px-3"/>
+          </label>
+          <button type="button" disabled={busy||!amounts[item.campaign_id]}
+            onClick={()=>requestWithdrawal(item)}
+            className="min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-40">
+            Reserve for payout review
+          </button>
+        </div>}
       </div>)}
       <p role="status" className={"rounded-xl border p-4 text-sm "+(state.payoutReady
         ?"border-cyan-500/40 bg-cyan-500/10"
@@ -181,7 +264,7 @@ function WithdrawalMfaGate({ authUser }) {
         {busy ? "Verifying…" : "Verify second factor"}
       </button>
     </form>}
-    {state === "verified" && <WithdrawalBalancePanel />}
+    {state === "verified" && <WithdrawalBalancePanel authUser={authUser} />}
     {error && <p role="alert" className="text-sm text-red-500">{error}</p>}
   </section>;
 }
