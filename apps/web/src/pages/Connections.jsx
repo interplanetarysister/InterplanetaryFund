@@ -27,6 +27,7 @@ const SHARING_CHOICES = [
 
 function BrandMark({ platform, size = "small" }) {
   const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [platform.id]);
   const slug = ICON_OVERRIDES[platform.id] || platform.icon || platform.id;
   const source = "https://api.iconify.design/simple-icons/" + encodeURIComponent(slug) + ".svg";
   const letters = platform.name.replace(/[^a-zA-Z0-9 ]/g, "").split(/\s+/).filter(Boolean).slice(0,2).map(x => x[0]).join("").toUpperCase() || "?";
