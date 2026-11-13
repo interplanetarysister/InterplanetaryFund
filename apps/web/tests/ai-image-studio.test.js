@@ -119,6 +119,10 @@ test("staged quota SQL is atomic and does not grant anonymous image attempts", (
   assert.match(sql, /email_confirmed_at IS NOT NULL/);
   assert.match(sql, /is_anonymous/);
   assert.match(sql, /explicit_consent IS TRUE/);
+  const policy = readFileSync(new URL("../src/lib/legalPolicy.js", import.meta.url), "utf8");
+  const version = policy.match(/export const TERMS_VERSION = "([^"]+)"/)?.[1];
+  assert.ok(version && sql.includes("accepted.terms_version = '" + version + "'"),
+    "image quota must require current explicit legal agreement, not any historical terms");
   assert.match(sql, /REVOKE ALL ON FUNCTION[\s\S]*FROM PUBLIC, anon, authenticated;/);
   assert.match(sql, /GRANT EXECUTE ON FUNCTION[\s\S]*TO authenticated;/);
 });
