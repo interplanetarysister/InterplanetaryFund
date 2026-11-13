@@ -83,13 +83,13 @@ export default function SocialFeedPage({ community = false }) {
     if (!body.trim()) return;
     const payload = { title: "Interplanetary Fund update", text: body.trim() };
     if (navigator.share) {
-      try { await navigator.share(payload); setNotice("Shared using your device's chosen application."); }
+      try { await navigator.share(payload); setNotice("Your device accepted the share request. Check the destination before assuming it was published."); }
       catch (cause) { if (cause?.name !== "AbortError") setPublishError("External share was not completed."); }
       return;
     }
     try {
       await navigator.clipboard.writeText(body.trim());
-      setNotice("Draft copied. Paste it into your chosen connected account.");
+      setNotice("Draft copied. Paste and publish it manually in the account you choose.");
     } catch {
       setPublishError("Copy was unavailable on this device.");
     }
