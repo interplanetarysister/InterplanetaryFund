@@ -16,6 +16,8 @@ test("community actions require database-level lifecycle checks and private writ
   assert.match(sql, /ifund_guard_social_post_mutation_trigger/);
   assert.match(sql, /ifund_post_has_report\(old\.id\)/);
   assert.match(sql, /review_note/);
+  assert.match(sql, /Reply rate limit reached/);
+  assert.match(sql, /ifund_social_archive_replies_author_rate_idx/);
   assert.match(sql, /pg_advisory_xact_lock\(hashtextextended\(auth\.uid\(\)::text,7821\)\)/);
   assert.match(sql, /ifund_my_social_draft\(\)/);
   assert.match(sql, /ifund_social_archive_reply\(/);
@@ -43,6 +45,7 @@ test("feed and campaign links expose report, friendship, story and draft UI", ()
   assert.match(feed, /clearServerSocialDraft/);
   assert.match(feed, /localStorage\.setItem\(draftKey/);
   assert.match(feed, /shareDraftExternally/);
+  assert.match(feed, /socialComposeTargets\(body\)/);
   assert.match(profile, /friendAction\(/);
   const permalink = source("../src/pages/SocialPostPage.jsx");
   const routes = source("../src/App.jsx");
