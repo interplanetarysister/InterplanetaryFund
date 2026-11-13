@@ -172,3 +172,44 @@ grant execute on function public.ifund_save_public_link(text,text,text,uuid) to 
 grant execute on function public.ifund_remove_public_link(text) to authenticated;
 grant execute on function public.ifund_my_share_choices() to authenticated;
 grant execute on function public.ifund_set_share_choice(text,text) to authenticated;
+
+-- Revocable, private owner choice for optional iFund connection assistance.
+-- This permits only member-requested guidance and draft suggestions.
+-- It is not OAuth consent, provider posting permission, or agent execution.
+create table if not exists public.ifund_member_connection_assistance (
+  owner_id uuid primary key references auth.users(id) on delete cascade,
+  enabled boolean not null default false,
+  decided_at timestamptz not null default now()
+);
+alter table public.ifund_member_connection_assistance enable row level security;
+revoke all on public.ifund_member_connection_assistance from public,anon,authenticated;
+
+create or replace function public.ifund_my_connection_assistance()
+returns table(enabled boolean,decided_at timestamptz)
+language plpgsql stable security definer set search_path='' set row_security='off' as $$
+begin
+ if not public.ifund_member_connection_allowed() then
+   raise exception 'Verified active account required' using errcode='42501';
+ end if;
+ return query select a.enabled,a.decided_at
+ from public.ifund_member_connection_assistance a where a.owner_id=auth.uid();
+end $$;
+create or replace function public.ifund_set_connection_assistance(p_enabled boolean)
+returns boolean language plpgsql volatile security definer set search_path='' set row_security='off' as $$
+begin
+ if not public.ifund_member_connection_allowed() then
+   raise exception 'Verified active account required' using errcode='42501';
+ end if;
+ if p_enabled is null then
+   raise exception 'Choose whether connection guidance is enabled' using errcode='22023';
+ end if;
+ insert into public.ifund_member_connection_assistance(owner_id,enabled,decided_at)
+ values(auth.uid(),p_enabled,now())
+ on conflict(owner_id) do update
+ set enabled=excluded.enabled,decided_at=excluded.decided_at;
+ return true;
+end $$;
+revoke all on function public.ifund_my_connection_assistance() from public,anon;
+revoke all on function public.ifund_set_connection_assistance(boolean) from public,anon;
+grant execute on function public.ifund_my_connection_assistance() to authenticated;
+grant execute on function public.ifund_set_connection_assistance(boolean) to authenticated;
