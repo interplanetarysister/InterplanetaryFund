@@ -10,6 +10,7 @@ const directory = read("src/components/community/CommunityDirectory.jsx");
 const transport = read("src/api/communityGroups.js");
 const schema = read("../../supabase/migrations/20261113_ifund_public_community_groups.sql");
 const identity = read("../../supabase/migrations/20261113_ifund_community_verified_email_gate.sql");
+const publicColumns = read("../../supabase/migrations/20261113_ifund_public_community_column_grants.sql");
 
 test("community detail has its own route, not a ComingSoon fallback", () => {
   assert.match(app, /path="\/community\/:id" element=\{<CommunityDetail\s*\/>\}/);
@@ -49,4 +50,7 @@ test("RLS denies anonymous writing and private member enumeration", () => {
   assert.match(identity, /ifund_private\.verified_email_creator\(\)/);
   assert.match(identity, /explicit_consent=true/);
   assert.match(identity, /2026-11-10-v4/);
+  assert.match(publicColumns, /revoke select on public\.ifund_member_communities from anon/);
+  assert.match(publicColumns, /grant select \(id,name,description,location,status,created_at\)/);
+  assert.doesNotMatch(transport, /select\("id,name,description,location,created_at,owner_id"\)/);
 });
