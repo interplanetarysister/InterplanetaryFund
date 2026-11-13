@@ -61,6 +61,7 @@ export default function Connections() {
   const [records, setRecords] = useState([]);
   const [links, setLinks] = useState([]);
   const [choices, setChoices] = useState([]);
+  const [helpConsent, setHelpConsent] = useState(null);
   const [campaigns, setCampaigns] = useState([]);
   const [providerReady, setProviderReady] = useState({});
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,7 @@ export default function Connections() {
     setRecordError("");
     setDiagnosticError("");
     if (!user?.id) {
-      setRecords([]); setLinks([]); setChoices([]); setCampaigns([]); setProviderReady({});
+      setRecords([]); setLinks([]); setChoices([]); setCampaigns([]); setProviderReady({}); setHelpConsent(null);
       setLoading(false);
       return () => { active = false; };
     }
@@ -100,7 +101,8 @@ export default function Connections() {
           const payload=await result.json().catch(()=>({}));
           if (!result.ok || payload.enabled!==true) return {};
           return payload.providers || {};
-        })()
+        })(),
+        client.rpc("ifund_my_connection_assistance")
       ]);
       if (!active) return;
       const extract = (index) => jobs[index].status==="fulfilled" && !jobs[index].value?.error && Array.isArray(jobs[index].value.data) ? jobs[index].value.data : [];
@@ -110,6 +112,9 @@ export default function Connections() {
       setChoices(extract(2));
       setCampaigns(jobs[3].status==="fulfilled" && Array.isArray(jobs[3].value) ? jobs[3].value : []);
       setProviderReady(jobs[4].status==="fulfilled" ? jobs[4].value || {} : {});
+      const help=jobs[5].status==="fulfilled" && !jobs[5].value?.error && Array.isArray(jobs[5].value.data)
+        ? jobs[5].value.data[0] || null : null;
+      setHelpConsent(help);
       if (jobs[0].status!=="fulfilled" || jobs[0].value?.error) setRecordError("Your saved accounts could not be loaded. Choose Refresh to try again.");
       if (jobs[1].status!=="fulfilled" || jobs[1].value?.error) setRecordError("Your saved public pages could not be loaded. Choose Refresh to try again.");
       if (jobs[2].status!=="fulfilled" || jobs[2].value?.error) setRecordError("Your sharing choices could not be loaded. Choose Refresh to try again.");
@@ -209,6 +214,17 @@ export default function Connections() {
       setChoices(prev=>[...prev.filter(p=>p.provider!==selected.id),{provider:selected.id,choice:value}]);
       setNotice("Your sharing preference was saved.");
     } catch(cause) { setError(cause.message); }
+    finally {busyLock.current=false;setBusy("");}
+  }
+  async function chooseHelp(granted) {
+    if(!user?.id || busyLock.current) return;
+    busyLock.current=true; setBusy("help"); setError(""); setNotice("");
+    try {
+      const {data,error:issue}=await authClient().rpc("ifund_set_connection_assistance",{p_enabled:granted});
+      if(issue || data!==true) throw new Error("Please try saving your iFund help preference again.");
+      setHelpConsent({enabled:granted,decided_at:new Date().toISOString()});
+      setNotice(granted?"iFund guidance and draft help is enabled.":"iFund guidance and draft help is turned off.");
+    } catch(cause) {setError(cause.message);}
     finally {busyLock.current=false;setBusy("");}
   }
   const sourcePlatform=selected.id==="facebook"?"Facebook Page":selected.name;
@@ -380,6 +396,21 @@ export default function Connections() {
       </details>}
     </section>
 
+    <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Optional iFund connection guidance">
+      <h2 className="text-xl font-semibold">iFund connection help</h2>
+      <p className="text-sm text-muted-foreground">
+        Choose whether iFund can help you prepare platform connection steps and drafts when you ask.
+        You can change this choice at any time. This never signs in to your outside accounts, sends messages, or publishes posts for you.
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm font-semibold">{helpConsent?.enabled===true?"Help is on":"Help is off"}</span>
+        <button type="button" disabled={Boolean(busy)||loading} className={BUTTON}
+          onClick={()=>chooseHelp(helpConsent?.enabled!==true)}>
+          {busy==="help"?"Saving…":helpConsent?.enabled===true?"Turn off help":"Turn on help"}
+        </button>
+        <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" to="/agents">Open the iFund team</Link>
+      </div>
+    </section>
     <CampaignShareConnections campaigns={campaigns}/>
     <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Your connection activity">
       <h2 className="text-xl font-semibold">Recent connection activity</h2>
