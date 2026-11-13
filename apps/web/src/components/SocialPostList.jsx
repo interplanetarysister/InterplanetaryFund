@@ -6,7 +6,7 @@ import { getPostLikes, likePost, nativePostId, reportPost, readReplies, replyToP
 import { useAuthSession } from "@/hooks/useAuthSession";
 
 async function sharePost(post) {
-  const url = `${window.location.origin}/social#post-${encodeURIComponent(post.id)}`;
+  const url = `${window.location.origin}/social/post/${encodeURIComponent(post.id)}`;
   const data = { title: "Interplanetary Fund community update", text: post.body, url };
   if (navigator.share) {
     try { await navigator.share(data); return; }
