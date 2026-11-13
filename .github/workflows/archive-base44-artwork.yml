@@ -1,12 +1,8 @@
 name: Archive public Base44 artwork to repository
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  push:
-    branches:
-      - release/preview-integration-20261104
-    paths:
-      - scripts/archive_base44_artwork.py
-      - .github/workflows/archive-base44-artwork.yml
   workflow_dispatch:
+
 permissions:
   contents: write
 jobs:
