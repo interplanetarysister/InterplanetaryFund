@@ -16,6 +16,8 @@
 - Added `apps/web/tests/route-completion-increments.test.js` for route permissions and referenced backend contracts.
 - Added `/admin/sustainability` with verified-admin access, real public environmental-campaign data, and provider-verified fundraising totals; no invented carbon/impact outcomes. Browser and RLS acceptance still pending.
 - Restored the working Story/AI Team navigation entry, removed duplicate Institutions and retired founding-member navigation, and removed the unfinished AI Image Studio entry from active navigation. The `/ai-images` deep link remains tracked as unimplemented and still blocks preview.
+- Updated the bundled Help Center instructions to describe actual navigation, provider consent and saved-state checks without blanket unfinished-migration warnings; removed the homepage advertisement for an unsupported cryptocurrency payment action.
+- Environmental campaign summary now aggregates confirmed fundraising **only in integer cents**, with safe-integer overflow checks. Its isolated mathematical helper passed 13/13 representative amounts (including $1, $2.50, $3.33, $5, $10, $25) and malformed/overflow cases. These are **not** PayPal captures or a Node test-suite result.
 - Added `apps/web/ci/route-acceptance.json` with **77 route patterns** (74 explicit plus three mapped legacy placeholders), each initially `not_verified` or `not_implemented`, so no untested route is silently accepted.
 - Added `apps/web/ci/verify-route-readiness.mjs` as a fail-closed manual release preflight. The existing `workflow_dispatch` release workflow runs the source preflight **before** npm dependency installation/build/Cloudflare deployment. Automatic Git-connected builds must stay disabled.
 
