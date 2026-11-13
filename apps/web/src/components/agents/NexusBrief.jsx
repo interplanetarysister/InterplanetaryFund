@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { nexusCampaignPriorities } from "@/lib/nexusTriage.mjs";
+import NexusBriefSchedule from "@/components/agents/NexusBriefSchedule";
 
 /** Read-only NEXUS triage from verified member campaign aggregates. */
 export default function NexusBrief() {
@@ -52,5 +53,6 @@ export default function NexusBrief() {
             <p className="mt-1 text-sm text-muted-foreground">{item.why}</p>
             <Link to={"/campaigns/"+item.campaignId+"/edit"} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold underline">Review campaign</Link>
           </li>)}</ol>)}
+    <NexusBriefSchedule />
   </section>;
 }
