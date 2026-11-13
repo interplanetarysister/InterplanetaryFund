@@ -1,15 +1,8 @@
 name: Reporter blog migration checks
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "tests/reporter-blog.test.js"
-      - "supabase/migrations/*blog*"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/reporter-blog-checks.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
