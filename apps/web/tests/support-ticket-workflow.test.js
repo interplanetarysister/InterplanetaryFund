@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const migration = read("../../../supabase/migrations/20261113_ifund_member_support_ticket_workflow.sql");
+const emailGuard = read("../../../supabase/migrations/20261113_ifund_support_verified_email_guard.sql");
 const app = read("../src/App.jsx");
 const page = read("../src/pages/SupportTickets.jsx");
 const help = read("../src/pages/Help.jsx");
@@ -10,6 +11,9 @@ const contact = read("../src/pages/Contact.jsx");
 
 test("support tickets are owned and rate limited by server-verified identity", () => {
   assert.match(migration, /auth\.uid\(\)/);
+  assert.match(emailGuard, /u\.is_anonymous is false/);
+  assert.match(emailGuard, /u\.email_confirmed_at is not null/);
+  assert.match(emailGuard, /ifund_current_account_is_active\(\)/);
   assert.match(migration, /pg_advisory_xact_lock/);
   assert.match(migration, /t\.user_id=v_uid::text/);
   assert.match(migration, /interval '1 hour'/);
