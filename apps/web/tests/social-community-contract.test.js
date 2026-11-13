@@ -22,6 +22,8 @@ test("community actions require database-level lifecycle checks and private writ
   assert.match(sql, /ifund_my_social_draft\(\)/);
   assert.match(sql, /ifund_social_archive_reply\(/);
   assert.match(sql, /ifund_social_my_friends/);
+  const fixture = source("../../../tests/social-community-migration.test.js");
+  assert.match(fixture, /handle text/);
   assert.match(sql, /ifund_member_owns_active_campaign/);
   assert.match(sql, /ifund_social_archive_replies_read/);
   assert.match(sql, /Reply rate limit reached/);
