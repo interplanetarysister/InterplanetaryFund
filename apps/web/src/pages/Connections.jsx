@@ -216,7 +216,6 @@ export default function Connections() {
     const provider=CONNECTION_PLATFORMS.find(item=>OAUTH_PLATFORM_IDS[item.id]===row.provider || item.id===row.provider);
     return provider ? {provider,row}:null;
   }).filter(Boolean);
-  const oauthStepsVisible=canStart && !isLinked;
 
   return <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6 sm:py-10">
     <header className="flex flex-wrap items-start justify-between gap-4">
@@ -356,7 +355,7 @@ export default function Connections() {
       </div>}
 
       {selected.kind==="crowdfunding" && <div className="flex flex-wrap gap-3">
-        <Link to="/my-campaigns" className={BUTTON}><UsersRound size={16}/> Manage iFund campaigns</Link>
+        <Link to="/campaigns" className={BUTTON}><UsersRound size={16}/> Manage iFund campaigns</Link>
         <Link to="/discover" className={BUTTON}>Explore campaigns</Link>
       </div>}
       {notice && <p role="status" className="rounded-xl border border-emerald-500/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">{notice}</p>}
