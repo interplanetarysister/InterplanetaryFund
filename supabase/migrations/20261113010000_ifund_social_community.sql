@@ -436,3 +436,47 @@ revoke all on function public.ifund_social_archive_reply(text,text),
  public.ifund_social_archive_replies_read(text) from public,anon,authenticated;
 grant execute on function public.ifund_social_archive_reply(text,text) to authenticated;
 grant execute on function public.ifund_social_archive_replies_read(text) to anon,authenticated;
+
+
+-- Only the owner can access their unpublished social draft. This is not a
+-- scheduled publish queue, and no external provider receives the content.
+create table if not exists public.ifund_social_drafts (
+ owner_id uuid primary key references auth.users(id) on delete cascade,
+ body text not null check(length(trim(body)) between 1 and 2000),
+ updated_at timestamptz not null default now()
+);
+alter table public.ifund_social_drafts enable row level security;
+revoke all on public.ifund_social_drafts from public,anon,authenticated;
+
+create or replace function public.ifund_my_social_draft()
+returns text language sql stable security definer set search_path = '' as $ifund$
+ select d.body from public.ifund_social_drafts d
+ where d.owner_id=auth.uid() and public.ifund_social_member_ok()
+$ifund$;
+create or replace function public.ifund_save_my_social_draft(p_body text)
+returns boolean language plpgsql security definer set search_path = '' as $ifund$
+begin
+ if not public.ifund_social_member_ok() then
+  raise exception 'Verified active member required' using errcode='42501'; end if;
+ if length(trim(coalesce(p_body,''))) not between 1 and 2000 then
+  raise exception 'Draft length must be 1–2000 characters' using errcode='22023'; end if;
+ insert into public.ifund_social_drafts(owner_id,body)
+ values(auth.uid(),trim(p_body))
+ on conflict(owner_id) do update
+ set body=excluded.body,updated_at=now();
+ return true;
+end $ifund$;
+create or replace function public.ifund_clear_my_social_draft()
+returns boolean language plpgsql security definer set search_path = '' as $ifund$
+begin
+ if not public.ifund_social_member_ok() then
+  raise exception 'Verified active member required' using errcode='42501'; end if;
+ delete from public.ifund_social_drafts where owner_id=auth.uid();
+ return true;
+end $ifund$;
+revoke all on function public.ifund_my_social_draft(),
+ public.ifund_save_my_social_draft(text),
+ public.ifund_clear_my_social_draft() from public,anon,authenticated;
+grant execute on function public.ifund_my_social_draft(),
+ public.ifund_save_my_social_draft(text),
+ public.ifund_clear_my_social_draft() to authenticated;
