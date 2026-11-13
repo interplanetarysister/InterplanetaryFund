@@ -74,7 +74,7 @@ export default function PublicMemberProfile() {
       {profile.bio && <p className="whitespace-pre-wrap break-words">{profile.bio}</p>}
       {user && user.id !== id && <div className="flex flex-wrap gap-2">
         {friend === "none" && <button disabled={friendBusy} onClick={() => changeFriend("request")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Add friend</button>}
-        {friend === "sent" && <span className="text-sm text-muted-foreground">Friend request sent</span>}
+        {friend === "sent" && <><span className="self-center text-sm text-muted-foreground">Friend request sent</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Cancel request</button></>}
         {friend === "received" && <><button disabled={friendBusy} onClick={() => changeFriend("accept")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Accept friend request</button><button disabled={friendBusy} onClick={() => changeFriend("decline")} className="rounded-xl border px-4 py-3">Decline</button></>}
         {friend === "friends" && <><span className="self-center text-sm">Friends</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Remove friend</button></>}
       </div>}
