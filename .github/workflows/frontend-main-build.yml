@@ -1,23 +1,8 @@
 name: Frontend production build and tests
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "apps/web/**"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/frontend-main-build.yml"
-  push:
-    branches: [main]
-    paths:
-      - "src/**"
-      - "apps/web/**"
-      - "tests/**"
-      - "package.json"
-      - "package-lock.json"
-      - ".github/workflows/frontend-main-build.yml"
+  workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
