@@ -37,8 +37,8 @@ begin
    raise exception 'Review is not eligible for this specialist' using errcode='42501';
  end if;
  v_notes:=v_record.discussion;
- if exists(select 1 from pg_catalog.jsonb_array_elements(v_notes) as note
-           where note->>'operation_id'=p_operation_id::text) then
+ if exists(select 1 from pg_catalog.jsonb_array_elements(v_notes) as note(value)
+           where note.value->>'operation_id'=p_operation_id::text) then
    return false;
  end if;
  if pg_catalog.jsonb_array_length(v_notes)>=48 then
@@ -47,9 +47,9 @@ begin
  -- A critique or synthesis requires a prior independently recorded specialist
  -- turn; initial canned rules are NOT proof that a worker executed.
  select exists(
-   select 1 from pg_catalog.jsonb_array_elements(v_notes) as note
-   where note->>'kind' in ('agent_analysis','agent_critique')
-     and note->>'agent'<>p_agent
+   select 1 from pg_catalog.jsonb_array_elements(v_notes) as note(value)
+   where note.value->>'kind' in ('agent_analysis','agent_critique')
+     and note.value->>'agent'<>p_agent
  ) into v_has_prior;
  if p_kind in ('agent_critique','agent_synthesis') and not v_has_prior then
    raise exception 'Record a different specialist review before critique or synthesis'
