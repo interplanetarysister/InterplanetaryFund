@@ -247,11 +247,11 @@
     {
       "route": "/community/:id",
       "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "component": "CommunityDetail",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/CommunityDetail.jsx; src/api/communityGroups.js; src/components/community/CommunityDirectory.jsx; route registered in src/App.jsx, grouped directory on /community",
+      "behavior_evidence": "apps/web/tests/community-groups-contract.test.js: four passing source/negative-boundary tests on 2026-11-13; no claim of authenticated browser acceptance",
+      "backend_evidence": "Applied Supabase migrations ifund_member_communities_verified_membership and ifund_community_verified_email_gate to project ssibsfmtodgximseeqsv; verified RLS enabled, anon SELECT-only groups, no anon membership access or INSERT grants. Authenticated creation/join requires verified email, active profile and v4 legal acceptance.",
       "owner": "frontend"
     },
     {
