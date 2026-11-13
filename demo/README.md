@@ -2,6 +2,9 @@
 
 **Official rules:** https://paypalaihackathon.devpost.com/rules  
 **Judging demo:** https://ifund-hackathon-demo.interplanetary-fund.workers.dev/  
+**Google Pay sandbox checkout:** https://ifund-hackathon-demo.interplanetary-fund.workers.dev/api/google-pay  
+**Wallet prerequisites:** sign in to the isolated demo, choose a published fictional campaign, and use a browser/test wallet eligible for PayPal's Google Pay sandbox. If the wallet is ineligible, use the existing PayPal sandbox buyer flow. The standalone wallet page is linked from the judge guide and never uses production payment credentials. An authorized wallet flow is counted only after the sandbox PayPal capture and database receipt are verified. An eligible payment button or a passing synthetic test is **not** proof of a completed provider capture.  
+
 **Entry point:** https://ifund-demo-ai-check.interplanetary-fund.workers.dev/ (redirects to the canonical demo)
 
 This is a separate **fictional, sandbox-only** demo for PayPal AI Hackathon 2026. It does not process real donations or issue actual withdrawal privileges. It is independent from the production platform and does not use the Base44 runtime.
