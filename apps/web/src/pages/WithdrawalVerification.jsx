@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { payoutIdentity } from "@/lib/guestAccess";
@@ -23,6 +23,9 @@ function WithdrawalBalancePanel({ authUser }) {
   const [amounts,setAmounts]=useState({});
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
+  // Keep the original operation key across uncertain network responses. A fresh
+  // key on every retry could create a second, separately valid funds hold.
+  const pendingRequestKeys=useRef(new Map());
   const refresh=useCallback(async()=>{
     const client=authClient();
     const [balances,requests,readiness,destination]=await Promise.all([
@@ -74,13 +77,19 @@ function WithdrawalBalancePanel({ authUser }) {
     }
     setBusy(true);setError("");setNotice("");
     try{
-      const requestKey="wd-"+crypto.randomUUID().replace(/-/g,"");
+      const requestIdentity=`${item.campaign_id}|${gross}`;
+      let requestKey=pendingRequestKeys.current.get(requestIdentity);
+      if(!requestKey){
+        requestKey="wd-"+crypto.randomUUID().replace(/-/g,"");
+        pendingRequestKeys.current.set(requestIdentity,requestKey);
+      }
       const result=await authClient().rpc("ifund_request_withdrawal",{
         p_campaign_id:item.campaign_id,p_gross_cents:gross,p_request_key:requestKey
       });
       if(result.error||!result.data)throw Error(result.error?.message||"Withdrawal reservation was not confirmed.");
       setAmounts(v=>({...v,[item.campaign_id]:""}));
       await refresh();
+      pendingRequestKeys.current.delete(requestIdentity);
       setNotice("Withdrawal reserved for review. The 7% platform fee is calculated server-side; no payout has been sent yet.");
     }catch(cause){setError(cause.message||"Unable to reserve the withdrawal.");}
     finally{setBusy(false);}
