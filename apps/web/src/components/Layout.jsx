@@ -21,7 +21,7 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
   "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "Messages", "/agents": "AI Team",
+  "/discover": "Discover", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
@@ -69,11 +69,11 @@ const navSections = [
     label: "Community",
     items: [
       { to: "/social", label: "Social Feed", icon: Radio },
-      { to: "/community", label: "Community", icon: Users },
+      { to: "/community", label: "Public Discussions", icon: Users },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
       { to: "/institutions", label: "Institutions", icon: Building2 },
-      { to: "/communications", label: "Messages", icon: MessageSquare },
+      { to: "/communications", label: "ECHO Drafts", icon: MessageSquare },
       { to: "/inbox", label: "Inbox", icon: MailOpen },
     ],
   },
