@@ -22,6 +22,7 @@ import {
 } from "./core.ts";
 import { approvalUrl, paypal, paypalCardClientToken, reconcile, verifyWebhook } from "./paypal.ts";
 import { generate } from "./ai.ts";
+import { googlePayPage, googlePayScript } from "./googlepay-ui.js";
 import { judgeGuideHtml, judgeGuideCss, judgeGuideScript } from "./judge-embedded-guide.js";
 import {
   campaignInput,
@@ -36,6 +37,16 @@ export async function handle(
 ): Promise<Response> {
   const u = new URL(request.url),
     path = u.pathname;
+  if (request.method === "GET" && (path === "/google-pay" || path === "/google-pay.js")) {
+    if (u.origin !== env.DEMO_ORIGIN) return new Response("Invalid sandbox origin", {status:403});
+    const isScript = path.endsWith(".js");
+    return new Response(isScript ? googlePayScript : googlePayPage, {
+      headers: { "content-type": isScript ? "text/javascript; charset=utf-8" : "text/html; charset=utf-8",
+        "cache-control": "no-store", "x-content-type-options": "nosniff",
+        "content-security-policy": "default-src 'self'; script-src 'self' https://*.paypal.com https://*.paypalobjects.com https://pay.google.com https://*.google.com; connect-src 'self' https://*.paypal.com https://*.paypalobjects.com https://pay.google.com https://*.google.com; img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://pay.google.com; style-src 'self' 'unsafe-inline' https://*.paypal.com; frame-src 'self' https://*.paypal.com https://pay.google.com https://*.google.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+      }
+    });
+  }
   // The walkthrough is an entirely separate, read-only interface surrounding
   // the unchanged sandbox React app. Instructions occupy space outside the iframe,
   // so no step card can obscure or intercept highlighted demo controls.
@@ -45,7 +56,8 @@ export async function handle(
       : path === "/api/judge-guide.css" ? "text/css; charset=utf-8" : null;
     if (type) {
       const text = path.endsWith(".js") ? judgeGuideScript
-        : path.endsWith(".css") ? judgeGuideCss : judgeGuideHtml;
+        : path.endsWith(".css") ? judgeGuideCss
+        : judgeGuideHtml.replace("</body>", '<p><a href="/google-pay">Try Google Pay (sandbox-only test checkout)</a></p></body>');
       const headers: Record<string,string> = {
         "content-type": type, "cache-control": "no-store",
         "x-content-type-options": "nosniff", "referrer-policy": "same-origin",
@@ -107,6 +119,14 @@ export async function handle(
     if (path === "/api/paypal/webhook" && request.method === "POST")
       return await webhook(request, env, db);
     const user = await session(request, db);
+    if (path === "/api/google-pay/config" && request.method === "GET") {
+      requireUser(user);
+      demand(env.DEMO_ENABLED === "true", "Sandbox payments are disabled", 503);
+      const clientId = typeof env.PAYPAL_CLIENT_ID === "string"
+        ? env.PAYPAL_CLIENT_ID : await env.PAYPAL_CLIENT_ID?.get();
+      demand(clientId, "Sandbox Google Pay merchant is not configured", 503);
+      return json({environment:"sandbox",client_id:clientId},200,{"cache-control":"no-store"});
+    }
     if (path === "/api/session" && request.method === "GET")
       return json({ user });
     if (
@@ -540,7 +560,7 @@ export async function handle(
 async function createOrder(request: Request, env: DemoEnv, db: DB, user: User) {
   const input = await body(request);
   const method = input.checkout_method === undefined ? "paypal" : input.checkout_method;
-  demand(method === "paypal" || method === "card", "Invalid sandbox checkout method");
+  demand(["paypal", "card", "googlepay"].includes(method), "Invalid sandbox checkout method");
   demand(uuid(input.key), "A checkout idempotency key is required");
   demand(
     input.purpose === "campaign" || input.purpose === "platform_support",
