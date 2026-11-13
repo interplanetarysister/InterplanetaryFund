@@ -1,0 +1,82 @@
+name: Consecutive failure circuit breaker
+
+on:
+  workflow_run:
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Re-enable a workflow after its failure has been repaired
+        type: choice
+        options:
+          - enable
+        required: true
+      workflow_id:
+        description: Numeric GitHub Actions workflow ID to re-enable
+        required: true
+        type: string
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: workflow-failure-circuit-breaker
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Pause workflows after three consecutive failures
+        if: ${{ github.event_name == 'workflow_run' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          WORKFLOW_ID: ${{ github.event.workflow.id }}
+          WORKFLOW_NAME: ${{ github.event.workflow.name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Never let this safety controller disable itself.
+          if [[ "$WORKFLOW_NAME" == "Consecutive failure circuit breaker" ]]; then
+            echo "Skipping the circuit breaker itself."
+            exit 0
+          fi
+
+          echo "Checking the three newest runs for workflow $WORKFLOW_ID ($WORKFLOW_NAME)."
+          runs="$(gh api "repos/$GH_REPO/actions/workflows/$WORKFLOW_ID/runs?per_page=3")"
+          decision="$(jq -r '
+            [.workflow_runs[].conclusion] as $c
+            | if ($c | length) == 3
+              and all($c[]; . == "failure" or . == "timed_out" or . == "startup_failure" or . == "action_required")
+              then "pause"
+              else "keep"
+              end
+          ' <<< "$runs")"
+
+          if [[ "$decision" == "pause" ]]; then
+            gh api --method PUT "repos/$GH_REPO/actions/workflows/$WORKFLOW_ID/disable"
+            echo "::warning::Workflow '$WORKFLOW_NAME' ($WORKFLOW_ID) was disabled after three consecutive failed runs."
+            echo "Recovery: run this workflow manually with operation=enable and workflow_id=$WORKFLOW_ID after fixing the cause."
+          else
+            echo "No pause: the three newest runs are not all failures."
+          fi
+
+      - name: Re-enable a repaired workflow
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.operation == 'enable' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TARGET_WORKFLOW_ID: ${{ inputs.workflow_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_WORKFLOW_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::workflow_id must be a numeric GitHub Actions workflow ID."
+            exit 1
+          fi
+          gh api --method PUT "repos/$GH_REPO/actions/workflows/$TARGET_WORKFLOW_ID/enable"
+          echo "Workflow $TARGET_WORKFLOW_ID has been re-enabled."
