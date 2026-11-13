@@ -361,6 +361,19 @@ Deno.serve(async req=>{
       });
       return Response.json({ok:result===true||result?.[0]===true});
     }
+    if(body.op==="payout_submission_outcome"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")||!["failed","unknown"].includes(p.outcome)
+        ||(p.payout_batch_id!==null&&p.payout_batch_id!==undefined
+          &&(typeof p.payout_batch_id!=="string"||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id)))
+        ||typeof p.error_code!=="string"||p.error_code.length<1||p.error_code.length>120)
+        return fail("Invalid payout submission outcome");
+      const result=await db("rpc/ifund_internal_record_payout_submission_outcome","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id??null,
+        p_outcome:p.outcome,p_error_code:p.error_code
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
     if(body.op==="payout_lookup"){
       const p=body.data||{};
       if(!patternId.test(p.withdrawal_id||""))return fail("Invalid withdrawal reference");
