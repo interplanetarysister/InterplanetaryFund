@@ -85,6 +85,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/admin/sustainability",
+      "role": "admin",
+      "component": "AdminSustainability",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+data"
+    },
+    {
       "route": "/agents",
       "role": "member",
       "component": "AgentsTeam",
