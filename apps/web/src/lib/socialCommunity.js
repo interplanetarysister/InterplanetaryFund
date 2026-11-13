@@ -24,6 +24,8 @@ export async function getPostLikes(posts) {
 export async function reportPost(postId, explanation) {
   if (typeof explanation !== "string" || explanation.trim().length < 15 ||
       explanation.trim().length > 1500) throw new Error("Provide a reason of 15–1500 characters.");
+  if (typeof postId === "string" && postId.startsWith("archive-"))
+    return call("ifund_social_archive_report", { p_archive: postId.slice(8), p_reason: explanation.trim() });
   return call("ifund_social_report", { p_post: postId, p_reason: explanation.trim() });
 }
 export async function friendAction(memberId, action) {
@@ -43,9 +45,16 @@ export async function readReplies(postId) {
   return (await call("ifund_social_replies_read", { p_post: postId })) || [];
 }
 export async function moderationQueue() {
-  return (await call("ifund_social_moderation_queue", {})) || [];
+  const [current, archive] = await Promise.all([
+    call("ifund_social_moderation_queue", {}),
+    call("ifund_social_archive_queue", {}),
+  ]);
+  return [...(current || []).map(row => ({ ...row, archive: false })),
+          ...(archive || []).map(row => ({ ...row, archive: true }))]
+    .sort((a,b) => (a.status === "open" ? 0 : 1) - (b.status === "open" ? 0 : 1)
+      || new Date(b.created_at) - new Date(a.created_at));
 }
-export async function moderatePost(reportId, action) {
+export async function moderatePost(reportId, action, archive = false) {
   if (!["restore", "remove"].includes(action)) throw new Error("Invalid moderation action.");
-  return call("ifund_social_review", { p_report: reportId, p_action: action });
+  return call(archive ? "ifund_social_archive_review" : "ifund_social_review", { p_report: reportId, p_action: action });
 }
