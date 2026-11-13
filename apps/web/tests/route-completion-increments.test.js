@@ -53,3 +53,18 @@ test("planet reporting is restricted to administrators and counts verified publi
   assert.doesNotMatch(source, /\b(fetch|POST|INSERT|UPDATE|DELETE)\b\s*\(/i, "read-only reporting cannot mutate campaign records");
   assert.match(source, /No estimated carbon savings/, "no unsupported impact outcomes");
 });
+
+test("guest navigation exposes campaign drafting without bypassing account protections", () => {
+  const layout = readFileSync(new URL("../src/components/Layout.jsx", import.meta.url), "utf8");
+  const publicNav = layout.split("const publicNavItems = [")[1]?.split("];")[0];
+  assert.ok(publicNav, "public navigation must be declared");
+  assert.match(publicNav, /to: "\/create", label: "Create a campaign"/,
+    "guests need a visible entry to the browser-only campaign composer");
+  assert.ok(route("/create")?.includes("<CreateCampaign />"),
+    "public creator must remain available without a member route gate");
+  const composer = page("CreateCampaign");
+  assert.match(composer, /user\.is_anonymous === true \|\| !user\.email_confirmed_at/,
+    "cloud save and publishing must still require verified identity");
+  assert.match(composer, /rememberBrowserCampaign\(sessionStorage, null, form/,
+    "guest draft saves must remain browser-local");
+});
