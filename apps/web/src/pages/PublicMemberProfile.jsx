@@ -5,9 +5,28 @@ import { avatarUrl, getPublicProfile } from "@/lib/memberProfile";
 import { listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
 import { Image } from "@/components/ui/image";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { friendAction, friendStatus } from "@/lib/socialCommunity";
 
 export default function PublicMemberProfile() {
   const { id } = useParams();
+  const { user } = useAuthSession();
+  const [friend, setFriend] = useState("");
+  const [friendBusy, setFriendBusy] = useState(false);
+  const [friendError, setFriendError] = useState("");
+  useEffect(() => {
+    let active = true;
+    if (user && user.id !== id) friendStatus(id).then(status => { if(active) setFriend(status || "none"); }).catch(() => { if(active) setFriend("none"); });
+    return () => { active=false; };
+  }, [id,user?.id]);
+  async function changeFriend(action) {
+    setFriendBusy(true); setFriendError("");
+    try {
+      await friendAction(id, action);
+      setFriend(action === "request" ? "sent" : action === "accept" ? "friends" : "none");
+    } catch (cause) { setFriendError(cause.message); }
+    finally { setFriendBusy(false); }
+  }
   const [profile, setProfile] = useState(undefined);
   const [posts, setPosts] = useState([]);
   const [error, setError] = useState("");
@@ -53,6 +72,13 @@ export default function PublicMemberProfile() {
         </div>
       </div>
       {profile.bio && <p className="whitespace-pre-wrap break-words">{profile.bio}</p>}
+      {user && user.id !== id && <div className="flex flex-wrap gap-2">
+        {friend === "none" && <button disabled={friendBusy} onClick={() => changeFriend("request")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Add friend</button>}
+        {friend === "sent" && <span className="text-sm text-muted-foreground">Friend request sent</span>}
+        {friend === "received" && <><button disabled={friendBusy} onClick={() => changeFriend("accept")} className="rounded-xl bg-primary px-4 py-3 text-primary-foreground">Accept friend request</button><button disabled={friendBusy} onClick={() => changeFriend("decline")} className="rounded-xl border px-4 py-3">Decline</button></>}
+        {friend === "friends" && <><span className="self-center text-sm">Friends</span><button disabled={friendBusy} onClick={() => changeFriend("remove")} className="rounded-xl border px-4 py-3">Remove friend</button></>}
+      </div>}
+      {friendError && <p role="alert" className="text-sm text-destructive">{friendError}</p>}
     </header>
     {profile.campaigns.length > 0 && <section aria-labelledby="featured-campaigns" className="space-y-3">
       <h2 id="featured-campaigns" className="text-xl font-semibold">Featured campaigns</h2>
