@@ -37,7 +37,7 @@ export async function handle(
 ): Promise<Response> {
   const u = new URL(request.url),
     path = u.pathname;
-  if (request.method === "GET" && (path === "/google-pay" || path === "/google-pay.js")) {
+  if (request.method === "GET" && (path === "/api/google-pay" || path === "/api/google-pay.js")) {
     if (u.origin !== env.DEMO_ORIGIN) return new Response("Invalid sandbox origin", {status:403});
     const isScript = path.endsWith(".js");
     return new Response(isScript ? googlePayScript : googlePayPage, {
@@ -57,7 +57,7 @@ export async function handle(
     if (type) {
       const text = path.endsWith(".js") ? judgeGuideScript
         : path.endsWith(".css") ? judgeGuideCss
-        : judgeGuideHtml.replace("</body>", '<p><a href="/google-pay">Try Google Pay (sandbox-only test checkout)</a></p></body>');
+        : judgeGuideHtml.replace("</body>", '<p><a href="/api/google-pay">Try Google Pay (sandbox-only test checkout)</a></p></body>');
       const headers: Record<string,string> = {
         "content-type": type, "cache-control": "no-store",
         "x-content-type-options": "nosniff", "referrer-policy": "same-origin",
