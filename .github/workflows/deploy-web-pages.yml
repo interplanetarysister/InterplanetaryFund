@@ -75,8 +75,9 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_OAUTH_PROVIDERS: ${{ vars.VITE_SUPABASE_OAUTH_PROVIDERS }}
         run: |
+          set -euo pipefail
           npm ci --no-audit --no-fund
-          npm test
+          npm test 2>&1 | tee /tmp/ifund-release-tests.log
           npm run build
           test -f dist/_redirects || { echo "::error::dist/_redirects missing; deep links would 404"; exit 1; }
           test -f dist/_headers || { echo "::error::dist/_headers missing"; exit 1; }
@@ -88,6 +89,24 @@ jobs:
           find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/ifund-dist-files.sha256
           test -s /tmp/ifund-dist-files.sha256
           echo "One immutable compiled artifact created from $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "revision=$(git rev-parse HEAD)"
+            echo "environment=preview-before-production"
+            echo "tests=apps/web npm test"
+            echo "build=apps/web npm run build"
+            echo "artifact_sha256=$(sha256sum /tmp/ifund-dist-files.sha256 | cut -d' ' -f1)"
+          } > /tmp/ifund-release-evidence.txt
+
+      - name: Archive test output and artifact manifest (no extra build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifund-single-build-evidence
+          path: |
+            /tmp/ifund-release-tests.log
+            /tmp/ifund-dist-files.sha256
+            /tmp/ifund-release-evidence.txt
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Publish the single compiled artifact to preview
         id: preview
