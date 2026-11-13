@@ -14,6 +14,16 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  function focusImprovementField(findingId) {
+    const target = findingId === "title_repetition" ? "campaign-title"
+      : findingId === "summary_repeated" ? "campaign-summary" : "campaign-story";
+    const field = document.getElementById(target);
+    if (!field) { setError("The requested editor field is unavailable."); return; }
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+    field.focus({ preventScroll: true });
+    setError("");
+  }
+
   async function sendToAgents() {
     setError(""); setMessage("");
     if (!canSend || !campaignId) {
@@ -53,6 +63,7 @@ export default function PrepublicationGate({ form, campaignId, onApply, disabled
         : <ul className="space-y-2">{audit.findings.map(item=><li key={item.id} className="rounded-xl border border-border p-3 text-sm">
           <strong>{item.title}</strong> <span className="text-xs text-muted-foreground">· {item.agent.toUpperCase()}</span>
           <p className="mt-1 text-muted-foreground">{item.advice}</p>
+          <button type="button" disabled={disabled} onClick={() => focusImprovementField(item.id)} className="mt-2 inline-flex min-h-11 items-center text-primary underline disabled:opacity-50">Go to suggested field</button>
         </li>)}</ul>}
     </div>
     {punctuation.changed && <div className="space-y-2">
