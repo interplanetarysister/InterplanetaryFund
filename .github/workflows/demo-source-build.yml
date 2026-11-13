@@ -1,14 +1,8 @@
 name: PayPal AI Demo - Source Rebuild
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'demo/worker/**/*.ts'
-      - 'demo/src/**/*.ts'
-      - 'demo/package.json'
-      - 'demo/scripts/*test.mjs'
-      - 'demo/tsconfig.json'
-      - '.github/workflows/demo-source-build.yml'
+
 permissions:
   contents: read
 jobs:
