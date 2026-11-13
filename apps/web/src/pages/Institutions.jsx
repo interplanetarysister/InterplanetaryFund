@@ -42,7 +42,7 @@ function SourceCard({source,campaign}) {
 function OpportunityCard({opportunity,campaign}) {
   const relevance=matchOpportunity(opportunity,campaign);
   const matching=campaign && relevance.score>0;
-  const isOpen=opportunity.status==="open";
+  const isOpen=opportunity.status==="open" && (!opportunity.deadline_date || opportunity.deadline_date >= new Date().toISOString().slice(0,10));
   return <article className="rounded-2xl border border-emerald-500/30 bg-card p-5 shadow-sm">
     <div className="flex flex-wrap items-center gap-2">
       <span className="rounded-full bg-cyan-600 px-3 py-1 text-xs font-semibold text-white">{opportunity.type==="grant"?"Grant":opportunity.type==="volunteer"?"Volunteering":"Business"}</span>
