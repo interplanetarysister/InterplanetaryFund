@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
 
 const TEMPLATES = {
   share: "I'm sharing a campaign that's important to me. Please read the details and consider sharing it with someone who may want to help.",
@@ -96,6 +97,7 @@ export default function CommunicationsWorkspace() {
         <textarea className="mt-2 min-h-48 w-full rounded-lg border border-border bg-background p-3" maxLength={4000}
           value={message} onChange={e=>setMessage(e.target.value)} />
       </label>
+      <EchoSavedTemplates message={message} onApply={setMessage}/>
       <button type="button" onClick={copy} disabled={!message.trim()}
         className="min-h-11 rounded-lg border border-border px-4 py-2 font-semibold disabled:opacity-50">Copy for manual sharing</button>
       {status&&<p role="status" className="text-sm text-muted-foreground">{status}</p>}
