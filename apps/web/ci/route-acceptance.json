@@ -88,11 +88,11 @@
       "route": "/admin/integrations",
       "role": "admin",
       "component": "AdminConnections",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
-      "owner": "frontend+backend"
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/AdminConnections.jsx; apps/web/src/lib/connectionCatalog.mjs; explicit role-guarded App.jsx route",
+      "behavior_evidence": "apps/web/tests/admin-connections-route.test.js checks AdminAccess, admin-only configuration names and non-secret diagnostics; no provider grants claimed",
+      "backend_evidence": "/api/oauth/status authenticates member session; admin page additionally gated by verified useAdminAccess/MemberAccess and AdminAccess. No OAuth provider success or secret exposure certified.",
+      "owner": "connections"
     },
     {
       "route": "/admin/social-moderation",
@@ -136,13 +136,13 @@
     },
     {
       "route": "/ai-images",
-      "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
+      "role": "member",
+      "component": "AIImageStudio",
+      "source_status": "not_verified",
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend+ai+database"
     },
     {
       "route": "/analytics",
@@ -257,11 +257,11 @@
     {
       "route": "/community/:id",
       "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "component": "CommunityDetail",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/CommunityDetail.jsx; src/api/communityGroups.js; src/components/community/CommunityDirectory.jsx; route registered in src/App.jsx, grouped directory on /community",
+      "behavior_evidence": "apps/web/tests/community-groups-contract.test.js: four passing source/negative-boundary tests on 2026-11-13; no claim of authenticated browser acceptance",
+      "backend_evidence": "Applied Supabase migrations ifund_member_communities_verified_membership and ifund_community_verified_email_gate to project ssibsfmtodgximseeqsv; verified RLS enabled, anon SELECT-only groups, no anon membership access or INSERT grants. Authenticated creation/join requires verified email, active profile and v4 legal acceptance.",
       "owner": "frontend"
     },
     {
@@ -597,11 +597,11 @@
     {
       "route": "/oauth/consent",
       "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "component": "LegacyAuthorizationNotice",
+      "source_status": "not_verified",
+      "source_evidence": "apps/web/src/pages/LegacyAuthorizationNotice.jsx; explicit retired-route render in apps/web/src/App.jsx",
+      "behavior_evidence": "apps/web/tests/legacy-oauth-consent-retirement.test.js added; test execution on merged main remains pending",
+      "backend_evidence": "No client consent, token grant or opaque redirect; route is an informational notice only.",
       "owner": "frontend"
     },
     {

@@ -88,6 +88,7 @@ jobs:
           set -euo pipefail
           find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/ifund-dist-files.sha256
           test -s /tmp/ifund-dist-files.sha256
+          sha256sum --check /tmp/ifund-dist-files.sha256
           echo "One immutable compiled artifact created from $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
           {
             echo "revision=$(git rev-parse HEAD)"

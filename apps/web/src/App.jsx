@@ -45,12 +45,12 @@ const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const Connections = lazy(() => import("./pages/Connections"));
-const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
-const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const LegacyAuthorizationNotice = lazy(() => import("./pages/LegacyAuthorizationNotice"));
+const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const Inbox = lazy(() => import("./pages/Inbox"));
@@ -76,11 +76,13 @@ const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
+const AdminConnections = lazy(() => import("./pages/AdminConnections"));
+const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
-const STANDALONE_COMING_SOON = ["/oauth/consent"];
-const LAYOUT_COMING_SOON = ["/community/:id", "/ai-images"];
+const STANDALONE_COMING_SOON = [];
+const LAYOUT_COMING_SOON = [];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -109,7 +111,7 @@ function AppRoutes() {
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
-    {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+    <Route path="/oauth/consent" element={<LegacyAuthorizationNotice />} />
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/globe" element={<Atlas />} />
@@ -118,6 +120,7 @@ function AppRoutes() {
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
       <Route path="/mission" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/ai-images" element={<MemberAccess><AIImageStudio /></MemberAccess>} />
       <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
       <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
       <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
@@ -137,15 +140,16 @@ function AppRoutes() {
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
-      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
       <Route path="/social/post/:id" element={<SocialPostPage />} />
       <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
+      <Route path="/community/:id" element={<CommunityDetail />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
       <Route path="/campaigns/:id/edit" element={<MemberAccess><EditCampaign /></MemberAccess>} />
@@ -167,7 +171,7 @@ function AppRoutes() {
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
       <Route path="/admin/*" element={<PageNotFound />} />
-      {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+
     </Route>
     <Route path="*" element={<PageNotFound />} />
   </Routes>{(["/", "/about", "/terms", "/privacy", "/health-privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;

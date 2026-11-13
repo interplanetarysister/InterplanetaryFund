@@ -82,6 +82,7 @@ const navSections = [
     items: [
       { to: "/agents", label: "AI Team", icon: Bot },
       { to: "/mission", label: "Mission Control", icon: Sparkles },
+      { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
     ],
   },
   {

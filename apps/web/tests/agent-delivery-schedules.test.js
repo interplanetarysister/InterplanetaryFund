@@ -45,7 +45,7 @@ test("One manual release compiles once and archives tests plus bundle integrity 
  assert.match(release,/ifund-single-build-evidence/);
  assert.match(release,/sha256sum --check/);
  assert.match(release,/branch=preview/);
- assert.match(release,/branch=main/);
+ assert.doesNotMatch(release,/branch=main/);
  assert.match(rollback,/confirm:/);
  assert.match(rollback,/successful production deployment/);
  assert.doesNotMatch(rollback,/\n  push:/);

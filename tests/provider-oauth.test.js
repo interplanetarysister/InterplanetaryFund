@@ -76,7 +76,7 @@ test('OAuth vault migration records token expiry, key version, and private audit
 });
 
 test('provider registry contains only providers with implemented OAuth profile verification', () => {
-  assert.deepEqual(oauthProviders, ['google', 'youtube', 'linkedin', 'x', 'tiktok', 'facebook_pages', 'instagram']);
+  assert.deepEqual(oauthProviders, ['google', 'youtube', 'linkedin', 'discord', 'github', 'twitch', 'slack', 'patreon', 'eventbrite', 'pinterest', 'reddit', 'x', 'tiktok', 'facebook_pages', 'instagram']);
 });
 test('encryption envelope round-trips without exposing plaintext', async () => {
   const envelope = await encryptOAuthValue({ access_token: 'do-not-leak' }, env);
@@ -165,6 +165,14 @@ test('provider status exposes readiness booleans only and respects provider appr
     google: true,
     youtube: true,
     linkedin: false,
+    discord: false,
+    github: false,
+    twitch: false,
+    slack: false,
+    patreon: false,
+    eventbrite: false,
+    pinterest: false,
+    reddit: false,
     x: false,
     tiktok: true,
     facebook_pages: true,
@@ -770,6 +778,6 @@ test('enabled Connections reports provider availability before credentials are i
   const data = await result.json();
   assert.equal(data.enabled, true);
   assert.equal(data.storage_ready, false);
-  assert.equal(Object.keys(data.providers).length, 7);
+  assert.equal(Object.keys(data.providers).length, 15);
   assert.ok(Object.values(data.providers).every(value => value === false));
 });

@@ -26,6 +26,73 @@ const PROVIDERS = Object.freeze({
     scopes: ['openid', 'profile', 'email', 'w_member_social'], tokenAuth: 'body', pkce: false,
     subject: (data) => data.sub,
   },
+
+  // Identity grants are not publishing authorization. Separate review is required.
+  discord: {
+    clientId: 'DISCORD_OAUTH_CLIENT_ID', clientSecret: 'DISCORD_OAUTH_CLIENT_SECRET',
+    authorize: 'https://discord.com/oauth2/authorize',
+    token: 'https://discord.com/api/v10/oauth2/token',
+    profile: 'https://discord.com/api/v10/users/@me',
+    scopes: ['identify'], tokenAuth: 'body', pkce: false,
+    subject: (data) => data.id,
+  },
+  github: {
+    clientId: 'GITHUB_OAUTH_CLIENT_ID', clientSecret: 'GITHUB_OAUTH_CLIENT_SECRET',
+    authorize: 'https://github.com/login/oauth/authorize',
+    token: 'https://github.com/login/oauth/access_token',
+    profile: 'https://api.github.com/user',
+    scopes: ['read:user'], tokenAuth: 'body', pkce: false,
+    subject: (data) => data.id,
+  },
+  twitch: {
+    clientId: 'TWITCH_OAUTH_CLIENT_ID', clientSecret: 'TWITCH_OAUTH_CLIENT_SECRET',
+    authorize: 'https://id.twitch.tv/oauth2/authorize',
+    token: 'https://id.twitch.tv/oauth2/token',
+    profile: 'https://api.twitch.tv/helix/users',
+    scopes: ['user:read:email'], tokenAuth: 'body', pkce: false, profileClientId: true,
+    subject: (data) => data.data?.[0]?.id,
+  },
+  slack: {
+    clientId: 'SLACK_OAUTH_CLIENT_ID', clientSecret: 'SLACK_OAUTH_CLIENT_SECRET',
+    authorize: 'https://slack.com/openid/connect/authorize',
+    token: 'https://slack.com/api/openid.connect.token',
+    profile: 'https://slack.com/api/openid.connect.userInfo',
+    scopes: ['openid', 'profile'], tokenAuth: 'body', pkce: false, requireOk: true,
+    subject: (data) => data.sub,
+  },
+  patreon: {
+    clientId: 'PATREON_OAUTH_CLIENT_ID', clientSecret: 'PATREON_OAUTH_CLIENT_SECRET',
+    authorize: 'https://www.patreon.com/oauth2/authorize',
+    token: 'https://www.patreon.com/api/oauth2/token',
+    profile: 'https://www.patreon.com/api/oauth2/v2/identity',
+    scopes: ['identity'], tokenAuth: 'body', pkce: false,
+    subject: (data) => data.data?.id,
+  },
+  eventbrite: {
+    clientId: 'EVENTBRITE_OAUTH_CLIENT_ID', clientSecret: 'EVENTBRITE_OAUTH_CLIENT_SECRET',
+    authorize: 'https://www.eventbrite.com/oauth/authorize',
+    token: 'https://www.eventbrite.com/oauth/token',
+    profile: 'https://www.eventbriteapi.com/v3/users/me/',
+    scopes: [], tokenAuth: 'body', pkce: false, allowMissingTokenType: true,
+    subject: (data) => data.id,
+  },
+  pinterest: {
+    clientId: 'PINTEREST_OAUTH_CLIENT_ID', clientSecret: 'PINTEREST_OAUTH_CLIENT_SECRET',
+    authorize: 'https://www.pinterest.com/oauth/',
+    token: 'https://api.pinterest.com/v5/oauth/token',
+    profile: 'https://api.pinterest.com/v5/user_account',
+    scopes: ['user_accounts:read'], tokenAuth: 'basic', pkce: false, scopeDelimiter: ',',
+    subject: (data) => data.id,
+  },
+  reddit: {
+    clientId: 'REDDIT_OAUTH_CLIENT_ID', clientSecret: 'REDDIT_OAUTH_CLIENT_SECRET',
+    authorize: 'https://www.reddit.com/api/v1/authorize',
+    token: 'https://www.reddit.com/api/v1/access_token',
+    profile: 'https://oauth.reddit.com/api/v1/me',
+    scopes: ['identity'], tokenAuth: 'basic', pkce: false,
+    authorizeParams: { duration: 'permanent' }, useRedditUserAgent: true,
+    subject: (data) => data.id,
+  },
   x: {
     clientId: 'X_OAUTH_CLIENT_ID', clientSecret: 'X_OAUTH_CLIENT_SECRET',
     authorize: 'https://x.com/i/oauth2/authorize',
@@ -231,6 +298,14 @@ function providerConfig(provider, env) {
     tiktok: 'TIKTOK_LOGIN_ENABLED',
     facebook_pages: 'META_PAGES_APPROVED',
     instagram: 'INSTAGRAM_BUSINESS_APPROVED',
+    discord: 'DISCORD_OAUTH_ENABLED',
+    github: 'GITHUB_OAUTH_ENABLED',
+    twitch: 'TWITCH_OAUTH_ENABLED',
+    slack: 'SLACK_OAUTH_ENABLED',
+    patreon: 'PATREON_OAUTH_ENABLED',
+    eventbrite: 'EVENTBRITE_OAUTH_ENABLED',
+    pinterest: 'PINTEREST_TRIAL_APPROVED',
+    reddit: 'REDDIT_COMMERCIAL_APPROVED',
   };
   const approvalFlag = approvalFlags[provider];
   if (approvalFlag && env[approvalFlag] !== 'true') return null;
@@ -312,6 +387,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
   if (config.pkce) form.set('code_verifier', verifier);
 
   const headers = { accept: 'application/json' };
+  if (config.useRedditUserAgent) headers['user-agent'] = 'web:interplanetaryfund.connections:1.0 (contact: support@interplanetaryfund.com)';
   let endpoint = config.token;
   let options;
   if (config.tokenMethod === 'GET') {
@@ -332,6 +408,7 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
 
   const res = await fetcher(endpoint, options);
   const token = await limitedJson(res);
+  if (config.requireOk && token.ok !== true) throw new Error('OAuth provider rejected the exchange.');
   if (typeof token.access_token !== 'string' || !token.access_token ||
       (!config.allowMissingTokenType && token.token_type?.toLowerCase() !== 'bearer') ||
       (token.token_type && token.token_type.toLowerCase() !== 'bearer')) {
@@ -359,10 +436,15 @@ async function exchangeCode(provider, config, code, verifier, redirectUri, fetch
 }
 async function fetchIdentity(config, token, fetcher) {
   const res = await fetcher(config.profile, {
-    headers: { authorization: 'Bearer ' + token.access_token, accept: 'application/json' },
+    headers: {
+      authorization: 'Bearer ' + token.access_token, accept: 'application/json',
+      ...(config.profileClientId ? { 'Client-Id': config.clientId } : {}),
+      ...(config.useRedditUserAgent ? { 'user-agent': 'web:interplanetaryfund.connections:1.0 (contact: support@interplanetaryfund.com)' } : {}),
+    },
     redirect: 'manual', signal: AbortSignal.timeout(10000),
   });
   const data = await limitedJson(res);
+  if (config.requireOk && data.ok !== true) throw new Error('OAuth provider identity was rejected.');
   const subject = config.subject(data);
   if (typeof subject !== 'string' && typeof subject !== 'number') {
     throw new Error('OAuth provider identity could not be verified.');
@@ -447,6 +529,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
   }
 
   const headers = { accept: 'application/json' };
+  if (config.useRedditUserAgent) headers['user-agent'] = 'web:interplanetaryfund.connections:1.0 (contact: support@interplanetaryfund.com)';
   let endpoint = config.token;
   let options;
   if (provider === 'facebook_pages' || config.tokenMethod === 'GET') {
@@ -470,6 +553,7 @@ async function refreshProviderToken(provider, config, previous, fetcher) {
 
   const res = await fetcher(endpoint, options);
   const refreshed = await limitedJson(res);
+  if (config.requireOk && refreshed.ok !== true) throw new Error('OAuth provider rejected the token refresh.');
   if (typeof refreshed.access_token !== 'string' || !refreshed.access_token ||
       (!config.allowMissingTokenType && refreshed.token_type?.toLowerCase() !== 'bearer') ||
       (refreshed.token_type && refreshed.token_type.toLowerCase() !== 'bearer')) {
@@ -503,9 +587,22 @@ async function refreshConnection(provider, account, config, env, fetcher) {
   if (!previous || typeof previous.access_token !== 'string') {
     return response(409, { error: 'The provider connection needs to be reconnected.' });
   }
+  // Identity-check-only fallback for OAuth grants without refresh tokens.
   if (provider !== 'facebook_pages' && provider !== 'instagram' &&
       typeof previous.refresh_token !== 'string') {
-    return response(409, { error: 'The provider connection needs to be reconnected.' });
+    // Preserve the legacy seven-provider reconnect requirement. Only the
+    // new identity-only integrations may reverify a non-refreshable token.
+    if (!['discord','github','twitch','slack','patreon','eventbrite','pinterest','reddit'].includes(provider)) {
+      return response(409, { error: 'The provider connection needs to be reconnected.' });
+    }
+    if (previous.expires_at && Date.parse(previous.expires_at) <= Date.now()) {
+      return response(409, { error: 'The provider connection needs to be reconnected.' });
+    }
+    const identity = await fetchIdentity(config, previous, fetcher);
+    if (identity.subject !== rows[0].provider_subject) {
+      return response(409, { error: 'The provider connection needs to be reconnected.' });
+    }
+    return response(200, { provider, status: 'connected', refreshed: false, verified: true });
   }
 
   const refreshed = await refreshProviderToken(provider, config, previous, fetcher);
@@ -660,6 +757,8 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
         response_type: 'code', client_id: config.clientId, redirect_uri: redirectUri,
         scope: config.scopes.join(config.scopeDelimiter || ' '), state,
       }).toString();
+      if (!config.scopes.length) authorize.searchParams.delete('scope');
+      for (const [key, value] of Object.entries(config.authorizeParams || {})) authorize.searchParams.set(key, value);
       if (config.pkce) {
         authorize.searchParams.set('code_challenge', challenge);
         authorize.searchParams.set('code_challenge_method', 'S256');

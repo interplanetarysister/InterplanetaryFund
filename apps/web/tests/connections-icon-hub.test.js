@@ -7,11 +7,11 @@ import { validatePublicConnectionLink } from "../src/lib/connectionLinkValidatio
 const page=readFileSync(new URL("../src/pages/Connections.jsx",import.meta.url),"utf8");
 
 test("the Base44 reference destinations appear in the independent, icon-first catalog",()=>{
-  assert.equal(CONNECTION_PLATFORMS.length,47);
-  assert.equal(new Set(CONNECTION_PLATFORMS.map(item=>item.id)).size,47);
+  assert.equal(CONNECTION_PLATFORMS.length,49);
+  assert.equal(new Set(CONNECTION_PLATFORMS.map(item=>item.id)).size,49);
   for (const kind of ["crowdfunding","social","app"]) assert.ok(CONNECTION_PLATFORMS.some(item=>item.kind===kind));
-  for (const name of ["gofundme","kickstarter","bluesky","facebook","youtube","gmail","dropbox","google"]) assert.ok(selectedConnectionPlatform(name));
-  assert.deepEqual(Object.keys(OAUTH_PLATFORM_IDS).sort(),["facebook","google","instagram","linkedin","tiktok","x","youtube"]);
+  for (const name of ["gofundme","kickstarter","bluesky","facebook","youtube","gmail","dropbox","google","telegram","twitch"]) assert.ok(selectedConnectionPlatform(name));
+  assert.deepEqual(Object.keys(OAUTH_PLATFORM_IDS).sort(),["discord","eventbrite","facebook","github","google","instagram","linkedin","patreon","pinterest","reddit","slack","tiktok","twitch","x","youtube"]);
   assert.match(page,/aria-label="Platform icons"/);
   assert.match(page,/aria-pressed={active}/);
   assert.match(page,/id="connection-details"/);

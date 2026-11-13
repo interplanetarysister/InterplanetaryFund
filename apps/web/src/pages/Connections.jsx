@@ -17,7 +17,10 @@ const ICON_OVERRIDES = { wordpress_com: "wordpress", google_contacts: "googlecon
 const TRUSTED_LOGIN_HOSTS = {
   facebook_pages: ["facebook.com"], instagram: ["instagram.com"],
   youtube: ["accounts.google.com"], google: ["accounts.google.com"],
-  linkedin: ["linkedin.com"], tiktok: ["tiktok.com"], x: ["x.com", "twitter.com"]
+  linkedin: ["linkedin.com"], tiktok: ["tiktok.com"], x: ["x.com", "twitter.com"],
+  discord: ["discord.com"], github: ["github.com"], twitch: ["twitch.tv"],
+  slack: ["slack.com"], patreon: ["patreon.com"], eventbrite: ["eventbrite.com"],
+  pinterest: ["pinterest.com"], reddit: ["reddit.com"]
 };
 const SHARING_CHOICES = [
   {value:"manual",label:"I'll share it myself"},
