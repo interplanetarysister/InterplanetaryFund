@@ -415,3 +415,91 @@ body {
 .ifund-drawer .ifund-sidebar-nav {
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
+
+
+/* Cosmic Geometry — shared presentation only; no payment or semantic-status overrides.
+   Fine-line SVGs are decorative backgrounds, not interactive or content-bearing artwork. */
+.ifund-shell [data-page-scroll] {
+  background-image:
+    radial-gradient(ellipse 64rem 48rem at 90% 5%, rgb(117 124 242 / .095), transparent 75%),
+    radial-gradient(ellipse 55rem 44rem at 6% 83%, rgb(46 194 217 / .065), transparent 73%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22800%22%20viewBox%3D%220%200%20800%20800%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234de0ed%22%2F%3E%3Cstop%20offset%3D%22.25%22%20stop-color%3D%22%236e92ff%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23bb83f7%22%2F%3E%3Cstop%20offset%3D%22.75%22%20stop-color%3D%22%23f68bc2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e9d079%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20stroke%3D%22url(%23s)%22%20stroke-width%3D%22.8%22%20fill%3D%22none%22%20opacity%3D%22.28%22%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22250%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22256%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22544%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Cpolygon%20points%3D%22400%2C112%20649.4%2C256%20649.4%2C544%20400%2C688%20150.6%2C544%20150.6%2C256%22%2F%3E%3Cpolygon%20points%3D%22400%2C172%20597.5%2C514%20202.5%2C514%22%2F%3E%3Cpolygon%20points%3D%22400%2C628%20202.5%2C286%20597.5%2C286%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-size: auto, auto, min(64vw, 760px) min(64vw, 760px);
+  background-position: center, center, calc(100% + 235px) -250px;
+  background-repeat: no-repeat;
+  background-attachment: local;
+}
+.dark .ifund-shell [data-page-scroll] {
+  background-image:
+    radial-gradient(ellipse 70rem 47rem at 90% 0%, rgb(114 80 205 / .14), transparent 75%),
+    radial-gradient(ellipse 50rem 40rem at 0% 75%, rgb(47 194 218 / .07), transparent 74%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22800%22%20viewBox%3D%220%200%20800%20800%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234de0ed%22%2F%3E%3Cstop%20offset%3D%22.25%22%20stop-color%3D%22%236e92ff%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23bb83f7%22%2F%3E%3Cstop%20offset%3D%22.75%22%20stop-color%3D%22%23f68bc2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e9d079%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20stroke%3D%22url(%23s)%22%20stroke-width%3D%22.8%22%20fill%3D%22none%22%20opacity%3D%22.28%22%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22250%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22256%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22544%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Cpolygon%20points%3D%22400%2C112%20649.4%2C256%20649.4%2C544%20400%2C688%20150.6%2C544%20150.6%2C256%22%2F%3E%3Cpolygon%20points%3D%22400%2C172%20597.5%2C514%20202.5%2C514%22%2F%3E%3Cpolygon%20points%3D%22400%2C628%20202.5%2C286%20597.5%2C286%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+.ifund-public:not(.ifund-auth) {
+  background-image:
+    radial-gradient(ellipse 60rem 40rem at 75% 0%, rgb(102 137 235 / .10), transparent 75%),
+    url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22800%22%20height%3D%22800%22%20viewBox%3D%220%200%20800%20800%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%234de0ed%22%2F%3E%3Cstop%20offset%3D%22.25%22%20stop-color%3D%22%236e92ff%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23bb83f7%22%2F%3E%3Cstop%20offset%3D%22.75%22%20stop-color%3D%22%23f68bc2%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e9d079%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cg%20stroke%3D%22url(%23s)%22%20stroke-width%3D%22.8%22%20fill%3D%22none%22%20opacity%3D%22.28%22%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22250%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22400%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22256%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22400%22%20cy%3D%22544%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22328%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22275.3%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Ccircle%20cx%3D%22524.7%22%20cy%3D%22472%22%20r%3D%22144%22%2F%3E%3Cpolygon%20points%3D%22400%2C112%20649.4%2C256%20649.4%2C544%20400%2C688%20150.6%2C544%20150.6%2C256%22%2F%3E%3Cpolygon%20points%3D%22400%2C172%20597.5%2C514%20202.5%2C514%22%2F%3E%3Cpolygon%20points%3D%22400%2C628%20202.5%2C286%20597.5%2C286%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-size: auto, min(85vw, 860px) min(85vw, 860px);
+  background-position: center, right -250px top -330px;
+  background-repeat: no-repeat;
+}
+.ifund-sidebar {
+  background-image:
+    radial-gradient(ellipse 22rem 18rem at -15% -5%, rgb(160 128 242 / .16), transparent 78%),
+    linear-gradient(165deg, #fafbff, #edf3fc) !important;
+}
+.dark .ifund-sidebar {
+  background-image:
+    radial-gradient(ellipse 25rem 25rem at -20% 0%, rgb(108 80 215 / .19), transparent 77%),
+    linear-gradient(165deg, #111d35, #10172b 75%, #111e34) !important;
+}
+/* A visible yet discreet rail allows mouse, touch, pen and keyboard scrolling. */
+.ifund-sidebar-nav {
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(115 111 189 / .5) transparent;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.ifund-sidebar-nav::-webkit-scrollbar { width: 7px; }
+.ifund-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.ifund-sidebar-nav::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgb(115 111 189 / .42);
+}
+.ifund-sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgb(102 93 198 / .75); }
+.ifund-sidebar .ifund-nav-link {
+  min-height: 44px;
+  border: 1px solid transparent;
+  transition: background-color 170ms ease, border-color 170ms ease, color 170ms ease;
+}
+.ifund-sidebar .ifund-nav-link:focus-visible {
+  outline: 2px solid #6f9cf1;
+  outline-offset: -2px;
+}
+.ifund-sidebar .ifund-nav-section-title {
+  letter-spacing: .13em;
+}
+.ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  border-color: rgb(125 99 220 / .25);
+}
+.dark .ifund-sidebar .ifund-nav-link[aria-current="page"] {
+  border-color: rgb(125 221 244 / .28);
+}
+/* Fit the mobile drawer without a horizontal drag or clipped labels. */
+@media (max-width: 767px) {
+  .ifund-drawer .ifund-sidebar-nav { inline-size: 100%; }
+  .ifund-shell [data-page-scroll] {
+    background-size: auto, auto, 620px 620px;
+    background-position: center, center, right -310px top -160px;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .ifund-sidebar, .dark .ifund-sidebar { backdrop-filter: none; }
+}
+@media print {
+  .ifund-shell [data-page-scroll], .ifund-public:not(.ifund-auth) { background-image: none !important; }
+}
