@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadOwnerCampaign, saveOwnerCampaign, setCampaignStatus, isCampaignConflict } from "@/api/ownerCampaigns";
 import {
@@ -28,6 +28,7 @@ export default function EditCampaign() {
   const { user } = useAuthSession();
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const alive = useRef(true);
   const lock = useRef(false);
   const [form, setForm] = useState(emptyCampaignForm);
@@ -70,6 +71,17 @@ export default function EditCampaign() {
     load();
     return () => { alive.current = false; };
   }, [load]);
+
+  // Strategy and review cards deep-link to the exact editor field.
+  useEffect(() => {
+    if (phase !== "ready") return;
+    const targetId = location.hash.slice(1);
+    if (!["campaign-title", "campaign-summary", "campaign-story", "campaign-goal"].includes(targetId)) return;
+    const field = document.getElementById(targetId);
+    if (!field) return;
+    field.scrollIntoView({ behavior: "smooth", block: "center" });
+    field.focus({ preventScroll: true });
+  }, [phase, location.hash]);
 
   const change = (key, value) => setForm((current) => ({ ...current, [key]: value }));
   const disabled = busy || handoffBusy || phase !== "ready";
