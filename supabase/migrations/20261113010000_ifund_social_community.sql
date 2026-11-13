@@ -395,7 +395,7 @@ alter table public.ifund_social_archive_replies enable row level security;
 revoke all on public.ifund_social_archive_replies from public,anon,authenticated;
 
 create or replace function public.ifund_social_archive_reply(p_archive text,p_body text)
-returns uuid language plpgsql security definer set search_path = '' as $
+returns uuid language plpgsql security definer set search_path = '' as $ifund$
 declare v_id uuid;
 begin
  if not public.ifund_social_member_ok() then
@@ -413,11 +413,11 @@ begin
  insert into public.ifund_social_archive_replies(archive_id,author_id,body)
  values(p_archive,auth.uid(),trim(p_body)) returning id into v_id;
  return v_id;
-end $;
+end $ifund$;
 
 create or replace function public.ifund_social_archive_replies_read(p_archive text)
 returns table(id uuid,body text,created_at timestamptz,display_name text,profile_id uuid)
-language sql stable security definer set search_path = '' as $
+language sql stable security definer set search_path = '' as $ifund$
  select r.id,r.body,r.created_at,
  case when p.public_profile_enabled and p.account_status='active'
    and not p.account_deletion_pending then p.display_name end,
@@ -431,7 +431,7 @@ language sql stable security definer set search_path = '' as $
  and not exists(select 1 from public.ifund_social_archive_reports x
    where x.archive_id=r.archive_id and x.status in ('open','removed'))
  order by r.created_at asc limit 100
-$;
+$ifund$;
 revoke all on function public.ifund_social_archive_reply(text,text),
  public.ifund_social_archive_replies_read(text) from public,anon,authenticated;
 grant execute on function public.ifund_social_archive_reply(text,text) to authenticated;
