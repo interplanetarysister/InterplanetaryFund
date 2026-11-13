@@ -46,6 +46,7 @@ export default function BlogArticle(){
    <div className="border-t border-stone-200 my-6"/>
    <CampaignEmbeddedText body={entry.body} campaigns={campaigns}/>
    <div className="border-t border-stone-200 mt-8 pt-4 flex flex-wrap items-center gap-3">
+    <Link to={`/social?shareStory=${encodeURIComponent(entry.id)}`} className="inline-flex min-h-11 items-center rounded-xl bg-cyan-700 px-4 py-2 text-sm text-white">Discuss this story on Social Feed</Link>
     <button type="button" className="inline-flex items-center rounded-xl border px-4 py-2 text-sm"
       onClick={async()=>{
        try{await navigator.clipboard.writeText(window.location.href);setCopied(true);}
