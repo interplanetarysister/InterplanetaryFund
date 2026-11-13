@@ -126,13 +126,13 @@
     },
     {
       "route": "/ai-images",
-      "role": "public",
-      "component": "ComingSoon",
-      "source_status": "not_implemented",
+      "role": "member",
+      "component": "AIImageStudio",
+      "source_status": "not_verified",
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
+      "owner": "frontend+ai+database"
     },
     {
       "route": "/analytics",
