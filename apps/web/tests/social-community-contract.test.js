@@ -35,6 +35,11 @@ test("feed and campaign links expose report, friendship, story and draft UI", ()
   assert.match(list, /reportPost\(/);
   assert.match(list, /replyToPost\(/);
   assert.match(list, /likePost\(/);
+  assert.match(list, /safeExternalUrl/);
+  assert.match(list, /url\.protocol === "https:"/);
+  assert.match(list, /readReplies\(discussionId\)/);
+  assert.match(feed, /saveServerSocialDraft/);
+  assert.match(feed, /clearServerSocialDraft/);
   assert.match(feed, /localStorage\.setItem\(draftKey/);
   assert.match(feed, /shareDraftExternally/);
   assert.match(profile, /friendAction\(/);
