@@ -22,7 +22,9 @@ export async function uploadCampaignCover(client, file, { fetcher = fetch } = {}
     throw new Error("Your account changed. Please reopen this campaign before choosing an image.");
   const url = new URL(String(payload.url || ""), window.location.origin);
   if (url.origin !== window.location.origin ||
-      !/^\/api\/media\/campaign\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/i.test(url.pathname))
+      url.username || url.password || url.search || url.hash ||
+      !/^\/api\/media\/campaign\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpg|webp|gif)$/i.test(url.pathname) ||
+      url.pathname.split("/")[4].toLowerCase() !== owner.toLowerCase())
     throw new Error("The upload did not return a verified image link.");
   return url.href;
 }
