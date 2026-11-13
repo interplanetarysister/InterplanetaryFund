@@ -15,7 +15,7 @@ const base={
 };
 
 test("minimum 3,500 full-story characters block new publishing without blocking drafts",()=>{
- const short={...base,story:"Useful details.".repeat(249)};
+ const short={...base,story:"Useful details.".repeat(200)};
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
  assert.equal(publishReadiness(short).ready,false);
  const long={...short,story:"Useful details.".repeat(250)};
