@@ -17,10 +17,10 @@ test("ECHO may only notify followed campaigns when recipients separately opted i
  assert.match(sql,/v_previous_body<>btrim\(p_body\)/);
  assert.match(sql,/revoke all on public\.ifund_echo_inapp_deliveries from public,anon,authenticated/);
  assert.match(sql,/revoke all on function public\.ifund_echo_send_opted_in_update\(uuid,text,uuid\) from public,anon/);
- assert.match(ui,/approved&&?\!ready|\!approved\|\|\!ready/);
+ assert.match(ui,/!ready\|\|!approved\|\|busy/);
  assert.match(ui,/rpc\("ifund_echo_send_opted_in_update"/);
  assert.match(ui,/No email or social message is sent/);
- assert.match(ui,/not a provider-verified/);
+ assert.match(ui,/Email\/social delivery was not attempted/);
 });
 test("NEXUS briefs are owner opt-in, service-only, and scheduler activation is not implicit",()=>{
  const sql=read("../../../supabase/migrations/20261113_ifund_nexus_scheduled_briefs.sql");
