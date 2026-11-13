@@ -68,3 +68,15 @@ export async function moderatePost(reportId, action, archive = false) {
   if (!["restore", "remove"].includes(action)) throw new Error("Invalid moderation action.");
   return call(archive ? "ifund_social_archive_review" : "ifund_social_review", { p_report: reportId, p_action: action });
 }
+
+export async function loadServerSocialDraft() {
+  return (await call("ifund_my_social_draft", {})) || "";
+}
+export async function saveServerSocialDraft(body) {
+  if (typeof body !== "string" || !body.trim() || body.trim().length > 2000)
+    throw new Error("Draft must be 1–2000 characters.");
+  return call("ifund_save_my_social_draft", { p_body: body.trim() });
+}
+export async function clearServerSocialDraft() {
+  return call("ifund_clear_my_social_draft", {});
+}
