@@ -1,6 +1,7 @@
 import "@/styles-sacred-social.css";
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { getCampaignDetail } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
@@ -9,6 +10,8 @@ import SocialPostList from "@/components/SocialPostList";
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
+  const [params] = useSearchParams();
+  const campaignToShare = params.get("shareCampaign");
   const [hasMore, setHasMore] = useState(false);
   const { user, status } = useAuthSession();
   const [canPost, setCanPost] = useState(false);
@@ -49,6 +52,18 @@ export default function SocialFeedPage({ community = false }) {
     if (!draftKey) { setBody(""); return; }
     try { setBody(localStorage.getItem(draftKey) || ""); } catch { setBody(""); }
   }, [draftKey]);
+
+  useEffect(() => {
+    const id = campaignToShare;
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return;
+    let active = true;
+    getCampaignDetail(id).then(campaign => {
+      if (!active || !campaign) return;
+      const url = `${window.location.origin}/campaign/${encodeURIComponent(campaign.id)}`;
+      setBody(previous => previous || `Support ${campaign.title} on Interplanetary Fund!\n${url}`.slice(0, MAX_POST_LENGTH));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [campaignToShare]);
 
   function saveDraft() {
     if (!draftKey) return;
