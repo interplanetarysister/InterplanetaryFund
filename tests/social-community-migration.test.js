@@ -146,4 +146,9 @@ test("community migration creates permissioned native/archive discussions and mo
   assert.equal((await query("select public.ifund_social_friend($1,'accept') state",[reporter]))[0].state,"accepted");
   await who(reporter);
   assert.equal((await query("select public.ifund_social_friend_status($1) state",[owner]))[0].state,"friends");
+  await who(reporter,"anon");
+  await assert.rejects(
+    query("select public.ifund_social_like($1,true)",[native]),
+    /permission denied/
+  );
 });
