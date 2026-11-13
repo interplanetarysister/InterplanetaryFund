@@ -66,6 +66,8 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_store_provider_connection_v2",
   "public.ifund_store_provider_connection_v3",
   "public.ifund_disconnect_provider",
+  // Atomic, authenticated and rate-capped free image quota from the separately tested pending migration.
+  "public.ifund_ai_image_consume_free_quota",
   // Existing privileged mutations discovered by the repository-wide definer scan.
   // Each is an exact function name, never a wildcard migration exemption.
   // The separate test below must independently prove explicit PUBLIC revocation;
