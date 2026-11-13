@@ -56,6 +56,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
   const [rotation, setRotation] = useState(-25);
   const [selected, setSelected] = useState(null);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [showMarkers, setShowMarkers] = useState(true);
   useEffect(() => {
     if (!autoRotate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const timer = window.setInterval(() => setRotation(previous => ((previous + 0.6 + 540) % 360) - 180), 90);
@@ -64,10 +65,10 @@ export default function CampaignGlobe({ campaigns = [] }) {
   const dragging = useRef(null);
   const grid = useMemo(() => graticule(rotation), [rotation]);
   const landmarks = useMemo(() => LAND.map((shape) => line(shape, rotation)), [rotation]);
-  const markers = useMemo(() => campaigns.filter(c => c.map_opt_in === true && c.latitude !== null && c.longitude !== null && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude))).map((campaign) => ({
+  const markers = useMemo(() => (showMarkers ? campaigns : []).filter(c => c.map_opt_in === true && c.latitude !== null && c.longitude !== null && Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude))).map((campaign) => ({
     campaign,
     point: project(campaign.latitude, campaign.longitude, rotation),
-  })).filter((marker) => marker.point.front), [campaigns, rotation]);
+  })).filter((marker) => marker.point.front), [campaigns, rotation, showMarkers]);
   const rotate = (delta) => { setAutoRotate(false);
     setRotation((previous) => ((previous + delta + 540) % 360) - 180);
   };
@@ -92,6 +93,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
           <button className="secondary" onClick={() => rotate(-30)} aria-label="Rotate globe west"><ArrowLeft size={18}/></button>
           <button className="secondary" onClick={() => rotate(30)} aria-label="Rotate globe east"><ArrowRight size={18}/></button>
           <button className="secondary" onClick={() => { setRotation(-25); setSelected(null); setAutoRotate(true); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
+          <button className="secondary" onClick={() => setShowMarkers(value => !value)} aria-pressed={showMarkers}>{showMarkers ? "Hide pins" : "Show pins"}</button>
           <button className="secondary" onClick={() => setAutoRotate(value => !value)} aria-pressed={autoRotate} aria-label={autoRotate ? "Pause globe rotation" : "Resume globe rotation"}>{autoRotate ? "Pause orbit" : "Resume orbit"}</button>
         </div>
       </header>
@@ -129,8 +131,10 @@ export default function CampaignGlobe({ campaigns = [] }) {
             <article className="globe-selected">
               <p className="eyebrow">Selected fundraiser · live</p>
               <h3>{selected.title}</h3>
+              {selected.summary && <p className="globe-summary">{selected.summary}</p>}
+              <p>{String(selected.category || "Community campaign").replace(/_/g, " ")}</p>
               <p>{selected.location} · Approximate public location</p>
-              <Link className="button small" to={"/campaign/"+selected.id}>Open campaign and charts</Link>
+              <Link className="button small" to={"/campaign/"+encodeURIComponent(selected.id)}>View campaign</Link>
             </article>
           )}
           {!selected && <p className="meta">Select a glowing pin to inspect a campaign.</p>}
