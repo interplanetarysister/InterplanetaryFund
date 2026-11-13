@@ -14,7 +14,7 @@
 
 ## Pre-build development and release batching
 
-Agents add implementation, source/security review evidence, test cases, API/SQL/RLS checks, API contract changes, migration preflight, and regression notes to the canonical repository. Avoid duplicate solutions and overlapping agent changes. Source review, unit tests and repairs should precede release builds. Build/deploy only when a coherent group of changes is ready; a commit by itself is not a reason to trigger CI. Explicit owner BUILD permission is no longer required.
+Agents add implementation, source/security review evidence, test cases, API/SQL/RLS checks, API contract changes, migration preflight, and regression notes to the canonical repository. Avoid duplicate solutions and overlapping agent changes. Source review, unit tests and repairs should precede release builds. Build/deploy only when a coherent group of changes is ready; a commit by itself is not a reason to trigger CI. The LATEST owner instruction restores the explicit BUILD requirement. Until it is received, stack source changes and tests without starting a Pages or Worker build.
 
 Record for each work item: canonical commit/path, user behavior, affected Workers/Pages endpoints, DB migrations (applied vs pending), negative auth/ownership cases, data preservation, provider approvals, test additions, what has actually been executed, and unresolved blockers. Do not mislabel code inspection as runtime acceptance. A clean repository commit is not proof a deployment passed.
 
@@ -24,9 +24,9 @@ Record for each work item: canonical commit/path, user behavior, affected Worker
 - [ ] Reconcile overlapping agent commits, fixtures and unresolved tests **before** building.
 - [ ] Check any Supabase migrations were deliberately reviewed/applied, and verify financial/owner boundaries.
 - [ ] Reconcile Cloudflare Worker source against deployed versions; Pages only publishes the frontend and Pages Functions, not all Worker services.
-- [ ] Run a single manual release workflow once per coherent release batch, without asking for an additional BUILD command. Run `apps/web` tests and compile once at the pinned SHA.
+- [ ] Only after the owner explicitly says **BUILD**, run the single manual release workflow once for the consolidated immutable SHA, test and compile `apps/web` once.
 - [ ] Upload the **same** checked artifact to preview, smoke-test the preview and critical routes.
-- [ ] When preview, regression, data and payment safety gates pass, promote the **same artifact** to Pages production without requiring a second generic permission command. A blocked, unsafe or unverified release must not be promoted. Preview and production have separate Cloudflare deployment records but share the exact compiled files.
+- [ ] Only after explicit **production/go-live** authorization, and after preview, regression, data and payment safety checks pass, promote the **same artifact**. Preview and production use separate deployment records, but the bundle is compiled once.
 - [ ] Confirm production SHA/URL and inspect auth, RLS, upload, media, checkout, donation capture ledger, withdrawal gates, user sessions and mobile UI. Preserve rollback target.
 - [ ] Keep Git-connected automatic deployment disabled afterwards.
 
@@ -36,7 +36,7 @@ This manual Pages release does not automatically deploy the PayPal payment Worke
 
 ## Execution authority and cost-control fallback
 
-**Owner authorization (2026-11-12):** Build and deployment requests no longer need a separate express BUILD or production approval. Existing tasks may independently run tests and consolidated previews, then promote to production after successful evidence-based verification, without extra confirmation.
+**Latest owner authorization (2026-11-13):** Build/deploy is on hold until the owner explicitly says BUILD; production promotion requires additional explicit approval. Any older broader deployment permission is superseded. Scheduled agents may continue code review and source improvements without deploying.
 
 **Minimize builds:** Prefer source analysis, SQL preflight and targeted local tests; batch related fixes, check for an already-running or passing build at the same SHA, use one release coordinator to avoid concurrent builds, and reuse the identical compiled artifact for preview and production. Cloudflare Pages `build_config.build_caching=true` is enabled; Git-driven deployments remain disabled to prevent one build per commit. GitHub workflows remain manually dispatched and Cloudflare auto-deploy stays off by default to prevent per-commit build charges.
 
@@ -55,3 +55,12 @@ This manual Pages release does not automatically deploy the PayPal payment Worke
 - Prepublication owner edit screens include field-level navigation; NEXUS trends use only verified 7/30-day capture counts.
 - Root PGlite release suite now covers both Social Feed and new-publication grandfathering. Production build must pass both and the `apps/web` regression suite before publication.
 - Keep existing production deployment `58527559-a278-4cc7-ae48-9b2d88c9ede7` for rollback; restore Git-based automatic builds to disabled after this single release trigger.
+
+## Owner-directed prepublication/agent improvement batch — source only
+
+- The existing database 3,500-character new-publication trigger is verified. New stricter whitespace handling is staged in `20261113_ifund_prepublication_whitespace_alignment.sql`; not applied in this batch.
+- Campaign-wide punctuation and redundancy review now covers title, summary and full story with reversible proposals, and can queue ALL finding IDs in bounded batches after verifying the draft is saved.
+- New private editorial categories and owner feedback thread are staged in `20261113_ifund_editorial_campaignwide_discussions.sql`; independently verified AI peer discussion is **not** operational.
+- NEXUS prioritizes unresolved editorial work; POLARIS adds field-linked guidance; ECHO source stages recorded/read receipt statistics. Do not treat read counts as proof of a message reply.
+- LINK's single-provider selection was changed on main; **reconcile** the independently prepared larger `feature/connections-icon-hub-20261112` reference branch before any promotion, including its 46-provider coverage and OAuth safety checks.
+- Test sources added; they have **not** been executed in this no-build turn. Use the cumulative release workflow only when owner authorizes one build.
