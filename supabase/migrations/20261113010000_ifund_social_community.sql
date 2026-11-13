@@ -174,6 +174,72 @@ language sql stable security definer set search_path = '' as $$
 $$;
 
 -- Replace existing feed projection to suppress reported/removed posts.
+
+-- Imported, already-public Base44 archive posts need the same report pathway.
+-- Keep the archive itself immutable; these records only control visibility.
+create table if not exists public.ifund_social_archive_reports (
+ id uuid primary key default gen_random_uuid(),
+ archive_id text not null,
+ reporter_id uuid not null references auth.users(id) on delete cascade,
+ reason text not null check(length(trim(reason)) between 15 and 1500),
+ status text not null default 'open' check(status in ('open','restored','removed')),
+ created_at timestamptz not null default now(),
+ reviewed_at timestamptz,
+ reviewed_by uuid references auth.users(id),
+ unique(archive_id,reporter_id)
+);
+alter table public.ifund_social_archive_reports enable row level security;
+revoke all on public.ifund_social_archive_reports from public,anon,authenticated;
+create index if not exists ifund_archive_reports_open_idx
+ on public.ifund_social_archive_reports(status,created_at desc);
+create or replace function public.ifund_social_archive_report(p_archive text,p_reason text)
+returns boolean language plpgsql security definer set search_path = '' as $
+begin
+ if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
+ if length(trim(coalesce(p_reason,''))) not between 15 and 1500 then raise exception 'Explanation must be 15–1500 characters' using errcode='22023'; end if;
+ if p_archive is null or length(p_archive)>128 or not exists(
+  select 1 from public.ifund_social_post p where p.id=p_archive
+    and p.source_system='base44_public_social_archive')
+ then raise exception 'Archive post unavailable' using errcode='22023'; end if;
+ if exists(select 1 from (
+  select created_at from public.ifund_social_reports where reporter_id=auth.uid()
+  union all select created_at from public.ifund_social_archive_reports where reporter_id=auth.uid()
+ ) x where created_at>now()-interval '1 minute')
+ then raise exception 'Please wait before reporting another post' using errcode='22023'; end if;
+ insert into public.ifund_social_archive_reports(archive_id,reporter_id,reason)
+ values(p_archive,auth.uid(),trim(p_reason));
+ return true;
+exception when unique_violation then raise exception 'You already reported this post' using errcode='23505';
+end $;
+create or replace function public.ifund_social_archive_queue()
+returns table(id uuid,post_id text,body text,reason text,created_at timestamptz,status text)
+language sql stable security definer set search_path = '' as $
+ select r.id,r.archive_id,p.content,r.reason,r.created_at,r.status
+ from public.ifund_social_archive_reports r join public.ifund_social_post p on p.id=r.archive_id
+ where public.ifund_current_user_is_verified_super_admin()
+ order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
+$;
+create or replace function public.ifund_social_archive_review(p_report uuid,p_action text)
+returns boolean language plpgsql security definer set search_path = '' as $
+declare v_archive text;
+begin
+ if not public.ifund_current_user_is_verified_super_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
+ if p_action not in ('restore','remove') then raise exception 'Invalid decision' using errcode='22023'; end if;
+ select archive_id into v_archive from public.ifund_social_archive_reports
+ where id=p_report and status='open' for update;
+ if v_archive is null then raise exception 'Report already resolved' using errcode='22023'; end if;
+ update public.ifund_social_archive_reports
+ set status=case when p_action='restore' then 'restored' else 'removed' end,
+ reviewed_at=now(),reviewed_by=auth.uid()
+ where archive_id=v_archive and status='open';
+ return true;
+end $;
+revoke all on function public.ifund_social_archive_report(text,text),
+ public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text)
+ from public,anon,authenticated;
+grant execute on function public.ifund_social_archive_report(text,text),
+ public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text) to authenticated;
+
 create or replace function public.ifund_public_social_feed(
  p_before timestamptz default null,p_before_id text default null,p_author uuid default null)
 returns table(id text,body text,posted_at timestamptz,display_name text,
@@ -196,6 +262,8 @@ language sql stable security definer set search_path = '' as $$
  s.author_name,null::uuid,s.source_platform,s.external_url,s.media_url
  from public.ifund_social_post s
  where p_author is null and s.source_system='base44_public_social_archive'
+ and not exists(select 1 from public.ifund_social_archive_reports r
+  where r.archive_id=s.id and r.status in ('open','removed'))
  )
  select f.id,f.body,f.posted_at,f.display_name,f.profile_id,
  f.source_platform,f.external_url,f.media_url from feed f
