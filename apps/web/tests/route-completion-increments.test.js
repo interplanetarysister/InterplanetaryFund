@@ -40,3 +40,15 @@ test("working aliases retain existing permission and financial boundaries", () =
   assert.match(page("AnalyticsCenter"), /CampaignEngagement/, "analytics must retain owner-scoped engagement");
   assert.match(page("AnalyticsCenter"), /Atlas/, "public map must enforce location opt-ins");
 });
+
+test("planet reporting is restricted to administrators and counts verified public campaigns", () => {
+  const entry = route("/admin/sustainability");
+  assert.ok(entry?.includes("<MemberAccess><AdminAccess><AdminSustainability"),
+    "environment reporting must use verified administrator access");
+  const source = page("AdminSustainability");
+  assert.match(source, /listActiveCampaigns\(\{ limit: 500 \}\)/);
+  assert.match(source, /row\.category === "environment"/);
+  assert.match(source, /validMoney\(c\.raised_amount\)/);
+  assert.doesNotMatch(source, /\b(fetch|POST|INSERT|UPDATE|DELETE)\b\s*\(/i, "read-only reporting cannot mutate campaign records");
+  assert.match(source, /No estimated carbon savings/, "no unsupported impact outcomes");
+});
