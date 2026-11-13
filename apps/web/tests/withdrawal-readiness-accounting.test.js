@@ -71,3 +71,11 @@ test("live donations never implicitly enable PayPal payout execution",()=>{
   assert.match(gate,/payout_execution_disabled/);
   assert.ok(gate.indexOf('IFUND_PAYOUT_EXECUTION_ENABLED')<gate.indexOf('executePayout(request,env)'));
 });
+
+test("all payout submission paths independently fail closed when payouts are disabled",()=>{
+  assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)\s*return asJson\(\{ok:false,error:"payout_execution_disabled"\},503,cors\)/);
+  assert.match(worker,/async function retryApprovedPayout\(env,withdrawalId\)/);
+  assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)return \{ok:false,status:"PAYOUT_EXECUTION_DISABLED"\}/);
+  assert.match(worker,/if\(path==="/api\/payments\/payouts\/reconcile"&&request\.method==="POST"\)\{\s*if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)/);
+  assert.match(worker,/if\(payout\.payout_batch_id\)return await reconcilePayoutBatch/);
+});
