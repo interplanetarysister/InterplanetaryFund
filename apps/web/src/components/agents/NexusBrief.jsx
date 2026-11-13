@@ -12,25 +12,30 @@ export default function NexusBrief() {
     let active=true;
     setState({phase:"loading",actions:[],campaignCount:null,editorialCount:null,error:""});
     const client=authClient();
-    Promise.allSettled([
-      client.rpc("ifund_owner_campaign_engagement"),
-      client.rpc("ifund_my_editorial_agent_reviews"),
-      client.rpc("ifund_owner_growth_trends"),
-    ]).then(([campaignResult,editorialResult,growthResult])=>{
-      if (!active) return;
+    (async()=>{
+      const before=await client.auth.getUser();
+      const owner=before?.data?.user?.id;
+      if(before?.error||!owner)throw Error("Sign in to review your campaign priorities.");
+      const [campaignResult,editorialResult,growthResult]=await Promise.allSettled([
+        client.rpc("ifund_owner_campaign_engagement"),
+        client.rpc("ifund_my_editorial_agent_reviews"),
+        client.rpc("ifund_owner_growth_trends"),
+      ]);
+      const after=await client.auth.getUser();
+      if(!active)return;
+      if(after?.error||after?.data?.user?.id!==owner)
+        throw Error("Account changed during the review. Reload the agent workspace.");
       if(campaignResult.status!=="fulfilled")throw Error("Owner campaign status could not be verified.");
       const {data,error}=campaignResult.value;
-      if (error || !Array.isArray(data)) throw Error("Owner campaign status could not be verified.");
-      const growth = growthResult.status === "fulfilled" && !growthResult.value.error && Array.isArray(growthResult.value.data)
-        ? growthResult.value.data : null;
-      const editorialRows=editorialResult.status==="fulfilled" && !editorialResult.value.error &&
-        Array.isArray(editorialResult.value.data) ? editorialResult.value.data : null;
-      const actions=nexusCampaignPriorities(data,growth || [],editorialRows);
-      const editorial=editorialResult.status==="fulfilled"&&
-        !editorialResult.value.error&&Array.isArray(editorialResult.value.data)
-        ? editorialResult.value.data.filter(row=>row.review_status!=="acknowledged").length : null;
-      setState({phase:"ready",actions:actions||[],campaignCount:data.length,editorialCount:editorial,trendVerified:growth !== null,error:""});
-    }).catch(e=>{if(active)setState({phase:"error",actions:[],campaignCount:null,editorialCount:null,error:e.message||"Unavailable"});});
+      if(error||!Array.isArray(data))throw Error("Owner campaign status could not be verified.");
+      const growth=growthResult.status==="fulfilled"&&!growthResult.value.error&&Array.isArray(growthResult.value.data)
+        ? growthResult.value.data:null;
+      const editorialRows=editorialResult.status==="fulfilled"&&!editorialResult.value.error&&Array.isArray(editorialResult.value.data)
+        ? editorialResult.value.data:null;
+      const actions=nexusCampaignPriorities(data,growth||[],editorialRows);
+      const editorial=editorialRows===null?null:editorialRows.filter(row=>row.review_status!=="acknowledged").length;
+      setState({phase:"ready",actions:actions||[],campaignCount:data.length,editorialCount:editorial,trendVerified:growth!==null,error:""});
+    })().catch(e=>{if(active)setState({phase:"error",actions:[],campaignCount:null,editorialCount:null,error:e.message||"Unavailable"});});
     return ()=>{active=false};
   },[refresh]);
   return <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="NEXUS mission brief">
