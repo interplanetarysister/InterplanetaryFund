@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { CheckCircle2, ChevronRight, Link2, Loader2, RefreshCw, Search, ShieldCheck, Unplug, UsersRound } from "lucide-react";
+import CampaignShareConnections from "@/components/connections/CampaignShareConnections";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -218,6 +219,11 @@ export default function Connections() {
     return provider ? {provider,row}:null;
   }).filter(Boolean);
 
+  const activity = [
+    ...knownConnections.map(({provider,row})=>({id:"verified-"+row.id,created_at:row.verified_at,text:provider.name+" was securely connected."})),
+    ...links.map(row=>({id:"public-"+row.provider,created_at:row.updated_at,text:(selectedConnectionPlatform(row.provider)?.name||"A platform")+" public page was saved or updated."}))
+  ].filter(item=>item.created_at).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
+
   return <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6 sm:py-10">
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div className="space-y-2">
@@ -374,6 +380,14 @@ export default function Connections() {
       </details>}
     </section>
 
+    <CampaignShareConnections campaigns={campaigns}/>
+    <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Your connection activity">
+      <h2 className="text-xl font-semibold">Recent connection activity</h2>
+      {activity.length===0 ? <p className="text-sm text-muted-foreground">Your connected accounts and saved pages will appear here after you add them.</p> :
+      <ol className="space-y-3">{activity.map(item=><li key={item.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2 text-sm">
+        <span>{item.text}</span><time className="text-xs text-muted-foreground" dateTime={item.created_at}>{new Date(item.created_at).toLocaleDateString()}</time>
+      </li>)}</ol>}
+    </section>
     {recordError && <div role="alert" className="rounded-xl border border-amber-500/30 p-4 text-sm">{recordError}</div>}
     {loading && <div role="status" className="flex items-center gap-2 text-sm"><Loader2 size={16} className="animate-spin"/>Updating your connections…</div>}
     {sessionStatus==="signed-out" && <div className="rounded-2xl border border-border p-4 text-sm">
