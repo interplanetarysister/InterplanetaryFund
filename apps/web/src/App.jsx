@@ -68,20 +68,15 @@ const MarketingPreferences = lazy(() => import("./pages/MarketingPreferences"));
 const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
 const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
+const MemberOnboarding = lazy(() => import("./pages/MemberOnboarding"));
+const Devices = lazy(() => import("./pages/Devices"));
+const OperationsHub = lazy(() => import("./pages/OperationsHub"));
+const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 
-// Pages from the Base44 app that are not ported yet. Their links stay in the
-// navigation and land on a branded "Coming soon" page instead of breaking.
-const STANDALONE_COMING_SOON = [
-  "/onboarding",
-  "/oauth/consent", "/activate",
-];
-const LAYOUT_COMING_SOON = [
-  "/community/:id",
-  "/mission", "/ai-images",
-  "/devices",
-  "/donors",
-  "/ops", "/platform", "/analytics", "/connect", "/admin/*",
-];
+// These two legacy routes still need independent, authorized backend parity.
+// A release gate prevents preview publication while either is a placeholder.
+const STANDALONE_COMING_SOON = ["/oauth/consent"];
+const LAYOUT_COMING_SOON = ["/community/:id", "/ai-images"];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
 
@@ -104,6 +99,8 @@ function AppRoutes() {
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/onboarding" element={<MemberAccess><MemberOnboarding /></MemberAccess>} />
+    <Route path="/activate" element={<Navigate to="/login" replace />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
@@ -116,6 +113,13 @@ function AppRoutes() {
       <Route path="/institutions/:id" element={<Institutions />} />
       <Route path="/atlas" element={<Navigate to="/globe" replace />} />
       <Route path="/agents" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/mission" element={<MemberAccess><AgentsTeam /></MemberAccess>} />
+      <Route path="/devices" element={<MemberAccess><Devices /></MemberAccess>} />
+      <Route path="/ops" element={<MemberAccess><SuperAdminAccess><OperationsHub /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/platform" element={<MemberAccess><SuperAdminAccess><OperationsHub platform /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/analytics" element={<MemberAccess><AnalyticsCenter /></MemberAccess>} />
+      <Route path="/donors" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
+      <Route path="/connect" element={<Navigate to="/connections" replace />} />
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/finances" element={<MemberAccess><FinanceDashboard /></MemberAccess>} />
       <Route path="/ledger" element={<Navigate to="/finances#campaign-finances" replace />} />
@@ -154,6 +158,7 @@ function AppRoutes() {
       <Route path="/campaign/:id" element={<CampaignDetail />} />
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
+      <Route path="/admin/*" element={<PageNotFound />} />
       {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
     </Route>
     <Route path="*" element={<PageNotFound />} />
