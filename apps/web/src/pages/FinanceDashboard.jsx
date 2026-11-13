@@ -44,7 +44,7 @@ export default function FinanceDashboard() {
     return () => { active = false; };
   }, []);
   const totalRaised = sumVerifiedCents(state.owned, "raised_cents");
-  const totalGiven = state.donated.filter(x=>x.receipt_status==="captured").reduce((sum,x)=>sum+(Number(x.amount_cents)||0),0);
+  const totalGiven = sumVerifiedCents(state.donated.filter(x=>x.receipt_status==="captured"), "amount_cents");
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
       <h1 className="text-3xl font-bold">Financial center</h1>
