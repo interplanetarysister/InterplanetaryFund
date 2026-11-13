@@ -16,12 +16,12 @@ export default function AdminAudit() {
   const [hasMore, setHasMore] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const generation = useRef(0);
-  const busy = useRef(false);
+  const busyGeneration = useRef(-1);
 
   const refresh = useCallback(async (older = false) => {
-    if (busy.current) return;
-    busy.current = true;
     const currentGeneration = generation.current;
+    if (busyGeneration.current === currentGeneration) return;
+    busyGeneration.current = currentGeneration;
     setPhase(older ? "loading-more" : "loading");
     setError("");
     try {
@@ -56,12 +56,16 @@ export default function AdminAudit() {
         setError(cause?.message || "Audit verification failed.");
       }
     } finally {
-      busy.current = false;
+      if (busyGeneration.current === currentGeneration) busyGeneration.current = -1;
     }
   }, [events, user?.id]);
 
   useEffect(() => {
     generation.current++;
+    setEvents([]);
+    setHasMore(false);
+    setError("");
+    setPhase("loading");
     if (status === "loading") return undefined;
     if (!user?.id) {
       setEvents([]); setHasMore(false); setPhase("error");
