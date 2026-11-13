@@ -7,7 +7,7 @@ import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { sumVerifiedCents, sumVerifiedCounts } from "@/lib/verifiedMoney.mjs";
 import { merchantReceiptExceptions } from "@/lib/merchantReconciliation.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
-const operationalCount = n => n === null || n === undefined || n === "" || typeof n === "boolean" ? "Unavailable" : Number.isSafeInteger(Number(n)) && Number(n) >= 0 ? String(n) : "Unavailable";
+const operationalCount = n => (typeof n !== "number" && typeof n !== "string") || (typeof n === "string" && !/^(0|[1-9]\d*)$/.test(n.trim())) || !Number.isSafeInteger(Number(n)) || Number(n) < 0 ? "Unavailable" : String(Number(n));
 const campaignColumns = [
   { field: "campaign_title", headerName: "Campaign", minWidth: 240 },
   { field: "raised_cents", headerName: "Verified gifts", minWidth: 150, valueFormatter: ({ value }) => formatUsdCents(value) },
@@ -17,7 +17,7 @@ const campaignColumns = [
 export default function AdminFinance({ embedded = false }) {
   const { user } = useAuthSession();
   const superAdminStatus = useSuperAdminAccess(user);
-  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,payoutQueue:[],operational:null,error:""});
+  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,payoutQueue:null,operational:null,error:""});
   const [payoutBusy,setPayoutBusy] = useState("");
   const [payoutMessage,setPayoutMessage] = useState("");
   useEffect(()=>{
@@ -40,10 +40,11 @@ export default function AdminFinance({ embedded = false }) {
         const incomeRow = !income.error && Array.isArray(income.data) ? income.data[0] || null : null;
         const after=await client.auth.getUser();
         if(after.error||after.data?.user?.id!==before.data.user.id)throw Error("Your session changed. Reload to continue.");
-        const queueRows = !payoutQueue.error && Array.isArray(payoutQueue.data) ? payoutQueue.data : [];
+        // A failed payout-query must never be misrepresented as an empty queue.
+        const queueRows = !payoutQueue.error && Array.isArray(payoutQueue.data) ? payoutQueue.data : null;
         const operationalRow = !operational.error && Array.isArray(operational.data) ? operational.data[0] || null : null;
         if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,payoutQueue:queueRows,operational:operationalRow,error:""});
-      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,payoutQueue:[],operational:null,error:e.message||"Unavailable"});}
+      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,payoutQueue:null,operational:null,error:e.message||"Unavailable"});}
     })();
     return ()=>{active=false};
   },[]);
@@ -70,7 +71,7 @@ export default function AdminFinance({ embedded = false }) {
         client.rpc("ifund_super_admin_platform_income_summary")
       ]);
       setState(v=>({...v,
-        payoutQueue:!queue.error&&Array.isArray(queue.data)?queue.data:v.payoutQueue,
+        payoutQueue:!queue.error&&Array.isArray(queue.data)?queue.data:null,
         income:!income.error&&Array.isArray(income.data)?income.data[0]||v.income:v.income
       }));
       setPayoutMessage(data.status==="SUCCESS"
@@ -157,7 +158,7 @@ export default function AdminFinance({ embedded = false }) {
           <h2 className="mt-1 text-xl font-semibold">Owner withdrawal queue</h2>
           <p className="mt-1 text-sm text-muted-foreground">Execution is allowed only after owner/AAL2 reservation, provider-cleared refund-adjusted funds, exact 7% fee accounting, and a verified owner payout recipient. A PayPal submission is not marked paid until item-level SUCCESS.</p>
         </div>
-        {state.payoutQueue.length===0 ? <p className="text-sm text-muted-foreground">No owner withdrawals are currently awaiting payout or reconciliation.</p> :
+        {state.payoutQueue===null ? <p role="alert" className="text-sm text-amber-700">Withdrawal queue could not be verified. Payout actions are unavailable until refreshed.</p> : state.payoutQueue.length===0 ? <p className="text-sm text-muted-foreground">No owner withdrawals are currently awaiting payout or reconciliation.</p> :
           <div className="space-y-3">{state.payoutQueue.map(row=><div key={row.withdrawal_id} className="rounded-xl border border-border p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
