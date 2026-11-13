@@ -49,6 +49,11 @@ export default function AIImageStudio() {
     setFile(null);
     setSavedUrl("");
   }
+  function invalidateArtwork() {
+    clearArtwork();
+    setMessage("");
+    setError("");
+  }
   async function generate(event, improve = false) {
     event?.preventDefault();
     if (operationLock.current || busy) return;
@@ -147,16 +152,16 @@ export default function AIImageStudio() {
     <form onSubmit={generate} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-7">
       <h2 className="text-xl font-semibold">Illustrate your cause</h2>
       <label className="block text-sm font-medium">Campaign title
-        <input className={field} value={title} onChange={e => setTitle(e.target.value)}
+        <input className={field} value={title} onChange={e => { setTitle(e.target.value); invalidateArtwork(); }}
           required minLength={4} maxLength={150} disabled={Boolean(busy)} />
       </label>
       <label className="block text-sm font-medium">What does the fundraiser support?
         <textarea className={field} rows={4} minLength={20} maxLength={900}
-          value={description} onChange={e => setDescription(e.target.value)}
+          value={description} onChange={e => { setDescription(e.target.value); invalidateArtwork(); }}
           required disabled={Boolean(busy)} />
       </label>
       <label className="block text-sm font-medium">Artwork style
-        <select className={field} value={style} onChange={e => setStyle(e.target.value)} disabled={Boolean(busy)}>
+        <select className={field} value={style} onChange={e => { setStyle(e.target.value); invalidateArtwork(); }} disabled={Boolean(busy)}>
           {STYLES.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </label>
@@ -171,13 +176,16 @@ export default function AIImageStudio() {
               e.currentTarget.value = "";
               setReferenceFile(next);
               setConfirmedRights(false);
-              setError("");
+              invalidateArtwork();
             }} />
         </label>
         {referenceFile && <p className="break-all text-xs text-muted-foreground">Selected: {referenceFile.name}</p>}
         <label className="flex min-h-11 items-center gap-3 text-sm">
           <input type="checkbox" checked={confirmedRights} disabled={Boolean(busy) || !referenceFile}
-            onChange={e => setConfirmedRights(e.target.checked)} />
+            onChange={e => {
+              setConfirmedRights(e.target.checked);
+              if (!e.target.checked) invalidateArtwork();
+            }} />
           I have permission to edit this image and agree to send its resized contents to Cloudflare Workers AI.
         </label>
         <button type="button" className={button}

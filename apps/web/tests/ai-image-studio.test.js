@@ -127,3 +127,14 @@ test("staged quota SQL is atomic and does not grant anonymous image attempts", (
   assert.match(sql, /REVOKE ALL ON FUNCTION[\s\S]*FROM PUBLIC, anon, authenticated;/);
   assert.match(sql, /GRANT EXECUTE ON FUNCTION[\s\S]*TO authenticated;/);
 });
+
+test("editing image inputs invalidates generated artwork and saved links", () => {
+  const page = readFileSync(new URL("../src/pages/AIImageStudio.jsx", import.meta.url), "utf8");
+  assert.match(page, /function invalidateArtwork\(\) \{\s*clearArtwork\(\)/);
+  assert.match(page, /setTitle\(e\.target\.value\); invalidateArtwork\(\)/);
+  assert.match(page, /setDescription\(e\.target\.value\); invalidateArtwork\(\)/);
+  assert.match(page, /setStyle\(e\.target\.value\); invalidateArtwork\(\)/);
+  assert.match(page, /setReferenceFile\(next\);\s*setConfirmedRights\(false\);\s*invalidateArtwork\(\)/);
+  assert.match(page, /if \(!e\.target\.checked\) invalidateArtwork\(\)/);
+  assert.match(page, /function clearArtwork\(\) \{[\s\S]*?setImageUrl\(""\);[\s\S]*?setFile\(null\);[\s\S]*?setSavedUrl\(""\)/);
+});
