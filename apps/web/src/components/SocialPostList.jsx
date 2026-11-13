@@ -5,6 +5,15 @@ import { Image } from "@/components/ui/image";
 import { getPostLikes, likePost, nativePostId, reportPost, readReplies, replyToPost } from "@/lib/socialCommunity";
 import { useAuthSession } from "@/hooks/useAuthSession";
 
+function safeExternalUrl(raw) {
+  if (typeof raw !== "string" || raw.length > 2048) return null;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "https:" && !url.username && !url.password
+      ? url.href : null;
+  } catch { return null; }
+}
+
 async function sharePost(post) {
   const url = `${window.location.origin}/social/post/${encodeURIComponent(post.id)}`;
   const data = { title: "Interplanetary Fund community update", text: post.body, url };
@@ -18,6 +27,8 @@ async function sharePost(post) {
 
 function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
+  const externalUrl = safeExternalUrl(post.external_url);
+  const mediaUrl = safeExternalUrl(post.media_url);
   const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
   const discussionId = likeId;
   const [liked, setLiked] = useState(likes?.liked || false);
@@ -73,9 +84,9 @@ function SocialItem({ post, likes, onHidden, user }) {
       {post.posted_at && <time className="text-xs text-muted-foreground" dateTime={post.posted_at}>{new Date(post.posted_at).toLocaleDateString()}</time>}
     </div>
     <p className="whitespace-pre-wrap break-words">{post.body}</p>
-    {post.media_url && <Image src={post.media_url} alt="Image shared with this post" loading="lazy"
+    {mediaUrl && <Image src={mediaUrl} alt="Image shared with this post" loading="lazy"
       className="max-h-96 w-full rounded-xl object-contain" />}
-    {post.external_url && <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
+    {externalUrl && <a href={externalUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
       {likeId && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
       {discussionId && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
