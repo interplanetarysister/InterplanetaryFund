@@ -5,6 +5,7 @@ import { listActiveCampaigns } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { matchOpportunity } from "@/lib/opportunityMatch";
 import OpportunityEligibilityReview from "@/components/agents/OpportunityEligibilityReview";
+import PulseApplicationPreparation from "@/components/agents/PulseApplicationPreparation";
 
 const KINDS = [
   {id:"all",label:"All research sources"},
@@ -59,6 +60,7 @@ function OpportunityCard({opportunity,campaign,watched,onWatch,watchBusy,watchSt
     {opportunity.deadline_date&&<p className="mt-1 text-sm"><strong>Published deadline:</strong> {opportunity.deadline_date}</p>}
     <p className="mt-2 text-sm"><strong>Who may qualify:</strong> {opportunity.eligibility}</p>
     <OpportunityEligibilityReview opportunity={opportunity}/>
+    <PulseApplicationPreparation opportunity={opportunity} campaign={campaign}/>
     {campaign&&<p className="mt-3 rounded-lg bg-slate-500/10 p-3 text-xs">{matching
       ?relevance.summary
       :"This program is a general reference, not a verified match for the selected campaign."}</p>}
