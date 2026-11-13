@@ -8,7 +8,7 @@
 -- public.ifund_admin_mail_audit(id, action, occurred_at)
 -- public.ifund_platform_incident(id, status, updated_at).
 --
--- SECURITY: DEFNER is necessary because private ifund_ops records have no
+-- SECURITY: DEFINER is necessary because private ifund_ops records have no
 -- authenticated table grants. A fresh server-verified super-admin check is
 -- REQUIRED for every invocation, independent of caller JWT role metadata.
 CREATE OR REPLACE FUNCTION public.ifund_super_admin_audit_feed(
@@ -47,25 +47,27 @@ BEGIN
   SELECT activity.event_id, activity.event_source,
          activity.event_name, activity.occurred_at
   FROM (
-    SELECT ('workflow:' || w.id::text) AS event_id,
+    SELECT ('workflow:' || md5(w.id::text)) AS event_id,
            'workflow'::text AS event_source,
-           LEFT(COALESCE(w.event_type, 'event recorded'), 80)::text AS event_name,
+           (CASE WHEN w.event_type IN ('queued', 'started', 'completed', 'failed', 'retry', 'skipped', 'success', 'error', 'dead_letter', 'blocked', 'delivered')
+                 THEN w.event_type ELSE 'event recorded' END)::text AS event_name,
            w.event_at AS occurred_at
     FROM ifund_ops.workflow_execution_log AS w
     WHERE w.event_at IS NOT NULL
 
     UNION ALL
 
-    SELECT ('mail:' || m.id::text),
+    SELECT ('mail:' || md5(m.id::text)),
            'administrative mail'::text,
-           LEFT(COALESCE(m.action, 'recorded'), 80)::text,
+           (CASE WHEN m.action IN ('read', 'unread', 'mark_read', 'mark_unread', 'received', 'sent', 'archived')
+                 THEN m.action ELSE 'action recorded' END)::text,
            m.occurred_at
     FROM public.ifund_admin_mail_audit AS m
     WHERE m.occurred_at IS NOT NULL
 
     UNION ALL
 
-    SELECT ('incident:' || i.id::text),
+    SELECT ('incident:' || md5(i.id::text)),
            'platform incident'::text,
            'incident updated'::text,
            i.updated_at
