@@ -18,6 +18,7 @@ async function sharePost(post) {
 
 function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
+  const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
   const [liked, setLiked] = useState(likes?.liked || false);
   const [count, setCount] = useState(likes?.count || 0);
   const [working, setWorking] = useState(false);
@@ -30,9 +31,9 @@ function SocialItem({ post, likes, onHidden, user }) {
   useEffect(() => { setLiked(likes?.liked || false); setCount(likes?.count || 0); }, [likes?.liked, likes?.count]);
 
   async function toggleLike() {
-    if (!id || !user || working) return;
+    if (!likeId || !user || working) return;
     setWorking(true); setError("");
-    try { await likePost(id, !liked); setCount(n => Math.max(0,n + (liked ? -1 : 1))); setLiked(v => !v); }
+    try { await likePost(likeId, !liked); setCount(n => Math.max(0,n + (liked ? -1 : 1))); setLiked(v => !v); }
     catch (cause) { setError(cause.message); }
     finally { setWorking(false); }
   }
@@ -75,7 +76,7 @@ function SocialItem({ post, likes, onHidden, user }) {
       className="max-h-96 w-full rounded-xl object-contain" />}
     {post.external_url && <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
-      {id && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
+      {likeId && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
       {id && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
       <button type="button" className="inline-flex min-h-11 items-center gap-2 text-primary" onClick={() => sharePost(post)}><Share2 size={17} /> Share</button>
       {post.profile_id && <Link className="inline-flex min-h-11 items-center text-primary underline" to={`/u/${post.profile_id}`}>View member</Link>}
@@ -111,5 +112,5 @@ export default function SocialPostList({ posts, onHidden }) {
     getPostLikes(posts).then(data => { if (active) setLikes(data); }).catch(() => { if (active) setLikes({}); });
     return () => { active = false; };
   }, [posts]);
-  return posts.map(post => <SocialItem key={post.id} post={post} user={user} likes={likes[nativePostId(post)]} onHidden={onHidden} />);
+  return posts.map(post => <SocialItem key={post.id} post={post} user={user} likes={likes[nativePostId(post) || post.id]} onHidden={onHidden} />);
 }
