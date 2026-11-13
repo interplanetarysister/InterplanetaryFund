@@ -42,9 +42,12 @@ async function script(src){
   });
 }
 function chosen(){
-  const amount=Number(byId('amount').value);
-  const cents=Math.round(amount*100);
-  if(!Number.isSafeInteger(cents)||cents<100||cents>10000||Math.abs(amount*100-cents)>0.001)
+  const input=byId('amount').value;
+  if(!/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(input))
+    throw Error('Choose a test amount from $1 to $100 with at most two decimal places');
+  const parts=input.split('.');
+  const cents=Number(BigInt(parts[0])*100n+BigInt((parts[1]||'').padEnd(2,'0')));
+  if(!Number.isSafeInteger(cents)||cents<100||cents>10000)
     throw Error('Choose a test amount from $1 to $100');
   const campaign=byId('campaign').value;
   if(!/^[a-f0-9-]{36}$/.test(campaign))throw Error('Select a fictional campaign');
