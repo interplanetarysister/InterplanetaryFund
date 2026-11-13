@@ -65,6 +65,22 @@ export default function SocialFeedPage({ community = false }) {
     return () => { active = false; };
   }, [campaignToShare]);
 
+  async function shareDraftExternally() {
+    if (!body.trim()) return;
+    const payload = { title: "Interplanetary Fund update", text: body.trim() };
+    if (navigator.share) {
+      try { await navigator.share(payload); setNotice("Shared using your device's chosen application."); }
+      catch (cause) { if (cause?.name !== "AbortError") setPublishError("External share was not completed."); }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(body.trim());
+      setNotice("Draft copied. Paste it into your chosen connected account.");
+    } catch {
+      setPublishError("Copy was unavailable on this device.");
+    }
+  }
+
   function saveDraft() {
     if (!draftKey) return;
     try { localStorage.setItem(draftKey, body); setNotice("Draft saved on this device. It has not been published or shared."); }
@@ -108,6 +124,7 @@ export default function SocialFeedPage({ community = false }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-xs text-muted-foreground">{body.length}/{MAX_POST_LENGTH}</span>
         <div className="flex flex-wrap gap-2">
+          <button type="button" disabled={busy || !body.trim()} onClick={shareDraftExternally} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Share to another app</button>
           <button type="button" disabled={busy || !body.trim()} onClick={saveDraft} className="min-h-11 rounded-xl border border-border px-4 disabled:opacity-50">Save draft</button>
           <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
         </div>
