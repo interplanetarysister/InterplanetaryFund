@@ -14,11 +14,14 @@ function matchesSignature(bytes, type) {
 }
 
 function isPreviewEnvironment(request, env) {
-  const hostname = new URL(request.url).hostname.toLowerCase();
-  // This implementation is preview-only, never read/write preview objects
-  // through the production custom domain or production-branch deployment.
-  return hostname !== "interplanetaryfund.com" &&
-    hostname !== "www.interplanetaryfund.com" && env.CF_PAGES_BRANCH !== "main";
+  const url = new URL(request.url);
+  const hostname = url.hostname.toLowerCase();
+  const branch = env.CF_PAGES_BRANCH;
+  // Require the exact Cloudflare Pages project domain, not merely a nonproduction host.
+  // Branch identity is an independent fail-closed check; a missing branch is not preview.
+  return url.protocol === "https:" &&
+    /^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)?interplanetaryfund-migration\.pages\.dev$/.test(hostname) &&
+    typeof branch === "string" && branch.length > 0 && branch !== "main";
 }
 
 async function boundedImageBody(request) {
