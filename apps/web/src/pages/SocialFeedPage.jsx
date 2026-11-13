@@ -9,6 +9,7 @@ import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.j
 import { FEED_PAGE_SIZE, listPublicPosts } from "@/lib/publicSocialFeed";
 import SocialPostList from "@/components/SocialPostList";
 import { loadServerSocialDraft, saveServerSocialDraft, clearServerSocialDraft } from "@/lib/socialCommunity";
+import { socialComposeTargets } from "@/lib/socialComposeTargets.mjs";
 
 export default function SocialFeedPage({ community = false }) {
   const [posts, setPosts] = useState([]);
@@ -196,6 +197,17 @@ export default function SocialFeedPage({ community = false }) {
           <button disabled={busy || !body.trim()} className="min-h-11 rounded-xl bg-primary px-5 text-primary-foreground disabled:opacity-50">{busy ? "Publishing…" : "Publish to IFund"}</button>
         </div>
       </div>
+      <div className="flex flex-wrap gap-3" aria-label="Review draft on another platform">
+        {socialComposeTargets(body).map(target =>
+          <a key={target.id} href={target.href} target="_blank" rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-medium text-primary">
+            {target.label}
+          </a>
+        )}
+        {body.trim() && socialComposeTargets(body).length === 0 &&
+          <p className="text-xs text-muted-foreground">This draft exceeds X and Bluesky's short-post limits. Use Share to another app or shorten the draft without losing your text.</p>}
+      </div>
+      <p className="text-xs text-muted-foreground">External compose links open a review screen in your own network account. Nothing is submitted until you publish there.</p>
       <p className="text-xs text-muted-foreground">Drafts sync privately to your IFund account when available; otherwise they stay on this device. Manage external accounts under <Link className="underline" to="/connections">Connections</Link>; publishing here does not automatically post elsewhere.</p>
     </form> : status !== "loading" && <p className="rounded-xl border border-border p-4">
       {user ? "Posting requires a verified, active account." : <><Link className="text-primary underline" to="/login?returnTo=%2Fsocial">Sign in</Link> to share a post.</>}
