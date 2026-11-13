@@ -10,6 +10,7 @@ const read = file => readFileSync(new URL(file, root), "utf8");
 const app = read("src/App.jsx");
 const layout = read("src/components/Layout.jsx");
 const unfinished = [];
+const mappedLegacyRoutes = new Set();
 for (const key of ["STANDALONE_COMING_SOON", "LAYOUT_COMING_SOON"]) {
   const block = app.match(new RegExp("const\\s+" + key + "\\s*=\\s*\\[([\\s\\S]*?)\\]\\s*;"));
   if (!block) {
@@ -18,6 +19,7 @@ for (const key of ["STANDALONE_COMING_SOON", "LAYOUT_COMING_SOON"]) {
   }
   for (const match of block[1].matchAll(/["'](\/[^"']+)["']/g)) {
     unfinished.push("Unimplemented route: " + match[1]);
+    mappedLegacyRoutes.add(match[1]);
   }
 }
 if (/const\s+ComingSoon\s*=|element=\{<ComingSoon\s*\/>\}/.test(app)) {
@@ -32,11 +34,7 @@ for (const path of navigation) {
 }
 // All explicit routes and mapped legacy routes must have individual source
 // and negative-case evidence before the one consolidated preview build.
-const acceptanceRoutes = new Set(declaredRoutes);
-for (const key of ["STANDALONE_COMING_SOON", "LAYOUT_COMING_SOON"]) {
-  const block = app.match(new RegExp("const\\\\s+" + key + "\\\\s*=\\\\s*\\\\[([\\\\s\\\\S]*?)\\\\]\\\\s*;"));
-  if (block) for (const matched of block[1].matchAll(/["'](\\/[^"']+)["']/g)) acceptanceRoutes.add(matched[1]);
-}
+const acceptanceRoutes = new Set([...declaredRoutes, ...mappedLegacyRoutes]);
 try {
   const register = JSON.parse(read("ci/route-acceptance.json"));
   if (register.schema_version !== 1 || !Array.isArray(register.routes))
