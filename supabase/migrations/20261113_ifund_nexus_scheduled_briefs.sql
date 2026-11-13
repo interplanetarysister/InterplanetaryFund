@@ -49,9 +49,10 @@ returns integer language plpgsql volatile security definer set search_path='' se
 as $$
 declare r record;v_count integer:=0;v_campaigns bigint;v_key text;
 begin
- -- Never permit user sessions to invoke the service dispatcher directly.
- if current_user not in ('postgres','service_role') or p_limit not between 1 and 100
- then raise exception 'Privileged scheduler only' using errcode='42501';end if;
+ -- SECURITY DEFINER runs as its owner; caller authorization is enforced
+ -- by the EXECUTE grants below, never by CURRENT_USER inside this function.
+ if p_limit not between 1 and 100
+ then raise exception 'Invalid scheduler batch size' using errcode='22023';end if;
  for r in select p.owner_id,p.frequency_days,p.next_run_at
    from public.ifund_nexus_brief_preferences p
    where p.enabled and p.next_run_at<=now()
