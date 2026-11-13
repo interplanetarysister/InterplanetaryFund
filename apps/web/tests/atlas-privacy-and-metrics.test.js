@@ -16,7 +16,7 @@ function sample() {
     ...emptyCampaignForm(),
     title:"Community aid fundraiser",
     summary:"Helping neighbors",
-    story:"Our community has an urgent need.",
+    story:("Our community has an urgent need. We have reviewed the facts with the organizing team. The budget supports practical steps and regular updates for neighbors. ").repeat(27),
     goal_amount:"5000",
   };
 }
