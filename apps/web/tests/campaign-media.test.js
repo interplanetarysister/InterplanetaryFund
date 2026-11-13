@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { onRequest as upload } from "../functions/api/media/campaign/upload.js";
 import { onRequest as readImage } from "../functions/api/media/campaign/[owner]/[file].js";
 
@@ -137,4 +138,10 @@ test("numeric Content-Length accepts a valid image and rejects invalid or oversi
     assert.equal((await upload({ request: makeRequest(jpeg, { "content-length": length }), env: env(bucket) })).status, 413);
   }
   assert.equal(writes, 1);
+});
+
+test("browser cover URL validation requires the current owner and rejects URL decoration", () => {
+  const source = readFileSync(new URL("../src/api/campaignMedia.js", import.meta.url), "utf8");
+  assert.match(source, /url\.pathname\.split\("\/"\)\[4\]\.toLowerCase\(\) !== owner\.toLowerCase\(\)/);
+  assert.match(source, /url\.username \|\| url\.password \|\| url\.search \|\| url\.hash/);
 });
