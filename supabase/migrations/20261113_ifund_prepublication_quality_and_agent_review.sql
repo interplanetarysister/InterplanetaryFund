@@ -132,3 +132,24 @@ revoke all on function public.ifund_queue_editorial_agent_review(uuid,text[]) fr
 revoke all on function public.ifund_my_editorial_agent_reviews() from public,anon;
 grant execute on function public.ifund_queue_editorial_agent_review(uuid,text[]) to authenticated;
 grant execute on function public.ifund_my_editorial_agent_reviews() to authenticated;
+
+-- An owner may acknowledge reviewing a recommendation, not certify that an AI
+-- acted or that a campaign was approved for publication.
+create or replace function public.ifund_acknowledge_editorial_review(p_review_id uuid)
+returns boolean language plpgsql volatile security definer
+set search_path='' set row_security='off'
+as $$
+declare v_count integer;
+begin
+  if auth.uid() is null or not coalesce(public.ifund_current_account_is_active(),false) then
+    raise exception 'Active account required' using errcode='42501';
+  end if;
+  update public.ifund_editorial_agent_reviews r
+    set review_status='acknowledged',updated_at=now()
+    where r.id=p_review_id and r.owner_id=auth.uid()
+      and r.review_status <> 'acknowledged';
+  get diagnostics v_count=row_count;
+  return v_count=1;
+end $$;
+revoke all on function public.ifund_acknowledge_editorial_review(uuid) from public,anon;
+grant execute on function public.ifund_acknowledge_editorial_review(uuid) to authenticated;
