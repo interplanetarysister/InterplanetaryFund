@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import BuilderOperationalReview from "@/components/agents/BuilderOperationalReview";
 
 const TYPES = [
   { type: "hero", label: "Hero" },
@@ -228,6 +229,7 @@ export default function AdminStudio() {
         </div>
       </div>
 
+      <BuilderOperationalReview />
       <Notice error={Boolean(error)}>{error}</Notice>
       <Notice>{notice}</Notice>
 
