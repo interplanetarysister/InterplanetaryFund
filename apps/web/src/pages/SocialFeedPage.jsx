@@ -2,7 +2,7 @@ import "@/styles-sacred-social.css";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getCampaignDetail } from "@/api/publicData";
-import { getPublishedStory } from "@/lib/editorial";
+import { getPublishedStory, getFinalPublication } from "@/lib/editorial";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { canMemberPost, publishPost, MAX_POST_LENGTH } from "@/lib/socialPosts.js";
@@ -14,6 +14,7 @@ export default function SocialFeedPage({ community = false }) {
   const [params] = useSearchParams();
   const campaignToShare = params.get("shareCampaign");
   const storyToShare = params.get("shareStory");
+  const publicationToShare = params.get("sharePublication");
   const [hasMore, setHasMore] = useState(false);
   const { user, status } = useAuthSession();
   const [canPost, setCanPost] = useState(false);
@@ -94,6 +95,18 @@ export default function SocialFeedPage({ community = false }) {
     }).catch(() => {});
     return () => { active = false; };
   }, [storyToShare]);
+
+  useEffect(() => {
+    const id = publicationToShare;
+    if (!id || !/^[A-Za-z0-9_-]{1,128}$/.test(id)) return;
+    let active = true;
+    getFinalPublication(id).then(item => {
+      if (!active || !item) return;
+      const url = `${window.location.origin}/publications/${encodeURIComponent(item.id)}`;
+      setBody(previous => previous || `Discuss this IFund update: ${item.title}\n${url}`.slice(0,MAX_POST_LENGTH));
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [publicationToShare]);
 
   function saveDraft() {
     if (!draftKey) return;
