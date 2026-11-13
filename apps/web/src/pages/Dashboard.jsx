@@ -62,7 +62,7 @@ export default function Dashboard() {
     </header>
     <section className="rounded-2xl border border-border bg-card p-6">
       <h2 className="text-xl font-semibold">Your campaigns</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Donations and withdrawals remain unavailable until independently verified.</p>
+      <p className="mt-2 text-sm text-muted-foreground">Continue a saved draft or explore active campaigns. Live donations are enabled where provider checkout is available. Withdrawals require verified ownership, cleared funds, and payout checks.</p>
       <Link to="/create" className="mt-4 mr-5 inline-block text-primary underline">Create a campaign</Link>
       <Link to="/campaigns" className="mt-4 mr-5 inline-block text-primary underline">Manage your campaigns</Link>
       <Link to="/ledger" className="mt-4 mr-5 inline-block text-primary underline">Verified finances</Link>
