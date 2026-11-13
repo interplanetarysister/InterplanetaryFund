@@ -97,10 +97,20 @@ export async function routeReadRequest(request, env, fetcher = fetch) {
   const path = new URL(request.url).pathname;
   try {
     if (path === '/api/community/feed') {
-      return await readOnly(
-        env, 'ifund_posts?select=id,author_id,body,created_at&order=created_at.desc&limit=30',
-        null, fetcher,
-      );
+      // Match the browser's server-filtered social feed. Raw ifund_posts rows
+      // leak owner UUIDs and can bypass the archive moderation visibility gate.
+      const upstream = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_public_social_feed', {
+        method: 'POST',
+        headers: {
+          ...providerHeaders(env, null),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ p_before: null, p_before_id: null, p_author: null }),
+      });
+      if (!upstream.ok) return response(503, { error: 'Community feed unavailable.' });
+      const data = await upstream.json();
+      if (!Array.isArray(data)) return response(503, { error: 'Invalid community feed response.' });
+      return response(200, data);
     }
     if (path === '/api/campaigns/public') {
       return await readOnly(

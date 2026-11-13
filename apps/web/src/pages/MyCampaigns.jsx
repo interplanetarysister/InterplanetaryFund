@@ -224,7 +224,13 @@ export default function MyCampaigns() {
             </div>
             {campaign.status === "active" && (
               <div className="mt-4">
-                <CampaignShareButton campaign={campaign} ownerView />
+                <div className="flex flex-wrap items-center gap-3">
+                  <CampaignShareButton campaign={campaign} ownerView />
+                  <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}&kind=update`}
+                    className="inline-flex min-h-11 items-center rounded-xl border border-primary/40 px-4 font-semibold text-primary">
+                    Draft a public campaign update
+                  </Link>
+                </div>
               </div>
             )}
             {campaign.status !== "draft" && (

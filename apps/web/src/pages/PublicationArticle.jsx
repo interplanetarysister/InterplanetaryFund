@@ -50,6 +50,7 @@ export default function PublicationArticle(){
      {item.body.split(/\n\s*\n/).filter(Boolean).map((part,index)=>
       <p key={index} className="whitespace-pre-wrap break-words leading-relaxed text-slate-800">{part}</p>)}
     </div>}
+    <Link to={`/social?sharePublication=${encodeURIComponent(item.id)}`} className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-cyan-700 px-4 py-2 font-semibold text-white">Discuss on IFund Social Feed</Link>
     {pdf&&<section className="mt-7 border-t border-slate-200 pt-5">
      <h2 className="flex items-center gap-2 text-lg font-semibold">
       <FileText aria-hidden="true" className="h-5 w-5"/>Download or view the finalized PDF</h2>

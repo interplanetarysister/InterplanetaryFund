@@ -4,6 +4,7 @@ import { UserRound } from "lucide-react";
 import DriveImageButton from "@/components/DriveImageButton";
 import { authClient } from "@/api/auth";
 import { avatarUrl, loadMyProfile, profilePhotoRequest, saveMyProfile } from "@/lib/memberProfile";
+import { friendAction, friendRequests, myFriends } from "@/lib/socialCommunity";
 
 const panel = "space-y-4 rounded-2xl border border-border bg-card p-4 sm:p-6";
 const input = "mt-1 min-h-11 w-full rounded-xl border border-input bg-background px-3";
@@ -18,6 +19,26 @@ export default function Profile() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [photoError, setPhotoError] = useState("");
+  const [requests, setRequests] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [friendBusy, setFriendBusy] = useState("");
+  const [friendError, setFriendError] = useState("");
+  useEffect(() => {
+    let active = true;
+    friendRequests().then(rows => { if (active) setRequests(rows); }).catch(() => {});
+    myFriends().then(rows => { if (active) setFriends(rows); }).catch(() => {});
+    return () => { active = false; };
+  }, []);
+  async function decideFriend(id, action) {
+    setFriendBusy(id); setFriendError("");
+    try {
+      await friendAction(id, action);
+      setRequests(current => current.filter(item => item.member_id !== id));
+      if (action === "accept") setFriends(await myFriends());
+    }
+    catch (cause) { setFriendError(cause.message); }
+    finally { setFriendBusy(""); }
+  }
   const load = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -180,6 +201,26 @@ export default function Profile() {
     </form>
     {error && <p role="alert" className="rounded-xl border border-destructive p-3">{error}</p>}
     {(notice || busy === "photo") && <p role="status" className="text-primary">{notice || "Updating your photo…"}</p>}
+    <section className={panel} aria-label="Friends">
+      <h2 className="text-xl font-semibold">Friends</h2>
+      {friends.length === 0 && <p className="text-sm text-muted-foreground">Your accepted friends appear here.</p>}
+      <div className="grid gap-2 sm:grid-cols-2">
+        {friends.map(friend => <Link key={friend.member_id} to={`/u/${friend.member_id}`}
+          className="rounded-xl border border-border bg-background p-3 text-primary underline">
+          {friend.display_name}{friend.handle ? ` · @${friend.handle}` : ""}
+        </Link>)}
+      </div>
+    </section>
+    <section className={panel} aria-label="Friend requests">
+      <h2 className="text-xl font-semibold">Friend requests</h2>
+      {requests.length === 0 && <p className="text-sm text-muted-foreground">No pending friend requests.</p>}
+      {requests.map(item => <div className="flex flex-wrap items-center gap-3" key={item.member_id}>
+        <Link to={`/u/${item.member_id}`} className="flex-1 text-primary underline">{item.display_name}</Link>
+        <button disabled={!!friendBusy} className={action} onClick={() => decideFriend(item.member_id, "accept")}>Accept</button>
+        <button disabled={!!friendBusy} className={action} onClick={() => decideFriend(item.member_id, "decline")}>Decline</button>
+      </div>)}
+      {friendError && <p role="alert" className="text-sm text-destructive">{friendError}</p>}
+    </section>
     <section className={panel}>
       <h2 className="text-xl font-semibold">Your workspace</h2>
       <div className="flex flex-wrap gap-2">

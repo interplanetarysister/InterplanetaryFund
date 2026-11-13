@@ -56,3 +56,22 @@ test('upstream errors do not surface provider secrets or internal response bodie
   assert.equal(r.status, 503);
   assert.doesNotMatch(await r.text(), /secret-provider-diagnostic/);
 });
+
+
+test('community feed uses moderated public RPC and never requests raw author IDs', async () => {
+  const calls = [];
+  const response = await routeReadRequest(
+    new Request('https://api.example.org/api/community/feed'), env,
+    async (url, options) => {
+      calls.push({ url: String(url), options });
+      return Response.json([{ id: 'post-123', body: 'Public update', profile_id: null }]);
+    },
+  );
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /rpc\/ifund_public_social_feed$/);
+  assert.equal(calls[0].options.method, 'POST');
+  assert.equal(calls[0].options.headers.Authorization, undefined);
+  assert.equal(JSON.parse(calls[0].options.body).p_author, null);
+  assert.deepEqual(await response.json(), [{ id: 'post-123', body: 'Public update', profile_id: null }]);
+});

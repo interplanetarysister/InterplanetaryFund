@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { Link, useParams, useLocation } from "react-router-dom";
+import { authClient } from "@/api/auth";
 import { getCampaignDetail, listRelatedCampaigns } from "@/api/publicData";
 import { Image } from "@/components/ui/image";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export default function CampaignDetail() {
   const [donationOpen, setDonationOpen] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [related, setRelated] = useState([]);
+  const [blogAuthor, setBlogAuthor] = useState(null);
   const [error, setError] = useState("");
   const requestVersion = React.useRef(0);
 
@@ -40,12 +42,17 @@ export default function CampaignDetail() {
     setNotFound(false);
     setCampaign(null);
     setRelated([]);
+    setBlogAuthor(null);
     try {
       const c = await getCampaignDetail(id);
       if (version !== requestVersion.current) return;
       if (!c) { setNotFound(true); setCampaign(null); return; }
       setNotFound(false);
       setCampaign(c);
+      // Author is published-only; no unpublished blog or draft ownership leaks.
+      authClient().rpc("ifund_public_campaign_blog_author", { p_campaign: c.id })
+        .then(({ data, error }) => { if (version === requestVersion.current && !error) setBlogAuthor(data || null); })
+        .catch(() => {});
       const rel = await listRelatedCampaigns(c.category, c.id).catch(() => []);
       if (version === requestVersion.current) setRelated(rel || []);
     } catch {
@@ -126,6 +133,8 @@ export default function CampaignDetail() {
             <CampaignFundingCard campaign={campaign} onDonate={() => setDonationOpen(true)} />
           </div>
           <CampaignShareButton campaign={campaign} />
+          <Link to={`/social?shareCampaign=${encodeURIComponent(campaign.id)}`} className="block rounded-xl border border-primary/30 bg-card px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-muted">Share this campaign on IFund Social</Link>
+          {blogAuthor && <Link to={`/blogs?author=${encodeURIComponent(blogAuthor)}`} className="block rounded-xl border border-border bg-card px-4 py-3 text-center text-sm text-primary underline">Read the creator’s blog</Link>}
           <CampaignFollowButton campaignId={campaign.id} status={campaign.status} />
         </div>
       </div>
