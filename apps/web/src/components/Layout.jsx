@@ -17,6 +17,7 @@ import { navigationBackFallback, canReturnWithinApp } from "@/lib/navigation";
 import { helpPathForLocation } from "@/lib/helpCenter";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
+import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
@@ -144,6 +145,7 @@ export default function Layout() {
   // protected read and write is still enforced by Supabase row level security.
   const { status: sessionStatus, user } = useAuthSession();
   const isAdmin = useAdminAccess(user) === "admin";
+  const isSuperAdmin = useSuperAdminAccess(user) === "super-admin";
   // The Story writing workspace is implemented; do not hide it behind an
   // unverified seven-agent chat rollout. Individual agent capabilities remain
   // described accurately on the destination page.
@@ -207,14 +209,16 @@ export default function Layout() {
             ))}
           </div>
         </div>
-      ) : navSections.filter(section => isAdmin || section.label !== "Administration").map((section) => (
+      ) : navSections.filter(section => isAdmin || isSuperAdmin || section.label !== "Administration").map((section) => (
         <div key={section.label} data-ifund-nav-group={section.label}>
           <p className="ifund-nav-section-title px-4 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400/90">{section.label}</p>
           <div className="flex flex-col gap-0.5">
             {section.items.filter(({ to }) => {
               if (to === "/agents") return hasAiAgents;
-              const adminOnly = ["/analytics", "/connect", "/ops", "/platform"].includes(to) || to.startsWith("/admin/");
-              return isAdmin || !adminOnly;
+              const superAdminOnly = ["/ops", "/platform", "/admin/studio", "/admin/audit", "/admin/help"].includes(to);
+              if (superAdminOnly) return isSuperAdmin;
+              const adminOnly = ["/admin/integrations", "/admin/sustainability"].includes(to);
+              return !adminOnly || isAdmin || isSuperAdmin;
             }).map(({ to, label, icon: Icon }) => (
               <NavLink
                 key={to}
