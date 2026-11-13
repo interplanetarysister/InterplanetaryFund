@@ -157,7 +157,7 @@ export default function EditCampaign() {
           onChange={(e) => change("summary", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Your story
-        <textarea aria-label="Your story" rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
+        <textarea id="campaign-story" aria-label="Your story" rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
           onChange={(e) => change("story", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Category
