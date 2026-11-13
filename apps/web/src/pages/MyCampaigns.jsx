@@ -59,7 +59,7 @@ export default function MyCampaigns() {
       setRows((current) => current.map((row) => (row.id === saved.id ? saved : row)));
       setNotice(
         status === "active"
-          ? `"${saved.title}" is published and visible on Discover. ${donationsEnabled ? "Supporters may donate through verified PayPal checkout." : "Donations are temporarily unavailable."}`
+          ? `"${saved.title}" is published and visible on Discover. ${donationsEnabled ? "Supporters may donate through verified PayPal checkout." : "Live donation checkout is temporarily unavailable."}`
           : `"${saved.title}" was paused and is hidden from Discover.`
       );
     } catch (cause) {
@@ -109,7 +109,7 @@ export default function MyCampaigns() {
       <div>
         <h1 className="font-display text-3xl font-bold sm:text-4xl">My campaigns</h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">
-          Save a private draft, publish it to Discover, or pause it at any time. {donationsEnabled ? "Published, active campaigns can receive verified PayPal donations." : "Donation checkout is currently unavailable."}
+          Save a private draft, publish it to Discover, or pause it at any time. {donationsEnabled ? "Published, active campaigns can receive verified PayPal donations." : "Live donation checkout is temporarily unavailable."}
         </p>
       </div>
       <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 font-semibold text-primary-foreground">
