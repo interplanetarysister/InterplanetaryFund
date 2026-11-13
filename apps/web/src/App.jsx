@@ -63,6 +63,7 @@ const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const MarketingPreferences = lazy(() => import("./pages/MarketingPreferences"));
+const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
 
 // Pages from the Base44 app that are not ported yet. Their links stay in the
@@ -122,6 +123,7 @@ function AppRoutes() {
       <Route path="/support" element={<MemberAccess><SupportTickets /></MemberAccess>} />
       <Route path="/engagement" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
       <Route path="/preferences" element={<MemberAccess><MarketingPreferences /></MemberAccess>} />
+      <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
