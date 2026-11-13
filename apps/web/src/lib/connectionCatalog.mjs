@@ -439,6 +439,6 @@ export function selectedConnectionPlatform(id) { return CONNECTION_PLATFORMS.fin
 export function connectionSteps(platform,{secure=false,hasSavedLink=false}={}) {
  if (!platform) return [];
  if (secure) return ["Select Connect securely below.", "Sign in on "+platform.name+" with your own account.", "Review the request on "+platform.name+" and approve only what you wish to share.", "Return to iFund to see your connected account."];
- if (platform.kind==="app") return ["Open "+platform.name+" using the link below.", "Sign in to your account there.", "When secure connection becomes available here, choose Connect securely to link the account."];
+ if (platform.kind==="app") return ["Select Open "+platform.name+" below.", "Sign in on "+platform.name+" using your own account.", "Return to iFund to manage your campaigns. This shortcut does not share account access."];
  return ["Open your existing "+platform.name+" "+(platform.kind==="crowdfunding"?"fundraiser":"profile")+" page.", "Copy its public page address.", hasSavedLink?"Use Update link below to replace the saved address.":"Paste the page address below and choose Save link.", "Your link will be saved privately in iFund. Account access and publishing are separate choices."];
 }
