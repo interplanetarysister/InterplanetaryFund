@@ -113,6 +113,8 @@ begin
  if not coalesce(v_allow,false) then
    raise exception 'Use the public page address for the selected platform' using errcode='22023';
  end if;
+ -- Save only the public page; strip marketing and authorization query data.
+ v_url:=split_part(split_part(v_url,'?',1),'#',1);
  if p_campaign_id is not null and not exists(
    select 1 from public.ifund_campaigns c where c.id=p_campaign_id and c.owner_id=auth.uid()
  ) then raise exception 'Choose a campaign you manage' using errcode='42501'; end if;
@@ -151,7 +153,7 @@ begin
  if not public.ifund_member_connection_allowed() then
    raise exception 'Verified active account required' using errcode='42501';
  end if;
- if p_provider is null or p_provider !~ '^[a-z][a-z0-9_]{0,47}$'
+ if p_provider is null or p_provider not in ('justgiving','gofundme','kickstarter','indiegogo','fundrazr','fundly','givesendgo','kofi','buymeacoffee','patreon','spotfund','eventbrite','gumroad','custom','givebutter','donorbox','wordpress_com','bluesky','mastodon','facebook','instagram','threads','x','linkedin','tiktok','pinterest','reddit','youtube','discord','gmail','googledrive','googlecalendar','google_contacts','google_photos','googlesheets','googledocs','googleforms','googletasks','slack','notion','outlook','microsoft_teams','one_drive','dropbox','github','gitlab','google')
    or p_choice not in ('manual','draft','review','off') then
    raise exception 'Invalid sharing preference' using errcode='22023';
  end if;
