@@ -24,10 +24,10 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
   function focusImprovementField(item) {
     const field = item.field || (item.id === "title_repetition" ? "title" : item.id === "summary_repeated" ? "summary" : "story");
     const target = field === "title" ? "campaign-title" : field === "summary" ? "campaign-summary" : "campaign-story";
-    const field = document.getElementById(target);
-    if (!field) { setError("The requested editor field is unavailable."); return; }
-    field.scrollIntoView({ behavior: "smooth", block: "center" });
-    field.focus({ preventScroll: true });
+    const inputElement = document.getElementById(target);
+    if (!inputElement) { setError("The requested editor field is unavailable."); return; }
+    inputElement.scrollIntoView({ behavior: "smooth", block: "center" });
+    inputElement.focus({ preventScroll: true });
     setError("");
   }
 
