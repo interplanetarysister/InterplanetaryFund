@@ -22,6 +22,8 @@ test("community actions require database-level lifecycle checks and private writ
   assert.match(sql, /ifund_my_social_draft\(\)/);
   assert.match(sql, /ifund_social_archive_reply\(/);
   assert.match(sql, /ifund_social_my_friends/);
+  assert.match(sql, /ifund_member_owns_active_campaign/);
+  assert.match(sql, /ifund_social_archive_replies_read/);
   assert.match(sql, /Reply rate limit reached/);
   assert.match(sql, /create policy ifund_posts_public_read/);
   assert.match(sql, /public\.ifund_post_visible\(id\)/);
