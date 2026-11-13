@@ -97,19 +97,53 @@ export default function Institutions() {
       } catch(e){if(active){setError("Live institution research sources are temporarily unavailable. No unverified listings were substituted.");setState("error");}}
     })();
     listActiveCampaigns({limit:100}).then(items=>{if(active)setPublicCampaigns(items);}).catch(()=>{});
-    (async()=>{
-      try {
-        const client=authClient();
-        const {data:{user},error:userError}=await client.auth.getUser();
-        if(userError||!user)return; // public research is usable without a login.
-        const {data,error:ownError}=await client.from("ifund_campaigns")
-          .select("id,title,summary,story,category,status")
-          .eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
-        if(ownError||!Array.isArray(data))throw new Error("Your private campaign list could not be verified.");
-        if(active)setOwnerCampaigns(data.map(c=>({...c,isOwned:true})));
-      }catch(err){if(active)setOwnerLoadWarning("Private draft matching is temporarily unavailable; public research is still available.");}
-    })();
     return ()=>{active=false};
+  },[reload]);
+  useEffect(()=>{
+    let active=true;
+    let revision=0;
+    let observedIdentity=null;
+    let subscription=null;
+    try {
+      const client=authClient();
+      async function loadPrivate(){
+        const ownRevision=++revision;
+        try{
+          const {data:{user},error:userError}=await client.auth.getUser();
+          if(!active||ownRevision!==revision)return;
+          if(userError||!user){setOwnerCampaigns([]);return;}
+          observedIdentity=user.id;
+          const {data,error}=await client.from("ifund_campaigns")
+            .select("id,title,summary,story,category,status")
+            .eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
+          if(!active||ownRevision!==revision)return;
+          if(error||!Array.isArray(data))throw new Error("Owner campaign query unavailable");
+          const checked=await client.auth.getUser();
+          if(!active||ownRevision!==revision)return;
+          if(checked.error||checked.data?.user?.id!==user.id)throw new Error("Identity changed");
+          setOwnerCampaigns(data.map(item=>({...item,isOwned:true})));
+          setOwnerLoadWarning("");
+        }catch{
+          if(active&&ownRevision===revision){
+            setOwnerCampaigns([]);
+            setOwnerLoadWarning("Private draft matching is temporarily unavailable; public research is still available.");
+          }
+        }
+      }
+      subscription=client.auth.onAuthStateChange((event,session)=>{
+        if(!active)return;
+        const next=session?.user?.id||null;
+        if(next!==observedIdentity){
+          observedIdentity=next;
+          ++revision;
+          setOwnerCampaigns([]);
+          setSelectedCampaign("");
+          queueMicrotask(()=>{if(active)loadPrivate();});
+        }
+      }).data?.subscription;
+      loadPrivate();
+    }catch{setOwnerCampaigns([]);}
+    return ()=>{active=false;++revision;subscription?.unsubscribe();};
   },[reload]);
   const campaigns=[...ownerCampaigns,...publicCampaigns.filter(c=>!ownerCampaigns.some(o=>o.id===c.id))];
   const selected=campaigns.find(c=>c.id===selectedCampaign)||null;
