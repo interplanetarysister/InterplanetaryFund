@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadWritingWorkspaceAccess } from "@/lib/writingWorkspace";
 import { loadOwnerCampaign } from "@/api/ownerCampaigns";
+import { analyzeStoryBrief } from "@/lib/campaignWritingChecklist.mjs";
 import {
   rememberWritingHandoff,
   WritingHandoffError,
@@ -287,6 +288,7 @@ export default function StoryAgent() {
       setBusy(false);
     }
   }
+  const briefAudit = analyzeStoryBrief(details);
   return (
     <div className="mx-auto max-w-3xl space-y-7 p-4 pb-24 sm:p-7">
       <header>
@@ -307,6 +309,18 @@ export default function StoryAgent() {
           {notice}
         </p>
       )}
+      <section className="rounded-2xl border border-border bg-card p-5" aria-label="Free campaign brief review">
+        <h2 className="text-lg font-semibold">Free Story briefing checklist</h2>
+        <p className="mt-2 text-sm text-muted-foreground">This local writing guide does not use an AI model, consume credits, or transmit your text. Its checks are prompts for your own review, not fact verification.</p>
+        <p className="mt-2 text-sm text-muted-foreground">Current draft: {briefAudit.words} words. Enter a draft in “What should people know?” to see suggestions.</p>
+        {briefAudit.sensitive && <p role="alert" className="mt-3 rounded-lg border border-amber-500/50 p-3 text-sm">Your draft might contain sensitive credentials or identification. Remove them before generating or publishing.</p>}
+        <ul className="mt-3 space-y-2">
+          {briefAudit.checks.map(check => <li key={check.id} className="flex flex-wrap justify-between gap-2 text-sm">
+            <span className="font-semibold">{check.label}</span>
+            <span className="text-muted-foreground">{check.suggested ? check.prompt : "Review for accuracy before publishing."}</span>
+          </li>)}
+        </ul>
+      </section>
       {queuedRequests.length > 0 && (
         <section
           className="rounded-xl border p-4"
