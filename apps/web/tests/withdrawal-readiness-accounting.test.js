@@ -61,3 +61,13 @@ test("withdrawal retry reuses operation key until acknowledgement and refreshed 
   assert.match(page,/await refresh\(\);\s*pendingRequestKeys\.current\.delete\(requestIdentity\)/);
   assert.doesNotMatch(page,/const requestKey="wd-"\+crypto\.randomUUID\(\)/);
 });
+
+test("live donations never implicitly enable PayPal payout execution",()=>{
+  const execute=worker.indexOf('if(path==="/api/payments/payouts/execute"');
+  const reconcile=worker.indexOf('if(path==="/api/payments/payouts/reconcile"');
+  assert.ok(execute>=0 && reconcile>execute);
+  const gate=worker.slice(execute,reconcile);
+  assert.match(gate,/IFUND_PAYOUT_EXECUTION_ENABLED!=="true"/);
+  assert.match(gate,/payout_execution_disabled/);
+  assert.ok(gate.indexOf('IFUND_PAYOUT_EXECUTION_ENABLED')<gate.indexOf('executePayout(request,env)'));
+});
