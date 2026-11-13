@@ -74,3 +74,47 @@ begin
 end $$;
 revoke all on function public.ifund_record_editorial_worker_turn(uuid,text,text,text,uuid) from public,anon,authenticated;
 grant execute on function public.ifund_record_editorial_worker_turn(uuid,text,text,text,uuid) to service_role;
+
+-- Service-only bounded work claiming, with leases and at most three attempts.
+-- This stages the contract; it does not create/activate an AI Worker or cron.
+alter table public.ifund_editorial_agent_reviews
+  add column if not exists review_claimed_at timestamptz,
+  add column if not exists review_attempts integer not null default 0;
+create index if not exists ifund_editorial_agent_reviews_dispatch_idx
+  on public.ifund_editorial_agent_reviews(review_status,review_claimed_at,created_at)
+  where review_status in ('queued','under_review');
+
+create or replace function public.ifund_claim_editorial_agent_reviews(p_limit integer default 5)
+returns table(review_id uuid,campaign_id uuid,finding_id text,lead_agent text,attempt_number integer)
+language plpgsql volatile security definer set search_path='' set row_security='off'
+as $$
+begin
+ if auth.role() is distinct from 'service_role' then
+   raise exception 'Service review worker only' using errcode='42501';
+ end if;
+ if p_limit is null or p_limit not between 1 and 10 then
+   raise exception 'Choose one to ten review jobs' using errcode='22023';
+ end if;
+ return query
+ with candidate as (
+   select r.id from public.ifund_editorial_agent_reviews r
+   where r.review_attempts<3 and (
+       r.review_status='queued' or
+       (r.review_status='under_review' and
+        r.review_claimed_at < now()-interval '20 minutes')
+   )
+   order by r.created_at asc,r.id
+   for update skip locked limit p_limit
+ ),claimed as (
+   update public.ifund_editorial_agent_reviews r
+     set review_status='under_review',
+         review_claimed_at=now(),
+         review_attempts=r.review_attempts+1,
+         updated_at=now()
+     from candidate c where r.id=c.id
+     returning r.id,r.campaign_id,r.finding_id,r.lead_agent,r.review_attempts
+ )
+ select c.id,c.campaign_id,c.finding_id,c.lead_agent,c.review_attempts from claimed c;
+end $$;
+revoke all on function public.ifund_claim_editorial_agent_reviews(integer) from public,anon,authenticated;
+grant execute on function public.ifund_claim_editorial_agent_reviews(integer) to service_role;
