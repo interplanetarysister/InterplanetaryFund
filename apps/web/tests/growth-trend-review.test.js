@@ -6,7 +6,7 @@ test("FORGE trend compares recent 7-day daily rate with prior 23 days",()=>{
   const decline=evaluateGrowthTrend(1,47,{label:"captures"});
   assert.equal(decline.status,"declining");
   assert.equal(decline.previousCount,46);
-  const growth=evaluateGrowthTrend(10,33,{label:"followers"});
+  const growth=evaluateGrowthTrend(11,34,{label:"followers"});
   assert.equal(growth.status,"growing");
   assert.equal(evaluateGrowthTrend(7,30).status,"stable");
 });
