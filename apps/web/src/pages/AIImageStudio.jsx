@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover } from "@/api/campaignCovers";
+import { prepareReferenceJpeg, decodeGeneratedArtwork } from "@/lib/imageArtwork.mjs";
 
 const STYLES = [
   ["interstellar", "Interstellar"],
@@ -21,6 +22,10 @@ export default function AIImageStudio() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [style, setStyle] = useState("interstellar");
+  const [referenceFile, setReferenceFile] = useState(null);
+  const [confirmedRights, setConfirmedRights] = useState(false);
+  const [artworkKind, setArtworkKind] = useState("generated");
+  const operationLock = useRef(false);
   const [busy, setBusy] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [file, setFile] = useState(null);
@@ -37,12 +42,23 @@ export default function AIImageStudio() {
     setFile(null);
     setSavedUrl("");
   }
-  async function generate(event) {
-    event.preventDefault();
-    if (busy) return;
-    setBusy("generate"); setError(""); setMessage("");
+  async function generate(event, improve = false) {
+    event?.preventDefault();
+    if (operationLock.current || busy) return;
+    if (title.trim().length < 4 || title.trim().length > 150 ||
+        description.trim().length < 20 || description.trim().length > 900) {
+      setError("Enter a valid campaign title and description before continuing.");
+      return;
+    }
+    if (improve && (!referenceFile || !confirmedRights)) {
+      setError("Choose a photo you may edit and confirm your permission before improving it.");
+      return;
+    }
+    operationLock.current = true;
+    setBusy(improve ? "improve" : "generate"); setError(""); setMessage("");
     clearArtwork();
     try {
+      const reference = improve ? await prepareReferenceJpeg(referenceFile) : null;
       const client = authClient();
       const before = await client.auth.getUser();
       const { data: session, error: sessionError } = await client.auth.getSession();
@@ -50,28 +66,26 @@ export default function AIImageStudio() {
           before.data.user.id !== session?.session?.user?.id ||
           !session.session.access_token)
         throw new Error("Sign in to a verified account before generating artwork.");
-      const response = await fetch("/api/ai/images/generate", {
+      const response = await fetch(improve ? "/api/ai/images/improve" : "/api/ai/images/generate", {
         method: "POST",
         headers: {
           Authorization: "Bearer " + session.session.access_token,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ title: title.trim(), description: description.trim(), style }),
+        body: JSON.stringify({
+          title: title.trim(), description: description.trim(), style,
+          ...(improve ? { ...reference, confirmed_rights: true } : {}),
+        }),
       });
       const result = await response.json().catch(() => null);
       if (!response.ok)
         throw new Error(result?.error || "Image generation is currently unavailable.");
-      if (!result || result.generated !== true || result.mime_type !== "image/jpeg" ||
-          typeof result.image_base64 !== "string" || result.image_base64.length > 7_000_000 ||
-          !/^\/9j\//.test(result.image_base64))
-        throw new Error("The generated image response could not be verified.");
-      const binary = atob(result.image_base64);
-      if (binary.length > 5 * 1024 * 1024 || binary.length < 64)
-        throw new Error("The generated image was too large or incomplete.");
-      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
-      if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff)
-        throw new Error("The generated image format was invalid.");
-      const jpeg = new File([bytes], "ifund-generated-cover.jpg", { type: "image/jpeg" });
+      if (improve && result?.improved !== true)
+        throw new Error("The image improvement response could not be verified.");
+      const bytes = decodeGeneratedArtwork(result);
+      const jpeg = new File([bytes], improve ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg", {
+        type: "image/jpeg",
+      });
       const after = await client.auth.getUser();
       if (after.error || after.data?.user?.id !== before.data.user.id)
         throw new Error("Your account changed before the image could be shown.");
@@ -79,21 +93,28 @@ export default function AIImageStudio() {
       objectUrl.current = url;
       setFile(jpeg);
       setImageUrl(url);
-      setMessage("Artwork generated. Review it before saving or using it in a campaign.");
+      setArtworkKind(improve ? "improved" : "generated");
+      setMessage(improve
+        ? "The selected image was improved with AI. Review it before saving; the original file was not stored by this action."
+        : "Artwork generated. Review it before saving or using it in a campaign.");
     } catch (cause) {
       setError(cause?.message || "Artwork generation failed.");
-    } finally { setBusy(""); }
+    } finally {
+      operationLock.current = false;
+      setBusy("");
+    }
   }
 
   async function save() {
-    if (busy || !file) return;
+    if (operationLock.current || busy || !file) return;
+    operationLock.current = true;
     setBusy("upload"); setError(""); setMessage("");
     try {
       const url = await uploadCampaignCover(authClient(), file);
       setSavedUrl(url);
       setMessage("The image was saved to your IFund public cover storage. It is not attached to a campaign until you choose it in the campaign editor and save.");
     } catch (cause) { setError(cause?.message || "Artwork could not be saved."); }
-    finally { setBusy(""); }
+    finally { operationLock.current = false; setBusy(""); }
   }
   async function copy() {
     if (!savedUrl) return;
@@ -108,7 +129,7 @@ export default function AIImageStudio() {
       <p className="text-xs font-semibold uppercase tracking-widest text-cyan-600">IFund Campaign Studio</p>
       <h1 className="text-3xl font-bold">AI Image Studio</h1>
       <p className="text-sm text-muted-foreground">
-        Create an original illustrated campaign cover with Cloudflare Workers AI.
+        Create original illustrated campaign artwork or improve your own image with Cloudflare Workers AI.
         Generation is limited to three attempts per eligible account per UTC day
         and fifty platform-wide daily attempts when the free service is available.
         This does not automatically publish content or change payments.
@@ -130,6 +151,32 @@ export default function AIImageStudio() {
           {STYLES.map(([value,label]) => <option key={value} value={value}>{label}</option>)}
         </select>
       </label>
+      <section className="space-y-3 rounded-xl border border-border p-4" aria-label="Optional image improvement">
+        <h3 className="font-semibold">Improve an image you already have (optional)</h3>
+        <p className="text-xs text-muted-foreground">Choose a JPG, PNG, WebP or AVIF image up to 5 MB. The file is resized locally to a 480-pixel maximum and stripped of image metadata before submission to Cloudflare's image model. Do not submit confidential documents or images without permission.</p>
+        <label className="block text-sm font-medium">Choose reference image
+          <input className="mt-2 w-full rounded-xl border border-input bg-background p-3 text-sm"
+            type="file" accept="image/jpeg,image/png,image/webp,image/avif" disabled={Boolean(busy)}
+            onChange={e => {
+              const next = e.currentTarget.files?.[0] || null;
+              e.currentTarget.value = "";
+              setReferenceFile(next);
+              setConfirmedRights(false);
+              setError("");
+            }} />
+        </label>
+        {referenceFile && <p className="break-all text-xs text-muted-foreground">Selected: {referenceFile.name}</p>}
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input type="checkbox" checked={confirmedRights} disabled={Boolean(busy) || !referenceFile}
+            onChange={e => setConfirmedRights(e.target.checked)} />
+          I have permission to edit this image and agree to send its resized contents to Cloudflare Workers AI.
+        </label>
+        <button type="button" className={button}
+          disabled={Boolean(busy) || !referenceFile || !confirmedRights}
+          onClick={() => generate(null, true)}>
+          {busy === "improve" ? "Improving illustration…" : "Improve selected image with AI"}
+        </button>
+      </section>
       <p className="text-xs text-muted-foreground">Use illustrative imagery only; do not imply that an AI-created person or scene is a real beneficiary, donor or event.</p>
       <button type="submit" className="min-h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-60" disabled={Boolean(busy)}>
         {busy === "generate" ? "Generating artwork…" : "Generate original artwork"}
@@ -138,13 +185,13 @@ export default function AIImageStudio() {
     {error && <p role="alert" className="rounded-xl border border-destructive/40 p-4">{error}</p>}
     {message && <p role="status" className="rounded-xl border border-border p-4">{message}</p>}
     {imageUrl && <section className="space-y-4 rounded-2xl border border-border bg-card p-5">
-      <h2 className="text-xl font-semibold">Review generated illustration</h2>
+      <h2 className="text-xl font-semibold">Review {artworkKind === "improved" ? "improved" : "generated"} illustration</h2>
       <img src={imageUrl} alt={"AI illustration for " + title} className="max-h-[550px] w-full rounded-xl object-contain" />
       <div className="flex flex-wrap gap-3">
         <button type="button" onClick={save} className={button} disabled={Boolean(busy) || Boolean(savedUrl)}>
           {busy === "upload" ? "Saving image…" : savedUrl ? "Image saved" : "Save to IFund cover storage"}
         </button>
-        <a href={imageUrl} download="ifund-generated-cover.jpg" className={button}>Download JPEG</a>
+        <a href={imageUrl} download={artworkKind === "improved" ? "ifund-improved-cover.jpg" : "ifund-generated-cover.jpg"} className={button}>Download JPEG</a>
       </div>
       {savedUrl && <div className="space-y-3">
         <label className="block text-sm font-medium">Saved public cover link
