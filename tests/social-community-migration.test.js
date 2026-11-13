@@ -132,6 +132,8 @@ test("community migration creates permissioned native/archive discussions and mo
   await who(reporter);
   assert.equal((await query("select count(*)::int n from public.ifund_public_social_feed() where id=$1",["post-"+native]))[0].n,0);
   await assert.rejects(query("select public.ifund_social_reply($1,'not allowed')",[native]),/Post unavailable/);
+  assert.equal((await query("select count(*)::int n from public.ifund_social_moderation_queue()"))[0].n,0);
+  assert.equal((await query("select count(*)::int n from public.ifund_social_archive_queue()"))[0].n,0);
   await who(admin);
   const report=(await query("select id from public.ifund_social_moderation_queue() where post_id=$1",[native]))[0];
   assert.ok(report);
