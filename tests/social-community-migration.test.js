@@ -16,7 +16,7 @@ test("community migration creates permissioned native/archive discussions and mo
     create role anon; create role authenticated;
     create schema auth;
     create function auth.uid() returns uuid language sql stable
-    as $ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $;
+    as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth to anon,authenticated;
     grant execute on function auth.uid() to anon,authenticated;
     create table auth.users(
