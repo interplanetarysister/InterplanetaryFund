@@ -71,7 +71,7 @@ test("browser cannot directly call PayPal payouts and super admin execution uses
   assert.doesNotMatch(owner,/\/v1\/payments\/payouts/);
   assert.doesNotMatch(admin,/\/v1\/payments\/payouts/);
   assert.match(admin,/\/api\/payments\/payouts\/execute/);
-  assert.match(admin,/authorization:"Bearer "\+token/);
+  assert.match(admin,/"authorization":"Bearer "\+token/);
   assert.match(admin,/superAdminStatus === "super-admin"/);
 });
 
