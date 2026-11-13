@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import StoryAgent from "./StoryAgent";
+import NexusBrief from "@/components/agents/NexusBrief";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 
@@ -35,6 +36,7 @@ export default function AgentsTeam() {
         <div><h2 className="text-xl font-semibold">{AGENT_IDENTITIES[selected].name}</h2><p className="text-sm text-muted-foreground">{AGENT_IDENTITIES[selected].role}</p></div>
       </div>
       <p role="status" className="mt-4 text-sm text-muted-foreground">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
+      {selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
       {workspace && <div className="mt-4">
         {selected === "story" ?
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
