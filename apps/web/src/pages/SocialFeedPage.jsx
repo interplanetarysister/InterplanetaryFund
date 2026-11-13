@@ -74,7 +74,7 @@ export default function SocialFeedPage({ community = false }) {
     }
   }
 
-  return <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+  return <div className="ifund-sacred-social mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header>
       <h1 className="font-display text-3xl font-bold">{community ? "IFund Community" : "IFund Social Feed"}</h1>
       <p className="mt-2 text-muted-foreground">Share updates and discover community conversations.</p>
@@ -104,7 +104,7 @@ export default function SocialFeedPage({ community = false }) {
     {notice && <p role="status">{notice}</p>}
     <section aria-labelledby="recent-posts" className="space-y-4">
       <h2 id="recent-posts" className="text-xl font-semibold">Recent updates</h2>
-      <SocialPostList posts={posts} />
+      <SocialPostList posts={posts} onHidden={postId => setPosts(current => current.filter(post => post.id !== postId))} />
       {loading && <p role="status">Loading updates…</p>}
       {feedError && <p role="alert">{feedError} <button type="button" onClick={() => load(posts.at(-1))} className="min-h-11 text-primary underline">Retry</button></p>}
       {!loading && !feedError && posts.length === 0 && <p className="rounded-xl border border-border p-5 text-muted-foreground">No public updates yet.</p>}
