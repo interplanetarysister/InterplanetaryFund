@@ -38,6 +38,11 @@ test("feed and campaign links expose report, friendship, story and draft UI", ()
   assert.match(feed, /localStorage\.setItem\(draftKey/);
   assert.match(feed, /shareDraftExternally/);
   assert.match(profile, /friendAction\(/);
+  const permalink = source("../src/pages/SocialPostPage.jsx");
+  const routes = source("../src/App.jsx");
+  assert.match(routes, /social\/post\/:id/);
+  assert.match(permalink, /getPublicSocialPost/);
+  assert.match(list, /social\/post\//);
   assert.match(campaign, /ifund_public_campaign_blog_author/);
   assert.match(article, /shareStory/);
   assert.match(publication, /sharePublication/);
