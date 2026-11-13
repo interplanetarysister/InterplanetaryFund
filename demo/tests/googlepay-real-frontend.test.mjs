@@ -11,7 +11,7 @@ const amounts=[100,250,333,500,1000,2500,101,199,299,499,999,1001,2499,2501,9999
 const campaigns=Array.from({length:5},(_,i)=>'00000000-0000-4000-8000-'+String(i+1).padStart(12,'0'));
 function chosen(amount,campaign) {
   const fields={amount:{value:amount},campaign:{value:campaign}};
-  const context={document:{getElementById:id=>fields[id]},Error,Number,BigInt};
+  const context={byId:id=>fields[id],document:{getElementById:id=>fields[id]},Error,Number,BigInt};
   return vm.runInNewContext(match[0]+'; chosen()',context);
 }
 for(let i=0;i<amounts.length;i++)for(let j=0;j<campaigns.length;j++){
