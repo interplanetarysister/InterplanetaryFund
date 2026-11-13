@@ -25,7 +25,7 @@ const PAGE_TITLES = {
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
-  "/admin/founding-members": "Founding Members", "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
+  "/admin/studio": "Website Studio", "/platform": "Platform", "/create": "New Campaign", "/profile": "My Profile", "/notifications": "Notifications",
   "/campaigns": "My Campaigns",
   "/social": "Social Feed", "/news": "IFund Newscaster", "/blogs": "Stories & Blogs", "/my-blog": "My Blog Studio", "/donors": "Supporters", "/ledger": "Financial Ledger", "/connect": "AI Connections", "/admin/external-accounts": "Connections", "/admin/integrations": "Admin Integrations", "/admin/audit": "Audit Log", "/admin/sustainability": "Planet Impact",
 };
@@ -72,8 +72,7 @@ const navSections = [
       { to: "/community", label: "Public Discussions", icon: Users },
       { to: "/news", label: "IFund Newscaster", icon: Radio },
       { to: "/my-blog", label: "My Blog", icon: BookOpen },
-      { to: "/institutions", label: "Institutions", icon: Building2 },
-      { to: "/communications", label: "ECHO Drafts", icon: MessageSquare },
+          { to: "/communications", label: "ECHO Drafts", icon: MessageSquare },
       { to: "/inbox", label: "Inbox", icon: MailOpen },
     ],
   },
@@ -82,7 +81,6 @@ const navSections = [
     items: [
       { to: "/agents", label: "AI Team", icon: Bot },
       { to: "/mission", label: "Mission Control", icon: Sparkles },
-      { to: "/ai-images", label: "AI Image Studio", icon: Sparkles },
     ],
   },
   {
@@ -146,7 +144,10 @@ export default function Layout() {
   // protected read and write is still enforced by Supabase row level security.
   const { status: sessionStatus, user } = useAuthSession();
   const isAdmin = useAdminAccess(user) === "admin";
-  const hasAiAgents = false;
+  // The Story writing workspace is implemented; do not hide it behind an
+  // unverified seven-agent chat rollout. Individual agent capabilities remain
+  // described accurately on the destination page.
+  const hasAiAgents = true;
   const { pathname } = useLocation();
   const title = pageTitle(pathname);
   // Keep each area recognizable beyond the sidebar, including nested pages.
