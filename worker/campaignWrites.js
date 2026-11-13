@@ -56,7 +56,8 @@ function validatePayload(raw, isCreate) {
   // A publish transition always supplies a complete, validated payload.
   if (data.status === 'active' &&
     (!data.title || !data.summary || !data.story ||
-      !data.goal_amount || data.goal_amount <= 0)) return null;
+      !data.goal_amount || data.goal_amount <= 0 ||
+      Array.from(data.story).length < 3500)) return null;
   return data;
 }
 function apiHeaders(env, jwt) {
