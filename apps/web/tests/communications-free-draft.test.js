@@ -25,3 +25,11 @@ test("communications replace the placeholder route without lifting account contr
   assert.ok(!app.includes('"/communications", "/mission"'));
   assert.equal(identity?.path,"/communications");
 });
+
+test("ECHO clears unsent private content when member identity changes",()=>{
+  assert.match(ui,/onAuthStateChange/);
+  assert.match(ui,/setCampaignId\(""\)/);
+  assert.match(ui,/setMessage\(""\)/);
+  assert.match(ui,/fresh\.data\?\.user\?\.id!==user\.id/);
+  assert.match(ui,/subscriber\?\.subscription\?\.unsubscribe\(\)/);
+});
