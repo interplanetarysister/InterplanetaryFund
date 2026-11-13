@@ -23,3 +23,10 @@ test("warns about obvious sensitive identifiers without persisting values", () =
   assert.equal(brief.sensitive, true);
   assert.equal(Object.keys(brief).includes("text"), false);
 });
+
+test("Story warns about additional common credentials and card-like numbers locally", () => {
+  assert.equal(analyzeStoryBrief("api key: sample-secret").sensitive, true);
+  assert.equal(analyzeStoryBrief("access token = sample").sensitive, true);
+  assert.equal(analyzeStoryBrief("please never share 4111 1111 1111 1111").sensitive, true);
+  assert.equal(analyzeStoryBrief("Budget $500 for supplies").sensitive, false);
+});
