@@ -19,6 +19,7 @@ async function sharePost(post) {
 function SocialItem({ post, likes, onHidden, user }) {
   const id = nativePostId(post);
   const likeId = id || (post.id?.startsWith("archive-") ? post.id : null);
+  const discussionId = likeId;
   const [liked, setLiked] = useState(likes?.liked || false);
   const [count, setCount] = useState(likes?.count || 0);
   const [working, setWorking] = useState(false);
@@ -47,16 +48,16 @@ function SocialItem({ post, likes, onHidden, user }) {
   }
   async function showReplies() {
     setReplyOpen(v => !v);
-    if (!replyOpen && id) {
-      try { setReplies(await readReplies(id)); }
+    if (!replyOpen && discussionId) {
+      try { setReplies(await readReplies(discussionId)); }
       catch (cause) { setError(cause.message); }
     }
   }
   async function sendReply(event) {
     event.preventDefault();
-    if (!id || working || !reply.trim()) return;
+    if (!discussionId || working || !reply.trim()) return;
     setWorking(true); setError("");
-    try { await replyToPost(id, reply); setReply(""); setReplies(await readReplies(id)); }
+    try { await replyToPost(discussionId, reply); setReply(""); setReplies(await readReplies(discussionId)); }
     catch (cause) { setError(cause.message); }
     finally { setWorking(false); }
   }
@@ -77,7 +78,7 @@ function SocialItem({ post, likes, onHidden, user }) {
     {post.external_url && <a href={post.external_url} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-primary underline">View original post</a>}
     <div className="flex flex-wrap items-center gap-4 border-t border-border pt-3 text-sm">
       {likeId && <button type="button" disabled={!user || working} aria-pressed={liked} onClick={toggleLike} className="inline-flex min-h-11 items-center gap-2 text-primary disabled:opacity-50"><Heart size={17} fill={liked ? "currentColor" : "none"} /> {count} Likes</button>}
-      {id && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
+      {discussionId && <button type="button" onClick={showReplies} className="inline-flex min-h-11 items-center gap-2 text-primary"><MessageCircle size={17} /> Replies</button>}
       <button type="button" className="inline-flex min-h-11 items-center gap-2 text-primary" onClick={() => sharePost(post)}><Share2 size={17} /> Share</button>
       {post.profile_id && <Link className="inline-flex min-h-11 items-center text-primary underline" to={`/u/${post.profile_id}`}>View member</Link>}
       {(id || post.id?.startsWith("archive-")) && user && <button type="button" onClick={() => setReportOpen(v => !v)} className="ml-auto inline-flex min-h-11 items-center gap-1 text-muted-foreground"><Flag size={16} /> Report</button>}
