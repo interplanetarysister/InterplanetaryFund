@@ -74,7 +74,11 @@ begin
  if not exists(select 1 from public.ifund_posts where id=p_post and author_id <> auth.uid())
  then raise exception 'Cannot report this post' using errcode='22023'; end if;
  -- one report per person/post, and rate-limit reports to reduce abuse.
- if exists(select 1 from public.ifund_social_reports where reporter_id=auth.uid() and created_at > now()-interval '1 minute')
+ if exists(select 1 from (
+   select created_at from public.ifund_social_reports where reporter_id=auth.uid()
+   union all
+   select created_at from public.ifund_social_archive_reports where reporter_id=auth.uid()
+ ) reports where reports.created_at > now()-interval '1 minute')
  then raise exception 'Please wait before reporting another post' using errcode='22023'; end if;
  insert into public.ifund_social_reports(post_id,reporter_id,reason)
  values(p_post,auth.uid(),trim(p_reason));
