@@ -3,6 +3,7 @@
 -- quota per UTC day, and caps all image attempts at 50 per day and 3 per owner.
 -- Even if inference fails, the attempt consumes quota to resist abuse.
 -- These are attempt limits, not guarantees about other Workers AI consumption.
+-- IMPORTANT: keep the accepted terms version in sync with apps/web/src/lib/legalPolicy.js.
 
 CREATE TABLE IF NOT EXISTS ifund_ops.ai_image_daily (
   quota_date date NOT NULL,
@@ -43,6 +44,7 @@ BEGIN
      NOT EXISTS (
        SELECT 1 FROM public.ifund_legal_acceptances AS accepted
        WHERE accepted.owner_id = v_owner
+         AND accepted.terms_version = '2026-11-10-v4'
          AND accepted.explicit_consent IS TRUE
      )
   THEN
