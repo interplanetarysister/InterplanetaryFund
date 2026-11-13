@@ -378,3 +378,61 @@ language sql stable security definer set search_path = '' as $$
 $$;
 revoke all on function public.ifund_social_friend_requests() from public,anon,authenticated;
 grant execute on function public.ifund_social_friend_requests() to authenticated;
+
+
+-- Public discussion on imported archive records is stored in IFund, not posted
+-- back to the external origin platform.
+create table if not exists public.ifund_social_archive_replies (
+ id uuid primary key default gen_random_uuid(),
+ archive_id text not null,
+ author_id uuid not null references auth.users(id) on delete cascade,
+ body text not null check (length(trim(body)) between 1 and 1000),
+ created_at timestamptz not null default now()
+);
+create index if not exists ifund_archive_replies_post_idx
+ on public.ifund_social_archive_replies(archive_id,created_at);
+alter table public.ifund_social_archive_replies enable row level security;
+revoke all on public.ifund_social_archive_replies from public,anon,authenticated;
+
+create or replace function public.ifund_social_archive_reply(p_archive text,p_body text)
+returns uuid language plpgsql security definer set search_path = '' as $
+declare v_id uuid;
+begin
+ if not public.ifund_social_member_ok() then
+  raise exception 'Active verified member required' using errcode='42501';
+ end if;
+ if length(trim(coalesce(p_body,''))) not between 1 and 1000 then
+  raise exception 'Reply must be 1–1000 characters' using errcode='22023';
+ end if;
+ if p_archive is null or length(p_archive)>128 or not exists(
+   select 1 from public.ifund_social_post p
+   where p.id=p_archive and p.source_system='base44_public_social_archive')
+   or exists(select 1 from public.ifund_social_archive_reports r
+     where r.archive_id=p_archive and r.status in ('open','removed'))
+ then raise exception 'Post unavailable' using errcode='22023'; end if;
+ insert into public.ifund_social_archive_replies(archive_id,author_id,body)
+ values(p_archive,auth.uid(),trim(p_body)) returning id into v_id;
+ return v_id;
+end $;
+
+create or replace function public.ifund_social_archive_replies_read(p_archive text)
+returns table(id uuid,body text,created_at timestamptz,display_name text,profile_id uuid)
+language sql stable security definer set search_path = '' as $
+ select r.id,r.body,r.created_at,
+ case when p.public_profile_enabled and p.account_status='active'
+   and not p.account_deletion_pending then p.display_name end,
+ case when p.public_profile_enabled and p.account_status='active'
+   and not p.account_deletion_pending then p.id end
+ from public.ifund_social_archive_replies r
+ left join public.ifund_profiles p on p.id=r.author_id
+ where r.archive_id=p_archive
+ and exists(select 1 from public.ifund_social_post s
+   where s.id=r.archive_id and s.source_system='base44_public_social_archive')
+ and not exists(select 1 from public.ifund_social_archive_reports x
+   where x.archive_id=r.archive_id and x.status in ('open','removed'))
+ order by r.created_at asc limit 100
+$;
+revoke all on function public.ifund_social_archive_reply(text,text),
+ public.ifund_social_archive_replies_read(text) from public,anon,authenticated;
+grant execute on function public.ifund_social_archive_reply(text,text) to authenticated;
+grant execute on function public.ifund_social_archive_replies_read(text) to anon,authenticated;
