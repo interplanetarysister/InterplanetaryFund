@@ -86,7 +86,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "patreon",
     "name": "Patreon",
     "kind": "crowdfunding",
-    "method": "link",
+    "method": "secure",
     "site": "https://www.patreon.com",
     "accent": "#ff424d",
     "icon": "patreon"
@@ -104,7 +104,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "eventbrite",
     "name": "Eventbrite",
     "kind": "crowdfunding",
-    "method": "link",
+    "method": "secure",
     "site": "https://www.eventbrite.com",
     "accent": "#f05537",
     "icon": "eventbrite"
@@ -230,7 +230,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "pinterest",
     "name": "Pinterest",
     "kind": "social",
-    "method": "link",
+    "method": "secure",
     "site": "https://www.pinterest.com",
     "accent": "#e60023",
     "icon": "pinterest"
@@ -239,7 +239,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "reddit",
     "name": "Reddit",
     "kind": "social",
-    "method": "link",
+    "method": "secure",
     "site": "https://www.reddit.com",
     "accent": "#ff4500",
     "icon": "reddit"
@@ -254,10 +254,28 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "icon": "youtube"
   },
   {
+    "id": "telegram",
+    "name": "Telegram",
+    "kind": "social",
+    "method": "link",
+    "site": "https://telegram.org",
+    "accent": "#2aabee",
+    "icon": "telegram"
+  },
+  {
+    "id": "twitch",
+    "name": "Twitch",
+    "kind": "social",
+    "method": "secure",
+    "site": "https://www.twitch.tv",
+    "accent": "#9146ff",
+    "icon": "twitch"
+  },
+  {
     "id": "discord",
     "name": "Discord",
     "kind": "social",
-    "method": "link",
+    "method": "secure",
     "site": "https://discord.com",
     "accent": "#5865f2",
     "icon": "discord"
@@ -347,7 +365,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "slack",
     "name": "Slack",
     "kind": "app",
-    "method": "guide",
+    "method": "secure",
     "site": "https://slack.com",
     "accent": "#64748b",
     "icon": "slack"
@@ -401,7 +419,7 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "id": "github",
     "name": "GitHub",
     "kind": "app",
-    "method": "guide",
+    "method": "secure",
     "site": "https://github.com",
     "accent": "#64748b",
     "icon": "github"
@@ -425,11 +443,17 @@ export const CONNECTION_PLATFORMS = Object.freeze([
     "icon": "google"
   }
 ].map(row=>Object.freeze(row)));
-export const OAUTH_PLATFORM_IDS = Object.freeze({ facebook:"facebook_pages",instagram:"instagram",youtube:"youtube",linkedin:"linkedin",tiktok:"tiktok",x:"x",google:"google" });
+export const OAUTH_PLATFORM_IDS = Object.freeze({
+ facebook:"facebook_pages",instagram:"instagram",youtube:"youtube",linkedin:"linkedin",tiktok:"tiktok",x:"x",google:"google",
+ discord:"discord",github:"github",twitch:"twitch",slack:"slack",patreon:"patreon",eventbrite:"eventbrite",
+ pinterest:"pinterest",reddit:"reddit"
+});
 export const CONNECTION_PROVIDER_ALIASES = Object.freeze({
  facebook_pages:["facebook_pages","facebook"],instagram:["instagram","instagram_business"],
  youtube:["youtube","youtube_channel"],google:["google","google_account"],
- linkedin:["linkedin"],tiktok:["tiktok"],x:["x","twitter"]
+ linkedin:["linkedin"],tiktok:["tiktok"],x:["x","twitter"],
+ discord:["discord"],github:["github"],twitch:["twitch"],slack:["slack"],
+ patreon:["patreon"],eventbrite:["eventbrite"],pinterest:["pinterest"],reddit:["reddit"]
 });
 export function matchesStoredConnection(row,providerId) {
  return Boolean(row && (CONNECTION_PROVIDER_ALIASES[providerId] || [providerId]).includes(row.provider));

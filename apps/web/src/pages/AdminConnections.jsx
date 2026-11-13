@@ -18,7 +18,15 @@ const PROVIDER_APPROVALS = [
   ["youtube","Google/YouTube account authorization"],
   ["linkedin","LinkedIn authorization and member permissions"],
   ["tiktok","TikTok authorization"],
-  ["x","X user authorization"]
+  ["x","X user authorization"],
+  ["discord","Discord OAuth identity"],
+  ["github","GitHub OAuth identity"],
+  ["twitch","Twitch OAuth identity"],
+  ["slack","Slack OpenID Connect"],
+  ["patreon","Patreon API v2 identity"],
+  ["eventbrite","Eventbrite organizer identity"],
+  ["pinterest","Pinterest Trial or Standard API authorization"],
+  ["reddit","Reddit commercial Data API approval"]
 ];
 export default function AdminConnections() {
  const [status,setStatus] = useState("loading");
