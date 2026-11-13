@@ -15,7 +15,7 @@ const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "u
 
 const campaign = (over = {}) => ({
   id: DRAFT_ID, owner_id: OWNER, title: "Plaza lights", summary: "Light the plaza.",
-  story: "Longer story.", category: "community", goal_amount: 1200,
+  story: ("The community needs clearly documented support. We will track expenses and share updates with neighbors each month. ").repeat(35), category: "community", goal_amount: 1200,
   cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", ...over,
 });
 
