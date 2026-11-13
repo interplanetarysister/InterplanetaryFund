@@ -4,11 +4,14 @@
 create or replace function public.ifund_prepublication_story_gate()
 returns trigger language plpgsql as $$
 begin
-  if new.status = 'active'
-     and (tg_op = 'INSERT' or (tg_op = 'UPDATE' and old.status is distinct from 'active'))
-     and char_length(btrim(coalesce(new.story,''))) < 3500 then
-    raise exception 'Publishing requires a full-length story of at least 3500 characters.'
-      using errcode='23514', constraint='ifund_prepublication_story_min_3500';
+  if new.status = 'active' and char_length(btrim(coalesce(new.story,''))) < 3500 then
+    if tg_op = 'INSERT' then
+      raise exception 'Publishing requires a full-length story of at least 3500 characters.'
+        using errcode='23514', constraint='ifund_prepublication_story_min_3500';
+    elsif old.status is distinct from 'active' then
+      raise exception 'Publishing requires a full-length story of at least 3500 characters.'
+        using errcode='23514', constraint='ifund_prepublication_story_min_3500';
+    end if;
   end if;
   return new;
 end
