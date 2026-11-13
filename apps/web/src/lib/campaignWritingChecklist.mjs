@@ -11,6 +11,6 @@ export function analyzeStoryBrief(input) {
     { id: "trust", label: "Plan an update", prompt: "Consider how supporters will receive verified progress updates.", suggested: !/(?:\b(?:updates?|progress|receipts?|reporting|transparency)\b)/i.test(text) },
   ];
   // These patterns are warnings, not a complete privacy scanner.
-  const sensitive = /\b\d{3}-\d{2}-\d{4}\b|\b(?:password|passcode|one[- ]time code|private key)\s*[:=]/i.test(text);
+  const sensitive = /\b\d{3}-\d{2}-\d{4}\b|\b(?:password|passcode|one[- ]time code|private key|api[- ]?key|access[- ]?token|secret[- ]?key)\s*[:=]/i.test(text)\n    || /\b(?:\d[ -]?){15}\d\b/.test(text);
   return { words, checks, sensitive, isLongEnough: text.trim().length >= 12 };
 }
