@@ -123,7 +123,13 @@ test("community migration creates permissioned native/archive discussions and mo
   await query("select public.ifund_social_archive_reply('arc1','Hello from IFund')");
   assert.equal((await query("select body from public.ifund_social_archive_replies_read('arc1')"))[0].body,"Hello from IFund");
   await query("select public.ifund_social_report($1,'This post has misleading claims')",[native]);
-  await assert.rejects(query("delete from public.ifund_posts where id=$1",[native]), /Reported content is preserved/);
+  // SELECT RLS can hide the row before BEFORE DELETE fires. Both an error
+  // and DELETE 0 are safe outcomes; the authoritative check is persistence.
+  try { await query("delete from public.ifund_posts where id=$1",[native]); }
+  catch (error) { assert.match(error.message, /Reported content is preserved|permission denied/); }
+  await db.exec("reset role");
+  assert.equal(Number((await query("select count(*)::int n from public.ifund_posts where id=$1",[native]))[0].n),1);
+  await who(reporter);
   assert.equal((await query("select count(*)::int n from public.ifund_public_social_feed() where id=$1",["post-"+native]))[0].n,0);
   await assert.rejects(query("select public.ifund_social_reply($1,'not allowed')",[native]),/Post unavailable/);
   await who(admin);
