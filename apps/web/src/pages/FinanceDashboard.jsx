@@ -6,6 +6,7 @@ import AdminFinance from "@/pages/AdminFinance";
 import { authClient } from "@/api/auth";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
+import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 
 const cents = value => value === null || value === undefined || value === "" ? "Unavailable" : formatUsdCents(value);
 function SummaryCard({ label, value }) {
@@ -42,7 +43,7 @@ export default function FinanceDashboard() {
     refresh();
     return () => { active = false; };
   }, []);
-  const totalRaised = state.owned.reduce((sum, x) => sum + (Number(x.raised_cents)||0), 0);
+  const totalRaised = sumVerifiedCents(state.owned, "raised_cents");
   const totalGiven = state.donated.filter(x=>x.receipt_status==="captured").reduce((sum,x)=>sum+(Number(x.amount_cents)||0),0);
   return <main className="mx-auto max-w-5xl space-y-7 px-4 py-8 sm:px-8">
     <header>
