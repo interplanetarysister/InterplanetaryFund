@@ -35,7 +35,7 @@ test("campaign-wide checks include headline, summary, story and cross-field redu
 test("punctuation proposals preserve factual words and require explicit organizer application",()=>{
  const original={title:"Community   Aid",summary:"We will share updates",story:"The budget is $500!!!!"};
  const patch=proposeCampaignWidePunctuation(original);
- assert.deepEqual(patch.changed.sort(),["title","summary","story"]);
+ assert.deepEqual(patch.changed.sort(),["story","summary","title"]);
  assert.equal(original.story,"The budget is $500!!!!");
  assert.ok(patch.after.story.includes("$500!"));
  assert.ok(patch.after.summary.endsWith("."));
