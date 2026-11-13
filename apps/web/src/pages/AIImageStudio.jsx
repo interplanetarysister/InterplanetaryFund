@@ -74,7 +74,7 @@ export default function AIImageStudio() {
         },
         body: JSON.stringify({
           title: title.trim(), description: description.trim(), style,
-          ...(improve ? { ...reference, confirmed_rights: true } : {}),
+          ...(improve ? { reference_jpeg: reference.reference_jpeg, confirmed_rights: true } : {}),
         }),
       });
       const result = await response.json().catch(() => null);
