@@ -9,6 +9,6 @@ test("admin integrations route exists, is server-role guarded, and cannot leak s
  assert.match(admin,/\/api\/oauth\/status/);
  assert.match(admin,/These binding names belong in the Cloudflare Worker environment/);
  assert.match(admin,/never exposes credentials/);
- assert.match(member,/adminStatus==="admin" && <details/);
+ assert.match(app,/path="\/admin\/integrations" element=\{<MemberAccess><AdminAccess>/);
  assert.doesNotMatch(member,/SUPABASE_SECRET_KEY|OAUTH_ENCRYPTION_KEY/);
 });
