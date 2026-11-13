@@ -5,11 +5,11 @@ name: Deploy branded frontend to Cloudflare Pages
 # apps/web/DEPLOYMENT-GATES.md still applies before interplanetaryfund.com is
 # pointed at this bundle.
 #
-# Cloudflare Pages Git integration already builds pushes with its own configured
-# environment variables. Keep this separate Wrangler workflow manual-only to
-# avoid duplicate builds and misleading failures when GitHub variables are unset.
-# Default is a PREVIEW deploy (a *.pages.dev URL). A production deploy must be
-# requested explicitly, so a merge can never silently replace the live site.
+# THE SINGLE OWNER-TRIGGERED RELEASE PIPELINE. Automatic Pages preview and
+# production builds are deliberately disabled. Code/QA changes stack on main
+# until an explicit manual dispatch. Compile once; preview is always first.
+# If production is explicitly selected, publish exactly the same dist artifact.
+# Never re-enable Git push auto-deploy or trigger per-agent Pages releases.
 #
 # Required repository secrets:
 #   CLOUDFLARE_API_TOKEN   - scoped to "Cloudflare Pages: Edit"
@@ -39,7 +39,8 @@ permissions:
   deployments: write
 
 concurrency:
-  group: pages-deploy-${{ github.ref }}
+  # A single release lane: newer explicitly authorized dispatch supersedes older.
+  group: ifund-single-pages-release
   cancel-in-progress: true
 
 jobs:
@@ -76,18 +77,8 @@ jobs:
           test -f dist/_redirects || { echo "::error::dist/_redirects missing; deep links would 404"; exit 1; }
           test -f dist/_headers || { echo "::error::dist/_headers missing"; exit 1; }
 
-      - name: Choose deploy branch
-        id: target
-        env:
-          PRODUCTION: ${{ github.event.inputs.production }}
-        run: |
-          if [ "$PRODUCTION" = "true" ]; then
-            echo "branch=main" >> "$GITHUB_OUTPUT"
-          else
-            echo "branch=preview" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Publish to Cloudflare Pages
+      - name: Publish the single compiled artifact to preview
+        id: preview
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -96,4 +87,25 @@ jobs:
           command: >-
             pages deploy dist
             --project-name=${{ github.event.inputs.project || 'interplanetaryfund-migration' }}
-            --branch=${{ steps.target.outputs.branch }}
+            --branch=preview
+
+      - name: Smoke-test the preview before production promotion
+        env:
+          DEPLOYMENT_URL: ${{ steps.preview.outputs.deployment-url }}
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOYMENT_URL" || { echo "::error::Preview deployment URL not returned"; exit 1; }
+          case "$DEPLOYMENT_URL" in https://*.pages.dev|https://*.pages.dev/) ;; *) echo "::error::Unexpected preview URL"; exit 1;; esac
+          curl --fail --silent --show-error --retry 4 --retry-delay 3 --retry-connrefused "$DEPLOYMENT_URL" -o /dev/null
+
+      - name: Publish the identical compiled artifact to production (explicit approval only)
+        if: ${{ inputs.production == true }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: >-
+            pages deploy dist
+            --project-name=${{ github.event.inputs.project || 'interplanetaryfund-migration' }}
+            --branch=main
