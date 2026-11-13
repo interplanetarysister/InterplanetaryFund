@@ -52,6 +52,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Pin the one approved release to canonical main
+        env:
+          REF_NAME: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          test "$REF_NAME" = "refs/heads/main" || { echo "::error::Dispatch the canonical main branch only"; exit 1; }
+          echo "Approved release revision: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -77,6 +85,14 @@ jobs:
           test -f dist/_redirects || { echo "::error::dist/_redirects missing; deep links would 404"; exit 1; }
           test -f dist/_headers || { echo "::error::dist/_headers missing"; exit 1; }
 
+      - name: Seal the tested release artifact
+        working-directory: apps/web
+        run: |
+          set -euo pipefail
+          find dist -type f -print0 | sort -z | xargs -0 sha256sum > /tmp/ifund-dist-files.sha256
+          test -s /tmp/ifund-dist-files.sha256
+          echo "One immutable compiled artifact created from $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Publish the single compiled artifact to preview
         id: preview
         uses: cloudflare/wrangler-action@v3
@@ -97,6 +113,11 @@ jobs:
           test -n "$DEPLOYMENT_URL" || { echo "::error::Preview deployment URL not returned"; exit 1; }
           case "$DEPLOYMENT_URL" in https://*.pages.dev|https://*.pages.dev/) ;; *) echo "::error::Unexpected preview URL"; exit 1;; esac
           curl --fail --silent --show-error --retry 4 --retry-delay 3 --retry-connrefused "$DEPLOYMENT_URL" -o /dev/null
+
+      - name: Confirm compiled files did not change after preview
+        if: ${{ inputs.production == true }}
+        working-directory: apps/web
+        run: sha256sum --check /tmp/ifund-dist-files.sha256
 
       - name: Publish the identical compiled artifact to production (explicit approval only)
         if: ${{ inputs.production == true }}
