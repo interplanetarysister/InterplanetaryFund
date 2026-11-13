@@ -301,12 +301,14 @@ async function executePayout(req,env) {
 }
 
 async function retryApprovedPayout(env,withdrawalId) {
+  // Reconciliation must never create a new provider payout while execution is gated.
   const lookup=await signLedger(env,"payout_lookup",{withdrawal_id:withdrawalId});
   const payout=lookup.payout;
   if(!payout)return {ok:false,status:"NOT_FOUND"};
   if(payout.current_status==="paid")return {ok:true,status:"SUCCESS"};
   if(payout.payout_batch_id)return await reconcilePayoutBatch(env,withdrawalId,payout.payout_batch_id);
   if(payout.current_status!=="provider_status_unknown")return {ok:true,status:payout.current_status};
+  if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")return {ok:false,status:"PAYOUT_EXECUTION_DISABLED"};
 
   const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
     sender_batch_header:{
@@ -694,6 +696,8 @@ export default {
       catch(_){return asJson({ok:false,error:"payout_execution_unavailable"},503,cors)}
     }
     if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){
+      if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")
+        return asJson({ok:false,error:"payout_execution_disabled"},503,cors);
       if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       try{const response=await executePayout(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"payout_reconciliation_unavailable"},503,cors)}
