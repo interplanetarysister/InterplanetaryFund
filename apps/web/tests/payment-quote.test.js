@@ -22,9 +22,18 @@ test("donor charge matches the production Worker quote in integer cents", () => 
 });
 
 test("invalid quote inputs do not produce charge estimates", () => {
-  for (const [gift,tip] of [[99,0],[NaN,0],[100,11],[100,-1],[100,1.1]]) {
+  for (const [gift,tip] of [[99,0],[NaN,0],[100,11],[100,-1],[100,1.1],[100000001,0],[Number.MAX_SAFE_INTEGER,0]]) {
     assert.equal(paymentQuoteCents(gift,tip), null);
   }
+});
+
+test("maximum supported gift retains exact cents with optional support", () => {
+  const gift = 100000000;
+  const support = 10000000;
+  const quote = paymentQuoteCents(gift, support);
+  assert.equal(quote.giftCents, gift);
+  assert.equal(quote.optionalSupportCents, support);
+  assert.equal(quote.totalCents, 110000000);
 });
 
 test("checkout UI shows processing charges before provider approval", () => {
