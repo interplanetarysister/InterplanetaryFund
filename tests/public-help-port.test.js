@@ -49,8 +49,8 @@ test("Help remains read-only and does not fake agent, provider or financial acti
   assert.match(donations.answer, /only provider-confirmed, reconciled gifts are recorded/i);
   assert.match(donations.answer, /Platform-support payments remain separate and do not fund individual campaigns/i);
   assert.match(donations.answer, /no payment starts from this help article/i);
-  assert.match(code, /executors are not yet active/i);
-  assert.match(code, /not currently enabled/i);
+  assert.match(code, /unfinished authorization does not mean IFund can publish/i);
+  assert.match(code, /not proof that unfinished services are enabled/i);
 });
 
 test("public campaign queries use one Supabase project and active-only RLS scope", async () => {
