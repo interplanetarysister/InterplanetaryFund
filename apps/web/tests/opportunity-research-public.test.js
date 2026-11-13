@@ -17,6 +17,10 @@ test("public opportunity endpoint is GET-only and fails closed without canonical
 test("research endpoint distinguishes open grants, ongoing programs and expired applications",async()=>{
   const old=globalThis.fetch;
   const paths=[];
+  const recent=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const future=new Date(Date.now()+30*86400000).toISOString().slice(0,10);
+  const stale=new Date(Date.now()-45*86400000).toISOString().slice(0,10);
+  const staleProgram=new Date(Date.now()-200*86400000).toISOString().slice(0,10);
   globalThis.fetch=async (requestUrl,options)=>{
     const u=new URL(String(requestUrl));
     paths.push(u);
@@ -27,10 +31,12 @@ test("research endpoint distinguishes open grants, ongoing programs and expired 
       {id:"unsafe",name:"Not HTTPS",website:"http://unsafe.example",industry:"grants"},
     ]);
     return Response.json([
-      {id:"new",title:"Open grant",type:"grant",status:"open",official_url:"https://provider.org/apply",official_provider:"Provider",verified_at:"2026-11-11",deadline_date:"2026-11-30",cause_tags:["education"],created_by_id:"private"},
-      {id:"old",title:"Expired grant",type:"grant",status:"open",official_url:"https://provider.org/old",verified_at:"2026-11-11",deadline_date:"2020-01-01"},
-      {id:"program",title:"Volunteer program",type:"volunteer",status:"program",official_url:"https://provider.org/volunteer",verified_at:"2026-11-11",deadline_date:null},
-      {id:"bad",title:"Insecure",type:"grant",status:"open",official_url:"http://provider.org/danger",verified_at:"2026-11-11"},
+      {id:"new",title:"Open grant",type:"grant",status:"open",official_url:"https://provider.org/apply",official_provider:"Provider",verified_at:recent,deadline_date:future,cause_tags:["education"],created_by_id:"private"},
+      {id:"old",title:"Expired grant",type:"grant",status:"open",official_url:"https://provider.org/old",verified_at:recent,deadline_date:"2020-01-01"},
+      {id:"program",title:"Volunteer program",type:"volunteer",status:"program",official_url:"https://provider.org/volunteer",verified_at:recent,deadline_date:null},
+      {id:"stale",title:"Stale grant",type:"grant",status:"open",official_url:"https://provider.org/stale",verified_at:stale,deadline_date:future},
+      {id:"stale-program",title:"Stale program",type:"volunteer",status:"program",official_url:"https://provider.org/old-program",verified_at:staleProgram},
+      {id:"bad",title:"Insecure",type:"grant",status:"open",official_url:"http://provider.org/danger",verified_at:recent},
     ]);
   };
   try{
@@ -41,7 +47,7 @@ test("research endpoint distinguishes open grants, ongoing programs and expired 
     assert.equal(body.sources.length,1);
     assert.equal(body.opportunities.length,2);
     assert.deepEqual(body.opportunities.map(x=>x.id),["new","program"]);
-    assert.equal(body.opportunities[0].deadline_date,"2026-11-30");
+    assert.equal(body.opportunities[0].deadline_date,future);
     assert.equal(body.auto_apply_enabled,false);
     assert.equal(JSON.stringify(body).includes("created_by_id"),false);
     assert.equal(paths.length,2);
