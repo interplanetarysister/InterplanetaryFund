@@ -18,7 +18,9 @@ const campaignColumns = [
 export default function AdminFinance({ embedded = false }) {
   const { user } = useAuthSession();
   const superAdminStatus = useSuperAdminAccess(user);
-  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,error:""});
+  const [state,setState] = useState({status:"loading",rows:[],receipts:[],income:null,payoutQueue:[],error:""});
+  const [payoutBusy,setPayoutBusy] = useState("");
+  const [payoutMessage,setPayoutMessage] = useState("");
   useEffect(()=>{
     let active=true;
     (async()=>{
@@ -27,21 +29,56 @@ export default function AdminFinance({ embedded = false }) {
         const before=await client.auth.getUser();
         if(before.error||!before.data?.user?.id)throw Error("Sign in required.");
         // Server-side RPC checks verified administrator authority independently.
-        const [report, merchant, income] = await Promise.all([
+        const [report, merchant, income, payoutQueue] = await Promise.all([
           client.rpc("ifund_admin_finance_summary"),
           client.rpc("ifund_admin_paypal_merchant_receipts"),
           client.rpc("ifund_super_admin_platform_income_summary"),
+          client.rpc("ifund_super_admin_payout_queue"),
         ]);
         if(report.error||!Array.isArray(report.data)||merchant.error||!Array.isArray(merchant.data))
           throw Error("Administrator financial reporting is unavailable or you do not have verified access.");
         const incomeRow = !income.error && Array.isArray(income.data) ? income.data[0] || null : null;
         const after=await client.auth.getUser();
         if(after.error||after.data?.user?.id!==before.data.user.id)throw Error("Your session changed. Reload to continue.");
-        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,error:""});
-      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,error:e.message||"Unavailable"});}
+        const queueRows = !payoutQueue.error && Array.isArray(payoutQueue.data) ? payoutQueue.data : [];
+        if(active)setState({status:"ready",rows:report.data,receipts:merchant.data,income:incomeRow,payoutQueue:queueRows,error:""});
+      }catch(e){if(active)setState({status:"error",rows:[],receipts:[],income:null,payoutQueue:[],error:e.message||"Unavailable"});}
     })();
     return ()=>{active=false};
   },[]);
+  async function executePayout(withdrawalId) {
+    if(payoutBusy)return;
+    setPayoutBusy(withdrawalId);setPayoutMessage("");
+    try{
+      const client=authClient();
+      const session=await client.auth.getSession();
+      const token=session.data?.session?.access_token;
+      if(session.error||!token)throw Error("Verified super-admin session required.");
+      const response=await fetch("/api/payments/payouts/execute",{
+        method:"POST",
+        headers:{"content-type":"application/json","authorization":"Bearer "+token},
+        body:JSON.stringify({withdrawal_id:withdrawalId})
+      });
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||data.ok!==true)
+        throw Error(data.error==="payout_status_unknown_reconcile_before_retry"
+          ?"PayPal outcome is uncertain. The reservation remains locked for reconciliation; do not create another payout."
+          :data.error||"PayPal payout execution was not confirmed.");
+      const [queue,income]=await Promise.all([
+        client.rpc("ifund_super_admin_payout_queue"),
+        client.rpc("ifund_super_admin_platform_income_summary")
+      ]);
+      setState(v=>({...v,
+        payoutQueue:!queue.error&&Array.isArray(queue.data)?queue.data:v.payoutQueue,
+        income:!income.error&&Array.isArray(income.data)?income.data[0]||v.income:v.income
+      }));
+      setPayoutMessage(data.status==="SUCCESS"
+        ?"PayPal confirmed the payout item as SUCCESS and the withdrawal ledger is settled."
+        :"Payout submitted to PayPal. Funds remain reserved until PayPal confirms item-level SUCCESS.");
+    }catch(cause){setPayoutMessage(cause.message||"Payout execution is unavailable.");}
+    finally{setPayoutBusy("");}
+  }
+
   const total=state.rows.reduce((s,row)=>s+(Number(row.raised_cents)||0),0);
   const count=state.rows.reduce((s,row)=>s+(Number(row.captured_payments)||0),0);
   const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
@@ -50,7 +87,7 @@ export default function AdminFinance({ embedded = false }) {
   const Wrapper = embedded ? "div" : "main";
   return <Wrapper className={embedded ? "space-y-6 border-t border-border pt-7" : "mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8"}>
     <header><h2 className="text-2xl font-bold">Platform finance oversight</h2>
-      <p className="mt-2 text-sm text-muted-foreground">Read-only verified donation totals. No payout controls, donor private details, sandbox payments or unconfirmed captures.</p></header>
+      <p className="mt-2 text-sm text-muted-foreground">Verified live finance only. Payout controls are restricted to verified super-admin sessions and provider-ready owner withdrawals; sandbox and unconfirmed payments are excluded.</p></header>
     {state.status==="loading"&&<p role="status">Verifying administrator authorization and accounting records…</p>}
     {state.status==="error"&&<section role="alert" className="rounded-xl border border-red-500/50 p-5">{state.error}</section>}
     {state.status==="ready"&&<>
@@ -75,6 +112,32 @@ export default function AdminFinance({ embedded = false }) {
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Subscription ledger · net</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.subscription_net_cents)}</p></div>
           <div className="rounded-xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Realized 7% withdrawal fees</p><p className="mt-2 text-xl font-semibold tabular-nums">{money(state.income.realized_withdrawal_fee_cents)}</p></div>
         </div>
+      </section>}
+      {superAdminStatus === "super-admin" && <section className="rounded-2xl border border-border bg-card p-5 space-y-4" aria-label="Owner payout execution queue">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">Super admin · PayPal Payouts</p>
+          <h2 className="mt-1 text-xl font-semibold">Owner withdrawal queue</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Execution is allowed only after owner/AAL2 reservation, provider-cleared refund-adjusted funds, exact 7% fee accounting, and a verified owner payout recipient. A PayPal submission is not marked paid until item-level SUCCESS.</p>
+        </div>
+        {state.payoutQueue.length===0 ? <p className="text-sm text-muted-foreground">No owner withdrawals are currently awaiting payout or reconciliation.</p> :
+          <div className="space-y-3">{state.payoutQueue.map(row=><div key={row.withdrawal_id} className="rounded-xl border border-border p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="font-semibold">{row.campaign_title}</p>
+                <p className="text-sm text-muted-foreground">Gross {money(row.gross_cents)} · 7% fee {money(row.fee_cents)} · owner net {money(row.net_cents)}</p>
+                <p className="text-xs text-muted-foreground">Status: {String(row.request_status||"").replace(/_/g," ")}{row.provider_transaction_status ? " · PayPal "+row.provider_transaction_status : ""}</p>
+              </div>
+              <button type="button"
+                disabled={Boolean(payoutBusy)||row.destination_ready!==true}
+                onClick={()=>executePayout(row.withdrawal_id)}
+                className="min-h-11 rounded-lg bg-cyan-600 px-4 font-semibold text-white disabled:opacity-40">
+                {payoutBusy===row.withdrawal_id ? "Checking PayPal…" :
+                  row.request_status==="under_review" ? "Execute verified PayPal payout" : "Reconcile PayPal payout"}
+              </button>
+            </div>
+            {row.destination_ready!==true&&<p className="mt-2 text-xs text-amber-700">Blocked: the owner does not have a verified payout destination.</p>}
+          </div>)}</div>}
+        {payoutMessage&&<p role="status" className="text-sm font-medium">{payoutMessage}</p>}
       </section>}
       <section className="ifund-chart-card" aria-label="Verified platform finance composition">
         <p className="ifund-chart-eyebrow">AG Charts Community · independently attributed finance</p>
