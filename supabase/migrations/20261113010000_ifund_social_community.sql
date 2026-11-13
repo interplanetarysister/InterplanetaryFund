@@ -497,3 +497,14 @@ revoke all on function public.ifund_my_social_draft(),
 grant execute on function public.ifund_my_social_draft(),
  public.ifund_save_my_social_draft(text),
  public.ifund_clear_my_social_draft() to authenticated;
+
+
+-- Campaign-owner verification for labeling feed posts as creator updates.
+create or replace function public.ifund_member_owns_active_campaign(p_campaign uuid)
+returns boolean language sql stable security definer set search_path = '' as $ifund$
+ select public.ifund_social_member_ok() and exists(
+  select 1 from public.ifund_campaigns c
+  where c.id=p_campaign and c.owner_id=auth.uid() and c.status='active')
+$ifund$;
+revoke all on function public.ifund_member_owns_active_campaign(uuid) from public,anon,authenticated;
+grant execute on function public.ifund_member_owns_active_campaign(uuid) to authenticated;
