@@ -49,7 +49,7 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
 const HelpArticle = lazy(() => import("./pages/HelpArticle"));
-const ComingSoon = lazy(() => import("./pages/ComingSoon"));
+const LegacyAuthorizationNotice = lazy(() => import("./pages/LegacyAuthorizationNotice"));
 const CommunityDetail = lazy(() => import("./pages/CommunityDetail"));
 const FollowedCampaigns = lazy(() => import("./pages/FollowedCampaigns"));
 const Notifications = lazy(() => import("./pages/Notifications"));
@@ -81,7 +81,7 @@ const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 
 // These two legacy routes still need independent, authorized backend parity.
 // A release gate prevents preview publication while either is a placeholder.
-const STANDALONE_COMING_SOON = ["/oauth/consent"];
+const STANDALONE_COMING_SOON = [];
 const LAYOUT_COMING_SOON = [];
 
 const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
@@ -111,7 +111,7 @@ function AppRoutes() {
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
-    {STANDALONE_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+    <Route path="/oauth/consent" element={<LegacyAuthorizationNotice />} />
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/globe" element={<Atlas />} />
@@ -171,7 +171,7 @@ function AppRoutes() {
       <Route path="/help" element={<Help />} />
       <Route path="/help/:slug" element={<HelpArticle />} />
       <Route path="/admin/*" element={<PageNotFound />} />
-      {LAYOUT_COMING_SOON.map((p) => <Route key={p} path={p} element={<ComingSoon />} />)}
+
     </Route>
     <Route path="*" element={<PageNotFound />} />
   </Routes>{(["/", "/about", "/terms", "/privacy", "/health-privacy", "/contact", "/founding-members", "/download"].includes(location.pathname)) && <PlatformSupportHostedButton />}</Suspense>;
