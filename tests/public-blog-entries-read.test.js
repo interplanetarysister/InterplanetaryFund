@@ -246,6 +246,7 @@ test("every client RPC is migration-defined or recorded as a verified production
   const documentedProductionDependencies = new Set([
     "ifund_current_user_is_verified_admin",
     "ifund_public_campaign_funding_totals",
+    "ifund_admin_workflow_registry",
   ].filter((name) => blockers.includes("VERIFIED PRODUCTION DEPENDENCY: public." + name)));
   const missing = [...called].filter((name) => !defined.has(name) && !documentedProductionDependencies.has(name));
   assert.deepEqual(missing, [],
