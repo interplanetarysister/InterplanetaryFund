@@ -45,9 +45,13 @@ export async function friendStatus(memberId) {
 }
 export async function replyToPost(postId, body) {
   if (!body?.trim() || body.trim().length > 1000) throw new Error("Reply must be 1–1000 characters.");
+  if (typeof postId === "string" && postId.startsWith("archive-"))
+    return call("ifund_social_archive_reply", { p_archive: postId.slice(8), p_body: body.trim() });
   return call("ifund_social_reply", { p_post: postId, p_body: body.trim() });
 }
 export async function readReplies(postId) {
+  if (typeof postId === "string" && postId.startsWith("archive-"))
+    return (await call("ifund_social_archive_replies_read", { p_archive: postId.slice(8) })) || [];
   return (await call("ifund_social_replies_read", { p_post: postId })) || [];
 }
 export async function moderationQueue() {
