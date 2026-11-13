@@ -31,7 +31,7 @@ export default function AuthCallback() {
       .catch(() => {
         if (active)
           setError(
-            "This sign-in link could not be verified. Request another email or enter the confirmation code on the signup page.",
+            "This sign-in link could not be verified. Request a new confirmation link, or sign in and use password recovery if you already have an account.",
           );
       });
     return () => {
