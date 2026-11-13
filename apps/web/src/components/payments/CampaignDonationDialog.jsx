@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart } from "lucide-react";
 import { paymentQuoteCents } from "@/lib/paymentQuote";
+import GooglePayDonationButton from "./GooglePayDonationButton";
 import { authClient } from "@/api/auth";
 import { Link } from "react-router-dom";
 
@@ -13,7 +14,7 @@ function loadPayPal(clientId) {
   sdkPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://www.paypal.com/sdk/js?client-id=" + encodeURIComponent(clientId)
-      + "&components=buttons,card-fields&currency=USD&intent=capture";
+      + "&components=buttons,card-fields,googlepay&currency=USD&intent=capture";
     script.async = true;
     script.onload = () => window.paypal?.Buttons ? resolve(window.paypal) : reject(new Error("PayPal SDK unavailable"));
     script.onerror = () => reject(new Error("PayPal SDK unavailable"));
@@ -213,6 +214,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
                 onClick={async()=>{setError("");try{await cardSession.current.submit();}catch(_){setError("Card checkout could not be confirmed. If you approved a payment, check your receipt or donation history before retrying.");}}}>
                 {status==="capturing"?"Verifying donation…":"Pay by debit or credit card"}
               </button>}
+              <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
+                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
               <div ref={paypalHost} aria-label="Eligible PayPal payment buttons" className="min-h-[44px]"/>
               <p className="flex items-center justify-center gap-2 text-center text-[11px] text-slate-500"><ShieldCheck className="h-3.5 w-3.5 shrink-0 text-[#003087]"/> Checkout and card fields securely provided by PayPal. Your payment details are never stored by IFund.</p>
             </section>
