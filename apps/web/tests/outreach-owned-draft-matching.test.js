@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 const ui=readFileSync(new URL("../src/pages/Institutions.jsx",import.meta.url),"utf8");
 
 test("Outreach research can match signed-in creator drafts without exporting them",()=>{
-  assert.match(ui,/authClient\(\)\.auth\.getUser\(\)/);
+  assert.match(ui,/const client=authClient\(\)/);
+  assert.match(ui,/client\.auth\.getUser\(\)/);
   assert.match(ui,/\.eq\("owner_id",user\.id\)/);
   assert.match(ui,/select\("id,title,summary,story,category,status"\)/);
   assert.match(ui,/ownerCampaigns/);
