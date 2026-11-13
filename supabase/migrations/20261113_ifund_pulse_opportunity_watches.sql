@@ -54,7 +54,7 @@ begin
  if new.verified_at is null then return new; end if;
  for v_watch in select w.owner_id from public.ifund_opportunity_watches w
     where w.opportunity_id=new.id loop
-   v_key:=left('pulse:deadline:'||new.id||':'||txid_current()::text,256);
+   v_key:=left('pulse:deadline:'||new.id||':'||v_watch.owner_id::text||':'||txid_current()::text,256);
    insert into public.ifund_notifications(owner_id,title,body,type,link,canonical_operation_id)
    values(v_watch.owner_id,'Watched opportunity changed',
      'An opportunity you watch has new recorded deadline or status information. Recheck official provider requirements.',
