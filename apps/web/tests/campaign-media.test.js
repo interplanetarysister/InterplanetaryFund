@@ -40,8 +40,14 @@ test("media endpoint rejects unauthenticated and mismatched content", async (t) 
   assert.equal((await upload({ request: makeRequest(new Uint8Array([0, 1, 2])), env: env(bucket) })).status, 415);
 });
 
-test("suspended and unconfirmed members cannot upload", async (t) => {
+test("suspended members cannot upload or write R2", async (t) => {
   withAuth(t, { active: false });
+  const bucket = { put: async () => { throw Error("unexpected write"); }, head: async () => null, get: async () => null };
+  assert.equal((await upload({ request: makeRequest(), env: env(bucket) })).status, 401);
+});
+
+test("unconfirmed members cannot upload or write R2", async (t) => {
+  withAuth(t, { confirmed: false });
   const bucket = { put: async () => { throw Error("unexpected write"); }, head: async () => null, get: async () => null };
   assert.equal((await upload({ request: makeRequest(), env: env(bucket) })).status, 401);
 });
