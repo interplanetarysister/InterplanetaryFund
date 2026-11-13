@@ -6,7 +6,12 @@ import { decodeGeneratedArtwork } from "../src/lib/imageArtwork.mjs";
 
 const owner="11111111-1111-4111-8111-111111111111";
 const url="https://interplanetaryfund.com/api/ai/images/improve";
-const input={title:"Help a family recover",description:"Illustrate safe housing and support after a disaster",style:"comic",reference_jpeg:"/9j/"+"A".repeat(80),confirmed_rights:true};
+// A bounded synthetic JPEG-like fixture with SOI/EOI markers and >=64 bytes.
+// This unit test mocks the provider; it does not prove a real AI image was produced.
+const referenceBytes = Buffer.alloc(128, 0);
+referenceBytes.set([0xff, 0xd8, 0xff], 0);
+referenceBytes.set([0xff, 0xd9], 126);
+const input={title:"Help a family recover",description:"Illustrate safe housing and support after a disaster",style:"comic",reference_jpeg:referenceBytes.toString("base64"),confirmed_rights:true};
 const env={IFUND_IMAGE_AI_ENABLED:"enabled",SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_PUBLISHABLE_KEY:"sb_publishable_mock_public"};
 const request=(body=input,method="POST")=>new Request(url,{method,headers:method==="POST"?{"Content-Type":"application/json",Authorization:"Bearer good.mock.token"}:{},...(method==="POST"?{body:JSON.stringify(body)}:{})});
 function services(quota=true,verified=true) {
