@@ -25,7 +25,7 @@ export function nexusCampaignPriorities(rows) {
       if (captures === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:2,
         label:"Review campaign clarity and sharing",
         why:"There are no provider-verified captures in this report. This does not imply all checkout attempts failed." });
-      else if (followers === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:3,
+      else if (captures !== null && followers === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:3,
         label:"Review outreach opportunities",
         why:"No active followers are recorded. Share only through approved channels." });
     }
