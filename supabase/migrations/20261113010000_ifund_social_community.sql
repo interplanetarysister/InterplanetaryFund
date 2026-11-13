@@ -202,7 +202,7 @@ create table if not exists public.ifund_social_archive_likes (
 alter table public.ifund_social_archive_likes enable row level security;
 revoke all on public.ifund_social_archive_likes from public,anon,authenticated;
 create or replace function public.ifund_social_archive_like(p_archive text,p_like boolean)
-returns boolean language plpgsql security definer set search_path = '' as $
+returns boolean language plpgsql security definer set search_path = '' as $$
 begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
  if p_archive is null or length(p_archive)>128 or not exists(
@@ -218,10 +218,10 @@ begin
   delete from public.ifund_social_archive_likes where archive_id=p_archive and member_id=auth.uid();
  end if;
  return p_like;
-end $;
+end $$;
 create or replace function public.ifund_social_archive_like_summary(p_archives text[])
 returns table(post_id text,like_count bigint,liked boolean)
-language sql stable security definer set search_path = '' as $
+language sql stable security definer set search_path = '' as $$
  select 'archive-'||p.id,count(l.member_id),coalesce(bool_or(l.member_id=auth.uid()),false)
  from public.ifund_social_post p
  left join public.ifund_social_archive_likes l on l.archive_id=p.id
@@ -230,14 +230,14 @@ language sql stable security definer set search_path = '' as $
  and not exists(select 1 from public.ifund_social_archive_reports r
   where r.archive_id=p.id and r.status in ('open','removed'))
  group by p.id
-$;
+$$;
 revoke all on function public.ifund_social_archive_like(text,boolean),
  public.ifund_social_archive_like_summary(text[]) from public,anon,authenticated;
 grant execute on function public.ifund_social_archive_like(text,boolean) to authenticated;
 grant execute on function public.ifund_social_archive_like_summary(text[]) to anon,authenticated;
 
 create or replace function public.ifund_social_archive_report(p_archive text,p_reason text)
-returns boolean language plpgsql security definer set search_path = '' as $
+returns boolean language plpgsql security definer set search_path = '' as $$
 begin
  if not public.ifund_social_member_ok() then raise exception 'Active verified member required' using errcode='42501'; end if;
  if length(trim(coalesce(p_reason,''))) not between 15 and 1500 then raise exception 'Explanation must be 15–1500 characters' using errcode='22023'; end if;
@@ -254,17 +254,17 @@ begin
  values(p_archive,auth.uid(),trim(p_reason));
  return true;
 exception when unique_violation then raise exception 'You already reported this post' using errcode='23505';
-end $;
+end $$;
 create or replace function public.ifund_social_archive_queue()
 returns table(id uuid,post_id text,body text,reason text,created_at timestamptz,status text)
-language sql stable security definer set search_path = '' as $
+language sql stable security definer set search_path = '' as $$
  select r.id,r.archive_id,p.content,r.reason,r.created_at,r.status
  from public.ifund_social_archive_reports r join public.ifund_social_post p on p.id=r.archive_id
  where public.ifund_current_user_is_verified_admin()
  order by case when r.status='open' then 0 else 1 end,r.created_at desc limit 200
-$;
+$$;
 create or replace function public.ifund_social_archive_review(p_report uuid,p_action text)
-returns boolean language plpgsql security definer set search_path = '' as $
+returns boolean language plpgsql security definer set search_path = '' as $$
 declare v_archive text;
 begin
  if not public.ifund_current_user_is_verified_admin() then raise exception 'Administrator required' using errcode='42501'; end if;
@@ -277,7 +277,7 @@ begin
  reviewed_at=now(),reviewed_by=auth.uid()
  where archive_id=v_archive and status='open';
  return true;
-end $;
+end $$;
 revoke all on function public.ifund_social_archive_report(text,text),
  public.ifund_social_archive_queue(),public.ifund_social_archive_review(uuid,text)
  from public,anon,authenticated;
@@ -317,10 +317,10 @@ $$;
 -- Protect all direct table reads as well as the public RPC, while keeping
 -- INSERT ... RETURNING supported for authenticated members.
 create or replace function public.ifund_post_visible(p_post uuid)
-returns boolean language sql stable security definer set search_path = '' as $
+returns boolean language sql stable security definer set search_path = '' as $$
  select not exists(select 1 from public.ifund_social_reports r
  where r.post_id=p_post and r.status in ('open','removed'))
-$;
+$$;
 revoke all on function public.ifund_post_visible(uuid) from public,anon,authenticated;
 grant execute on function public.ifund_post_visible(uuid) to anon,authenticated;
 drop policy if exists ifund_posts_public_read on public.ifund_posts;
