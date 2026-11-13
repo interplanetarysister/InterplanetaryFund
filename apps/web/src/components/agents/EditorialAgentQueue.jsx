@@ -82,8 +82,9 @@ export default function EditorialAgentQueue() {
           <p className="text-sm">{item.suggested_action}</p>
           {Array.isArray(item.discussion) && item.discussion.length>0 &&
             <ol className="space-y-2">{item.discussion.map((note,i)=><li key={i} className="rounded-lg bg-muted/50 p-3 text-sm">
-              <strong>{LABELS[note.agent]||"Agent"} — {note.kind==="owner_comment"?"Your feedback":note.kind==="rule_based_proposal"?"Rule-based proposal":note.kind==="rule_based_next_step"?"Suggested follow-up":"Rule-based cross-review"}</strong>
+              <strong>{LABELS[note.agent]||"Agent"} — {note.kind==="owner_comment"?"Your feedback":note.kind==="rule_based_proposal"?"Rule-based proposal":note.kind==="rule_based_next_step"?"Suggested follow-up":note.kind==="agent_analysis"?"Worker-reported analysis":note.kind==="agent_critique"?"Worker-reported critique":note.kind==="agent_synthesis"?"Worker-reported synthesis":"Rule-based cross-review"}</strong>
               <p className="mt-1">{note.text}</p>
+              {note.provenance==="service_worker_report"&&<p className="mt-1 text-xs text-muted-foreground">Reported by a specialist worker; independent AI/provider execution proof is not provided by this record alone.</p>}
             </li>)}</ol>}
           {item.review_status!=="acknowledged" && <div className="space-y-2 rounded-lg border border-border p-3">
             <label className="block text-sm font-semibold" htmlFor={"editorial-response-"+item.review_id}>
