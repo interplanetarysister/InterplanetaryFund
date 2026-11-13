@@ -4,7 +4,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDataGrid";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
-import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
+import { sumVerifiedCents, sumVerifiedCounts } from "@/lib/verifiedMoney.mjs";
 const money = n => n === null || n === undefined || n === "" ? "Unavailable" : formatUsdCents(n);
 const operationalCount = n => n === null || n === undefined || n === "" || typeof n === "boolean" ? "Unavailable" : Number.isSafeInteger(Number(n)) && Number(n) >= 0 ? String(n) : "Unavailable";
 const campaignColumns = [
@@ -80,7 +80,7 @@ export default function AdminFinance({ embedded = false }) {
   }
 
   const total=sumVerifiedCents(state.rows, "raised_cents");
-  const count=state.rows.reduce((s,row)=>s+(Number(row.captured_payments)||0),0);
+  const count=sumVerifiedCounts(state.rows, "captured_payments");
   const shown=state.receipts.filter(r=>r.allocation_status==="platform_support"||r.allocation_status==="unattributed");
   const platform=shown.filter(r=>r.allocation_status==="platform_support");
   const unmatched=shown.filter(r=>r.allocation_status==="unattributed");
@@ -93,7 +93,7 @@ export default function AdminFinance({ embedded = false }) {
     {state.status==="ready"&&<>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Captured campaign gifts</p><p className="mt-2 text-2xl font-semibold">{money(total)}</p></div>
-        <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count}</p></div>
+        <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Verified payment records</p><p className="mt-2 text-2xl font-semibold">{count===null?"Unavailable":count}</p></div>
         <div className="rounded-2xl border border-border bg-card p-5"><p className="text-sm text-muted-foreground">Campaigns in reporting</p><p className="mt-2 text-2xl font-semibold">{state.rows.length}</p></div>
       </div>
       {superAdminStatus === "super-admin" && state.income && <section className="rounded-2xl border border-cyan-500/30 bg-cyan-500/5 p-5 space-y-4" aria-label="IFund platform income">
