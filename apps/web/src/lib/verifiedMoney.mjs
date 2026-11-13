@@ -16,3 +16,8 @@ export function sumVerifiedCents(records, field) {
   }
   return total;
 }
+
+/** Counts are not currency; share the same strict nonnegative-integer contract. */
+export function sumVerifiedCounts(records, field) {
+  return sumVerifiedCents(records, field);
+}
