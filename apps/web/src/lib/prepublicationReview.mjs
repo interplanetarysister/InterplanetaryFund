@@ -41,6 +41,11 @@ export function reviewCampaignPublication(form = {}) {
   if (norm(title).length>=18 && norm(summary).includes(norm(title)) && norm(story).includes(norm(title)))
     add("title_repetition", "echo", "Reduce headline repetition",
       "Check whether the title is repeated unnecessarily across the summary and story.");
+  // Numerical outcomes and absolute guarantees require owner-supplied evidence;
+  // this heuristic never claims that a hyperlink itself proves a statement.
+  if (/(?:\b\d+(?:\.\d+)?%\b|\b(?:guaranteed|certified|proven|always|never)\b)/iu.test(story+" "+summary))
+    add("claim_evidence", "polaris", "Verify numerical and absolute claims",
+      "Check any percentages, guarantees, certification language or absolute outcomes against reliable evidence. Remove unsupported claims.");
   if (storyCharacters < MIN_PUBLICATION_STORY_CHARACTERS)
     add("story_depth", "story", "Develop the full-length story",
       "Explain the verified situation, budget, timeline, who benefits, and how supporters will be updated. Do not invent facts.");
