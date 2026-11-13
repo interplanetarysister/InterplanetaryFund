@@ -55,6 +55,10 @@ BEGIN
   -- A transaction-scoped global lock makes the 50-attempt daily ceiling
   -- atomic across concurrent Worker invocations and different member IDs.
   PERFORM pg_catalog.pg_advisory_xact_lock(20261113, 50);
+  -- Quota rows are temporary safeguards, not permanent usage profiles.
+  -- Keep at most the last seven UTC days of owner identifiers.
+  DELETE FROM ifund_ops.ai_image_daily AS expired
+  WHERE expired.quota_date < v_date - 7;
   SELECT COALESCE(sum(q.attempts), 0)::integer INTO v_total
   FROM ifund_ops.ai_image_daily AS q
   WHERE q.quota_date = v_date;
