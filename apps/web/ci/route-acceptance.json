@@ -55,6 +55,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/admin/audit",
+      "role": "super_admin",
+      "component": "AdminAudit",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
+    },
+    {
       "route": "/admin/finance",
       "role": "admin",
       "component": "Navigate",
@@ -63,6 +73,16 @@
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
+    },
+    {
+      "route": "/admin/help",
+      "role": "super_admin",
+      "component": "AdminHelpEditor",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database"
     },
     {
       "route": "/admin/social-moderation",
