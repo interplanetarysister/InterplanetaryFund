@@ -1,5 +1,5 @@
 // Isolated fake-money wallet experience. Never imports production payments.
-export const googlePayPage = String.raw\`<!doctype html>
+export const googlePayPage = String.raw`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Google Pay Sandbox | Interplanetary Fund</title>
 <link rel="icon" href="/favicon.ico"><style>
@@ -23,8 +23,8 @@ small{color:#cbd5e1}footer{margin-top:24px;border-top:1px solid #254263;padding-
 <p>Test total: <span class="amount" id="total">$5.00</span></p>
 <div id="pay" aria-label="Google Pay sandbox button"></div><p id="receipt" role="alert"></p></section>
 <footer><a href="/hackathon">Return to the sandbox demo</a> · <a href="/api/judge-guide">Judge walkthrough</a></footer></main>
-<script src="/google-pay.js" defer></script></body></html>\`;
-export const googlePayScript = String.raw\`
+<script src="/google-pay.js" defer></script></body></html>`;
+export const googlePayScript = String.raw`
 const byId = id => document.getElementById(id);
 const status = (msg,bad=false)=>{byId('status').textContent=msg;byId('status').className=bad?'danger':''};
 let gateway, walletConfig, paymentsClient, busy=false, lastKey=null, lastAmount=null;
@@ -146,4 +146,4 @@ async function render(){
     await render();
   }catch(e){status(e.message,true)}
 })();
-\`;
+`;
