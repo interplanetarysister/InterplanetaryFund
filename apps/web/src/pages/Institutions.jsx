@@ -42,11 +42,12 @@ function SourceCard({source,campaign}) {
 function OpportunityCard({opportunity,campaign}) {
   const relevance=matchOpportunity(opportunity,campaign);
   const matching=campaign && relevance.score>0;
-  const isOpen=opportunity.status==="open" && (!opportunity.deadline_date || opportunity.deadline_date >= new Date().toISOString().slice(0,10));
+  const expired=Boolean(opportunity.deadline_date && opportunity.deadline_date < new Date().toISOString().slice(0,10));
+  const isOpen=opportunity.status==="open" && !expired;
   return <article className="rounded-2xl border border-emerald-500/30 bg-card p-5 shadow-sm">
     <div className="flex flex-wrap items-center gap-2">
       <span className="rounded-full bg-cyan-600 px-3 py-1 text-xs font-semibold text-white">{opportunity.type==="grant"?"Grant":opportunity.type==="volunteer"?"Volunteering":"Business"}</span>
-      <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">{isOpen?"Official application window":"Verified program · individual listings vary"}</span>
+      <span className="rounded-full border border-border px-3 py-1 text-xs font-semibold">{expired?"Application deadline passed":isOpen?"Official application window":"Verified program · individual listings vary"}</span>
       {matching&&<span className="text-xs font-semibold text-emerald-600">Related campaign cause</span>}
     </div>
     <h3 className="mt-3 text-xl font-bold">{opportunity.title}</h3>
@@ -62,7 +63,7 @@ function OpportunityCard({opportunity,campaign}) {
     <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
       <a href={opportunity.url} target="_blank" rel="noopener noreferrer"
         className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-600 px-4 py-2 font-bold text-white hover:bg-cyan-700">
-        {isOpen?"Review official application":"View official provider"} <ArrowUpRight className="h-4 w-4"/>
+        {expired?"Review provider for next cycle":isOpen?"Review official application":"View official provider"} <ArrowUpRight className="h-4 w-4"/>
       </a>
       <span className="text-xs text-muted-foreground">Source checked {String(opportunity.verified_at||"").slice(0,10)||"not recorded"}</span>
     </div>
