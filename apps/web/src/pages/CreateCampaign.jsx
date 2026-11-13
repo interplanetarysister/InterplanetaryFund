@@ -27,7 +27,7 @@ export default function CreateCampaign() {
 function NewCampaign({ draftId = null }) {
   const session = useAuthSession();
   if (session.status === "loading") return <main className="mx-auto max-w-3xl px-4 py-8" role="status">Opening your campaign editor…</main>;
-  const ownerId = session.user?.id || null;
+  // Anonymous Supabase sessions are guests, not durable draft owners.\n  // Keep their browser draft eligible for handoff after email verification.\n  const ownerId = session.user?.is_anonymous === true ? null : (session.user?.id || null);
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
   return <CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
