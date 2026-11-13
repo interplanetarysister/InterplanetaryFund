@@ -11,6 +11,32 @@ export const IMAGE_STYLES = Object.freeze({
 const CANONICAL_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+export function imageAIReady(env) {
+  return env?.IFUND_IMAGE_AI_ENABLED === 'enabled' &&
+    typeof env?.AI?.run === 'function' &&
+    env.SUPABASE_URL === CANONICAL_URL &&
+    typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' &&
+    env.SUPABASE_PUBLISHABLE_KEY.length >= 10;
+}
+
+export async function consumeImageQuota(env, account, fetcher = fetch) {
+  const quota = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_ai_image_consume_free_quota', {
+    method: 'POST',
+    headers: {
+      apikey: env.SUPABASE_PUBLISHABLE_KEY,
+      Authorization: 'Bearer ' + account.jwt,
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  if (!quota.ok) return { status: 503, error: 'The verified artwork quota could not be checked.' };
+  const allowed = await quota.json();
+  if (allowed !== true)
+    return { status: 429, error: 'The free image limit is reached. Try again after the UTC daily reset.' };
+  return null;
+}
+
 export function validateImageRequest(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input) ||
       Object.keys(input).some(key => !['title', 'description', 'style'].includes(key)))
@@ -33,7 +59,7 @@ export function validateImageRequest(input) {
   return { style: input.style, prompt };
 }
 
-function validImageBase64(value) {
+export function validImageBase64(value) {
   if (typeof value !== 'string' || value.length < 64 || value.length > 7_000_000 ||
       value.length % 4 !== 0 || !value.startsWith('/9j/') ||
       !/^[a-zA-Z0-9+/]+={0,2}$/.test(value)) return false;
@@ -48,11 +74,7 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
     return response(405, { error: 'Method not allowed.' });
   // Separate default-disabled feature gate. No inference or quota writes
   // without an independently approved Pages AI binding and canonical project.
-  if (env?.IFUND_IMAGE_AI_ENABLED !== 'enabled' ||
-      typeof env?.AI?.run !== 'function' ||
-      env.SUPABASE_URL !== CANONICAL_URL ||
-      typeof env.SUPABASE_PUBLISHABLE_KEY !== 'string' ||
-      env.SUPABASE_PUBLISHABLE_KEY.length < 10)
+  if (!imageAIReady(env))
     return response(503, { error: 'AI image generation is not currently available.' });
   try {
     const input = await readJsonBody(request, 3000);
@@ -62,20 +84,8 @@ export async function routeImageStudio(request, env, fetcher = fetch) {
 
     // This is an atomic, database-verified membership and free-tier attempt
     // limit. The browser cannot bypass it using a forged owner ID or JWT role.
-    const quota = await fetcher(env.SUPABASE_URL + '/rest/v1/rpc/ifund_ai_image_consume_free_quota', {
-      method: 'POST',
-      headers: {
-        apikey: env.SUPABASE_PUBLISHABLE_KEY,
-        Authorization: 'Bearer ' + account.jwt,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-    if (!quota.ok) return response(503, { error: 'The verified artwork quota could not be checked.' });
-    const allowed = await quota.json();
-    if (allowed !== true)
-      return response(429, { error: 'The free image limit is reached. Try again after the UTC daily reset.' });
+    const quotaError = await consumeImageQuota(env, account, fetcher);
+    if (quotaError) return response(quotaError.status, { error: quotaError.error });
 
     // Cloudflare returns a JPEG base64 image. The inference call is not proof
     // of a saved campaign cover. Saving is a separate authenticated action.
