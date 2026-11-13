@@ -5,7 +5,7 @@ import test from "node:test";
 const source = (path) => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("community actions require database-level lifecycle checks and private writes", () => {
-  const sql = source("../../supabase/migrations/20261113010000_ifund_social_community.sql");
+  const sql = source("../../../supabase/migrations/20261113010000_ifund_social_community.sql");
   assert.match(sql, /create or replace function public\.ifund_social_member_ok\(\)/);
   assert.match(sql, /public\.ifund_my_profile_settings\(\) is not null/);
   for (const name of ["ifund_social_like", "ifund_social_report", "ifund_social_reply",
