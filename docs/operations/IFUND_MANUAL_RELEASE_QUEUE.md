@@ -1,6 +1,6 @@
 # iFund cumulative release staging manifest
 
-**Release policy updated:** 2026-11-12 Pacific. **Status:** BUILDS AND VERIFIED DEPLOYMENTS AUTHORIZED WITHOUT REPEATED OWNER APPROVAL; MINIMIZE BUILD FREQUENCY.
+**Release policy updated:** 2026-11-12 Pacific. **Current policy (November 13):** blanket freeze removed; builds and releases follow explicit owner authorization and its conditions. See AGENTS.md.
 
 ## Release identity and preservation
 
@@ -8,13 +8,13 @@
 - **Frontend:** `apps/web` exclusively; historical root code and Base44 remain preserved.
 - **Cloudflare Pages project:** `interplanetaryfund-migration`.
 - **Last verified canonical production at hold:** `f866dc50-8283-4da5-a05b-f588820450da` at commit `9a332875d41a94645ba3b7a16b87eb6f438ef3a5`. This is a checkpoint, not proof of complete app functionality. Verify again at authorized release.
-- **Cloudflare Git integration:** `deployments_enabled=false`, `production_deployments_enabled=false`, `preview_deployment_setting=none`. Keep these disabled by default to suppress unnecessary Git-triggered builds; manually initiated consolidated builds and deployments are now authorized.
+- **Cloudflare Git integration:** `deployments_enabled=false`, `production_deployments_enabled=false`, `preview_deployment_setting=none`. Keep these disabled by default to suppress unnecessary Git-triggered builds; manually initiated consolidated builds and deployments require the applicable explicit authorization.
 - **GitHub:** all relevant automated build/verification workflow triggers changed to manual-only; one authorized Pages release entry point: `.github/workflows/deploy-web-pages.yml`.
 - **Data:** Supabase project `ssibsfmtodgximseeqsv`, media R2 `ifund-media`. No release-control action may delete or reset data, source history, successful deployment artifacts, existing payment ledgers, or Base44 data.
 
 ## Pre-build development and release batching
 
-Agents add implementation, source/security review evidence, test cases, API/SQL/RLS checks, API contract changes, migration preflight, and regression notes to the canonical repository. Avoid duplicate solutions and overlapping agent changes. Source review, unit tests and repairs should precede release builds. Build/deploy only when a coherent group of changes is ready; a commit by itself is not a reason to trigger CI. The LATEST owner instruction restores the explicit BUILD requirement. Until it is received, stack source changes and tests without starting a Pages or Worker build.
+Agents add implementation, source/security review evidence, test cases, API/SQL/RLS checks, API contract changes, migration preflight, and regression notes to the canonical repository. Avoid duplicate solutions and overlapping agent changes. Source review, unit tests and repairs should precede release builds. Build/deploy only when a coherent group of changes is ready; a commit by itself is not a reason to trigger CI. The owner directive of November 13 removes the blanket release freeze. Source work and local verification proceed within the requested scope; builds, preview publications and production promotions follow their explicit authorizations and any attached QA conditions. A build request alone does not authorize publication. See AGENTS.md for the current permission rule.
 
 Record for each work item: canonical commit/path, user behavior, affected Workers/Pages endpoints, DB migrations (applied vs pending), negative auth/ownership cases, data preservation, provider approvals, test additions, what has actually been executed, and unresolved blockers. Do not mislabel code inspection as runtime acceptance. A clean repository commit is not proof a deployment passed.
 
