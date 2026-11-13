@@ -24,6 +24,7 @@ async function call(path,options={}){
 export default function Subscriptions(){
   const [plans,setPlans]=useState([]);
   const [status,setStatus]=useState(null);
+  const [statusLoad,setStatusLoad]=useState("loading");
   const [providerVerified,setProviderVerified]=useState(false);
   const [busy,setBusy]=useState("");
   const [error,setError]=useState("");
@@ -31,13 +32,28 @@ export default function Subscriptions(){
   const query=useMemo(()=>new URLSearchParams(window.location.search),[]);
 
   const refresh=useCallback(async()=>{
-    const [catalog,current]=await Promise.all([
+    // Plans are public; an unavailable private status endpoint must not hide
+    // the catalog or falsely imply that a user has no paid subscription.
+    setStatusLoad("loading");
+    const [catalog,current]=await Promise.allSettled([
       call("/api/payments/subscriptions/plans"),
       call("/api/payments/subscriptions/status",{auth:true})
     ]);
-    setPlans(catalog.plans||[]);
-    setStatus(current.subscription||null);
-    setProviderVerified(current.provider_verified===true);
+    if(catalog.status==="fulfilled" && Array.isArray(catalog.value.plans)) {
+      setPlans(catalog.value.plans);
+    } else {
+      setPlans([]);
+      setError("Subscription plans are temporarily unavailable. Please retry.");
+    }
+    if(current.status==="fulfilled") {
+      setStatus(current.value.subscription||null);
+      setProviderVerified(current.value.provider_verified===true);
+      setStatusLoad("ready");
+    } else {
+      setStatus(null);
+      setProviderVerified(false);
+      setStatusLoad("unavailable");
+    }
   },[]);
 
   useEffect(()=>{refresh().catch(e=>setError(e.message));},[refresh]);
@@ -96,7 +112,9 @@ export default function Subscriptions(){
 
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Your subscription</h2>
-      {!status?<p className="mt-2 text-sm text-muted-foreground">No paid subscription is recorded for this account.</p>:
+      {statusLoad==="loading"?<p role="status" className="mt-2 text-sm text-muted-foreground">Checking verified subscription status…</p>:
+      statusLoad==="unavailable"?<p role="alert" className="mt-2 text-sm text-amber-600">Your subscription status could not be verified. Existing paid access has not been changed. Sign in again or retry.</p>:
+      !status?<p className="mt-2 text-sm text-muted-foreground">No paid subscription is recorded for this account.</p>:
         <div className="mt-3 space-y-2 text-sm">
           <p><strong>{PLAN_NAMES[status.tier]||status.tier}</strong> · {status.interval} · <span className="capitalize">{status.status}</span></p>
           {status.last_payment_at&&<p>Last verified payment: {new Date(status.last_payment_at).toLocaleString()}</p>}
