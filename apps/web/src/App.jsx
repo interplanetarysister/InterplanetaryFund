@@ -130,7 +130,7 @@ function AppRoutes() {
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
-      <Route path="/admin/social-moderation" element={<MemberAccess><SuperAdminAccess><SocialModeration /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/social-moderation" element={<MemberAccess><AdminAccess><SocialModeration /></AdminAccess></MemberAccess>} />
       <Route path="/community" element={<SocialFeedPage community />} />
       <Route path="/create" element={<CreateCampaign />} />
       <Route path="/campaigns" element={<MemberAccess><MyCampaigns /></MemberAccess>} />
