@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 
 const LABELS = {
-  story:"STORY", polaris:"POLARIS", echo:"ECHO", orbit:"ORBIT", nexus:"NEXUS",
+  story:"STORY", polaris:"POLARIS", echo:"ECHO", orbit:"ORBIT", nexus:"NEXUS", owner:"You",
 };
 /** Displays rule-based suggestions persisted in the account's private editorial queue.
  * This does not claim that any model has independently deliberated or executed a task.
@@ -14,6 +14,8 @@ export default function EditorialAgentQueue() {
   const [state,setState] = useState({phase:"idle",rows:[],error:""});
   const [acknowledging,setAcknowledging] = useState("");
   const [notice,setNotice] = useState("");
+  const [drafts,setDrafts] = useState({});
+  const [posting,setPosting] = useState("");
   async function acknowledge(item) {
     if(acknowledging)return;
     setAcknowledging(item.review_id);setNotice("");
@@ -26,6 +28,23 @@ export default function EditorialAgentQueue() {
       setRefresh(v=>v+1);
     }catch(e){setNotice(e.message||"Unable to update review.");}
     finally{setAcknowledging("")}
+  }
+  async function comment(item) {
+    if (posting) return;
+    const body=String(drafts[item.review_id]||"").trim();
+    if(body.length<8||body.length>1200){setNotice("Comments must contain 8–1,200 characters.");return;}
+    setPosting(item.review_id);setNotice("");
+    try {
+      const {data,error}=await authClient().rpc("ifund_add_editorial_review_comment",{
+        p_review_id:item.review_id,p_comment:body,
+      });
+      if(error||!Array.isArray(data)||data.length!==1||data[0]?.review_id!==item.review_id)
+        throw new Error(error?.message||"Discussion comment was not confirmed.");
+      setDrafts(previous=>({...previous,[item.review_id]:""}));
+      setNotice("Your feedback was saved to the private review thread. Agent execution has not been verified.");
+      setRefresh(v=>v+1);
+    }catch(e){setNotice(e.message||"Unable to save discussion comment.");}
+    finally{setPosting("");}
   }
   useEffect(()=>{
     if(!open)return;
@@ -63,9 +82,23 @@ export default function EditorialAgentQueue() {
           <p className="text-sm">{item.suggested_action}</p>
           {Array.isArray(item.discussion) && item.discussion.length>0 &&
             <ol className="space-y-2">{item.discussion.map((note,i)=><li key={i} className="rounded-lg bg-muted/50 p-3 text-sm">
-              <strong>{LABELS[note.agent]||"Agent"} — {note.kind==="rule_based_proposal"?"Proposal":"Cross-review"}</strong>
+              <strong>{LABELS[note.agent]||"Agent"} — {note.kind==="owner_comment"?"Your feedback":note.kind==="rule_based_proposal"?"Rule-based proposal":note.kind==="rule_based_next_step"?"Suggested follow-up":"Rule-based cross-review"}</strong>
               <p className="mt-1">{note.text}</p>
             </li>)}</ol>}
+          {item.review_status!=="acknowledged" && <div className="space-y-2 rounded-lg border border-border p-3">
+            <label className="block text-sm font-semibold" htmlFor={"editorial-response-"+item.review_id}>
+              Add feedback for the agent team
+            </label>
+            <textarea id={"editorial-response-"+item.review_id} value={drafts[item.review_id]||""}
+              onChange={event=>setDrafts(previous=>({...previous,[item.review_id]:event.target.value}))}
+              maxLength={1200} rows={3} className="w-full rounded-lg border border-input bg-background p-3 text-sm"
+              placeholder="Explain the facts, tone or context you want the reviewers to consider. Do not include account credentials." />
+            <p className="text-xs text-muted-foreground">This feedback stays in your private campaign review thread. Rule-based specialist prompts are not proof of live agent discussion.</p>
+            <button type="button" disabled={Boolean(posting)||String(drafts[item.review_id]||"").trim().length<8}
+              onClick={()=>comment(item)} className="min-h-11 rounded-lg border border-cyan-500 px-4 font-semibold disabled:opacity-50">
+              {posting===item.review_id?"Saving feedback…":"Submit feedback for cross-review"}
+            </button>
+          </div>}
           <Link className="inline-flex min-h-11 items-center underline" to={`/campaigns/${encodeURIComponent(item.campaign_id)}/edit`}>Review and improve campaign</Link>
           {item.review_status!=="acknowledged" &&
             <button type="button" disabled={Boolean(acknowledging)}
