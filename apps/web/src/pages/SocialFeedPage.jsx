@@ -62,14 +62,22 @@ export default function SocialFeedPage({ community = false }) {
     const id = campaignToShare;
     if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return;
     let active = true;
-    getCampaignDetail(id).then(campaign => {
+    getCampaignDetail(id).then(async campaign => {
       if (!active || !campaign) return;
+      let ownerUpdate = false;
+      if (sharingUpdate && user) {
+        try {
+          const { data, error } = await authClient().rpc("ifund_member_owns_active_campaign", { p_campaign: campaign.id });
+          ownerUpdate = !error && data === true;
+        } catch { /* Never imply ownership without verification */ }
+      }
+      if (!active) return;
       const url = `${window.location.origin}/campaign/${encodeURIComponent(campaign.id)}`;
-      const intro = sharingUpdate ? `Campaign update: ${campaign.title}\n\n` : `Support ${campaign.title} on Interplanetary Fund!\n`;
+      const intro = ownerUpdate ? `Campaign update: ${campaign.title}\n\n` : `Support ${campaign.title} on Interplanetary Fund!\n`;
       setBody(previous => previous || `${intro}${url}`.slice(0, MAX_POST_LENGTH));
     }).catch(() => {});
     return () => { active = false; };
-  }, [campaignToShare, sharingUpdate]);
+  }, [campaignToShare, sharingUpdate, user?.id]);
 
   async function shareDraftExternally() {
     if (!body.trim()) return;
