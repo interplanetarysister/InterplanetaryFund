@@ -53,6 +53,7 @@ export default function FinanceDashboard() {
         <a href="#campaign-finances" className="rounded-xl border border-border px-4 py-3 font-semibold">Campaign finances</a>
         <a href="#giving-receipts" className="rounded-xl border border-border px-4 py-3 font-semibold">My giving</a>
         <Link to="/withdrawals" className="rounded-xl border border-border px-4 py-3 font-semibold">Withdrawal verification</Link>
+        <Link to="/engagement" className="rounded-xl border border-border px-4 py-3 font-semibold">Supporter engagement</Link>
         {adminStatus === "admin" && <a href="#platform-finance" className="rounded-xl border border-border px-4 py-3 font-semibold">Platform oversight</a>}
       </nav>
     </header>
