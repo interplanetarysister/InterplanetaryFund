@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
+import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
 
 const CHECKS = [
   ["has_clear_title", "A specific, descriptive title", "State who needs help and why"],
@@ -44,6 +45,7 @@ export default function CampaignStrategy() {
         These checks help you prepare; they do not guarantee publication, donations or campaign success.
       </p>
     </header>
+    <CampaignBudgetPlanner />
     {state.status === "loading" && <p role="status">Checking your owned campaign drafts…</p>}
     {state.status === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button className="mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
