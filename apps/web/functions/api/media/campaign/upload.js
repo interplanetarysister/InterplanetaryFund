@@ -71,7 +71,7 @@ export async function onRequest({ request, env }) {
   const type = (request.headers.get("content-type") || "").toLowerCase().split(";")[0].trim();
   if (!Object.hasOwn(TYPES, type)) return json(415, { error: "Choose a PNG, JPG, WEBP, or GIF image." });
   const lengthHeader = request.headers.get("content-length");
-  if (lengthHeader !== null && (!/^\\d+$/.test(lengthHeader) || Number(lengthHeader) > LIMIT || Number(lengthHeader) === 0))
+  if (lengthHeader !== null && (!/^\d+$/.test(lengthHeader) || Number(lengthHeader) > LIMIT || Number(lengthHeader) === 0))
     return json(413, { error: "Images must be smaller than 5 MB." });
   let owner;
   try { owner = await authenticate(request, env); }
