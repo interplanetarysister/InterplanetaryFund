@@ -37,3 +37,5 @@ test("one wallet failure cannot hide existing card and PayPal methods", () => {
   assert.match(dialog, /paypal\.Buttons/);
   assert.match(button, /if \(!cancelled\) setReady\(false\)/);
 });
+
+// Wallet integration is deliberately gated by live merchant and device eligibility.
