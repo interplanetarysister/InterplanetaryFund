@@ -85,6 +85,16 @@
       "owner": "frontend+database"
     },
     {
+      "route": "/admin/integrations",
+      "role": "admin",
+      "component": "AdminConnections",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+backend"
+    },
+    {
       "route": "/admin/social-moderation",
       "role": "admin",
       "component": "SocialModeration",

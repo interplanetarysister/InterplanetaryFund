@@ -45,6 +45,7 @@ const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const Connections = lazy(() => import("./pages/Connections"));
+const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
@@ -136,6 +137,7 @@ function AppRoutes() {
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
+      <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
