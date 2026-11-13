@@ -55,6 +55,22 @@ async function resolveVerifiedDonor(token) {
     throw Object.assign(new Error("Verified member session required"), {status:401});
   return user.id;
 }
+async function resolveVerifiedSuperAdmin(token) {
+  const memberId=await resolveVerifiedDonor(token);
+  const response=await fetch(URL_BASE + "/auth/v1/user", {
+    headers:{"apikey":key(),"authorization":"Bearer " + token},
+    cache:"no-store"
+  });
+  if(!response.ok) throw Object.assign(new Error("Admin session expired or invalid"), {status:401});
+  const user=await response.json();
+  if(user.id!==memberId || user.app_metadata?.role!=="super_admin")
+    throw Object.assign(new Error("Verified super administrator required"), {status:403});
+  const profile=await findOne("ifund_profiles?select=id,account_status,account_deletion_pending,lifecycle_provenance&id=eq."+memberId);
+  if(!profile || profile.account_status!=="active" || profile.account_deletion_pending===true
+     || !["verified_source_owner_mapping","supabase_auth_signup"].includes(profile.lifecycle_provenance))
+    throw Object.assign(new Error("Verified super administrator required"), {status:403});
+  return memberId;
+}
 const findOne=async(path)=>(await db(path))[0]||null;
 Deno.serve(async req=>{
   if(req.method!=="POST") return fail("Method not allowed",405);
@@ -323,6 +339,55 @@ Deno.serve(async req=>{
       }
       return Response.json({ok:true,recorded:true});
     }
+    if(body.op==="payout_prepare"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")) return fail("Invalid withdrawal reference");
+      const adminId=await resolveVerifiedSuperAdmin(p.admin_access_token);
+      const rows=await db("rpc/ifund_internal_prepare_paypal_payout","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_admin_user_id:adminId
+      });
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout||payout.withdrawal_id!==p.withdrawal_id)
+        return fail("Withdrawal payout preparation failed",409);
+      return Response.json({ok:true,payout});
+    }
+    if(body.op==="payout_submitted"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||"")||typeof p.payout_batch_id!=="string"
+        ||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id))
+        return fail("Invalid payout submission");
+      const result=await db("rpc/ifund_internal_record_payout_submission","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
+    if(body.op==="payout_lookup"){
+      const p=body.data||{};
+      if(!patternId.test(p.withdrawal_id||""))return fail("Invalid withdrawal reference");
+      const rows=await db("rpc/ifund_internal_payout_lookup","POST",{p_withdrawal_id:p.withdrawal_id});
+      const payout=Array.isArray(rows)?rows[0]:rows;
+      if(!payout)return fail("Payout not found",404);
+      return Response.json({ok:true,payout});
+    }
+    if(body.op==="payout_state"){
+      const p=body.data||{};
+      const statuses=["SUCCESS","FAILED","PENDING","UNCLAIMED","RETURNED","ONHOLD","BLOCKED","REFUNDED","CANCELED","DENIED"];
+      if(!patternId.test(p.withdrawal_id||"")||!/^[A-Za-z0-9_-]{8,64}$/.test(p.payout_batch_id||"")
+        ||!/^[A-Za-z0-9_-]{8,128}$/.test(p.payout_item_id||"")
+        ||!statuses.includes(p.transaction_status)
+        ||(p.provider_fee_cents!==null&&p.provider_fee_cents!==undefined
+          &&(!Number.isSafeInteger(p.provider_fee_cents)||p.provider_fee_cents<0))
+        ||(p.paypal_event_id!==null&&p.paypal_event_id!==undefined
+          &&(typeof p.paypal_event_id!=="string"||!/^[A-Za-z0-9_-]{8,128}$/.test(p.paypal_event_id))))
+        return fail("Invalid payout provider state");
+      const result=await db("rpc/ifund_internal_record_payout_state","POST",{
+        p_withdrawal_id:p.withdrawal_id,p_payout_batch_id:p.payout_batch_id,
+        p_payout_item_id:p.payout_item_id,p_transaction_status:p.transaction_status,
+        p_provider_fee_cents:p.provider_fee_cents??null,p_paypal_event_id:p.paypal_event_id??null
+      });
+      return Response.json({ok:result===true||result?.[0]===true});
+    }
+
     return fail("Unsupported operation",404);
   }catch(err){
     return fail(err.status===401 ? "Your session expired. Sign in again before donating."
