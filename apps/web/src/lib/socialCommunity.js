@@ -11,13 +11,19 @@ async function call(name, params) {
   return data;
 }
 export async function likePost(postId, like) {
+  if (typeof postId === "string" && postId.startsWith("archive-"))
+    return call("ifund_social_archive_like", { p_archive: postId.slice(8), p_like: like });
   return call("ifund_social_like", { p_post: postId, p_like: like });
 }
 export async function getPostLikes(posts) {
   const ids = posts.map(nativePostId).filter(Boolean).slice(0, 30);
-  if (!ids.length) return {};
-  const rows = await call("ifund_social_like_summary", { p_posts: ids });
-  return Object.fromEntries((rows || []).map(row => [row.post_id, {
+  const archiveIds = posts.map(row => row.id).filter(id => typeof id === "string" && id.startsWith("archive-")).map(id => id.slice(8)).slice(0, 30);
+  if (!ids.length && !archiveIds.length) return {};
+  const [rows, archived] = await Promise.all([
+    ids.length ? call("ifund_social_like_summary", { p_posts: ids }) : [],
+    archiveIds.length ? call("ifund_social_archive_like_summary", { p_archives: archiveIds }) : [],
+  ]);
+  return Object.fromEntries([...(rows || []), ...(archived || [])].map(row => [row.post_id, {
     count: Number(row.like_count) || 0, liked: row.liked === true,
   }]));
 }
