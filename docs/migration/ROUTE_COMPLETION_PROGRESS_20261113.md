@@ -15,6 +15,7 @@
 - Replaced unknown `/admin/*` placeholder with an intentional not-found screen. This does not certify the **known** missing admin routes.
 - Added `apps/web/tests/route-completion-increments.test.js` for route permissions and referenced backend contracts.
 - Added `/admin/sustainability` with verified-admin access, real public environmental-campaign data, and provider-verified fundraising totals; no invented carbon/impact outcomes. Browser and RLS acceptance still pending.
+- Restored the working Story/AI Team navigation entry, removed duplicate Institutions and retired founding-member navigation, and removed the unfinished AI Image Studio entry from active navigation. The `/ai-images` deep link remains tracked as unimplemented and still blocks preview.
 - Added `apps/web/ci/route-acceptance.json` with **77 route patterns** (74 explicit plus three mapped legacy placeholders), each initially `not_verified` or `not_implemented`, so no untested route is silently accepted.
 - Added `apps/web/ci/verify-route-readiness.mjs` as a fail-closed manual release preflight. The existing `workflow_dispatch` release workflow runs the source preflight **before** npm dependency installation/build/Cloudflare deployment. Automatic Git-connected builds must stay disabled.
 
@@ -33,13 +34,13 @@
 ## Evidence and next actions
 
 1. Read-only Supabase catalog check: `ifund_community` and `ifund_community_member` contained zero rows, no `anon`/`authenticated` grants or policies, and no public community RPC. `ifund_admin_workflow_registry()` exists with explicit verified-admin check and returns read-only migration registry rows.
-2. JavaScript-level execution of the release preflight using actual branch `App.jsx`, `Layout.jsx`, and acceptance JSON yielded **86 blocking reasons** at the earlier 76-route checkpoint. The new guarded sustainability route replaces one missing navigation destination with a new, still-unverified acceptance entry. The retired founding-members waitlist admin link was also removed. Re-run the gate after each source change. This is a logic check in an isolated V8 context, **not** `node --test` or a Vite build. It is expected to fail until completion.
+2. JavaScript-level execution of the release preflight using actual branch `App.jsx`, `Layout.jsx`, and acceptance JSON yielded **86 blocking reasons** at the earlier 76-route checkpoint. The new guarded sustainability route replaces one missing navigation destination with a new, still-unverified acceptance entry. The retired founding-members waitlist admin link and unimplemented AI-image navigation entry were also removed. A previously hidden but implemented Story/AI Team section is now available. Duplicate Institutions navigation was removed. Re-run the gate after each source change. This is a logic check in an isolated V8 context, **not** `node --test` or a Vite build. It is expected to fail until completion.
 3. New targeted source-level Node tests were committed, **not executed** against a full checkout. Do not mark them PASS.
 4. Source checked and changed only; **no** Cloudflare Pages preview/production build, Worker deploy, database write, R2/media mutation, PayPal transaction, GitHub Actions dispatch, DNS change, or Base44 mutation was performed.
 5. Keep issue #203 as the parent migration coordination issue; avoid overlapping PR #286 Connections work. Source-ready entries in the 77-row matrix must name their specific automated tests and negative-case evidence. Neither a green static gate nor a preview HTTP 200 can prove all pages bug-free.
 
 **Read-only Cloudflare configuration evidence:** Pages project `interplanetaryfund-migration` has `deployments_enabled=false`, `production_deployments_enabled=false`, and `preview_deployment_setting=none`; the recent successful previews listed belong to the **separate** `feature/connections-icon-hub-20261112` branch, not to this route-completion branch. No build was triggered by this work.
 
-**Updated preflight:** 77 route records, 3 ComingSoon paths, 4 unresolved navigation paths, and 1 residual ComingSoon component => **85 blocking findings** in an isolated JS-level gate evaluation. No actual Node/Vite or browser-suite execution was claimed.
+**Updated preflight:** 77 route records, 3 ComingSoon paths, 3 unresolved navigation paths, and 1 residual ComingSoon component => **84 blocking findings** in an isolated JS-level gate evaluation. No actual Node/Vite or browser-suite execution was claimed.
 
 **Release decision: HOLD.** No unverified route is accepted. Source implementation and consolidated QA continue before preview.
