@@ -8,9 +8,10 @@ function verifiedCount(value) {
   const number = Number(value);
   return Number.isSafeInteger(number) && number >= 0 ? number : null;
 }
-export function nexusCampaignPriorities(rows) {
+export function nexusCampaignPriorities(rows, growthRows = []) {
   if (!Array.isArray(rows)) return null;
   const actions = [];
+  const growth = new Map((Array.isArray(growthRows) ? growthRows : []).filter(item => item?.campaign_id).map(item => [item.campaign_id, item]));
   for (const row of rows.slice(0,100)) {
     if (!row?.campaign_id) continue;
     const captures = verifiedCount(row.verified_captures);
@@ -22,7 +23,15 @@ export function nexusCampaignPriorities(rows) {
         label:"Review your draft before publishing",
         why:"This campaign is still marked as a draft. Its details need owner review." });
     } else if (row.campaign_status === "active" || row.campaign_status === "published") {
-      if (captures === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:2,
+      const trend = growth.get(row.campaign_id);
+      const recentCaptures = verifiedCount(trend?.new_verified_captures_7d);
+      const monthlyCaptures = verifiedCount(trend?.new_verified_captures_30d);
+      if (recentCaptures === 0 && monthlyCaptures !== null && monthlyCaptures >= 3) {
+        actions.push({ campaignId:row.campaign_id, title:name, priority:2,
+          label:"Review the past week's fundraising momentum",
+          why:"No provider-verified captures occurred in the last 7 days, compared with recorded captures earlier in the last 30 days. This is an activity indicator, not a forecast." });
+      }
+      else if (captures === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:2,
         label:"Review campaign clarity and sharing",
         why:"There are no provider-verified captures in this report. This does not imply all checkout attempts failed." });
       else if (captures !== null && followers === 0) actions.push({ campaignId:row.campaign_id, title:name, priority:3,
