@@ -568,3 +568,36 @@ drop trigger if exists ifund_guard_social_post_mutation_trigger on public.ifund_
 create trigger ifund_guard_social_post_mutation_trigger
  before update or delete on public.ifund_posts for each row
  execute function public.ifund_guard_social_post_mutation();
+
+
+-- Exact public permalink lookup, independent of the feed's 24-row pagination.
+-- Never reveal hidden reports, draft content or private author identifiers.
+create or replace function public.ifund_public_social_post(p_post text)
+returns table(id text,body text,posted_at timestamptz,display_name text,
+ profile_id uuid,source_platform text,external_url text,media_url text)
+language sql stable security definer set search_path = '' as $ifund$
+ with one_post as (
+  select 'post-'||s.id::text as id,s.body,s.created_at as posted_at,
+   case when p.public_profile_enabled and p.account_status='active'
+     and not p.account_deletion_pending then p.display_name end as display_name,
+   case when p.public_profile_enabled and p.account_status='active'
+     and not p.account_deletion_pending then p.id end as profile_id,
+   null::text as source_platform,null::text as external_url,null::text as media_url
+  from public.ifund_posts s left join public.ifund_profiles p on p.id=s.author_id
+  where s.id = case when p_post ~ '^post-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+    then substring(p_post from 6)::uuid else null::uuid end
+    and public.ifund_post_visible(s.id)
+  union all
+  select 'archive-'||s.id,s.content,coalesce(s.created_date,s.created_at),
+   s.author_name,null::uuid,s.source_platform,s.external_url,s.media_url
+  from public.ifund_social_post s
+  where s.id=case when p_post like 'archive-%' and length(p_post)<=136
+    then substring(p_post from 9) else null::text end
+    and s.source_system='base44_public_social_archive'
+    and not exists(select 1 from public.ifund_social_archive_reports r
+      where r.archive_id=s.id and r.status in ('open','removed'))
+ )
+ select * from one_post limit 1
+$ifund$;
+revoke all on function public.ifund_public_social_post(text) from public,anon,authenticated;
+grant execute on function public.ifund_public_social_post(text) to anon,authenticated;
