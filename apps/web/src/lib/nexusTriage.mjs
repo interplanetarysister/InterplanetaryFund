@@ -8,17 +8,28 @@ function verifiedCount(value) {
   const number = Number(value);
   return Number.isSafeInteger(number) && number >= 0 ? number : null;
 }
-export function nexusCampaignPriorities(rows, growthRows = []) {
+export function nexusCampaignPriorities(rows, growthRows = [], editorialRows = null) {
   if (!Array.isArray(rows)) return null;
   const actions = [];
   const growth = new Map((Array.isArray(growthRows) ? growthRows : []).filter(item => item?.campaign_id).map(item => [item.campaign_id, item]));
+  // Count only recorded, unresolved owner editorial handoffs. Missing review
+  // telemetry is unknown, not an empty queue or an agent-completion receipt.
+  const pending = new Map();
+  if (Array.isArray(editorialRows)) for (const review of editorialRows) {
+    if (!review?.campaign_id || review.review_status === "acknowledged") continue;
+    pending.set(review.campaign_id, (pending.get(review.campaign_id) || 0) + 1);
+  }
   for (const row of rows.slice(0,100)) {
     if (!row?.campaign_id) continue;
     const captures = verifiedCount(row.verified_captures);
     const followers = verifiedCount(row.active_followers);
     const name = typeof row.campaign_title === "string" && row.campaign_title.trim()
       ? row.campaign_title.trim().slice(0,120) : "Your campaign";
-    if (row.campaign_status === "draft") {
+    if ((pending.get(row.campaign_id) || 0) > 0) {
+      actions.push({ campaignId:row.campaign_id, title:name, priority:0,
+        label:"Review pending agent editorial handoffs", path:"/agents",
+        why:(pending.get(row.campaign_id))+" saved editorial proposals need owner review. Acknowledgment is not proof of an agent rewrite or publication." });
+    } else if (row.campaign_status === "draft") {
       actions.push({ campaignId:row.campaign_id, title:name, priority:1,
         label:"Review your draft before publishing",
         why:"This campaign is still marked as a draft. Its details need owner review." });
