@@ -38,7 +38,10 @@ test("Help remains read-only and does not fake agent, provider or financial acti
     source("src/pages/HelpArticle.jsx"),
     source("src/lib/helpArticles.js"),
   ]).then((parts) => parts.join("\n"));
-  assert.doesNotMatch(code, /@base44\/|base44Client|db\.from\(|\.functions\.invoke\(|fetch\(/);
+  assert.doesNotMatch(code, /@base44\/|base44Client|db\.from\(|\.functions\.invoke\(/);
+  // A bounded, read-only canonical help index request is authorized, never a write or an external agent call.
+  assert.match(code, /fetch\("\/api\/public\/help\/index", \{ method: "GET", cache: "no-store" \}\)/);
+  assert.doesNotMatch(code, /method: ["\x27](POST|PUT|PATCH|DELETE)["\x27]/);
   const donations = helpArticles.find((article) => article.slug === "campaign-donations");
   assert.ok(donations, "Donation guidance must exist");
   assert.match(donations.answer, /when the secure checkout is enabled/i);
