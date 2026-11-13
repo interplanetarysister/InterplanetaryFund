@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 
@@ -55,6 +55,12 @@ function graticule(rotation) {
 export default function CampaignGlobe({ campaigns = [] }) {
   const [rotation, setRotation] = useState(-25);
   const [selected, setSelected] = useState(null);
+  const [autoRotate, setAutoRotate] = useState(true);
+  useEffect(() => {
+    if (!autoRotate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const timer = window.setInterval(() => setRotation(previous => ((previous + 0.6 + 540) % 360) - 180), 90);
+    return () => window.clearInterval(timer);
+  }, [autoRotate]);
   const dragging = useRef(null);
   const grid = useMemo(() => graticule(rotation), [rotation]);
   const landmarks = useMemo(() => LAND.map((shape) => line(shape, rotation)), [rotation]);
@@ -62,12 +68,12 @@ export default function CampaignGlobe({ campaigns = [] }) {
     campaign,
     point: project(campaign.latitude, campaign.longitude, rotation),
   })).filter((marker) => marker.point.front), [campaigns, rotation]);
-  const rotate = (delta) => {
+  const rotate = (delta) => { setAutoRotate(false);
     setRotation((previous) => ((previous + delta + 540) % 360) - 180);
   };
   function down(e) {
     if (e.target !== e.currentTarget && e.target.closest(".globe-pin")) return;
-    dragging.current = { x: e.clientX, rotation };
+    setAutoRotate(false); dragging.current = { x: e.clientX, rotation };
     e.currentTarget.setPointerCapture(e.pointerId);
   }
   function move(e) {
@@ -85,7 +91,8 @@ export default function CampaignGlobe({ campaigns = [] }) {
         <div className="globe-controls">
           <button className="secondary" onClick={() => rotate(-30)} aria-label="Rotate globe west"><ArrowLeft size={18}/></button>
           <button className="secondary" onClick={() => rotate(30)} aria-label="Rotate globe east"><ArrowRight size={18}/></button>
-          <button className="secondary" onClick={() => { setRotation(-25); setSelected(null); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
+          <button className="secondary" onClick={() => { setRotation(-25); setSelected(null); setAutoRotate(true); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
+          <button className="secondary" onClick={() => setAutoRotate(value => !value)} aria-pressed={autoRotate} aria-label={autoRotate ? "Pause globe rotation" : "Resume globe rotation"}>{autoRotate ? "Pause orbit" : "Resume orbit"}</button>
         </div>
       </header>
       <div className="globe-layout">
@@ -98,6 +105,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
             <clipPath id="demo-globe-clip"><circle cx="300" cy="300" r="251"/></clipPath>
             <filter id="globe-glow"><feGaussianBlur stdDeviation="10"/></filter>
           </defs>
+          {Array.from({length:72},(_,i)=><circle key={"star"+i} cx={(i*137+29)%600} cy={(i*227+61)%600} r={i%7===0?1.3:0.65} fill="#d9f6ff" opacity={0.3+(i%5)*0.1}/>)}
           <circle cx="300" cy="300" r="259" fill="#5bdff1" opacity=".18" filter="url(#globe-glow)" />
           <circle cx="300" cy="300" r="251" fill="url(#demo-globe-sea)" stroke="#7bd9ee" strokeWidth="2" />
           <g clipPath="url(#demo-globe-clip)" fill="none">
@@ -115,7 +123,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
           ))}
         </svg>
         <div className="globe-aside">
-          <strong>{markers.length} visible opted-in campaigns</strong>
+          <strong>{campaigns.length} approved locations · {markers.length} visible</strong>
           <p className="meta">Only campaigns whose owners explicitly publish a broad location appear here. This is a schematic vector globe, not a GPS map or a political reference.</p>
           {selected && (
             <article className="globe-selected">
