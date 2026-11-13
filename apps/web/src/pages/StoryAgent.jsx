@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 import { loadWritingWorkspaceAccess } from "@/lib/writingWorkspace";
 import { loadOwnerCampaign } from "@/api/ownerCampaigns";
 import { analyzeStoryBrief } from "@/lib/campaignWritingChecklist.mjs";
+import StoryVoicePreferences from "@/components/agents/StoryVoicePreferences";
 import {
   rememberWritingHandoff,
   WritingHandoffError,
@@ -453,6 +454,10 @@ export default function StoryAgent() {
               anything that must stay unchanged.
             </span>
           </label>
+          <StoryVoicePreferences disabled={busy} onApply={preference=>{
+            const addition="\n\nPreferred writing voice (style only; preserve all verified facts): "+preference;
+            setDetails(value=>value.includes(addition)?value:(value+addition).slice(0,4000));
+          }}/>
           <label className="block">
             Rewrite one story section (optional)
             <textarea
