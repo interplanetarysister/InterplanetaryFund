@@ -21,8 +21,8 @@ const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 // Public-site port of the Base44 CampaignDetail page. Owner and admin tools
 // (editing, distribution, outreach agents, AI coach, translations, supporter
 // list, donation dialog) need a signed-in member and are not part of this
-// slice. Following and sharing are available. Campaign checkout stays disabled
-// while campaign donations are paused.
+// slice. Following and sharing are available. Campaign checkout is live when
+// the production payment health gate confirms verified-ledger availability.
 export default function CampaignDetail() {
   const platformOnlyMode = !usePublicCampaignFundraising();
   const { id } = useParams();
@@ -152,7 +152,7 @@ export default function CampaignDetail() {
       <button
         onClick={campaignCanDonate ? () => setDonationOpen(true) : scrollToFunding}
         className="lg:hidden fixed right-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-30 h-14 px-6 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 text-white font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 active:scale-95 transition-transform"
-        aria-label={campaignCanDonate ? "Donate to this campaign" : "Campaign donations unavailable. Show funding details"}
+        aria-label={campaignCanDonate ? "Donate to this campaign" : "Live donation checkout unavailable. Show funding details"}
       >
         <span className="flex items-center gap-2"><Heart className="w-5 h-5" /> {campaignCanDonate ? "Donate Now" : "Funding details"}</span>
       </button>
