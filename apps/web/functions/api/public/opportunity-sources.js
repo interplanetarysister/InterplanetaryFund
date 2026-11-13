@@ -42,10 +42,17 @@ export async function onRequest({request,env}) {
     const sources=sourceRows.filter(s=>s && typeof s.name==="string" && safeUrl(s.website))
       .map(s=>({id:s.id,name:s.name,type:s.type,industry:s.industry,mission:s.mission,description:s.description,location:s.location,
         website:s.website,causes_supported:s.causes_supported,offers_grants:s.offers_grants===true,offers_volunteer_program:s.offers_volunteer_program===true}));
-    const today=new Date().toISOString().slice(0,10);
+    const now=Date.now();
+    const today=new Date(now).toISOString().slice(0,10);
+    // A previously verified listing must not be represented as currently open forever.
+    // Programs are directories, not promises of current applications.
+    const fresh=(value,maxDays)=>{
+      const checked=Date.parse(value||"");
+      return Number.isFinite(checked) && checked<=now && now-checked<=maxDays*86400000;
+    };
     const opportunities=opportunityRows.filter(o=>
       o && typeof o.title==="string" && safeUrl(o.official_url) &&
-      (o.status==="program" || (o.status==="open" && (!o.deadline_date || o.deadline_date>=today)))
+      (o.status==="program" ? fresh(o.verified_at,180) : (o.status==="open" && fresh(o.verified_at,30) && (!o.deadline_date || o.deadline_date>=today)))
     ).map(o=>({id:o.id,title:o.title,type:o.type,description:o.description,estimated_value:o.estimated_value,
       eligibility:o.eligibility,required_actions:o.required_actions,confidence:o.confidence,status:o.status,
       url:o.official_url,provider:o.official_provider,verified_at:o.verified_at,
@@ -53,7 +60,7 @@ export async function onRequest({request,env}) {
       deadline_date:o.deadline_date,source_note:o.source_note}));
     return json({sources,opportunities,count:sources.length,opportunity_count:opportunities.length,
       source:"canonical_supabase_rls",kind:"verified source directories and externally documented programs",
-      partner_affiliation:false,auto_apply_enabled:false});
+      partner_affiliation:false,auto_apply_enabled:false,open_verification_max_age_days:30,program_verification_max_age_days:180});
   } catch {
     return json({error:"Institution research is temporarily unavailable"},503);
   }
