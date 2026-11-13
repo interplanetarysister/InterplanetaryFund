@@ -33,6 +33,9 @@ test("manual Pages workflow runs route acceptance preflight before any npm/build
   assert.ok(gate >= 0 && install > gate && deploy > install,
     "gate must run before compilation and preview/production deployment");
   assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /apps\/web\/dist\//, "archive the tested asset bundle for later approved promotion");
+  assert.match(workflow, /--branch=preview/, "publish only the preview branch");
+  assert.doesNotMatch(workflow, /--branch=main/, "production must require a separate evidence-based dispatch");
   assert.doesNotMatch(workflow, /^\s*(push|pull_request):\s*$/m,
     "release pipeline cannot run automatically on a source commit or pull request");
 });
