@@ -1,9 +1,8 @@
 name: Migration phase checks
+# Owner-controlled build freeze: manual invocation only; no push/PR-triggered run.
 on:
-  pull_request:
-    branches:
-      - migration/supabase-cloudflare
   workflow_dispatch:
+
 permissions:
   contents: read
 jobs:
