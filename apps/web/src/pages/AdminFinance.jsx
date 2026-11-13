@@ -176,8 +176,8 @@ export default function AdminFinance({ embedded = false }) {
         <p className="text-sm text-muted-foreground">PayPal-confirmed gifts to IFund itself are platform support, not campaign gifts. Unmatched merchant payments remain separate. Neither group is included in campaign fundraising or owner withdrawals; the originating website is only displayed when verified.</p>
         <div className="grid gap-3 sm:grid-cols-3">
           <div><p className="text-xs text-muted-foreground">Verified platform donations</p><p className="text-xl font-semibold tabular-nums">{platform.length}</p></div>
-          <div><p className="text-xs text-muted-foreground">Gross platform support</p><p className="text-xl font-semibold tabular-nums">{money(platform.reduce((sum,r)=>sum+Number(r.gross_cents||0),0))}</p></div>
-          <div><p className="text-xs text-muted-foreground">Net platform support after PayPal fees</p><p className="text-xl font-semibold tabular-nums">{money(platform.reduce((sum,r)=>sum+Number(r.net_cents||0),0))}</p></div>
+          <div><p className="text-xs text-muted-foreground">Gross platform support</p><p className="text-xl font-semibold tabular-nums">{money(sumVerifiedCents(platform, "gross_cents"))}</p></div>
+          <div><p className="text-xs text-muted-foreground">Net platform support after PayPal fees</p><p className="text-xl font-semibold tabular-nums">{money(sumVerifiedCents(platform, "net_cents"))}</p></div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm"><thead><tr className="border-b border-border">
