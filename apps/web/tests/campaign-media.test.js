@@ -7,12 +7,13 @@ import { onRequest as readImage } from "../functions/api/media/campaign/[owner]/
 const OWNER = "981b3c34-4b04-4411-9b7b-20ae1cc2a598";
 const KEY = "sb_publishable_test_public";
 const env = (bucket) => ({
+  CF_PAGES_BRANCH: "feature-campaign-media",
   IFUND_CAMPAIGN_MEDIA: bucket,
   SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
   VITE_SUPABASE_PUBLISHABLE_KEY: KEY,
 });
 const jpeg = new Uint8Array([255, 216, 255, 224, 1, 2, 3, 255, 217]);
-const makeRequest = (bytes = jpeg, headers = {}) => new Request("https://preview.example/api/media/campaign/upload", {
+const makeRequest = (bytes = jpeg, headers = {}) => new Request("https://feature-campaign-media.interplanetaryfund-migration.pages.dev/api/media/campaign/upload", {
   method: "POST",
   headers: { authorization: "Bearer test.jwt.token", "content-type": "image/jpeg", ...headers },
   body: bytes,
@@ -32,7 +33,7 @@ function withAuth(t, { active = true, confirmed = true } = {}) {
 test("media endpoint rejects unauthenticated and mismatched content", async (t) => {
   withAuth(t);
   const bucket = { put: async () => { throw Error("unexpected write"); }, head: async () => null, get: async () => null };
-  const noAuth = new Request("https://preview.example/api/media/campaign/upload", {
+  const noAuth = new Request("https://feature-campaign-media.interplanetaryfund-migration.pages.dev/api/media/campaign/upload", {
     method: "POST", headers: { "content-type": "image/jpeg" }, body: jpeg,
   });
   assert.equal((await upload({ request: noAuth, env: env(bucket) })).status, 401);
@@ -66,7 +67,7 @@ test("valid JPEG stores immutable preview media and requires verified size", asy
   const result = await upload({ request: makeRequest(), env: env(bucket) });
   assert.equal(result.status, 201);
   const body = await result.json();
-  assert.match(body.url, new RegExp("^https://preview\\.example/api/media/campaign/" + OWNER + "/[0-9a-f-]{36}\\.jpg$"));
+  assert.match(body.url, new RegExp("^https://feature-campaign-media\\.interplanetaryfund-migration\\.pages\\.dev/api/media/campaign/" + OWNER + "/[0-9a-f-]{36}\\.jpg$"));
   assert.equal(saved.size, 1);
   const [key] = saved.keys();
   assert.ok(key.startsWith("preview/campaigns/" + OWNER + "/"));
@@ -104,7 +105,7 @@ test("oversized streamed media fails at the 5MB boundary without writing to R2",
       controller.close();
     },
   });
-  const request = new Request("https://preview.example/api/media/campaign/upload", {
+  const request = new Request("https://feature-campaign-media.interplanetaryfund-migration.pages.dev/api/media/campaign/upload", {
     method: "POST", headers: { authorization: "Bearer test.jwt.token", "content-type": "image/jpeg" },
     body: huge, duplex: "half",
   });
@@ -150,4 +151,46 @@ test("browser cover URL validation requires the current owner and rejects URL de
   const source = readFileSync(new URL("../src/api/campaignMedia.js", import.meta.url), "utf8");
   assert.match(source, /url\.pathname\.split\("\/"\)\[4\]\.toLowerCase\(\) !== owner\.toLowerCase\(\)/);
   assert.match(source, /url\.username \|\| url\.password \|\| url\.search \|\| url\.hash/);
+});
+
+test("media preview gate rejects missing branch, arbitrary origins, and main with no R2 access", async (t) => {
+  withAuth(t);
+  let writes = 0, reads = 0;
+  const bucket = {
+    put: async () => { writes++; },
+    head: async () => null,
+    get: async () => { reads++; return null; },
+  };
+  const approved = "https://feature-campaign-media.interplanetaryfund-migration.pages.dev";
+  const arbitrary = "https://untrusted.example";
+  const objectPath = "/api/media/campaign/" + OWNER + "/22222222-2222-4222-8222-222222222222.jpg";
+  const cases = [
+    { origin: approved, branch: undefined },
+    { origin: approved, branch: "" },
+    { origin: approved, branch: "main" },
+    { origin: arbitrary, branch: "feature-campaign-media" },
+    { origin: "https://interplanetaryfund.com", branch: "feature-campaign-media" },
+    { origin: "https://www.interplanetaryfund.com", branch: "feature-campaign-media" },
+    { origin: "https://evil.interplanetaryfund-migration.pages.dev.attacker.example", branch: "feature-campaign-media" },
+    { origin: "http://feature-campaign-media.interplanetaryfund-migration.pages.dev", branch: "feature-campaign-media" },
+  ];
+  for (const item of cases) {
+    const runtime = { ...env(bucket), CF_PAGES_BRANCH: item.branch };
+    const request = new Request(item.origin + "/api/media/campaign/upload", {
+      method: "POST",
+      headers: { authorization: "Bearer test.jwt.token", "content-type": "image/jpeg" },
+      body: jpeg,
+    });
+    assert.equal((await upload({ request, env: runtime })).status, 503, item.origin + " branch=" + item.branch);
+    for (const method of ["GET", "HEAD"]) {
+      const result = await readImage({
+        request: new Request(item.origin + objectPath, { method }),
+        env: runtime,
+        params: { owner: OWNER, file: "22222222-2222-4222-8222-222222222222.jpg" },
+      });
+      assert.equal(result.status, 503, method + " " + item.origin + " branch=" + item.branch);
+    }
+  }
+  assert.equal(writes, 0);
+  assert.equal(reads, 0);
 });
