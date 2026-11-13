@@ -5,7 +5,7 @@ import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useAdminAccess } from "@/hooks/useAdminAccess";
-import { CONNECTION_PLATFORMS, OAUTH_PLATFORM_IDS, PLATFORM_KIND_NAMES, selectedConnectionPlatform, connectionSteps } from "@/lib/connectionCatalog.mjs";
+import { CONNECTION_PLATFORMS, OAUTH_PLATFORM_IDS, PLATFORM_KIND_NAMES, selectedConnectionPlatform, connectionSteps, matchesStoredConnection } from "@/lib/connectionCatalog.mjs";
 import { validatePublicConnectionLink } from "@/lib/connectionLinkValidation.mjs";
 import { connectionCapabilityReadiness } from "@/lib/connectionCapabilityReadiness.mjs";
 
@@ -122,7 +122,7 @@ export default function Connections() {
   const selectedOAuth = OAUTH_PLATFORM_IDS[selected.id] || null;
   const connected = useMemo(() => records.filter(row=>row.status==="connected" && Boolean(row.verified_at)),[records]);
   const saved = links.find(row=>row.provider===selected.id);
-  const account = selectedOAuth ? records.find(row=>row.provider===selectedOAuth && row.status!=="disconnected") : null;
+  const account = selectedOAuth ? records.find(row=>matchesStoredConnection(row,selectedOAuth) && row.status!=="disconnected") : null;
   const canStart = Boolean(selectedOAuth && providerReady[selectedOAuth]===true && user?.id);
   const isLinked = Boolean(account?.status==="connected" && account.verified_at);
   const selectedChoice = choices.find(row=>row.provider===selected.id)?.choice || "manual";
@@ -214,7 +214,7 @@ export default function Connections() {
   const canSaveLink=selected.kind!=="app";
   const instructions=connectionSteps(selected,{secure:canStart,hasSavedLink:Boolean(saved)});
   const knownConnections=connected.map(row=> {
-    const provider=CONNECTION_PLATFORMS.find(item=>OAUTH_PLATFORM_IDS[item.id]===row.provider || item.id===row.provider);
+    const provider=CONNECTION_PLATFORMS.find(item=>matchesStoredConnection(row,OAUTH_PLATFORM_IDS[item.id] || item.id));
     return provider ? {provider,row}:null;
   }).filter(Boolean);
 
@@ -265,7 +265,7 @@ export default function Connections() {
           const active=selected.id===platform.id;
           const savedLink=links.some(link=>link.provider===platform.id);
           const verified=records.some(row=>row.status==="connected" && row.verified_at &&
-            OAUTH_PLATFORM_IDS[platform.id]===row.provider);
+            matchesStoredConnection(row,OAUTH_PLATFORM_IDS[platform.id]));
           return <button type="button" key={platform.id} aria-pressed={active} aria-controls="connection-details"
             onClick={()=>choosePlatform(platform)} title={"View "+platform.name+" connection steps"}
             className={"relative flex min-h-28 flex-col items-center justify-start gap-2 rounded-2xl border bg-card px-2 py-3 text-center text-xs font-semibold leading-tight hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary "+(active?"border-primary ring-2 ring-primary/30":"border-border")}>
