@@ -668,3 +668,10 @@ Verified on the canonical Supabase project on 2026-11-10 Pacific. The existing
 `ifund_public_campaign_funding_totals(p_campaign_ids uuid[])` routine supplies
 public campaign funding totals. Its database definition predates the checked-in
 atomic rollup migration. Preserve that dependency when provisioning another environment.
+
+
+### Verified production dependency: Admin workflow registry
+
+VERIFIED PRODUCTION DEPENDENCY: public.ifund_admin_workflow_registry
+
+Verified directly against Supabase project `ssibsfmtodgximseeqsv` on 2026-11-13. This is a `STABLE SECURITY DEFINER` zero-argument read-only RPC with pinned empty `search_path`. It refuses `auth.uid() IS NULL` or callers failing `public.ifund_current_user_is_verified_admin()` (SQLSTATE `42501`). Anonymous users lack EXECUTE; authenticated users receive EXECUTE but only verified administrators can access its restricted `ifund_control.workflow_registry` records. It does not execute or schedule workflows. Existing migration history on the branch has no defining DDL; retain the verified production definition as an external schema dependency until reconciled into versioned migrations and independently tested for cross-account authorization.
