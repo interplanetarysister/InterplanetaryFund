@@ -387,6 +387,435 @@ begin
 end
 $fn$;
 
+create or replace function public.ifund_internal_payout_lookup_by_sender_batch(p_sender_batch_id text)
+returns table(
+  withdrawal_id uuid,
+  receiver_email text,
+  net_cents bigint,
+  gross_cents bigint,
+  fee_cents bigint,
+  sender_batch_id text,
+  sender_item_id text,
+  payout_batch_id text,
+  payout_item_id text,
+  current_status text,
+  provider_transaction_status text
+)
+language plpgsql stable security definer
+set search_path='' set row_security='off'
+as $fn$
+begin
+  if p_sender_batch_id is null or p_sender_batch_id !~ '^ifund-[0-9a-f]{32}
+  p_withdrawal_id uuid,
+  p_payout_batch_id text,
+  p_payout_item_id text,
+  p_transaction_status text,
+  p_provider_fee_cents bigint default null,
+  p_paypal_event_id text default null
+)
+returns boolean
+language plpgsql security definer
+set search_path='' set row_security='off'
+as $fn$
+declare
+  w ifund_finance.withdrawal%rowtype;
+  v_event ifund_finance.paypal_payout_events%rowtype;
+  v_release_id uuid;
+begin
+  if p_transaction_status not in ('SUCCESS','FAILED','PENDING','UNCLAIMED','RETURNED','ONHOLD','BLOCKED','REFUNDED','CANCELED','DENIED') then
+    raise exception 'Unsupported payout status' using errcode='22023';
+  end if;
+  if p_payout_batch_id is null or p_payout_batch_id !~ '^[A-Za-z0-9_-]{8,64}$'
+     or p_payout_item_id is null or p_payout_item_id !~ '^[A-Za-z0-9_-]{8,128}$'
+     or p_provider_fee_cents is not null and p_provider_fee_cents<0 then
+    raise exception 'Malformed provider payout evidence' using errcode='22023';
+  end if;
+  select * into w from ifund_finance.withdrawal where id=p_withdrawal_id for update;
+  if not found then raise exception 'Withdrawal not found' using errcode='22023'; end if;
+  if w.provider_sender_batch_id is null then
+    raise exception 'Payout sender identity missing' using errcode='P0001';
+  end if;
+  if w.payout_batch_id is not null and w.payout_batch_id<>p_payout_batch_id then
+    raise exception 'Payout batch identity conflict' using errcode='23505';
+  end if;
+  if w.provider_payout_item_id is not null and w.provider_payout_item_id<>p_payout_item_id then
+    raise exception 'Payout item identity conflict' using errcode='23505';
+  end if;
+
+  if p_paypal_event_id is not null then
+    select * into v_event from ifund_finance.paypal_payout_events
+      where paypal_event_id=p_paypal_event_id;
+    if found then
+      if v_event.withdrawal_id<>p_withdrawal_id
+        or coalesce(v_event.payout_batch_id,'')<>coalesce(p_payout_batch_id,'')
+        or coalesce(v_event.payout_item_id,'')<>coalesce(p_payout_item_id,'')
+        or v_event.transaction_status<>p_transaction_status then
+        raise exception 'Payout event identity conflict' using errcode='23505';
+      end if;
+      return true;
+    end if;
+    insert into ifund_finance.paypal_payout_events(
+      paypal_event_id,withdrawal_id,payout_batch_id,payout_item_id,transaction_status
+    ) values (
+      p_paypal_event_id,p_withdrawal_id,p_payout_batch_id,p_payout_item_id,p_transaction_status
+    );
+  end if;
+
+  update ifund_finance.withdrawal
+    set payout_batch_id=p_payout_batch_id,
+        provider_payout_item_id=p_payout_item_id,
+        provider_transaction_status=p_transaction_status,
+        provider_fee=case when p_provider_fee_cents is null then provider_fee else p_provider_fee_cents::numeric/100 end,
+        provider_last_verified_at=now(),
+        provider_event_id=coalesce(p_paypal_event_id,provider_event_id)
+  where id=p_withdrawal_id
+  returning * into w;
+
+  if p_transaction_status='SUCCESS' then
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      provider_transaction_id,campaign_id,beneficiary_user_id,amount,currency,
+      platform_contribution,processing_fee,payment_channel,withdrawal_id,
+      canonical_operation_id,reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':payout','out','paid','withdrawal','paypal',
+      p_payout_item_id,w.campaign_id,w.owner_user_id,w.net_amount,'USD',
+      0,coalesce(p_provider_fee_cents,0)::numeric/100,'paypal',w.id::text,
+      w.canonical_operation_key||':payout','Provider-confirmed PayPal payout',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      campaign_id,beneficiary_user_id,amount,currency,platform_contribution,
+      processing_fee,payment_channel,withdrawal_id,canonical_operation_id,
+      reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':fee','fee','paid','withdrawal','paypal',
+      w.campaign_id,w.owner_user_id,w.platform_fee,'USD',w.platform_fee,
+      0,'paypal',w.id::text,w.canonical_operation_key||':fee',
+      'Realized IFund 7% withdrawal fee',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    update ifund_finance.holding_ledger_entry
+      set state='paid',settled_at=coalesce(settled_at,now()::text)
+      where id::text=w.canonical_reservation_id;
+
+    update ifund_finance.withdrawal
+      set status='paid',processed_at=coalesce(processed_at,now()),
+          provider_completed_at=coalesce(provider_completed_at,now()),provider_error_code=null
+      where id=w.id;
+    return true;
+  end if;
+
+  if p_transaction_status in ('FAILED','RETURNED','BLOCKED','REFUNDED','CANCELED','DENIED') then
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      provider_transaction_id,campaign_id,beneficiary_user_id,amount,currency,
+      platform_contribution,processing_fee,payment_channel,withdrawal_id,
+      canonical_operation_id,reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':release','release','released','withdrawal','paypal',
+      p_payout_item_id,w.campaign_id,w.owner_user_id,w.gross_amount,'USD',
+      w.platform_fee,0,'paypal',w.id::text,w.canonical_operation_key||':release',
+      'Provider payout did not settle; reservation released',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    update ifund_finance.holding_ledger_entry
+      set state='released',settled_at=coalesce(settled_at,now()::text)
+      where id::text=w.canonical_reservation_id;
+    update ifund_finance.holding_ledger_entry
+      set state='reversed'
+      where withdrawal_id=w.id::text and direction in ('out','fee') and state='paid';
+
+    update ifund_finance.withdrawal
+      set status=case when p_transaction_status='CANCELED' then 'cancelled' else 'failed' end,
+          provider_completed_at=now(),
+          processed_at=null,
+          provider_error_code=p_transaction_status
+      where id=w.id;
+    return true;
+  end if;
+
+  update ifund_finance.withdrawal
+    set status=case when p_transaction_status='PENDING' then 'processing' else 'reconciliation_pending' end,
+        provider_error_code=case when p_transaction_status in ('UNCLAIMED','ONHOLD') then p_transaction_status else null end
+    where id=w.id;
+  return true;
+end
+$fn$;
+
+revoke all on function public.ifund_owner_payout_destination() from public,anon;
+revoke all on function public.ifund_connect_paypal_payout_to_verified_email(boolean) from public,anon;
+revoke all on function public.ifund_disconnect_paypal_payout_destination() from public,anon;
+revoke all on function public.ifund_super_admin_payout_queue() from public,anon;
+grant execute on function public.ifund_owner_payout_destination() to authenticated;
+grant execute on function public.ifund_connect_paypal_payout_to_verified_email(boolean) to authenticated;
+grant execute on function public.ifund_disconnect_paypal_payout_destination() to authenticated;
+grant execute on function public.ifund_super_admin_payout_queue() to authenticated;
+
+revoke all on function public.ifund_internal_prepare_paypal_payout(uuid,uuid) from public,anon,authenticated;
+revoke all on function public.ifund_internal_record_payout_submission(uuid,text) from public,anon,authenticated;
+revoke all on function public.ifund_internal_record_payout_submission_outcome(uuid,text,text,text) from public,anon,authenticated;
+revoke all on function public.ifund_internal_payout_lookup(uuid) from public,anon,authenticated;
+revoke all on function public.ifund_internal_payout_lookup_by_sender_batch(text) from public,anon,authenticated;
+revoke all on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) from public,anon,authenticated;
+grant execute on function public.ifund_internal_prepare_paypal_payout(uuid,uuid) to service_role;
+grant execute on function public.ifund_internal_record_payout_submission(uuid,text) to service_role;
+grant execute on function public.ifund_internal_record_payout_submission_outcome(uuid,text,text,text) to service_role;
+grant execute on function public.ifund_internal_payout_lookup(uuid) to service_role;
+grant execute on function public.ifund_internal_payout_lookup_by_sender_batch(text) to service_role;
+grant execute on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) to service_role;
+ then
+      raise exception 'Invalid provider payout batch id' using errcode='22023';
+    end if;
+    if w.payout_batch_id is not null and w.payout_batch_id<>p_payout_batch_id then
+      raise exception 'Conflicting payout batch id' using errcode='23505';
+    end if;
+  end if;
+
+  if p_outcome='unknown' then
+    update ifund_finance.withdrawal
+      set status='provider_status_unknown',
+          payout_batch_id=coalesce(payout_batch_id,p_payout_batch_id),
+          provider_error_code=left(coalesce(p_error_code,'PROVIDER_STATUS_UNKNOWN'),120),
+          provider_last_verified_at=now()
+      where id=w.id;
+    return true;
+  end if;
+
+  insert into ifund_finance.holding_ledger_entry(
+    owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+    campaign_id,beneficiary_user_id,amount,currency,platform_contribution,
+    processing_fee,payment_channel,withdrawal_id,canonical_operation_id,
+    reconciliation_note,settled_at
+  ) values (
+    w.owner_auth_uid,w.canonical_operation_key||':release','release','released','withdrawal','paypal',
+    w.campaign_id,w.owner_user_id,w.gross_amount,'USD',w.platform_fee,0,'paypal',
+    w.id::text,w.canonical_operation_key||':release',
+    'Provider rejected payout submission before settlement',now()::text
+  )
+  on conflict (operation_key) do nothing;
+
+  update ifund_finance.holding_ledger_entry
+    set state='released',settled_at=coalesce(settled_at,now()::text)
+    where id::text=w.canonical_reservation_id;
+
+  update ifund_finance.withdrawal
+    set status='failed',
+        payout_batch_id=coalesce(payout_batch_id,p_payout_batch_id),
+        provider_error_code=left(coalesce(p_error_code,'PROVIDER_REJECTED'),120),
+        provider_last_verified_at=now(),
+        processed_at=null
+    where id=w.id;
+  return true;
+end
+$fn$;
+
+create or replace function public.ifund_internal_payout_lookup(p_withdrawal_id uuid)
+returns table(
+  withdrawal_id uuid,
+  receiver_email text,
+  net_cents bigint,
+  gross_cents bigint,
+  fee_cents bigint,
+  sender_batch_id text,
+  sender_item_id text,
+  payout_batch_id text,
+  payout_item_id text,
+  current_status text,
+  provider_transaction_status text
+)
+language plpgsql stable security definer
+set search_path='' set row_security='off'
+as $fn$
+begin
+  return query
+  select w.id,a.provider_account_id,(w.net_amount*100)::bigint,(w.gross_amount*100)::bigint,
+    (w.platform_fee*100)::bigint,w.provider_sender_batch_id,w.id::text,w.payout_batch_id,
+    w.provider_payout_item_id,w.status,w.provider_transaction_status
+  from ifund_finance.withdrawal w
+  join ifund_finance.connected_payout_account a on a.owner_auth_uid=w.owner_auth_uid
+  where w.id=p_withdrawal_id and a.provider='paypal_platform'
+  limit 1;
+end
+$fn$;
+
+create or replace function public.ifund_internal_record_payout_state(
+  p_withdrawal_id uuid,
+  p_payout_batch_id text,
+  p_payout_item_id text,
+  p_transaction_status text,
+  p_provider_fee_cents bigint default null,
+  p_paypal_event_id text default null
+)
+returns boolean
+language plpgsql security definer
+set search_path='' set row_security='off'
+as $fn$
+declare
+  w ifund_finance.withdrawal%rowtype;
+  v_event ifund_finance.paypal_payout_events%rowtype;
+  v_release_id uuid;
+begin
+  if p_transaction_status not in ('SUCCESS','FAILED','PENDING','UNCLAIMED','RETURNED','ONHOLD','BLOCKED','REFUNDED','CANCELED','DENIED') then
+    raise exception 'Unsupported payout status' using errcode='22023';
+  end if;
+  if p_payout_batch_id is null or p_payout_batch_id !~ '^[A-Za-z0-9_-]{8,64}$'
+     or p_payout_item_id is null or p_payout_item_id !~ '^[A-Za-z0-9_-]{8,128}$'
+     or p_provider_fee_cents is not null and p_provider_fee_cents<0 then
+    raise exception 'Malformed provider payout evidence' using errcode='22023';
+  end if;
+  select * into w from ifund_finance.withdrawal where id=p_withdrawal_id for update;
+  if not found then raise exception 'Withdrawal not found' using errcode='22023'; end if;
+  if w.provider_sender_batch_id is null then
+    raise exception 'Payout sender identity missing' using errcode='P0001';
+  end if;
+  if w.payout_batch_id is not null and w.payout_batch_id<>p_payout_batch_id then
+    raise exception 'Payout batch identity conflict' using errcode='23505';
+  end if;
+  if w.provider_payout_item_id is not null and w.provider_payout_item_id<>p_payout_item_id then
+    raise exception 'Payout item identity conflict' using errcode='23505';
+  end if;
+
+  if p_paypal_event_id is not null then
+    select * into v_event from ifund_finance.paypal_payout_events
+      where paypal_event_id=p_paypal_event_id;
+    if found then
+      if v_event.withdrawal_id<>p_withdrawal_id
+        or coalesce(v_event.payout_batch_id,'')<>coalesce(p_payout_batch_id,'')
+        or coalesce(v_event.payout_item_id,'')<>coalesce(p_payout_item_id,'')
+        or v_event.transaction_status<>p_transaction_status then
+        raise exception 'Payout event identity conflict' using errcode='23505';
+      end if;
+      return true;
+    end if;
+    insert into ifund_finance.paypal_payout_events(
+      paypal_event_id,withdrawal_id,payout_batch_id,payout_item_id,transaction_status
+    ) values (
+      p_paypal_event_id,p_withdrawal_id,p_payout_batch_id,p_payout_item_id,p_transaction_status
+    );
+  end if;
+
+  update ifund_finance.withdrawal
+    set payout_batch_id=p_payout_batch_id,
+        provider_payout_item_id=p_payout_item_id,
+        provider_transaction_status=p_transaction_status,
+        provider_fee=case when p_provider_fee_cents is null then provider_fee else p_provider_fee_cents::numeric/100 end,
+        provider_last_verified_at=now(),
+        provider_event_id=coalesce(p_paypal_event_id,provider_event_id)
+  where id=p_withdrawal_id
+  returning * into w;
+
+  if p_transaction_status='SUCCESS' then
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      provider_transaction_id,campaign_id,beneficiary_user_id,amount,currency,
+      platform_contribution,processing_fee,payment_channel,withdrawal_id,
+      canonical_operation_id,reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':payout','out','paid','withdrawal','paypal',
+      p_payout_item_id,w.campaign_id,w.owner_user_id,w.net_amount,'USD',
+      0,coalesce(p_provider_fee_cents,0)::numeric/100,'paypal',w.id::text,
+      w.canonical_operation_key||':payout','Provider-confirmed PayPal payout',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      campaign_id,beneficiary_user_id,amount,currency,platform_contribution,
+      processing_fee,payment_channel,withdrawal_id,canonical_operation_id,
+      reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':fee','fee','paid','withdrawal','paypal',
+      w.campaign_id,w.owner_user_id,w.platform_fee,'USD',w.platform_fee,
+      0,'paypal',w.id::text,w.canonical_operation_key||':fee',
+      'Realized IFund 7% withdrawal fee',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    update ifund_finance.holding_ledger_entry
+      set state='paid',settled_at=coalesce(settled_at,now()::text)
+      where id::text=w.canonical_reservation_id;
+
+    update ifund_finance.withdrawal
+      set status='paid',processed_at=coalesce(processed_at,now()),
+          provider_completed_at=coalesce(provider_completed_at,now()),provider_error_code=null
+      where id=w.id;
+    return true;
+  end if;
+
+  if p_transaction_status in ('FAILED','RETURNED','BLOCKED','REFUNDED','CANCELED','DENIED') then
+    insert into ifund_finance.holding_ledger_entry(
+      owner_auth_uid,operation_key,direction,state,source_type,source_provider,
+      provider_transaction_id,campaign_id,beneficiary_user_id,amount,currency,
+      platform_contribution,processing_fee,payment_channel,withdrawal_id,
+      canonical_operation_id,reconciliation_note,settled_at
+    ) values (
+      w.owner_auth_uid,w.canonical_operation_key||':release','release','released','withdrawal','paypal',
+      p_payout_item_id,w.campaign_id,w.owner_user_id,w.gross_amount,'USD',
+      w.platform_fee,0,'paypal',w.id::text,w.canonical_operation_key||':release',
+      'Provider payout did not settle; reservation released',now()::text
+    )
+    on conflict (operation_key) do nothing;
+
+    update ifund_finance.holding_ledger_entry
+      set state='released',settled_at=coalesce(settled_at,now()::text)
+      where id::text=w.canonical_reservation_id;
+    update ifund_finance.holding_ledger_entry
+      set state='reversed'
+      where withdrawal_id=w.id::text and direction in ('out','fee') and state='paid';
+
+    update ifund_finance.withdrawal
+      set status=case when p_transaction_status='CANCELED' then 'cancelled' else 'failed' end,
+          provider_completed_at=now(),
+          processed_at=null,
+          provider_error_code=p_transaction_status
+      where id=w.id;
+    return true;
+  end if;
+
+  update ifund_finance.withdrawal
+    set status=case when p_transaction_status='PENDING' then 'processing' else 'reconciliation_pending' end,
+        provider_error_code=case when p_transaction_status in ('UNCLAIMED','ONHOLD') then p_transaction_status else null end
+    where id=w.id;
+  return true;
+end
+$fn$;
+
+revoke all on function public.ifund_owner_payout_destination() from public,anon;
+revoke all on function public.ifund_connect_paypal_payout_to_verified_email(boolean) from public,anon;
+revoke all on function public.ifund_disconnect_paypal_payout_destination() from public,anon;
+revoke all on function public.ifund_super_admin_payout_queue() from public,anon;
+grant execute on function public.ifund_owner_payout_destination() to authenticated;
+grant execute on function public.ifund_connect_paypal_payout_to_verified_email(boolean) to authenticated;
+grant execute on function public.ifund_disconnect_paypal_payout_destination() to authenticated;
+grant execute on function public.ifund_super_admin_payout_queue() to authenticated;
+
+revoke all on function public.ifund_internal_prepare_paypal_payout(uuid,uuid) from public,anon,authenticated;
+revoke all on function public.ifund_internal_record_payout_submission(uuid,text) from public,anon,authenticated;
+revoke all on function public.ifund_internal_payout_lookup(uuid) from public,anon,authenticated;
+revoke all on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) from public,anon,authenticated;
+grant execute on function public.ifund_internal_prepare_paypal_payout(uuid,uuid) to service_role;
+grant execute on function public.ifund_internal_record_payout_submission(uuid,text) to service_role;
+grant execute on function public.ifund_internal_payout_lookup(uuid) to service_role;
+grant execute on function public.ifund_internal_record_payout_state(uuid,text,text,text,bigint,text) to service_role;
+ then
+    raise exception 'Invalid sender batch id' using errcode='22023';
+  end if;
+  return query
+  select w.id,a.provider_account_id,(w.net_amount*100)::bigint,(w.gross_amount*100)::bigint,
+    (w.platform_fee*100)::bigint,w.provider_sender_batch_id,w.id::text,w.payout_batch_id,
+    w.provider_payout_item_id,w.status,w.provider_transaction_status
+  from ifund_finance.withdrawal w
+  join ifund_finance.connected_payout_account a on a.owner_auth_uid=w.owner_auth_uid
+  where w.provider_sender_batch_id=p_sender_batch_id and a.provider='paypal_platform'
+  limit 1;
+end
+$fn$;
+
 create or replace function public.ifund_internal_record_payout_state(
   p_withdrawal_id uuid,
   p_payout_batch_id text,
