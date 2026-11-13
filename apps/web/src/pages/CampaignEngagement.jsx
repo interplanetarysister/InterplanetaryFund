@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
+import CampaignGrowthTrends from "@/components/agents/CampaignGrowthTrends";
 
 export default function CampaignEngagement() {
   const [state,setState] = useState({ phase: "loading", rows: [], error: "" });
@@ -30,6 +31,7 @@ export default function CampaignEngagement() {
         No supporter identities or marketing contact permissions are disclosed by this report.
       </p>
     </header>
+    <CampaignGrowthTrends />
     {state.phase === "loading" && <p role="status">Verifying owned campaigns and supporter activity…</p>}
     {state.phase === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button type="button" onClick={() => setRefresh(n => n + 1)}
