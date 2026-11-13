@@ -33,3 +33,23 @@ export function helpStudioAnswer(page, articleSlug, { requirePublished = true } 
   const text = blocks[0].body.trim();
   return text.length >= 20 && text.length <= 4000 ? text : null;
 }
+
+/** Strictly validate the optional public Studio Help index response. */
+export function parsePublicHelpIndex(payload, allowedSlugs) {
+  if (!payload || !Array.isArray(payload.articles) || payload.articles.length > 50 ||
+      !Array.isArray(allowedSlugs))
+    throw new Error("The published Help Center index was not verified.");
+  const known = new Set(allowedSlugs);
+  const seen = new Set();
+  const answers = {};
+  for (const entry of payload.articles) {
+    if (!entry || typeof entry.slug !== "string" ||
+        !known.has(entry.slug) || seen.has(entry.slug) ||
+        typeof entry.answer !== "string" ||
+        entry.answer.trim().length < 20 || entry.answer.trim().length > 4000)
+      throw new Error("The published Help Center index contained invalid content.");
+    seen.add(entry.slug);
+    answers[entry.slug] = entry.answer.trim();
+  }
+  return answers;
+}
