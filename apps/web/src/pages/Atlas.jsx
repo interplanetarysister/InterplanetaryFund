@@ -138,6 +138,20 @@ export default function Atlas() {
         <p className="text-sm text-muted-foreground">Sort and filter campaigns by place, cause, and status. {scope==="mine"?"Private drafts are visible only to the verified owner; they are never displayed as public markers.":"The public grid contains only published campaigns."}</p>
         <FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/>
       </section>
+      {scope==="mine" && campaigns.some(c=>c.status==="active"&&!isApprovedAtlasLocation(c)) && (
+        <section className="space-y-3 rounded-xl border border-emerald-500/25 bg-card p-5" aria-label="Campaigns missing map locations">
+          <h2 className="text-xl font-semibold">Place your campaigns on the Atlas</h2>
+          <p className="text-sm text-muted-foreground">These published campaigns have no approved public map location. Open each campaign to choose a broad city or region, then explicitly opt in. No location is assigned automatically.</p>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {campaigns.filter(c=>c.status==="active"&&!isApprovedAtlasLocation(c)).map(c=>(
+              <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
+                <span className="min-w-0 font-medium">{c.title}</span>
+                <Link to={"/campaigns/"+encodeURIComponent(c.id)+"/edit"} className="inline-flex min-h-11 items-center rounded-lg border border-emerald-500/35 px-3 text-sm font-semibold">Set map location</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {markers.length===0 && <div className="rounded-xl border border-emerald-500/30 p-5">
         <h2 className="font-semibold">No published locations in this view</h2>
         <p className="mt-2 text-sm text-muted-foreground">Campaigns without approved approximate coordinates are not placed on the globe. We cannot determine a campaign location from the account profile or title.</p>
