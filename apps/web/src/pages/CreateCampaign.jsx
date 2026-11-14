@@ -186,6 +186,14 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
+  function changeWritingBrief(setter, value) {
+    // Writing-brief edits are user edits too: otherwise a prior server receipt
+    // suppresses browser autosave and silently loses the updated brief.
+    userEditedDraft.current = true;
+    setSaved("");
+    setBrowserSaved(false);
+    setter(value);
+  }
   async function handleCoverUpload(file) {
     if (coverUploadLock.current || !file) return;
     const problem = validateCoverFile(file);
@@ -281,7 +289,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <legend className="font-semibold">What kind of campaign are you creating?</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {CAMPAIGN_WRITING_PATHS.map(path => <label key={path.id} className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border p-3 ${writingPath === path.id ? "border-primary bg-primary/10" : "border-border"}`}>
-            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => setWritingPath(path.id)} disabled={suggesting || busy || loadingDraft} />
+            <input type="radio" name="writingPath" value={path.id} checked={writingPath === path.id} onChange={() => changeWritingBrief(setWritingPath, path.id)} disabled={suggesting || busy || loadingDraft} />
             <span>{path.title}</span>
           </label>)}
         </div>
@@ -290,16 +298,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <p className="text-sm text-muted-foreground">Get writing suggestions, check the facts, and choose what to include in your campaign.</p>
       <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
-          onChange={e => setDraftDetails(e.target.value)} placeholder="Describe the situation and how funds would help."
+          onChange={e => changeWritingBrief(setDraftDetails, e.target.value)} placeholder="Describe the situation and how funds would help."
           className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Who benefits? (optional)
         <input maxLength={100} value={draftBeneficiary} disabled={suggesting || busy}
-          onChange={e => setDraftBeneficiary(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => changeWritingBrief(setDraftBeneficiary, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <label className="block font-semibold">What is needed? (optional)
         <input maxLength={100} value={draftNeed} disabled={suggesting || busy}
-          onChange={e => setDraftNeed(e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+          onChange={e => changeWritingBrief(setDraftNeed, e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
       </label>
       <button type="button" onClick={suggestDraft}
         disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
