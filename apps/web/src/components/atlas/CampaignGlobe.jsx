@@ -53,7 +53,7 @@ function graticule(rotation) {
 }
 
 export default function CampaignGlobe({ campaigns = [] }) {
-  const [rotation, setRotation] = useState(-25);
+  const [rotation, setRotation] = useState(-100);
   const [selected, setSelected] = useState(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [showMarkers, setShowMarkers] = useState(true);
@@ -92,7 +92,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
         <div className="globe-controls">
           <button className="secondary" onClick={() => rotate(-30)} aria-label="Rotate globe west"><ArrowLeft size={18}/></button>
           <button className="secondary" onClick={() => rotate(30)} aria-label="Rotate globe east"><ArrowRight size={18}/></button>
-          <button className="secondary" onClick={() => { setRotation(-25); setSelected(null); setAutoRotate(true); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
+          <button className="secondary" onClick={() => { setRotation(-100); setSelected(null); setAutoRotate(true); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
           <button className="secondary" onClick={() => setShowMarkers(value => !value)} aria-pressed={showMarkers}>{showMarkers ? "Hide pins" : "Show pins"}</button>
           <button className="secondary" onClick={() => setAutoRotate(value => !value)} aria-pressed={autoRotate} aria-label={autoRotate ? "Pause globe rotation" : "Resume globe rotation"}>{autoRotate ? "Pause orbit" : "Resume orbit"}</button>
         </div>
