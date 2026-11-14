@@ -259,7 +259,8 @@ Deno.serve(async req=>{
     if(body.op==="subscription_reversal"){
       const p=body.data||{};
       if(!subscriptionId.test(p.paypal_subscription_id||"")||!eventId.test(p.paypal_event_id||"")
-        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1||p.currency!=="USD")
+        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1||p.currency!=="USD"
+        ||!["PAYMENT.SALE.REFUNDED","BILLING.SUBSCRIPTION.PAYMENT.FAILED"].includes(p.event_type))
         return fail("Invalid subscription reversal");
       const row=await findOne("ifund_subscription_intents?select=*&paypal_subscription_id=eq."+encodeURIComponent(p.paypal_subscription_id));
       if(!row)return fail("Subscription not found",404);
@@ -267,17 +268,38 @@ Deno.serve(async req=>{
       if(!Number.isFinite(occurred.getTime()))return fail("Invalid reversal time");
       const operation="paypal:subscription:reversal:"+p.paypal_event_id;
       const existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+      const entryType=p.event_type==="PAYMENT.SALE.REFUNDED"?"refund":"reversal";
+      const providerReference=p.provider_reference||p.paypal_event_id;
+      if(existing && (existing.intent_id!==row.id || existing.member_id!==row.member_id
+        || existing.paypal_subscription_id!==row.paypal_subscription_id
+        || existing.provider_reference!==providerReference || existing.entry_type!==entryType
+        || existing.amount_cents!==-p.amount_cents || existing.currency!=="USD"
+        || existing.environment!=="live" || existing.provider_occurred_at!==occurred.toISOString()))
+        return fail("Subscription reversal ledger conflict",409);
       if(!existing){
         await db("ifund_subscription_ledger","POST",{
           operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
-          provider_reference:p.provider_reference||p.paypal_event_id,
-          entry_type:p.event_type==="PAYMENT.SALE.REFUNDED"?"refund":"reversal",
+          provider_reference:providerReference,
+          entry_type:entryType,
           amount_cents:-p.amount_cents,currency:"USD",environment:"live",provider_occurred_at:occurred.toISOString()
         });
       }
-      await db("ifund_subscription_intents?id=eq."+row.id,"PATCH",{
+      // Older and duplicate provider events must not regress a later successful payment.
+      const priorReversal=row.last_reversal_at?Date.parse(row.last_reversal_at):null;
+      const priorPayment=row.last_payment_at?Date.parse(row.last_payment_at):null;
+      if((priorReversal!==null && priorReversal>=occurred.getTime())
+        ||(priorPayment!==null && priorPayment>occurred.getTime()))
+        return Response.json({ok:true,duplicate:!!existing,stale:true});
+      // Conditional PostgREST update prevents an older reversal from overwriting a newer one.
+      // A future database RPC should atomically couple ledger insert and state transition.
+      const guard="&"+(row.last_reversal_at
+        ?"last_reversal_at=eq."+encodeURIComponent(row.last_reversal_at)
+        :"last_reversal_at=is.null");
+      const updated=await db("ifund_subscription_intents?id=eq."+row.id+guard,"PATCH",{
         status:"past_due",last_reversal_at:occurred.toISOString(),updated_at:new Date().toISOString()
       });
+      if(!Array.isArray(updated)||updated.length!==1)
+        return fail("Subscription reversal state changed concurrently; retry reconciliation",409);
       return Response.json({ok:true});
     }
     if(body.op==="subscription_reconcile"){
