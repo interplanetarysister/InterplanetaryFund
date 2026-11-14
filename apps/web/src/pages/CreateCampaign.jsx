@@ -228,7 +228,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
-      try { forgetBrowserCampaign(sessionStorage); } catch { /* unavailable */ }
+      try { forgetBrowserCampaign(sessionStorage, ownerId); } catch { /* unavailable */ }
       setBrowserSaved(false);
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
       else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
