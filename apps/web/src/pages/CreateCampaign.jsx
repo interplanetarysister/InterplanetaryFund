@@ -209,7 +209,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   async function save(status) {
     if (saveLock.current || disabled) return;
     saveLock.current = true;
-    setBusy(status); setError(""); setSaved("");
+    // Keep the last confirmed server receipt while retrying a save. Clearing it
+    // here would briefly re-enable the browser autosave effect and recreate a
+    // local copy even when no campaign field was edited.
+    setBusy(status); setError("");
     try {
       let client; let user;
       try {
