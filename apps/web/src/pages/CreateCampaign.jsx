@@ -220,7 +220,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           return;
         }
         try {
-          const stored = rememberBrowserCampaign(sessionStorage, null, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
+          const stored = rememberBrowserCampaign(sessionStorage, null, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
           setBrowserSaved(stored);
           if (!stored) setError("A draft from another account is stored in this tab. Your changes were not saved. Copy your work before switching accounts or tabs.");
         } catch { throw new Error("Browser storage is unavailable. Copy your draft before leaving."); }
@@ -251,7 +251,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
-    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
+    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { userEditedDraft.current = true; setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
