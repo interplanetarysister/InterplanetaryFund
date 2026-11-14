@@ -55,7 +55,7 @@ function graticule(rotation) {
 export default function CampaignGlobe({ campaigns = [] }) {
   const [rotation, setRotation] = useState(-100);
   const [selected, setSelected] = useState(null);
-  const [autoRotate, setAutoRotate] = useState(true);
+  const [autoRotate, setAutoRotate] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   useEffect(() => {
     if (!autoRotate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -88,11 +88,11 @@ export default function CampaignGlobe({ campaigns = [] }) {
   return (
     <section className="panel demo-globe-panel" aria-label="IFund interactive Atlas globe">
       <header className="globe-header">
-        <div><p className="eyebrow">Interactive orbit · Free map renderer</p><h2>Atlas of possibility</h2><p>Drag to spin or use the rotate buttons. Markers show only organizer-approved, approximate public city/region coordinates.</p></div>
+        <div><p className="eyebrow">Interactive orbit · Free map renderer</p><h2>Atlas of possibility</h2><p>Centered on North America. Drag to spin, use the rotate buttons, or turn on orbit. Markers show only organizer-approved approximate city/region coordinates.</p></div>
         <div className="globe-controls">
           <button className="secondary" onClick={() => rotate(-30)} aria-label="Rotate globe west"><ArrowLeft size={18}/></button>
           <button className="secondary" onClick={() => rotate(30)} aria-label="Rotate globe east"><ArrowRight size={18}/></button>
-          <button className="secondary" onClick={() => { setRotation(-100); setSelected(null); setAutoRotate(true); }} aria-label="Reset globe"><RotateCcw size={18}/></button>
+          <button className="secondary" onClick={() => { setRotation(-100); setSelected(null); setAutoRotate(false); }} aria-label="Focus globe on North America"><RotateCcw size={18}/> <span className="text-xs">North America</span></button>
           <button className="secondary" onClick={() => setShowMarkers(value => !value)} aria-pressed={showMarkers}>{showMarkers ? "Hide pins" : "Show pins"}</button>
           <button className="secondary" onClick={() => setAutoRotate(value => !value)} aria-pressed={autoRotate} aria-label={autoRotate ? "Pause globe rotation" : "Resume globe rotation"}>{autoRotate ? "Pause orbit" : "Resume orbit"}</button>
         </div>
