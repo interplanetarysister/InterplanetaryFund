@@ -18,7 +18,8 @@ function scopedRecord(storage, ownerId) {
     if (legacy) {
       let parsed;
       try { parsed = JSON.parse(legacy); } catch { return null; }
-      if (parsed?.version === 2 && parsed.owner_id === ownerId) {
+      if (parsed?.version === 2 && parsed.owner_id === ownerId &&
+          parsed.form && typeof parsed.form === "object" && !Array.isArray(parsed.form)) {
         storage.setItem(key, legacy);
         storage.removeItem(KEY);
         raw = legacy;
@@ -116,8 +117,25 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
     try { parsed = JSON.parse(legacy); } catch { /* preserve malformed source */ }
     if (parsed?.version !== 2) storage.setItem(LEGACY_BACKUP, legacy);
   }
-  // Preserve a matching legacy record if the current slot is empty.
+  // Resolve any legacy migration before checking the destination. A malformed
+  // matching legacy record must remain untouched rather than being overwritten.
+  const legacyOwned = storage.getItem(KEY);
+  if (!existing && legacyOwned) {
+    let parsed;
+    try { parsed = JSON.parse(legacyOwned); } catch { /* preserve original bytes */ }
+    if (parsed?.version === 2 && parsed.owner_id === ownerId &&
+        (!parsed.form || typeof parsed.form !== "object" || Array.isArray(parsed.form))) return false;
+  }
+  // Migrate before writing, then validate again: a legacy record may have
+  // populated the owner slot since the initial lookup.
   scopedRecord(storage, ownerId);
+  const migrated = storage.getItem(key);
+  if (migrated) {
+    let parsed;
+    try { parsed = JSON.parse(migrated); } catch { return false; }
+    if (parsed?.version !== 2 || parsed.owner_id !== ownerId ||
+        !parsed.form || typeof parsed.form !== "object" || Array.isArray(parsed.form)) return false;
+  }
   storage.setItem(key, JSON.stringify({
     version: 2, owner_id: ownerId,
     form: campaignForm(form), writing_brief: writingBrief(brief),
