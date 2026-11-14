@@ -2,204 +2,152 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Compass, Globe2, MapPin, Search, ShieldCheck } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
+import { listOwnerCampaigns } from "@/api/ownerCampaigns";
+import { authClient } from "@/api/auth";
+import { useAuthSession } from "@/hooks/useAuthSession";
 import CampaignGlobe from "@/components/atlas/CampaignGlobe";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid from "@/components/finance/FinanceDataGrid";
+import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAtlasLocation } from "@/lib/atlasLocations.mjs";
 import "./Atlas.css";
 
 export default function Atlas() {
-  const [campaigns, setCampaigns] = useState([]);
+  const { user } = useAuthSession();
+  const [scope, setScope] = useState("public");
+  const [publicCampaigns, setPublicCampaigns] = useState([]);
+  const [ownerCampaigns, setOwnerCampaigns] = useState([]);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
+
   useEffect(() => {
     let alive = true;
     setStatus("loading");
     setError("");
-    listActiveCampaigns({ limit: 500 })
-      .then(rows => {
-        if (!alive) return;
-        setCampaigns(rows);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!alive) return;
-        setError("Public campaign data could not be verified. No unverified campaign markers are shown.");
-        setStatus("error");
-      });
+    (async () => {
+      try {
+        if (scope === "mine") {
+          if (!user?.id || user.is_anonymous === true) {
+            if (alive) { setOwnerCampaigns([]); setStatus("signed-out"); }
+            return;
+          }
+          const rows = await listOwnerCampaigns(authClient());
+          if (alive) { setOwnerCampaigns(rows.map(mapAtlasCampaign)); setStatus("ready"); }
+        } else {
+          // The public endpoint still verifies payment totals internally, but
+          // Atlas never displays or derives financial statistics from them.
+          const rows = await listActiveCampaigns({ limit: 500 });
+          if (alive) { setPublicCampaigns(rows); setStatus("ready"); }
+        }
+      } catch {
+        if (alive) {
+          setStatus("error");
+          setError(scope === "mine"
+            ? "Your account campaigns could not be verified. No private campaign data is shown."
+            : "Public campaign data could not be verified. No unverified campaign markers are shown.");
+        }
+      }
+    })();
     return () => { alive = false; };
-  }, [reload]);
+  }, [scope, user?.id, user?.is_anonymous, reload]);
 
-  const mapped = useMemo(() => campaigns.filter(c =>
-    c.map_opt_in === true &&
-    typeof c.location === "string" && c.location.trim().length > 1 &&
-    c.latitude !== null && c.longitude !== null &&
-    Number.isFinite(Number(c.latitude)) && Number.isFinite(Number(c.longitude)) &&
-    Math.abs(Number(c.latitude)) <= 90 && Math.abs(Number(c.longitude)) <= 180
-  ), [campaigns]);
+  // Account scope is only ever populated by the server-verified owner read.
+  // Unpublished campaigns can appear in the PRIVATE grid, not public globe pins.
+  const campaigns = scope === "mine" ? ownerCampaigns : publicCampaigns;
+  const published = useMemo(() => campaigns.filter(c => c.status === "active"), [campaigns]);
+  const mapped = useMemo(() => published.filter(isApprovedAtlasLocation), [published]);
+  const matchingCampaigns = useMemo(() => campaigns.filter(c =>
+    !query.trim() || [c.title, c.category, c.location].join(" ").toLowerCase().includes(query.trim().toLowerCase())
+  ), [campaigns, query]);
+  const markers = useMemo(() => matchingCampaigns.filter(c =>
+    c.status === "active" && isApprovedAtlasLocation(c)
+  ), [matchingCampaigns]);
 
-  const matches = useMemo(() => mapped.filter(c =>
-    !query || [c.title,c.category,c.location].join(" ").toLowerCase().includes(query.trim().toLowerCase())
-  ), [mapped,query]);
+  const locationRows = useMemo(() => atlasLocationRows(markers), [markers]);
+  const coverage = useMemo(() => atlasLocationSummary(campaigns), [campaigns]);
+  const columns = useMemo(() => [
+    { field:"title", headerName:"Campaign", minWidth:240 },
+    { field:"location", headerName:"Approved city / region", minWidth:200 },
+    { field:"category", headerName:"Cause", minWidth:140 },
+    { field:"status", headerName:"Status", minWidth:130 },
+    { field:"visibility", headerName:"Atlas visibility", minWidth:170 },
+  ], []);
 
-  const analytics = useMemo(() => {
-    const byCause = new Map();
-    const byGoal = new Map();
-    const byProgress = new Map();
-    const increment = (map, label) => map.set(label, (map.get(label) || 0) + 1);
-    let verifiedRaised = 0;
-    let verifiedDonors = 0;
-    for (const campaign of campaigns) {
-      const cause = String(campaign.category || "other").replace(/_/g, " ");
-      increment(byCause, cause);
-      const goal = campaign.goal_amount == null ? null : Number(campaign.goal_amount);
-      const raised = campaign.raised_amount == null ? null : Number(campaign.raised_amount);
-      const donors = campaign.donor_count == null ? null : Number(campaign.donor_count);
-      increment(byGoal, !Number.isFinite(goal) || goal <= 0 ? "No published goal"
-        : goal < 5000 ? "Under $5k" : goal < 25000 ? "$5k–$25k"
-        : goal < 100000 ? "$25k–$100k" : "$100k+");
-      increment(byProgress, !Number.isFinite(goal) || goal <= 0 ? "No published goal"
-        : !Number.isFinite(raised) || raised < 0 ? "No verified funding"
-        : raised === 0 ? "Not started" : raised / goal < 0.25 ? "Under 25%"
-        : raised / goal < 0.75 ? "25–74%" : "75%+ funded");
-      if (Number.isFinite(raised) && raised >= 0) verifiedRaised += raised;
-      if (Number.isSafeInteger(donors) && donors >= 0) verifiedDonors += donors;
-    }
-    const causeRows = [...byCause].map(([name, value]) => ({ name, value, label: value + " active campaigns" }))
-      .sort((a, b) => b.value - a.value || a.name.localeCompare(b.name));
-    const formatGroups = (groups) => [...groups].map(([name, value]) => ({name, value, label:value + " active campaigns"}))
-      .sort((a,b) => b.value - a.value || a.name.localeCompare(b.name));
-    const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-    return {
-      causeRows,
-      goalRows: formatGroups(byGoal),
-      progressRows: formatGroups(byProgress),
-      verifiedRaised,
-      verifiedDonors,
-      money,
-      rows: campaigns.map(c => ({
-        id: c.id,
-        title: c.title,
-        category: String(c.category || "other").replace(/_/g, " "),
-        location: c.map_opt_in ? c.location : "Location not shared",
-        raised: c.raised_amount == null ? null : Number(c.raised_amount),
-        goal: c.goal_amount == null ? null : Number(c.goal_amount),
-        donorCount: c.donor_count == null ? null : Number(c.donor_count),
-      })),
-    };
-  }, [campaigns]);
+  const gridRows = useMemo(() => matchingCampaigns.map(c => ({
+    id:c.id,
+    title:c.title,
+    location:isApprovedAtlasLocation(c) ? c.location : "Not shared",
+    category:String(c.category || "other").replace(/_/g, " "),
+    status:c.status === "active" ? "Published" : c.status === "draft" ? "Draft" : c.status === "paused" ? "Paused" : "Unavailable",
+    visibility:c.status !== "active" ? "Not public" : isApprovedAtlasLocation(c) ? "Approved location" : "Not on map",
+  })), [matchingCampaigns]);
 
-  const atlasColumns = useMemo(() => [
-    { field: "title", headerName: "Live campaign", minWidth: 235 },
-    { field: "category", headerName: "Cause", minWidth: 150 },
-    { field: "location", headerName: "Organizer-approved location", minWidth: 185 },
-    { field: "raised", headerName: "Verified raised", minWidth: 150,
-      valueFormatter: ({value}) => Number.isFinite(value) && value >= 0 ? analytics.money.format(value) : "Not verified" },
-    { field: "goal", headerName: "Published goal", minWidth: 155,
-      valueFormatter: ({value}) => Number.isFinite(value) && value >= 0 ? analytics.money.format(value) : "Not reported" },
-    { field: "donorCount", headerName: "Verified supporters", minWidth: 160,
-      valueFormatter: ({value}) => Number.isSafeInteger(value) && value >= 0 ? value.toLocaleString() : "Not verified" },
-  ], [analytics.money]);
-
-  return (
-    <main className="ifund-atlas-shell mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
-      <header className="space-y-3">
-        <p className="flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-300">
-          <Globe2 className="h-5 w-5" aria-hidden="true"/> IFund interactive Earth Atlas
-        </p>
-        <h1 className="font-display text-3xl font-bold sm:text-4xl">Find a possibility around the world</h1>
-        <p className="max-w-3xl text-sm text-muted-foreground">The same free, interactive globe renderer used in our hackathon demo, connected here to real active IFund campaigns. Map markers are shown only when organizers consent to sharing an approximate public city or region.</p>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold"><ArrowLeft className="h-4 w-4"/> Discover campaigns</Link>
-          <Link to="/create" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-500/40 px-4 font-semibold"><MapPin className="h-4 w-4"/> Create and place a campaign</Link>
+  return <main className="ifund-atlas-shell mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
+    <header className="space-y-3">
+      <p className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300"><Globe2 className="h-5 w-5" aria-hidden="true"/> IFund living Earth Atlas</p>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">Your campaigns across America and beyond</h1>
+      <p className="max-w-3xl text-sm text-muted-foreground">Explore campaign locations rather than financial totals. Plot published campaigns only where their organizers approved an approximate public city or region.</p>
+      <div className="flex flex-wrap gap-2">
+        <Link to="/discover" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4 font-semibold"><ArrowLeft className="h-4 w-4"/> Discover campaigns</Link>
+        <Link to="/campaigns" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-emerald-500/40 px-4 font-semibold"><MapPin className="h-4 w-4"/> Manage campaign locations</Link>
+      </div>
+    </header>
+    <section className="rounded-xl border border-emerald-500/25 bg-emerald-950/5 p-4 text-sm text-muted-foreground">
+      <p className="flex items-start gap-2"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-500"/> Public pins use only organizer-approved approximate locations. Private drafts and paused campaigns remain invisible on the public globe. No precise home addresses, inferred locations or invented cities.</p>
+    </section>
+    <div role="group" aria-label="Campaign Atlas scope" className="flex flex-wrap gap-2">
+      <button type="button" aria-pressed={scope==="public"} onClick={()=>{setScope("public");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="public"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>All public campaigns</button>
+      <button type="button" aria-pressed={scope==="mine"} onClick={()=>{setScope("mine");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="mine"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>My campaigns</button>
+    </div>
+    {status==="loading" && <p role="status">Loading verified campaign locations…</p>}
+    {status==="signed-out" && <p role="status" className="rounded-xl border p-5">Sign in with your verified campaign-owner account to view your own campaigns. <Link to="/login" className="underline font-semibold">Sign in</Link></p>}
+    {status==="error" && <div role="alert" className="rounded-xl border border-red-500/40 p-5">{error}<button type="button" onClick={()=>setReload(v=>v+1)} className="ml-3 underline">Try again</button></div>}
+    {status==="ready" && <>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground"><strong className="text-foreground">{mapped.length}</strong> published, location-approved campaigns · {campaigns.length} {scope==="mine"?"campaigns in your account":"public campaigns"}</p>
+        <label className="relative block w-full max-w-sm text-sm">
+          <span className="sr-only">Filter campaigns by title, cause or location</span>
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" aria-hidden="true"/>
+          <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search titles, causes or cities…" className="min-h-11 w-full rounded-xl border border-input bg-background py-2 pl-10 pr-3"/>
+        </label>
+      </div>
+      <CampaignGlobe campaigns={markers}/>
+      <section className="grid gap-5 lg:grid-cols-2" aria-label="Campaign location charts">
+        <div className="ifund-chart-card">
+          <p className="ifund-chart-eyebrow">AG Charts Community · Approved locations</p>
+          <h2>Where campaigns are located</h2>
+          <DonutChart data={locationRows} title="Published campaign count by approved location" valueText={markers.length+" opted-in campaign locations"}/>
+          <p className="mt-3 text-sm text-muted-foreground">Categories are the actual organizer-provided city or region labels. No financial or population estimates.</p>
         </div>
-      </header>
-      <section className="rounded-xl border border-cyan-500/25 bg-cyan-950/5 p-4 text-sm text-muted-foreground">
-        <p className="flex items-start gap-2"><ShieldCheck className="h-5 w-5 shrink-0 text-cyan-500" /> Campaigns without organizer-approved broad coordinates are not plotted; we do not fabricate or infer private locations. Exact home coordinates are never accepted for Atlas storage.</p>
+        <div className="ifund-chart-card">
+          <p className="ifund-chart-eyebrow">Map availability · Public location consent</p>
+          <h2>Location coverage</h2>
+          <DonutChart data={[
+            {name:"Published with approved location",value:coverage.mapped,label:coverage.mapped+" campaigns"},
+            {name:"Published without location",value:coverage.unmapped,label:coverage.unmapped+" campaigns"},
+          ]} title="Public campaign location coverage" valueText={coverage.mapped+" mapped of "+coverage.published+" published campaigns"}/>
+          {scope==="mine" && <p className="mt-3 text-sm text-muted-foreground">{coverage.nonPublic} drafts or paused campaigns are not plotted publicly.</p>}
+          <p className="mt-3 text-xs text-muted-foreground">Location sharing is optional. Open a campaign in your editor to add or change an approved broad location.</p>
+        </div>
       </section>
-      {status === "loading" && <p role="status">Loading provider-verified live campaigns and public locations…</p>}
-      {status === "error" && <div role="alert" className="rounded-xl border border-red-500/40 p-5">{error}<button type="button" onClick={() => setReload(x=>x+1)} className="ml-3 underline">Try again</button></div>}
-      {status === "ready" && <>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm text-muted-foreground">
-            <strong className="text-foreground">{mapped.length}</strong> campaigns have approved Atlas markers
-            <span aria-hidden="true"> · </span> {campaigns.length} active campaigns in discovery
-          </div>
-          <label className="relative block w-full max-w-sm text-sm">
-            <span className="sr-only">Filter Atlas campaigns by title, category or place</span>
-            <Search className="absolute left-3 top-3.5 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-            <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search titles, causes or cities…"
-              className="min-h-11 w-full rounded-xl border border-input bg-background py-2 pl-10 pr-3" />
-          </label>
-        </div>
-        <CampaignGlobe campaigns={matches} />
-        <section className="grid gap-5 lg:grid-cols-2" aria-label="Live Atlas campaign analytics">
-          <div className="ifund-chart-card">
-            <p className="ifund-chart-eyebrow">AG Charts Community · Live published campaigns</p>
-            <h2>Campaigns by cause</h2>
-            <DonutChart
-              data={analytics.causeRows}
-              title="Live active campaign categories, not personal demographics"
-              valueText={campaigns.length + " active campaigns by cause"}
-            />
-            <p className="mt-3 text-sm text-muted-foreground">These are actual campaign categories in the live IFund database. They are not estimates of supporters' ages, identities, or locations.</p>
-          </div>
-          <div className="ifund-chart-card">
-            <p className="ifund-chart-eyebrow">Live verified activity · No sandbox figures</p>
-            <h2>Atlas funding and location coverage</h2>
-            <DonutChart
-              data={[
-                { name:"Approved public map markers", value:mapped.length, label:mapped.length + " opted-in campaigns" },
-                { name:"Locations not shared", value:campaigns.length - mapped.length, label:(campaigns.length - mapped.length) + " private/unmapped campaigns" },
-              ]}
-              title="Organizer-approved public location coverage"
-              valueText={mapped.length + " mapped of " + campaigns.length + " published campaigns"}
-            />
-            <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-              <div><span className="block text-muted-foreground">Verified campaign funds</span><strong className="tabular-nums">{analytics.money.format(analytics.verifiedRaised)}</strong></div>
-              <div><span className="block text-muted-foreground">Confirmed donor counts</span><strong className="tabular-nums">{analytics.verifiedDonors.toLocaleString()}</strong></div>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">Verified public funding totals only. Donor counts are summed per campaign (not a deduplicated count of people). No sandbox payments or implied personal demographics.</p>
-          </div>
-        </section>
-        <section className="grid gap-5 lg:grid-cols-2" aria-label="Live campaign goal and funding demographics">
-          <div className="ifund-chart-card">
-            <p className="ifund-chart-eyebrow">Live campaign planning · Actual published targets</p>
-            <h2>Campaigns by goal size</h2>
-            <DonutChart data={analytics.goalRows} title="Published campaign fundraising goal bands" valueText={campaigns.length + " published campaigns categorized by goal"} />
-            <p className="mt-3 text-sm text-muted-foreground">Targets are organizer-published goals, not confirmed money raised or predicted donations.</p>
-          </div>
-          <div className="ifund-chart-card">
-            <p className="ifund-chart-eyebrow">Live progress · Verified PayPal capture totals</p>
-            <h2>Fundraising progress bands</h2>
-            <DonutChart data={analytics.progressRows} title="Verified funding percentage bands for live campaigns" valueText={campaigns.length + " campaigns categorized by verified progress"} />
-            <p className="mt-3 text-sm text-muted-foreground">Progress is calculated only from public verified funding and published goals. No fictional showcase payments or inferred donor demographics.</p>
-          </div>
-        </section>
-        <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Live campaign data explorer">
-          <h2 className="text-xl font-semibold">AG Grid · Explore live campaigns</h2>
-          <p className="text-sm text-muted-foreground">Sort, filter and page through the same verified live campaign records that feed the Atlas. Missing public locations remain private.</p>
-          <FinanceDataGrid rows={analytics.rows} columns={atlasColumns} label="AG Grid live campaign Atlas explorer" search={query} />
-        </section>
-
-        {!mapped.length && <div className="rounded-xl border border-cyan-500/30 p-5">
-          <h2 className="font-semibold">Atlas is ready for organizer-approved locations</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Existing campaigns predate the public map field, so none were geolocated without their owners' permission. To appear, an organizer can edit their campaign and opt in to a broad city/region location.</p>
-          <Link to="/campaigns" className="mt-3 inline-flex items-center gap-2 font-semibold underline">Manage my campaigns <Compass className="h-4 w-4"/></Link>
-        </div>}
-        {mapped.length > 0 && <section className="space-y-3 rounded-xl border border-border bg-card p-5">
-          <h2 className="text-xl font-semibold">Campaigns on the Atlas</h2>
-          <p className="text-sm text-muted-foreground">This list is keyboard-accessible and includes campaigns on the globe's opposite side.</p>
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {matches.map(c => <li key={c.id} className="rounded-lg border border-border p-3">
-              <Link to={"/campaign/"+encodeURIComponent(c.id)} className="font-semibold underline">{c.title}</Link>
-              <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5"/> {c.location} · approximate</p>
-            </li>)}
-          </ul>
-          {!matches.length && <p role="status">No mapped campaigns match those filters.</p>}
-        </section>}
-      </>}
-    </main>
-  );
+      <section className="space-y-3 rounded-xl border border-border bg-card p-5" aria-label="Campaign location explorer">
+        <h2 className="text-xl font-semibold">AG Grid · Campaign locations</h2>
+        <p className="text-sm text-muted-foreground">Sort and filter campaigns by place, cause, and status. {scope==="mine"?"Private drafts are visible only to the verified owner; they are never displayed as public markers.":"The public grid contains only published campaigns."}</p>
+        <FinanceDataGrid rows={gridRows} columns={columns} label="Campaign location explorer" search={query}/>
+      </section>
+      {markers.length===0 && <div className="rounded-xl border border-emerald-500/30 p-5">
+        <h2 className="font-semibold">No published locations in this view</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Campaigns without approved approximate coordinates are not placed on the globe. We cannot determine a campaign location from the account profile or title.</p>
+        <Link to="/campaigns" className="mt-3 inline-flex items-center gap-2 font-semibold underline">Manage my campaigns <Compass className="h-4 w-4"/></Link>
+      </div>}
+      {markers.length>0 && <section className="space-y-3 rounded-xl border border-border bg-card p-5">
+        <h2 className="text-xl font-semibold">Campaign locations</h2>
+        <ul className="grid gap-2 sm:grid-cols-2">{markers.map(c=><li key={c.id} className="rounded-lg border border-border p-3">
+          <Link to={"/campaign/"+encodeURIComponent(c.id)} className="font-semibold underline">{c.title}</Link>
+          <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3.5 w-3.5"/> {c.location} · approximate</p>
+        </li>)}</ul>
+      </section>}
+    </>}
+  </main>;
 }
