@@ -20,3 +20,41 @@
 .ifund-atlas-shell .globe-selected p{color:#c3e0ee}
 .ifund-atlas-shell .globe-selected .button{display:inline-flex;align-items:center;min-height:44px;border-radius:10px;background:#0895a8;color:#fff;font-weight:600;padding:10px 15px;margin-top:12px}
 @media(max-width:760px){.ifund-atlas-shell .globe-layout{grid-template-columns:minmax(0,1fr);gap:10px}.ifund-atlas-shell .campaign-globe{max-height:440px}.ifund-atlas-shell .globe-aside{border-left:0;border-top:1px solid #365778;padding:16px 0 0}}
+
+
+/* Living Earth interface: geographic analytics, never financial status coloring. */
+.ifund-atlas-shell .demo-globe-panel {
+  background:
+    radial-gradient(ellipse 39rem 35rem at 80% 20%, rgb(69 194 152 / .15), transparent 70%),
+    radial-gradient(ellipse 43rem 32rem at 12% 90%, rgb(79 124 201 / .19), transparent 73%),
+    linear-gradient(145deg, #0b2331, #0b1730 68%, #102439);
+  border-color: rgb(95 212 166 / .32);
+  box-shadow: 0 22px 65px rgb(4 22 37 / .12);
+}
+.ifund-atlas-shell .globe-controls button {
+  background:rgb(13 51 62 / .90);
+  border-color:rgb(119 215 189 / .40);
+  transition:background 160ms ease, border-color 160ms ease;
+}
+.ifund-atlas-shell .globe-controls button:hover,
+.ifund-atlas-shell .globe-controls button[aria-pressed="true"] {
+  background:rgb(30 101 96 / .84);
+  border-color:#a4f9d8;
+}
+.ifund-atlas-shell .globe-controls button:focus-visible {
+  outline-color:#8df5d0;
+}
+.ifund-atlas-shell .globe-aside { border-left-color:rgb(115 211 185 / .24); }
+.ifund-atlas-shell .globe-selected {
+  background:linear-gradient(155deg, #102d38, #132442);
+  border-color:rgb(105 206 169 / .47);
+}
+.ifund-atlas-shell .globe-selected .button {
+  background:#176c63;
+}
+@media (max-width:760px) {
+  .ifund-atlas-shell .globe-aside { border-left:0; border-top-color:rgb(115 211 185 / .24); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .ifund-atlas-shell .globe-controls button { transition:none; }
+}
