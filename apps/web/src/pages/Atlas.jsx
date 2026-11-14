@@ -15,7 +15,7 @@ export default function Atlas() {
   const { user } = useAuthSession();
   const [scope, setScope] = useState("public");
   const [publicCampaigns, setPublicCampaigns] = useState([]);
-  const [ownerCampaigns, setOwnerCampaigns] = useState([]);
+  const [ownerCampaigns, setOwnerCampaigns] = useState({ ownerId: null, rows: [] });
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
@@ -29,11 +29,11 @@ export default function Atlas() {
       try {
         if (scope === "mine") {
           if (!user?.id || user.is_anonymous === true) {
-            if (alive) { setOwnerCampaigns([]); setStatus("signed-out"); }
+            if (alive) { setOwnerCampaigns({ownerId:null,rows:[]}); setStatus("signed-out"); }
             return;
           }
           const rows = await listOwnerCampaigns(authClient());
-          if (alive) { setOwnerCampaigns(rows.map(mapAtlasCampaign)); setStatus("ready"); }
+          if (alive) { setOwnerCampaigns({ownerId:user.id,rows:rows.map(mapAtlasCampaign)}); setStatus("ready"); }
         } else {
           // This is a public geography-only query: no payment RPC is needed.
           const rows = await listPublicAtlasCampaigns({ limit: 500 });
@@ -53,7 +53,7 @@ export default function Atlas() {
 
   // Account scope is only ever populated by the server-verified owner read.
   // Unpublished campaigns can appear in the PRIVATE grid, not public globe pins.
-  const campaigns = scope === "mine" ? ownerCampaigns : publicCampaigns;
+  const campaigns = scope === "mine" ? (user?.id && ownerCampaigns.ownerId === user.id ? ownerCampaigns.rows : []) : publicCampaigns;
   const published = useMemo(() => campaigns.filter(c => c.status === "active"), [campaigns]);
   const mapped = useMemo(() => published.filter(isApprovedAtlasLocation), [published]);
   const matchingCampaigns = useMemo(() => campaigns.filter(c =>
