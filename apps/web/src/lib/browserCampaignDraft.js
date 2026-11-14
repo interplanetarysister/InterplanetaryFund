@@ -128,8 +128,18 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   }
   // Migrate before writing, then validate again: a legacy record may have
   // populated the owner slot since the initial lookup.
-  scopedRecord(storage, ownerId);
+  // If the first editor autosave still has its blank initial form, do not
+  // replace a newly migrated draft before hydration can display its text.
+  const restored = scopedRecord(storage, ownerId);
   const migrated = storage.getItem(key);
+  if (!existing && migrated && restored) {
+    const incoming = campaignForm(form);
+    const original = campaignForm(restored.form);
+    const blank = emptyCampaignForm();
+    const incomingBlank = Object.keys(blank).every(field => incoming[field] === blank[field]);
+    const originalHasContent = Object.keys(blank).some(field => original[field] !== blank[field]);
+    if (incomingBlank && originalHasContent) return false;
+  }
   if (migrated) {
     let parsed;
     try { parsed = JSON.parse(migrated); } catch { return false; }
