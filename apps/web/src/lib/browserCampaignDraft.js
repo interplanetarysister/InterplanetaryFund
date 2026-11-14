@@ -99,6 +99,14 @@ export function restoreWritingBrief(storage, ownerId) {
 
 export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   const key = ownerKey(ownerId);
+  // Do not overwrite a damaged or mismatched scoped record on initial mount.
+  // The editor will show an autosave warning instead of destroying recoverable text.
+  const existing = storage.getItem(key);
+  if (existing) {
+    let parsed;
+    try { parsed = JSON.parse(existing); } catch { return false; }
+    if (parsed?.version !== 2 || parsed.owner_id !== ownerId) return false;
+  }
   // Preserve unattributed or malformed legacy data without exposing it to an account.
   const legacy = storage.getItem(KEY);
   if (legacy && !storage.getItem(LEGACY_BACKUP)) {
