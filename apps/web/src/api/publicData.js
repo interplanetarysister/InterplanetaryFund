@@ -115,3 +115,19 @@ export async function listRelatedCampaigns(category, excludeId, max = 3) {
     campaign.category === category && campaign.id !== String(excludeId)
   ).slice(0, max);
 }
+
+// Atlas geography does not depend on financial ledger RPC availability.
+// This read includes only active, RLS-visible campaigns and approved broad
+// locations; payment statistics are intentionally never requested.
+export async function listPublicAtlasCampaigns({ limit = 500 } = {}) {
+  const max=Math.min(500,Math.max(1,Number(limit)||500));
+  const {data,error}=await supabase()
+    .from("ifund_campaigns")
+    .select("id,title,summary,category,status,map_opt_in,public_location_label,map_latitude,map_longitude")
+    .eq("status","active")
+    .order("created_at",{ascending:false})
+    .order("id",{ascending:false})
+    .limit(max);
+  if(error || !Array.isArray(data)) throw new Error("Public Atlas campaigns could not be loaded.");
+  return data.map(row=>mapCampaign(row));
+}
