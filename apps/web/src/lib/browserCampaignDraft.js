@@ -99,7 +99,7 @@ export function restoreWritingBrief(storage, ownerId) {
   return writingBrief(scopedRecord(storage, ownerId)?.writing_brief);
 }
 
-export function rememberBrowserCampaign(storage, ownerId, form, brief) {
+export function rememberBrowserCampaign(storage, ownerId, form, brief, { allowBlankOverwrite = false } = {}) {
   const key = ownerKey(ownerId);
   // Do not overwrite a damaged or mismatched scoped record on initial mount.
   // The editor will show an autosave warning instead of destroying recoverable text.
@@ -139,6 +139,20 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
     const incomingBlank = Object.keys(blank).every(field => incoming[field] === blank[field]);
     const originalHasContent = Object.keys(blank).some(field => original[field] !== blank[field]);
     if (incomingBlank && originalHasContent) return false;
+  }
+  // A repeated pre-hydration autosave must not erase an already migrated
+  // nonempty draft. Only an explicit user edit may authorize a blank clear.
+  if (migrated && !allowBlankOverwrite) {
+    let saved;
+    try { saved = JSON.parse(migrated); } catch { return false; }
+    if (saved?.version === 2 && saved.owner_id === ownerId && saved.form &&
+        typeof saved.form === "object" && !Array.isArray(saved.form)) {
+      const blank = emptyCampaignForm();
+      const incoming = campaignForm(form);
+      const original = campaignForm(saved.form);
+      if (Object.keys(blank).every(field => incoming[field] === blank[field]) &&
+          Object.keys(blank).some(field => original[field] !== blank[field])) return false;
+    }
   }
   if (migrated) {
     let parsed;
