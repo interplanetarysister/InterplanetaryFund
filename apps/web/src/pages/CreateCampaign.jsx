@@ -174,12 +174,15 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
   }
   useEffect(() => {
-    if (draftId) return;
+    // A confirmed account save owns the current form until the user edits it.
+    // Autosaving that same form again would recreate a browser copy immediately
+    // after cleanup, or erase the retained-copy privacy warning on failure.
+    if (draftId || (saved && campaignId.current === saved)) return;
     try {
       const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
-  }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
+  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
   const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function change(key, value) { userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
