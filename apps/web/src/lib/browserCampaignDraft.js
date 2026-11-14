@@ -26,6 +26,20 @@ function scopedRecord(storage, ownerId) {
     }
   }
   if (!raw && ownerId != null) {
+    // A v2 guest record from older previews used the unscoped key.
+    // Copy it into the guest slot before claiming it, preserving it if
+    // the destination write fails.
+    const legacyGuest = storage.getItem(KEY);
+    if (legacyGuest && !storage.getItem(ownerKey(null))) {
+      let parsed;
+      try { parsed = JSON.parse(legacyGuest); } catch { /* keep corrupt text */ }
+      if (parsed?.version === 2 && parsed.owner_id === null) {
+        storage.setItem(ownerKey(null), legacyGuest);
+        storage.removeItem(KEY);
+      }
+    }
+  }
+  if (!raw && ownerId != null) {
     // Transfer the unclaimed guest draft to the first verified owner.
     const guestRaw = storage.getItem(ownerKey(null));
     if (guestRaw) {
