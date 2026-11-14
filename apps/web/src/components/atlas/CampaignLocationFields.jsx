@@ -45,7 +45,7 @@ export default function CampaignLocationFields({ form, change, disabled = false 
     );
   }
   return (
-    <fieldset className="space-y-4 rounded-xl border border-cyan-400/30 bg-cyan-950/5 p-4" aria-label="Public campaign Atlas location" disabled={disabled}>
+    <fieldset id="campaign-atlas-location" tabIndex={-1} className="space-y-4 rounded-xl border border-cyan-400/30 bg-cyan-950/5 p-4 scroll-mt-24 focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400" aria-label="Public campaign Atlas location" disabled={disabled}>
       <legend className="flex items-center gap-2 font-semibold"><Globe2 className="h-4 w-4" /> Public Atlas map location (optional)</legend>
       <label className="flex items-start gap-3 text-sm">
         <input type="checkbox" className="mt-1 h-5 w-5" checked={enabled} onChange={e => toggle(e.target.checked)} />
