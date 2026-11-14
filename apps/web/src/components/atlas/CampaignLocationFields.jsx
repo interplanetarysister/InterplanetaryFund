@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Globe2, LocateFixed, MapPin, ShieldCheck } from "lucide-react";
+import { US_CITY_CENTERS, selectUSCity } from "@/lib/usCityCenters.mjs";
 
 /**
  * Explicit, approximate Atlas opt-in. Raw GPS coordinates are rounded in memory
@@ -51,6 +52,20 @@ export default function CampaignLocationFields({ form, change, disabled = false 
         <span>Show my campaign's <strong>approximate city or region</strong> as a public marker on the Atlas globe. Never use a home address or precise device location.</span>
       </label>
       {enabled && <>
+        <label className="block text-sm font-medium">Quick place: choose a broad U.S. city area
+          <select value="" onChange={event=>{
+            const city=selectUSCity(event.target.value);
+            if(!city) return;
+            change("public_location_label",city.label);
+            change("map_latitude",String(city.lat));
+            change("map_longitude",String(city.lng));
+            setMessage("Broad "+city.label+" city-centre point selected. Verify this is the actual region of your campaign. It will be published only when you save with Atlas sharing enabled.");
+          }} className="mt-2 min-h-11 w-full rounded-xl border border-input bg-background p-3">
+            <option value="">Choose a city area (optional)</option>
+            {US_CITY_CENTERS.map(city=><option key={city.id} value={city.id}>{city.label}</option>)}
+          </select>
+        </label>
+        <p className="text-xs text-muted-foreground">This is an organizer-selected approximate city-centre marker, not a detected location. Use the fields below for other regions; never add an exact address.</p>
         <label className="block text-sm font-medium">Public city or region label
           <input type="text" maxLength={80} value={form.public_location_label || ""}
             onChange={e => change("public_location_label",e.target.value)}
