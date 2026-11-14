@@ -235,3 +235,18 @@ test("legacy remove failure never erases migrated text", () => {
   assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
   assert.equal(storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)), raw);
 });
+
+
+test("repeated blank pre-hydration autosaves preserve migrated text until deliberate clear", () => {
+  const storage = store();
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const form = { ...emptyCampaignForm(), title: "Keep across effects", story: "Do not erase" };
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({ version: 2, owner_id: A, form }));
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  const bytes = storage.getItem(key);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  assert.equal(storage.getItem(key), bytes);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm(), undefined, { allowBlankOverwrite: true }), true);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+});
