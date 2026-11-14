@@ -95,3 +95,16 @@ test("browser draft writes cannot replace another account's saved draft", () => 
   assert.match(browserDraft, /existing\?\.owner_id != null && existing\.owner_id !== ownerId\) return false/,
     "cross-account and signed-out writes must preserve an existing owner-scoped draft");
 });
+
+
+test("unverified sessions cannot claim guest drafts or falsely acknowledge rejected writes", () => {
+  const composer = page("CreateCampaign");
+  assert.match(composer, /!session\.user\?\.email_confirmed_at \? null : \(session\.user\?\.id \|\| null\)/,
+    "only email-verified identities can claim a guest draft");
+  assert.match(composer, /const stored = rememberBrowserCampaign\(sessionStorage, null, form/,
+    "guest save must retain the storage helper result");
+  assert.match(composer, /setBrowserSaved\(stored\)/,
+    "a rejected owner-mismatch write must not show a saved receipt");
+  assert.match(composer, /if \(!stored\) setError\(/,
+    "rejected writes must provide a visible error");
+});
