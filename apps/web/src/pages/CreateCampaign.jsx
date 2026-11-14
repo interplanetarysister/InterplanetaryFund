@@ -85,7 +85,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [saved, setSaved] = useState("");
   const [browserSaved, setBrowserSaved] = useState(false);
   const [guestDecisionPending, setGuestDecisionPending] = useState(() => {
-    try { return Boolean(ownerId && !draftId && hasUnclaimedGuestCampaign(sessionStorage)); } catch { return false; }
+    if (!ownerId || draftId) return false;
+    try { return hasUnclaimedGuestCampaign(sessionStorage); } catch { return true; } // Fail closed when guest ownership cannot be checked.
   });
   const [guestImportMessage, setGuestImportMessage] = useState("");
   const [autosaveError, setAutosaveError] = useState("");
@@ -128,7 +129,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
   }
   async function regenerateSection(index) {
-    if (writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
+    if (guestDecisionPending || writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
     writingLock.current = true;
     setRegeneratingSection(index);
     setSectionError("");
@@ -155,7 +156,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
 
   async function suggestDraft() {
-    if (writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
+    if (guestDecisionPending || writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
     writingLock.current = true;
     setSuggesting(true); setSuggestionError(""); setWritingQueued(false);
     try {
