@@ -145,3 +145,15 @@ test("initial mount and autosave preserve malformed and foreign scoped records",
   assert.equal(rememberBrowserCampaign(storage, A, { ...emptyCampaignForm(), title: "Safe" }), true);
   assert.equal(restoreBrowserCampaign(storage, A).title, "Safe");
 });
+
+test("autosave preserves malformed scoped form payloads without erasing recoverable bytes", () => {
+  const storage = store();
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  for (const malformedForm of [null, [], "unexpected text", 42]) {
+    const raw = JSON.stringify({ version: 2, owner_id: A, form: malformedForm });
+    storage.setItem(key, raw);
+    assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+    assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+    assert.equal(storage.getItem(key), raw);
+  }
+});
