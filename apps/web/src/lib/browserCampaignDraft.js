@@ -28,7 +28,7 @@ function scopedRecord(storage, ownerId) {
   }
   if (!raw && ownerId != null) {
     // A v2 guest record from older previews used the unscoped key.
-    // Copy it into the guest slot before claiming it, preserving it if
+    // Copy it into the isolated guest slot, preserving it if
     // the destination write fails.
     const legacyGuest = storage.getItem(KEY);
     if (legacyGuest && !storage.getItem(ownerKey(null))) {
@@ -40,26 +40,40 @@ function scopedRecord(storage, ownerId) {
       }
     }
   }
-  if (!raw && ownerId != null) {
-    // Transfer the unclaimed guest draft to the first verified owner.
-    const guestRaw = storage.getItem(ownerKey(null));
-    if (guestRaw) {
-      let guest;
-      try { guest = JSON.parse(guestRaw); } catch { /* preserve malformed data */ }
-      if (guest?.version === 2 && guest.owner_id === null &&
-          guest.form && typeof guest.form === "object" && !Array.isArray(guest.form)) {
-        const claimed = JSON.stringify({ ...guest, owner_id: ownerId });
-        storage.setItem(key, claimed);
-        storage.removeItem(ownerKey(null));
-        raw = claimed;
-      }
-    }
-  }
   if (!raw) return null;
   let record;
   try { record = JSON.parse(raw); } catch { return null; }
   if (record?.version !== 2 || record.owner_id !== ownerId) return null;
   return record;
+}
+
+// Never expose a guest's private text to a newly signed-in account without
+// an explicit user action. An import is non-destructive until the owner slot
+// is written successfully; no existing owner draft is overwritten.
+export function hasUnclaimedGuestCampaign(storage) {
+  const raw = storage.getItem(ownerKey(null));
+  if (!raw) return false;
+  try {
+    const record = JSON.parse(raw);
+    return record?.version === 2 && record.owner_id === null &&
+      record.form && typeof record.form === "object" && !Array.isArray(record.form);
+  } catch { return false; }
+}
+
+export function importGuestCampaign(storage, ownerId) {
+  if (ownerId == null) return false;
+  const destination = ownerKey(ownerId);
+  if (storage.getItem(destination)) return false;
+  const guestRaw = storage.getItem(ownerKey(null));
+  if (!guestRaw) return false;
+  let guest;
+  try { guest = JSON.parse(guestRaw); } catch { return false; }
+  if (guest?.version !== 2 || guest.owner_id !== null || !guest.form ||
+      typeof guest.form !== "object" || Array.isArray(guest.form)) return false;
+  storage.setItem(destination, JSON.stringify({ ...guest, owner_id: ownerId }));
+  // Keep guest data if cleanup fails; the UI must disclose retained local data.
+  try { storage.removeItem(ownerKey(null)); } catch { return false; }
+  return true;
 }
 
 export function restoreBrowserCampaign(storage, ownerId) {
