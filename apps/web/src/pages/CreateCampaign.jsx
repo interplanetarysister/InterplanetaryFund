@@ -196,23 +196,18 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       return;
     }
     try {
-      const imported = importGuestCampaign(sessionStorage, ownerId);
-      // The helper returns false after a successful owner write if guest cleanup fails.
-      // In that case the owner draft must still be restored and the retained copy disclosed.
-      const ownerRecord = sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId));
-      if (!ownerRecord) {
-        setGuestImportMessage("Import unavailable: this account may already have a draft, or browser storage is invalid. Choose Keep separate.");
-        return;
-      }
-      if (!imported && hasUnclaimedGuestCampaign(sessionStorage)) {
-        setGuestImportMessage("Import was not completed. An account draft already exists or guest cleanup failed. Choose Keep separate; no data was deleted.");
+      const outcome = importGuestCampaign(sessionStorage, ownerId);
+      if (outcome.status !== "imported" && outcome.status !== "imported_guest_retained") {
+        setGuestImportMessage(outcome.status === "owner_exists"
+          ? "This account already has a browser draft. It was not overwritten. Choose Keep separate."
+          : "Import could not be completed (" + outcome.status.replaceAll("_", " ") + "). The guest draft was not intentionally deleted. Choose Keep separate.");
         return;
       }
       setForm(restoreBrowserCampaign(sessionStorage, ownerId));
       const brief = restoreWritingBrief(sessionStorage, ownerId);
       setWritingPath(brief.writingPath); setDraftDetails(brief.details);
       setDraftBeneficiary(brief.beneficiary); setDraftNeed(brief.need);
-      setGuestImportMessage("Guest draft imported into this account.");
+      setGuestImportMessage(outcome.status === "imported_guest_retained" ? "Draft imported, but the guest copy could not be removed from this device. Private information may remain accessible to another guest. Avoid using this shared device until its browser data is cleared." : "Guest draft imported into this account.");
       setGuestDecisionPending(false);
     } catch {
       setGuestImportMessage("Browser storage failed. Guest draft was not intentionally deleted. Choose Keep separate.");
