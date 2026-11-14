@@ -3,11 +3,27 @@
 ALTER TABLE public.ifund_subscription_intents
   ADD COLUMN IF NOT EXISTS last_state_event_at timestamptz,
   ADD COLUMN IF NOT EXISTS last_state_event_rank smallint NOT NULL DEFAULT 0;
-ALTER TABLE public.ifund_subscription_intents
-  ADD CONSTRAINT ifund_subscription_state_rank_check CHECK (last_state_event_rank BETWEEN 0 AND 2);
+DO $guard$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_constraint
+                 WHERE conrelid='public.ifund_subscription_intents'::regclass
+                   AND conname='ifund_subscription_state_rank_check') THEN
+    ALTER TABLE public.ifund_subscription_intents
+      ADD CONSTRAINT ifund_subscription_state_rank_check
+      CHECK (last_state_event_rank BETWEEN 0 AND 2);
+  END IF;
+END $guard$;
 ALTER TABLE public.ifund_subscription_ledger
   ADD COLUMN IF NOT EXISTS provider_resource_id text,
   ADD COLUMN IF NOT EXISTS state_applied boolean NOT NULL DEFAULT false;
+
+-- Enforce cross-intent provider resource uniqueness at the database level.
+-- Existing NULL legacy identities are deliberately excluded until reconciled.
+-- A competing insert fails closed with SQLSTATE 23505; caller must not retry
+-- with a different resource or fabricate a successful ledger outcome.
+CREATE UNIQUE INDEX IF NOT EXISTS ifund_subscription_ledger_provider_resource_type_uniq
+  ON public.ifund_subscription_ledger (provider_resource_id, entry_type)
+  WHERE provider_resource_id IS NOT NULL;
 
 -- Historical intent timestamps are preserved as a conservative ordering floor.
 UPDATE public.ifund_subscription_intents
@@ -29,7 +45,7 @@ DECLARE
   v_rank smallint;
   v_apply boolean;
 BEGIN
-  IF current_user <> 'postgres' AND auth.role() IS DISTINCT FROM 'service_role' THEN
+  IF auth.role() IS DISTINCT FROM 'service_role' THEN
     RAISE EXCEPTION 'service role required' USING ERRCODE='42501';
   END IF;
   IF p_intent_id IS NULL OR nullif(btrim(p_operation_key),'') IS NULL
