@@ -61,19 +61,30 @@ export function hasUnclaimedGuestCampaign(storage) {
 }
 
 export function importGuestCampaign(storage, ownerId) {
-  if (ownerId == null) return false;
+  // A structured result prevents the UI from mistaking failed cleanup for
+  // a failed import after the owner copy has already been written.
+  if (ownerId == null) return { status: "invalid_owner" };
   const destination = ownerKey(ownerId);
-  if (storage.getItem(destination)) return false;
-  const guestRaw = storage.getItem(ownerKey(null));
-  if (!guestRaw) return false;
+  let guestRaw;
+  try {
+    if (storage.getItem(destination)) return { status: "owner_exists" };
+    guestRaw = storage.getItem(ownerKey(null));
+  } catch { return { status: "storage_error" }; }
+  if (!guestRaw) return { status: "missing_guest" };
   let guest;
-  try { guest = JSON.parse(guestRaw); } catch { return false; }
+  try { guest = JSON.parse(guestRaw); } catch { return { status: "invalid_guest" }; }
   if (guest?.version !== 2 || guest.owner_id !== null || !guest.form ||
-      typeof guest.form !== "object" || Array.isArray(guest.form)) return false;
-  storage.setItem(destination, JSON.stringify({ ...guest, owner_id: ownerId }));
-  // Keep guest data if cleanup fails; the UI must disclose retained local data.
-  try { storage.removeItem(ownerKey(null)); } catch { return false; }
-  return true;
+      typeof guest.form !== "object" || Array.isArray(guest.form))
+    return { status: "invalid_guest" };
+  try {
+    storage.setItem(destination, JSON.stringify({ ...guest, owner_id: ownerId }));
+  } catch { return { status: "write_failed" }; }
+  try {
+    storage.removeItem(ownerKey(null));
+  } catch {
+    return { status: "imported_guest_retained" };
+  }
+  return { status: "imported" };
 }
 
 export function restoreBrowserCampaign(storage, ownerId) {
