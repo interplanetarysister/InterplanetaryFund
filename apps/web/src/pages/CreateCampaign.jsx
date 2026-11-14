@@ -12,6 +12,7 @@ import { useAuthSession } from "@/hooks/useAuthSession";
 import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
+import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 
@@ -326,10 +327,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <fieldset disabled={disabled} className="space-y-5">
       <label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Short description<textarea id="campaign-summary" aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <p className="text-sm text-muted-foreground">Full story format: 2–3 paragraphs separated by a blank line, each containing 3–5 complete sentences.</p>
       <label className="block font-semibold">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <label className="block font-semibold">Category<select value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
+      <label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <div className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
+      <div id="campaign-cover" className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
         <div>
           <h3 className="font-semibold">Campaign cover image (optional)</h3>
           <p className="mt-1 text-sm text-muted-foreground">Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission.</p>
@@ -357,6 +359,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
     </form>
+    <CampaignReadinessScore form={form} />
     <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
