@@ -1,5 +1,7 @@
 -- SOURCE-STAGED ONLY. Do not apply before independent finance/QA acceptance.
 -- Atomic verified subscription events; caller MUST verify PayPal event authenticity.
+-- This RPC accepts provider-verified USD/live events only. Sandbox events fail closed;
+-- sandbox support requires separately reviewed isolation and accounting contracts.
 ALTER TABLE public.ifund_subscription_intents
   ADD COLUMN IF NOT EXISTS last_state_event_at timestamptz,
   ADD COLUMN IF NOT EXISTS last_state_event_rank smallint NOT NULL DEFAULT 0;
@@ -73,7 +75,8 @@ WHERE last_state_event_at IS NULL AND (last_payment_at IS NOT NULL OR last_rever
 CREATE OR REPLACE FUNCTION public.ifund_apply_verified_subscription_event(
   p_intent_id uuid, p_operation_key text, p_provider_resource_id text,
   p_paypal_subscription_id text, p_entry_type text, p_amount_cents bigint,
-  p_occurred_at timestamptz, p_provider_reference text
+  p_occurred_at timestamptz, p_provider_reference text,
+  p_verified_currency text, p_verified_environment text
 ) RETURNS text LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = pg_catalog, public AS $$
 DECLARE
@@ -89,7 +92,9 @@ BEGIN
      OR nullif(btrim(p_provider_resource_id),'') IS NULL
      OR nullif(btrim(p_paypal_subscription_id),'') IS NULL
      OR nullif(btrim(p_provider_reference),'') IS NULL
-     OR p_occurred_at IS NULL OR p_entry_type NOT IN ('payment','refund','reversal')
+     OR p_occurred_at IS NULL OR p_verified_currency IS DISTINCT FROM 'USD'
+     OR p_verified_environment IS DISTINCT FROM 'live'
+     OR p_entry_type NOT IN ('payment','refund','reversal')
      OR p_amount_cents IS NULL OR
      (p_entry_type='payment' AND p_amount_cents<=0) OR
      (p_entry_type IN ('refund','reversal') AND p_amount_cents>=0) THEN
@@ -98,7 +103,7 @@ BEGIN
   SELECT * INTO v_intent FROM public.ifund_subscription_intents
     WHERE id=p_intent_id FOR UPDATE;
   IF NOT FOUND OR v_intent.paypal_subscription_id IS DISTINCT FROM p_paypal_subscription_id
-     OR v_intent.currency <> 'USD' THEN
+     OR v_intent.currency IS DISTINCT FROM p_verified_currency THEN
     RAISE EXCEPTION 'subscription identity mismatch' USING ERRCODE='22023';
   END IF;
   -- A provider-verified payment must match the contracted intent amount.
@@ -130,7 +135,7 @@ BEGIN
     (operation_key,intent_id,member_id,paypal_subscription_id,provider_reference,
      provider_resource_id,entry_type,amount_cents,currency,environment,provider_occurred_at,state_applied)
   VALUES (p_operation_key,p_intent_id,v_intent.member_id,p_paypal_subscription_id,
-          p_provider_reference,p_provider_resource_id,p_entry_type,p_amount_cents,'USD','live',
+          p_provider_reference,p_provider_resource_id,p_entry_type,p_amount_cents,p_verified_currency,p_verified_environment,
           p_occurred_at,v_apply);
   IF v_apply THEN
     UPDATE public.ifund_subscription_intents SET
@@ -143,5 +148,5 @@ BEGIN
   END IF;
   RETURN CASE WHEN v_apply THEN 'applied' ELSE 'stale_recorded' END;
 END $$;
-REVOKE ALL ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text) TO service_role;
+REVOKE ALL ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text,text,text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text,text,text) TO service_role;
