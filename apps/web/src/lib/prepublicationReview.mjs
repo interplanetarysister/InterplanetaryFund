@@ -1,3 +1,4 @@
+import { analyzeStoryStructure } from "./campaignReadinessScore.mjs";
 // Deterministic, free prepublication editorial audit.
 // Advisories never rewrite a beneficiary's claims or expose campaign text to external agents.
 export const MIN_PUBLICATION_STORY_CHARACTERS = 3500;
@@ -12,6 +13,12 @@ export function reviewCampaignPublication(form = {}) {
   const blockers = remainingCharacters > 0
     ? [`A full-length story needs at least ${MIN_PUBLICATION_STORY_CHARACTERS.toLocaleString("en-US")} characters; add ${remainingCharacters.toLocaleString("en-US")} more.`]
     : [];
+  // Distinct structural eligibility rule; readiness points never gate publication.
+  // Drafts remain editable even while the format is incomplete.
+  const structure = analyzeStoryStructure(story);
+  if (story && !structure.valid) blockers.push(
+    "Write the full story in 2–3 paragraphs separated by blank lines, with 3–5 sentences in each paragraph."
+  );
   const findings = [];
   const add = (id, agent, title, advice) => {
     if (!findings.some(item => item.id === id)) findings.push({id, agent, title, advice});
@@ -46,6 +53,9 @@ export function reviewCampaignPublication(form = {}) {
   if (/(?:\b\d+(?:\.\d+)?%|\b(?:guaranteed|certified|proven|always|never)\b)/iu.test(story+" "+summary))
     add("claim_evidence", "polaris", "Verify numerical and absolute claims",
       "Check any percentages, guarantees, certification language or absolute outcomes against reliable evidence. Remove unsupported claims.");
+  if (story && !structure.valid)
+    add("story_paragraph_format", "story", "Structure the full story",
+      "Use 2 or 3 paragraphs separated by blank lines and 3 to 5 complete sentences in each.");
   if (storyCharacters < MIN_PUBLICATION_STORY_CHARACTERS)
     add("story_depth", "story", "Develop the full-length story",
       "Explain the verified situation, budget, timeline, who benefits, and how supporters will be updated. Do not invent facts.");
