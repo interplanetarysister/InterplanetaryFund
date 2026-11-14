@@ -34,7 +34,7 @@ test("successful saving erases the browser handoff without changing a saved reco
     ...emptyCampaignForm(),
     title: "Private text",
   });
-  forgetBrowserCampaign(storage);
+  forgetBrowserCampaign(storage, A);
   assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
 });
 test("legacy unscoped text is preserved without exposing it to another identity", () => {
@@ -82,7 +82,52 @@ test("writing brief follows the same guest handoff and identity boundary without
   assert.deepEqual(restoreWritingBrief(storage, B), emptyWritingBrief());
   assert.deepEqual(restoreWritingBrief(storage, null), emptyWritingBrief());
   assert.doesNotMatch(
-    storage.getItem("ifund-guest-campaign-v1"),
+    storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)),
     /never-store|request_id|access_token/,
   );
+});
+
+test("two verified accounts retain separate drafts across A to B to A transitions", () => {
+  const storage = store();
+  const a = { ...emptyCampaignForm(), title: "Account A private" };
+  const b = { ...emptyCampaignForm(), title: "Account B private" };
+  rememberBrowserCampaign(storage, A, a);
+  rememberBrowserCampaign(storage, B, b);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), a);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), b);
+  assert.deepEqual(restoreBrowserCampaign(storage, null), emptyCampaignForm());
+  assert.equal(forgetBrowserCampaign(storage, B), true);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), a);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+});
+
+test("legacy v2 guest text transfers to verified owner without leaking to another owner", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Legacy guest" };
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({
+    version: 2, owner_id: null, form,
+  }));
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+  assert.deepEqual(restoreBrowserCampaign(storage, null), emptyCampaignForm());
+});
+
+test("legacy v2 owned draft remains scoped to its matching identity", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Legacy owner A" };
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({
+    version: 2, owner_id: A, form,
+  }));
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+});
+
+test("quota and unavailable storage failures cannot produce a saved receipt", () => {
+  const storage = store();
+  storage.setItem = () => { throw new Error("QuotaExceededError"); };
+  assert.throws(() => rememberBrowserCampaign(storage, A, emptyCampaignForm()), /QuotaExceededError/);
+  const unavailable = { getItem: () => { throw new Error("Storage disabled"); } };
+  assert.throws(() => restoreBrowserCampaign(unavailable, A), /Storage disabled/);
+  assert.throws(() => rememberBrowserCampaign(unavailable, A, emptyCampaignForm()), /Storage disabled/);
 });
