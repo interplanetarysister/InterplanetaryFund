@@ -1,0 +1,87 @@
+-- SOURCE-STAGED ONLY. Do not apply before independent finance/QA acceptance.
+-- Atomic verified subscription events; caller MUST verify PayPal event authenticity.
+ALTER TABLE public.ifund_subscription_intents
+  ADD COLUMN IF NOT EXISTS last_state_event_at timestamptz,
+  ADD COLUMN IF NOT EXISTS last_state_event_rank smallint NOT NULL DEFAULT 0;
+ALTER TABLE public.ifund_subscription_intents
+  ADD CONSTRAINT ifund_subscription_state_rank_check CHECK (last_state_event_rank BETWEEN 0 AND 2);
+ALTER TABLE public.ifund_subscription_ledger
+  ADD COLUMN IF NOT EXISTS provider_resource_id text,
+  ADD COLUMN IF NOT EXISTS state_applied boolean NOT NULL DEFAULT false;
+
+-- Historical intent timestamps are preserved as a conservative ordering floor.
+UPDATE public.ifund_subscription_intents
+SET last_state_event_at = greatest(last_payment_at, last_reversal_at),
+    last_state_event_rank = CASE WHEN last_reversal_at IS NOT NULL
+      AND (last_payment_at IS NULL OR last_reversal_at >= last_payment_at) THEN 2
+      WHEN last_payment_at IS NOT NULL THEN 1 ELSE 0 END
+WHERE last_state_event_at IS NULL AND (last_payment_at IS NOT NULL OR last_reversal_at IS NOT NULL);
+
+CREATE OR REPLACE FUNCTION public.ifund_apply_verified_subscription_event(
+  p_intent_id uuid, p_operation_key text, p_provider_resource_id text,
+  p_paypal_subscription_id text, p_entry_type text, p_amount_cents bigint,
+  p_occurred_at timestamptz, p_provider_reference text
+) RETURNS text LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = pg_catalog, public AS $$
+DECLARE
+  v_intent public.ifund_subscription_intents%ROWTYPE;
+  v_existing public.ifund_subscription_ledger%ROWTYPE;
+  v_rank smallint;
+  v_apply boolean;
+BEGIN
+  IF current_user <> 'postgres' AND auth.role() IS DISTINCT FROM 'service_role' THEN
+    RAISE EXCEPTION 'service role required' USING ERRCODE='42501';
+  END IF;
+  IF p_intent_id IS NULL OR nullif(btrim(p_operation_key),'') IS NULL
+     OR nullif(btrim(p_provider_resource_id),'') IS NULL
+     OR nullif(btrim(p_paypal_subscription_id),'') IS NULL
+     OR nullif(btrim(p_provider_reference),'') IS NULL
+     OR p_occurred_at IS NULL OR p_entry_type NOT IN ('payment','refund','reversal')
+     OR p_amount_cents IS NULL OR
+     (p_entry_type='payment' AND p_amount_cents<=0) OR
+     (p_entry_type IN ('refund','reversal') AND p_amount_cents>=0) THEN
+    RAISE EXCEPTION 'invalid verified event' USING ERRCODE='22023';
+  END IF;
+  SELECT * INTO v_intent FROM public.ifund_subscription_intents
+    WHERE id=p_intent_id FOR UPDATE;
+  IF NOT FOUND OR v_intent.paypal_subscription_id IS DISTINCT FROM p_paypal_subscription_id
+     OR v_intent.currency <> 'USD' THEN
+    RAISE EXCEPTION 'subscription identity mismatch' USING ERRCODE='22023';
+  END IF;
+  SELECT * INTO v_existing FROM public.ifund_subscription_ledger WHERE operation_key=p_operation_key;
+  IF FOUND THEN
+    IF v_existing.intent_id=p_intent_id AND
+       v_existing.provider_resource_id=p_provider_resource_id AND
+       v_existing.paypal_subscription_id=p_paypal_subscription_id AND
+       v_existing.entry_type=p_entry_type AND v_existing.amount_cents=p_amount_cents AND
+       v_existing.provider_occurred_at=p_occurred_at AND
+       v_existing.provider_reference=p_provider_reference THEN RETURN 'duplicate'; END IF;
+    RETURN 'conflict';
+  END IF;
+  -- A single provider resource may not be charged/reversed twice under different keys.
+  IF EXISTS (SELECT 1 FROM public.ifund_subscription_ledger
+             WHERE provider_resource_id=p_provider_resource_id AND entry_type=p_entry_type) THEN
+    RETURN 'conflict';
+  END IF;
+  v_rank := CASE WHEN p_entry_type='payment' THEN 1 ELSE 2 END;
+  v_apply := v_intent.last_state_event_at IS NULL OR
+    (p_occurred_at,v_rank) > (v_intent.last_state_event_at,v_intent.last_state_event_rank);
+  INSERT INTO public.ifund_subscription_ledger
+    (operation_key,intent_id,member_id,paypal_subscription_id,provider_reference,
+     provider_resource_id,entry_type,amount_cents,currency,environment,provider_occurred_at,state_applied)
+  VALUES (p_operation_key,p_intent_id,v_intent.member_id,p_paypal_subscription_id,
+          p_provider_reference,p_provider_resource_id,p_entry_type,p_amount_cents,'USD','live',
+          p_occurred_at,v_apply);
+  IF v_apply THEN
+    UPDATE public.ifund_subscription_intents SET
+      status=CASE WHEN p_entry_type='payment' THEN 'active' ELSE 'past_due' END,
+      last_payment_at=CASE WHEN p_entry_type='payment' THEN p_occurred_at ELSE last_payment_at END,
+      last_payment_cents=CASE WHEN p_entry_type='payment' THEN p_amount_cents ELSE last_payment_cents END,
+      last_reversal_at=CASE WHEN p_entry_type<>'payment' THEN p_occurred_at ELSE last_reversal_at END,
+      last_state_event_at=p_occurred_at,last_state_event_rank=v_rank,updated_at=now()
+    WHERE id=p_intent_id;
+  END IF;
+  RETURN CASE WHEN v_apply THEN 'applied' ELSE 'stale_recorded' END;
+END $$;
+REVOKE ALL ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.ifund_apply_verified_subscription_event(uuid,text,text,text,text,bigint,timestamptz,text) TO service_role;
