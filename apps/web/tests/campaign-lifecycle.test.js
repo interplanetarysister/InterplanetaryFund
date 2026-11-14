@@ -8,7 +8,11 @@ import {
 const complete = () => ({
   title: "Solar benches for the plaza",
   summary: "Twelve solar benches so the plaza stays lit after dark.",
-  story: ("The plaza loses light at dusk. The community has confirmed the lighting need. We will explain each budget item and provide transparent monthly progress updates. ").repeat(26),
+  story:Array(2).fill([
+    "The plaza loses light at dusk and the community has confirmed the need " + "with neighborhood partners ".repeat(45) + ".",
+    "Our organizers will explain proposed budget items " + "using documented cost estimates ".repeat(35) + ".",
+    "The community will receive monthly progress updates " + "with practical project details ".repeat(35) + ".",
+  ].join(" ")).join("\n\n"),
   category: "community",
   goal_amount: "1200",
   cover_image_url: "https://example.org/bench.jpg",
@@ -24,7 +28,7 @@ test("a 3,499-character full story is blocked, 3,500 is eligible", () => {
   const story = "A".repeat(3499);
   assert.ok(validateCampaignForm({...complete(),story},{publish:true}).some(x=>x.includes("3,500")));
   assert.equal(publishReadiness({...complete(),story}).ready,false);
-  assert.equal(publishReadiness({...complete(),story:story+"."}).ready,true);
+  assert.equal(publishReadiness({...complete(),story:story+"."}).ready,false, "Length alone is insufficient without paragraph and sentence structure");
   assert.deepEqual(validateCampaignForm({...complete(),story},{publish:false}),[]);
 });
 
