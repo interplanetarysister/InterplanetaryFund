@@ -153,7 +153,7 @@ export default function Atlas() {
             {campaigns.filter(c=>c.status==="active"&&!isApprovedAtlasLocation(c)).map(c=>(
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3">
                 <span className="min-w-0 font-medium">{c.title}</span>
-                <Link to={"/campaigns/"+encodeURIComponent(c.id)+"/edit"} className="inline-flex min-h-11 items-center rounded-lg border border-emerald-500/35 px-3 text-sm font-semibold">Set map location</Link>
+                <Link to={"/campaigns/"+encodeURIComponent(c.id)+"/edit#campaign-atlas-location"} className="inline-flex min-h-11 items-center rounded-lg border border-emerald-500/35 px-3 text-sm font-semibold">Set map location</Link>
               </li>
             ))}
           </ul>
