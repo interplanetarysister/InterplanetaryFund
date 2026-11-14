@@ -89,3 +89,9 @@ test("guest owner declaration survives source comments and remains executable", 
   assert.doesNotMatch(composer, /\/\/ Anonymous Supabase sessions[^\n]*\\\\n[^\n]*const ownerId/,
     "literal backslash-n in comments must not comment out the owner declaration");
 });
+
+test("browser draft writes cannot replace another account's saved draft", () => {
+  const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
+  assert.match(browserDraft, /existing\?\.owner_id != null && existing\.owner_id !== ownerId\) return false/,
+    "cross-account and signed-out writes must preserve an existing owner-scoped draft");
+});
