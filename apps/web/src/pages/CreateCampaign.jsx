@@ -82,6 +82,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [browserSaved, setBrowserSaved] = useState(false);
+  const [autosaveError, setAutosaveError] = useState("");
   const [restoredBrief] = useState(() => {
     try { return draftId ? emptyWritingBrief() : restoreWritingBrief(sessionStorage, ownerId); }
     catch { return emptyWritingBrief(); }
@@ -172,8 +173,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
   useEffect(() => {
     if (draftId) return;
-    try { rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }); }
-    catch { /* session storage unavailable */ }
+    try {
+      const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
+      setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
+    } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
   const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
@@ -361,6 +364,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
     </form>
     <CampaignReadinessScore form={form} />
+    {autosaveError && <p role="alert" className="text-sm text-red-600 break-words">{autosaveError}</p>}
     <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
