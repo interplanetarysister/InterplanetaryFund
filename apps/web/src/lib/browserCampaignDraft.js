@@ -99,6 +99,13 @@ export function restoreWritingBrief(storage, ownerId) {
 
 export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   const key = ownerKey(ownerId);
+  // Preserve unattributed or malformed legacy data without exposing it to an account.
+  const legacy = storage.getItem(KEY);
+  if (legacy && !storage.getItem(LEGACY_BACKUP)) {
+    let parsed;
+    try { parsed = JSON.parse(legacy); } catch { /* preserve malformed source */ }
+    if (parsed?.version !== 2) storage.setItem(LEGACY_BACKUP, legacy);
+  }
   // Preserve a matching legacy record if the current slot is empty.
   scopedRecord(storage, ownerId);
   storage.setItem(key, JSON.stringify({
