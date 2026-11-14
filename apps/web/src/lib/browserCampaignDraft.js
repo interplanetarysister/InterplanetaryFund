@@ -105,7 +105,7 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   if (existing) {
     let parsed;
     try { parsed = JSON.parse(existing); } catch { return false; }
-    if (parsed?.version !== 2 || parsed.owner_id !== ownerId) return false;
+    if (parsed?.version !== 2 || parsed.owner_id !== ownerId ||\n        !parsed.form || typeof parsed.form !== "object" || Array.isArray(parsed.form)) return false;
   }
   // Preserve unattributed or malformed legacy data without exposing it to an account.
   const legacy = storage.getItem(KEY);
