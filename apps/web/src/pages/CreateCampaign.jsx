@@ -30,7 +30,7 @@ function NewCampaign({ draftId = null }) {
   if (session.status === "loading") return <main className="mx-auto max-w-3xl px-4 py-8" role="status">Opening your campaign editor…</main>;
   // Anonymous Supabase sessions are guests, not durable draft owners.
   // Keep their browser draft eligible for handoff after email verification.
-  const ownerId = session.user?.is_anonymous === true ? null : (session.user?.id || null);
+  const ownerId = session.user?.is_anonymous === true || !session.user?.email_confirmed_at ? null : (session.user?.id || null);
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
   return <CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
@@ -215,8 +215,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           return;
         }
         try {
-          rememberBrowserCampaign(sessionStorage, null, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
-          setBrowserSaved(true);
+          const stored = rememberBrowserCampaign(sessionStorage, null, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
+          setBrowserSaved(stored);
+          if (!stored) setError("A draft from another account is stored in this tab. Your changes were not saved. Copy your work before switching accounts or tabs.");
         } catch { throw new Error("Browser storage is unavailable. Copy your draft before leaving."); }
         return;
       }
