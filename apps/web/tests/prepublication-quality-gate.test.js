@@ -25,8 +25,8 @@ test("3500 characters are required for publishing but drafts remain editable",()
   assert.ok(validateCampaignForm(base("A".repeat(3499)),{publish:true}).some(v=>/3,500/.test(v)));
   assert.deepEqual(validateCampaignForm(base("A".repeat(3499)),{publish:false}),[]);
   assert.equal(publishReadiness(base("A".repeat(3500))).ready,false, "Unstructured content is not publishable");
-  const sentence="This campaign explains verified expenses and how community neighbors will receive progress updates "+ "a".repeat(475)+".";
-  const structured=[sentence+" "+sentence+" "+sentence,sentence+" "+sentence+" "+sentence].join("\\n\\n");
+  const sentence="This campaign explains verified expenses and how community neighbors will receive progress updates "+ "a".repeat(550)+".";
+  const structured=[sentence+" "+sentence+" "+sentence,sentence+" "+sentence+" "+sentence].join("\n\n");
   assert.ok(structured.length>=3500);
   assert.equal(publishReadiness(base(structured)).ready,true);
 });
