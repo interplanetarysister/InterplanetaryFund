@@ -45,7 +45,8 @@ function scopedRecord(storage, ownerId) {
     if (guestRaw) {
       let guest;
       try { guest = JSON.parse(guestRaw); } catch { /* preserve malformed data */ }
-      if (guest?.version === 2 && guest.owner_id === null) {
+      if (guest?.version === 2 && guest.owner_id === null &&
+          guest.form && typeof guest.form === "object" && !Array.isArray(guest.form)) {
         const claimed = JSON.stringify({ ...guest, owner_id: ownerId });
         storage.setItem(key, claimed);
         storage.removeItem(ownerKey(null));
