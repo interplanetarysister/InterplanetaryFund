@@ -10,17 +10,17 @@ WHERE schemaname='public' AND tablename='ifund_subscription_ledger'
 -- Detect preexisting duplicate immutable provider identities (aggregate only).
 SELECT entry_type, count(*) AS duplicate_groups, sum(n) AS affected_rows
 FROM (
-  SELECT entry_type, provider_resource_id, count(*) AS n
+  SELECT entry_type, to_jsonb(ifund_subscription_ledger)->>'provider_resource_id' AS provider_resource_id, count(*) AS n
   FROM public.ifund_subscription_ledger
-  WHERE provider_resource_id IS NOT NULL
-  GROUP BY entry_type, provider_resource_id
+  WHERE to_jsonb(ifund_subscription_ledger)->>'provider_resource_id' IS NOT NULL
+  GROUP BY entry_type, to_jsonb(ifund_subscription_ledger)->>'provider_resource_id'
   HAVING count(*)>1
 ) collisions
 GROUP BY entry_type;
 -- NULL legacy identities cannot be replay-matched by resource id.
 SELECT entry_type, count(*) AS legacy_null_resource_rows
 FROM public.ifund_subscription_ledger
-WHERE provider_resource_id IS NULL
+WHERE to_jsonb(ifund_subscription_ledger)->>'provider_resource_id' IS NULL
 GROUP BY entry_type ORDER BY entry_type;
 -- Verify named check and index catalog definitions without mutating schema.
 SELECT conname, pg_get_constraintdef(oid) AS definition
