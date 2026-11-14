@@ -171,3 +171,36 @@ test("malformed guest drafts remain recoverable when verified owner opens editor
     assert.equal(storage.getItem(guestKey), raw, "saving a new owner draft must not erase malformed guest data");
   }
 });
+
+test("legacy matching-owner malformed forms survive autosave without byte loss", () => {
+  for (const malformedForm of [null, [], "recoverable text", 42]) {
+    const storage = store();
+    const raw = JSON.stringify({ version: 2, owner_id: A, form: malformedForm });
+    storage.setItem("ifund-guest-campaign-v1", raw);
+    assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+    assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
+    assert.equal(storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)), null);
+    assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+    assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
+  }
+});
+
+test("valid matching-owner legacy draft migrates intact before autosave", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Legacy owner text" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem("ifund-guest-campaign-v1", raw);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.equal(storage.getItem("ifund-guest-campaign-v1"), null);
+  assert.equal(restoreBrowserCampaign(storage, A).title, "Legacy owner text");
+});
+
+test("failed legacy migration retains original source when destination write throws", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Preserve on quota" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem("ifund-guest-campaign-v1", raw);
+  storage.setItem = () => { throw new Error("QuotaExceededError"); };
+  assert.throws(() => rememberBrowserCampaign(storage, A, form), /QuotaExceededError/);
+  assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
+});
