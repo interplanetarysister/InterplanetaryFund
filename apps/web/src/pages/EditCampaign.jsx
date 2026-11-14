@@ -14,6 +14,7 @@ import { Loader2, Save, PlayCircle, PauseCircle } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
+import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
@@ -168,12 +169,13 @@ export default function EditCampaign() {
         <textarea id="campaign-summary" aria-label="Short description" rows={3} maxLength={SUMMARY_MAX} value={form.summary} disabled={disabled}
           onChange={(e) => change("summary", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
+      <p className="text-sm text-muted-foreground">Full story format: 2–3 paragraphs separated by a blank line, each containing 3–5 complete sentences.</p>
       <label className="block font-semibold">Your story
         <textarea id="campaign-story" aria-label="Your story" rows={8} maxLength={STORY_MAX} value={form.story} disabled={disabled}
           onChange={(e) => change("story", e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" />
       </label>
       <label className="block font-semibold">Category
-        <select value={form.category} disabled={disabled}
+        <select id="campaign-category" value={form.category} disabled={disabled}
           onChange={(e) => change("category", e.target.value)} className={fieldClass}>
           {CATEGORY_ORDER.map((value) => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}
         </select>
@@ -183,11 +185,12 @@ export default function EditCampaign() {
           onChange={(e) => change("goal_amount", e.target.value)} className={fieldClass} />
       </label>
       <label className="block font-semibold">Cover image URL (optional)
-        <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} disabled={disabled}
+        <input id="campaign-cover" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url} disabled={disabled}
           onChange={(e) => change("cover_image_url", e.target.value)} className={fieldClass} />
       </label>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
 
+      <CampaignReadinessScore form={form} />
       <PrepublicationGate form={form} campaignId={id} canSend={status !== "active"} disabled={disabled} onApply={value=>setForm(previous=>({...previous,story:value}))} onApplyFields={fields=>{setForm(previous=>({...previous,...fields}));setNotice("");}} />
       {!readiness.ready && status === "draft" && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
