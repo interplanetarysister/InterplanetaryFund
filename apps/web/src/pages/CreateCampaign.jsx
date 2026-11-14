@@ -295,7 +295,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         </div>
         <p className="text-sm text-muted-foreground">Choose a starting direction. Generate five title ideas, two short descriptions and one editable story.</p>
       </fieldset>
-      <p className="text-sm text-muted-foreground">Get writing suggestions, check the facts, and choose what to include in your campaign.</p>
+      <p className="text-sm text-muted-foreground">Get writing suggestions, check the facts, and choose what to include in your campaign. These writing-assistant answers are kept only in this browser tab; saving your campaign to your account does not save these answers. Apply the suggestions you want to keep to your campaign title, description, or story before leaving.</p>
       <label className="block font-semibold">What is your fundraiser about?
         <textarea rows={4} maxLength={1500} value={draftDetails} disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError)}
           onChange={e => changeWritingBrief(setDraftDetails, e.target.value)} placeholder="Describe the situation and how funds would help."
