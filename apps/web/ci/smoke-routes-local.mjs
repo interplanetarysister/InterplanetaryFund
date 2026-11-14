@@ -26,6 +26,7 @@ const validDummy = "00000000-0000-4000-8000-000000000001";
 
 function candidate(route) {
   if (route === "*") return "/this-route-does-not-exist";
+  if (route.endsWith("/*")) return route.slice(0, -1) + "unmatched-qa-child";
   return route.replaceAll(":id", validDummy)
     .replaceAll(":slug", "getting-started")
     .replaceAll(":provider", "google");
@@ -65,7 +66,7 @@ async function checkRoutes(browser, width, records) {
     };
     page.on("pageerror", onError);
     page.on("response", onResponse);
-    let status = 0, text = "", overflow = null;
+    let status = 0, text = "", overflow = null, finalPath = "";
     try {
       const response = await page.goto(origin + path, {
         waitUntil: "domcontentloaded", timeout: 15000,
@@ -76,12 +77,17 @@ async function checkRoutes(browser, width, records) {
       await page.waitForFunction(() => document.body?.innerText?.length >= 45,
         null, { timeout: 5000 }).catch(() => {});
       text = await page.locator("body").innerText();
+      finalPath = new URL(page.url()).pathname;
       overflow = await page.evaluate(() =>
         document.documentElement.scrollWidth - window.innerWidth);
     } catch (error) {
       pageErrors.push(String(error.message).slice(0,180));
     }
     const expectedCompactEmbed = record.route === "/embed/campaign/:id";
+    // A generic guest notice cannot certify role-specific authorization.
+    // Guest smoke marks protected routes inconclusive until separate authenticated
+    // and other-owner negative cases are executed against a controlled backend.
+    const authInconclusive = record.role !== "public";
     const rejected =
       status !== 200 ||
       pageErrors.length > 0 ||
@@ -90,8 +96,9 @@ async function checkRoutes(browser, width, records) {
       (!expectedCompactEmbed && text.length < 50) ||
       (overflow !== null && overflow > 10) ||
       // A guest must not read a protected workspace in an unauthenticated pass.
-      (record.role !== "public" && !text.includes("Register an email account to create content"));
-    const result = { route: record.route, width, status,
+      authInconclusive;
+    const result = { route: record.route, testedPath: path, finalPath, width, status,
+      authInconclusive,
       chars: text.length, overflow, pageErrors, serverErrors, rejected };
     results.push(result);
     if (rejected) errors.push(result);
@@ -122,7 +129,7 @@ async function main() {
     const summary = {
       total: results.length, passed: results.length - errors.length,
       failed: errors.length, screenWidths: widths,
-      notes: "Source-only guest render, no authenticated or provider acceptance",
+      notes: "Guest render only. Protected routes deliberately fail closed as auth-inconclusive until independent authenticated and other-owner tests; no provider acceptance.",
     };
     process.stdout.write(JSON.stringify({ summary, failures: errors }, null, 2) + "\n");
     if (errors.length) process.exitCode = 1;
