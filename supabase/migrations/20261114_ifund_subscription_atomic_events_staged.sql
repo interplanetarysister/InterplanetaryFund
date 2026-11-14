@@ -101,6 +101,13 @@ BEGIN
      OR v_intent.currency <> 'USD' THEN
     RAISE EXCEPTION 'subscription identity mismatch' USING ERRCODE='22023';
   END IF;
+  -- A provider-verified payment must match the contracted intent amount.
+  -- Variable-price adjustments require a separate verified contract; never
+  -- silently accept a positive but different amount into the financial ledger.
+  IF p_entry_type = 'payment' AND
+     (v_intent.amount_cents IS NULL OR p_amount_cents <> v_intent.amount_cents) THEN
+    RAISE EXCEPTION 'subscription payment amount mismatch' USING ERRCODE='22023';
+  END IF;
   SELECT * INTO v_existing FROM public.ifund_subscription_ledger WHERE operation_key=p_operation_key;
   IF FOUND THEN
     IF v_existing.intent_id=p_intent_id AND
