@@ -68,8 +68,18 @@ export default function Atlas() {
 
   const locationRows = useMemo(() => atlasLocationRows(markers), [markers]);
   const coverage = useMemo(() => atlasLocationSummary(campaigns), [campaigns]);
+  const coverageData = useMemo(() => [
+    {name:"Published with approved location",value:coverage.mapped,label:coverage.mapped+" campaigns"},
+    {name:"Published without location",value:coverage.unmapped,label:coverage.unmapped+" campaigns"},
+  ], [coverage.mapped, coverage.unmapped]);
   const columns = useMemo(() => [
-    { field:"title", headerName:"Campaign", minWidth:240 },
+    { field:"title", headerName:"Campaign", minWidth:240,
+      cellRenderer:({data,value})=>data?.id
+        ? <Link className="font-semibold text-cyan-200 underline underline-offset-2" to={data.status==="Published"
+          ? "/campaign/"+encodeURIComponent(data.id)
+          : "/campaigns/"+encodeURIComponent(data.id)+"/edit"}>{value}</Link>
+        : (value || ""),
+    },
     { field:"location", headerName:"Approved city / region", minWidth:200 },
     { field:"category", headerName:"Cause", minWidth:140 },
     { field:"status", headerName:"Status", minWidth:130 },
@@ -125,10 +135,7 @@ export default function Atlas() {
         <div className="ifund-chart-card">
           <p className="ifund-chart-eyebrow">Map availability · Public location consent</p>
           <h2>Location coverage</h2>
-          <DonutChart data={[
-            {name:"Published with approved location",value:coverage.mapped,label:coverage.mapped+" campaigns"},
-            {name:"Published without location",value:coverage.unmapped,label:coverage.unmapped+" campaigns"},
-          ]} title="Public campaign location coverage" valueText={coverage.mapped+" mapped of "+coverage.published+" published campaigns"}/>
+          <DonutChart data={coverageData} title="Public campaign location coverage" valueText={coverage.mapped+" mapped of "+coverage.published+" published campaigns"}/>
           {scope==="mine" && <p className="mt-3 text-sm text-muted-foreground">{coverage.nonPublic} drafts or paused campaigns are not plotted publicly.</p>}
           <p className="mt-3 text-xs text-muted-foreground">Location sharing is optional. Open a campaign in your editor to add or change an approved broad location.</p>
         </div>
