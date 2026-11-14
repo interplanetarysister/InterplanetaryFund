@@ -233,7 +233,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
-      try { forgetBrowserCampaign(sessionStorage, ownerId); } catch { /* unavailable */ }
+      // A server save succeeded, but local cleanup can fail (disabled storage,
+      // malformed legacy data, or a blocked removeItem). Do not report that
+      // the browser copy was removed unless cleanup actually succeeded.
+      try {
+        const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
+        if (!cleared) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. Avoid using this shared browser until its stored draft is reviewed.");
+        else setAutosaveError("");
+      } catch {
+        setAutosaveError("Campaign saved to your account, but browser draft cleanup failed. An older copy may remain on this device.");
+      }
       setBrowserSaved(false);
       if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
       else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
