@@ -77,7 +77,7 @@ export default function EditCampaign() {
   useEffect(() => {
     if (phase !== "ready") return;
     const targetId = location.hash.slice(1);
-    if (!["campaign-title", "campaign-summary", "campaign-story", "campaign-goal"].includes(targetId)) return;
+    if (!["campaign-title", "campaign-summary", "campaign-story", "campaign-goal", "campaign-atlas-location"].includes(targetId)) return;
     const field = document.getElementById(targetId);
     if (!field) return;
     field.scrollIntoView({ behavior: "smooth", block: "center" });
