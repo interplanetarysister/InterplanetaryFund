@@ -9,7 +9,7 @@ import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, 
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import MemberAccess from "@/components/auth/MemberAccess";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign } from "@/lib/browserCampaignDraft";
+import { restoreBrowserCampaign, restoreWritingBrief, emptyWritingBrief, rememberBrowserCampaign, forgetBrowserCampaign, hasUnclaimedGuestCampaign, importGuestCampaign } from "@/lib/browserCampaignDraft";
 import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
 import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
@@ -84,6 +84,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
   const [browserSaved, setBrowserSaved] = useState(false);
+  const [guestDecisionPending, setGuestDecisionPending] = useState(() => {
+    try { return Boolean(ownerId && !draftId && hasUnclaimedGuestCampaign(sessionStorage)); } catch { return false; }
+  });
+  const [guestImportMessage, setGuestImportMessage] = useState("");
   const [autosaveError, setAutosaveError] = useState("");
   const [restoredBrief] = useState(() => {
     try { return draftId ? emptyWritingBrief() : restoreWritingBrief(sessionStorage, ownerId); }
@@ -177,14 +181,43 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     // A confirmed account save owns the current form until the user edits it.
     // Autosaving that same form again would recreate a browser copy immediately
     // after cleanup, or erase the retained-copy privacy warning on failure.
-    if (draftId || (saved && campaignId.current === saved)) return;
+    if (guestDecisionPending || draftId || (saved && campaignId.current === saved)) return;
     try {
       const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
-  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
-  const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, guestDecisionPending]);
+  const disabled = Boolean(guestDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
+  function decideGuestDraft(importIt) {
+    if (!importIt) {
+      setGuestImportMessage("Guest draft kept separately on this device.");
+      setGuestDecisionPending(false);
+      return;
+    }
+    try {
+      const imported = importGuestCampaign(sessionStorage, ownerId);
+      // The helper returns false after a successful owner write if guest cleanup fails.
+      // In that case the owner draft must still be restored and the retained copy disclosed.
+      const ownerRecord = sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId));
+      if (!ownerRecord) {
+        setGuestImportMessage("Import unavailable: this account may already have a draft, or browser storage is invalid. Choose Keep separate.");
+        return;
+      }
+      if (!imported && hasUnclaimedGuestCampaign(sessionStorage)) {
+        setGuestImportMessage("Import was not completed. An account draft already exists or guest cleanup failed. Choose Keep separate; no data was deleted.");
+        return;
+      }
+      setForm(restoreBrowserCampaign(sessionStorage, ownerId));
+      const brief = restoreWritingBrief(sessionStorage, ownerId);
+      setWritingPath(brief.writingPath); setDraftDetails(brief.details);
+      setDraftBeneficiary(brief.beneficiary); setDraftNeed(brief.need);
+      setGuestImportMessage("Guest draft imported into this account.");
+      setGuestDecisionPending(false);
+    } catch {
+      setGuestImportMessage("Browser storage failed. Guest draft was not intentionally deleted. Choose Keep separate.");
+    }
+  }
   function change(key, value) { userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
   function changeWritingBrief(setter, value) {
     // Writing-brief edits are user edits too: otherwise a prior server receipt
@@ -279,6 +312,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
+    {guestDecisionPending && <section role="region" aria-label="Guest draft transfer" className="space-y-3 rounded-xl border p-3"><p>A guest campaign draft is stored on this device and may belong to another person. Import it only if it is yours. Existing account drafts will not be overwritten.</p><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(true)}>Import my guest draft</button><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(false)}>Keep separate</button></div></section>}
+    {guestImportMessage && <p role="status" className="text-sm break-words">{guestImportMessage}</p>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { userEditedDraft.current = true; setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
