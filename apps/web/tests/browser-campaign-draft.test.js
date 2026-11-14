@@ -157,3 +157,17 @@ test("autosave preserves malformed scoped form payloads without erasing recovera
     assert.equal(storage.getItem(key), raw);
   }
 });
+
+test("malformed guest drafts remain recoverable when verified owner opens editor", () => {
+  for (const invalidForm of [null, [], "broken", 42]) {
+    const storage = store();
+    const raw = JSON.stringify({ version: 2, owner_id: null, form: invalidForm });
+    const guestKey = "ifund-guest-campaign-v1:guest";
+    storage.setItem(guestKey, raw);
+    assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+    assert.equal(storage.getItem(guestKey), raw, "invalid guest record must not be consumed");
+    assert.equal(storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)), null);
+    assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), true);
+    assert.equal(storage.getItem(guestKey), raw, "saving a new owner draft must not erase malformed guest data");
+  }
+});
