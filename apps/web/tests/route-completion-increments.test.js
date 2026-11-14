@@ -90,12 +90,13 @@ test("guest owner declaration survives source comments and remains executable", 
     "literal backslash-n in comments must not comment out the owner declaration");
 });
 
-test("browser draft writes cannot replace another account's saved draft", () => {
-  const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
-  assert.match(browserDraft, /existing\?\.owner_id != null && existing\.owner_id !== ownerId\) return false/,
-    "cross-account and signed-out writes must preserve an existing owner-scoped draft");
+test("browser drafts use isolated owner and guest keys", () => {
+  const draft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
+  assert.ok(draft.includes('KEY + ":guest"'));
+  assert.ok(draft.includes('KEY + ":owner:" + encodeURIComponent(ownerId)'));
+  assert.ok(draft.includes("guest?.version === 2 && guest.owner_id === null"));
+  assert.ok(draft.includes("parsed?.version === 2 && parsed.owner_id === ownerId"));
 });
-
 
 test("unverified sessions cannot claim guest drafts or falsely acknowledge rejected writes", () => {
   const composer = page("CreateCampaign");
@@ -109,13 +110,17 @@ test("unverified sessions cannot claim guest drafts or falsely acknowledge rejec
     "rejected writes must provide a visible error");
 });
 
-test("successful cloud save must not erase another account's browser draft", () => {
-  const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
+test("successful cloud save only clears the matching browser draft", () => {
+  const draft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
   const composer = page("CreateCampaign");
-  assert.match(browserDraft, /export function forgetBrowserCampaign\(storage, ownerId\)/,
-    "draft deletion must be owner-scoped");
-  assert.match(browserDraft, /record\.owner_id !== null && record\.owner_id !== ownerId\) return false/,
-    "deletion must reject a different account's draft");
-  assert.match(composer, /forgetBrowserCampaign\(sessionStorage, ownerId\)/,
-    "cloud-save completion must supply the verified owner");
+  assert.ok(draft.includes("export function forgetBrowserCampaign(storage, ownerId)"));
+  assert.ok(draft.includes("record.owner_id !== ownerId) return false"));
+  assert.ok(composer.includes("forgetBrowserCampaign(sessionStorage, ownerId)"));
+});
+
+test("autosave failures are announced to the editor", () => {
+  const composer = page("CreateCampaign");
+  assert.ok(composer.includes('setAutosaveError(stored ? "" :'));
+  assert.ok(composer.includes('setAutosaveError("Browser storage is unavailable.'));
+  assert.ok(composer.includes('autosaveError && <p role="alert"'));
 });
