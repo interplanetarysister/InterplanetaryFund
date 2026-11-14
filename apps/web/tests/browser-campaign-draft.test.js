@@ -204,3 +204,34 @@ test("failed legacy migration retains original source when destination write thr
   assert.throws(() => rememberBrowserCampaign(storage, A, form), /QuotaExceededError/);
   assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
 });
+
+test("first blank autosave cannot erase a newly migrated matching-owner legacy draft", () => {
+  const storage = store();
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const form = { ...emptyCampaignForm(), title: "Keep original title", story: "Keep original story" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem("ifund-guest-campaign-v1", raw);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  assert.equal(storage.getItem(key), raw, "migration must retain the exact original bytes");
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.equal(rememberBrowserCampaign(storage, A, form), true, "hydrated editor may save");
+});
+
+test("first blank autosave cannot erase a freshly claimed guest draft", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Guest story" };
+  rememberBrowserCampaign(storage, null, form);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  assert.equal(restoreBrowserCampaign(storage, A).title, "Guest story");
+});
+
+test("legacy remove failure never erases migrated text", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Retain on remove failure" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem("ifund-guest-campaign-v1", raw);
+  storage.removeItem = () => { throw new Error("RemoveBlocked"); };
+  assert.throws(() => rememberBrowserCampaign(storage, A, emptyCampaignForm()), /RemoveBlocked/);
+  assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
+  assert.equal(storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)), raw);
+});
