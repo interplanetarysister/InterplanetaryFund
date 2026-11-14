@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Compass, Globe2, MapPin, Search, ShieldCheck } from "lucide-react";
-import { listActiveCampaigns } from "@/api/publicData";
+import { listPublicAtlasCampaigns } from "@/api/publicData";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -35,9 +35,8 @@ export default function Atlas() {
           const rows = await listOwnerCampaigns(authClient());
           if (alive) { setOwnerCampaigns(rows.map(mapAtlasCampaign)); setStatus("ready"); }
         } else {
-          // The public endpoint still verifies payment totals internally, but
-          // Atlas never displays or derives financial statistics from them.
-          const rows = await listActiveCampaigns({ limit: 500 });
+          // This is a public geography-only query: no payment RPC is needed.
+          const rows = await listPublicAtlasCampaigns({ limit: 500 });
           if (alive) { setPublicCampaigns(rows); setStatus("ready"); }
         }
       } catch {
