@@ -4,22 +4,31 @@ import { CAMPAIGN_WRITING_PATHS } from "./campaignWritingPaths.js";
 const KEY = "ifund-guest-campaign-v1";
 const LEGACY_BACKUP = "ifund-unscoped-campaign-v1";
 
-// A browser draft may pass from a guest to their first signed-in identity.
-// Once attributed, another identity (including signed-out) cannot restore it.
-// This is local UI isolation; server ownership is still checked on every save.
+// Each verified owner gets a distinct session draft. The guest slot stays
+// separate so signing out never reveals a previous account's work.
+const ownerKey = ownerId => ownerId == null ? KEY + ":guest" : KEY + ":owner:" + encodeURIComponent(ownerId);
+
 function scopedRecord(storage, ownerId) {
-  const raw = storage.getItem(KEY);
+  const key = ownerKey(ownerId);
+  let raw = storage.getItem(key);
+  if (!raw) {
+    // Migrate a legacy single-slot v2 record only to its matching owner.
+    // Never erase a different owner's legacy record or claim it as guest.
+    const legacy = storage.getItem(KEY);
+    if (legacy) {
+      let parsed;
+      try { parsed = JSON.parse(legacy); } catch { return null; }
+      if (parsed?.version === 2 && parsed.owner_id === ownerId) {
+        storage.setItem(key, legacy);
+        storage.removeItem(KEY);
+        raw = legacy;
+      }
+    }
+  }
   if (!raw) return null;
   let record;
-  try {
-    record = JSON.parse(raw);
-  } catch {
-    return null;
-  }
-  if (record?.version !== 2) {
-    return null;
-  }
-  if (record.owner_id !== null && record.owner_id !== ownerId) return null;
+  try { record = JSON.parse(raw); } catch { return null; }
+  if (record?.version !== 2 || record.owner_id !== ownerId) return null;
   return record;
 }
 
@@ -61,45 +70,31 @@ export function restoreWritingBrief(storage, ownerId) {
 }
 
 export function rememberBrowserCampaign(storage, ownerId, form, brief) {
-  const raw = storage.getItem(KEY);
-  let version;
-  try {
-    version = JSON.parse(raw)?.version;
-  } catch {
-    /* preserve unparseable old text too */
-  }
-  // Never overwrite a draft owned by another signed-in account or a signed-out user.
-  // A guest-owned (null) draft may still be claimed by the first verified account.
-  if (version === 2) {
-    let existing;
-    try { existing = JSON.parse(raw); } catch { /* invalid record is handled below */ }
-    if (existing?.owner_id != null && existing.owner_id !== ownerId) return false;
-  }
-  // Older previews did not record ownership. Archive before overwriting; never
-  // automatically display unattributed text to the next authenticated account.
-  if (raw && version !== 2 && !storage.getItem(LEGACY_BACKUP))
-    storage.setItem(LEGACY_BACKUP, raw);
-  storage.setItem(
-    KEY,
-    JSON.stringify({
-      version: 2,
-      owner_id: ownerId,
-      form: campaignForm(form),
-      writing_brief: writingBrief(brief),
-    }),
-  );
+  const key = ownerKey(ownerId);
+  // Preserve a matching legacy record if the current slot is empty.
+  scopedRecord(storage, ownerId);
+  storage.setItem(key, JSON.stringify({
+    version: 2, owner_id: ownerId,
+    form: campaignForm(form), writing_brief: writingBrief(brief),
+  }));
   return true;
 }
 
 export function forgetBrowserCampaign(storage, ownerId) {
-  // Never clear a different account's draft after a successful cloud save.
-  // A verified account may clear an unclaimed guest draft after taking ownership.
-  const raw = storage.getItem(KEY);
-  if (!raw) return true;
-  let record;
-  try { record = JSON.parse(raw); } catch { return false; }
-  if (record?.version !== 2) return false;
-  if (record.owner_id !== null && record.owner_id !== ownerId) return false;
-  storage.removeItem(KEY);
+  const key = ownerKey(ownerId);
+  const raw = storage.getItem(key);
+  if (raw) {
+    let record;
+    try { record = JSON.parse(raw); } catch { return false; }
+    if (record?.version !== 2 || record.owner_id !== ownerId) return false;
+    storage.removeItem(key);
+  }
+  // Only clear the old single-slot record if it belongs to this owner.
+  const legacy = storage.getItem(KEY);
+  if (legacy) {
+    let record;
+    try { record = JSON.parse(legacy); } catch { return false; }
+    if (record?.version === 2 && record.owner_id === ownerId) storage.removeItem(KEY);
+  }
   return true;
 }
