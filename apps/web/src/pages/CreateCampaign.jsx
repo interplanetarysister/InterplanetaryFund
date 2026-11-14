@@ -43,6 +43,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const draftId = params.get("draft");
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
+  // Explicit edits, not mount/effect replays, authorize clearing restored text.
+  const userEditedDraft = useRef(false);
   const coverUploadLock = useRef(false);
   const writingLock = useRef(false);
   const writingRequests = useRef(new Map());
@@ -174,13 +176,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   useEffect(() => {
     if (draftId) return;
     try {
-      const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed });
+      const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
   }, [form, draftId, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed]);
   const disabled = Boolean(busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
-  function change(key, value) { setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) { userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
   async function handleCoverUpload(file) {
     if (coverUploadLock.current || !file) return;
     const problem = validateCoverFile(file);
@@ -365,7 +367,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </form>
     <CampaignReadinessScore form={form} />
     {autosaveError && <p role="alert" className="text-sm text-red-600 break-words">{autosaveError}</p>}
-    <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
+    <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{userEditedDraft.current = true;setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
