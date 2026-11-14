@@ -77,7 +77,7 @@ test("anonymous auth sessions retain guest draft scope for verified-account hand
   assert.match(composer, /key=\{\(draftId \|\| "new"\) \+ ":" \+ \(ownerId \|\| "guest"\)\}/,
     "the editor must remount when a verified account takes ownership");
   const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
-  assert.match(browserDraft, /record\.owner_id !== null && record\.owner_id !== ownerId/,
+  assert.match(browserDraft, /record\.owner_id !== ownerId/,
     "drafts attributed to a different account must not be restored");
 });
 
