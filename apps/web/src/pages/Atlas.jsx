@@ -12,8 +12,10 @@ import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAt
 import "./Atlas.css";
 
 export default function Atlas() {
-  const { user } = useAuthSession();
-  const [scope, setScope] = useState("public");
+  const { user, status: sessionStatus } = useAuthSession();
+  const [selectedScope, setSelectedScope] = useState(null);
+  // Authenticated members land on their campaigns; visitors see the public Atlas.
+  const scope = selectedScope || (sessionStatus === "signed-in" && user?.is_anonymous !== true ? "mine" : "public");
   const [publicCampaigns, setPublicCampaigns] = useState([]);
   const [ownerCampaigns, setOwnerCampaigns] = useState({ ownerId: null, rows: [] });
   const [query, setQuery] = useState("");
@@ -23,6 +25,7 @@ export default function Atlas() {
 
   useEffect(() => {
     let alive = true;
+    if (sessionStatus === "loading") { setStatus("loading"); return () => { alive = false; }; }
     setStatus("loading");
     setError("");
     (async () => {
@@ -49,7 +52,7 @@ export default function Atlas() {
       }
     })();
     return () => { alive = false; };
-  }, [scope, user?.id, user?.is_anonymous, reload]);
+  }, [scope, sessionStatus, user?.id, user?.is_anonymous, reload]);
 
   // Account scope is only ever populated by the server-verified owner read.
   // Unpublished campaigns can appear in the PRIVATE grid, not public globe pins.
@@ -96,8 +99,8 @@ export default function Atlas() {
       <p className="flex items-start gap-2"><ShieldCheck className="h-5 w-5 shrink-0 text-emerald-500"/> Public pins use only organizer-approved approximate locations. Private drafts and paused campaigns remain invisible on the public globe. No precise home addresses, inferred locations or invented cities.</p>
     </section>
     <div role="group" aria-label="Campaign Atlas scope" className="flex flex-wrap gap-2">
-      <button type="button" aria-pressed={scope==="public"} onClick={()=>{setScope("public");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="public"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>All public campaigns</button>
-      <button type="button" aria-pressed={scope==="mine"} onClick={()=>{setScope("mine");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="mine"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>My campaigns</button>
+      <button type="button" aria-pressed={scope==="public"} onClick={()=>{setSelectedScope("public");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="public"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>All public campaigns</button>
+      <button type="button" aria-pressed={scope==="mine"} onClick={()=>{setSelectedScope("mine");setQuery("");}} className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${scope==="mine"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>My campaigns</button>
     </div>
     {status==="loading" && <p role="status">Loading verified campaign locations…</p>}
     {status==="signed-out" && <p role="status" className="rounded-xl border p-5">Sign in with your verified campaign-owner account to view your own campaigns. <Link to="/login" className="underline font-semibold">Sign in</Link></p>}
