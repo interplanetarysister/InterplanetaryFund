@@ -108,3 +108,14 @@ test("unverified sessions cannot claim guest drafts or falsely acknowledge rejec
   assert.match(composer, /if \(!stored\) setError\(/,
     "rejected writes must provide a visible error");
 });
+
+test("successful cloud save must not erase another account's browser draft", () => {
+  const browserDraft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
+  const composer = page("CreateCampaign");
+  assert.match(browserDraft, /export function forgetBrowserCampaign\(storage, ownerId\)/,
+    "draft deletion must be owner-scoped");
+  assert.match(browserDraft, /record\.owner_id !== null && record\.owner_id !== ownerId\) return false/,
+    "deletion must reject a different account's draft");
+  assert.match(composer, /forgetBrowserCampaign\(sessionStorage, ownerId\)/,
+    "cloud-save completion must supply the verified owner");
+});
