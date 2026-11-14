@@ -236,16 +236,23 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // A server save succeeded, but local cleanup can fail (disabled storage,
       // malformed legacy data, or a blocked removeItem). Do not report that
       // the browser copy was removed unless cleanup actually succeeded.
+      let browserCleanupFailed = false;
       try {
         const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
-        if (!cleared) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. Avoid using this shared browser until its stored draft is reviewed.");
+        browserCleanupFailed = !cleared;
+        if (browserCleanupFailed) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. It may contain private information on this device. Review browser storage before using a shared device.");
         else setAutosaveError("");
       } catch {
+        browserCleanupFailed = true;
         setAutosaveError("Campaign saved to your account, but browser draft cleanup failed. An older copy may remain on this device.");
       }
       setBrowserSaved(false);
-      if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
-      else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
+      // Keep the accessible warning mounted if cleanup fails; navigating away
+      // immediately would discard the only visible notice of retained data.
+      if (!browserCleanupFailed) {
+        if (status === "active") navigate(`/campaign/${encodeURIComponent(data.id)}`);
+        else if (!draftId) navigate(`/create?draft=${encodeURIComponent(data.id)}`, { replace: true });
+      }
     } catch (err) {
       setError(err?.message || "Your campaign could not be saved.");
       if (isCampaignConflict(err)) setDraftLoadError("This campaign changed in another session. Open My campaigns before making further changes.");
@@ -375,7 +382,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
     </form>
     <CampaignReadinessScore form={form} />
-    {autosaveError && <p role="alert" className="text-sm text-red-600 break-words">{autosaveError}</p>}
+    {autosaveError && <div role="alert" className="space-y-2 text-sm text-red-600 break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{userEditedDraft.current = true;setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
