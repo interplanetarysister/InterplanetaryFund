@@ -20,7 +20,11 @@ test("minimum 3,500 full-story characters block new publishing without blocking 
  assert.equal(publishReadiness(short).ready,false);
  const long={...short,story:"Useful details.".repeat(250)};
  assert.equal(reviewCampaignPublication(long).storyCharacters, 3750);
- assert.equal(publishReadiness(long).ready,true);
+ assert.equal(publishReadiness(long).ready,false, "A single repeated sentence does not satisfy the required structure");
+ const sentence="We will responsibly document the use of funds and keep our community informed "+ "x".repeat(475)+".";
+ const structured=[sentence+" "+sentence+" "+sentence,sentence+" "+sentence+" "+sentence].join("\\n\\n");
+ assert.ok(structured.length>=3500);
+ assert.equal(publishReadiness({...base,story:structured}).ready,true);
 });
 
 test("campaign-wide checks include headline, summary, story and cross-field redundancy",()=>{
