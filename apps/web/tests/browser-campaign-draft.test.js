@@ -131,3 +131,17 @@ test("quota and unavailable storage failures cannot produce a saved receipt", ()
   assert.throws(() => restoreBrowserCampaign(unavailable, A), /Storage disabled/);
   assert.throws(() => rememberBrowserCampaign(unavailable, A, emptyCampaignForm()), /Storage disabled/);
 });
+
+test("initial mount and autosave preserve malformed and foreign scoped records", () => {
+  const storage = store();
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  for (const raw of ["{broken", "null", JSON.stringify({ version: 2, owner_id: B, form: emptyCampaignForm() })]) {
+    storage.setItem(key, raw);
+    assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+    assert.equal(rememberBrowserCampaign(storage, A, { ...emptyCampaignForm(), title: "New text" }), false);
+    assert.equal(storage.getItem(key), raw, "autosave must not destroy a recoverable record");
+  }
+  storage.removeItem(key);
+  assert.equal(rememberBrowserCampaign(storage, A, { ...emptyCampaignForm(), title: "Safe" }), true);
+  assert.equal(restoreBrowserCampaign(storage, A).title, "Safe");
+});
