@@ -91,6 +91,15 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   return true;
 }
 
-export function forgetBrowserCampaign(storage) {
+export function forgetBrowserCampaign(storage, ownerId) {
+  // Never clear a different account's draft after a successful cloud save.
+  // A verified account may clear an unclaimed guest draft after taking ownership.
+  const raw = storage.getItem(KEY);
+  if (!raw) return true;
+  let record;
+  try { record = JSON.parse(raw); } catch { return false; }
+  if (record?.version !== 2) return false;
+  if (record.owner_id !== null && record.owner_id !== ownerId) return false;
   storage.removeItem(KEY);
+  return true;
 }
