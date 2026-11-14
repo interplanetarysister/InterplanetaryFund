@@ -25,6 +25,20 @@ function scopedRecord(storage, ownerId) {
       }
     }
   }
+  if (!raw && ownerId != null) {
+    // Transfer the unclaimed guest draft to the first verified owner.
+    const guestRaw = storage.getItem(ownerKey(null));
+    if (guestRaw) {
+      let guest;
+      try { guest = JSON.parse(guestRaw); } catch { /* preserve malformed data */ }
+      if (guest?.version === 2 && guest.owner_id === null) {
+        const claimed = JSON.stringify({ ...guest, owner_id: ownerId });
+        storage.setItem(key, claimed);
+        storage.removeItem(ownerKey(null));
+        raw = claimed;
+      }
+    }
+  }
   if (!raw) return null;
   let record;
   try { record = JSON.parse(raw); } catch { return null; }
