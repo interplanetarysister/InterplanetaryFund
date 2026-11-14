@@ -68,6 +68,13 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
   } catch {
     /* preserve unparseable old text too */
   }
+  // Never overwrite a draft owned by another signed-in account or a signed-out user.
+  // A guest-owned (null) draft may still be claimed by the first verified account.
+  if (version === 2) {
+    let existing;
+    try { existing = JSON.parse(raw); } catch { /* invalid record is handled below */ }
+    if (existing?.owner_id != null && existing.owner_id !== ownerId) return false;
+  }
   // Older previews did not record ownership. Archive before overwriting; never
   // automatically display unattributed text to the next authenticated account.
   if (raw && version !== 2 && !storage.getItem(LEGACY_BACKUP))
@@ -81,6 +88,7 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief) {
       writing_brief: writingBrief(brief),
     }),
   );
+  return true;
 }
 
 export function forgetBrowserCampaign(storage) {
