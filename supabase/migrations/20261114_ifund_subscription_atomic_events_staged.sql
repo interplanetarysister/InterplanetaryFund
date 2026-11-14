@@ -21,6 +21,43 @@ ALTER TABLE public.ifund_subscription_ledger
 -- Existing NULL legacy identities are deliberately excluded until reconciled.
 -- A competing insert fails closed with SQLSTATE 23505; caller must not retry
 -- with a different resource or fabricate a successful ledger outcome.
+-- Fail closed before index creation: IF NOT EXISTS alone does not validate a
+-- preexisting same-named index. No historical ledger values are disclosed.
+DO $provider_index_preflight$
+DECLARE
+  v_duplicates bigint;
+  v_index oid;
+  v_valid boolean;
+BEGIN
+  SELECT count(*) INTO v_duplicates FROM (
+    SELECT provider_resource_id, entry_type
+    FROM public.ifund_subscription_ledger
+    WHERE provider_resource_id IS NOT NULL
+    GROUP BY provider_resource_id, entry_type HAVING count(*) > 1
+  ) AS collisions;
+  IF v_duplicates <> 0 THEN
+    RAISE EXCEPTION 'provider resource collisions: % grouped identities', v_duplicates
+      USING ERRCODE='23505';
+  END IF;
+  SELECT to_regclass('public.ifund_subscription_ledger_provider_resource_type_uniq') INTO v_index;
+  IF v_index IS NOT NULL THEN
+    SELECT i.indisunique AND i.indisvalid AND i.indisready
+       AND i.indnkeyatts = 2 AND i.indnatts = 2
+       AND i.indrelid = 'public.ifund_subscription_ledger'::regclass
+       AND pg_get_indexdef(i.indexrelid, 1, true) = 'provider_resource_id'
+       AND pg_get_indexdef(i.indexrelid, 2, true) = 'entry_type'
+       AND lower(regexp_replace(coalesce(pg_get_expr(i.indpred, i.indrelid), ''),
+         '[[:space:]()]', '', 'g')) = 'provider_resource_idisnotnull'
+       AND i.indexprs IS NULL
+      INTO v_valid
+      FROM pg_catalog.pg_index i WHERE i.indexrelid = v_index;
+    IF NOT coalesce(v_valid, false) THEN
+      RAISE EXCEPTION 'provider resource index definition mismatch'
+        USING ERRCODE='55000';
+    END IF;
+  END IF;
+END $provider_index_preflight$;
+
 CREATE UNIQUE INDEX IF NOT EXISTS ifund_subscription_ledger_provider_resource_type_uniq
   ON public.ifund_subscription_ledger (provider_resource_id, entry_type)
   WHERE provider_resource_id IS NOT NULL;
