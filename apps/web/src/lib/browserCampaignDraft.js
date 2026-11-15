@@ -87,7 +87,7 @@ export function importGuestCampaign(storage, ownerId) {
   return { status: "imported" };
 }
 
-export function restoreBrowserCampaign(storage, ownerId) {
+function restoreBrowserCampaignUnsafe(storage, ownerId) {
   const record = scopedRecord(storage, ownerId);
   if (!record) return emptyCampaignForm();
   return campaignForm(record.form);
@@ -120,11 +120,11 @@ function writingBrief(value) {
   return result;
 }
 
-export function restoreWritingBrief(storage, ownerId) {
+function restoreWritingBriefUnsafe(storage, ownerId) {
   return writingBrief(scopedRecord(storage, ownerId)?.writing_brief);
 }
 
-export function rememberBrowserCampaign(storage, ownerId, form, brief, { allowBlankOverwrite = false } = {}) {
+function rememberBrowserCampaignUnsafe(storage, ownerId, form, brief, { allowBlankOverwrite = false } = {}) {
   const key = ownerKey(ownerId);
   // Do not overwrite a damaged or mismatched scoped record on initial mount.
   // The editor will show an autosave warning instead of destroying recoverable text.
@@ -192,7 +192,7 @@ export function rememberBrowserCampaign(storage, ownerId, form, brief, { allowBl
   return true;
 }
 
-export function forgetBrowserCampaign(storage, ownerId) {
+function forgetBrowserCampaignUnsafe(storage, ownerId) {
   const key = ownerKey(ownerId);
   const raw = storage.getItem(key);
   if (raw) {
@@ -209,4 +209,27 @@ export function forgetBrowserCampaign(storage, ownerId) {
     if (record?.version === 2 && record.owner_id === ownerId) storage.removeItem(KEY);
   }
   return true;
+}
+
+// Browser storage may throw SecurityError or QuotaExceededError at any step.
+// Reads return safe empty views; mutations fail closed without claiming success.
+// The editor must display an autosave warning when remember/forget returns false.
+export function restoreBrowserCampaign(storage, ownerId) {
+  try { return restoreBrowserCampaignUnsafe(storage, ownerId); }
+  catch { return emptyCampaignForm(); }
+}
+
+export function restoreWritingBrief(storage, ownerId) {
+  try { return restoreWritingBriefUnsafe(storage, ownerId); }
+  catch { return emptyWritingBrief(); }
+}
+
+export function rememberBrowserCampaign(storage, ownerId, form, brief, options) {
+  try { return rememberBrowserCampaignUnsafe(storage, ownerId, form, brief, options); }
+  catch { return false; }
+}
+
+export function forgetBrowserCampaign(storage, ownerId) {
+  try { return forgetBrowserCampaignUnsafe(storage, ownerId); }
+  catch { return false; }
 }
