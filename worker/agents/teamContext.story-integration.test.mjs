@@ -15,3 +15,9 @@ test('context is feature-gated and missing backend data fails closed',()=>{
  assert.match(adapter,/Authorization: ['\"]Bearer ['\"]\+jwt/);
  assert.doesNotMatch(adapter,/p_owner_id\s*:/);
 });
+
+test('completion and replay persist one canonical draft payload and never truncate structured JSON',()=>{
+ assert.match(story,/content: JSON\.stringify\(claim\.draft\.payload\)/);
+ assert.match(story,/content: JSON\.stringify\(draft\?\.payload \?\? suggestion\)/);
+ assert.doesNotMatch(story,/JSON\.stringify\(claim\.draft\.payload\)\.slice\(/);
+});
