@@ -325,8 +325,16 @@ export default function AuthPage({ mode = "login" }) {
             {isRegister && confirmationPending && (
               <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
                 <h2 className="font-semibold">Confirm your email using the link</h2>
-                <p className="mt-2">If a confirmation email was issued to {email}, open the latest message and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
-                <p className="mt-2">If you already clicked the link in another tab, select the button below to check this browser’s account session.</p>
+                {isNativeApp ? (
+                   <p className="mt-2">Open the confirmation link sent to {email} on the secure IFund website. After confirming, return to this app and sign in using your email and password. Your account and campaigns will be the same across devices.</p>
+                 ) : (
+                   <p className="mt-2">If a confirmation email was issued to {email}, open the latest message and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
+                 )}
+                {isNativeApp ? (
+                   <Link to={"/login?returnTo=" + encodeURIComponent(afterLogin)} className="mt-3 inline-flex min-h-11 items-center text-cyan-200 underline">Sign in after email verification</Link>
+                 ) : (
+                   <p className="mt-2">If you already clicked the link in another tab, select the button below to check this browser’s account session.</p>
+                 )}
               </section>
             )}
             {isReset && recoveryCodeSent && (
@@ -367,7 +375,7 @@ export default function AuthPage({ mode = "login" }) {
                 {message}
               </p>
             )}
-            <button
+            {!(isNativeApp && isRegister && confirmationPending) && <button
               disabled={busy}
               type="submit"
               className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60"
@@ -383,7 +391,7 @@ export default function AuthPage({ mode = "login" }) {
                       ? "I clicked the email link — continue"
                       : "Create account"
                     : "Sign in"}
-            </button>
+            </button>}
           </form>
           {isRegister && confirmationPending && <Link to="/discover" className="mt-4 inline-flex min-h-11 items-center text-cyan-200 underline">Browse campaigns while your email is being confirmed</Link>}
           {isRegister && <p className="mt-3 text-sm text-slate-300">Already registered? <Link className="text-cyan-200 underline" to={"/login?returnTo=" + encodeURIComponent(afterLogin)}>Sign in</Link> or <Link className="text-cyan-200 underline" to={"/forgot-password?returnTo=" + encodeURIComponent(afterLogin)}>reset your password</Link>.</p>}
