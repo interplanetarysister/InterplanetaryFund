@@ -7,6 +7,7 @@ import { Capacitor, registerPlugin } from "@capacitor/core";
 import { authClient } from "@/api/auth";
 import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
 import { finalizeSignupAgreement } from "@/lib/legalAcceptance";
+import { finalizeSignupAIChoices } from "@/lib/signupAIPreferences";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 
 const NativeApp = registerPlugin("App");
@@ -81,8 +82,9 @@ export function installNativeAuthLinks(target = globalThis, options = {}) {
       await verifiedAuthUser(client.auth);
       if (!result.recovery) {
         try {
-          await finalizeSignupAgreement(client, (await verifiedAuthUser(client.auth)),
-            target.sessionStorage);
+          const user = await verifiedAuthUser(client.auth);
+          const accepted = await finalizeSignupAgreement(client, user, target.sessionStorage);
+          if (accepted) await finalizeSignupAIChoices(client, user, target.sessionStorage);
         } catch { /* Existing member legal gate still applies. */ }
       }
       navigate(result.recovery ? "/reset-password" : safeReturnTo(result.returnTo));
