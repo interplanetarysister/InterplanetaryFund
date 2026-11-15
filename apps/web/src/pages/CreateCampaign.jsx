@@ -65,6 +65,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
           setLoadedDraftId(draftId);
           setSaved(data.id);
+          setSavedStatus("draft");
         }
       } catch (err) { if (active) setDraftLoadError(err?.message || "Unable to load draft."); }
       finally { if (active) setLoadingDraft(false); }
@@ -83,6 +84,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [handoffBusy, setHandoffBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState("");
+  const [savedStatus, setSavedStatus] = useState("draft");
   const [browserSaved, setBrowserSaved] = useState(false);
   const [guestDecisionPending, setGuestDecisionPending] = useState(() => {
     if (!ownerId || draftId) return false;
@@ -310,6 +312,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // campaign while React is committing the new URL.
       campaignId.current = data.id;
       setSaved(data.id);
+      setSavedStatus(status);
       // A server save succeeded, but local cleanup can fail (disabled storage,
       // malformed legacy data, or a blocked removeItem). Do not report that
       // the browser copy was removed unless cleanup actually succeeded.
@@ -462,10 +465,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </fieldset>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
-      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">Private draft saved. <Link to="/campaigns" className="underline">Manage your campaigns</Link></p>}
+      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={`/campaign/${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
     </form>
     <CampaignReadinessScore form={form} />
-    {autosaveError && <div role="alert" className="space-y-2 text-sm text-red-600 break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
+    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
     <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{userEditedDraft.current = true;setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
