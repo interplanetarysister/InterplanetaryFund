@@ -109,7 +109,7 @@ begin
   return query select e.id,e.event_key,e.agent_id,e.speaker,e.source_kind,e.content,e.campaign_id,e.recorded_at
     from public.ifund_agent_team_events e
     where e.owner_id=actor and e.deleted_at is null and
-      (p_campaign_id is null or e.campaign_id=p_campaign_id)
+      (p_campaign_id is null or e.campaign_id=p_campaign_id or e.campaign_id is null)
     order by e.recorded_at desc,e.id desc limit p_limit;
 end $$;
 revoke all on function public.ifund_team_recent(uuid,integer) from public,anon;
@@ -127,5 +127,33 @@ begin
 end $$;
 revoke all on function public.ifund_team_erase(uuid) from public,anon;
 grant execute on function public.ifund_team_erase(uuid) to authenticated;
+
+
+-- An owner can correct their own statement without modifying the historical
+-- agent response. The old content becomes unavailable to agent retrieval.
+create or replace function public.ifund_team_correct(
+ p_old_event_key uuid, p_new_event_key uuid, p_content text
+) returns uuid language plpgsql security definer set search_path='' as $
+declare actor uuid:=public.ifund_team_member_id();
+  old_event public.ifund_agent_team_events%rowtype;
+  new_id uuid;
+begin
+  if p_old_event_key is null or p_new_event_key is null or p_old_event_key=p_new_event_key
+    or p_content is null or length(btrim(p_content)) not between 1 and 4000 then
+    raise exception 'Invalid correction' using errcode='22023';
+  end if;
+  select * into old_event from public.ifund_agent_team_events
+    where owner_id=actor and event_key=p_old_event_key
+      and speaker='user' and deleted_at is null for update;
+  if not found then raise exception 'Owned active statement required' using errcode='42501'; end if;
+  insert into public.ifund_agent_team_events(owner_id,event_key,campaign_id,agent_id,speaker,source_kind,content)
+  values(actor,p_new_event_key,old_event.campaign_id,old_event.agent_id,'user','user_statement',btrim(p_content))
+  returning id into new_id;
+  update public.ifund_agent_team_events set corrected_by=new_id,deleted_at=now(),
+    content='[superseded by owner correction]' where id=old_event.id;
+  return new_id;
+end $;
+revoke all on function public.ifund_team_correct(uuid,uuid,text) from public,anon;
+grant execute on function public.ifund_team_correct(uuid,uuid,text) to authenticated;
 
 commit;
