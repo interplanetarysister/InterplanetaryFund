@@ -484,14 +484,33 @@ async function subscriptionWebhook(payload,env) {
   if(!SUBSCRIPTION_ID.test(id))return asJson({ok:true,ignored:true,reason:"no_subscription_reference"});
   if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
   if(kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED"){
-    const amount=payload.resource?.amount;
-    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||"")))
+    // A webhook delivery ID is NEVER an economic refund ID. Legacy sale refunds
+    // require an immutable refund resource and its original sale (capture) ID.
+    // Until the atomic, parent-capture-validated ledger RPC is accepted, do not
+    // record any subscription reversal from this non-atomic Edge operation.
+    const resource=payload.resource;
+    if(kind!=="PAYMENT.SALE.REFUNDED")
+      return asError("subscription_reversal_event_unverified",409);
+    const refundId=resource?.id;
+    const parentSaleId=resource?.sale_id;
+    if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(parentSaleId||"")
+      ||refundId===payload.id||refundId===parentSaleId)
+      return asError("subscription_refund_identity_unverified",409);
+    const amount=resource?.amount;
+    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||""))
+      ||cents(amount.value)<1)
       return asError("subscription_reversal_amount_unverified",409);
-    await signLedger(env,"subscription_reversal",{
-      paypal_subscription_id:id,paypal_event_id:payload.id,event_type:kind,
-      amount_cents:cents(amount.value),currency:"USD",occurred_at:payload.create_time,
-      provider_reference:payload.resource?.id||payload.id
-    });
+    // Signed webhook delivery alone is not a provider-backed refund receipt.
+    // Fetch the resource and verify immutable identity, parent and exact amount.
+    const receipt=await paypal(env,"/v1/payments/refund/"+encodeURIComponent(refundId));
+    if(receipt?.id!==refundId||receipt?.sale_id!==parentSaleId
+      ||receipt?.state!=="completed"||receipt?.amount?.currency!=="USD"
+      ||cents(receipt?.amount?.total)!==cents(amount.value))
+      return asError("subscription_refund_receipt_unverified",409);
+    // The current Edge subscription_reversal accepts neither parentSaleId nor
+    // atomic per-parent refund ceilings. Reject safely until A2's tested RPC
+    // and the corresponding Edge contract are implemented and accepted.
+    return asError("subscription_refund_atomic_ledger_unavailable",503);
   }
   const providerReference=kind==="PAYMENT.SALE.COMPLETED"?payload.resource?.id||null:null;
   const reconciled=await reconcileSubscription(env,id,"",providerReference);
