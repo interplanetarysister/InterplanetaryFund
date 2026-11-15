@@ -150,3 +150,38 @@ test("private reference UI responds to account switching and does not publish do
   assert.match(uploader,/not visible to campaign visitors/);
   assert.doesNotMatch(uploader,/getPublicUrl/);
 });
+
+test("owner-selected PDF or spreadsheet excerpts are stored without claiming automatic extraction",async()=>{
+  const x=fakeClient();
+  const ownerExcerpt="The organizer reported three refrigeration units, pending supplier invoices.";
+  await uploadCampaignDocument(x.client,CAMPAIGN,PDF,{
+    makeId:()=>FILE_ID,purpose:"budget",
+    summary:"Budget details will be verified against original documents.",
+    ownerExcerpt,allowAgentUse:true,
+  });
+  assert.equal(x.records[0].owner_excerpt,ownerExcerpt);
+  assert.equal(x.records[0].extracted_text,"");
+  assert.equal(x.records[0].allow_agent_use,true);
+});
+test("overlong private document excerpts are denied before upload",async()=>{
+  const x=fakeClient();
+  await assert.rejects(uploadCampaignDocument(x.client,CAMPAIGN,PDF,{
+    makeId:()=>FILE_ID,ownerExcerpt:"x".repeat(4001),
+  }),/within 4,000 characters/);
+  assert.equal(x.calls.filter(item=>item.action==="upload").length,0);
+});
+test("owner excerpt may be updated or cleared along with agent permission",async()=>{
+  const x=fakeClient();
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN};
+  const updated=await updateDocumentAgentAccess(x.client,CAMPAIGN,row,{
+    allowAgentUse:false,purpose:"proof",summary:"Reference disabled until supporting claims are reviewed.",ownerExcerpt:"",
+  });
+  assert.equal(updated.id,FILE_ID);
+});
+test("only user-reviewed excerpts are included in document-aware Story prompts",()=>{
+  const story=readFileSync(new URL("../../worker/agents/story.js",import.meta.url),"utf8");
+  const migration=readFileSync(new URL("../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
+  assert.match(story,/owner_selected_excerpt_unverified/);
+  assert.match(migration,/'owner_excerpt',left\(d.owner_excerpt,1200\)/);
+  assert.match(migration,/allow_agent_use=true/);
+});
