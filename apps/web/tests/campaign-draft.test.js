@@ -185,3 +185,16 @@ test("late responses cannot be attributed to a different signed-in account", asy
     /account changed/,
   );
 });
+
+test("saved campaign creation suggestions forward campaign identity without owner_id or credentials",async()=>{
+ let recorded=null;
+ await requestCampaignDraft(client,{...input,campaign_id:ID},{
+   requestId:ID,fetcher:async(_url,options)=>{
+     recorded=JSON.parse(options.body);
+     return Response.json(suggestion());
+   }
+ });
+ assert.equal(recorded.campaign_id,ID);
+ assert.equal("owner_id" in recorded,false);
+ assert.equal("api_key" in recorded,false);
+});
