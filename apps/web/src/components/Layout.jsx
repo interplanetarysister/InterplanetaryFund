@@ -21,6 +21,7 @@ import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 
 const PAGE_TITLES = {
+  "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
   "/discover": "Discover", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
@@ -98,6 +99,7 @@ const navSections = [
   {
     label: "Administration",
     items: [
+      { to: "/admin", label: "Admin Home", icon: LayoutDashboard },
       { to: "/ops", label: "Ops Center", icon: Satellite },
       { to: "/admin/studio", label: "Website Studio", icon: Sparkles },
       { to: "/platform", label: "Platform", icon: Server },
