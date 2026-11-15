@@ -14,6 +14,7 @@ function clientFor(user={id:owner,email_confirmed_at:"2026-11-12T00:00:00Z",is_a
     getPublicUrl:path=>({data:{publicUrl:"https://example.supabase.co/storage/v1/object/public/"+COVER_BUCKET+"/"+path}}),
   };
   const client={
+    supabaseUrl:"https://example.supabase.co",
     auth:{getUser:async()=>({data:{user}})},
     from:table=>{
       assert.equal(table,"ifund_profiles");
@@ -72,4 +73,19 @@ test("anonymous guest campaign saves remain browser-only instead of calling owne
   const src=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
   assert.match(src,/user\.is_anonymous === true \|\| !user\.email_confirmed_at/);
   assert.match(src,/rememberBrowserCampaign\(sessionStorage, null, form/);
+});
+
+test("rejects foreign-origin, embedded credentials, and wrong-object public URLs",async()=>{
+  const file={size:1024,type:"image/png"};
+  for(const bad of [
+    "https://evil.example/storage/v1/object/public/"+COVER_BUCKET+"/"+owner+"/"+fileId+".png",
+    "https://example.supabase.co.evil.example/storage/v1/object/public/"+COVER_BUCKET+"/"+owner+"/"+fileId+".png",
+    "https://attacker@example.supabase.co/storage/v1/object/public/"+COVER_BUCKET+"/"+owner+"/"+fileId+".png",
+    "https://example.supabase.co/storage/v1/object/public/"+COVER_BUCKET+"/"+owner+"/other.png",
+    "https://example.supabase.co/storage/v1/object/public/"+COVER_BUCKET+"/"+owner+"/"+fileId+".png?redirect=evil",
+  ]){
+    const x=clientFor();
+    x.storage.getPublicUrl=()=>({data:{publicUrl:bad}});
+    await assert.rejects(uploadCampaignCover(x.client,file,{makeId:()=>fileId}),/URL could not be verified/);
+  }
 });

@@ -9,6 +9,7 @@ const migrations = [
   '20261109131024_ifund_provider_oauth_vault_20261109.sql',
   '20261109140000_ifund_provider_oauth_expiry_audit.sql',
   '20261111090000_ifund_connection_lifecycle.sql',
+  '20261113193000_ifund_identity_oauth_provider_expansion.sql',
 ];
 
 test('disconnect removes only the member’s grant and prevents stale OAuth writes', async () => {
@@ -75,6 +76,27 @@ test('disconnect removes only the member’s grant and prevents stale OAuth writ
     assert.equal((await db.query('select status from public.ifund_connections where owner_id=$1', [member])).rows[0].status, 'disconnected');
     const { rows: [timestamp] } = await db.query('select clock_timestamp()::text as fresh');
     assert.equal(await store(member, timestamp.fresh), true);
+    // Every new provider must work with all three vault constraints and the
+    // original serialized lifecycle functions, not merely pass a JS list test.
+    const addedProviders = ['discord','github','twitch','slack','patreon','eventbrite','pinterest','reddit'];
+    for (const provider of addedProviders) {
+      const { rows: [entry] } = await db.query(
+        'select public.ifund_store_provider_connection_v3($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) as saved',
+        [member,provider,'subject-'+provider,'{}',[],null,null,1,'connected',timestamp.fresh]
+      );
+      assert.equal(entry.saved,true,provider);
+      const result = await db.query('select provider,status from public.ifund_provider_tokens where owner_id=$1 and provider=$2',[member,provider]);
+      assert.equal(result.rows[0]?.status,'active',provider);
+    }
+    await db.exec(`set role authenticated; set request.jwt.claim.sub = '${member}';`);
+    for (const provider of addedProviders) {
+      const { rows: [deleted] } = await db.query('select public.ifund_disconnect_provider($1) as removed',[provider]);
+      assert.equal(deleted.removed,true,provider);
+    }
+    await db.exec('reset role');
+    const { rows: tokenRows } = await db.query('select provider from public.ifund_provider_tokens where owner_id=$1',[member]);
+    assert.deepEqual(tokenRows.map(r=>r.provider),['google']);
+
   } finally {
     await db.close();
   }

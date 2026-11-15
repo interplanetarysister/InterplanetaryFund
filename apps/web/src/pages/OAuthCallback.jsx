@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 
-const PROVIDERS = new Set(["google", "youtube", "linkedin", "x", "tiktok", "facebook_pages", "instagram"]);
+const PROVIDERS = new Set(["google", "youtube", "linkedin", "x", "tiktok", "facebook_pages", "instagram", "discord", "github", "twitch", "slack", "patreon", "eventbrite", "pinterest", "reddit"]);
 const callbackFlights = new Map();
 
 export default function OAuthCallback() {
