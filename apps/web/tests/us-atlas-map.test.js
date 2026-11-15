@@ -33,8 +33,8 @@ test("the mainland has illustrative coastline geometry",()=>{
 test("owner-safe map selections cannot outlive the authorized campaign props",()=>{
   const component=read("../src/components/atlas/USCampaignMap.jsx");
   const atlas=read("../src/pages/Atlas.jsx");
-  assert.match(component,/campaigns\.filter\(c=>c\.status==="active"&&isApprovedAtlasLocation\(c\)\)/);
-  assert.match(component,/markers\.find\(row=>row\.campaign\.id===selectedId\)\?\.campaign\|\|null/);
+  assert.match(component,/groupUSCampaignMarkers\(campaigns\)/);
+  assert.match(component,/clusters\.find\(cluster=>cluster\.key===selectedKey\)\|\|null/);
   assert.match(component,/No approved U\.S\. campaign locations yet/);
   assert.match(atlas,/mapView, setMapView\] = useState\("usa"\)/);
   assert.match(atlas,/<USCampaignMap campaigns=\{markers\}/);
