@@ -24,6 +24,7 @@ create table if not exists public.ifund_campaign_documents (
     ('general','budget','proof','research','planning','outreach','media')),
   agent_summary text not null default '' check(length(agent_summary)<=3000),
   extracted_text text not null default '' check(length(extracted_text)<=6000),
+  owner_excerpt text not null default '' check(length(owner_excerpt)<=4000),
   allow_agent_use boolean not null default false,
   created_at timestamptz not null default now(),
   unique(owner_id,campaign_id,id),
@@ -39,7 +40,7 @@ create index if not exists ifund_campaign_documents_owner_campaign_idx
 alter table public.ifund_campaign_documents enable row level security;
 revoke all on public.ifund_campaign_documents from public,anon,authenticated;
 grant select,insert,delete on public.ifund_campaign_documents to authenticated;
-grant update(allow_agent_use,agent_summary,purpose) on public.ifund_campaign_documents to authenticated;
+grant update(allow_agent_use,agent_summary,purpose,owner_excerpt) on public.ifund_campaign_documents to authenticated;
 
 create or replace function public.ifund_owns_campaign_document_context(p_owner uuid,p_campaign uuid)
 returns boolean language sql stable security definer set search_path='' as $$
@@ -115,6 +116,7 @@ returns jsonb language sql stable security invoker set search_path='' as $$
 select coalesce(jsonb_agg(jsonb_build_object(
   'document_id',d.id,'purpose',d.purpose,'summary',left(d.agent_summary,3000),
   'owner_supplied',true,'source_type','uploaded_private_document_summary',
+  'owner_excerpt',left(d.owner_excerpt,1200),
   'extracted_excerpt',case when d.media_type in ('text/plain','text/markdown','text/csv')
     then left(d.extracted_text,2000) else '' end
 ) order by d.created_at desc),'[]'::jsonb)
