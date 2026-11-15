@@ -105,9 +105,9 @@ export default function MemberOnboarding() {
         </fieldset>
       </form>
       <section className="space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-7">
-        <h2 className="text-xl font-semibold">2. Connect your accounts (optional)</h2>
-        <p className="text-sm text-muted-foreground">Choose which provider to authorize. A public profile link is not permission to publish on that account.</p>
-        <Link className={buttonClass} to="/connections">Manage connections</Link>
+        <h2 className="text-xl font-semibold">2. Review your permissions (optional)</h2>
+        <p className="text-sm text-muted-foreground">Choose your iFund AI assistance preferences, communications, and outside-platform connections from a single account page. Future capabilities will ask for separate authorization when available.</p>
+        <Link className={buttonClass} to="/permissions">Manage iFund Permissions</Link>
       </section>
       <section className="space-y-3 rounded-2xl border border-border bg-card p-5 sm:p-7">
         <h2 className="text-xl font-semibold">3. Start fundraising</h2>
