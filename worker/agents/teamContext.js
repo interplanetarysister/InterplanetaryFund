@@ -62,12 +62,12 @@ export async function appendTeamContext({env,jwt,eventKey,agentId,content,campai
  */
 export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=null,beforeId=null,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled",events:[]};
-  if(!/^[-\\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
+  if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   if(campaignId!==null&&!UUID.test(campaignId)) throw Object.assign(new Error("Invalid campaign reference."),{status:400});
   if(!Number.isInteger(limit)||limit<1||limit>60) throw Object.assign(new Error("Invalid history page size."),{status:400});
   if((before===null)!==(beforeId===null)||beforeId!==null&&!UUID.test(beforeId))
     throw Object.assign(new Error("Invalid history cursor."),{status:400});
-  if(before!==null&&(typeof before!=="string"||!/^\\d{4}-\\d{2}-\\d{2}T/.test(before)||!Number.isFinite(Date.parse(before))))
+  if(before!==null&&(typeof before!=="string"||!/^\d{4}-\d{2}-\d{2}T/.test(before)||!Number.isFinite(Date.parse(before))))
     throw Object.assign(new Error("Invalid history cursor."),{status:400});
   const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_team_recent",{
     method:"POST",
