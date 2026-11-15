@@ -7,8 +7,7 @@ const ID = "11111111-1111-4111-8111-111111111111";
 const site = "https://interplanetaryfund.com";
 
 test("public native app links accept exact canonical public destinations", () => {
-  for (const path of ["/", "/discover", "/atlas", "/campaign/" + ID,
-    "/blogs/slug-1", "/publications/post_1", "/social/post/post_1"]) {
+  for (const path of ["/", "/discover", "/atlas", "/campaign/" + ID]) {
     assert.equal(safeNativePublicRoute(site + path), path);
   }
 });
@@ -26,6 +25,8 @@ test("native links refuse secret tokens, admin routes and any noncanonical websi
     site + "/campaign/%2e%2e/admin",
     site + "/campaign/" + ID + "/extra",
     site + "/campaign/../../admin",
+    site + "/social/post/example",
+    site + "/blogs/example",
     site + "/campaign/" + "a".repeat(2500),
   ]) {
     assert.equal(safeNativePublicRoute(url), "", String(url));
