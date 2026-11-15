@@ -43,9 +43,24 @@ The `server.errorPath` entry loads `mobile-offline.html` from copied web assets 
 
 The native verification script supports `--candidate` for compile-only structural checks and `--store` for a stricter fail-closed release gate. No blank `release-evidence.json` should be created to bypass that gate. Device and reviewer evidence must be independently established.
 
+## Candidate artifacts and release isolation (November 15, 2026)
+
+Both workflows are **manual-only** and operate on `apps/mobile` with
+`com.interplanetaryfund.app`; neither uses the Base44 project or original
+Android package ID. The canonical Supabase publishable key was checked against
+the project's active public API keys and can be supplied by GitHub Actions
+variables or the already-published public-key fallback. No server-only service
+key is embedded in the native apps.
+
+- `.github/workflows/ifund-native-android.yml` compiles an **installable debug APK** and an **unsigned release AAB**. The AAB cannot be submitted to Play without a separate verified release keystore; the debug APK must not be marketed as a Play Store release.
+- `.github/workflows/ifund-native-ios.yml` requires **Xcode 26+**, compiles an unsigned iOS Simulator `.app`, and packages it as `IFund-iOS-Simulator.zip`. This is **not** an iPhone-installable IPA, TestFlight build, or App Store submission.
+- The candidate workflows generate a dependency lockfile and attach it to the test artifacts. A reviewed lockfile must be committed before `--store` can succeed. Until the owner authorizes manual native builds, neither workflow has executed.
+- `apps/web/src/components/native/NativeConnectivityBanner.jsx` reports offline/network failures in native packages without pretending server/ledger data has been cached. `nativeApi.js` supports request-abort responsiveness without claiming to cancel a native socket.
+- Current outstanding store prerequisites include genuine Apple Developer and Google Play Console identities; independent signing artifacts; verified release app IDs; app/site association; public/user authentication acceptance; policy-compliant payments; actual iOS/Android device testing; and the website's complete route-release evidence.
+
 ## Store readiness checklist
 
-1. Complete the 80-route website release gate, admin RBAC, real backend coverage, errors and mobile UX.
+1. Complete the entire current website route acceptance manifest (currently 82 patterns; refresh count), admin RBAC, real backend coverage, errors and mobile UX.
 2. Verify mobile email/password login, signup confirmation on public HTTPS, password recovery, session persistence, error recovery, and account switching; implement and verify native app/universal links before enabling social OAuth.
 3. Verify real iOS/Android OS share sheets, secure campaign/navigation deep links, and app-specific utility on devices; push notifications must be opt-in and server-authorized before enabling.
 4. Audit Apple App Review 3.1 and 3.2, Play policies and PayPal terms for charity, personal monetary gifts, digital subscriptions and 7% withdrawal fee. Native payment writes are intentionally blocked for now; route any later external checkout only through a reviewed Safari/approved-provider flow with verified ledger records.
