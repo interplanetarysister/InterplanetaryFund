@@ -3,11 +3,18 @@
   "appName": "Interplanetary Fund",
   "webDir": "../web/dist",
   "server": {
-    "url": "https://interplanetaryfund.com",
+    "hostname": "localhost",
+    "iosScheme": "capacitor",
+    "androidScheme": "https",
     "cleartext": false,
     "errorPath": "mobile-offline.html"
   },
   "android": {
     "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    }
   }
 }
