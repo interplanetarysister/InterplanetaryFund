@@ -300,7 +300,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
       fail(401, "Confirm your email before using the writing assistant.");
     // Recheck the actual saved owner choice for every generation request.
     // A signup checkbox, OAuth identity, or old queued job is not authorization.
-    if (request.method === "POST" && ["/api/agents/story/drafts", "/api/agents/story/revise"].includes(path)) {
+    if (request.method === "POST" && path === "/api/agents/story/drafts") {
       const prefs = await requestData(
         env, jwt,
         "/rest/v1/ifund_ai_permission_preferences?select=allow_ai_campaign_drafts&owner_id=eq." + user.id,
