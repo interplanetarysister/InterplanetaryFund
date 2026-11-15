@@ -9,17 +9,30 @@ export default function TeamConversationHistory(){
   const [removing,setRemoving]=useState("");
   const [editing,setEditing]=useState("");
   const [correction,setCorrection]=useState("");
+  const [loadingMore,setLoadingMore]=useState(false);
+  const [hasMore,setHasMore]=useState(false);
   async function refresh(){
     setState(prev=>({...prev,status:"loading",message:""}));
     try {
       const items=await loadTeamHistory(authClient());
-      setState({status:"ready",items,message:""});
+      setState({status:"ready",items,message:""});setHasMore(items.length===30);
     }catch(e){setState({status:"error",items:[],message:e.message||"History unavailable."});}
   }
   useEffect(()=>{let alive=true;(async()=>{
-    try{const items=await loadTeamHistory(authClient());if(alive)setState({status:"ready",items,message:""});}
+    try{const items=await loadTeamHistory(authClient());if(alive){setState({status:"ready",items,message:""});setHasMore(items.length===30);}}
     catch(e){if(alive)setState({status:"error",items:[],message:e.message||"History unavailable."});}
   })();return()=>{alive=false;};},[]);
+  async function loadMore(){
+    if(loadingMore||state.status!=="ready"||!state.items.length)return;
+    const last=state.items[state.items.length-1];
+    setLoadingMore(true);
+    try{
+      const next=await loadTeamHistory(authClient(),{beforeAt:last.recorded_at,beforeId:last.id});
+      setState(prev=>({...prev,items:[...prev.items,...next.filter(item=>!prev.items.some(saved=>saved.id===item.id))],message:""}));
+      setHasMore(next.length===30);
+    }catch(e){setState(prev=>({...prev,message:e.message||"Older history could not be loaded."}));}
+    finally{setLoadingMore(false);}
+  }
   async function remove(row){
     if(removing)return;
     setRemoving(row.id);
@@ -41,7 +54,7 @@ export default function TeamConversationHistory(){
   }
   return <section className="rounded-2xl border border-border bg-card p-5" aria-label="Your shared team history">
     <h2 className="text-lg font-semibold">Your shared team history</h2>
-    <p className="mt-2 text-sm text-muted-foreground">Your iFund agents can use relevant conversations from your account. This view shows saved records only; a missing record does not mean an interaction never happened.</p>
+    <p className="mt-2 text-sm text-muted-foreground">This workspace is being connected to your private shared team context. Saved records will appear here once the service is verified and enabled. A missing entry does not prove a conversation never happened.</p>
     <button type="button" className="mt-3 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={refresh} disabled={state.status==="loading"}>Refresh history</button>
     {state.status==="loading"&&<p className="mt-3 text-sm" role="status">Loading private team records…</p>}
     {state.status==="error"&&<p className="mt-3 text-sm text-muted-foreground" role="status">{state.message}</p>}
@@ -65,6 +78,7 @@ export default function TeamConversationHistory(){
           </div>
         </div>}
       </article>)}
+      {hasMore&&<button type="button" onClick={loadMore} disabled={loadingMore} className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">{loadingMore?"Loading…":"Load older conversations"}</button>}
     </div>}
   </section>;
 }
