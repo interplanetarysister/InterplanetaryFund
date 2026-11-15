@@ -637,7 +637,9 @@ export async function storyRoute(request, env, fetcher = fetch) {
       if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled" && claim.draft?.payload) {
         await appendTeamContext({
           env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
-          content: JSON.stringify(claim.draft.payload).slice(0,24000),
+          // Use the exact persisted payload in both completion and replay paths.
+          // Do not truncate JSON or manufacture a different replay receipt.
+          content: JSON.stringify(claim.draft.payload),
           campaignId: input.campaign_id, speaker: "agent", fetcher,
         });
       }
@@ -719,7 +721,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       await appendTeamContext({
         env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
-        content: JSON.stringify(suggestion),
+        content: JSON.stringify(draft?.payload ?? suggestion),
         campaignId: input.campaign_id, speaker: "agent", fetcher,
       });
     }
