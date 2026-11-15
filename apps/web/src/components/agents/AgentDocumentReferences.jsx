@@ -67,7 +67,8 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
     try{
       const {data,error}=await authClient().auth.getUser();
       if(error||data?.user?.id!==owner||scope.current.generation!==generation||scope.current.owner!==owner)return;
-      onInsert(item.summary);
+      const facts=[item.summary,item.owner_excerpt].filter(Boolean).join("\nOwner-selected excerpt (unverified):\n").slice(0,2200);
+      onInsert(facts);
     }catch{/* Fail closed on identity errors. */}
   }
   if(!campaignId)return null;
@@ -82,6 +83,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
       {items.map(item=><li key={item.document_id} className="rounded-lg border border-border p-3">
         <p className="text-xs font-semibold">{DOCUMENT_CATEGORIES[item.purpose]||"Campaign reference"}</p>
         <p className="mt-1 whitespace-pre-wrap break-words text-xs">{item.summary}</p>
+        {item.owner_excerpt&&<p className="mt-2 whitespace-pre-wrap break-words border-l-2 border-border pl-3 text-xs"><strong>Owner-selected excerpt (not independently verified):</strong> {item.owner_excerpt}</p>}
         {typeof onInsert==="function"&&<button type="button" disabled={disabled||!verifiedOwner} onClick={()=>void insert(item)}
           className="mt-2 min-h-11 rounded-lg border border-border px-3 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
           Insert selected facts into editable draft
