@@ -42,6 +42,8 @@ assert(config.android?.allowMixedContent === false, "Android mixed content must 
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
 assert(pkg.dependencies?.["@capacitor/share"] === "8.0.3", "Native system-share plugin is required");
 assert(pkg.dependencies?.["@capacitor/app"] === "8.1.2", "Native public app-link plugin is required");
+assert(read("apps/web/src/main.jsx").includes("<NativeConnectivityBanner />"),
+  "Native offline/recovery banner must be mounted");
 assert(read("apps/web/src/main.jsx").includes("installNativePublicLinks()"),
   "Native public link listeners must install before React mounts");
 assert(read("apps/web/src/lib/nativeLinks.js").includes("safeNativePublicRoute"),
@@ -69,6 +71,8 @@ const unfinished = manifest.routes.filter(route =>
   (route.role !== "public" && !route.backend_evidence?.trim())
 );
 if (mode === "--store") {
+  assert(existsSync(resolve(root, "package-lock.json")),
+    "A reviewed, committed native dependency lockfile is required before a signed store release");
   assert(manifest.routes.length >= 80, "Incomplete canonical route inventory");
   assert(unfinished.length === 0, unfinished.length + " routes lack source/behavior/backend acceptance");
   const approval = resolve(root, "release-evidence.json");
