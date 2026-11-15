@@ -10,6 +10,7 @@ import {
 export default function CampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
   const [accountLocked,setAccountLocked]=useState(false);
+  const [retryCount,setRetryCount]=useState(0);
   const accountGeneration=useRef(0);
   const fileInputRef=useRef(null);
   const uploadLock=useRef(false);
@@ -60,10 +61,10 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       if(confirmationError||confirmed?.id!==ownerId||confirmed?.is_anonymous===true)throw new Error("Account changed while loading documents.");
       if(active&&generation===accountGeneration.current){accountBlocked.current=false;setAccountLocked(false);setRecords(rows);}
     })()
-      .catch(e=>{if(active&&generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Document library unavailable.");})
+      .catch(e=>{if(active&&generation===accountGeneration.current)setError(e.message||"Document library unavailable.");})
       .finally(()=>{if(active&&generation===accountGeneration.current)setLoading(false);});
     return()=>{active=false;};
-  },[campaignId,ownerId]);
+  },[campaignId,ownerId,retryCount]);
 
   async function reload(){
     const generation=accountGeneration.current;
@@ -104,10 +105,13 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     finally{setBusy(false);}
   }
   async function download(row){
-    if(busy)return;
+    if(busy||accountBlocked.current||accountLocked)return;
+    const generation=accountGeneration.current;
     setBusy(true);setError("");setNotice("");
     try{
       const blob=await downloadPrivateCampaignDocument(authClient(),campaignId,row);
+      const {data,error:identityError}=await authClient().auth.getUser();
+      if(identityError||data?.user?.id!==ownerId||generation!==accountGeneration.current||accountBlocked.current)return;
       const objectUrl=URL.createObjectURL(blob);
       const link=document.createElement("a");
       link.href=objectUrl;link.download=row.file_name;link.rel="noopener";
@@ -117,7 +121,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     finally{setBusy(false);}
   }
   async function remove(row){
-    if(busy)return;
+    if(busy||accountBlocked.current||accountLocked)return;
     if(!window.confirm(`Remove "${row.file_name}" from your private campaign documents?`))return;
     setBusy(true);setError("");setNotice("");
     try{
@@ -182,7 +186,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
           </button>
         </form>
         {loading&&<p className="text-sm" role="status">Loading private documents…</p>}
-        {accountLocked&&<p role="status" className="text-sm text-muted-foreground">Private documents are hidden until this account is verified.</p>}
+        {accountLocked&&<div role="status" className="space-y-2 text-sm text-muted-foreground"><p>Private documents are hidden until this account is verified.</p><button type="button" disabled={loading||busy} onClick={()=>setRetryCount(n=>n+1)} className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">Retry account verification</button></div>}
         {error&&<p className="text-sm text-destructive" role="alert">{error}</p>}
         {notice&&<p className="text-sm" role="status">{notice}</p>}
         {!loading&&!accountLocked&&records.length===0&&<p className="text-sm text-muted-foreground">No documents uploaded for this campaign.</p>}
