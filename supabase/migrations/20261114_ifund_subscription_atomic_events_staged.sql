@@ -123,6 +123,26 @@ BEGIN
        v_existing.provider_reference=p_provider_reference THEN RETURN 'duplicate'; END IF;
     RETURN 'conflict';
   END IF;
+  -- Conservative intent-wide refund/reversal ceiling. The intent row lock serializes
+  -- competing RPC calls for this subscription. Never permit aggregate negative
+  -- entries to exceed recorded positive payments, including legacy rows.
+  -- This is NOT a provider-resource-level partial-refund authorization: the
+  -- verified caller must separately establish capture-to-refund linkage.
+  IF p_entry_type IN ('refund','reversal') THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM public.ifund_subscription_ledger
+      WHERE intent_id=p_intent_id AND entry_type='payment' AND amount_cents>0
+    ) THEN
+      RAISE EXCEPTION 'subscription reversal without recorded payment'
+        USING ERRCODE='22023';
+    END IF;
+    IF (SELECT coalesce(sum(amount_cents),0)
+        FROM public.ifund_subscription_ledger WHERE intent_id=p_intent_id)
+       + p_amount_cents < 0 THEN
+      RAISE EXCEPTION 'subscription cumulative reversals exceed payments'
+        USING ERRCODE='22023';
+    END IF;
+  END IF;
   -- A single provider resource may not be charged/reversed twice under different keys.
   IF EXISTS (SELECT 1 FROM public.ifund_subscription_ledger
              WHERE provider_resource_id=p_provider_resource_id AND entry_type=p_entry_type) THEN
