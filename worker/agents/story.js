@@ -175,6 +175,7 @@ export function storyMessages(input, context) {
           ? context.campaign_reference_documents.slice(0, 4).map(doc => ({
               reference_type: "user_uploaded_private_reference",
               purpose: String(doc.purpose || "").slice(0,40),
+              source_document: redactTeamCredentials(String(doc.file_name || "")).slice(0,160),
               owner_summary_unverified: redactTeamCredentials(String(doc.summary || "")).slice(0,800),
               owner_selected_excerpt_unverified: redactTeamCredentials(String(doc.owner_excerpt || "")).slice(0,600),
               plain_text_excerpt_unverified: redactTeamCredentials(String(doc.extracted_excerpt || "")).slice(0,500),
