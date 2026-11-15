@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { isNativeBundle } from "@/lib/nativeApi";
 
 const PLAN_NAMES = {
   basic: "Basic AI Assistant",
@@ -35,11 +36,15 @@ export default function PublicSubscriptionPlans() {
     return () => controller.abort();
   }, [retry]);
   const returnTo = encodeURIComponent("/subscriptions");
+  const native = isNativeBundle();
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">iFund plans</h1>
       <p className="text-muted-foreground">Browse plans without signing in. Paid access is activated only after a verified PayPal subscription payment.</p>
     </header>
+    {native && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+      Plans can be reviewed here; new paid subscriptions are unavailable inside the mobile app until store billing requirements are verified.
+    </p>}
     {state.phase === "loading" && <p role="status">Loading provider-backed plan availability…</p>}
     {state.phase === "error" && <section role="alert" className="rounded-xl border border-amber-500/40 p-5">
       <p>{state.error}</p>
@@ -55,7 +60,7 @@ export default function PublicSubscriptionPlans() {
             <p className="text-sm capitalize text-muted-foreground">{plan.interval === "annual" ? "Annual" : plan.interval === "monthly" ? "Monthly" : "Billing interval unavailable"}</p>
             <p className="text-2xl font-bold">{price(plan)}</p>
             <p className="text-sm">{available ? "PayPal billing verified for enrollment" : "Enrollment unavailable — provider verification pending"}</p>
-            {available ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>
+            {available && !native ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>
               : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground">Not accepting enrollment</span>}
           </article>;
         })}
