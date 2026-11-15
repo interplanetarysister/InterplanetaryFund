@@ -153,3 +153,18 @@ export async function removeCampaignDocument(client,campaignId,row){
   if(error||data?.id!==row.id)throw Error("The file was removed, but its record needs cleanup.");
   return true;
 }
+
+/** Owner-only, per-document opt-in facts usable by manual and AI agent tools. */
+export async function loadAgentDocumentBriefs(client,campaignId){
+  const ownerId=await owner(client,campaignId);
+  const {data,error}=await client.rpc("ifund_campaign_agent_document_briefs",{
+    p_campaign_id:campaignId
+  });
+  await unchanged(client,ownerId);
+  if(error||!Array.isArray(data))throw Error("Agent document references are unavailable.");
+  if(data.some(item=>!UUID.test(item.document_id||"")||
+    typeof item.summary!=="string"||item.summary.length>3000||
+    typeof item.purpose!=="string"))
+    throw Error("The campaign reference list could not be verified.");
+  return data.slice(0,6);
+}
