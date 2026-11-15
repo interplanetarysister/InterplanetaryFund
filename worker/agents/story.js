@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { appendTeamContext, readTeamContext, replyEventKey } from "./teamContext.js";
+import { appendTeamContext, readTeamContext, replyEventKey, redactTeamCredentials } from "./teamContext.js";
 import {
   beginStoryAssignment,
   invokeImplementation,
@@ -175,8 +175,8 @@ export function storyMessages(input, context) {
           ? context.campaign_reference_documents.slice(0, 4).map(doc => ({
               reference_type: "user_uploaded_private_reference",
               purpose: String(doc.purpose || "").slice(0,40),
-              owner_summary_unverified: String(doc.summary || "").slice(0,800),
-              plain_text_excerpt_unverified: String(doc.extracted_excerpt || "").slice(0,500),
+              owner_summary_unverified: redactTeamCredentials(String(doc.summary || "")).slice(0,800),
+              plain_text_excerpt_unverified: redactTeamCredentials(String(doc.extracted_excerpt || "")).slice(0,500),
               permission: "owner_opted_in_agent_reference_only",
             }))
           : [],
