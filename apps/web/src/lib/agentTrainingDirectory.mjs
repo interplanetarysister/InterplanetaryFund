@@ -12,19 +12,37 @@ export const TRAINING_ROLES = Object.freeze({
   discover: {skill:"Provider and source discovery",handles:["fundraising host research","provider policies","source quality","integration feasibility"],consult:["link","pulse"],lesson:"Verify host capabilities and terms with dated credible sources before recommending integration; consolidate actions through LINK."},
   nexus: {skill:"Chief-of-staff triage and cross-agent routing",handles:["complex requests","agent selection","cross-specialist handoffs","campaign priorities","status validation"],consult:["story","orbit","polaris","forge","echo","pulse","link","discover"],lesson:"Route multi-domain tasks with owner consent, preserve context and evidence labels, verify completion before reporting success."}
 });
+// Role discovery is not a capability grant. Mixed-topic requests require a
+// coordinating agent, regardless of which specialists are involved.
 export const TRAINING_ROUTE_RULES = Object.freeze([
-  {keywords:["budget","spending","cost breakdown","fees","how funds"],target:"orbit"},
-  {keywords:["story","narrative","empathy","rewrite","headline"],target:"story"},
-  {keywords:["oauth","connect","linked account","provider"],target:"link"},
-  {keywords:["measure","attribution","conversion","analytics"],target:"forge"},
-  {keywords:["outreach","opportunity","promote"],target:"pulse"},
-  {keywords:["message","email","thank"],target:"echo"},
-  {keywords:["strategy","goal","milestone","readiness"],target:"polaris"},
-  {keywords:["research","which platform"],target:"discover"}
+  {target:"orbit",keywords:["budget","spending","expenses","expense","cost breakdown","fees","how funds","funds will be spent","donation allocation"]},
+  {target:"story",keywords:["story","narrative","empathy","rewrite","headline","fundraising appeal","tell my story"]},
+  {target:"link",keywords:["oauth","connect","linked account","account permissions","connection repair","provider authorization"]},
+  {target:"forge",keywords:["measure","attribution","conversion","analytics","referral","performance tracking","donations came from"]},
+  {target:"pulse",keywords:["outreach","opportunity","promote","distribution","grant match"]},
+  {target:"echo",keywords:["message","email","thank","supporter update","newsletter"]},
+  {target:"polaris",keywords:["strategy","goal","milestone","readiness","audience planning"]},
+  {target:"discover",keywords:["research","which platform","fundraising platform options","provider comparison"]}
 ]);
-export function recommendAgent(question, currentAgent="nexus") {
-  const q=String(question||"").toLowerCase();
-  const matching=TRAINING_ROUTE_RULES.find(rule=>rule.keywords.some(k=>q.includes(k)));
-  const target=matching?.target||"nexus";
-  return {target,shouldHandoff:target!==currentAgent,reason:TRAINING_ROLES[target].skill,verifiedExecution:false};
+const normalize = value => String(value || "").normalize("NFKC").toLocaleLowerCase("en-US").replace(/[^\\p{L}\\p{N}]+/gu," ").trim();
+const matchesPhrase = (input, phrase) => (" " + input + " ").includes(" " + normalize(phrase) + " ");
+export function recommendAgent(question, currentAgent = "nexus") {
+  const text=normalize(question);
+  const topics=[...new Set(TRAINING_ROUTE_RULES
+    .filter(rule=>rule.keywords.some(term=>matchesPhrase(text,term)))
+    .map(rule=>rule.target))];
+  const requiresCoordination=topics.length>1;
+  const target=requiresCoordination ? "nexus" : (topics[0] || "nexus");
+  return {target,topics,requiresCoordination,
+    shouldHandoff:target!==currentAgent,
+    reason:requiresCoordination ? "This request involves multiple specialists; NEXUS can coordinate." : TRAINING_ROLES[target].skill,
+    verifiedExecution:false};
+}
+// This constructs a generic, permission-gated suggestion. It never transmits
+// user data, queues work or starts a specialist conversation.
+export function proposedSpecialistHandoff(question, currentAgent = "nexus") {
+  const result=recommendAgent(question,currentAgent);
+  const workflow=result.requiresCoordination ? result.topics : (result.shouldHandoff ? [result.target] : []);
+  return {...result,workflow,requiresOwnerConsent:true,state:"proposed",transmitted:false,
+    message:"No private campaign details have been shared and no specialist has been contacted."};
 }
