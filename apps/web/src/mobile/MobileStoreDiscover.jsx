@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Search, RefreshCw, MapPinned } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
 import { useAuthSession } from "@/hooks/useAuthSession";
-import { readBlockedOrganizers, verifiedOrganizersForCampaigns } from "@/mobile/organizerBlock";
+import { blockedOrganizerIds, verifiedOrganizersForCampaigns } from "@/mobile/organizerBlock";
 
 const money = value => Number.isFinite(value) && value >= 0 ?
   new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(value) : null;
@@ -11,15 +11,19 @@ const safeMedia = url => typeof url === "string" && /^https:\/\/[^\s]+$/i.test(u
 
 export default function MobileStoreDiscover() {
   const [campaigns,setCampaigns]=useState([]);
-  const {user}=useAuthSession();
+  const {user,status:sessionStatus}=useAuthSession();
   const [organizerIds,setOrganizerIds]=useState(new Map());
+  const [blockedIds,setBlockedIds]=useState([]);
+  const [blockState,setBlockState]=useState("loading");
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
   const [search,setSearch]=useState("");
   const [reload,setReload]=useState(0);
   const [hidden,setHidden]=useState(() => {
-    try { return JSON.parse(localStorage.getItem("ifund-mobile-hidden-campaigns")||"[]"); }
-    catch { return []; }
+    try {
+      const data=JSON.parse(localStorage.getItem("ifund-mobile-hidden-campaigns")||"[]");
+      return Array.isArray(data)?data.filter(id=>typeof id==="string" && /^[0-9a-f-]{36}$/i.test(id)).slice(0,100):[];
+    } catch { return []; }
   });
   useEffect(()=>{
     let live=true;
@@ -37,18 +41,30 @@ export default function MobileStoreDiscover() {
   },[reload]);
   useEffect(()=>{
     let active=true;
-    if(!user?.id || user.is_anonymous || campaigns.length===0){
-      setOrganizerIds(new Map());return()=>{active=false;};
+    if(sessionStatus==="loading"){setBlockState("loading");return()=>{active=false;};}
+    if(!user?.id||user.is_anonymous){
+      setOrganizerIds(new Map());setBlockedIds([]);setBlockState("ready");
+      return()=>{active=false;};
     }
-    verifiedOrganizersForCampaigns(campaigns.map(c=>c.id)).then(ids=>{
-      if(active)setOrganizerIds(ids);
-    }).catch(()=>{if(active)setOrganizerIds(new Map());});
+    setBlockState("loading");
+    Promise.all([
+      blockedOrganizerIds(),
+      verifiedOrganizersForCampaigns(campaigns.map(row=>row.id)),
+    ]).then(([blocks,owners])=>{
+      if(!active)return;
+      setBlockedIds(blocks);setOrganizerIds(owners);setBlockState("ready");
+    }).catch(()=>{
+      // Never bypass a previously configured block because Supabase failed.
+      if(active){setOrganizerIds(new Map());setBlockedIds([]);setBlockState("error");}
+    });
     return()=>{active=false;};
-  },[user?.id,user?.is_anonymous,campaigns]);
-  const blocked=new Set(user?.id?readBlockedOrganizers(user.id):[]);
-  const visible=useMemo(()=>campaigns.filter(c=>!hidden.includes(c.id) &&
-    !blocked.has(organizerIds.get(c.id)) &&
-    [c.title,c.summary,c.category,c.location].join(" ").toLowerCase().includes(search.trim().toLowerCase())),[campaigns,hidden,search,organizerIds,user?.id]);
+  },[user?.id,user?.is_anonymous,sessionStatus,campaigns,reload]);
+  const visible=useMemo(()=>campaigns.filter(row=>
+    !hidden.includes(row.id) &&
+    !blockedIds.includes(organizerIds.get(row.id)) &&
+    [row.title,row.summary,row.category,row.location].join(" ")
+      .toLowerCase().includes(search.trim().toLowerCase())),
+    [campaigns,hidden,search,organizerIds,blockedIds]);
   function resetHidden(){setHidden([]);try{localStorage.removeItem("ifund-mobile-hidden-campaigns");}catch{}}
   return <div className="space-y-6">
     <header className="space-y-3">
@@ -70,7 +86,16 @@ export default function MobileStoreDiscover() {
       <h2 className="font-bold">Campaigns are temporarily unavailable</h2><p className="text-sm">{error}</p>
       <button type="button" className="min-h-11 rounded-lg border px-4" onClick={()=>setReload(n=>n+1)}>Try again</button>
     </section>}
-    {phase==="ready"&&<section aria-label="Published campaigns" className="space-y-4">
+    {phase==="ready" && sessionStatus==="loading" && <p role="status">Verifying your account preferences…</p>}
+    {phase==="ready" && sessionStatus!=="loading" && blockState==="loading" &&
+      <p role="status">Applying your organizer safety settings…</p>}
+    {phase==="ready" && blockState==="error" && <section role="alert"
+      className="space-y-3 rounded-xl border border-amber-300/40 p-5">
+      <p>Your blocked-organizer preferences could not be verified. Campaigns are hidden until this check succeeds.</p>
+      <button type="button" onClick={()=>setReload(n=>n+1)}
+        className="min-h-11 rounded-lg border px-4">Retry safety check</button>
+    </section>}
+    {phase==="ready"&&sessionStatus!=="loading"&&blockState==="ready"&&<section aria-label="Published campaigns" className="space-y-4">
       <p className="text-sm text-slate-300" aria-live="polite">{visible.length} campaigns matching your filters</p>
       {!visible.length&&<p className="rounded-xl border border-white/15 p-5 text-sm text-slate-300">
         No published campaigns match this search. Try different words or clear hidden campaigns.
