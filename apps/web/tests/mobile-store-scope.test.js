@@ -11,6 +11,11 @@ test("mobile store review build is a separately bundled app, not website wrapper
   assert.equal(native.webDir,"../web/dist-mobile");
   assert.equal(native.server.url,undefined);
   assert.match(read("src/mobile-main.jsx"), /MobileStoreApp/);
+  assert.match(read("src/mobile-main.jsx"), /import "\.\/mobile\.css"/);
+  assert.doesNotMatch(read("src/mobile-main.jsx"), /import "\.\/index\.css"/);
+  const standaloneCss=read("src/mobile.css");
+  assert.doesNotMatch(standaloneCss, /fonts\.googleapis\.com|styles-studio\.css|styles-ifund-studio\.css/);
+  assert.match(standaloneCss, /prefers-reduced-motion/);
   assert.match(read("vite.mobile.config.js"), /publicDir: false/);
   assert.match(read("vite.mobile.config.js"), /dist-mobile/);
   assert.match(read("vite.mobile.config.js"), /renameSync\(generated, resolve\(out, "index.html"\)\)/);
