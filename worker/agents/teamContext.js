@@ -6,11 +6,20 @@ export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","
 // Best-effort safety net for secrets mistakenly included in a conversation.
 // These patterns do not replace authenticated ownership, careful data handling,
 // or specialist vaults for payment/provider credentials.
+// Redaction is defense-in-depth, not a substitute for rejecting credentials at ingress.
 export function redactTeamCredentials(value) {
   return String(value)
-    .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]{12,}/gi,"Bearer [redacted]")
+    // Structured JSON values, including quoted keys and whitespace/newlines.
+    .replace(/(["'])(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)\1(\s*:\s*)(["'])(?:\\.|(?!\4)[^\\])*?\4/gi,
+      (_match,quote,key,separator)=>quote+key+quote+separator+'"[redacted]"')
+    // HTTP authorization headers and bearer values.
+    .replace(/\b(Bearer)\s+[^\s"'<>;,]{8,}/gi,"$1 [redacted]")
+    // Standalone JWTs (three base64url segments), even without a label.
+    .replace(/\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g,"[redacted credential]")
     .replace(/\b(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{12,})\b/g,"[redacted credential]")
-    .replace(/\b(password|api[ _-]?key|access[ _-]?token|secret)\s*[:=]\s*([^\s,;]+)/gi,"$1: [redacted]");
+    // Plain key=value, key: value, and quoted values; do not swallow punctuation.
+    .replace(/\b(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)(\s*[:=]\s*)(["']?)([^\s,;}"']+)(["']?)/gi,
+      (_match,key,separator,open,_secret,close)=>key+separator+open+"[redacted]"+close);
 }
 
 export function validateTeamContextEvent({eventKey,agentId,content,campaignId=null,speaker="user"}) {
