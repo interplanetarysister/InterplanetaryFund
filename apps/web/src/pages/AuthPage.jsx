@@ -24,6 +24,7 @@ export default function AuthPage({ mode = "login" }) {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [confirmationPending, setConfirmationPending] = useState(false);
+  const [nativeEmailCode, setNativeEmailCode] = useState("");
   const [recoveryCode, setRecoveryCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [recoveryCodeSent, setRecoveryCodeSent] = useState(false);
@@ -91,7 +92,31 @@ export default function AuthPage({ mode = "login" }) {
         navigate("/login?returnTo=" + encodeURIComponent(afterLogin), { replace: true });
       } else if (isRegister) {
         if (confirmationPending) {
-          // Supabase sends a confirmation link, never a signup code in this deployment.
+          // If the email template includes {{ .Token }}, verify the one-time
+          // signup code directly in the initiating native PKCE storage context.
+          // Do not invent a token or accept unverified account access.
+          if (isNativeApp) {
+            const code = nativeEmailCode.trim();
+            if (!/^[0-9]{6,12}$/.test(code)) {
+              throw new Error("Enter the verification code from your email, if one was provided. Otherwise open the latest confirmation link or sign in after it is verified.");
+            }
+            const { error: otpError } = await auth.verifyOtp({
+              email: email.trim(), token: code, type: "signup",
+            });
+            if (otpError) throw new Error("That confirmation code was invalid or expired. Request the latest email and try again.");
+            const verified = await verifiedAuthUser(auth);
+            try {
+              const accepted = await finalizeSignupAgreement(authClient(), verified, sessionStorage);
+              if (accepted) await finalizeSignupAIChoices(authClient(), verified, sessionStorage);
+            } catch {
+              navigate("/onboarding", { replace: true });
+              return;
+            }
+            setNativeEmailCode("");
+            navigate(afterLogin, { replace: true });
+            return;
+          }
+          // Web link confirmations retain the existing same-browser flow.
           // This simply rechecks the authenticated session after the link was opened.
           const verified = await verifiedAuthUser(auth);
           if (password && verified.email_confirmed_at) {
@@ -329,9 +354,9 @@ export default function AuthPage({ mode = "login" }) {
             </fieldset>}
             {isRegister && confirmationPending && (
               <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
-                <h2 className="font-semibold">Confirm your email using the link</h2>
+                <h2 className="font-semibold">Confirm your email</h2>
                 {isNativeApp ? (
-                   <p className="mt-2">Open the confirmation link sent to {email} on the secure IFund website. After confirming, return to this app and sign in using your email and password. Your account and campaigns will be the same across devices.</p>
+                   <p className="mt-2">Open the latest confirmation link for {email}. With verified app links the confirmation returns to this app and uses the original secure session. If it opens in a browser instead, return here and sign in once the email is confirmed. If your email also contains a one-time code, you can enter it below.</p>
                  ) : (
                    <p className="mt-2">If a confirmation email was issued to {email}, open the latest message and click <strong>Confirm email address</strong>. The link returns you to iFund and completes email verification; no code is required.</p>
                  )}
@@ -341,6 +366,19 @@ export default function AuthPage({ mode = "login" }) {
                    <p className="mt-2">If you already clicked the link in another tab, select the button below to check this browser’s account session.</p>
                  )}
               </section>
+            )}
+            {isNativeApp && isRegister && confirmationPending && (
+              <label className="block text-sm font-medium">
+                Email confirmation code (only if included in your message)
+                <input type="text" inputMode="numeric" autoComplete="one-time-code"
+                  pattern="[0-9]{6,12}" maxLength={12}
+                  value={nativeEmailCode} onChange={event => setNativeEmailCode(event.target.value)}
+                  className="mt-2 min-h-12 w-full rounded-xl border border-slate-500 bg-white px-4 text-slate-950"
+                  aria-describedby="native-confirmation-hint" />
+                <span id="native-confirmation-hint" className="mt-1 block text-xs text-slate-300">
+                  Some emails only contain a link; no code is required in that case.
+                </span>
+              </label>
             )}
             {isReset && recoveryCodeSent && (
               <>
@@ -380,7 +418,7 @@ export default function AuthPage({ mode = "login" }) {
                 {message}
               </p>
             )}
-            {!(isNativeApp && isRegister && confirmationPending) && <button
+            {(!isNativeApp || !isRegister || !confirmationPending || nativeEmailCode.trim()) && <button
               disabled={busy}
               type="submit"
               className="min-h-12 w-full rounded-xl bg-cyan-400 px-4 font-semibold text-slate-950 disabled:opacity-60"
@@ -393,7 +431,7 @@ export default function AuthPage({ mode = "login" }) {
                     : "Send recovery email"
                   : isRegister
                     ? confirmationPending
-                      ? "I clicked the email link — continue"
+                      ? isNativeApp ? "Verify email code" : "I clicked the email link — continue"
                       : "Create account"
                     : "Sign in"}
             </button>}
