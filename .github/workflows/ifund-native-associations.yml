@@ -1,0 +1,38 @@
+name: IFund Mobile App Links Association Review
+
+# Generates review-only domain association files. Does not deploy any website,
+# change DNS, update Apple/Google apps, or touch Base44 APK.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-associations:
+    environment: native-store-release
+    runs-on: ubuntu-latest
+    env:
+      IFUND_APPLE_TEAM_ID: ${{ vars.IFUND_APPLE_TEAM_ID }}
+      IFUND_ANDROID_APP_SIGNING_SHA256: ${{ vars.IFUND_ANDROID_APP_SIGNING_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify canonical public app identity
+        run: node apps/mobile/scripts/verify-mobile.mjs --candidate
+      - name: Prepare independent store association files
+        run: node apps/mobile/scripts/prepare-store-associations.mjs
+      - name: Verify file structure and that no association is published
+        run: |
+          node -e "const fs=require('fs');const p='apps/mobile/release-associations/.well-known/';const a=JSON.parse(fs.readFileSync(p+'apple-app-site-association'));const g=JSON.parse(fs.readFileSync(p+'assetlinks.json'));if(!a.applinks.details[0].appID.endsWith('.com.interplanetaryfund.app')||g[0].target.package_name!=='com.interplanetaryfund.app')process.exit(1);"
+          test ! -f apps/web/public/.well-known/assetlinks.json
+          test ! -f apps/web/public/.well-known/apple-app-site-association
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IFund-Store-Domain-Associations-REVIEW-ONLY
+          path: apps/mobile/release-associations/.well-known/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
