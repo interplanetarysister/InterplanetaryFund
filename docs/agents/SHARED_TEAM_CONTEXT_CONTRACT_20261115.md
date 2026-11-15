@@ -1,0 +1,24 @@
+# Shared team context — canonical iFund behavior contract (2026-11-15)
+
+**Owner directive:** If a user interacts with any iFund user-facing agent, the resulting relevant conversation and campaign information is available across the **entire agent team for that user**. This is the standing account-level agreement, not a repeated per-handoff consent. Agents should understand earlier relevant conversations without requiring users to restate them.
+
+## Data model and authority
+- The canonical team context belongs to `owner_id = auth.uid()` as established on the server; account/session changes invalidate access and cached context immediately. Never derive owner from a request body, username, e-mail, URL parameter or client-held copy.
+- Record each authorized agent interaction as an immutable, owner-scoped context event: `event_id`, `owner_id`, `campaign_id` if verified, `source_agent`, `message_role`, `event_time`, `content`, `source_type` (user statement, verified provider record, agent hypothesis), `verification_state`, `correction_of` or deletion tombstone, plus required retention metadata. Preserve specialist origin.
+- All nine roles have authorized relevance-based *read* access to the same owner's conversations via a single server-verified context retrieval surface; agent-specific skills do not define separate memory silos.
+- Conversation sharing does not grant write access to financial ledgers, permission to contact supporters, external OAuth scopes, campaign publication, payout execution, or access to other users. The target agent still needs its own server-authorized execution path for consequential actions.
+- Keep authentication secrets, full bank/card data, provider tokens, private third-party identifiers and other credentials out of team-language-model context. Apply minimization on retrieval; preserve private material only where its specialized safeguarded system requires it.
+- The user can inspect and correct relevant stored facts and request deletion using supported ownership and retention controls; corrections supersede stale statements, and deletion prevents later retrieval (subject to applicable required record retention). Do not treat inferred psychological traits as verified attributes.
+- Internal use of existing team context needs no fresh approval; sending that content outside the user's team still follows separately granted permissions.
+
+## Runtime requirements before stating this works
+1. Reconcile existing canonical Supabase agent conversation and activity records; no new parallel app database. Add source-only migrations where necessary with fail-closed owner RLS, browser grants and storage deletion plan.
+2. Server writes each eligible exchange under the verified owner. Do not ingest unrelated public or private third-party messages without authority. Make event ingestion idempotent.
+3. Provide owner-scoped paginated retrieval for each authenticated team agent and context excerpts limited to relevant campaign/task. Include source and timestamps; never leak between tenants.
+4. Confirm replay/account-switch and other-owner access denial; corrections/deletions become effective; no privileged or external action is created merely by importing context.
+5. Verify service integration, multi-agent read-after-write and browser experiences on preview before production claims. A UI statement, policy file, or unit test alone is not runtime acceptance.
+
+## Examples are not special cases
+STORY may consult ORBIT on finances; PULSE may consult LINK on platform authorization; FORGE may request source quality from DISCOVER; ECHO may reuse STORY tone preferences; NEXUS may coordinate any combination. Regardless of which agent the user opened, *every* authorized team agent can retrieve relevant prior interactions of that same user. Recommendations or suggestions are distinct from actual routed execution.
+
+**Current state:** policy and frontend guidance committed to existing source branch. The current code does not yet establish that complete cross-agent conversation ingestion or live retrieval is deployed. Do not claim operational team-wide shared memory until independently verified.
