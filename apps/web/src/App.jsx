@@ -21,6 +21,7 @@ const Institutions = lazy(() => import("./pages/Institutions"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const HealthPrivacy = lazy(() => import("./pages/HealthPrivacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -99,6 +100,7 @@ function AppRoutes() {
     <Route path="/about" element={<About />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/delete-account" element={<DeleteAccount />} />
     <Route path="/health-privacy" element={<HealthPrivacy />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/login" element={<AuthPage key="login" mode="login" />} />
