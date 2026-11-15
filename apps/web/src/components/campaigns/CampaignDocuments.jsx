@@ -21,6 +21,18 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   const [draft,setDraft]=useState({summary:"",purpose:"general",allowAgentUse:false});
 
   useEffect(()=>{
+    if(!ownerId)return;
+    const client=authClient();
+    const {data}=client.auth.onAuthStateChange((_event,session)=>{
+      if(session?.user?.id===ownerId && session?.user?.is_anonymous!==true)return;
+      setRecords([]);setFile(null);setSummary("");setTeamAccess(false);
+      setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
+      setNotice("");setLoading(false);
+    });
+    return()=>data?.subscription?.unsubscribe();
+  },[ownerId]);
+
+  useEffect(()=>{
     let active=true;
     setRecords([]);setError("");setNotice("");
     if(!campaignId||!ownerId){setLoading(false);return()=>{active=false;};}
