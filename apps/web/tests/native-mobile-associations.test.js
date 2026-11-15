@@ -35,10 +35,26 @@ test("store association files use real signing-identity fields, not Base44 ident
     appId: "com.interplanetaryfund.app",
   });
   assert.equal(files.apple.applinks.details[0].appID, syntheticTeam + ".com.interplanetaryfund.app");
-  assert.ok(files.apple.applinks.details[0].paths.includes("/auth/mobile-callback"));
+  assert.ok(!files.apple.applinks.details[0].paths.includes("/auth/mobile-callback"), "Do not associate native OAuth before verified E2E acceptance");
   assert.ok(!files.apple.applinks.details[0].paths.includes("/auth/callback"));
   assert.equal(files.android[0].target.package_name, "com.interplanetaryfund.app");
   assert.deepEqual(files.android[0].target.sha256_cert_fingerprints, [syntheticFingerprint]);
+});
+
+test("native OAuth association requires explicit independently verified acceptance", () => {
+  const verified = generateAssociations({
+    teamId: syntheticTeam,
+    fingerprint: syntheticFingerprint,
+    appId: "com.interplanetaryfund.app",
+    authVerified: true,
+  });
+  assert.ok(verified.apple.applinks.details[0].paths.includes("/auth/mobile-callback"));
+  assert.throws(() => generateAssociations({
+    teamId: syntheticTeam,
+    fingerprint: syntheticFingerprint,
+    appId: "com.interplanetaryfund.app",
+    authVerified: "true",
+  }), TypeError);
 });
 
 test("missing, placeholder and Base44 credentials fail closed", () => {
