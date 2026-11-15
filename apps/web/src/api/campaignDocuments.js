@@ -111,6 +111,10 @@ export async function uploadCampaignDocument(client,campaignId,file,{
       purpose,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),extracted_text:extracted,
       allow_agent_use:allowAgentUse
     }).select("id,owner_id,campaign_id").single();
+    if(error?.code==="23514" && /Private document allowance reached/i.test(error.message||""))
+      throw Error("Your private document storage is full (200 MB per account). Remove unused files.");
+    if(error?.code==="23514" && /Campaign document limit reached/i.test(error.message||""))
+      throw Error("This campaign already has 15 documents. Remove an older file.");
     if(error||data?.id!==id||data?.owner_id!==userId||data?.campaign_id!==campaignId)
       throw Error("The document record was not verified.");
     await unchanged(client,userId);
