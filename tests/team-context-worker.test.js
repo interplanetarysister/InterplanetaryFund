@@ -19,14 +19,14 @@ test("reject invalid event IDs, unknown agents, excessive content and foreign ca
     {...candidate,campaignId:"other-user"},
   ]) assert.throws(()=>validateTeamContextEvent(invalid),/Invalid team conversation event/);
 });
-test("enabled user messages use user-only RPC without worker executor key",async()=>{
+test("enabled user messages require the trusted iFund Worker executor",async()=>{
   let url,headers,body;
   const result=await appendTeamContext({env:ENV,jwt:"valid.member.jwt",...candidate,speaker:"user",
     fetcher:async(u,request)=>{url=u;headers=request.headers;body=JSON.parse(request.body);return {ok:true,json:async()=>RESPONSE_ID};}
   });
   assert.equal(result.state,"saved");
   assert.ok(url.endsWith("/rpc/ifund_team_record_user"));
-  assert.equal(headers["x-ifund-workforce-key"],undefined);
+  assert.equal(headers["x-ifund-workforce-key"],"a".repeat(64));
   assert.equal(body.p_agent_id,"story");
   assert.equal(body.p_event_key,ID);
 });
@@ -63,4 +63,11 @@ test("agent replies preserve complete bounded result; user messages stay shorter
   assert.equal(validateTeamContextEvent({...candidate,content:full,speaker:"agent"}).p_content.length,16000);
   assert.throws(()=>validateTeamContextEvent({...candidate,content:full,speaker:"user"}),/Invalid/);
   assert.throws(()=>validateTeamContextEvent({...candidate,content:"x".repeat(24001),speaker:"agent"}),/Invalid/);
+});
+
+test("user messages also reject a missing trusted executor",async()=>{
+  await assert.rejects(appendTeamContext({
+    env:{...ENV,IFUND_WORKFORCE_EXECUTOR_KEY:""},jwt:"valid.member.jwt",...candidate,speaker:"user",
+    fetcher:async()=>{throw Error("No request permitted");}
+  }),/executor/);
 });
