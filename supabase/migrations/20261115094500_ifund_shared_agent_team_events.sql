@@ -99,7 +99,7 @@ end $$;
 revoke all on function public.ifund_team_record_agent(uuid,text,text,uuid) from public,anon;
 grant execute on function public.ifund_team_record_agent(uuid,text,text,uuid) to authenticated;
 
-create or replace function public.ifund_team_recent(p_campaign_id uuid default null,p_limit integer default 30)
+create or replace function public.ifund_team_recent(p_campaign_id uuid default null,p_limit integer default 30,p_before timestamptz default null,p_before_id uuid default null)
 returns table (id uuid,event_key uuid,agent_id text,speaker text,source_kind text,content text,campaign_id uuid,recorded_at timestamptz)
 language plpgsql stable security definer set search_path='' as $$
 declare actor uuid:=public.ifund_team_member_id();
@@ -112,9 +112,10 @@ begin
     from public.ifund_agent_team_events e
     where e.owner_id=actor and e.deleted_at is null and
       (p_campaign_id is null or e.campaign_id=p_campaign_id or e.campaign_id is null)
+      and (p_before is null or (e.recorded_at,e.id)<(p_before,coalesce(p_before_id,'ffffffff-ffff-ffff-ffff-ffffffffffff'::uuid)))
     order by e.recorded_at desc,e.id desc limit p_limit;
 end $$;
-revoke all on function public.ifund_team_recent(uuid,integer) from public,anon;
+revoke all on function public.ifund_team_recent(uuid,integer,timestamptz,uuid) from public,anon;
 grant execute on function public.ifund_team_recent(uuid,integer) to authenticated;
 
 create or replace function public.ifund_team_erase(p_event_key uuid) returns boolean
