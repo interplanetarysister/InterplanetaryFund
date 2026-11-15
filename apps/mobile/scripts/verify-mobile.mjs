@@ -40,6 +40,14 @@ assert(config.server?.errorPath === "mobile-offline.html", "Native app must prov
 assert(existsSync(resolve(repo, "apps/web/public/mobile-offline.html")), "Offline screen is missing from the copied web assets");
 assert(config.android?.allowMixedContent === false, "Android mixed content must remain disabled");
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
+assert(pkg.dependencies?.["@capacitor/share"] === "8.0.3", "Native system-share plugin is required");
+assert(pkg.devDependencies?.["@capacitor/assets"] === "4.0.0", "Brand asset generation must be pinned");
+assert(read("apps/mobile/assets/icon.svg") === read("apps/web/assets/icon.svg"),
+  "Native icon must be the canonical IFund brand art, not the Base44 app");
+assert(apiTransport.includes('registerPlugin("Share")'), "Native share bridge missing");
+assert(read("apps/web/src/components/campaigns/CampaignShareButton.jsx").includes("shareWithDevice("),
+  "Campaign share sheet is not integrated with native sharing");
+
 for (const name of ["android", "ios"]) {
   const workflow = read(".github/workflows/ifund-native-" + name + ".yml");
   assert(/workflow_dispatch:/.test(workflow), name + " native build must remain manually triggered");
