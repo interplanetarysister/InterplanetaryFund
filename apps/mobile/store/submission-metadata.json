@@ -1,0 +1,29 @@
+{
+  "app_name": "Interplanetary Fund",
+  "bundle_id": "com.interplanetaryfund.app",
+  "apple": {
+    "subtitle": "Discover and share causes",
+    "primary_category_suggestion": "Lifestyle",
+    "promotional_text": "Explore published fundraising campaigns, save causes, and share through your device.",
+    "description": "Interplanetary Fund helps people discover meaningful causes and organize a stronger fundraising story.\n\nBrowse published campaigns from the same live IFund service as interplanetaryfund.com. Search by category or approved public location, read campaign stories and share public campaign links with your phone’s native sharing tools.\n\nSave campaign links on your device for quick access, plan a campaign story with a transparent checklist, and sign in to review campaigns associated with your IFund account. You can hide campaigns, report concerning content, and block organizers from your signed-in account.\n\nAccount deletion and privacy controls are available directly in the app. The initial mobile release does not accept monetary donations, process payouts, sell subscriptions, or publish campaigns.",
+    "keywords": "fundraising,causes,campaigns,community,sharing,planning",
+    "age_rating": "NOT_VERIFIED_IN_APP_STORE_CONNECT",
+    "privacy_policy_url": "https://interplanetaryfund.com/privacy",
+    "support_url": "https://interplanetaryfund.com/contact",
+    "review_notes": "This is IFund’s independently bundled mobile companion for discovery, planning, native sharing, and account access. Financial checkout, payouts, subscriptions, social OAuth, and web administration are intentionally unavailable in this binary. Public campaign browsing requires no account. Verified reviewer credentials must be supplied privately in App Store Connect, not in GitHub.",
+    "review_account": "SET_PRIVATELY_IN_APP_STORE_CONNECT"
+  },
+  "google_play": {
+    "short_description": "Explore live causes, plan campaign stories, save and share with IFund.",
+    "full_description": "Explore published fundraising campaigns, discover causes by approved public location, and read real campaign stories with Interplanetary Fund.\n\nUse your phone’s native share sheet to share published campaign links. Save causes for quick reference, prepare a campaign story with a transparent readiness checklist, and sign in to review your existing IFund campaigns.\n\nCommunity safety tools allow you to report content, hide a campaign, and block organizers across devices when signed in. Manage account deletion and privacy requests directly inside the app.\n\nYour account and public campaign data are supplied by the same live IFund backend used by interplanetaryfund.com. The initial mobile app does not process donations, payouts, paid subscriptions, or financial transactions.",
+    "category_suggestion": "Lifestyle",
+    "privacy_policy_url": "https://interplanetaryfund.com/privacy",
+    "account_deletion_url": "https://interplanetaryfund.com/delete-account",
+    "support_email": "hello@interplanetaryfund.com",
+    "content_rating": "NOT_VERIFIED_IN_PLAY_CONSOLE",
+    "data_safety_form": "MUST_RECONCILE_FINAL_BINARY_AND_SDKS",
+    "app_access": "SUPPLY_PRIVATE_REVIEWER_ACCOUNT_OR_VERIFIED_DEMO_IN_PLAY_CONSOLE"
+  },
+  "verified_submission_ready": false,
+  "notes": "Metadata drafts must be reconciled with actual signed app behavior, final SDK inventory, real device screenshots, support/deletion URL reachability, reviewer account, and accurate content-rating/Data safety answers before submission."
+}
