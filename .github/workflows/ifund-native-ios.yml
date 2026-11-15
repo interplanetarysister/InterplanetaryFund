@@ -39,9 +39,9 @@ jobs:
         run: |
           test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "Missing canonical publishable build variable"; exit 1; }
           npm ci --legacy-peer-deps --no-audit --no-fund
-          npm test
-          npm run build
-          test -s dist/index.html
+          npm run test:mobile
+          npm run build:mobile
+          test -s dist-mobile/index.html
       - name: Prepare separate iOS project
         working-directory: apps/mobile
         run: |
