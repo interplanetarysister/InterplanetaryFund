@@ -415,6 +415,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/fundraising-partners",
+      "role": "public",
+      "component": "FundraisingPartners",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/giving",
       "role": "public",
       "component": "Navigate",
