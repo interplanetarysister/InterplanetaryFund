@@ -39,6 +39,13 @@ export default function AuthPage({ mode = "login" }) {
   const isRegister = mode === "register";
   const isReset = mode === "forgot-password";
   async function continueAsGuest() {
+    // Store-review binaries use truly account-free public browsing. Never
+    // create an anonymous Supabase Auth user when someone taps Explore.
+    // The canonical website's existing guest flow remains unchanged.
+    if (isNativeApp) {
+      navigate("/discover", { replace: true });
+      return;
+    }
     if (!isRegister || !legalReviewed || !legalAgreed || busy || guestBusy) return;
     setGuestBusy(true); setGuestError("");
     try {
