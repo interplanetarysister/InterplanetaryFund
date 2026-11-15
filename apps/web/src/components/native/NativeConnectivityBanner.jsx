@@ -37,7 +37,12 @@ export default function NativeConnectivityBanner() {
         cache: "no-store",
         signal: controller.signal,
       });
-      setStatus(response.ok ? "unknown" : "unavailable");
+      // An SPA fallback can return HTML with HTTP 200 even when the API
+      // Worker is missing; require the actual canonical health contract.
+      const payload = response.ok ? await response.json().catch(() => null) : null;
+      const healthy = response.ok && payload?.status === "ok" &&
+        payload?.service === "ifund-migration-api";
+      setStatus(healthy ? "unknown" : "unavailable");
     } catch {
       setStatus("unavailable");
     } finally {
