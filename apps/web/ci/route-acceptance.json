@@ -75,6 +75,16 @@
       "owner": "frontend+database"
     },
     {
+      "route": "/admin/deletions",
+      "role": "super_admin",
+      "component": "AdminDeletionQueue",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "admin+privacy+qa"
+    },
+    {
       "route": "/admin/finance",
       "role": "admin",
       "component": "Navigate",
