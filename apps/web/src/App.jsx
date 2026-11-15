@@ -138,7 +138,7 @@ function AppRoutes() {
       <Route path="/subscriptions" element={<MemberAccess><Subscriptions /></MemberAccess>} />
       <Route path="/support" element={<MemberAccess><SupportTickets /></MemberAccess>} />
       <Route path="/engagement" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
-      <Route path="/preferences" element={<Navigate to="/permissions" replace />} />
+      <Route path="/preferences" element={<Navigate to="/permissions?section=marketing" replace />} />
       <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
