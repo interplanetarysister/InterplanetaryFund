@@ -159,7 +159,9 @@ BEGIN
           p_occurred_at,v_apply);
   IF v_apply THEN
     UPDATE public.ifund_subscription_intents SET
-      status=CASE WHEN p_entry_type='payment' THEN 'active' ELSE 'past_due' END,
+      -- Financial events do not establish provider subscription entitlement.
+      -- Agent 3 must apply independently verified subscription status through
+      -- a separately authorized state transition, never infer it from refunds.
       last_payment_at=CASE WHEN p_entry_type='payment' THEN p_occurred_at ELSE last_payment_at END,
       last_payment_cents=CASE WHEN p_entry_type='payment' THEN p_amount_cents ELSE last_payment_cents END,
       last_reversal_at=CASE WHEN p_entry_type<>'payment' THEN p_occurred_at ELSE last_reversal_at END,
