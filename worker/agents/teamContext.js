@@ -3,10 +3,10 @@
 // the existing privileged Worker credential. Enabled only after DB acceptance.
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","pulse","polaris","forge","link","discover"]);
-export function validateTeamContextEvent({eventKey,agentId,content,campaignId=null}) {
-  if(!UUID.test(eventKey||"") || !TEAM_CONTEXT_AGENTS.includes(agentId)
+export function validateTeamContextEvent({eventKey,agentId,content,campaignId=null,speaker="user"}) {
+  if(!["user","agent"].includes(speaker) || !UUID.test(eventKey||"") || !TEAM_CONTEXT_AGENTS.includes(agentId)
     || typeof content!=="string" || !content.trim()
-    || content.trim().length>4000 || (campaignId!==null && !UUID.test(campaignId)))
+    || content.trim().length>(speaker==="agent"?24000:4000) || (campaignId!==null && !UUID.test(campaignId)))
     throw Object.assign(new Error("Invalid team conversation event."),{status:400});
   return {p_event_key:eventKey,p_agent_id:agentId,p_content:content.trim(),p_campaign_id:campaignId};
 }
@@ -23,7 +23,7 @@ export function replyEventKey(requestId) {
 export async function appendTeamContext({env,jwt,eventKey,agentId,content,campaignId=null,speaker,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled"};
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
-  const args=validateTeamContextEvent({eventKey,agentId,content,campaignId});
+  const args=validateTeamContextEvent({eventKey,agentId,content,campaignId,speaker});
   if(!["user","agent"].includes(speaker)) throw Error("Invalid team context speaker.");
   const trusted=speaker==="agent";
   if(trusted && !/^[a-f0-9]{64}$/.test(env.IFUND_WORKFORCE_EXECUTOR_KEY||""))
