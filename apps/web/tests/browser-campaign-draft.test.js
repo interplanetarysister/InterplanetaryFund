@@ -6,6 +6,8 @@ import {
   emptyWritingBrief,
   rememberBrowserCampaign,
   forgetBrowserCampaign,
+  importGuestCampaign,
+  hasUnclaimedGuestCampaign,
 } from "../src/lib/browserCampaignDraft.js";
 import { emptyCampaignForm } from "../src/lib/campaignLifecycle.js";
 const A = "11111111-1111-4111-8111-111111111111";
@@ -22,7 +24,9 @@ test("guest campaign text transfers once to its first signed-in owner", () => {
   const storage = store(),
     form = { ...emptyCampaignForm(), title: "Guest's campaign" };
   rememberBrowserCampaign(storage, null, form);
-  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+  assert.equal(hasUnclaimedGuestCampaign(storage), true);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
   rememberBrowserCampaign(storage, A, form);
   assert.deepEqual(restoreBrowserCampaign(storage, A), form);
   assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
@@ -67,6 +71,8 @@ test("writing brief follows the same guest handoff and identity boundary without
     access_token: "never-store-token",
   };
   rememberBrowserCampaign(storage, null, emptyCampaignForm(), brief);
+  assert.deepEqual(restoreWritingBrief(storage, A), emptyWritingBrief());
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
   assert.equal(restoreWritingBrief(storage, A).details, brief.details);
   rememberBrowserCampaign(
     storage,
@@ -107,9 +113,11 @@ test("legacy v2 guest text transfers to verified owner without leaking to anothe
   storage.setItem("ifund-guest-campaign-v1", JSON.stringify({
     version: 2, owner_id: null, form,
   }));
-  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
   assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
-  assert.deepEqual(restoreBrowserCampaign(storage, null), emptyCampaignForm());
+  assert.deepEqual(restoreBrowserCampaign(storage, null), form);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
 });
 
 test("legacy v2 owned draft remains scoped to its matching identity", () => {
@@ -222,7 +230,8 @@ test("first blank autosave cannot erase a freshly claimed guest draft", () => {
   const form = { ...emptyCampaignForm(), title: "Guest story" };
   rememberBrowserCampaign(storage, null, form);
   assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
-  assert.equal(restoreBrowserCampaign(storage, A).title, "Guest story");
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+  assert.equal(restoreBrowserCampaign(storage, null).title, "Guest story");
 });
 
 test("legacy remove failure never erases migrated text", () => {
