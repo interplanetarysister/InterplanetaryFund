@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { recommendAgent, AGENT_TRAINING_DIRECTORY } from "../src/lib/agentTrainingDirectory.mjs";
+import { recommendAgent, TRAINING_ROLES } from "../src/lib/agentTrainingDirectory.mjs";
 
 // Fictional 2026-W46 STORY/ECHO cases. These assert ethical source guidance,
 // not live agent output, donor conversion, message delivery or model training.
@@ -13,7 +13,7 @@ test("STORY: truthful fictional budget, optional CTA, no fabricated testimony", 
   for (const n of ["$4,800", "$1,200", "$2,900", "$700"]) assert.ok(storyFixture.includes(n));
   assert.match(storyFixture, /if you choose/);
   assert.match(storyFixture, /no authorized beneficiary quote/);
-  assert.match(AGENT_TRAINING_DIRECTORY.story.lesson, /verified|truthful|dignity|fabricat/i);
+  assert.match(TRAINING_ROLES.story.lesson, /verified|truthful|dignity|fabricat/i);
 });
 test("STORY: budget and narrative is a NEXUS multi-specialty routing proposal", () => {
   const r = recommendAgent("Please verify our budget and rewrite our story", "story");
@@ -24,7 +24,7 @@ test("STORY: budget and narrative is a NEXUS multi-specialty routing proposal", 
 test("ECHO: draft-only supporter thank-you respects donor choice", () => {
   assert.match(echoFixture, /choosing|choice/);
   assert.match(echoFixture, /not a sent message or a donation receipt/);
-  assert.match(AGENT_TRAINING_DIRECTORY.echo.lesson, /consent|opt.in|unverified|receipt|thank/i);
+  assert.match(TRAINING_ROLES.echo.lesson, /consent|opt.in|unverified|receipt|thank/i);
 });
 test("ECHO: mixed budget/update request routes to NEXUS; single thank-you to ECHO", () => {
   const multi = recommendAgent("Email a thank you and verify expenses", "echo");
