@@ -38,6 +38,10 @@ assert(read("apps/web/src/main.jsx").includes("installNativeApiTransport()"),
 assert(config.server?.cleartext === false, "Cleartext HTTP must remain disabled");
 assert(config.server?.errorPath === "mobile-offline.html", "Native app must provide an offline recovery screen");
 assert(existsSync(resolve(repo, "apps/web/public/mobile-offline.html")), "Offline screen is missing from the copied web assets");
+const offlineScreen = read("apps/web/public/mobile-offline.html");
+assert(offlineScreen.includes('href="/"'), "Offline recovery must return to the bundled app origin");
+assert(!offlineScreen.includes('href="https://interplanetaryfund.com/"'),
+  "Offline recovery must not replace the native shell with the remote website");
 assert(config.android?.allowMixedContent === false, "Android mixed content must remain disabled");
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
 assert(pkg.dependencies?.["@capacitor/share"] === "8.0.3", "Native system-share plugin is required");
