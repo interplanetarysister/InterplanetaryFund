@@ -65,7 +65,7 @@ export async function ifundApiFetch(path, init = {}, adapters = {}) {
   if (init.signal?.aborted)
     throw Object.assign(new Error("Request aborted"), { name: "AbortError" });
   const status = Number(response?.status);
-  if (!Number.isInteger(status) || status < 100 || status > 599)
+  if (!Number.isInteger(status) || status < 200 || status > 599)
     throw new Error("Invalid response from canonical IFund API.");
   const responseHeaders = new Headers(response.headers || {});
   // CapacitorHttp may parse JSON automatically; Response needs text or bytes.
@@ -75,4 +75,25 @@ export async function ifundApiFetch(path, init = {}, adapters = {}) {
     responseHeaders.set("content-type", "application/json");
   return new Response(method === "HEAD" || [204, 205, 304].includes(status) ? null : body,
     { status, headers: responseHeaders });
+}
+
+// Scoped native-only adapter for legacy same-origin /api/* call sites.
+// Install before React mounts; never intercept unrelated HTTPS, Supabase,
+// image, browser navigation, local assets, or the existing web application.
+let installed = false;
+export function installNativeApiTransport(target = globalThis, adapters = {}) {
+  const cap = adapters.capacitor || Capacitor;
+  if (!isNativeBundle(cap) || !["localhost", "127.0.0.1"].includes(
+    target.location?.hostname || "")) return false;
+  if (installed) return true;
+  const originalFetch = target.fetch.bind(target);
+  target.fetch = (input, init) => {
+    if (typeof input === "string" && input.startsWith("/api/"))
+      return ifundApiFetch(input, init, {
+        ...adapters, fetch: originalFetch,
+      });
+    return originalFetch(input, init);
+  };
+  installed = true;
+  return true;
 }
