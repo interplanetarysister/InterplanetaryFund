@@ -1,6 +1,7 @@
 // Shared, reviewable agent skill-routing directory. It is guidance, not tool permission.
 // Weekly lessons update this catalog only after evidence, review and reproducible checks.
-export const TRAINING_VERSION = "2026-11-14-round-1";
+export const TRAINING_VERSION = "2026-11-15-round-1-shared-team-context";
+export const TEAM_CONTEXT_POLICY = Object.freeze({scope:"authenticated_owner_team",source:"all_authorized_agent_interactions",internalSharing:"automatic",repeatedHandoffConsent:false,externalSharing:"separate_authorization_required",secrets:"excluded",crossOwnerAccess:"denied",availableAtRuntime:false});
 export const TRAINING_ROLES = Object.freeze({
   story: {skill:"Authentic, empathetic campaign storytelling",handles:["campaign narrative","story structure","tone","beneficiary dignity","clarity of ask"],consult:["orbit","polaris","echo"],lesson:"Translate verified purpose and spending facts into a dignified, concrete, emotionally resonant story; no invented details or guarantees."},
   orbit: {skill:"Financial clarity and donor trust",handles:["campaign budget","spending plan","fees","financial disclosures","verified amounts"],consult:["story","polaris"],lesson:"Make credible itemized costs, contingency, fees, and spending updates easy for donors to understand; partner funds remain external."},
@@ -43,6 +44,6 @@ export function recommendAgent(question, currentAgent = "nexus") {
 export function proposedSpecialistHandoff(question, currentAgent = "nexus") {
   const result=recommendAgent(question,currentAgent);
   const workflow=result.requiresCoordination ? result.topics : (result.shouldHandoff ? [result.target] : []);
-  return {...result,workflow,usesExistingTeamContext:true,requiresNewHandoffConsent:false,state:"proposed",transmitted:false,
-    message:"Same-account agents may use authorized shared team context. This recommendation has not contacted a specialist."};
+  return {...result,workflow,usesExistingTeamContext:true,requiresNewHandoffConsent:false,teamContextScope:TEAM_CONTEXT_POLICY.scope,state:"proposed",transmitted:false,
+    message:"All agents serving the same account may use its authorized team conversation context. This recommendation has not contacted a specialist."};
 }
