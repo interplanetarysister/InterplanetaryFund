@@ -132,7 +132,7 @@ begin
     order by e.recorded_at desc,e.id desc limit p_limit;
 end $$;
 revoke all on function public.ifund_team_recent(uuid,integer,timestamptz,uuid) from public,anon;
-grant execute on function public.ifund_team_recent(uuid,integer) to authenticated;
+grant execute on function public.ifund_team_recent(uuid,integer,timestamptz,uuid) to authenticated;
 
 create or replace function public.ifund_team_erase(p_event_key uuid) returns boolean
 language plpgsql security definer set search_path='' as $$
