@@ -32,15 +32,15 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_x9AX2hyHLr_kb2mewuH69Q_T66poFyL' }}
         run: |
           test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "Missing canonical publishable build variable"; exit 1; }
-          npm ci --no-audit --no-fund
+          npm ci --legacy-peer-deps --no-audit --no-fund
           npm test
           npm run build
           test -s dist/index.html
       - name: Prepare separate mobile project
         working-directory: apps/mobile
         run: |
-          npm install --package-lock-only --no-audit --no-fund
-          npm ci --no-audit --no-fund
+          npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
+          npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add android
           node scripts/configure-native-project.mjs android
           npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
