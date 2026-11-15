@@ -204,3 +204,10 @@ test("sustainability screen does not mislabel public campaign totals as verified
   assert.doesNotMatch(sustainability, /"Provider-verified fundraising"/);
   assert.doesNotMatch(sustainability, /Financial figures exclude pending, refunded, unverified and sandbox transactions/);
 });
+
+test("operations finance navigation enters administrator-gated route", () => {
+  const operations = page("OperationsHub");
+  assert.match(operations, /to: "\/admin\/finance", label: "Platform finance"/);
+  assert.doesNotMatch(operations, /to: "\/finances#platform-finance"/);
+  assert.match(route("/admin/finance"), /<AdminAccess>/);
+});
