@@ -1,4 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
+import { appendTeamContext, replyEventKey } from "./teamContext.js";
 import {
   beginStoryAssignment,
   invokeImplementation,
@@ -660,6 +661,20 @@ export async function storyRoute(request, env, fetcher = fetch) {
     }
     // A stored receipt is required before reporting success, even after inference.
     const draft = await finish(suggestion, "succeeded");
+    // The shared transcript is enabled only after its owner-RLS migration is
+    // accepted. Do not claim shared team memory if either receipt is missing.
+    if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+      await appendTeamContext({
+        env, jwt, eventKey: request_id, agentId: "story",
+        content: input.details, campaignId: input.campaign_id,
+        speaker: "user", fetcher,
+      });
+      await appendTeamContext({
+        env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
+        content: (input.section ? suggestion.section : suggestion.story).slice(0,4000),
+        campaignId: input.campaign_id, speaker: "agent", fetcher,
+      });
+    }
     return json(201, { draft, replayed: false });
   } catch (error) {
     const status =
