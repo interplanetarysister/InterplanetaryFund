@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
 import SupportConversation from "@/components/support/SupportConversation";
 
 export default function SupportTickets() {
+  const [searchParams] = useSearchParams();
+  const requestingDeletion = searchParams.get("request") === "delete-account";
   const { user } = useAuthSession();
   const access = useSuperAdminAccess(user);
-  const [subject, setSubject] = useState("");
-  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState(() => requestingDeletion
+    ? "Account deletion request" : "");
+  const [message, setMessage] = useState(() => requestingDeletion
+    ? "I request deletion of my IFund account. Please verify my identity and explain financial or legal retention requirements before processing." : "");
   const [tickets, setTickets] = useState([]);
   const [queue, setQueue] = useState([]);
   const [busy, setBusy] = useState(false);
@@ -91,7 +95,13 @@ export default function SupportTickets() {
     {error && <p role="alert" className="rounded-lg border border-red-500/40 p-4">{error}</p>}
     {notice && <p role="status" className="rounded-lg border border-cyan-500/40 p-4">{notice}</p>}
     <form className="space-y-4 rounded-xl border border-border bg-card p-5" onSubmit={submit}>
-      <h2 className="text-xl font-semibold">New support request</h2>
+      <h2 className="text-xl font-semibold">{requestingDeletion ? "Request account deletion" : "New support request"}</h2>
+      {requestingDeletion && <p className="text-sm text-muted-foreground">
+        Your signed-in request is recorded in the administrator support queue.
+        It does not immediately erase your account or payment ledger. Authorized
+        staff must verify ownership, active campaigns and legal retention before
+        carrying out deletion. You can follow the case below.
+      </p>}
       <label className="block text-sm font-medium" htmlFor="ticket-subject">Subject</label>
       <input id="ticket-subject" className="w-full min-h-11 rounded-lg border border-border bg-background px-3"
         value={subject} onChange={e => setSubject(e.target.value)} maxLength={160} required />
