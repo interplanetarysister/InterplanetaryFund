@@ -16,6 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Check independent native identity before build
+        run: node apps/mobile/scripts/verify-mobile.mjs --candidate
       - name: Verify shared canonical frontend
         working-directory: apps/web
         run: |
