@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TEAM_CONTEXT_AGENTS, appendTeamContext, replyEventKey, validateTeamContextEvent } from "../worker/agents/teamContext.js";
+import { TEAM_CONTEXT_AGENTS, appendTeamContext, replyEventKey, validateTeamContextEvent, readCampaignDocumentContext } from "../worker/agents/teamContext.js";
 
 const ID="56c9e31f-205e-4d74-9254-f82e401d0e83";
 const RESPONSE_ID="286b9d7d-45a7-4c7e-bde2-18eb233f0ec5";
@@ -70,4 +70,49 @@ test("user messages also reject a missing trusted executor",async()=>{
     env:{...ENV,IFUND_WORKFORCE_EXECUTOR_KEY:""},jwt:"valid.member.jwt",...candidate,speaker:"user",
     fetcher:async()=>{throw Error("No request permitted");}
   }),/executor/);
+});
+
+test("agent document context requires authenticated owner token and a saved campaign",async()=>{
+  await assert.rejects(readCampaignDocumentContext({
+    env:{...ENV,IFUND_CAMPAIGN_DOCUMENTS_ENABLED:"enabled"},
+    jwt:"",campaignId:ID,
+    fetcher:async()=>assert.fail("No request permitted")
+  }),/Verified member token/);
+  await assert.rejects(readCampaignDocumentContext({
+    env:{...ENV,IFUND_CAMPAIGN_DOCUMENTS_ENABLED:"enabled"},
+    jwt:"valid.member.jwt",campaignId:"not-uuid",
+    fetcher:async()=>assert.fail("No request permitted")
+  }),/saved campaign/);
+});
+test("agent document context uses owner token, private RPC and unverified source provenance",async()=>{
+  const doc="66666666-6666-4666-8666-666666666666";
+  let headers,body,requestUrl;
+  const result=await readCampaignDocumentContext({
+    env:{...ENV,IFUND_CAMPAIGN_DOCUMENTS_ENABLED:"enabled"},
+    jwt:"valid.member.jwt",campaignId:ID,
+    fetcher:async(url,request)=>{
+      requestUrl=url;headers=request.headers;body=JSON.parse(request.body);
+      return {ok:true,json:async()=>[{
+        document_id:doc,file_name:"budget.xlsx",purpose:"budget",
+        summary:"Campaign expense estimate",owner_excerpt:"$2,900 fridge",
+        extracted_excerpt:"",owner_supplied:true,
+        source_type:"uploaded_private_document_summary"
+      }]};
+    }
+  });
+  assert.ok(requestUrl.endsWith("/rpc/ifund_campaign_agent_document_briefs"));
+  assert.equal(headers.Authorization,"Bearer valid.member.jwt");
+  assert.deepEqual(body,{p_campaign_id:ID});
+  assert.equal(result.state,"ready");
+  assert.equal(result.briefs[0].source_type,"owner_uploaded_reference_unverified");
+  assert.equal(result.briefs[0].owner_excerpt,"$2,900 fridge");
+});
+test("agent document context fails closed on unverified or oversized records",async()=>{
+  await assert.rejects(readCampaignDocumentContext({
+    env:{...ENV,IFUND_CAMPAIGN_DOCUMENTS_ENABLED:"enabled"},
+    jwt:"valid.member.jwt",campaignId:ID,
+    fetcher:async()=>({ok:true,json:async()=>[{document_id:ID,file_name:"x.pdf",
+      purpose:"budget",summary:"a",owner_excerpt:"",extracted_excerpt:"",
+      owner_supplied:false,source_type:"uploaded_private_document_summary"}]})
+  }),/reference response was invalid/);
 });
