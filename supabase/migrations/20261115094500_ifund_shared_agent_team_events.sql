@@ -9,7 +9,7 @@ create table if not exists public.ifund_agent_team_events (
   agent_id text not null check (agent_id in ('nexus','echo','pulse','orbit','polaris','forge','link','discover','story')),
   speaker text not null check (speaker in ('user','agent')),
   source_kind text not null check (source_kind in ('user_statement','agent_response')),
-  content text not null check (length(btrim(content)) between 1 and 4000),
+  content text not null check (length(btrim(content)) between 1 and 24000),
   recorded_at timestamptz not null default now(),
   corrected_by uuid references public.ifund_agent_team_events(id),
   deleted_at timestamptz,
@@ -77,7 +77,7 @@ declare actor uuid:=public.ifund_team_member_id(); saved uuid; existing uuid;
 begin
   perform ifund_workforce_runtime.require_worker();
   if p_event_key is null or p_agent_id not in ('nexus','echo','pulse','orbit','polaris','forge','link','discover','story')
-    or p_content is null or length(btrim(p_content)) not between 1 and 4000 then
+    or p_content is null or length(btrim(p_content)) not between 1 and 24000 then
     raise exception 'Invalid agent conversation event' using errcode='22023'; end if;
   if p_campaign_id is not null and not exists(
     select 1 from public.ifund_campaigns c where c.id=p_campaign_id and c.owner_id=actor
