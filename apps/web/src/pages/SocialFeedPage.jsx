@@ -2,6 +2,7 @@ import "@/styles-sacred-social.css";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { getCampaignDetail } from "@/api/publicData";
+import { publicShareOrigin } from "@/lib/campaignShare";
 import { getPublishedStory, getFinalPublication } from "@/lib/editorial";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -76,7 +77,7 @@ export default function SocialFeedPage({ community = false }) {
         } catch { /* Never imply ownership without verification */ }
       }
       if (!active) return;
-      const url = `${window.location.origin}/campaign/${encodeURIComponent(campaign.id)}`;
+      const url = `${publicShareOrigin(window.location.origin)}/campaign/${encodeURIComponent(campaign.id)}`;
       const intro = ownerUpdate ? `Campaign update: ${campaign.title}\n\n` : `Support ${campaign.title} on Interplanetary Fund!\n`;
       const suggested = `${intro}${url}`.slice(0, MAX_POST_LENGTH);
       setShareSuggestion(suggested);
@@ -107,7 +108,7 @@ export default function SocialFeedPage({ community = false }) {
     let active = true;
     getPublishedStory(id).then(story => {
       if (!active || !story) return;
-      const url = `${window.location.origin}/blogs/${encodeURIComponent(story.id)}`;
+      const url = `${publicShareOrigin(window.location.origin)}/blogs/${encodeURIComponent(story.id)}`;
       setBody(previous => previous || `Let's discuss: ${story.title}\n${url}`.slice(0,MAX_POST_LENGTH));
     }).catch(() => {});
     return () => { active = false; };
@@ -119,7 +120,7 @@ export default function SocialFeedPage({ community = false }) {
     let active = true;
     getFinalPublication(id).then(item => {
       if (!active || !item) return;
-      const url = `${window.location.origin}/publications/${encodeURIComponent(item.id)}`;
+      const url = `${publicShareOrigin(window.location.origin)}/publications/${encodeURIComponent(item.id)}`;
       setBody(previous => previous || `Discuss this IFund update: ${item.title}\n${url}`.slice(0,MAX_POST_LENGTH));
     }).catch(() => {});
     return () => { active = false; };
