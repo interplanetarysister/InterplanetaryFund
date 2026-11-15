@@ -45,3 +45,10 @@ test("Atlas placement link deep-links to the campaign location fieldset",()=>{
   assert.match(fields,/id="campaign-atlas-location"/);
   assert.match(fields,/tabIndex=\{-1\}/);
 });
+
+test("globe selection does not retain a campaign from another authorization scope",()=>{
+  const globe=read("../src/components/atlas/CampaignGlobe.jsx");
+  assert.match(globe,/const \[selectedId, setSelectedId\] = useState\(null\)/);
+  assert.match(globe,/campaigns\.find\(c => c\.id === selectedId\) \|\| null/);
+  assert.doesNotMatch(globe,/setSelected\(campaign\)/);
+});
