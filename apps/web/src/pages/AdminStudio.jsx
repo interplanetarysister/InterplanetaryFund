@@ -129,21 +129,20 @@ export default function AdminStudio() {
     }
   };
 
-  const selectPage = async (entry) => {
-    if (busy) return;
-    if (dirty) {
-      const saved = await save("draft");
-      if (!saved) return;
-    }
+  // Switching pages must never silently turn a published page into a draft.
+  // Require an explicit Save draft or Publish decision before discarding edits.
+  const requireCleanEditor = () => {
+    if (!dirty) return true;
+    setError("You have unsaved changes. Choose Save draft or Publish page before switching pages. Saving a published page as a draft may remove it from public view.");
+    return false;
+  };
+  const selectPage = (entry) => {
+    if (busy || !requireCleanEditor()) return;
     setPage(entry); setDirty(false); setError(""); setNotice("");
   };
 
-  const startNew = async () => {
-    if (busy) return;
-    if (dirty) {
-      const saved = await save("draft");
-      if (!saved) return;
-    }
+  const startNew = () => {
+    if (busy || !requireCleanEditor()) return;
     setPage(starter()); setDirty(true); setError(""); setNotice("");
   };
 
