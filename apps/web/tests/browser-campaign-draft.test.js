@@ -225,12 +225,16 @@ test("first blank autosave cannot erase a newly migrated matching-owner legacy d
   assert.equal(rememberBrowserCampaign(storage, A, form), true, "hydrated editor may save");
 });
 
-test("first blank autosave cannot erase a freshly claimed guest draft", () => {
+test("owner autosave cannot claim a guest draft without explicit consent", () => {
   const storage = store();
   const form = { ...emptyCampaignForm(), title: "Guest story" };
-  rememberBrowserCampaign(storage, null, form);
-  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
+  assert.equal(rememberBrowserCampaign(storage, null, form), true);
+  // A new owner may save their own empty draft, but must not consume or
+  // expose the guest's private text without an explicit import action.
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), true);
   assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+  assert.equal(restoreBrowserCampaign(storage, null).title, "Guest story");
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "owner_exists" });
   assert.equal(restoreBrowserCampaign(storage, null).title, "Guest story");
 });
 
