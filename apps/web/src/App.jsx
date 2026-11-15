@@ -26,6 +26,7 @@ const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
 const AgentsTeam = lazy(() => import("./pages/AgentsTeam"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
+const MobileAuthCallbackNotice = lazy(() => import("./pages/MobileAuthCallbackNotice"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const FinanceDashboard = lazy(() => import("./pages/FinanceDashboard"));
@@ -105,6 +106,7 @@ function AppRoutes() {
     <Route path="/reset-password" element={<ResetPassword />} />
     <Route path="/oauth/callback/:provider" element={<OAuthCallback />} />
     <Route path="/auth/callback" element={<AuthCallback />} />
+    <Route path="/auth/mobile-callback" element={<MobileAuthCallbackNotice />} />
     <Route path="/onboarding" element={<MemberAccess><MemberOnboarding /></MemberAccess>} />
     <Route path="/activate" element={<Navigate to="/login" replace />} />
     <Route path="/founding-members" element={<FoundingMembers />} />
