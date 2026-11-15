@@ -290,3 +290,13 @@ test("malformed inputs and non-JSON service replies fail closed", async () => {
   assert.equal(response.status, 503);
   assert.doesNotMatch(await response.text(), /private-provider-credential/);
 });
+
+test("saved campaign reference is forwarded to owner-verified Story and invalid IDs are rejected",async()=>{
+ const f=binding();
+ const response=await campaignPreview(request({...input,campaign_id:RECEIPT}),f.env);
+ assert.equal(response.status,200);
+ const routed=f.calls.find(call=>call.path==="/api/agents/story/drafts");
+ assert.equal(routed.body.campaign_id,RECEIPT);
+ const invalid=await campaignPreview(request({...input,campaign_id:"another-user"}),f.env);
+ assert.equal(invalid.status,400);
+});
