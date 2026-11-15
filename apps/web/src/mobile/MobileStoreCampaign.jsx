@@ -4,6 +4,8 @@ import { ArrowLeft, Share2, Flag, EyeOff } from "lucide-react";
 import { getCampaignDetail } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { shareWithDevice } from "@/lib/nativeApi.js";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { blockOrganizer, readBlockedOrganizers, verifiedOrganizersForCampaigns } from "@/mobile/organizerBlock";
 
 const ORIGIN="https://interplanetaryfund.com";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -11,6 +13,8 @@ const validImage = raw=>typeof raw==="string" && /^https:\/\/[^\s]+$/i.test(raw)
 
 export default function MobileStoreCampaign() {
   const {id}=useParams();
+  const {user}=useAuthSession();
+  const [organizerId,setOrganizerId]=useState(null);
   const navigate=useNavigate();
   const [campaign,setCampaign]=useState(null),[phase,setPhase]=useState("loading"),[error,setError]=useState("");
   const [notice,setNotice]=useState(""),[reporting,setReporting]=useState(false),[reason,setReason]=useState("");
@@ -21,6 +25,25 @@ export default function MobileStoreCampaign() {
     getCampaignDetail(id).then(data=>{if(live){setCampaign(data);setPhase(data?"ready":"missing");}}).catch(e=>{if(live){setPhase("error");setError(e.message||"Could not load this campaign.");}});
     return ()=>{live=false;};
   },[id]);
+
+  useEffect(()=>{
+    let active=true;
+    setOrganizerId(null);
+    if(user?.id && UUID.test(id||"")){
+      verifiedOrganizersForCampaigns([id]).then(map=>{
+        if(active)setOrganizerId(map.get(id)||null);
+      }).catch(()=>{if(active)setOrganizerId(null);});
+    }
+    return()=>{active=false;};
+  },[id,user?.id]);
+
+  function blockAuthor(){
+    if(!user?.id||!organizerId){setNotice("Sign in to block this organizer's campaigns.");return;}
+    try{
+      blockOrganizer(user.id,organizerId);
+      navigate("/discover",{replace:true});
+    }catch(cause){setNotice(cause.message||"Organizer blocking is unavailable.");}
+  }
 
   const shareUrl=ORIGIN+"/campaign/"+encodeURIComponent(String(id||""));
   async function share(){
@@ -61,6 +84,12 @@ export default function MobileStoreCampaign() {
     }catch(e){setNotice(e.message||"Report could not be recorded. Please contact IFund.");}
     finally{setReportBusy(false);}
   }
+  if(phase==="ready"&&user?.id&&organizerId&&readBlockedOrganizers(user.id).includes(organizerId))
+    return <section role="status" className="space-y-4 rounded-xl border border-white/20 p-6">
+      <h1 className="text-xl font-bold">This organizer is blocked</h1>
+      <p className="text-sm text-slate-300">You chose not to see campaigns from this organizer in this app. You can reset blocked organizers from Account settings.</p>
+      <Link to="/discover" className="inline-flex min-h-11 items-center rounded-lg bg-emerald-200 px-4 text-sm font-bold text-slate-950">Back to Discover</Link>
+    </section>;
   if(phase==="loading")return <p role="status" className="py-10">Loading published campaign…</p>;
   if(phase==="missing")return <div className="space-y-4 py-8"><h1 className="text-2xl font-bold">Campaign unavailable</h1><p>This campaign isn't published or could not be found.</p><Link to="/discover" className="underline">Explore campaigns</Link></div>;
   if(phase==="error")return <div className="space-y-4 py-8" role="alert"><h1 className="text-2xl font-bold">Campaign couldn't be loaded</h1><p>{error}</p><Link to="/discover" className="underline">Explore campaigns</Link></div>;
@@ -78,6 +107,7 @@ export default function MobileStoreCampaign() {
       <button type="button" onClick={share} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-200 px-5 text-sm font-bold text-slate-950"><Share2 aria-hidden="true" className="h-5 w-5"/> Share campaign</button>
       <button type="button" onClick={()=>setReporting(x=>!x)} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm"><Flag aria-hidden="true" className="h-4 w-4"/> Report content</button>
       <button type="button" onClick={block} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm"><EyeOff aria-hidden="true" className="h-4 w-4"/> Hide campaign</button>
+      {user?.id&&organizerId&&organizerId!==user.id&&<button type="button" onClick={blockAuthor} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-rose-300/40 px-4 text-sm"><EyeOff aria-hidden="true" className="h-4 w-4"/> Block organizer</button>}
     </div>
     {notice&&<p role="status" aria-live="polite" className="rounded-xl border border-emerald-300/30 p-4 text-sm">{notice}</p>}
     {reporting&&<form onSubmit={report} className="space-y-3 rounded-2xl border border-amber-300/30 p-5">
