@@ -7,6 +7,7 @@ const EMPTY={loading:false,items:[],error:""};
 export default function AgentDocumentReferences({campaignId,onInsert,disabled=false}){
   const [state,setState]=useState(EMPTY);
   const [verifiedOwner,setVerifiedOwner]=useState(null);
+  const [retryCount,setRetryCount]=useState(0);
   const scope=useRef({generation:0,owner:null,campaignId:null});
   useEffect(()=>{
     const client=authClient();
@@ -59,7 +60,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
       scope.current.owner=null;
       subscription?.subscription?.unsubscribe();
     };
-  },[campaignId]);
+  },[campaignId,retryCount]);
 
   async function insert(item){
     const {generation,owner,campaignId:activeCampaign}=scope.current;
@@ -83,8 +84,16 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
         selected.owner_excerpt && "Owner-selected excerpt (unverified): "+selected.owner_excerpt,
         selected.extracted_excerpt && "Plain-text file excerpt (unverified): "+selected.extracted_excerpt,
       ].filter(Boolean).join("\n\n").slice(0,2200);
+      if(!facts){
+        if(scope.current.generation===generation)setState(prev=>({...prev,error:"No approved document facts remain to insert."}));
+        return;
+      }
       onInsert(facts);
-    }catch{/* Fail closed on identity errors. */}
+    }catch(error){
+      if(scope.current.generation===generation&&scope.current.owner===owner){
+        setState(prev=>({...prev,error:"Unable to verify this reference. Try again before inserting."}));
+      }
+    }
   }
   if(!campaignId)return null;
   const items=verifiedOwner&&scope.current.owner===verifiedOwner?state.items:[];
@@ -92,7 +101,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
     <h3 className="text-sm font-semibold">Private campaign references</h3>
     <p className="mt-1 text-xs text-muted-foreground">Only owner-enabled, user-supplied references appear here. They are not independently verified. Review before using in public materials.</p>
     {state.loading&&<p role="status" className="mt-2 text-xs">Loading your authorized references…</p>}
-    {state.error&&<p role="alert" className="mt-2 text-xs text-muted-foreground">{state.error}</p>}
+    {state.error&&<div className="mt-2 space-y-2"><p role="alert" className="text-xs text-muted-foreground">{state.error}</p><button type="button" disabled={disabled} onClick={()=>setRetryCount(value=>value+1)} className="min-h-11 rounded-lg border border-border px-3 text-xs font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">Retry account verification</button></div>}
     {!state.loading&&!state.error&&items.length===0&&<p className="mt-2 text-xs text-muted-foreground">No references available. Enable documents under My campaigns, or sign in and try again.</p>}
     {items.length>0&&<ul className="mt-3 space-y-2">
       {items.map(item=><li key={item.document_id} className="rounded-lg border border-border p-3">
