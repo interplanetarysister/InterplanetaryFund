@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { publicShareOrigin } from "@/lib/campaignShare";
+import { isNativeBundle, shareWithDevice } from "@/lib/nativeApi";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Flag, Share2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
@@ -18,9 +19,11 @@ function safeExternalUrl(raw) {
 async function sharePost(post) {
   const url = `${publicShareOrigin(window.location.origin)}/social/post/${encodeURIComponent(post.id)}`;
   const data = { title: "Interplanetary Fund community update", text: post.body, url };
-  if (navigator.share) {
-    try { await navigator.share(data); return; }
-    catch (error) { if (error?.name === "AbortError") return; }
+  if (isNativeBundle() || typeof navigator.share === "function") {
+    try { await shareWithDevice(data); return; }
+    catch (error) {
+      if (error?.name === "AbortError" || /cancel/i.test(String(error?.message || ""))) return;
+    }
   }
   try { await navigator.clipboard.writeText(`${post.body}\n${url}`); }
   catch { window.prompt("Copy this community update:", `${post.body}\n${url}`); }
