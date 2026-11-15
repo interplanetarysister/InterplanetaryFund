@@ -4,7 +4,8 @@
   "webDir": "../web/dist",
   "server": {
     "url": "https://interplanetaryfund.com",
-    "cleartext": false
+    "cleartext": false,
+    "errorPath": "mobile-offline.html"
   },
   "android": {
     "allowMixedContent": false
