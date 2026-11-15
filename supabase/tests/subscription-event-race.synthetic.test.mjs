@@ -8,7 +8,7 @@ const start=source.indexOf('    if(body.op==="subscription_event"){');
 const end=source.indexOf('    if(body.op==="payout_prepare"){',start);
 assert.ok(start>0&&end>start,'locate actual Edge handler');
 const block=source.slice(start,end);
-async function run({incoming,prior=null,insertError=null}){
+async function run({incoming,prior=null,insertError=null,raceRow=null}){
   let writes=0;
   const rows=[];
   const context={
@@ -21,7 +21,7 @@ async function run({incoming,prior=null,insertError=null}){
     fail:(error,status=400)=>({ok:false,error,status}),
     Response:{json:x=>x}
   };
-  rows.push(prior,prior);
+  rows.push(prior,raceRow);
   const value=await vm.runInNewContext('(async()=>{'+block+'})()',context);
   return {value,writes};
 }
@@ -42,8 +42,10 @@ test('synthetic: unique insert race is accepted only with matching persisted ide
   const matching={paypal_subscription_id:event().paypal_subscription_id,event_type:event().event_type};
   const ok=await run({incoming:event(),prior:null,insertError:409});
   assert.equal(ok.value.status,409,'no matching persisted row must fail closed');
-  const hit=await run({incoming:event(),prior:matching,insertError:409});
-  assert.equal(hit.value.duplicate,true,'existing replay handled before insert');
+  const hit=await run({incoming:event(),raceRow:matching,insertError:409});
+  assert.equal(hit.value.duplicate,true,'concurrent matching persisted event is replay');
+  const bad=await run({incoming:event(),raceRow:{...matching,event_type:'BILLING.SUBSCRIPTION.CANCELLED'},insertError:409});
+  assert.equal(bad.value.status,409,'concurrent conflicting identity denied');
 });
 test('synthetic: invalid event rejected before any write',async()=>{
   const r=await run({incoming:event({paypal_event_id:'BAD'})});
