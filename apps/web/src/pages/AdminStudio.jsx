@@ -177,18 +177,12 @@ export default function AdminStudio() {
   };
 
   const restoreVersion = async (version) => {
-    if (!page?.id || busy) return;
-    let target = page;
-    if (dirty) {
-      const saved = await save("draft");
-      if (!saved) return;
-      target = saved;
-    }
+    if (!page?.id || busy || !requireCleanEditor()) return;
     setBusy(true); setError(""); setNotice("");
     try {
       const restored = await api(
-        "/api/studio/pages/" + encodeURIComponent(target.id) + "/versions/" + version + "/restore",
-        "POST", undefined, target.updated_at ? { "If-Match": target.updated_at } : {},
+        "/api/studio/pages/" + encodeURIComponent(page.id) + "/versions/" + version + "/restore",
+        "POST", undefined, page.updated_at ? { "If-Match": page.updated_at } : {},
       );
       setPage(restored);
       setPages((current) => current.map((entry) => entry.id === restored.id ? restored : entry));
