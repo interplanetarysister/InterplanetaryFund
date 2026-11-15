@@ -5,6 +5,8 @@ node_modules/
 package-lock.tmp.json
 # Store identities are generated from verified owners only and never auto-deployed.
 release-associations/
+# Independent QA release evidence is injected into signed CI at runtime.
+release-evidence.json
 output/
 dist/
 build/
