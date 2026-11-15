@@ -50,6 +50,40 @@ export function iosEntitlements() {
 `;
 }
 
+// Attach signing entitlements in both generated iOS target configurations.
+// An App.entitlements file not referenced by CODE_SIGN_ENTITLEMENTS has no
+// effect on signed associated domains, so refuse ambiguous Xcode projects.
+export function addIosSigningEntitlements(pbxproj) {
+  if (typeof pbxproj !== "string" ||
+      !pbxproj.includes("/* Begin XCBuildConfiguration section */") ||
+      !pbxproj.includes("CODE_SIGN_STYLE = Automatic;")) {
+    throw new Error("Unknown Xcode project: cannot attach Associated Domains.");
+  }
+  if (pbxproj.includes("CODE_SIGN_ENTITLEMENTS = App/App.entitlements;")) {
+    const count = (pbxproj.match(/CODE_SIGN_ENTITLEMENTS = App\\/App\\.entitlements;/g) || []).length;
+    if (count !== 2) throw new Error("Incomplete Xcode entitlement configuration.");
+    return pbxproj;
+  }
+  if (/CODE_SIGN_ENTITLEMENTS\\s*=/.test(pbxproj)) {
+    throw new Error("An unexpected signing entitlement is already configured.");
+  }
+  // Restrict edits to App target build settings: other build settings, such
+  // as Pods and tests, may also have CODE_SIGN_STYLE, and must stay untouched.
+  const targetConfigs = pbxproj.match(/\\/\\* (?:Debug|Release) \\*\\/ = \\{[\\s\\S]*?isa = XCBuildConfiguration;[\\s\\S]*?PRODUCT_BUNDLE_IDENTIFIER = com\\.interplanetaryfund\\.app;[\\s\\S]*?\\n\\s*};/g) || [];
+  if (targetConfigs.length !== 2) {
+    throw new Error("Unable to identify both App target build configurations.");
+  }
+  let output = pbxproj;
+  for (const block of targetConfigs) {
+    if (!block.includes("CODE_SIGN_STYLE = Automatic;"))
+      throw new Error("App target is missing automatic signing.");
+    const patched = block.replace("CODE_SIGN_STYLE = Automatic;",
+      "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;\\n\\t\\t\\t\\tCODE_SIGN_STYLE = Automatic;");
+    output = output.replace(block, patched);
+  }
+  return output;
+}
+
 export function configure(platform, targetRoot = root) {
   if (!["android", "ios"].includes(platform))
     throw new TypeError("Choose exactly android or ios.");
@@ -67,6 +101,13 @@ export function configure(platform, targetRoot = root) {
   if (!existsSync(dirname(path))) throw new Error("Generate the separate iOS Capacitor project first.");
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, iosEntitlements());
+  // Writing an entitlements file alone does not attach it to the Xcode app
+  // target. Patch the existing App target build configurations fail-closed.
+  const project = resolve(targetRoot, "ios/App/App.xcodeproj/project.pbxproj");
+  if (!existsSync(project)) throw new Error("Generated iOS Xcode project not found.");
+  const projectText = readFileSync(project, "utf8");
+  const configured = addIosSigningEntitlements(projectText);
+  if (configured !== projectText) writeFileSync(project, configured);
   return path;
 }
 
