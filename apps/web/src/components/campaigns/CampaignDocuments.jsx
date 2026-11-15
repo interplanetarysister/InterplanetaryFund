@@ -18,9 +18,10 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   const [file,setFile]=useState(null);
   const [purpose,setPurpose]=useState("general");
   const [summary,setSummary]=useState("");
+  const [ownerExcerpt,setOwnerExcerpt]=useState("");
   const [teamAccess,setTeamAccess]=useState(false);
   const [editing,setEditing]=useState(null);
-  const [draft,setDraft]=useState({summary:"",purpose:"general",allowAgentUse:false});
+  const [draft,setDraft]=useState({summary:"",ownerExcerpt:"",purpose:"general",allowAgentUse:false});
 
   useEffect(()=>{
     if(!ownerId)return;
@@ -29,7 +30,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       if(session?.user?.id===ownerId && session?.user?.is_anonymous!==true)return;
       accountGeneration.current+=1;
       accountBlocked.current=true;
-      setRecords([]);setFile(null);setSummary("");setTeamAccess(false);
+      setRecords([]);setFile(null);setSummary("");setOwnerExcerpt("");setTeamAccess(false);
       setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
       setNotice("");setLoading(false);
     });
@@ -64,11 +65,11 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     setBusy(true);setError("");setNotice("");
     try{
       await uploadCampaignDocument(authClient(),campaignId,file,{
-        purpose,summary,allowAgentUse:teamAccess
+        purpose,summary,ownerExcerpt,allowAgentUse:teamAccess
       });
       await reload();
       setNotice("Private document uploaded. It is not visible to campaign visitors.");
-      setFile(null);setSummary("");setPurpose("general");setTeamAccess(false);
+      setFile(null);setSummary("");setOwnerExcerpt("");setPurpose("general");setTeamAccess(false);
       if(event.currentTarget?.elements?.document)event.currentTarget.elements.document.value="";
     }catch(e){setError(e.message||"Upload failed.");}
     finally{setBusy(false);}
@@ -78,7 +79,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     setBusy(true);setError("");setNotice("");
     try{
       await updateDocumentAgentAccess(authClient(),campaignId,row,{
-        allowAgentUse:draft.allowAgentUse,summary:draft.summary,purpose:draft.purpose
+        allowAgentUse:draft.allowAgentUse,summary:draft.summary,ownerExcerpt:draft.ownerExcerpt,purpose:draft.purpose
       });
       await reload();setEditing(null);setNotice("Agent reference settings updated.");
     }catch(e){setError(e.message||"Document settings were not saved.");}
@@ -123,7 +124,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       <>
         <p className="text-xs text-muted-foreground">
           PDF, Word (DOCX), Excel (XLSX), TXT, Markdown or CSV · Maximum {Math.floor(DOCUMENT_MAX_BYTES/1048576)} MB each · Up to 15 per campaign.
-          For PDF, Word and Excel, agents use your written description until private document extraction is verified.
+          For PDF, Word and Excel, agents use your written description and excerpts you provide; automatic document extraction is not yet verified.
           Plain-text extracts are available only when you enable agent use.
         </p>
         <form onSubmit={saveFile} className="space-y-3 rounded-xl border border-border p-4">
@@ -144,6 +145,12 @@ export default function CampaignDocuments({campaignId,ownerId}) {
             <textarea value={summary} onChange={e=>setSummary(e.target.value)}
               rows={3} maxLength={3000} disabled={busy}
               placeholder="Summarize the facts agents may reference. Include relevant figures, dates, audience or requirements."
+              className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
+          </label>
+          <label className="block text-sm font-semibold">Important document excerpts (optional)
+            <textarea value={ownerExcerpt} onChange={e=>setOwnerExcerpt(e.target.value)}
+              rows={3} maxLength={4000} disabled={busy}
+              placeholder="Paste only the sections you want your agents to consider. Avoid passwords, payment details or private third-party contact information."
               className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
           </label>
           <label className="flex items-start gap-3 text-sm">
@@ -171,7 +178,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
               </div>
               <div className="flex flex-wrap gap-2">
                 <button type="button" disabled={busy} onClick={()=>download(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Download</button>
-                <button type="button" disabled={busy} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
+                <button type="button" disabled={busy} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",ownerExcerpt:row.owner_excerpt||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
                   className="min-h-11 rounded-lg border border-border px-3 text-sm">Agent settings</button>
                 <button type="button" disabled={busy} onClick={()=>remove(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove</button>
               </div>
@@ -180,6 +187,10 @@ export default function CampaignDocuments({campaignId,ownerId}) {
               <label className="block text-sm font-semibold">Agent reference summary
                 <textarea value={draft.summary} onChange={e=>setDraft(v=>({...v,summary:e.target.value}))}
                   maxLength={3000} rows={3} className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
+              </label>
+              <label className="block text-sm font-semibold">Important excerpts you want agents to reference
+                <textarea value={draft.ownerExcerpt} onChange={e=>setDraft(v=>({...v,ownerExcerpt:e.target.value}))}
+                  rows={3} maxLength={4000} className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
               </label>
               <label className="block text-sm font-semibold">Category
                 <select value={draft.purpose} onChange={e=>setDraft(v=>({...v,purpose:e.target.value}))}
