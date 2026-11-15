@@ -17,9 +17,10 @@ export async function shareWithDevice(payload, adapters = {}) {
   const nativeShare = adapters.nativeShare || NativeShare;
   const navigatorLike = adapters.navigatorLike || globalThis.navigator;
   const url = new URL(String(payload?.url || ""));
-  if (url.protocol !== "https:" || url.origin !== IFUND_API_ORIGIN ||
-      url.username || url.password || url.search || url.hash) {
-    throw new TypeError("Only public canonical IFund URLs may be shared.");
+  if ((url.protocol !== "https:" && url.protocol !== "http:") ||
+      url.username || url.password || url.search || url.hash ||
+      (isNativeBundle(cap) && url.origin !== IFUND_API_ORIGIN)) {
+    throw new TypeError("This URL cannot be shared from IFund.");
   }
   const data = {
     title: String(payload?.title || "Interplanetary Fund"),
