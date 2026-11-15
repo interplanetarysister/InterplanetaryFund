@@ -43,7 +43,12 @@ test("account deletion is initiated from app and public Google Play deletion URL
   const publicPage = read("src/pages/DeleteAccount.jsx");
   const website = read("src/App.jsx");
   assert.match(deletion,/Request permanent account deletion/);
-  assert.match(deletion,/ifund_create_support_ticket/);
+  assert.match(deletion,/requestAccountDeletion\(/);
+  const deletionApi = read("src/lib/accountDeletion.js");
+  assert.match(deletionApi,/ifund_request_account_deletion/);
+  assert.match(deletionApi,/ifund_my_account_deletion_requests/);
+  assert.doesNotMatch(deletion,/ifund_create_support_ticket/);
+  assert.match(publicPage,/MobileStoreDeleteAccount/);
   assert.match(deletion,/https:\/\/interplanetaryfund\.com\/delete-account/);
   assert.match(publicPage,/permanent deletion/i);
   assert.match(website,/path="\/delete-account"/);
@@ -56,5 +61,7 @@ test("store app exposes purposeful native functionality without invented payment
   assert.match(read("src/mobile/MobileStoreAtlas.jsx"), /map_opt_in===true/);
   assert.match(read("src/mobile/MobileMyCampaigns.jsx"), /listMyCampaigns/);
   assert.match(read("src/mobile/MobileStoreHelp.jsx"), /hello@interplanetaryfund.com/);
+  assert.match(read("src/mobile/MobileStoreHelp.jsx"), /ifund_create_support_ticket/);
+  assert.match(read("src/mobile/MobileStoreHelp.jsx"), /ticket_id/);
   assert.match(read("src/mobile/MobileStoreHome.jsx"), /native share sheet/i);
 });
