@@ -47,6 +47,17 @@ export async function ifundApiFetch(path, init = {}, adapters = {}) {
   if (init.signal?.aborted)
     throw Object.assign(new Error("Request aborted"), { name: "AbortError" });
   const method = String(init.method || "GET").toUpperCase();
+  // A native shell is not an approved Apple/Play checkout environment.
+  // Leave member finance READS available, but never initiate or capture money
+  // until independent store/payment compliance and device QA are complete.
+  if (cleanPath.startsWith("/api/payments/") &&
+      !["GET", "HEAD"].includes(method) &&
+      cleanPath !== "/api/payments/subscriptions/cancel") {
+    return new Response(JSON.stringify({
+      error: "native_checkout_requires_approval",
+      message: "Payments are not available inside this app yet. Open the IFund website to donate.",
+    }), { status: 403, headers: { "content-type": "application/json" } });
+  }
   if (!["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"].includes(method))
     throw new TypeError("Unsupported native request method.");
   if (init.body != null && (method === "GET" || method === "HEAD"))
