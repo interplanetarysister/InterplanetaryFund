@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
 import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
+import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
 
 const TEMPLATES = {
   share: "I'm sharing a campaign that's important to me. Please read the details and consider sharing it with someone who may want to help.",
@@ -98,6 +99,10 @@ export default function CommunicationsWorkspace() {
         <textarea className="mt-2 min-h-48 w-full rounded-lg border border-border bg-background p-3" maxLength={4000}
           value={message} onChange={e=>setMessage(e.target.value)} />
       </label>
+      <AgentDocumentReferences campaignId={campaignId} onInsert={facts=>{
+        setMessage(prev=>(prev ? prev+"\n\n" : "")+"Reference facts to verify before sharing:\n"+facts).slice(0,4000));
+        setStatus("Reference inserted into this editable draft only. Review its accuracy and confirm any intended outreach separately.");
+      }} />
       <EchoSavedTemplates message={message} onApply={setMessage}/>
       <EchoApprovedMessaging campaignId={campaignId}
         campaignStatus={state.campaigns.find(item=>item.id===campaignId)?.status||""}
