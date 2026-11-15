@@ -84,7 +84,7 @@ Deno.serve(async req=>{
         || !Number.isSafeInteger(p.gift_cents)||p.gift_cents<100||p.gift_cents>100000000
         || !Number.isSafeInteger(p.optional_support_cents)||p.optional_support_cents<0
         || p.optional_support_cents>Math.round(p.gift_cents*0.1)
-        || !Number.isSafeInteger(p.total_cents)||p.total_cents<p.gift_cents+p.optional_support_cents
+        || !Number.isSafeInteger(p.total_cents)||p.total_cents!==p.gift_cents+p.optional_support_cents
         || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")) return fail("Invalid payment quote");
       const donorId=await resolveVerifiedDonor(p.donor_access_token);
       const campaign=await findOne("ifund_campaigns?select=id,status&id=eq."+p.campaign_id);
