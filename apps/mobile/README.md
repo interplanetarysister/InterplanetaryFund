@@ -31,6 +31,16 @@ npx cap sync ios
 
 The Capacitor `server.url` intentionally points to the canonical HTTPS production site for immediate shared-data parity, **not Base44**. Evaluate replacing this remote-webview approach with a bundled, native-integrated presentation before App Store submission. Do not submit a thin wrapper or claim iOS App Store acceptance based on this scaffolding.
 
+## Native runtime and offline safety
+
+The current `capacitor.config.json` is a **candidate-only connected-site test shell**. Capacitor's `server.url` property is explicitly documented as intended for development live reload and not for production distribution. Its purpose here is to exercise the canonical live app without any Base44 changes; do not ship this configuration to either store.
+
+The `server.errorPath` entry loads `mobile-offline.html` from copied web assets on load failure. This fallback is accessible and read-only; it never caches financial balances or stages payment actions.
+
+**Production architecture work required:** Bundle a built web frontend inside the native binary (no `server.url`), then make its authenticated API calls to the same `https://interplanetaryfund.com` Cloudflare Functions/Workers and canonical Supabase project with explicitly allowlisted native origins, approved deep-link callbacks, strict token storage/session handling, and native payment policy handling. Simply deleting `server.url` today would break relative `/api/*` calls and some OAuth redirects, so do not claim this has already been implemented. The website and mobile clients must share the same *database and server-side authorization*, not necessarily the same URL origin.
+
+The native verification script supports `--candidate` for compile-only structural checks and `--store` for a stricter fail-closed release gate. No blank `release-evidence.json` should be created to bypass that gate. Device and reviewer evidence must be independently established.
+
 ## Store readiness checklist
 
 1. Complete the 80-route website release gate, admin RBAC, real backend coverage, errors and mobile UX.
