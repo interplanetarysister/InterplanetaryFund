@@ -175,6 +175,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/auth/mobile-callback",
+      "role": "public",
+      "component": "MobileAuthCallbackNotice",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/blog",
       "role": "public",
       "component": "Navigate",
