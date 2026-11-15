@@ -163,8 +163,20 @@ begin
   end if;
   select * into old_event from public.ifund_agent_team_events
     where owner_id=actor and event_key=p_old_event_key
-      and speaker='user' and deleted_at is null for update;
-  if not found then raise exception 'Owned active statement required' using errcode='42501'; end if;
+      and speaker='user' for update;
+  if not found then raise exception 'Owned statement required' using errcode='42501'; end if;
+  -- A retried correction must return the original receipt, never create a
+  -- second correction or resurrect erased/superseded private content.
+  if old_event.deleted_at is not null then
+    if old_event.corrected_by is not null then
+      select e.id into new_id from public.ifund_agent_team_events e
+      where e.id=old_event.corrected_by and e.owner_id=actor
+        and e.event_key=p_new_event_key and e.speaker='user'
+        and e.content=btrim(p_content) and e.deleted_at is null;
+      if new_id is not null then return new_id; end if;
+    end if;
+    raise exception 'Statement already corrected or erased' using errcode='23505';
+  end if;
   insert into public.ifund_agent_team_events(owner_id,event_key,campaign_id,agent_id,speaker,source_kind,content)
   values(actor,p_new_event_key,old_event.campaign_id,old_event.agent_id,'user','user_statement',btrim(p_content))
   returning id into new_id;
