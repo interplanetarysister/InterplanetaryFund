@@ -118,6 +118,15 @@ assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("ifund_creat
   "UGC reports must be submitted to the real canonical support moderation queue");
 assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("shareWithDevice"),
   "Native campaign sharing must use the OS share sheet");
+assert(read("apps/web/src/mobile/organizerBlock.js").includes("ifund_mobile_block_organizer") &&
+  read("apps/web/src/mobile/organizerBlock.js").includes("ifund_mobile_unblock_organizer") &&
+  read("apps/web/src/mobile/MobileStoreAccount.jsx").includes("await unblockOrganizer(id)") &&
+  read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("await blockOrganizer(organizerId)"),
+  "Native organizer blocking must be canonical, account-scoped, confirmed and revocable");
+assert(read("apps/web/src/mobile/MobileStoreSaved.jsx").includes("blockedOrganizerIds()") &&
+  read("apps/web/src/mobile/MobileStoreDiscover.jsx").includes("blockedOrganizerIds()"),
+  "All native campaign feeds must honor account-scoped organizer blocking");
+
 assert(read("apps/web/src/mobile/MobileReadiness.jsx").includes("not") &&
   read("apps/web/src/mobile/MobileReadiness.jsx").includes("prediction"),
   "Planning checklist must not claim to predict fundraising success");
@@ -131,7 +140,7 @@ if (mode === "--store") {
   // Evidence must be independently reviewed even when this file eventually exists.
   if (existsSync(approval)) {
     const evidence = JSON.parse(readFileSync(approval, "utf8"));
-    for (const key of ["ios_device_passed", "android_device_passed", "auth_and_oauth_passed", "privacy_review_passed", "fundraising_policy_review_passed", "reviewer_approved", "mobile_scope_e2e_passed", "ugc_moderation_passed", "account_deletion_passed", "google_api_36_passed", "android_16kb_passed", "store_metadata_complete"]) {
+    for (const key of ["ios_device_passed", "android_device_passed", "email_password_auth_passed", "privacy_review_passed", "fundraising_policy_review_passed", "reviewer_approved", "mobile_scope_e2e_passed", "ugc_moderation_passed", "account_deletion_passed", "google_api_36_passed", "android_16kb_passed", "store_metadata_complete"]) {
       assert(evidence[key] === true, key + " not independently verified");
     }
     assert(evidence.schema_version === 1, "Unsupported store acceptance evidence schema");
@@ -146,7 +155,7 @@ if (mode === "--store") {
       "Store evidence must be dated within the last 30 days");
     assert(typeof evidence.approved_by === "string" && evidence.approved_by.trim().length >= 3,
       "Independent QA reviewer identity is missing");
-    for (const key of ["ios_device", "android_device", "auth_and_oauth",
+    for (const key of ["ios_device", "android_device", "email_password_auth",
       "privacy_review", "fundraising_policy_review", "mobile_scope_e2e", "ugc_moderation", "account_deletion", "google_api_36", "android_16kb", "store_metadata"]) {
       let valid = false;
       try {
