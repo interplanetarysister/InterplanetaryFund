@@ -6,6 +6,7 @@ import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import CampaignGlobe from "@/components/atlas/CampaignGlobe";
+import USCampaignMap from "@/components/atlas/USCampaignMap";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import FinanceDataGrid from "@/components/finance/FinanceDataGrid";
 import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAtlasLocation } from "@/lib/atlasLocations.mjs";
@@ -19,6 +20,7 @@ export default function Atlas() {
   const [publicCampaigns, setPublicCampaigns] = useState([]);
   const [ownerCampaigns, setOwnerCampaigns] = useState({ ownerId: null, rows: [] });
   const [query, setQuery] = useState("");
+  const [mapView, setMapView] = useState("usa");
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -124,7 +126,13 @@ export default function Atlas() {
           <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search titles, causes or cities…" className="min-h-11 w-full rounded-xl border border-input bg-background py-2 pl-10 pr-3"/>
         </label>
       </div>
-      <CampaignGlobe campaigns={markers}/>
+      <div role="group" aria-label="Select Atlas map view" className="flex flex-wrap gap-2">
+        <button type="button" aria-pressed={mapView==="usa"} onClick={()=>setMapView("usa")}
+          className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${mapView==="usa"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>United States map</button>
+        <button type="button" aria-pressed={mapView==="earth"} onClick={()=>setMapView("earth")}
+          className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${mapView==="earth"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>Earth globe</button>
+      </div>
+      {mapView==="usa" ? <USCampaignMap campaigns={markers}/> : <CampaignGlobe campaigns={markers}/>}
       <section className="grid gap-5 lg:grid-cols-2" aria-label="Campaign location charts">
         <div className="ifund-chart-card">
           <p className="ifund-chart-eyebrow">AG Charts Community · Approved locations</p>
