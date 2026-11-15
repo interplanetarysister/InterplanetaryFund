@@ -2,20 +2,28 @@ import { useState } from "react";
 import { authClient } from "@/api/auth";
 import { configuredProviders, startOAuthSignIn } from "@/lib/oauthProviders";
 import { isNativeBundle } from "@/lib/nativeApi";
+import { Capacitor } from "@capacitor/core";
 import { startNativeOAuthSignIn } from "@/lib/nativeOAuth";
 
 // Rendered only when at least one provider is configured for this build, so a
 // deployment without social sign-in shows no dead controls.
 export default function OAuthButtons({ returnTo, onError, disabled = false }) {
-  const providers = configuredProviders(
-    import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS,
-  );
+  const native = isNativeBundle();
+  const nativeOAuthVerified = import.meta.env.VITE_NATIVE_OAUTH_VERIFIED === "1";
+  // Apple Guideline 4.8 requires a privacy-protecting equivalent when social
+  // sign-in is offered as the app's primary account login. Enable only after
+  // Apple OAuth is registered in the canonical Supabase project and tested.
+  const ios = native && Capacitor.getPlatform() === "ios";
+  const appleReady = import.meta.env.VITE_NATIVE_APPLE_SIGNIN_READY === "1";
+  const nativeOAuthAllowed = nativeOAuthVerified && (!ios || appleReady);
+  const configured = configuredProviders(import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS);
+  const providers = ios && nativeOAuthAllowed
+    ? [{ id: "apple", label: "Continue with Apple" }, ...configured]
+    : configured;
   const [busy, setBusy] = useState("");
   // A bundled WebView must not begin an OAuth flow that returns to a separate
   // browser session until native app/universal link handling is verified.
-  const native = isNativeBundle();
-  const nativeOAuthVerified = import.meta.env.VITE_NATIVE_OAUTH_VERIFIED === "1";
-  if (native && !nativeOAuthVerified) return (
+  if (native && !nativeOAuthAllowed) return (
     <p className="mt-5 text-sm text-slate-300" role="status">
       Social sign-in is available on the IFund website. In this app, use your email
       and password to access the same account and live campaigns.
