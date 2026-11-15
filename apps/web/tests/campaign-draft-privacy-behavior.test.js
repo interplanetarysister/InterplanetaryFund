@@ -5,6 +5,8 @@ import {
   importGuestCampaign,
   restoreBrowserCampaign,
   rememberBrowserCampaign,
+  restoreWritingBrief,
+  forgetBrowserCampaign,
 } from "../src/lib/browserCampaignDraft.js";
 
 const GUEST = "ifund-guest-campaign-v1:guest";
@@ -93,4 +95,22 @@ test("legacy draft owned by another account is never imported into current accou
   assert.equal(restoreBrowserCampaign(s, "B").title, "B private");
   assert.equal(s.values.has(OWNER("B")), true);
   assert.equal(s.values.has(legacy), false);
+});
+
+
+test("unavailable browser storage returns empty views and never claims autosave success", () => {
+  const s = storage({ [OWNER("A")]: draft("A") }, { get: "*" });
+  assert.equal(restoreBrowserCampaign(s, "A").title, "");
+  assert.equal(restoreWritingBrief(s, "A").details, "");
+  assert.equal(rememberBrowserCampaign(s, "A", { title: "Changed" }, {}), false);
+  assert.equal(forgetBrowserCampaign(s, "A"), false);
+  assert.equal(s.values.get(OWNER("A")), draft("A"));
+});
+
+test("write and delete exceptions never claim success or erase unrelated drafts", () => {
+  const s = storage({ [OWNER("A")]: draft("A", "Original"), [OWNER("B")]: draft("B", "Other") }, { set: OWNER("A"), remove: OWNER("A") });
+  assert.equal(rememberBrowserCampaign(s, "A", { title: "Changed" }, {}), false);
+  assert.equal(forgetBrowserCampaign(s, "A"), false);
+  assert.equal(restoreBrowserCampaign(s, "A").title, "Original");
+  assert.equal(restoreBrowserCampaign(s, "B").title, "Other");
 });
