@@ -16,6 +16,7 @@ import WritingDraftReview from "@/components/campaigns/WritingDraftReview";
 import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
 import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
+import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
 
 const CATEGORY_ORDER = ["medical", "emergency", "education", "community", "animals",
   "business", "creative", "memorial", "disaster_relief", "environment", "other"];
@@ -147,6 +148,7 @@ export default function EditCampaign() {
 
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6 sm:py-10">
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={user?.id || null} campaignId={id} disabled={disabled} onApply={copy => { setForm(previous => ({ ...previous, ...copy })); setError(""); setNotice(""); }} />
+    <CampaignDocuments key={(user?.id||"guest")+":"+id} campaignId={id} ownerId={user?.id||null} />
     <header className="space-y-3">
       <Link to="/campaigns" className="text-sm underline">Back to my campaigns</Link>
       <div className="flex flex-wrap items-center gap-2">
