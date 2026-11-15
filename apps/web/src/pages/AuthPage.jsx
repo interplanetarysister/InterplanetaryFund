@@ -14,6 +14,7 @@ export default function AuthPage({ mode = "login" }) {
   const [searchParams] = useSearchParams();
   const afterLogin = safeReturnTo(searchParams.get("returnTo"));
   const [legalReviewed, setLegalReviewed] = useState(false);
+  const [signupAIChoices,setSignupAIChoices] = useState({allow_ai_campaign_drafts:false,allow_ai_outreach_drafts:false,interested_in_future_automation:false});
   const [legalAgreed, setLegalAgreed] = useState(false);
   const [guestBusy, setGuestBusy] = useState(false);
   const [guestError, setGuestError] = useState("");
@@ -122,6 +123,9 @@ export default function AuthPage({ mode = "login" }) {
           setMessage("Open the confirmation link in your email to finish registration. Your guest account will become an email account. Two-factor setup is not required to post.");
           return;
         }
+        // Store preliminary signup selections only in this tab; not an authorization grant.
+        // Verified member must review and explicitly save them from My Profile.
+        try { sessionStorage.setItem("ifund-signup-ai-interest-v1", JSON.stringify({email:email.trim().toLowerCase(), timestamp:Date.now(), choices:signupAIChoices})); } catch { /* Onboarding safely defaults to no consent. */ }
         const { data, error: err } = await auth.signUp({
           email: email.trim(),
           password,
@@ -304,6 +308,18 @@ export default function AuthPage({ mode = "login" }) {
                 />
               </label>
             )}
+            {isRegister && !confirmationPending && <fieldset className="space-y-3 rounded-xl border border-cyan-400/30 p-4">
+              <legend className="px-1 font-semibold">Your iFund AI choices (optional)</legend>
+              <p className="text-xs text-slate-300">Choose what help you may want. Every option is off by default. These are preliminary preferences, not authorization to publish or connect accounts. After email verification, review and save them under My Profile → Manage iFund Permissions. New features and every external provider will ask for separate permission when ready.</p>
+              {[
+                ["allow_ai_campaign_drafts","Help me prepare campaign drafts"],
+                ["allow_ai_outreach_drafts","Help me prepare outreach drafts"],
+                ["interested_in_future_automation","Tell me when new automation is available (interest only; no marketing opt-in)"]
+              ].map(([key,label])=><label key={key} className="flex min-h-11 items-start gap-3 text-sm">
+                <input type="checkbox" className="mt-1" checked={signupAIChoices[key]} onChange={event=>setSignupAIChoices(current=>({...current,[key]:event.target.checked}))}/>
+                <span>{label}</span>
+              </label>)}
+            </fieldset>}
             {isRegister && confirmationPending && (
               <section role="status" className="rounded-xl border border-cyan-400/40 bg-cyan-500/10 p-4 text-sm text-slate-100">
                 <h2 className="font-semibold">Confirm your email using the link</h2>
