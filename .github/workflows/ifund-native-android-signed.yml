@@ -68,6 +68,7 @@ jobs:
           node scripts/configure-native-project.mjs android
           npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync android
+          node scripts/set-android-version.mjs "$GITHUB_RUN_NUMBER"
       - name: Build unsigned Android upload bundle
         working-directory: apps/mobile/android
         run: |
