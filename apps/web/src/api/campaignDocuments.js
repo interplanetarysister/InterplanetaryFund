@@ -133,7 +133,8 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
 export async function downloadPrivateCampaignDocument(client,campaignId,row){
   const userId=await owner(client,campaignId);
   if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
-    !row.storage_path?.startsWith(`${userId}/${campaignId}/`))
+    !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
+    row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
     throw Error("Document ownership could not be verified.");
   await unchanged(client,userId);
   const {data,error}=await client.storage.from(DOCUMENT_BUCKET).download(row.storage_path);
@@ -144,7 +145,8 @@ export async function downloadPrivateCampaignDocument(client,campaignId,row){
 export async function removeCampaignDocument(client,campaignId,row){
   const userId=await owner(client,campaignId);
   if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
-    !row.storage_path?.startsWith(`${userId}/${campaignId}/`))
+    !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
+    row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
     throw Error("Document ownership could not be verified.");
   // A session switch between owner verification and deletion must fail closed.
   await unchanged(client,userId);
