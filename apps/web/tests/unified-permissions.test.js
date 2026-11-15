@@ -26,7 +26,7 @@ test("signup interest never silently grants third party authorization", () => {
   assert.match(signup, /ifund-signup-ai-interest-v1/);
   assert.match(signup, /false,allow_ai_outreach_drafts:false,interested_in_future_automation:false/);
   assert.match(ai, /email_confirmed_at/);
-  assert.match(ai, /data\?\.user\?\.id/);
+  assert.match(ai, /userData\?\.user\?\.id/);
   assert.match(ai, /upsert\(payload/);
   assert.match(ai, /No external platform access was granted/);
   assert.doesNotMatch(sql, /grant\s+all\s+on\s+public\.ifund_ai_permission_preferences\s+to\s+anon/i);
