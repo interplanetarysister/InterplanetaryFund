@@ -15,8 +15,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOMAIN = "interplanetaryfund.com";
 const PATHS = [
-  "/", "/discover", "/atlas", "/campaign/*", "/social/post/*",
-  "/blogs/*", "/publications/*",
+  "/", "/discover", "/atlas", "/campaign/*",
 ];
 export function generateAssociations({ teamId, fingerprint, appId, authVerified = false }) {
   if (typeof authVerified !== "boolean") throw new TypeError("Native authorization acceptance must be a boolean.");
