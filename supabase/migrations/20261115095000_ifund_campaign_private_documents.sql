@@ -88,6 +88,11 @@ create policy ifund_campaign_documents_storage_read on storage.objects
     bucket_id='ifund-campaign-documents' and
     public.ifund_owns_campaign_document_context(
       (storage.foldername(name))[1]::uuid,(storage.foldername(name))[2]::uuid)
+    -- An uploaded but not registered object must not be readable as a
+    -- campaign reference. The owner may still delete a failed upload.
+    and exists (select 1 from public.ifund_campaign_documents d
+      where d.storage_path=storage.objects.name
+        and d.owner_id=(select auth.uid()))
   );
 drop policy if exists ifund_campaign_documents_storage_delete on storage.objects;
 create policy ifund_campaign_documents_storage_delete on storage.objects
