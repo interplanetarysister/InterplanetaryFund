@@ -13,13 +13,13 @@ alter table public.ifund_ai_permission_preferences enable row level security;
 revoke all on public.ifund_ai_permission_preferences from anon, authenticated;
 drop policy if exists ifund_ai_permissions_owner_read on public.ifund_ai_permission_preferences;
 create policy ifund_ai_permissions_owner_read on public.ifund_ai_permission_preferences
-  for select to authenticated using (owner_id = (select auth.uid()));
+  for select to authenticated using (owner_id = (select auth.uid()) and coalesce((select (auth.jwt()->>'is_anonymous')::boolean), true) = false);
 drop policy if exists ifund_ai_permissions_owner_insert on public.ifund_ai_permission_preferences;
 create policy ifund_ai_permissions_owner_insert on public.ifund_ai_permission_preferences
-  for insert to authenticated with check (owner_id = (select auth.uid()));
+  for insert to authenticated with check (owner_id = (select auth.uid()) and coalesce((select (auth.jwt()->>'is_anonymous')::boolean), true) = false);
 drop policy if exists ifund_ai_permissions_owner_update on public.ifund_ai_permission_preferences;
 create policy ifund_ai_permissions_owner_update on public.ifund_ai_permission_preferences
-  for update to authenticated using (owner_id = (select auth.uid())) with check (owner_id = (select auth.uid()));
+  for update to authenticated using (owner_id = (select auth.uid()) and coalesce((select (auth.jwt()->>'is_anonymous')::boolean), true) = false) with check (owner_id = (select auth.uid()) and coalesce((select (auth.jwt()->>'is_anonymous')::boolean), true) = false);
 grant select, insert, update on public.ifund_ai_permission_preferences to authenticated;
 -- Do not create a broad consent for future unimplemented features.
 -- Neither these settings nor an OAuth identity permit external posting, messaging,
