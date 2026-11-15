@@ -18,7 +18,7 @@ export async function shareWithDevice(payload, adapters = {}) {
   const navigatorLike = adapters.navigatorLike || globalThis.navigator;
   const url = new URL(String(payload?.url || ""));
   if (url.protocol !== "https:" || url.origin !== IFUND_API_ORIGIN ||
-      url.username || url.password) {
+      url.username || url.password || url.search || url.hash) {
     throw new TypeError("Only public canonical IFund URLs may be shared.");
   }
   const data = {
@@ -95,7 +95,7 @@ export async function ifundApiFetch(path, init = {}, adapters = {}) {
     try { data = JSON.parse(init.body); }
     catch { throw new TypeError("Native API JSON body is invalid."); }
   }
-  const response = await http.request({
+  const nativeRequest = http.request({
     url: canonicalApiUrl(cleanPath),
     method,
     headers,
@@ -104,6 +104,21 @@ export async function ifundApiFetch(path, init = {}, adapters = {}) {
     connectTimeout: 12000,
     readTimeout: 30000,
   });
+  // Native CapacitorHttp.request does not accept a web AbortSignal. Allow
+  // callers to stop awaiting it without claiming the OS socket was canceled.
+  let removeAbortListener = () => {};
+  const response = await (init.signal
+    ? Promise.race([
+      nativeRequest,
+      new Promise((_, reject) => {
+        const abort = () => reject(Object.assign(
+          new Error("Request aborted"), { name: "AbortError" }));
+        init.signal.addEventListener("abort", abort, { once: true });
+        removeAbortListener = () => init.signal.removeEventListener("abort", abort);
+        if (init.signal.aborted) abort();
+      }),
+    ]).finally(() => removeAbortListener())
+    : nativeRequest);
   if (init.signal?.aborted)
     throw Object.assign(new Error("Request aborted"), { name: "AbortError" });
   const status = Number(response?.status);
