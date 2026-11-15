@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { canonicalApiPath, canonicalApiUrl, IFUND_API_ORIGIN, ifundApiFetch,
-  installNativeApiTransport, isNativeBundle } from "../src/lib/nativeApi.js";
+  installNativeApiTransport, isNativeBundle, authEmailRedirectOrigin, shareWithDevice } from "../src/lib/nativeApi.js";
 
 const native = { isNativePlatform: () => true };
 const web = { isNativePlatform: () => false };
@@ -100,4 +100,36 @@ test("native-only scoped installation intercepts /api but leaves Supabase and as
     "https://ssibsfmtodgximseeqsv.supabase.co/rest/v1/ifund_campaigns",
     "/icon-192.jpg",
   ]);
+});
+
+test("native confirmation and recovery return to the same verified HTTPS account", () => {
+  assert.equal(authEmailRedirectOrigin("capacitor://localhost", native), IFUND_API_ORIGIN);
+  assert.equal(authEmailRedirectOrigin("https://localhost", native), IFUND_API_ORIGIN);
+  assert.equal(authEmailRedirectOrigin("http://localhost:5173", web), "http://localhost:5173");
+});
+
+test("native system sharing rejects off-site and local WebView URLs", async () => {
+  let shared;
+  const nativeShare = { share: async args => { shared = args; return {}; } };
+  await shareWithDevice({ title: "Campaign", text: "Help", url: IFUND_API_ORIGIN + "/campaign/123" },
+    { capacitor: native, nativeShare });
+  assert.deepEqual(shared, { title: "Campaign", text: "Help", url: IFUND_API_ORIGIN + "/campaign/123" });
+  await assert.rejects(() => shareWithDevice({ url: "http://localhost:5173/campaign/123" },
+    { capacitor: native, nativeShare }), TypeError);
+  await assert.rejects(() => shareWithDevice({ url: "https://fraud.invalid/phishing" },
+    { capacitor: native, nativeShare }), TypeError);
+});
+
+test("unapproved native payment writes fail closed before contacting providers", async () => {
+  let called = 0;
+  const http = { request: async () => { called++; return { status: 200, data: {} }; } };
+  for (const path of ["/api/payments/create-order", "/api/payments/capture-order",
+    "/api/payments/subscriptions/start", "/api/payments/subscriptions/confirm"]) {
+    const response = await ifundApiFetch(path, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+    }, { capacitor: native, http });
+    assert.equal(response.status, 403);
+    assert.equal((await response.json()).error, "native_checkout_requires_approval");
+  }
+  assert.equal(called, 0);
 });
