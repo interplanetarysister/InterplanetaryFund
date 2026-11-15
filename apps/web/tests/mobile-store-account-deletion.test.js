@@ -40,12 +40,29 @@ test("self-service account deletion uses its own confirmed, authenticated RPC",a
     "ifund_request_account_deletion","ifund_my_account_deletion_requests",
   ]);
 });
-test("anonymous and unconfirmed sign-in cannot request account deletion as another user",async()=>{
+test("an authenticated anonymous guest can request deletion of its own account",async()=>{
+  const {requestAccountDeletion,getMyAccountDeletionRequests}=moduleFactory(()=>{throw Error("Unexpected default auth client");});
+  const guest=mockClient({anonymous:true,confirmed:false});
+  const requested=await requestAccountDeletion(guest);
+  assert.equal(requested.status,"requested");
+  const history=await getMyAccountDeletionRequests(guest);
+  assert.equal(history[0].id,REQUEST);
+  assert.deepEqual(guest.calls,[
+    "ifund_request_account_deletion","ifund_my_account_deletion_requests",
+  ]);
+});
+test("an unconfirmed non-guest email account cannot impersonate a deletion request",async()=>{
   const {requestAccountDeletion}=moduleFactory(()=>{throw Error("Unexpected default auth client");});
-  for(const client of [mockClient({anonymous:true}),mockClient({confirmed:false})]){
-    await assert.rejects(()=>requestAccountDeletion(client),/confirmed IFund email/);
-    assert.deepEqual(client.calls,[]);
-  }
+  const client=mockClient({confirmed:false});
+  await assert.rejects(()=>requestAccountDeletion(client),/authenticated guest session/);
+  assert.deepEqual(client.calls,[]);
+});
+test("native browse-without-account avoids creating any Supabase anonymous user",()=>{
+  const auth=read("../src/pages/AuthPage.jsx");
+  assert.match(auth,/if \(isNativeApp\) \{\s*navigate\("\/discover", \{ replace: true \}\)/);
+  const mobile=read("../src/mobile/MobileStoreDeleteAccount.jsx");
+  assert.match(mobile,/data\?\.user\?\.is_anonymous===true/);
+  assert.match(mobile,/const account=user\|\|guestUser/);
 });
 test("failed deletion RPC never claims completion",async()=>{
   const {requestAccountDeletion}=moduleFactory(()=>{throw Error("Unexpected default auth client");});
