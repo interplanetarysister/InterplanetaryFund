@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TRAINING_ROLES, TRAINING_ROUTE_RULES, recommendAgent, proposedSpecialistHandoff } from "../src/lib/agentTrainingDirectory.mjs";
+import { TRAINING_ROLES, TRAINING_ROUTE_RULES, recommendAgent, proposedSpecialistHandoff, TEAM_CONTEXT_POLICY } from "../src/lib/agentTrainingDirectory.mjs";
 
 test("all nine specialists have distinct lessons and explicit consultation contacts", () => {
   assert.equal(Object.keys(TRAINING_ROLES).length, 9);
@@ -64,4 +64,23 @@ test("single-specialist proposal never sends private context", () => {
   assert.deepEqual(draft.workflow,["story"]);
   assert.equal(draft.verifiedExecution,false);
   assert.equal(draft.transmitted,false);
+});
+
+test("all agent conversations use one owner-scoped internal team context policy", () => {
+  assert.equal(TEAM_CONTEXT_POLICY.source, "all_authorized_agent_interactions");
+  assert.equal(TEAM_CONTEXT_POLICY.scope, "authenticated_owner_team");
+  assert.equal(TEAM_CONTEXT_POLICY.internalSharing, "automatic");
+  assert.equal(TEAM_CONTEXT_POLICY.repeatedHandoffConsent, false);
+  assert.equal(TEAM_CONTEXT_POLICY.crossOwnerAccess, "denied");
+  assert.equal(TEAM_CONTEXT_POLICY.externalSharing, "separate_authorization_required");
+  assert.equal(TEAM_CONTEXT_POLICY.secrets, "excluded");
+  assert.equal(TEAM_CONTEXT_POLICY.availableAtRuntime, false);
+  for (const source of Object.keys(TRAINING_ROLES)) {
+    for (const target of Object.keys(TRAINING_ROLES)) {
+      const handoff = proposedSpecialistHandoff("Campaign narrative",source);
+      assert.equal(handoff.teamContextScope, TEAM_CONTEXT_POLICY.scope);
+      assert.equal(handoff.requiresNewHandoffConsent, false);
+      assert.equal(handoff.transmitted, false);
+    }
+  }
 });
