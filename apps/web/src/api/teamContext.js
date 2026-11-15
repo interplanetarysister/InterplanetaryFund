@@ -12,11 +12,14 @@ async function sameOwner(client,owner){
   const {data,error}=await client.auth.getUser();
   if(error||data?.user?.id!==owner) throw new Error("Your account changed. Reload team history.");
 }
-export async function loadTeamHistory(client,{campaignId=null,limit=30}={}){
+export async function loadTeamHistory(client,{campaignId=null,limit=30,beforeAt=null,beforeId=null}={}){
   const owner=await member(client);
   if(campaignId!==null&&!UUID.test(campaignId))throw Error("Choose a valid campaign.");
   if(!Number.isSafeInteger(limit)||limit<1||limit>60)throw Error("Invalid history limit.");
-  const {data,error}=await client.rpc("ifund_team_recent",{p_campaign_id:campaignId,p_limit:limit});
+  if((beforeAt===null)!==(beforeId===null) ||
+    (beforeAt!==null && (typeof beforeAt!=="string"||!Number.isFinite(Date.parse(beforeAt))||!UUID.test(beforeId))))
+    throw Error("Invalid history cursor.");
+  const {data,error}=await client.rpc("ifund_team_recent",{p_campaign_id:campaignId,p_limit:limit,p_before:beforeAt,p_before_id:beforeId});
   await sameOwner(client,owner);
   if(error) throw new Error("Shared team history is not available yet.");
   if(!Array.isArray(data)||data.some(row=>!UUID.test(row.id)||!["user","agent"].includes(row.speaker)))
