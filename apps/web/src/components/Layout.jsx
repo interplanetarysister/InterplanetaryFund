@@ -49,6 +49,7 @@ const navSections = [
     label: "Explore",
     items: [
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
@@ -99,7 +100,6 @@ const navSections = [
     items: [
       { to: "/ops", label: "Ops Center", icon: Satellite },
       { to: "/admin/studio", label: "Website Studio", icon: Sparkles },
-      { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/platform", label: "Platform", icon: Server },
       { to: "/admin/integrations", label: "Admin Integrations", icon: Plug },
       { to: "/admin/audit", label: "Audit Log", icon: Server },
