@@ -137,6 +137,11 @@ assert(read("apps/web/src/mobile/organizerBlock.js").includes("ifund_mobile_bloc
 assert(read("apps/web/src/mobile/MobileStoreSaved.jsx").includes("blockedOrganizerIds()") &&
   read("apps/web/src/mobile/MobileStoreDiscover.jsx").includes("blockedOrganizerIds()"),
   "All native campaign feeds must honor account-scoped organizer blocking");
+assert(read("apps/web/src/pages/AuthPage.jsx").includes('if (isNativeApp) {\n      navigate("/discover", { replace: true })') &&
+  read("apps/web/src/lib/accountDeletion.js").includes("(!auth.user.is_anonymous && !auth.user.email_confirmed_at)") &&
+  read("apps/web/src/mobile/MobileStoreDeleteAccount.jsx").includes("const account=user||guestUser"),
+  "Mobile anonymous browsing must not create a user; existing anonymous user sessions must be deletable");
+
 assert(read("apps/web/src/mobile/MobileStoreHelp.jsx").includes('client.rpc("ifund_create_support_ticket"') &&
   read("apps/web/src/mobile/MobileStoreHelp.jsx").includes("ticket_id"),
   "Native support must record a verified ticket without relying solely on email");
