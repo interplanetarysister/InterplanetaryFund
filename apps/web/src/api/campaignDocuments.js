@@ -67,7 +67,7 @@ export function documentPath(ownerId,campaignId,id,type) {
 export async function listCampaignDocuments(client,campaignId) {
   const userId=await owner(client,campaignId);
   const {data,error}=await client.from("ifund_campaign_documents")
-    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,allow_agent_use,created_at")
+    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,created_at")
     .eq("owner_id",userId).eq("campaign_id",campaignId)
     .order("created_at",{ascending:false}).limit(50);
   await unchanged(client,userId);
@@ -77,10 +77,12 @@ export async function listCampaignDocuments(client,campaignId) {
   return data;
 }
 export async function uploadCampaignDocument(client,campaignId,file,{
-  purpose="general",summary="",allowAgentUse=false,makeId=()=>crypto.randomUUID()
+  purpose="general",summary="",ownerExcerpt="",allowAgentUse=false,makeId=()=>crypto.randomUUID()
 }={}){
   const problem=validateCampaignDocument(file);if(problem)throw Error(problem);
   if(!Object.hasOwn(DOCUMENT_CATEGORIES,purpose))throw Error("Choose a valid document category.");
+  if(typeof ownerExcerpt!=="string"||ownerExcerpt.length>4000)
+    throw Error("Keep important document excerpts within 4,000 characters.");
   if(typeof summary!=="string"||summary.length>3000||(allowAgentUse&&summary.trim().length<20))
     throw Error("Add at least 20 characters describing this document before sharing it with the agent team.");
   const userId=await owner(client,campaignId);
@@ -106,7 +108,7 @@ export async function uploadCampaignDocument(client,campaignId,file,{
     const {data,error}=await client.from("ifund_campaign_documents").insert({
       id,owner_id:userId,campaign_id:campaignId,storage_path:path,
       file_name:sanitizedName(file.name),media_type:file.type,file_size:file.size,
-      purpose,agent_summary:summary.trim(),extracted_text:extracted,
+      purpose,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),extracted_text:extracted,
       allow_agent_use:allowAgentUse
     }).select("id,owner_id,campaign_id").single();
     if(error||data?.id!==id||data?.owner_id!==userId||data?.campaign_id!==campaignId)
@@ -119,14 +121,15 @@ export async function uploadCampaignDocument(client,campaignId,file,{
     throw cause;
   }
 }
-export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgentUse,summary,purpose}){
+export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgentUse,summary,purpose,ownerExcerpt=""}){
   const userId=await owner(client,campaignId);
   if(!row||row.owner_id!==userId||row.campaign_id!==campaignId)
     throw Error("Only your own campaign documents can be changed.");
   if(!Object.hasOwn(DOCUMENT_CATEGORIES,purpose)||typeof summary!=="string"||summary.length>3000||
+    typeof ownerExcerpt!=="string"||ownerExcerpt.length>4000||
     (allowAgentUse&&summary.trim().length<20))throw Error("Review the summary before allowing agent access.");
   const {data,error}=await client.from("ifund_campaign_documents")
-    .update({allow_agent_use:allowAgentUse===true,agent_summary:summary.trim(),purpose})
+    .update({allow_agent_use:allowAgentUse===true,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),purpose})
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
     .select("id,owner_id,campaign_id,allow_agent_use").single();
   await unchanged(client,userId);
