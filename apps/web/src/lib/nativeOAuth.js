@@ -2,7 +2,7 @@
 // Must remain gated until signed app links, Supabase redirect allowlisting and
 // two-device PKCE return tests are independently verified.
 import { Capacitor, registerPlugin } from "@capacitor/core";
-import { emailAuthRedirectUrl } from "./nativeEmailRedirect.js";
+import { emailAuthRedirectUrl, MOBILE_AUTH_CALLBACK, CANONICAL_AUTH_ORIGIN } from "./nativeEmailRedirect.js";
 
 const Browser = registerPlugin("Browser");
 const SUPABASE_AUTH_HOST = "ssibsfmtodgximseeqsv.supabase.co";
@@ -16,6 +16,15 @@ export function safeSupabaseAuthorizationUrl(value) {
         url.pathname !== "/auth/v1/authorize" || url.hash)
       return "";
     if (!["apple", "google", "facebook"].includes(url.searchParams.get("provider"))) return "";
+    // A valid Supabase origin is not enough: the authorization request must
+    // return to the independent signed app callback, never to an attacker or
+    // the public website's separate PKCE session.
+    const returnUrl = url.searchParams.get("redirect_to");
+    if (!returnUrl) return "";
+    const redirect = new URL(returnUrl);
+    if (redirect.origin !== CANONICAL_AUTH_ORIGIN ||
+        redirect.pathname !== MOBILE_AUTH_CALLBACK ||
+        redirect.username || redirect.password || redirect.hash) return "";
     return url.href;
   } catch { return ""; }
 }
