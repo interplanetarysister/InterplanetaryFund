@@ -125,8 +125,13 @@ BEGIN
        v_existing.provider_resource_id=p_provider_resource_id AND
        v_existing.paypal_subscription_id=p_paypal_subscription_id AND
        v_existing.entry_type=p_entry_type AND v_existing.amount_cents=p_amount_cents AND
-       v_existing.provider_occurred_at=p_occurred_at AND
-       v_existing.provider_reference=p_provider_reference THEN RETURN 'duplicate'; END IF;
+       v_existing.provider_occurred_at IS NOT DISTINCT FROM p_occurred_at AND
+       v_existing.provider_reference IS NOT DISTINCT FROM p_provider_reference AND
+       v_existing.member_id IS NOT DISTINCT FROM v_intent.member_id AND
+       v_existing.currency IS NOT DISTINCT FROM p_verified_currency AND
+       v_existing.environment IS NOT DISTINCT FROM p_verified_environment THEN
+      RETURN 'duplicate';
+    END IF;
     RETURN 'conflict';
   END IF;
   -- Conservative intent-wide refund/reversal ceiling. The intent row lock serializes
