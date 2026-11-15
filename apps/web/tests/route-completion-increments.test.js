@@ -133,5 +133,23 @@ test("autosave failures are announced to the editor", () => {
   const composer = page("CreateCampaign");
   assert.ok(composer.includes('setAutosaveError(stored ? "" :'));
   assert.ok(composer.includes('setAutosaveError("Browser storage is unavailable.'));
-  assert.ok(composer.includes('autosaveError && <p role="alert"'));
+  assert.match(composer, /autosaveError && <(?:p|div) role="alert"/);
+});
+
+test("campaign cloud saves reject changed sessions and never downgrade verified drafts to guest storage", () => {
+  const composer = page("CreateCampaign");
+  assert.match(composer, /if \(ownerId\) \{\s*setError\("Your account session could not be verified/);
+  assert.match(composer, /if \(!ownerId \|\| user\.id !== ownerId\)/);
+  assert.match(composer, /Copy any unsaved changes, then reload the campaign editor/);
+});
+
+test("website studio never silently unpublishes a dirty page during navigation", () => {
+  const studio = page("AdminStudio");
+  assert.match(studio, /const requireCleanEditor = \(\) => \{/);
+  assert.match(studio, /if \(busy \|\| !requireCleanEditor\(\)\) return;/);
+  assert.match(studio, /if \(!page\?\.id \|\| busy \|\| !requireCleanEditor\(\)\) return;/);
+  assert.doesNotMatch(studio, /const selectPage = async[\s\S]*?await save\("draft"\)/);
+  assert.doesNotMatch(studio, /const startNew = async[\s\S]*?await save\("draft"\)/);
+  assert.match(studio, /serverPageOffset\.current \+= rows\.length/);
+  assert.match(studio, /offset=" \+ serverPageOffset\.current/);
 });
