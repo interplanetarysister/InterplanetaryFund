@@ -116,8 +116,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId || ""));
       sessionStorage.getItem("ifund-guest-campaign-v1:guest");
       sessionStorage.getItem("ifund-guest-campaign-v1");
-      setStorageReadable(true);
-      setAutosaveError("");
+      // Reload so draft hydration reruns before autosave can resume.
+      window.location.reload();
     } catch {
       setStorageReadable(false);
       setAutosaveError("Browser draft storage is still unavailable. Copy your work before leaving.");
