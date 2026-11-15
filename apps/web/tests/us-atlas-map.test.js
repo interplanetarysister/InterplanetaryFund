@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { US_REGIONS, projectUsPoint, usRegionForPoint, mainlandOutlinePath } from "../src/lib/usAtlasProjection.mjs";
+import { groupUSCampaignMarkers } from "../src/lib/usAtlasClusters.mjs";
 
 const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 test("approved American city coordinates land in correct projections",()=>{
@@ -38,4 +39,19 @@ test("owner-safe map selections cannot outlive the authorized campaign props",()
   assert.match(atlas,/mapView, setMapView\] = useState\("usa"\)/);
   assert.match(atlas,/<USCampaignMap campaigns=\{markers\}/);
   assert.match(atlas,/<CampaignGlobe campaigns=\{markers\}/);
+});
+
+test("cluster duplicate city-centre markers but exclude private or unapproved locations",()=>{
+ const base={status:"active",map_opt_in:true,location:"Seattle area, Washington",latitude:47.6,longitude:-122.3};
+ const grouped=groupUSCampaignMarkers([
+   {...base,id:"a",title:"Community garden"},
+   {...base,id:"b",title:"Emergency support"},
+   {...base,id:"c",status:"draft"},
+   {...base,id:"d",map_opt_in:false},
+   {...base,id:"e",longitude:-122.2},
+ ]);
+ assert.equal(grouped.length,2);
+ assert.equal(grouped[0].campaigns.length,2);
+ assert.deepEqual(grouped[0].campaigns.map(c=>c.id),["a","b"]);
+ assert.equal(grouped[1].campaigns[0].id,"e");
 });
