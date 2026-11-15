@@ -91,6 +91,28 @@ if (mode === "--store") {
     for (const key of ["ios_device_passed", "android_device_passed", "auth_and_oauth_passed", "privacy_review_passed", "fundraising_policy_review_passed", "reviewer_approved"]) {
       assert(evidence[key] === true, key + " not independently verified");
     }
+    assert(evidence.schema_version === 1, "Unsupported store acceptance evidence schema");
+    assert(typeof evidence.tested_commit === "string" &&
+      /^[0-9a-f]{40}$/i.test(evidence.tested_commit) &&
+      !!process.env.GITHUB_SHA &&
+      evidence.tested_commit.toLowerCase() === process.env.GITHUB_SHA.toLowerCase(),
+      "Store evidence must cover the EXACT current GitHub commit and cannot be reused from an earlier version");
+    const verifiedAt = Date.parse(evidence.verified_at);
+    assert(Number.isFinite(verifiedAt) && verifiedAt <= Date.now() + 300000 &&
+      verifiedAt >= Date.now() - 30 * 86400000,
+      "Store evidence must be dated within the last 30 days");
+    assert(typeof evidence.approved_by === "string" && evidence.approved_by.trim().length >= 3,
+      "Independent QA reviewer identity is missing");
+    for (const key of ["ios_device", "android_device", "auth_and_oauth",
+      "privacy_review", "fundraising_policy_review", "full_route_acceptance"]) {
+      let valid = false;
+      try {
+        const url = new URL(evidence.evidence_urls?.[key] || "");
+        valid = url.protocol === "https:" && !url.username && !url.password &&
+          !["localhost", "127.0.0.1"].includes(url.hostname);
+      } catch { /* Missing/non-HTTPS evidence must not authorize a release. */ }
+      assert(valid, "Missing independently reviewable HTTPS evidence: " + key);
+    }
   }
 }
 if (errors.length) {
