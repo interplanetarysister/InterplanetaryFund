@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { authClient } from "@/api/auth";
+import { isNativeBundle } from "@/lib/nativeApi";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
 
 const PLAN_NAMES={
@@ -30,6 +31,7 @@ export default function Subscriptions(){
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
   const query=useMemo(()=>new URLSearchParams(window.location.search),[]);
+  const native=isNativeBundle();
 
   const refresh=useCallback(async()=>{
     // Plans are public; an unavailable private status endpoint must not hide
@@ -59,6 +61,8 @@ export default function Subscriptions(){
   useEffect(()=>{refresh().catch(e=>setError(e.message));},[refresh]);
 
   useEffect(()=>{
+    // Provider checkout is a website-only operation until store approval.
+    if(native)return;
     if(query.get("paypal_checkout")!=="return")return;
     const id=query.get("subscription_id")||query.get("ba_token");
     if(!/^I-[A-Z0-9]{10,30}$/.test(id||"")){
@@ -78,9 +82,10 @@ export default function Subscriptions(){
       .catch(e=>{if(active)setError(e.message);})
       .finally(()=>{if(active){setBusy("");window.history.replaceState(null,"","/subscriptions");}});
     return()=>{active=false};
-  },[query,refresh]);
+  },[query,refresh,native]);
 
   async function subscribe(plan){
+    if(native){setError("Paid plans cannot be purchased inside this app yet. Your existing subscription status is still available here.");return;}
     setBusy(plan.tier+":"+plan.interval);setError("");setNotice("");
     try{
       const result=await call("/api/payments/subscriptions/start",{
@@ -107,6 +112,9 @@ export default function Subscriptions(){
       <p className="mt-2 text-muted-foreground">Recurring billing is verified against PayPal before IFund records paid access. Approval alone never activates a plan.</p>
     </header>
 
+    {native&&<p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+      New paid subscriptions are unavailable in the iPhone and Android apps while mobile billing rules are reviewed. Existing status and cancellation remain available.
+    </p>}
     {notice&&<p role="status" className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">{notice}</p>}
     {error&&<p role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">{error}</p>}
 
@@ -136,11 +144,11 @@ export default function Subscriptions(){
           <p className="mt-1 text-sm capitalize text-muted-foreground">{plan.interval}</p>
           <p className="mt-4 text-3xl font-bold">${(plan.amount_cents/100).toLocaleString()}<span className="text-sm font-normal text-muted-foreground">/{plan.interval==="annual"?"year":"month"}</span></p>
           <div className="mt-4 flex items-center gap-2 text-sm"><Check className="h-4 w-4"/>PayPal recurring billing</div>
-          <button type="button" disabled={!available||busy!==""||!!status&&["active","pending","past_due","approval_pending"].includes(status.status)}
+          <button type="button" disabled={native||!available||busy!==""||!!status&&["active","pending","past_due","approval_pending"].includes(status.status)}
             onClick={()=>subscribe(plan)}
             className="mt-5 min-h-11 w-full rounded-xl bg-cyan-600 px-4 py-2 font-semibold text-white disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
-              available?"Subscribe with PayPal":"Provider verification pending"}
+              native?"Unavailable in the mobile app":available?"Subscribe with PayPal":"Provider verification pending"}
           </button>
         </article>;
       })}
