@@ -263,3 +263,37 @@ test("repeated blank pre-hydration autosaves preserve migrated text until delibe
   assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm(), undefined, { allowBlankOverwrite: true }), true);
   assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
 });
+
+test("legacy guest draft requires consent and imports only into chosen owner", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Legacy guest needs consent" };
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({
+    version: 2, owner_id: null, form, brief: emptyWritingBrief(),
+  }));
+  assert.equal(hasUnclaimedGuestCampaign(storage), true);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
+  assert.equal(restoreBrowserCampaign(storage, A).title, form.title);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+  assert.equal(hasUnclaimedGuestCampaign(storage), false);
+});
+
+test("legacy guest cleanup failure preserves original and reports retained copy", () => {
+  const storage = store();
+  const raw = JSON.stringify({ version: 2, owner_id: null,
+    form: { ...emptyCampaignForm(), title: "Retain on cleanup failure" } });
+  storage.setItem("ifund-guest-campaign-v1", raw);
+  const throwing = { ...storage, removeItem(key) {
+    if (key === "ifund-guest-campaign-v1") throw new Error("blocked");
+    storage.removeItem(key);
+  } };
+  assert.deepEqual(importGuestCampaign(throwing, A), { status: "imported_guest_retained" });
+  assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
+  assert.equal(restoreBrowserCampaign(storage, A).title, "Retain on cleanup failure");
+});
+
+test("failed legacy guest storage read blocks consent detection instead of treating as absent", () => {
+  const storage = { getItem() { throw new Error("storage blocked"); } };
+  assert.throws(() => hasUnclaimedGuestCampaign(storage), /storage blocked/);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "storage_error" });
+});
