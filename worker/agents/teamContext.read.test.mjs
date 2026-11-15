@@ -48,3 +48,20 @@ test('rejects forged provenance, invalid timestamp, and oversized history conten
   await assert.rejects(readTeamContext({env,jwt,fetcher:async()=>({ok:true,json:async()=>[row]})}),/could not be verified/);
  }
 });
+
+test('owner-only history rejects malformed IDs, agent identity, speaker and page overflow',async()=>{
+ const variations=[
+  {...ownerEvent,id:'not-a-uuid'},
+  {...ownerEvent,event_key:'not-a-uuid'},
+  {...ownerEvent,agent_id:'unknown'},
+  {...ownerEvent,speaker:'agent'},
+  {...ownerEvent,content:''},
+ ];
+ for(const bad of variations){
+  await assert.rejects(readTeamContext({env,jwt,fetcher:async()=>({ok:true,json:async()=>[bad]})}),/could not be verified/);
+ }
+ await assert.rejects(readTeamContext({env,jwt,limit:1,fetcher:async()=>({ok:true,json:async()=>[ownerEvent,ownerEvent]})}),/could not be verified/);
+});
+test('upstream failure never becomes empty successful history',async()=>{
+ await assert.rejects(readTeamContext({env,jwt,fetcher:async()=>({ok:false})}),/temporarily unavailable/);
+});
