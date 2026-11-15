@@ -9,41 +9,9 @@ import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
 import { finalizeSignupAgreement } from "@/lib/legalAcceptance";
 import { finalizeSignupAIChoices } from "@/lib/signupAIPreferences";
 import { safeReturnTo } from "@/lib/safeReturnTo";
+import { safeNativeAuthCallbackUrl } from "./safeNativeAuthCallback.js";
 
 const NativeApp = registerPlugin("App");
-const CANONICAL = "https://interplanetaryfund.com";
-const TYPES = new Set(["signup", "email", "email_change", "recovery", "magiclink"]);
-const ALLOWED_PARAMS = new Set(["code", "token_hash", "type", "returnTo"]);
-
-/**
- * A validated in-memory callback only. Never log, persist or place its code
- * into the embedded app address bar. Reject bearer tokens in URL fragments.
- */
-export function safeNativeAuthCallbackUrl(value) {
-  if (typeof value !== "string" || value.length > 4096) return "";
-  try {
-    const url = new URL(value);
-    if (url.origin !== CANONICAL || url.username || url.password || url.hash ||
-        !["/auth/callback", "/reset-password"].includes(url.pathname) ||
-        /[\\\u0000-\u001f]/.test(value)) return "";
-    for (const key of url.searchParams.keys()) {
-      if (!ALLOWED_PARAMS.has(key) || url.searchParams.getAll(key).length !== 1) return "";
-    }
-    const code = url.searchParams.get("code");
-    const tokenHash = url.searchParams.get("token_hash");
-    if (Boolean(code) === Boolean(tokenHash)) return "";
-    if (code && !/^[A-Za-z0-9._~-]{8,2048}$/.test(code)) return "";
-    if (tokenHash && (!/^[A-Za-z0-9_-]{20,1024}$/.test(tokenHash) ||
-        !TYPES.has(url.searchParams.get("type")))) return "";
-    if (url.searchParams.has("type") && !TYPES.has(url.searchParams.get("type"))) return "";
-    if (url.searchParams.has("returnTo")) {
-      const raw = url.searchParams.get("returnTo");
-      if (!raw || safeReturnTo(raw) !== raw) return "";
-    }
-    return url.href;
-  } catch { return ""; }
-}
-
 let installed = false;
 const inFlight = new Set();
 const consumed = new Set();
