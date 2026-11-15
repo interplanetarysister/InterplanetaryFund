@@ -42,7 +42,8 @@ jobs:
       - name: Prepare separate iOS project
         working-directory: apps/mobile
         run: |
-          npm install --no-audit --no-fund
+          npm install --package-lock-only --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npx cap add ios
           npx @capacitor/assets generate --ios --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync ios
