@@ -71,13 +71,13 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
       const fresh=await loadAgentDocumentBriefs(authClient(),campaignId);
       const latest=fresh.find(ref=>ref.document_id===item.document_id);
       if(!latest){
-        if(scope.current.generation===generation){
+        if(scope.current.generation===generation&&scope.current.owner===owner&&scope.current.campaignId===campaignId){
           setState({loading:false,items:fresh,error:"Document agent permission changed. The revoked reference was not inserted."});
         }
         return;
       }
       const {data,error}=await authClient().auth.getUser();
-      if(error||data?.user?.id!==owner||scope.current.generation!==generation||scope.current.owner!==owner)return;
+      if(error||data?.user?.id!==owner||scope.current.generation!==generation||scope.current.owner!==owner||scope.current.campaignId!==campaignId)return;
       const selected=latest;
       const facts=[
         selected.summary && "Owner summary (unverified): "+selected.summary,
@@ -85,12 +85,12 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
         selected.extracted_excerpt && "Plain-text file excerpt (unverified): "+selected.extracted_excerpt,
       ].filter(Boolean).join("\n\n").slice(0,2200);
       if(!facts){
-        if(scope.current.generation===generation)setState(prev=>({...prev,error:"No approved document facts remain to insert."}));
+        if(scope.current.generation===generation&&scope.current.owner===owner&&scope.current.campaignId===campaignId)setState(prev=>({...prev,error:"No approved document facts remain to insert."}));
         return;
       }
       onInsert(facts);
     }catch(error){
-      if(scope.current.generation===generation&&scope.current.owner===owner){
+      if(scope.current.generation===generation&&scope.current.owner===owner&&scope.current.campaignId===campaignId){
         setState(prev=>({...prev,error:"Unable to verify this reference. Try again before inserting."}));
       }
     }
