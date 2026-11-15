@@ -89,6 +89,8 @@ function fetcher(calls, overrides = {}) {
     if (overrides[name]) return overrides[name](body);
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
+    if (url.includes("/ifund_ai_permission_preferences?"))
+      return Response.json([{allow_ai_campaign_drafts:true}]);
     if (name === "ifund_story_context")
       return Response.json({ campaign: null, research: null });
     if (name === "ifund_workforce_snapshot")
