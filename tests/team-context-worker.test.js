@@ -57,3 +57,10 @@ test("agent reply has distinct deterministic UUID receipt key",()=>{
   assert.notEqual(reply,ID);
   assert.equal(replyEventKey(ID),reply);
 });
+
+test("agent replies preserve complete bounded result; user messages stay shorter",()=>{
+  const full="a".repeat(16000);
+  assert.equal(validateTeamContextEvent({...candidate,content:full,speaker:"agent"}).p_content.length,16000);
+  assert.throws(()=>validateTeamContextEvent({...candidate,content:full,speaker:"user"}),/Invalid/);
+  assert.throws(()=>validateTeamContextEvent({...candidate,content:"x".repeat(24001),speaker:"agent"}),/Invalid/);
+});
