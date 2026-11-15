@@ -135,6 +135,7 @@ export async function downloadPrivateCampaignDocument(client,campaignId,row){
   if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
     !row.storage_path?.startsWith(`${userId}/${campaignId}/`))
     throw Error("Document ownership could not be verified.");
+  await unchanged(client,userId);
   const {data,error}=await client.storage.from(DOCUMENT_BUCKET).download(row.storage_path);
   await unchanged(client,userId);
   if(error||!data)throw Error("This private document could not be downloaded.");
