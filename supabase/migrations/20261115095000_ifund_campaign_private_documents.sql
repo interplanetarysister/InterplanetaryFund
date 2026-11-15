@@ -137,7 +137,11 @@ create trigger ifund_campaign_documents_guard_insert before insert on public.ifu
 create or replace function public.ifund_campaign_documents_prevent_orphans()
 returns trigger language plpgsql security definer set search_path='' as $
 begin
-  if exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
+  -- Interactive owner deletion must clean attachments before deleting the campaign.
+  -- Privileged account erasure may proceed; its external Storage cleanup still
+  -- needs to be executed separately by the account-deletion service.
+  if auth.uid() is not null
+    and exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
   then raise exception 'Remove private campaign documents before deleting this campaign' using errcode='23514'; end if;
   return old;
 end $;
