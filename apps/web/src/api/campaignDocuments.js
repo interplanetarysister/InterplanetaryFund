@@ -145,8 +145,11 @@ export async function removeCampaignDocument(client,campaignId,row){
   if(row?.owner_id!==userId||row?.campaign_id!==campaignId||
     !row.storage_path?.startsWith(`${userId}/${campaignId}/`))
     throw Error("Document ownership could not be verified.");
+  // A session switch between owner verification and deletion must fail closed.
+  await unchanged(client,userId);
   const {error:storageError}=await client.storage.from(DOCUMENT_BUCKET).remove([row.storage_path]);
   if(storageError)throw Error("The private file could not be removed.");
+  await unchanged(client,userId);
   const {data,error}=await client.from("ifund_campaign_documents").delete()
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
     .select("id").single();
