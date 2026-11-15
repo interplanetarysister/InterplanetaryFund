@@ -1,47 +1,77 @@
-// Local abuse controls for the independently bundled native review app.
-// Owner IDs are intentionally requested ONLY through signed-in RLS, never
-// exposed by anonymous campaign queries or displayed in the interface.
+// Authenticated cross-device creator blocking backed by the ONE canonical
+// IFund Supabase service. This module never caches blocked account identities
+// on a shared device or grants anonymous visitors access to organizer IDs.
 import { authClient } from "@/api/auth";
 
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const MAX_BLOCKED=250;
-export function blockedOrganizerKey(userId) {
-  if(!UUID.test(String(userId||""))) throw new TypeError("Verified account ID required");
-  return "ifund-native-blocked-organizers:"+userId;
+const isUuid=value=>typeof value==="string"&&UUID.test(value);
+
+async function verifiedMember(client) {
+  const {data,error}=await client.auth.getUser();
+  if(error||!isUuid(data?.user?.id)||data.user.is_anonymous===true||
+      !data.user.email_confirmed_at)
+    throw new Error("Sign in with a confirmed email account to manage organizer blocks.");
+  return data.user.id;
 }
-export function readBlockedOrganizers(userId, storage=globalThis.localStorage) {
-  if(!UUID.test(String(userId||""))) return [];
-  try{
-    const values=JSON.parse(storage.getItem(blockedOrganizerKey(userId))||"[]");
-    return Array.isArray(values)?[...new Set(values.filter(value=>UUID.test(value)))].slice(0,MAX_BLOCKED):[];
-  }catch{return [];}
+
+export async function blockedOrganizerIds(client=authClient()) {
+  await verifiedMember(client);
+  const {data,error}=await client.from("ifund_mobile_organizer_blocks")
+    .select("organizer_id").limit(250);
+  if(error||!Array.isArray(data))
+    throw new Error("Organizer blocking preferences could not be verified.");
+  if(data.some(row=>!isUuid(row.organizer_id)))
+    throw new Error("The organizer block list could not be validated.");
+  return [...new Set(data.map(row=>row.organizer_id))];
 }
-export function blockOrganizer(userId, ownerId, storage=globalThis.localStorage) {
-  if(!UUID.test(String(ownerId||""))||!UUID.test(String(userId||""))||ownerId===userId)
-    throw new TypeError("A verified organizer, different from the current user, is required");
-  const ids=readBlockedOrganizers(userId,storage);
-  storage.setItem(blockedOrganizerKey(userId),JSON.stringify([...new Set([...ids,ownerId])].slice(-MAX_BLOCKED)));
+
+export async function blockOrganizer(organizerId,client=authClient()) {
+  const member=await verifiedMember(client);
+  if(!isUuid(organizerId)||member===organizerId)
+    throw new TypeError("Choose a valid, different campaign organizer.");
+  const {data,error}=await client.rpc("ifund_mobile_block_organizer",{
+    p_organizer:organizerId,
+  });
+  if(error||data!==true)
+    throw new Error(error?.message||"The service did not confirm this organizer was blocked.");
+  // Verify the owner-scoped row after mutation before showing success.
+  const blocked=await blockedOrganizerIds(client);
+  if(!blocked.includes(organizerId))
+    throw new Error("The organizer block could not be verified.");
+  return true;
 }
-export function clearBlockedOrganizers(userId,storage=globalThis.localStorage) {
-  if(UUID.test(String(userId||""))) storage.removeItem(blockedOrganizerKey(userId));
+
+export async function unblockOrganizer(organizerId,client=authClient()) {
+  const member=await verifiedMember(client);
+  if(!isUuid(organizerId)||member===organizerId)
+    throw new TypeError("Invalid organizer to unblock.");
+  const {data,error}=await client.rpc("ifund_mobile_unblock_organizer",{
+    p_organizer:organizerId,
+  });
+  if(error||data!==true)
+    throw new Error(error?.message||"The service did not confirm this organizer was unblocked.");
+  const blocked=await blockedOrganizerIds(client);
+  if(blocked.includes(organizerId))
+    throw new Error("Organizer unblock could not be verified.");
+  return true;
 }
+
 export async function verifiedOrganizersForCampaigns(campaignIds, client=authClient()){
   if(!Array.isArray(campaignIds)||campaignIds.length>100 ||
-     campaignIds.some(id=>!UUID.test(String(id||""))))
-    throw new TypeError("Only published canonical campaign IDs may be resolved");
+    campaignIds.some(id=>!isUuid(id)))
+    throw new TypeError("Only valid canonical campaign IDs may be resolved.");
   if(campaignIds.length===0)return new Map();
-  const {data:identity,error:authError}=await client.auth.getUser();
-  if(authError||!identity?.user?.id||identity.user.is_anonymous)
-    return new Map();
-  // Authenticated SELECT of owner_id is permitted by owner-protected RLS for
-  // active public campaigns; anon has NO owner_id column access.
+  await verifiedMember(client);
+  // Anonymous visitors lack owner_id column access. This authenticated,
+  // active-only RLS query does not grant access to private campaigns.
   const {data,error}=await client.from("ifund_campaigns")
     .select("id,owner_id").eq("status","active").in("id",campaignIds);
-  if(error)throw new Error("Organizer identities could not be verified.");
-  const requested=new Set(campaignIds);
-  const mapped=new Map();
-  for(const row of data||[]){
-    if(requested.has(row.id)&&UUID.test(row.owner_id||"")) mapped.set(row.id,row.owner_id);
+  if(error||!Array.isArray(data))
+    throw new Error("Campaign organizer authorization could not be verified.");
+  const allowed=new Set(campaignIds);
+  const result=new Map();
+  for(const row of data){
+    if(allowed.has(row.id)&&isUuid(row.owner_id))result.set(row.id,row.owner_id);
   }
-  return mapped;
+  return result;
 }
