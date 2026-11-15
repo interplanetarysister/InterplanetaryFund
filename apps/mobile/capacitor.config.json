@@ -1,7 +1,7 @@
 {
   "appId": "com.interplanetaryfund.app",
   "appName": "Interplanetary Fund",
-  "webDir": "../web/dist",
+  "webDir": "../web/dist-mobile",
   "server": {
     "hostname": "localhost",
     "iosScheme": "capacitor",
