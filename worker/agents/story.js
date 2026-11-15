@@ -596,11 +596,17 @@ export async function storyRoute(request, env, fetcher = fetch) {
     // performed server-side using the current authenticated member JWT;
     // prior messages are untrusted facts, not developer/system instructions.
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+      await appendTeamContext({
+        env, jwt, eventKey: request_id, agentId: "story",
+        content: input.details, campaignId: input.campaign_id,
+        speaker: "user", fetcher,
+      });
       const recent = await rpc("ifund_team_recent", {
         p_campaign_id: input.campaign_id,
         p_limit: 12,
       });
-      context.shared_agent_history = Array.isArray(recent) ? recent : [];
+      context.shared_agent_history = Array.isArray(recent)
+        ? recent.filter(row => row.event_key !== request_id) : [];
     }
     const messages = storyMessages(input, context);
     const claim = workforce
@@ -610,8 +616,16 @@ export async function storyRoute(request, env, fetcher = fetch) {
           p_input_hash: hash,
           p_campaign_id: input.campaign_id,
         });
-    if (claim.state === "completed")
+    if (claim.state === "completed") {
+      if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled" && claim.draft?.payload) {
+        await appendTeamContext({
+          env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
+          content: JSON.stringify(claim.draft.payload).slice(0,24000),
+          campaignId: input.campaign_id, speaker: "agent", fetcher,
+        });
+      }
       return json(200, { draft: claim.draft, replayed: true });
+    }
     if (claim.state === "queued")
       return json(202, {
         state: "queued",
@@ -686,11 +700,6 @@ export async function storyRoute(request, env, fetcher = fetch) {
     // The shared transcript is enabled only after its owner-RLS migration is
     // accepted. Do not claim shared team memory if either receipt is missing.
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
-      await appendTeamContext({
-        env, jwt, eventKey: request_id, agentId: "story",
-        content: input.details, campaignId: input.campaign_id,
-        speaker: "user", fetcher,
-      });
       await appendTeamContext({
         env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
         content: JSON.stringify(suggestion),
