@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   CANONICAL_ORIGIN, campaignShareUrl, campaignShareText, shareTargets,
-  buildSharePayload, canUseWebShare, campaignEmbedUrl, campaignEmbedSnippet,
+  buildSharePayload, canUseWebShare, campaignEmbedUrl, campaignEmbedSnippet, publicShareOrigin,
 } from "../src/lib/campaignShare.js";
 
 const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8");
@@ -26,6 +26,21 @@ test("a preview or hostile origin cannot be shared as the canonical link", () =>
     assert.equal(campaignShareUrl(ID, bad), `${CANONICAL_ORIGIN}/campaign/${ID}`);
   }
   assert.equal(campaignShareUrl(ID, "https://preview.example.dev"), `https://preview.example.dev/campaign/${ID}`);
+});
+
+test("native campaign share origins never leak Capacitor-local addresses", () => {
+  for (const origin of ["capacitor://localhost", "ionic://localhost", "http://localhost:5173",
+    "https://localhost", "http://127.0.0.1:8100", "invalid", ""]) {
+    assert.equal(publicShareOrigin(origin), CANONICAL_ORIGIN);
+    const safe = campaignShareUrl(ID, publicShareOrigin(origin));
+    assert.equal(safe, `${CANONICAL_ORIGIN}/campaign/${ID}`);
+  }
+  assert.equal(publicShareOrigin("https://interplanetaryfund.com"), CANONICAL_ORIGIN);
+  assert.equal(publicShareOrigin("https://preview.example.dev"), "https://preview.example.dev");
+  const component = source("src/components/campaigns/CampaignShareButton.jsx");
+  assert.match(component, /const shareOrigin = publicShareOrigin/);
+  assert.match(component, /campaignShareUrl\(campaign\?\.id, shareOrigin\)/);
+  assert.match(component, /campaignEmbedSnippet\(campaign, shareOrigin\)/);
 });
 
 test("share text falls back gracefully and never emits undefined", () => {
