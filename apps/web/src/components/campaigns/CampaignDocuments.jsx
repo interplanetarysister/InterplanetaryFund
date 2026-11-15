@@ -1,4 +1,4 @@
-import {useEffect,useState} from "react";
+import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {
   DOCUMENT_CATEGORIES,DOCUMENT_MAX_BYTES,listCampaignDocuments,uploadCampaignDocument,
@@ -9,6 +9,8 @@ import {
 // covers or social publishing; per-document agent use is owner-controlled.
 export default function CampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
+  const accountGeneration=useRef(0);
+  const accountBlocked=useRef(false);
   const [loading,setLoading]=useState(Boolean(campaignId&&ownerId));
   const [error,setError]=useState("");
   const [notice,setNotice]=useState("");
@@ -25,6 +27,8 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     const client=authClient();
     const {data}=client.auth.onAuthStateChange((_event,session)=>{
       if(session?.user?.id===ownerId && session?.user?.is_anonymous!==true)return;
+      accountGeneration.current+=1;
+      accountBlocked.current=true;
       setRecords([]);setFile(null);setSummary("");setTeamAccess(false);
       setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
       setNotice("");setLoading(false);
@@ -34,18 +38,24 @@ export default function CampaignDocuments({campaignId,ownerId}) {
 
   useEffect(()=>{
     let active=true;
+    accountGeneration.current+=1;
+    accountBlocked.current=false;
+    const generation=accountGeneration.current;
     setRecords([]);setError("");setNotice("");
     if(!campaignId||!ownerId){setLoading(false);return()=>{active=false;};}
     setLoading(true);
     listCampaignDocuments(authClient(),campaignId)
-      .then(rows=>{if(active)setRecords(rows);})
-      .catch(e=>{if(active)setError(e.message||"Document library unavailable.");})
-      .finally(()=>{if(active)setLoading(false);});
+      .then(rows=>{if(active&&generation===accountGeneration.current&&!accountBlocked.current)setRecords(rows);})
+      .catch(e=>{if(active&&generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Document library unavailable.");})
+      .finally(()=>{if(active&&generation===accountGeneration.current)setLoading(false);});
     return()=>{active=false;};
   },[campaignId,ownerId]);
 
   async function reload(){
+    const generation=accountGeneration.current;
+    if(accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
     const rows=await listCampaignDocuments(authClient(),campaignId);
+    if(generation!==accountGeneration.current||accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
     setRecords(rows);
   }
   async function saveFile(event){
