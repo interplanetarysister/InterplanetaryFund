@@ -109,6 +109,14 @@ assert(!mobileSource.includes('import App from "@/App"') &&
 assert(mobileEntrypoint.includes("MobileStoreApp") &&
   mobileEntrypoint.includes("installNativeApiTransport()"),
   "Store entrypoint must load scoped, connected app");
+const mobileCss = read("apps/web/src/mobile.css");
+assert(mobileEntrypoint.includes('import "./mobile.css"') &&
+  !mobileEntrypoint.includes('import "./index.css"') &&
+  !mobileCss.includes("fonts.googleapis.com") &&
+  !mobileCss.includes("styles-studio.css") &&
+  !mobileCss.includes("styles-ifund-studio.css"),
+  "Store binary must not inherit remote font requests or unrelated full website styles");
+
 assert(mobileBuild.includes("publicDir: false") &&
   mobileBuild.includes('renameSync(generated, resolve(out, "index.html"))'),
   "Store build must have local index and not copy unrelated public web archives");
