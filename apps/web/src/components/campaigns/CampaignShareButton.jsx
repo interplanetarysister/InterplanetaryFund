@@ -4,6 +4,7 @@ import { Share2, Copy, Check, Mail, Code2 } from "lucide-react";
 import {
   campaignShareUrl, campaignEmbedSnippet, shareTargets, buildSharePayload, canUseWebShare, publicShareOrigin,
 } from "@/lib/campaignShare";
+import { isNativeBundle, shareWithDevice } from "@/lib/nativeApi";
 
 // Public share kit for a campaign. Sharing is a plain browser action: it opens
 // the visitor's own share sheet or a third-party compose page with a
@@ -28,7 +29,7 @@ export default function CampaignShareButton({ campaign, ownerView = false }) {
 
   const targets = shareTargets(campaign, url);
   const embedSnippet = campaignEmbedSnippet(campaign, shareOrigin);
-  const shareSheetAvailable = canUseWebShare(typeof navigator === "undefined" ? undefined : navigator);
+  const shareSheetAvailable = isNativeBundle() || canUseWebShare(typeof navigator === "undefined" ? undefined : navigator);
 
   async function copy() {
     setNotice("");
@@ -60,10 +61,10 @@ export default function CampaignShareButton({ campaign, ownerView = false }) {
   async function nativeShare() {
     setNotice("");
     try {
-      await navigator.share(buildSharePayload(campaign, url));
+      await shareWithDevice(buildSharePayload(campaign, url));
     } catch (cause) {
       // A user dismissing the sheet is not an error worth reporting.
-      if (alive.current && cause?.name !== "AbortError") {
+      if (alive.current && cause?.name !== "AbortError" && !/cancel/i.test(String(cause?.message || ""))) {
         setNotice("Your device could not open the share sheet.");
       }
     }
