@@ -162,3 +162,14 @@ test("team history invalidates in-flight actions on account changes and permits 
   assert.match(history, /generation===requestGeneration\.current\)\{\s*setEditing\(""\)/);
   assert.match(history, /disabled=\{state\.status==="loading"\}/);
 });
+
+test("private Atlas campaign reads verify the same confirmed owner on both sides of the request", () => {
+  const atlas = page("Atlas");
+  assert.match(atlas, /!user\.email_confirmed_at/);
+  assert.match(atlas, /const before = await client\.auth\.getUser\(\)/);
+  assert.match(atlas, /before\.data\?\.user\?\.id !== user\.id/);
+  assert.match(atlas, /const rows = await listOwnerAtlasCampaigns\(client\)/);
+  assert.match(atlas, /const after = await client\.auth\.getUser\(\)/);
+  assert.match(atlas, /after\.data\?\.user\?\.id !== user\.id/);
+  assert.match(atlas, /setOwnerCampaigns\(\{ownerId:user\.id,rows:rows\.map\(mapAtlasCampaign\)\}\)/);
+});
