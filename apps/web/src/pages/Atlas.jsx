@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Compass, Globe2, MapPin, Search, ShieldCheck } from "lucide-react";
 import { listPublicAtlasCampaigns } from "@/api/publicData";
-import { listOwnerCampaigns } from "@/api/ownerCampaigns";
+import { listOwnerAtlasCampaigns } from "@/api/ownerCampaigns";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import CampaignGlobe from "@/components/atlas/CampaignGlobe";
@@ -37,7 +37,7 @@ export default function Atlas() {
             if (alive) { setOwnerCampaigns({ownerId:null,rows:[]}); setStatus("signed-out"); }
             return;
           }
-          const rows = await listOwnerCampaigns(authClient());
+          const rows = await listOwnerAtlasCampaigns(authClient());
           if (alive) { setOwnerCampaigns({ownerId:user.id,rows:rows.map(mapAtlasCampaign)}); setStatus("ready"); }
         } else {
           // This is a public geography-only query: no payment RPC is needed.
