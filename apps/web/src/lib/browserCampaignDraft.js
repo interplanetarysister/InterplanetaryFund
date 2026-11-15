@@ -50,44 +50,45 @@ function scopedRecord(storage, ownerId) {
 // Never expose a guest's private text to a newly signed-in account without
 // an explicit user action. An import is non-destructive until the owner slot
 // is written successfully; no existing owner draft is overwritten.
+// Prefer a valid scoped guest record, but do not let corrupt scoped bytes
+// conceal an older valid legacy draft. Read both slots under one storage
+// error boundary; unavailable storage must not be mistaken for no draft.
+function guestRecordForImport(storage) {
+  const scopedKey = ownerKey(null);
+  const candidates = [
+    [scopedKey, storage.getItem(scopedKey)],
+    [KEY, storage.getItem(KEY)],
+  ];
+  for (const [source, raw] of candidates) {
+    if (!raw) continue;
+    let record;
+    try { record = JSON.parse(raw); } catch { continue; }
+    if (record?.version === 2 && record.owner_id === null &&
+        record.form && typeof record.form === "object" && !Array.isArray(record.form))
+      return { source, raw, record };
+  }
+  return null;
+}
+
 export function hasUnclaimedGuestCampaign(storage) {
-  // Older preview builds stored guest drafts under the legacy unscoped key.
-  // Detect those BEFORE owner hydration; never import them without consent.
-  const raw = storage.getItem(ownerKey(null)) || storage.getItem(KEY);
-  if (!raw) return false;
-  try {
-    const record = JSON.parse(raw);
-    return Boolean(record?.version === 2 && record.owner_id === null &&
-      record.form && typeof record.form === "object" && !Array.isArray(record.form));
-  } catch { return false; }
+  return Boolean(guestRecordForImport(storage));
 }
 
 export function importGuestCampaign(storage, ownerId) {
-  // A structured result prevents the UI from mistaking failed cleanup for
-  // a failed import after the owner copy has already been written.
+  // Never overwrite a pre-existing owner slot, including malformed records.
   if (ownerId == null) return { status: "invalid_owner" };
   const destination = ownerKey(ownerId);
-  let guestRaw;
-  let guestSource = ownerKey(null);
+  let guest;
   try {
     if (storage.getItem(destination)) return { status: "owner_exists" };
-    guestRaw = storage.getItem(guestSource);
-    if (!guestRaw) {
-      guestSource = KEY;
-      guestRaw = storage.getItem(guestSource);
-    }
+    guest = guestRecordForImport(storage);
   } catch { return { status: "storage_error" }; }
-  if (!guestRaw) return { status: "missing_guest" };
-  let guest;
-  try { guest = JSON.parse(guestRaw); } catch { return { status: "invalid_guest" }; }
-  if (guest?.version !== 2 || guest.owner_id !== null || !guest.form ||
-      typeof guest.form !== "object" || Array.isArray(guest.form))
-    return { status: "invalid_guest" };
+  if (!guest) return { status: "missing_guest" };
   try {
-    storage.setItem(destination, JSON.stringify({ ...guest, owner_id: ownerId }));
+    storage.setItem(destination, JSON.stringify({ ...guest.record, owner_id: ownerId }));
   } catch { return { status: "write_failed" }; }
   try {
-    storage.removeItem(guestSource);
+    storage.removeItem(guest.source);
   } catch {
     return { status: "imported_guest_retained" };
   }
