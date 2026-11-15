@@ -98,3 +98,46 @@ export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=n
     throw Error("The team history response could not be verified.");
   return {state:"ready",events};
 }
+
+/**
+ * Reusable, owner-scoped fundraising evidence for every real iFund agent
+ * service. This is deliberately separate from public campaign media and
+ * external provider claims. File bytes never leave private Storage.
+ */
+export async function readCampaignDocumentContext({
+  env,jwt,campaignId,fetcher=fetch
+}) {
+  if(env.IFUND_CAMPAIGN_DOCUMENTS_ENABLED!=="enabled")
+    return {state:"disabled",briefs:[]};
+  if(!/^[-\\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
+  if(!UUID.test(campaignId||"")) throw Object.assign(
+    new Error("A saved campaign is required for private documents."),{status:400});
+  const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_campaign_agent_document_briefs",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",apikey:env.SUPABASE_PUBLISHABLE_KEY,
+      Authorization:"Bearer "+jwt},
+    body:JSON.stringify({p_campaign_id:campaignId}),
+    signal:AbortSignal.timeout(12000)
+  });
+  if(!response.ok) throw Error("Owner-approved campaign documents could not be loaded.");
+  const raw=await response.json();
+  if(!Array.isArray(raw)||raw.length>6||raw.some(d=>
+    !UUID.test(d?.document_id||"")||
+    typeof d?.file_name!=="string"||d.file_name.length>160||
+    typeof d?.purpose!=="string"||d.purpose.length>40||
+    typeof d?.summary!=="string"||d.summary.length>3000||
+    typeof d?.owner_excerpt!=="string"||d.owner_excerpt.length>1200||
+    typeof d?.extracted_excerpt!=="string"||d.extracted_excerpt.length>2000||
+    d?.owner_supplied!==true||
+    d?.source_type!=="uploaded_private_document_summary"
+  )) throw Error("The private document reference response was invalid.");
+  return {state:"ready",briefs:raw.map(d=>({
+    document_id:d.document_id,
+    source_type:"owner_uploaded_reference_unverified",
+    file_name:redactTeamCredentials(d.file_name).slice(0,160),
+    purpose:d.purpose,
+    summary:redactTeamCredentials(d.summary).slice(0,3000),
+    owner_excerpt:redactTeamCredentials(d.owner_excerpt).slice(0,1200),
+    extracted_excerpt:redactTeamCredentials(d.extracted_excerpt).slice(0,2000),
+  }))};
+}
