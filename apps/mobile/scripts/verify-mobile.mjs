@@ -42,6 +42,10 @@ const offlineScreen = read("apps/web/public/mobile-offline.html");
 assert(offlineScreen.includes('href="/"'), "Offline recovery must return to the bundled app origin");
 assert(!offlineScreen.includes('href="https://interplanetaryfund.com/"'),
   "Offline recovery must not replace the native shell with the remote website");
+assert(offlineScreen.includes("env(safe-area-inset-top)") && offlineScreen.includes("env(safe-area-inset-bottom)"),
+  "Native recovery screen must respect iPhone/Android safe areas");
+assert(offlineScreen.includes("@media(max-width:360px)"),
+  "Native recovery screen must remain readable on 320px devices");
 assert(config.android?.allowMixedContent === false, "Android mixed content must remain disabled");
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
 assert(pkg.dependencies?.["@capacitor/share"] === "8.0.3", "Native system-share plugin is required");
