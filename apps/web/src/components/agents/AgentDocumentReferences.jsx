@@ -6,6 +6,22 @@ import {DOCUMENT_CATEGORIES,loadAgentDocumentBriefs} from "@/api/campaignDocumen
 export default function AgentDocumentReferences({campaignId,onInsert,disabled=false}){
   const [state,setState]=useState({loading:false,items:[],error:""});
   useEffect(()=>{
+    if(!campaignId)return;
+    let active=true,owner=null;
+    const client=authClient();
+    client.auth.getUser().then(({data,error})=>{
+      if(active&&!error)owner=data?.user?.id||null;
+    }).catch(()=>{});
+    const {data}=client.auth.onAuthStateChange((_event,session)=>{
+      if(!active||!owner)return;
+      if(session?.user?.id!==owner){
+        setState({loading:false,items:[],error:"Your account changed. Reopen the campaign references."});
+      }
+    });
+    return()=>{active=false;data?.subscription?.unsubscribe();};
+  },[campaignId]);
+
+  useEffect(()=>{
     let current=true;
     setState({loading:Boolean(campaignId),items:[],error:""});
     if(!campaignId)return()=>{current=false;};
