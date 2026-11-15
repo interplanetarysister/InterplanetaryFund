@@ -369,6 +369,14 @@ Deno.serve(async req=>{
         });
       }catch(error){
         if(error.status!==409)throw error;
+        // Concurrent webhook deliveries may race on the unique event ID.
+        // A 409 is a replay only if the persisted provider identity matches.
+        const recorded=await findOne("ifund_subscription_events?select=paypal_subscription_id,event_type&paypal_event_id=eq."
+          +encodeURIComponent(p.paypal_event_id));
+        if(!recorded||recorded.paypal_subscription_id!==p.paypal_subscription_id
+          ||recorded.event_type!==p.event_type)
+          return fail("Subscription event identity conflict",409);
+        return Response.json({ok:true,recorded:true,duplicate:true});
       }
       return Response.json({ok:true,recorded:true});
     }
