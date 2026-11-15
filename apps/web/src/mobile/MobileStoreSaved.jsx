@@ -13,10 +13,11 @@ export default function MobileStoreSaved() {
   const [ids,setIds]=useState(()=>savedCampaignIds());
   const [rows,setRows]=useState([]);
   const [phase,setPhase]=useState("loading"),[error,setError]=useState("");
+  const [verifiedFor,setVerifiedFor]=useState(null);
   const [refresh,setRefresh]=useState(0);
   useEffect(()=>{
     let live=true;
-    setPhase("loading");setError("");
+    setPhase("loading");setError("");setVerifiedFor(null);
     if(sessionStatus==="loading")return()=>{live=false;};
     Promise.allSettled(ids.map(id=>getCampaignDetail(id))).then(async results=>{
       let records=results.map((result,index)=>({
@@ -33,12 +34,13 @@ export default function MobileStoreSaved() {
         const hidden=new Set(blocked);
         records=records.filter(r=>!hidden.has(mapped.get(r.id)));
       }
-      if(live){setRows(records);setPhase("ready");}
+      if(live){setRows(records);setVerifiedFor(user?.id && !user.is_anonymous ? user.id : "guest");setPhase("ready");}
     }).catch(e=>{
       if(live){setRows([]);setError(e?.message||"Saved campaigns could not be checked safely.");setPhase("error");}
     });
     return()=>{live=false;};
   },[ids.join(","),refresh,user?.id,user?.is_anonymous,sessionStatus]);
+  const currentIdentity=user?.id && !user.is_anonymous ? user.id : "guest";
   function remove(id){
     setCampaignSaved(id,false);
     setIds(savedCampaignIds());
@@ -49,13 +51,13 @@ export default function MobileStoreSaved() {
       <p className="text-sm leading-6 text-slate-300">Save campaign links for quick access on this device. The app stores only their IDs locally, not the stories or financial data. Each listing is checked against live IFund records.</p>
     </header>
     <button type="button" onClick={()=>setRefresh(x=>x+1)} className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/30 px-4 text-sm"><RefreshCw aria-hidden="true" className="h-4 w-4"/> Refresh live listings</button>
-    {phase==="loading"&&<p role="status">Checking live saved campaigns…</p>}
+    {(phase==="loading"||(phase==="ready"&&verifiedFor!==currentIdentity))&&<p role="status">Checking live saved campaigns and account safety settings…</p>}
     {phase==="error"&&<div role="alert" className="space-y-3 rounded-xl border border-amber-300/30 p-4">
       <p>{error}</p>
       <p className="text-sm">Live campaigns and safety preferences must be verified before saved content can be displayed.</p>
       <button type="button" onClick={()=>setRefresh(x=>x+1)} className="min-h-11 rounded-lg border border-white/30 px-4">Retry safety check</button>
     </div>}
-    {phase==="ready"&&<div className="space-y-3">
+    {phase==="ready"&&verifiedFor===currentIdentity&&<div className="space-y-3">
       {rows.length===0&&<div className="rounded-xl border border-white/20 p-5"><p className="text-sm text-slate-300">No saved campaigns yet. Explore causes and tap Save on a campaign.</p><Link to="/discover" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-emerald-200 px-4 font-semibold text-slate-950">Explore campaigns</Link></div>}
       {rows.map(row=><article key={row.id} className="space-y-3 rounded-xl border border-white/20 bg-white/5 p-5">
         {row.data?<><h2 className="font-bold">{row.data.title}</h2><p className="line-clamp-3 text-sm text-slate-300">{row.data.summary}</p><Link to={"/campaign/"+row.id} className="inline-flex min-h-11 items-center rounded-lg bg-emerald-200 px-4 text-sm font-bold text-slate-950">View live campaign</Link></>:
