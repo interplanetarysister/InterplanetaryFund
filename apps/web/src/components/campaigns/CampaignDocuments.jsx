@@ -100,14 +100,14 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       </p> :
       <>
         <p className="text-xs text-muted-foreground">
-          PDF, Word (DOCX), TXT, Markdown or CSV · Maximum {Math.floor(DOCUMENT_MAX_BYTES/1048576)} MB each · Up to 15 per campaign.
-          For PDF and Word, agents use your written description until private document extraction is verified.
+          PDF, Word (DOCX), Excel (XLSX), TXT, Markdown or CSV · Maximum {Math.floor(DOCUMENT_MAX_BYTES/1048576)} MB each · Up to 15 per campaign.
+          For PDF, Word and Excel, agents use your written description until private document extraction is verified.
           Plain-text extracts are available only when you enable agent use.
         </p>
         <form onSubmit={saveFile} className="space-y-3 rounded-xl border border-border p-4">
           <label className="block text-sm font-semibold" htmlFor="campaign-reference-file">Upload a fundraising document
             <input id="campaign-reference-file" name="document" type="file"
-              accept=".pdf,.docx,.txt,.md,.csv,application/pdf,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+              accept=".pdf,.docx,.xlsx,.txt,.md,.csv,application/pdf,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               disabled={busy||loading}
               onChange={event=>setFile(event.target.files?.[0]||null)}
               className="mt-2 block w-full text-sm" />
