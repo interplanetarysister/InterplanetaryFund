@@ -45,6 +45,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/admin",
+      "role": "admin",
+      "component": "AdminHub",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+qa"
+    },
+    {
       "route": "/admin/*",
       "role": "public",
       "component": "PageNotFound",
