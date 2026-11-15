@@ -18,12 +18,17 @@ jobs:
           node-version: 22
       - name: Check independent native identity before build
         run: node apps/mobile/scripts/verify-mobile.mjs --candidate
-      - name: Verify shared canonical frontend
+      - name: Test and build bundled canonical frontend
         working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: https://ssibsfmtodgximseeqsv.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: |
+          test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "Missing canonical publishable build variable"; exit 1; }
           npm ci --no-audit --no-fund
           npm test
           npm run build
+          test -s dist/index.html
       - name: Prepare separate iOS project
         working-directory: apps/mobile
         run: |
