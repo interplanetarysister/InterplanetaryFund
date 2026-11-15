@@ -126,7 +126,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       </p> :
       <>
         <p className="text-xs text-muted-foreground">
-          PDF, Word (DOCX), Excel (XLSX), TXT, Markdown or CSV · Maximum {Math.floor(DOCUMENT_MAX_BYTES/1048576)} MB each · Up to 15 per campaign.
+          PDF, Word (DOCX), Excel (XLSX), TXT, Markdown or CSV · Maximum {Math.floor(DOCUMENT_MAX_BYTES/1048576)} MB each · Up to 15 per campaign. Private storage is limited to 200 MB per account.
           For PDF, Word and Excel, agents use your written description and excerpts you provide; automatic document extraction is not yet verified.
           Plain-text extracts are available only when you enable agent use.
         </p>
