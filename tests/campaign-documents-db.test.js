@@ -54,9 +54,10 @@ test("opt-in summaries are hidden until allowed, then hidden when revoked",async
   await as(db,owner);await insert(db);
   let result=await db.query("select public.ifund_campaign_agent_document_briefs($1) b",[campaign]);
   assert.deepEqual(result.rows[0].b,[]);
-  await db.query("update public.ifund_campaign_documents set allow_agent_use=true where id=$1",[id]);
+  await db.query("update public.ifund_campaign_documents set allow_agent_use=true,owner_excerpt=$2 where id=$1",[id,"Organizer-provided estimate of $2,900 in equipment costs."]);
   result=await db.query("select public.ifund_campaign_agent_document_briefs($1) b",[campaign]);
   assert.equal(result.rows[0].b.length,1);
+  assert.match(result.rows[0].b[0].owner_excerpt,/2,900/);
   await db.query("update public.ifund_campaign_documents set allow_agent_use=false where id=$1",[id]);
   result=await db.query("select public.ifund_campaign_agent_document_briefs($1) b",[campaign]);
   assert.deepEqual(result.rows[0].b,[]);
