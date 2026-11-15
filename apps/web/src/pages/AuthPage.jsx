@@ -9,6 +9,7 @@ import { authEmailRedirectOrigin, isNativeBundle } from "@/lib/nativeApi";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { rememberSignupAgreement, finalizeSignupAgreement, recordLegalAcceptance } from "@/lib/legalAcceptance";
 import { enterGuestMode, payoutIdentity } from "@/lib/guestAccess";
+import { rememberSignupAIChoices, finalizeSignupAIChoices } from "@/lib/signupAIPreferences";
 
 export default function AuthPage({ mode = "login" }) {
   const navigate = useNavigate();
@@ -97,8 +98,10 @@ export default function AuthPage({ mode = "login" }) {
             const { error: pwError } = await auth.updateUser({ password });
             if (pwError) throw pwError;
           }
-          try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
-          catch { navigate("/dashboard", { replace: true }); return; }
+          try {
+            const accepted = await finalizeSignupAgreement(authClient(), verified, sessionStorage);
+            if (accepted) await finalizeSignupAIChoices(authClient(), verified, sessionStorage);
+          } catch { navigate("/onboarding", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
           return;
         }
@@ -121,13 +124,13 @@ export default function AuthPage({ mode = "login" }) {
           });
           if (linked.error) throw linked.error;
           rememberSignupAgreement(sessionStorage, email.trim());
+          try { rememberSignupAIChoices(sessionStorage, email, signupAIChoices); } catch { /* safe opt-out */ }
           setConfirmationPending(true);
           setMessage("Open the confirmation link in your email on the secure IFund website. Then return to the app and sign in. Your guest account will become an email account. Two-factor setup is not required to post.");
           return;
         }
-        // Store preliminary signup selections only in this tab; not an authorization grant.
-        // Verified member must review and explicitly save them from My Profile.
-        try { sessionStorage.setItem("ifund-signup-ai-interest-v1", JSON.stringify({email:email.trim().toLowerCase(), timestamp:Date.now(), choices:signupAIChoices})); } catch { /* Onboarding safely defaults to no consent. */ }
+        // Explicit signup selections are stored only after matching legal acceptance and verified identity.
+        try { rememberSignupAIChoices(sessionStorage, email, signupAIChoices); } catch { /* Onboarding safely defaults to no consent. */ }
         const { data, error: err } = await auth.signUp({
           email: email.trim(),
           password,
@@ -150,8 +153,10 @@ export default function AuthPage({ mode = "login" }) {
         rememberSignupAgreement(sessionStorage, email.trim());
         if (data.session) {
           const verified = await verifiedAuthUser(auth);
-          try { await finalizeSignupAgreement(authClient(), verified, sessionStorage); }
-          catch { navigate("/dashboard", { replace: true }); return; }
+          try {
+            const accepted = await finalizeSignupAgreement(authClient(), verified, sessionStorage);
+            if (accepted) await finalizeSignupAIChoices(authClient(), verified, sessionStorage);
+          } catch { navigate("/onboarding", { replace: true }); return; }
           navigate(afterLogin, { replace: true });
         } else {
           setConfirmationPending(true);
@@ -312,7 +317,7 @@ export default function AuthPage({ mode = "login" }) {
             )}
             {isRegister && !confirmationPending && <fieldset className="space-y-3 rounded-xl border border-cyan-400/30 p-4">
               <legend className="px-1 font-semibold">Your iFund AI choices (optional)</legend>
-              <p className="text-xs text-slate-300">Choose what help you may want. Every option is off by default. These are preliminary preferences, not authorization to publish or connect accounts. After email verification, review and save them under My Profile → Manage iFund Permissions. New features and every external provider will ask for separate permission when ready.</p>
+              <p className="text-xs text-slate-300">Choose what help you may want. Every option is off by default. These are preliminary preferences, not authorization to publish or connect accounts. After email verification, your selected AI drafting preferences are saved to your account and can be changed under My Profile → Manage iFund Permissions. New features and every external provider will ask for separate permission when ready.</p>
               {[
                 ["allow_ai_campaign_drafts","Help me prepare campaign drafts"],
                 ["allow_ai_outreach_drafts","Help me prepare outreach drafts"],
