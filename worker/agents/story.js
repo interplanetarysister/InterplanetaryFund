@@ -297,6 +297,17 @@ export async function storyRoute(request, env, fetcher = fetch) {
     const user = await requestData(env, jwt, "/auth/v1/user", {}, fetcher);
     if (!UUID.test(user?.id || "") || !user.email_confirmed_at)
       fail(401, "Confirm your email before using the writing assistant.");
+    // Recheck the actual saved owner choice for every generation request.
+    // A signup checkbox, OAuth identity, or old queued job is not authorization.
+    if (request.method === "POST" && ["/api/agents/story/drafts", "/api/agents/story/revise"].includes(path)) {
+      const prefs = await requestData(
+        env, jwt,
+        "/rest/v1/ifund_ai_permission_preferences?select=allow_ai_campaign_drafts&owner_id=eq." + user.id,
+        {}, fetcher,
+      );
+      if (!Array.isArray(prefs) || prefs.length !== 1 || prefs[0]?.allow_ai_campaign_drafts !== true)
+        fail(403, "Enable AI campaign drafting in My Profile → Manage iFund Permissions before requesting AI suggestions.");
+    }
     const rpc = (name, body) => {
       const workerOperation =
         name.startsWith("ifund_workforce_") &&
