@@ -222,6 +222,19 @@ export default function Profile() {
       </div>)}
       {friendError && <p role="alert" className="text-sm text-destructive">{friendError}</p>}
     </section>
+    <section className={panel} aria-label="Account deletion">
+      <h2 className="text-xl font-semibold">Close or delete your account</h2>
+      <p className="text-sm text-muted-foreground">
+        You can initiate an account deletion request here. IFund will verify ownership,
+        review active campaigns and payouts, and explain any records that must be
+        retained for legal or financial obligations. Requesting deletion does not
+        immediately erase confirmed financial records.
+      </p>
+      <Link to="/support?request=delete-account"
+        className="inline-flex min-h-11 items-center rounded-xl border border-red-600/50 px-4 py-2 text-sm font-semibold text-red-700 dark:text-red-300">
+        Request account deletion
+      </Link>
+    </section>
     <section className={panel}>
       <h2 className="text-xl font-semibold">Your workspace</h2>
       <div className="flex flex-wrap gap-2">
