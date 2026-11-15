@@ -24,7 +24,9 @@ export function replyEventKey(requestId) {
   if(!UUID.test(requestId||"")) throw Error("Invalid request reference.");
   // Deterministically distinct from the user-message key for idempotent retries.
   const bits=requestId.replace(/-/g,"").split("");
-  bits[12]="5";bits[16]="a";
+  // Toggle rather than overwrite UUID bits: distinct request IDs must never
+  // collapse to one agent reply idempotency key (including differing variants).
+  bits[12]=(parseInt(bits[12],16)^1).toString(16);
   const tail=bits.slice(20).join("");
   const changed=(parseInt(tail[0],16)^8).toString(16)+tail.slice(1);
   return bits.slice(0,8).join("")+"-"+bits.slice(8,12).join("")+"-"+
