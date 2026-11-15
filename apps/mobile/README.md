@@ -29,7 +29,7 @@ npx cap sync ios
 # Build and test in Xcode on actual devices.
 ```
 
-The Capacitor `server.url` intentionally points to the canonical HTTPS production site for immediate shared-data parity, **not Base44**. Evaluate replacing this remote-webview approach with a bundled, native-integrated presentation before App Store submission. Do not submit a thin wrapper or claim iOS App Store acceptance based on this scaffolding.
+Both native binaries bundle the website's built React assets instead of relying on the development-only `server.url`. Runtime API requests use the canonical Cloudflare HTTPS transport; Supabase uses the existing live project. These candidates still need real-device testing, secure native OAuth deep links, verified financial restrictions, native-specific utility review and store signing before distribution.
 
 ## Native runtime and offline safety
 
