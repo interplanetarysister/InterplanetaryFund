@@ -31,7 +31,10 @@ export default function AuthPage({ mode = "login" }) {
   const [recoveryCodeSent, setRecoveryCodeSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(() =>
+    searchParams.get("verification") === "failed"
+      ? "This mobile confirmation could not be verified. Request a fresh link or enter a code from your email."
+      : "");
   const isNativeApp = isNativeBundle();
   const isRegister = mode === "register";
   const isReset = mode === "forgot-password";
