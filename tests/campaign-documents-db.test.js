@@ -32,6 +32,8 @@ async function as(db,uid,role="authenticated"){
  await db.exec("set role "+role);
 }
 async function insert(db){
+ const count=await db.query("select count(*)::int n from storage.objects where bucket_id='ifund-campaign-documents' and name=$1",[path]);
+ if(count.rows[0].n===0)await db.query("insert into storage.objects(bucket_id,name) values('ifund-campaign-documents',$1)",[path]);
  return db.query(`insert into public.ifund_campaign_documents
   (id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,agent_summary)
   values($1,$2,$3,$4,'budget.pdf','application/pdf',1000,'Owner-reviewed campaign budget and intended uses')`,[id,owner,campaign,path]);
