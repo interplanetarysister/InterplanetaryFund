@@ -55,31 +55,29 @@ export function iosEntitlements() {
 // effect on signed associated domains, so refuse ambiguous Xcode projects.
 export function addIosSigningEntitlements(pbxproj) {
   if (typeof pbxproj !== "string" ||
-      !pbxproj.includes("/* Begin XCBuildConfiguration section */") ||
-      !pbxproj.includes("CODE_SIGN_STYLE = Automatic;")) {
+      !pbxproj.includes("/* Begin XCBuildConfiguration section */")) {
     throw new Error("Unknown Xcode project: cannot attach Associated Domains.");
   }
-  if (pbxproj.includes("CODE_SIGN_ENTITLEMENTS = App/App.entitlements;")) {
-    const count = (pbxproj.match(/CODE_SIGN_ENTITLEMENTS = App\\/App\\.entitlements;/g) || []).length;
+  const entitlements = "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;";
+  if (pbxproj.includes(entitlements)) {
+    const count = pbxproj.split(entitlements).length - 1;
     if (count !== 2) throw new Error("Incomplete Xcode entitlement configuration.");
     return pbxproj;
   }
-  if (/CODE_SIGN_ENTITLEMENTS\\s*=/.test(pbxproj)) {
+  if (/CODE_SIGN_ENTITLEMENTS\s*=/.test(pbxproj)) {
     throw new Error("An unexpected signing entitlement is already configured.");
   }
-  // Restrict edits to App target build settings: other build settings, such
-  // as Pods and tests, may also have CODE_SIGN_STYLE, and must stay untouched.
-  const targetConfigs = pbxproj.match(/\\/\\* (?:Debug|Release) \\*\\/ = \\{[\\s\\S]*?isa = XCBuildConfiguration;[\\s\\S]*?PRODUCT_BUNDLE_IDENTIFIER = com\\.interplanetaryfund\\.app;[\\s\\S]*?\\n\\s*};/g) || [];
-  if (targetConfigs.length !== 2) {
-    throw new Error("Unable to identify both App target build configurations.");
-  }
+  // Match only the generated App target's two build configurations.
+  // The regular expression stops at the next configuration boundary.
+  const pattern = /\/\* (?:Debug|Release) \*\/ = \{[\s\S]*?isa = XCBuildConfiguration;[\s\S]*?PRODUCT_BUNDLE_IDENTIFIER = com\.interplanetaryfund\.app;[\s\S]*?\n\s*\};/g;
+  const blocks = [...pbxproj.matchAll(pattern)].map(match => match[0]);
+  if (blocks.length !== 2 || !blocks.every(block => block.includes("CODE_SIGN_STYLE = Automatic;")))
+    throw new Error("Unable to identify both App target signing configurations.");
   let output = pbxproj;
-  for (const block of targetConfigs) {
-    if (!block.includes("CODE_SIGN_STYLE = Automatic;"))
-      throw new Error("App target is missing automatic signing.");
-    const patched = block.replace("CODE_SIGN_STYLE = Automatic;",
-      "CODE_SIGN_ENTITLEMENTS = App/App.entitlements;\\n\\t\\t\\t\\tCODE_SIGN_STYLE = Automatic;");
-    output = output.replace(block, patched);
+  for (const block of blocks) {
+    const updated = block.replace("CODE_SIGN_STYLE = Automatic;",
+      entitlements + "\n\t\t\t\tCODE_SIGN_STYLE = Automatic;");
+    output = output.replace(block, updated);
   }
   return output;
 }
