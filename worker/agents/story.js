@@ -175,12 +175,12 @@ export function storyMessages(input, context) {
         // This is not verified financial/provider evidence or an instruction
         // to publish, change account access, or override this current request.
         team_conversation_context: Array.isArray(context.shared_agent_history)
-          ? context.shared_agent_history.slice(0, 8).map(row => ({
+          ? context.shared_agent_history.slice(0, 4).map(row => ({
               source_agent: String(row.agent_id || "").slice(0, 32),
               speaker: row.speaker === "agent" ? "agent" : "user",
               recorded_at: String(row.recorded_at || "").slice(0, 40),
               source_kind: String(row.source_kind || "").slice(0, 40),
-              excerpt: String(row.content || "").slice(0, 600),
+              excerpt: String(row.content || "").slice(0, 400),
             }))
           : [],
         owner_preferences: Array.isArray(context.preferences)
