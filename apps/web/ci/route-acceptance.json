@@ -277,7 +277,7 @@
     {
       "route": "/connections",
       "role": "member",
-      "component": "Connections",
+      "component": "ManagePermissions",
       "source_status": "not_verified",
       "source_evidence": "",
       "behavior_evidence": "",
@@ -635,6 +635,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/permissions",
+      "role": "member",
+      "component": "ManagePermissions",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend"
+    },
+    {
       "route": "/plans",
       "role": "public",
       "component": "PublicSubscriptionPlans",
@@ -657,7 +667,7 @@
     {
       "route": "/preferences",
       "role": "member",
-      "component": "MarketingPreferences",
+      "component": "ManagePermissions",
       "source_status": "not_verified",
       "source_evidence": "",
       "behavior_evidence": "",
