@@ -211,3 +211,10 @@ test("operations finance navigation enters administrator-gated route", () => {
   assert.doesNotMatch(operations, /to: "\/finances#platform-finance"/);
   assert.match(route("/admin/finance"), /<AdminAccess>/);
 });
+
+test("help editor prevents changing the target topic while a revision is saving", () => {
+  const helpEditor = page("AdminHelpEditor");
+  assert.match(helpEditor, /disabled=\{busy\} onClick=\{\(\) => \{ setSelected\(item\.slug\)/);
+  assert.match(helpEditor, /setBusy\(true\); setError\(""\); setNotice\(""\)/);
+  assert.match(helpEditor, /finally \{ setBusy\(false\); \}/);
+});
