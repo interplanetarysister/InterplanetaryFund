@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Share2, Copy, Check, Mail, Code2 } from "lucide-react";
 import {
-  campaignShareUrl, campaignEmbedSnippet, shareTargets, buildSharePayload, canUseWebShare,
+  campaignShareUrl, campaignEmbedSnippet, shareTargets, buildSharePayload, canUseWebShare, publicShareOrigin,
 } from "@/lib/campaignShare";
 
 // Public share kit for a campaign. Sharing is a plain browser action: it opens
@@ -21,12 +21,13 @@ export default function CampaignShareButton({ campaign, ownerView = false }) {
     return () => { alive.current = false; };
   }, []);
 
-  const url = campaignShareUrl(campaign?.id, typeof window === "undefined" ? undefined : window.location.origin);
+  const shareOrigin = publicShareOrigin(typeof window === "undefined" ? undefined : window.location.origin);
+  const url = campaignShareUrl(campaign?.id, shareOrigin);
   // Only a published campaign has a public page worth sharing.
   if (campaign?.status !== "active" || !url) return null;
 
   const targets = shareTargets(campaign, url);
-  const embedSnippet = campaignEmbedSnippet(campaign, typeof window === "undefined" ? undefined : window.location.origin);
+  const embedSnippet = campaignEmbedSnippet(campaign, shareOrigin);
   const shareSheetAvailable = canUseWebShare(typeof navigator === "undefined" ? undefined : navigator);
 
   async function copy() {
