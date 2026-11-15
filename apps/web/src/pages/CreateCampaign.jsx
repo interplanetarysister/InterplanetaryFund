@@ -101,6 +101,28 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const privacyDecisionPending = guestDecisionPending || ownerTransitionPending;
   const [guestImportMessage, setGuestImportMessage] = useState("");
   const [autosaveError, setAutosaveError] = useState("");
+  // A failed initial storage read must never be mistaken for an empty draft.
+  // Require a successful read before any browser autosave or guest save.
+  const [storageReadable, setStorageReadable] = useState(() => {
+    try {
+      sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId || ""));
+      sessionStorage.getItem("ifund-guest-campaign-v1:guest");
+      sessionStorage.getItem("ifund-guest-campaign-v1");
+      return true;
+    } catch { return false; }
+  });
+  function retryStorageRead() {
+    try {
+      sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId || ""));
+      sessionStorage.getItem("ifund-guest-campaign-v1:guest");
+      sessionStorage.getItem("ifund-guest-campaign-v1");
+      setStorageReadable(true);
+      setAutosaveError("");
+    } catch {
+      setStorageReadable(false);
+      setAutosaveError("Browser draft storage is still unavailable. Copy your work before leaving.");
+    }
+  }
   const [restoredBrief] = useState(() => {
     try { return draftId ? emptyWritingBrief() : restoreWritingBrief(sessionStorage, ownerId); }
     catch { return emptyWritingBrief(); }
@@ -193,13 +215,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     // A confirmed account save owns the current form until the user edits it.
     // Autosaving that same form again would recreate a browser copy immediately
     // after cleanup, or erase the retained-copy privacy warning on failure.
-    if (privacyDecisionPending || draftId || (saved && campaignId.current === saved)) return;
+    if (!storageReadable || privacyDecisionPending || draftId || (saved && campaignId.current === saved)) return;
     try {
       const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
-  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, privacyDecisionPending]);
-  const disabled = Boolean(privacyDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, privacyDecisionPending, storageReadable]);
+  const disabled = Boolean(!storageReadable || privacyDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function decideGuestDraft(importIt) {
     if (ownerTransitionPending) return; // No consent can bridge two account identities without a remount.
@@ -320,6 +342,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 className="font-display text-3xl font-bold">Create a campaign</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><Link to="/campaigns" className="mt-3 inline-block underline">My campaigns</Link></header>
+    {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
+      <p>Browser draft storage could not be read. Saving is paused to protect any existing private draft. Copy your work before leaving this page.</p>
+      <button type="button" onClick={retryStorageRead} className="min-h-12 rounded-xl border border-border px-4 font-semibold">Retry browser storage</button>
+    </section>}
     {guestDecisionPending && <section role="region" aria-label="Guest draft transfer" className="space-y-3 rounded-xl border p-3"><p>A guest campaign draft is stored on this device and may belong to another person. Import it only if it is yours. Existing account drafts will not be overwritten.</p><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(true)}>Import my guest draft</button><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(false)}>Keep separate</button></div></section>}
     {guestImportMessage && <p role="status" className="text-sm break-words">{guestImportMessage}</p>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
