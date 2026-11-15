@@ -90,6 +90,7 @@ export async function requestCampaignDraft(
       ...makeDraftRequest(input),
       request_id: id,
       ...(input.section ? { section: input.section } : {}),
+      ...(input.campaign_id ? { campaign_id: input.campaign_id } : {}),
     }),
     signal: AbortSignal.timeout(90000),
   });
