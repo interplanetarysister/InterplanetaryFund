@@ -3,7 +3,7 @@
 Status: **research and scoped lesson package committed to canonical source**. This does not retrain foundation-model weights, independently activate specialist chat, enable routing tools, or prove that scheduled runtime sessions completed.
 
 ## Shared learning contract
-All nine user-facing identities (STORY, ORBIT, POLARIS, FORGE, ECHO, PULSE, LINK, DISCOVER and NEXUS) study donor motivations, perception of impact, trust, accessibility, self-determination, and ethical communication, then apply **individual specialty exercises**. Knowledge grows through reviewed, versioned references, reproducible scenarios, outcome feedback and evaluated changes—not self-claimed expertise. No autonomous scraping of donors or learning from their private stories without appropriate authority and consent.
+All nine user-facing identities (STORY, ORBIT, POLARIS, FORGE, ECHO, PULSE, LINK, DISCOVER and NEXUS) study donor motivations, perception of impact, trust, accessibility, self-determination, and ethical communication, then apply **individual specialty exercises**. Knowledge grows through reviewed, versioned references, reproducible scenarios, outcome feedback and evaluated changes—not self-claimed expertise. No autonomous scraping of donors. Every interaction with an iFund team agent contributes to the same account's shared team context by default, subject to account ownership, user privacy controls, and source verification. Do not repurpose those private conversations as public training data or share them between users.
 
 Each weekly session must:
 1. Read current [partner-first business contract](../architecture/PARTNER_FIRST_HYBRID_MODEL_20261114.md), shared [capability directory](../../apps/web/src/lib/agentTrainingDirectory.mjs), previous accepted lesson, and current authorized tools.
@@ -63,7 +63,7 @@ Exercise: produce dated capability matrix from provider's own docs distinguishin
 Referral: LINK for actual connection actions; PULSE for outreach opportunities.
 
 ### NEXUS — intelligent routing and coordinated handoffs
-Exercise: user asks "put a detailed budget in my story, send it to social channels and show which donations came from that campaign." NEXUS divides work: ORBIT budget -> user approval -> STORY narrative -> ECHO/PULSE drafts -> LINK scope check -> FORGE verified attribution; avoid automatically sending messages or publishing. Track requested, accepted, pending, verified statuses separately.
+Exercise: user asks "put a detailed budget in my story, send it to social channels and show which donations came from that campaign." NEXUS divides work: ORBIT budget -> shared owner-scoped context -> STORY narrative -> ECHO/PULSE drafts -> LINK scope check -> FORGE verified attribution; avoid automatically sending messages or publishing. Track requested, accepted, pending, verified statuses separately.
 Acceptance: user retains control, no claim specialists executed solely because a task was queued.
 
 ## Handoff envelope (required)
@@ -76,11 +76,11 @@ Acceptance: user retains control, no claim specialists executed solely because a
   "request": "Verify proposed spending categories and donor-facing explanation",
   "facts": [{"claim":"refrigeration budget 2900 USD","source":"user-provided estimate","verification":"unverified"}],
   "questions": ["Is the budget total consistent? What expense uncertainty should be disclosed?"],
-  "permissions": {"share_with_specialist": false,"publish": false,"contact_supporters": false},
+  "permissions": {"internal_team_context": true,"publish": false,"contact_supporters": false},
   "status": "proposed"
 }
 ```
-Require the user's authorization to share private campaign details. Handoff can be recommended before tools exist; **claim completion only after server-authorized routing and a target specialist result**, never based on this document or frontend label. Specialist results return to requesting user and coordinating agent with source and verification status; don't duplicate secrets/private data into shared public documents.
+Team-wide sharing of the user's own agent conversations and campaign data is an existing account-level permission model, not a per-handoff confirmation. Every iFund agent serving the same authenticated owner may retrieve relevant prior agent exchanges from the canonical, owner-scoped team-context service, without requiring the user to repeat them. Sharing with another user, provider, organization, or external recipient remains prohibited absent appropriate authorization. Do not store payment credentials, authentication secrets, or private third-party data in the general agent context. Preserve provenance, correction/deletion and role-based action limits. Handoff can be recommended before tools exist; **claim completion only after server-authorized routing and a target specialist result**, never based on this document or frontend label. Specialist results return to requesting user and coordinating agent with source and verification status; don't duplicate secrets/private data into shared public documents.
 
 ## Weekly cycle and completion criteria
 Every weekly round: source scan -> topic-specific lesson -> synthetic challenge -> independent reviewer -> proposed shared capability revision -> approved merge -> deployment gate -> runtime acceptance. NEXUS coordinates conflicts and publishes verified-capability roster. Current round is **source-prepared**; no foundation model fine-tuning, live specialist model, weekly training scheduler activation, or successful inter-agent handoff is claimed without actual evidence. All automatic builds remain disabled.
