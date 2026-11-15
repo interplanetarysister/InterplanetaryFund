@@ -16,6 +16,9 @@ async function setup(){
     select jsonb_build_object('sub',current_setting('test.uid',true),'is_anonymous',false)
   $$;`);
   await db.exec(script);
+  const executorKey="a".repeat(64);
+  await db.query("update ifund_ops.workforce_control set worker_secret_sha256=encode(sha256(convert_to($1,'UTF8')),'hex') where singleton",[executorKey]);
+  await db.query("select set_config('request.headers',$1,false)",[JSON.stringify({"x-ifund-workforce-key":executorKey})]);
   await db.query("insert into public.ifund_campaigns(id,owner_id,title) values($1,$2,'Fictional pantry')",[CAMPAIGN,OWNER]);
   return db;
 }
@@ -46,7 +49,9 @@ test("untrusted browser cannot forge agent reply; member can erase only own even
   try{
     await as(db,OWNER);
     await db.query("select public.ifund_team_record_user($1,'pulse','Prepare a consented outreach plan.',null)",[USER_EVENT]);
+    await db.query("select set_config('request.headers','{}',false)");
     await assert.rejects(db.query("select public.ifund_team_record_agent($1,'orbit','Verified financial receipt',null)",[AGENT_EVENT]),/Verified executor required/);
+    await db.query("select set_config('request.headers',$1,false)",[JSON.stringify({"x-ifund-workforce-key":"a".repeat(64)})]);
     await as(db,OTHER);
     assert.equal((await db.query("select public.ifund_team_erase($1) result",[USER_EVENT])).rows[0].result,false);
     await as(db,OWNER);
@@ -79,6 +84,18 @@ test("owner correction replaces prior user statement without altering another us
     await assert.rejects(
       db.query("select public.ifund_team_correct($1,$2,'Hijacked correction.')",[AGENT_EVENT,"66666666-6666-4666-8666-666666666666"]),
       /Owned active statement required/
+    );
+  }finally{await db.close();}
+});
+
+test("authenticated member without Worker attestation cannot create a user-labeled agent event",async()=>{
+  const db=await setup();
+  try{
+    await as(db,OWNER);
+    await db.query("select set_config('request.headers','{}',false)");
+    await assert.rejects(
+      db.query("select public.ifund_team_record_user($1,'story','Browser forged user exchange.',null)",[USER_EVENT]),
+      /Verified executor required/
     );
   }finally{await db.close();}
 });
