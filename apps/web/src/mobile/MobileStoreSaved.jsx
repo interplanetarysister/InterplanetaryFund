@@ -42,8 +42,13 @@ export default function MobileStoreSaved() {
   },[ids.join(","),refresh,user?.id,user?.is_anonymous,sessionStatus]);
   const currentIdentity=user?.id && !user.is_anonymous ? user.id : "guest";
   function remove(id){
-    setCampaignSaved(id,false);
-    setIds(savedCampaignIds());
+    try{
+      setCampaignSaved(id,false);
+      setIds(savedCampaignIds());
+      setError("");
+    }catch(cause){
+      setError(cause?.message||"The saved link could not be removed from this device.");
+    }
   }
   return <section className="space-y-6">
     <header className="space-y-2"><p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-emerald-200"><Bookmark aria-hidden="true" className="h-5 w-5"/> On your device</p>
@@ -57,6 +62,7 @@ export default function MobileStoreSaved() {
       <p className="text-sm">Live campaigns and safety preferences must be verified before saved content can be displayed.</p>
       <button type="button" onClick={()=>setRefresh(x=>x+1)} className="min-h-11 rounded-lg border border-white/30 px-4">Retry safety check</button>
     </div>}
+    {phase==="ready"&&error&&<p role="alert" className="rounded-lg border border-rose-300/40 p-3 text-sm">{error}</p>}
     {phase==="ready"&&verifiedFor===currentIdentity&&<div className="space-y-3">
       {rows.length===0&&<div className="rounded-xl border border-white/20 p-5"><p className="text-sm text-slate-300">No saved campaigns yet. Explore causes and tap Save on a campaign.</p><Link to="/discover" className="mt-4 inline-flex min-h-11 items-center rounded-lg bg-emerald-200 px-4 font-semibold text-slate-950">Explore campaigns</Link></div>}
       {rows.map(row=><article key={row.id} className="space-y-3 rounded-xl border border-white/20 bg-white/5 p-5">
