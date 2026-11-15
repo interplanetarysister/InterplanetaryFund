@@ -109,7 +109,7 @@ export async function readCampaignDocumentContext({
 }) {
   if(env.IFUND_CAMPAIGN_DOCUMENTS_ENABLED!=="enabled")
     return {state:"disabled",briefs:[]};
-  if(!/^[-\\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
+  if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   if(!UUID.test(campaignId||"")) throw Object.assign(
     new Error("A saved campaign is required for private documents."),{status:400});
   const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_campaign_agent_document_briefs",{
