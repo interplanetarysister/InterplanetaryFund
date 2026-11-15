@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 // verified or the app is not installed. A PKCE code originated in the device
 // WebView and MUST NOT be exchanged by a different browser session.
 export default function MobileAuthCallbackNotice() {
-  const [cleaned] = useState(() => {
+  useState(() => {
     if (typeof window !== "undefined")
       window.history.replaceState({}, "", "/auth/mobile-callback");
     return true;
@@ -26,7 +26,7 @@ export default function MobileAuthCallbackNotice() {
         <Link to="/login" className="inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 py-2 font-semibold text-cyan-100">
           Sign in on the website
         </Link>
-        <span hidden>{String(cleaned)}</span>
+
       </section>
     </main>
   );
