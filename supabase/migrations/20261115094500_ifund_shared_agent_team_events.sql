@@ -152,7 +152,7 @@ grant execute on function public.ifund_team_erase(uuid) to authenticated;
 -- agent response. The old content becomes unavailable to agent retrieval.
 create or replace function public.ifund_team_correct(
  p_old_event_key uuid, p_new_event_key uuid, p_content text
-) returns uuid language plpgsql security definer set search_path='' as $
+) returns uuid language plpgsql security definer set search_path='' as $team_correct$
 declare actor uuid:=public.ifund_team_member_id();
   old_event public.ifund_agent_team_events%rowtype;
   new_id uuid;
@@ -171,7 +171,7 @@ begin
   update public.ifund_agent_team_events set corrected_by=new_id,deleted_at=now(),
     content='[superseded by owner correction]' where id=old_event.id;
   return new_id;
-end $;
+end $team_correct$;
 revoke all on function public.ifund_team_correct(uuid,uuid,text) from public,anon;
 grant execute on function public.ifund_team_correct(uuid,uuid,text) to authenticated;
 
