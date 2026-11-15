@@ -9,6 +9,7 @@ import FinanceDataGrid, { formatUsdCents } from "@/components/finance/FinanceDat
 import { sumVerifiedCents } from "@/lib/verifiedMoney.mjs";
 import WithdrawalFeeEstimator from "@/components/agents/WithdrawalFeeEstimator";
 import OwnerRefundTrends from "@/components/agents/OwnerRefundTrends";
+import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
 
 const cents = value => value === null || value === undefined || value === "" ? "Unavailable" : formatUsdCents(value);
 function SummaryCard({ label, value }) {
@@ -21,6 +22,7 @@ export default function FinanceDashboard() {
   const { user } = useAuthSession();
   const adminStatus = useAdminAccess(user);
   const [state, setState] = useState({ status: "loading", owned: [], donated: [], error: "" });
+  const [docsForCampaign,setDocsForCampaign]=useState("");
   useEffect(() => {
     let active = true;
     async function refresh() {
@@ -91,7 +93,18 @@ export default function FinanceDashboard() {
           <div className="mt-3 space-y-3">{state.owned.map(c => <div key={c.campaign_id} className="flex flex-wrap justify-between gap-3 border-b border-border py-3">
             <div><Link className="font-medium underline" to={"/campaign/"+c.campaign_id}>{c.campaign_title}</Link>
               <p className="text-xs text-muted-foreground">{c.campaign_status} · {c.captured_payments} verified payments</p></div>
-            <strong className="tabular-nums">{cents(c.raised_cents)}</strong>
+            <div className="flex flex-col items-end gap-2">
+              <strong className="tabular-nums">{cents(c.raised_cents)}</strong>
+              <button type="button" className="min-h-11 rounded-lg border border-border px-3 text-xs"
+                aria-expanded={docsForCampaign===c.campaign_id}
+                onClick={()=>setDocsForCampaign(v=>v===c.campaign_id?"":c.campaign_id)}>
+                {docsForCampaign===c.campaign_id?"Hide private budget references":"Review private fundraising documents"}
+              </button>
+            </div>
+            {docsForCampaign===c.campaign_id&&<div className="w-full">
+              <p className="mb-2 text-xs text-muted-foreground">Owner-submitted reference documents are not financial transaction receipts and never alter verified balances.</p>
+              <AgentDocumentReferences campaignId={c.campaign_id}/>
+            </div>}
           </div>)}</div>}
       </section>
       <section id="giving-receipts" className="rounded-2xl border border-border bg-card p-5">
