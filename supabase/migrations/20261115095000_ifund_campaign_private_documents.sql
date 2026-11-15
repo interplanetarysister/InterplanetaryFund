@@ -114,7 +114,7 @@ create policy ifund_campaign_documents_storage_delete on storage.objects
 create or replace function public.ifund_campaign_agent_document_briefs(p_campaign_id uuid)
 returns jsonb language sql stable security invoker set search_path='' as $$
 select coalesce(jsonb_agg(jsonb_build_object(
-  'document_id',d.id,'purpose',d.purpose,'summary',left(d.agent_summary,3000),
+  'document_id',d.id,'purpose',d.purpose,'file_name',left(d.file_name,160),'summary',left(d.agent_summary,3000),
   'owner_supplied',true,'source_type','uploaded_private_document_summary',
   'owner_excerpt',left(d.owner_excerpt,1200),
   'extracted_excerpt',case when d.media_type in ('text/plain','text/markdown','text/csv')
