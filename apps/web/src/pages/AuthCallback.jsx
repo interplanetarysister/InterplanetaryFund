@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { completeAuthCallback, verifiedAuthUser } from "@/lib/authFlow";
 import { finalizeSignupAgreement } from "@/lib/legalAcceptance";
+import { finalizeSignupAIChoices } from "@/lib/signupAIPreferences";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -20,7 +21,8 @@ export default function AuthCallback() {
           // Missing or failed consent remains gated by MemberAccess.
           try {
             const user = await verifiedAuthUser(authClient().auth);
-            await finalizeSignupAgreement(authClient(), user, sessionStorage);
+            const accepted = await finalizeSignupAgreement(authClient(), user, sessionStorage);
+            if (accepted) await finalizeSignupAIChoices(authClient(), user, sessionStorage);
           } catch { /* Preserve account access to the member consent screen. */ }
         }
         if (active)
