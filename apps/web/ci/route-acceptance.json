@@ -335,6 +335,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/delete-account",
+      "role": "public",
+      "component": "DeleteAccount",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+privacy"
+    },
+    {
       "route": "/devices",
       "role": "member",
       "component": "Devices",
