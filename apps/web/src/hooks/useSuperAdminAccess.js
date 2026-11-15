@@ -1,30 +1,47 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
 
-/** Server-verified super-admin access; client metadata is never authority. */
+/** Fail closed across account switches; UI state never grants server privileges. */
 export function useSuperAdminAccess(user) {
-  const [status, setStatus] = useState("loading");
+  const ownerId = user?.id || null;
+  const [verification, setVerification] = useState({ ownerId: null, status: "loading" });
   useEffect(() => {
     let active = true;
-    if (!user?.id) {
-      setStatus("signed-out");
+    if (!ownerId) {
+      setVerification({ ownerId: null, status: "signed-out" });
       return () => { active = false; };
     }
-    setStatus("loading");
+    setVerification({ ownerId, status: "loading" });
     let client;
     try {
       client = authClient();
     } catch {
-      setStatus("unavailable");
+      setVerification({ ownerId, status: "unavailable" });
       return () => { active = false; };
     }
-    client.rpc("ifund_current_user_is_verified_super_admin")
-      .then(({ data, error }) => {
+    async function verify() {
+      try {
+        const before = await client.auth.getUser();
         if (!active) return;
-        setStatus(error ? "unavailable" : data === true ? "super-admin" : "denied");
-      })
-      .catch(() => { if (active) setStatus("unavailable"); });
+        if (before.error || before.data?.user?.id !== ownerId) {
+          setVerification({ ownerId, status: "unavailable" });
+          return;
+        }
+        const result = await client.rpc("ifund_current_user_is_verified_super_admin");
+        if (!active) return;
+        const after = await client.auth.getUser();
+        if (!active) return;
+        const status = after.error || after.data?.user?.id !== ownerId || result.error
+          ? "unavailable"
+          : result.data === true ? "super-admin" : "denied";
+        setVerification({ ownerId, status });
+      } catch {
+        if (active) setVerification({ ownerId, status: "unavailable" });
+      }
+    }
+    void verify();
     return () => { active = false; };
-  }, [user?.id]);
-  return status;
+  }, [ownerId]);
+  // The old account's privileged state cannot render during the first B frame.
+  return verification.ownerId === ownerId ? verification.status : ownerId ? "loading" : "signed-out";
 }
