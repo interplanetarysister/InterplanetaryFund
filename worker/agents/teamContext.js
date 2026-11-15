@@ -9,16 +9,18 @@ export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","
 // Redaction is defense-in-depth, not a substitute for rejecting credentials at ingress.
 export function redactTeamCredentials(value) {
   return String(value)
-    // Structured JSON values, including quoted keys and whitespace/newlines.
-    .replace(/(["'])(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)\1(\s*:\s*)(["'])(?:\\.|(?!\4)[^\\])*?\4/gi,
+    // Escaped JSON embedded in logs or serialized conversation strings.
+    .replace(/(\\["'])(?:[A-Za-z0-9_-]*_)?(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code|code)\1(\s*:\s*)(\\["'])(?:\\.|(?!\\["'])[\s\S])*?\4/gi,
+      (_match,quote,key,separator)=>quote+key+quote+separator+'\\"[redacted]\\"')
+    // JSON string properties; "code" is redacted only when a structured key.
+    .replace(/(["'])(?:[A-Za-z0-9_-]*_)?(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code|code)\1(\s*:\s*)(["'])(?:\\.|(?!\4)[^\\])*?\4/gi,
       (_match,quote,key,separator)=>quote+key+quote+separator+'"[redacted]"')
-    // HTTP authorization headers and bearer values.
-    .replace(/\b(Bearer)\s+[^\s"'<>;,]{8,}/gi,"$1 [redacted]")
-    // Standalone JWTs (three base64url segments), even without a label.
+    .replace(/\b(Authorization\s*:\s*(?:Basic|Bearer)\s+)[A-Za-z0-9+/_=-]{4,}/gi,"$1[redacted]")
+    .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9+/_=-]{8,}/gi,"$1 [redacted]")
     .replace(/\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g,"[redacted credential]")
     .replace(/\b(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{12,})\b/g,"[redacted credential]")
-    // Plain key=value, key: value, and quoted values; do not swallow punctuation.
-    .replace(/\b(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|secret)(\s*[:=]\s*)(["']?)([^\s,;}"']+)(["']?)/gi,
+    // Prefixed environment variable names such as PAYPAL_CLIENT_SECRET.
+    .replace(/\b((?:[A-Za-z0-9]+_)*(?:password|passphrase|api_key|access_token|refresh_token|client_secret|private_key|oauth_code|authorization|secret))(\s*[:=]\s*)(["']?)([^\s,;}"']+)(["']?)/gi,
       (_match,key,separator,open,_secret,close)=>key+separator+open+"[redacted]"+close);
 }
 
