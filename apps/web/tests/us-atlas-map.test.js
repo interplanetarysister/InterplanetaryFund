@@ -37,8 +37,8 @@ test("owner-safe map selections cannot outlive the authorized campaign props",()
   assert.match(component,/clusters\.find\(cluster=>cluster\.key===selectedKey\)\|\|null/);
   assert.match(component,/No approved U\.S\. campaign locations yet/);
   assert.match(atlas,/mapView, setMapView\] = useState\("usa"\)/);
-  assert.match(atlas,/<USCampaignMap campaigns=\{markers\}/);
-  assert.match(atlas,/<CampaignGlobe campaigns=\{markers\}/);
+  assert.match(atlas,/<USCampaignMap key=\{mapScopeKey\} campaigns=\{markers\}/);
+  assert.match(atlas,/<CampaignGlobe key=\{mapScopeKey\} campaigns=\{markers\}/);
 });
 
 test("cluster duplicate city-centre markers but exclude private or unapproved locations",()=>{
