@@ -4,8 +4,9 @@ import BrandLogo from "@/components/brand/BrandLogo";
 import OAuthButtons from "@/components/auth/OAuthButtons";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
-import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
-import { authEmailRedirectOrigin, isNativeBundle } from "@/lib/nativeApi";
+import { verifiedAuthUser } from "@/lib/authFlow";
+import { emailAuthRedirectUrl } from "@/lib/nativeEmailRedirect";
+import { isNativeBundle } from "@/lib/nativeApi";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { rememberSignupAgreement, finalizeSignupAgreement, recordLegalAcceptance } from "@/lib/legalAcceptance";
 import { enterGuestMode, payoutIdentity } from "@/lib/guestAccess";
@@ -62,7 +63,7 @@ export default function AuthPage({ mode = "login" }) {
       const auth = authClient().auth;
       if (isReset && !recoveryCodeSent) {
         const { error: err } = await auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin, true),
+          redirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin, true, isNativeApp),
         });
         if (err) throw err;
         setRecoveryCodeSent(true);
@@ -145,7 +146,7 @@ export default function AuthPage({ mode = "login" }) {
           throw new Error("Your passwords do not match.");
         if (current?.user?.is_anonymous) {
           const linked = await auth.updateUser({ email: email.trim() }, {
-            emailRedirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin),
+            emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin),
           });
           if (linked.error) throw linked.error;
           rememberSignupAgreement(sessionStorage, email.trim());
@@ -214,7 +215,7 @@ export default function AuthPage({ mode = "login" }) {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin),
+          emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin),
         },
       });
       if (error) throw error;
