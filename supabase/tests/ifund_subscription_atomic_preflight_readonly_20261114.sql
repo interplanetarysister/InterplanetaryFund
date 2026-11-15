@@ -37,4 +37,28 @@ SELECT p.proname, pg_get_userbyid(p.proowner) AS owner,
 FROM pg_catalog.pg_proc p
 JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
 WHERE n.nspname='public' AND p.proname='ifund_apply_verified_subscription_event';
+
+-- Route/security acceptance: table RLS posture and effective DML rights.
+-- Missing RLS or unexpected client privileges are review blockers, not permission to broaden GRANTs.
+SELECT c.relname AS relation, c.relrowsecurity AS rls_enabled,
+       c.relforcerowsecurity AS rls_forced,
+       has_table_privilege('anon',c.oid,'SELECT') AS anon_select,
+       has_table_privilege('anon',c.oid,'INSERT') AS anon_insert,
+       has_table_privilege('anon',c.oid,'UPDATE') AS anon_update,
+       has_table_privilege('authenticated',c.oid,'SELECT') AS member_select,
+       has_table_privilege('authenticated',c.oid,'INSERT') AS member_insert,
+       has_table_privilege('authenticated',c.oid,'UPDATE') AS member_update
+FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+WHERE n.nspname='public' AND c.relname IN ('ifund_subscription_intents','ifund_subscription_ledger')
+ORDER BY c.relname;
+-- Enumerate policy metadata without returning protected subscription rows.
+SELECT tablename, policyname, permissive, roles, cmd, qual, with_check
+FROM pg_catalog.pg_policies
+WHERE schemaname='public' AND tablename IN ('ifund_subscription_intents','ifund_subscription_ledger')
+ORDER BY tablename, policyname;
+-- Verify existing RPC signatures before any migration; never assume caller compatibility.
+SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS signature,
+       pg_get_function_result(p.oid) AS result_type, p.prosecdef AS security_definer
+FROM pg_catalog.pg_proc p JOIN pg_catalog.pg_namespace n ON n.oid=p.pronamespace
+WHERE n.nspname='public' AND p.proname='ifund_apply_verified_subscription_event';
 COMMIT;
