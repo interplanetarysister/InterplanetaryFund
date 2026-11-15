@@ -39,6 +39,7 @@ jobs:
           npm install --package-lock-only --no-audit --no-fund
           npm ci --no-audit --no-fund
           npx cap add android
+          node scripts/configure-native-project.mjs android
           npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync android
       - name: Verify native ID is NOT the Base44 APK
