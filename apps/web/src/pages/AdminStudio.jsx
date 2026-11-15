@@ -237,12 +237,12 @@ export default function AdminStudio() {
             <button type="button" onClick={startNew} disabled={pageBusy}>＋ New</button>
           </div>
           {pages.map((entry) => (
-            <button type="button" key={entry.id} className={"studio-page-link " + (page?.id === entry.id ? "selected" : "")} onClick={() => selectPage(entry)} disabled={pageBusy}>
+            <button type="button" key={entry.id} className={"studio-page-link " + (page?.id === entry.id ? "selected" : "")} aria-current={page?.id === entry.id ? "page" : undefined} onClick={() => selectPage(entry)} disabled={pageBusy}>
               <span>{entry.title}</span><small>{entry.status}</small>
             </button>
           ))}
           {loading && !pages.length && <p className="studio-muted">Loading pages…</p>}
-          {!loading && !pages.length && <p className="studio-muted">No saved pages yet.</p>}
+          {!loading && !error && !pages.length && <p className="studio-muted">No saved pages yet.</p>}
           {hasMore && <button type="button" className="studio-secondary studio-load-more" onClick={loadMore} disabled={pageBusy}>{loadingMore ? "Loading…" : "Load more pages"}</button>}
           <button type="button" className="studio-secondary studio-refresh" onClick={load} disabled={pageBusy}>Refresh pages</button>
         </aside>
@@ -295,9 +295,9 @@ export default function AdminStudio() {
                       <div className="studio-block-head">
                         <strong>{TYPES.find((item) => item.type === block.type)?.label || block.type}</strong>
                         <div>
-                          <button type="button" onClick={() => moveBlock(index, index - 1)} disabled={index === 0}>↑</button>
-                          <button type="button" onClick={() => moveBlock(index, index + 1)} disabled={index === blocks.length - 1}>↓</button>
-                          <button type="button" className="studio-text-button" onClick={() => removeBlock(block.id)}>Remove</button>
+                          <button type="button" aria-label={"Move section " + (index + 1) + " up"} onClick={() => moveBlock(index, index - 1)} disabled={index === 0}>↑</button>
+                          <button type="button" aria-label={"Move section " + (index + 1) + " down"} onClick={() => moveBlock(index, index + 1)} disabled={index === blocks.length - 1}>↓</button>
+                          <button type="button" aria-label={"Remove section " + (index + 1)} className="studio-text-button" onClick={() => removeBlock(block.id)}>Remove</button>
                         </div>
                       </div>
                       <label>Heading<input value={block.heading || ""} maxLength={180} onChange={(event) => updateBlock(block.id, { heading: event.target.value })} /></label>
@@ -316,7 +316,7 @@ export default function AdminStudio() {
                         {block.type === "image" && block.imageUrl && <img src={block.imageUrl} alt={block.heading || ""} />}
                         {block.heading && <h2>{block.heading}</h2>}
                         {block.body && <p>{block.body}</p>}
-                        {block.type === "button" && <a className="studio-preview-button" href={block.url || "#"} onClick={(event) => { if (!block.url) event.preventDefault(); }}>{block.label || "Learn more"}</a>}
+                        {block.type === "button" && <a className="studio-preview-button" href={block.url || "#"} aria-label={(block.label || "Learn more") + " (preview only)"} onClick={(event) => event.preventDefault()}>{block.label || "Learn more"}</a>}
                       </section>
                     ))}
                   </div>
