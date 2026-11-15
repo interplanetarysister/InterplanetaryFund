@@ -25,14 +25,14 @@ export async function appendTeamContext({env,jwt,eventKey,agentId,content,campai
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   const args=validateTeamContextEvent({eventKey,agentId,content,campaignId,speaker});
   if(!["user","agent"].includes(speaker)) throw Error("Invalid team context speaker.");
-  const trusted=speaker==="agent";
-  if(trusted && !/^[a-f0-9]{64}$/.test(env.IFUND_WORKFORCE_EXECUTOR_KEY||""))
+  // Both user and agent event provenance must be attested by a real iFund Worker.
+  if(!/^[a-f0-9]{64}$/.test(env.IFUND_WORKFORCE_EXECUTOR_KEY||""))
     throw Error("Trusted agent executor is not configured.");
   const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_team_record_"+speaker,{
     method:"POST",
     headers:{"Content-Type":"application/json",apikey:env.SUPABASE_PUBLISHABLE_KEY,
       Authorization:"Bearer "+jwt,
-      ...(trusted?{"x-ifund-workforce-key":env.IFUND_WORKFORCE_EXECUTOR_KEY}:{})},
+      "x-ifund-workforce-key":env.IFUND_WORKFORCE_EXECUTOR_KEY},
     body:JSON.stringify(args),
     signal:AbortSignal.timeout(12000)
   });
