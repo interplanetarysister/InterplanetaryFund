@@ -5,16 +5,27 @@
   "approved_by": "",
   "ios_device_passed": false,
   "android_device_passed": false,
-  "auth_and_oauth_passed": false,
   "privacy_review_passed": false,
   "fundraising_policy_review_passed": false,
   "reviewer_approved": false,
   "evidence_urls": {
     "ios_device": "",
     "android_device": "",
-    "auth_and_oauth": "",
     "privacy_review": "",
     "fundraising_policy_review": "",
-    "full_route_acceptance": ""
-  }
+    "email_password_auth": "",
+    "mobile_scope_e2e": "",
+    "ugc_moderation": "",
+    "account_deletion": "",
+    "google_api_36": "",
+    "android_16kb": "",
+    "store_metadata": ""
+  },
+  "email_password_auth_passed": false,
+  "mobile_scope_e2e_passed": false,
+  "ugc_moderation_passed": false,
+  "account_deletion_passed": false,
+  "google_api_36_passed": false,
+  "android_16kb_passed": false,
+  "store_metadata_complete": false
 }
