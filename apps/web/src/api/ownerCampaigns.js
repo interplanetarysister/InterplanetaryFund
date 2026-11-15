@@ -252,6 +252,8 @@ export async function deleteDraftCampaign(client, id) {
     .eq("owner_id", owner)
     .eq("status", "draft")
     .select("id,owner_id,status");
+  if (error?.code === "23514" && /private campaign documents/i.test(error.message || ""))
+    throw new Error("Remove the private campaign documents before deleting this draft.");
   if (error || !Array.isArray(data) || data.length !== 1 ||
       data[0].owner_id !== owner || data[0].id !== id || data[0].status !== "draft") {
     throw new Error("Only an unpublished draft campaign can be deleted.");
