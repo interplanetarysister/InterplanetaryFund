@@ -3,6 +3,7 @@ import { Compass, Home, Leaf, UserCircle, ShieldCheck, MapPinned } from "lucide-
 import BrandLogo from "@/components/brand/BrandLogo";
 import AuthPage from "@/pages/AuthPage";
 import ResetPassword from "@/pages/ResetPassword";
+import MemberOnboarding from "@/pages/MemberOnboarding";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import HealthPrivacy from "@/pages/HealthPrivacy";
@@ -45,6 +46,8 @@ function Frame() {
         <Route path="/plan" element={<MobileReadiness/>}/>
         <Route path="/atlas" element={<MobileStoreAtlas/>}/>
         <Route path="/account" element={<MobileStoreAccount/>}/>
+        <Route path="/dashboard" element={<Navigate to="/account" replace/>}/>
+        <Route path="/onboarding" element={<MemberOnboarding/>}/>
         <Route path="/profile" element={<Navigate to="/account" replace/>}/>
         <Route path="/campaigns" element={<MobileMyCampaigns/>}/>
         <Route path="/login" element={<AuthPage mode="login"/>}/>
