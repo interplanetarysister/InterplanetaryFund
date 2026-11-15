@@ -61,7 +61,7 @@ function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is
   return {client,calls,records};
 }
 
-test("only 8 MB or smaller PDF, DOCX and plain-text formats are accepted",()=>{
+test("only 8 MB or smaller PDF, Word, Excel and plain-text formats are accepted",()=>{
   assert.equal(validateCampaignDocument(PDF),"");
   assert.equal(validateCampaignDocument({size:DOCUMENT_MAX_BYTES+1,type:PDF.type,name:PDF.name}).includes("8 MB"),true);
   assert.match(validateCampaignDocument({size:100,type:"image/svg+xml",name:"bad.svg"}),/PDF, DOCX/);
@@ -71,7 +71,7 @@ test("only 8 MB or smaller PDF, DOCX and plain-text formats are accepted",()=>{
 test("magic signatures prevent disguised PDF or Word archives",async()=>{
   await verifyCampaignDocumentSignature(PDF);
   await assert.rejects(verifyCampaignDocumentSignature(new File(["not a PDF"],"fake.pdf",{type:"application/pdf"})),/PDF signature/);
-  await assert.rejects(verifyCampaignDocumentSignature(new File(["definitely not a zip"],"fake.docx",{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})),/DOCX archive/);
+  await assert.rejects(verifyCampaignDocumentSignature(new File(["definitely not a zip"],"fake.docx",{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"})),/Office document archive/);
 });
 test("private upload has no public URL and owner-scoped path and defaults to no AI access",async()=>{
   const x=fakeClient();
