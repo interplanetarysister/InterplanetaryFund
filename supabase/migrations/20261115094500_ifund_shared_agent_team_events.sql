@@ -98,7 +98,7 @@ revoke all on function public.ifund_team_record_agent(uuid,text,text,uuid) from 
 grant execute on function public.ifund_team_record_agent(uuid,text,text,uuid) to authenticated;
 
 create or replace function public.ifund_team_recent(p_campaign_id uuid default null,p_limit integer default 30)
-returns table (id uuid,agent_id text,speaker text,source_kind text,content text,campaign_id uuid,recorded_at timestamptz)
+returns table (id uuid,event_key uuid,agent_id text,speaker text,source_kind text,content text,campaign_id uuid,recorded_at timestamptz)
 language plpgsql stable security definer set search_path='' as $$
 declare actor uuid:=public.ifund_team_member_id();
 begin
@@ -106,7 +106,7 @@ begin
   if p_campaign_id is not null and not exists (
     select 1 from public.ifund_campaigns c where c.id=p_campaign_id and c.owner_id=actor)
     then raise exception 'Owned campaign required' using errcode='42501'; end if;
-  return query select e.id,e.agent_id,e.speaker,e.source_kind,e.content,e.campaign_id,e.recorded_at
+  return query select e.id,e.event_key,e.agent_id,e.speaker,e.source_kind,e.content,e.campaign_id,e.recorded_at
     from public.ifund_agent_team_events e
     where e.owner_id=actor and e.deleted_at is null and
       (p_campaign_id is null or e.campaign_id=p_campaign_id)
