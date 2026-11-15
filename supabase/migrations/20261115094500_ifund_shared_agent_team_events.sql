@@ -63,8 +63,16 @@ begin
     raise exception 'Conversation event key conflicts' using errcode='23505';
   end if;
   insert into public.ifund_agent_team_events(owner_id,event_key,campaign_id,agent_id,speaker,source_kind,content)
-  values(actor,p_event_key,p_campaign_id,p_agent_id,'user','user_statement',btrim(p_content))
-  returning id into saved;
+    values(actor,p_event_key,p_campaign_id,p_agent_id,'user','user_statement',btrim(p_content))
+    on conflict(owner_id,event_key) do nothing returning id into saved;
+  if saved is null then
+    select id into existing from public.ifund_agent_team_events where owner_id=actor and event_key=p_event_key;
+    if exists(select 1 from public.ifund_agent_team_events
+      where id=existing and speaker='user' and agent_id=p_agent_id
+        and content=btrim(p_content) and campaign_id is not distinct from p_campaign_id
+        and deleted_at is null) then return existing; end if;
+    raise exception 'Conversation event key conflicts' using errcode='23505';
+  end if;
   return saved;
 end $$;
 revoke all on function public.ifund_team_record_user(uuid,text,text,uuid) from public,anon;
@@ -93,7 +101,15 @@ begin
   end if;
   insert into public.ifund_agent_team_events(owner_id,event_key,campaign_id,agent_id,speaker,source_kind,content)
     values(actor,p_event_key,p_campaign_id,p_agent_id,'agent','agent_response',btrim(p_content))
-    returning id into saved;
+    on conflict(owner_id,event_key) do nothing returning id into saved;
+  if saved is null then
+    select id into existing from public.ifund_agent_team_events where owner_id=actor and event_key=p_event_key;
+    if exists(select 1 from public.ifund_agent_team_events
+      where id=existing and speaker='agent' and agent_id=p_agent_id
+        and content=btrim(p_content) and campaign_id is not distinct from p_campaign_id
+        and deleted_at is null) then return existing; end if;
+    raise exception 'Conversation event key conflicts' using errcode='23505';
+  end if;
   return saved;
 end $$;
 revoke all on function public.ifund_team_record_agent(uuid,text,text,uuid) from public,anon;
