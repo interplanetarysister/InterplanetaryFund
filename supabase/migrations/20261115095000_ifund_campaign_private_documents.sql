@@ -39,7 +39,7 @@ grant select,insert,delete on public.ifund_campaign_documents to authenticated;
 grant update(allow_agent_use,agent_summary,purpose) on public.ifund_campaign_documents to authenticated;
 
 create or replace function public.ifund_owns_campaign_document_context(p_owner uuid,p_campaign uuid)
-returns boolean language sql stable security invoker set search_path='' as $$
+returns boolean language sql stable security definer set search_path='' as $$
  select p_owner=(select auth.uid()) and exists (
    select 1 from public.ifund_campaigns c
    where c.id=p_campaign and c.owner_id=p_owner)
