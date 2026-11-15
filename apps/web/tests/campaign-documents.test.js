@@ -123,3 +123,30 @@ test("source components expose creation and management upload options",()=>{
   assert.match(story,/ifund_campaign_agent_document_briefs/);
   assert.match(story,/IFUND_CAMPAIGN_DOCUMENTS_ENABLED/);
 });
+
+test("campaign quota prevents a sixteenth file before uploading",async()=>{
+  const x=fakeClient();
+  for(let i=0;i<15;i++)x.records.push({
+    id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf",
+  });
+  await assert.rejects(uploadCampaignDocument(x.client,CAMPAIGN,PDF,{
+    makeId:()=>FILE_ID
+  }),/Limit 15 documents/);
+  assert.equal(x.calls.filter(item=>item.action==="upload").length,0);
+});
+test("agent opt-in remains off by default and owners can revoke it",async()=>{
+  const x=fakeClient();
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN};
+  const update=await updateDocumentAgentAccess(x.client,CAMPAIGN,row,{
+    allowAgentUse:false,summary:"This reference is no longer available to agents.",purpose:"budget"
+  });
+  assert.equal(update.id,FILE_ID);
+});
+test("private reference UI responds to account switching and does not publish documents",()=>{
+  const uploader=readFileSync(new URL("../src/components/campaigns/CampaignDocuments.jsx",import.meta.url),"utf8");
+  const refs=readFileSync(new URL("../src/components/agents/AgentDocumentReferences.jsx",import.meta.url),"utf8");
+  assert.match(uploader,/onAuthStateChange/);
+  assert.match(refs,/onAuthStateChange/);
+  assert.match(uploader,/not visible to campaign visitors/);
+  assert.doesNotMatch(uploader,/getPublicUrl/);
+});
