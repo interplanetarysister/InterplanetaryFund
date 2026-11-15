@@ -14,7 +14,7 @@ const PATHS = [
   ["/", "path"], ["/discover", "path"], ["/atlas", "path"],
   ["/campaign/", "pathPrefix"], ["/social/post/", "pathPrefix"],
   ["/blogs/", "pathPrefix"], ["/publications/", "pathPrefix"],
-  ["/auth/callback", "path"], ["/reset-password", "path"],
+  ["/auth/mobile-callback", "path"],
 ];
 const START = "<!-- IFUND_ASSOCIATED_APP_LINKS_BEGIN -->";
 const END = "<!-- IFUND_ASSOCIATED_APP_LINKS_END -->";
