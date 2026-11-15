@@ -7,10 +7,7 @@ const NativeApp = registerPlugin("App");
 const CANONICAL = "https://interplanetaryfund.com";
 const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 const PUBLIC = new RegExp(
-  "^(?:/|/discover|/atlas|/campaign/" + UUID + "|" +
-  "/social/post/[A-Za-z0-9_-]{1,128}|" +
-  "/blogs/[A-Za-z0-9_-]{1,128}|" +
-  "/publications/[A-Za-z0-9_-]{1,128})$", "i"
+  "^(?:/|/discover|/atlas|/campaign/" + UUID + ")$", "i"
 );
 
 export function safeNativePublicRoute(input) {
