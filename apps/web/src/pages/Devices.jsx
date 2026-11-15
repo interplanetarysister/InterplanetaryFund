@@ -9,14 +9,14 @@ import { authClient } from "@/api/auth";
  */
 export default function Devices() {
   const navigate = useNavigate();
-  const [state, setState] = useState({ phase: "loading", email: "", expires: null, error: "" });
+  const [state, setState] = useState({ phase: "loading", userId: null, email: "", expires: null, error: "" });
   const [busy, setBusy] = useState("");
   const [notice, setNotice] = useState("");
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     let active = true;
-    setState({ phase: "loading", email: "", expires: null, error: "" });
+    setState({ phase: "loading", userId: null, email: "", expires: null, error: "" });
     (async () => {
       const client = authClient();
       const [{ data: identity, error: identityError }, { data: sessionData, error: sessionError }] = await Promise.all([
@@ -29,12 +29,13 @@ export default function Devices() {
       }
       if (active) setState({
         phase: "ready",
+        userId: identity.user.id,
         email: identity.user.email || "",
         expires: sessionData.session.expires_at || null,
         error: "",
       });
     })().catch(cause => {
-      if (active) setState({ phase: "error", email: "", expires: null,
+      if (active) setState({ phase: "error", userId: null, email: "", expires: null,
         error: cause?.message || "Session information could not be loaded." });
     });
     return () => { active = false; };
@@ -44,7 +45,19 @@ export default function Devices() {
     if (busy || state.phase !== "ready") return;
     setBusy(scope); setNotice("");
     try {
-      const { error } = await authClient().auth.signOut({ scope });
+      // Sessions can change in another tab after the page has rendered.
+      // Do not revoke a newly signed-in account's sessions on behalf of
+      // the previously displayed account.
+      const client = authClient();
+      const [{ data: identity, error: identityError }, { data: session, error: sessionError }] = await Promise.all([
+        client.auth.getUser(), client.auth.getSession(),
+      ]);
+      if (identityError || sessionError || !state.userId ||
+          identity?.user?.id !== state.userId ||
+          session?.session?.user?.id !== state.userId ||
+          !session.session.access_token)
+        throw new Error("The signed-in account changed. Reload this page before managing sessions.");
+      const { error } = await client.auth.signOut({ scope });
       if (error) throw error;
       if (scope === "local") {
         navigate("/login", { replace: true });
