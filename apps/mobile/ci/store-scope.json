@@ -11,6 +11,7 @@
   "routes": [
     "/",
     "/discover",
+    "/saved",
     "/campaign/:id",
     "/plan",
     "/atlas",
@@ -57,7 +58,8 @@
     "account_deletion_request",
     "user_content_reporting",
     "content_hiding",
-    "privacy_and_support"
+    "privacy_and_support",
+    "on_device_saved_campaign_links"
   ],
   "disabled_features": [
     "in_app_fundraising_payments",
