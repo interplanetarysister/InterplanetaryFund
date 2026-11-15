@@ -92,6 +92,12 @@ BEGIN
      OR nullif(btrim(p_provider_resource_id),'') IS NULL
      OR nullif(btrim(p_paypal_subscription_id),'') IS NULL
      OR nullif(btrim(p_provider_reference),'') IS NULL
+     -- Provider and operation identifiers are exact-match identities. Reject
+     -- padded aliases rather than normalizing and risking replay ambiguity.
+     OR p_operation_key IS DISTINCT FROM btrim(p_operation_key)
+     OR p_provider_resource_id IS DISTINCT FROM btrim(p_provider_resource_id)
+     OR p_paypal_subscription_id IS DISTINCT FROM btrim(p_paypal_subscription_id)
+     OR p_provider_reference IS DISTINCT FROM btrim(p_provider_reference)
      OR p_occurred_at IS NULL OR p_verified_currency IS DISTINCT FROM 'USD'
      OR p_verified_environment IS DISTINCT FROM 'live'
      OR p_entry_type IS NULL OR p_entry_type NOT IN ('payment','refund','reversal')
