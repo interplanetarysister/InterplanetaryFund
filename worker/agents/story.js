@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { appendTeamContext, replyEventKey } from "./teamContext.js";
+import { appendTeamContext, readTeamContext, replyEventKey } from "./teamContext.js";
 import {
   beginStoryAssignment,
   invokeImplementation,
@@ -618,12 +618,12 @@ export async function storyRoute(request, env, fetcher = fetch) {
         content: input.details, campaignId: input.campaign_id,
         speaker: "user", fetcher,
       });
-      const recent = await rpc("ifund_team_recent", {
-        p_campaign_id: input.campaign_id,
-        p_limit: 12,
+      const team = await readTeamContext({
+        env, jwt, campaignId: input.campaign_id, limit: 12, fetcher,
       });
-      context.shared_agent_history = Array.isArray(recent)
-        ? recent.filter(row => row.event_key !== request_id) : [];
+      if (team.state !== "ready")
+        fail(503, "Private team context is temporarily unavailable.");
+      context.shared_agent_history = team.events.filter(row => row.event_key !== request_id);
     }
     const messages = storyMessages(input, context);
     const claim = workforce
