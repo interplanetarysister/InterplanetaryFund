@@ -228,7 +228,7 @@ export async function campaignPreview(request, env) {
       const messages = {
         400: "Check your campaign details.",
         401: "Sign in again to prepare campaign suggestions.",
-        403: "Your account cannot use writing suggestions right now.",
+        403: "Writing assistance is not authorized or available for this account. Review My Profile → Manage iFund Permissions.",
         409: "This writing request could not finish. Your current text is unchanged.",
         413: "Use shorter details or a shorter story section.",
         429: "Writing assistance has reached its daily allowance. Your current text is unchanged.",
