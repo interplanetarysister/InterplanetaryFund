@@ -62,6 +62,7 @@ const MyPublication = lazy(() => import("./pages/MyPublication"));
 const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
+const AdminHub = lazy(() => import("./pages/AdminHub"));
 const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
@@ -142,6 +143,7 @@ function AppRoutes() {
       <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
+      <Route path="/admin" element={<MemberAccess><AdminAccess><AdminHub /></AdminAccess></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
