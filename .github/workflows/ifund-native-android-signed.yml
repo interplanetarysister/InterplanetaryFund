@@ -1,0 +1,103 @@
+name: IFund Android Signed Store Candidate
+
+# Explicit manual-only signing. Never uploads to Play or changes Base44.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-native-android-signed
+  cancel-in-progress: false
+
+jobs:
+  signed-android-candidate:
+    environment: native-store-release
+    runs-on: ubuntu-latest
+    env:
+      IFUND_ANDROID_UPLOAD_KEYSTORE_B64: ${{ secrets.IFUND_ANDROID_UPLOAD_KEYSTORE_B64 }}
+      IFUND_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.IFUND_ANDROID_KEYSTORE_PASSWORD }}
+      IFUND_ANDROID_KEY_PASSWORD: ${{ secrets.IFUND_ANDROID_KEY_PASSWORD }}
+      IFUND_ANDROID_KEY_ALIAS: ${{ secrets.IFUND_ANDROID_KEY_ALIAS }}
+      IFUND_ANDROID_UPLOAD_CERT_SHA256: ${{ vars.IFUND_ANDROID_UPLOAD_CERT_SHA256 }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Enforce full website, device and financial store acceptance
+        run: node apps/mobile/scripts/verify-mobile.mjs --store
+      - name: Check distinct Android signing credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          for var in IFUND_ANDROID_UPLOAD_KEYSTORE_B64 IFUND_ANDROID_KEYSTORE_PASSWORD IFUND_ANDROID_KEY_PASSWORD IFUND_ANDROID_KEY_ALIAS IFUND_ANDROID_UPLOAD_CERT_SHA256; do
+            test -n "${!var:-}" || { echo "Missing independent Android store credential: $var"; exit 1; }
+          done
+          test "${#IFUND_ANDROID_KEY_ALIAS}" -le 128
+          [[ "$IFUND_ANDROID_UPLOAD_CERT_SHA256" =~ ^([0-9A-Fa-f]{2}:){31}[0-9A-Fa-f]{2}$ ]] || {
+            echo "Upload certificate SHA-256 fingerprint format is invalid."; exit 1;
+          }
+      - name: Test and build canonical web frontend
+        working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: https://ssibsfmtodgximseeqsv.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_x9AX2hyHLr_kb2mewuH69Q_T66poFyL' }}
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+          test -s dist/index.html
+      - name: Generate independent Android project with verified app links
+        working-directory: apps/mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx cap add android
+          node scripts/configure-native-project.mjs android
+          npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
+          npx cap sync android
+      - name: Build unsigned Android upload bundle
+        working-directory: apps/mobile/android
+        run: |
+          ./gradlew bundleRelease
+          test -s app/build/outputs/bundle/release/app-release.aab
+      - name: Verify independent upload key, sign AAB and check signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apps/mobile/output
+          keyfile="$RUNNER_TEMP/ifund-independent-upload.jks"
+          trap 'rm -f "$keyfile"' EXIT
+          printf '%s' "$IFUND_ANDROID_UPLOAD_KEYSTORE_B64" | base64 --decode > "$keyfile"
+          chmod 600 "$keyfile"
+          observed="$(keytool -list -v -keystore "$keyfile" -alias "$IFUND_ANDROID_KEY_ALIAS" -storepass:env IFUND_ANDROID_KEYSTORE_PASSWORD |
+            sed -n 's/.*SHA256: //p' | head -n1 | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')"
+          expected="$(printf '%s' "$IFUND_ANDROID_UPLOAD_CERT_SHA256" | tr -d '[:space:]' | tr '[:lower:]' '[:upper:]')"
+          test -n "$observed" && test "$observed" = "$expected" || {
+            echo "Android upload certificate fingerprint mismatch. Refusing to sign."; exit 1;
+          }
+          jarsigner -keystore "$keyfile" -storepass:env IFUND_ANDROID_KEYSTORE_PASSWORD \
+            -keypass:env IFUND_ANDROID_KEY_PASSWORD \
+            -signedjar apps/mobile/output/IFund-Android-Upload-SIGNED.aab \
+            apps/mobile/android/app/build/outputs/bundle/release/app-release.aab \
+            "$IFUND_ANDROID_KEY_ALIAS"
+          jarsigner -verify apps/mobile/output/IFund-Android-Upload-SIGNED.aab
+          test -s apps/mobile/output/IFund-Android-Upload-SIGNED.aab
+          sha256sum apps/mobile/output/IFund-Android-Upload-SIGNED.aab > apps/mobile/output/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IFund-Android-SIGNED-Store-Candidate
+          path: |
+            apps/mobile/output/IFund-Android-Upload-SIGNED.aab
+            apps/mobile/output/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
