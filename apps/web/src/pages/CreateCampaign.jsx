@@ -295,6 +295,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         if (!result.error) user = result.data?.user;
       } catch { /* Guest editor remains available without an account. */ }
       if (!user?.id || user.is_anonymous === true || !user.email_confirmed_at) {
+        // A failed auth refresh in a previously verified editor must NOT
+        // silently downgrade an account-owned draft into the guest slot.
+        if (ownerId) {
+          setError("Your account session could not be verified. Copy any unsaved changes and sign in again before saving.");
+          return;
+        }
         if (status === "active") {
           setError("Publishing requires a secure account with a verified owner ID. Your draft remains in this browser; you can continue without verifying your identity, but public publishing is not available in browser-only mode.");
           return;
