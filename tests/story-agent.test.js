@@ -37,6 +37,8 @@ const makeFetcher =
     const name = url.split("/").pop();
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
+    if (url.includes("/ifund_ai_permission_preferences?"))
+      return Response.json([{allow_ai_campaign_drafts:true}]);
     if (overrides[name]) return overrides[name](JSON.parse(init.body));
     if (name === "ifund_story_begin")
       return Response.json({ state: "claimed", lease: rid });
@@ -118,6 +120,18 @@ test("unauthenticated and unconfirmed requests cannot infer", async () => {
     Response.json({ id: uid }),
   );
   assert.equal(res.status, 401);
+});
+test("server rejects missing or revoked AI drafting permission", async () => {
+  for (const rows of [[],[{allow_ai_campaign_drafts:false}]]) {
+    let inference = 0;
+    const f = makeFetcher();
+    const res = await storyRoute(request(),
+      {...env, AI:{run:()=>{inference++;throw Error("unexpected inference");}}},
+      (url, init) => url.includes("/ifund_ai_permission_preferences?")
+        ? Promise.resolve(Response.json(rows)) : f(url,init));
+    assert.equal(res.status,403);
+    assert.equal(inference,0);
+  }
 });
 test("a stored receipt is required and result is a draft only", async () => {
   let calls = 0;
