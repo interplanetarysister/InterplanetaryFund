@@ -150,14 +150,15 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setStorySections(previous => previous.map((part, i) => i === index ? value : part));
   }
   async function writingSuggestion(input) {
-    const key = JSON.stringify({ ...makeDraftRequest(input), section: input.section || null });
+    const linkedCampaignId = ownerId ? (draftId || saved || null) : null;
+    const key = JSON.stringify({ ...makeDraftRequest(input), section: input.section || null, campaign_id: linkedCampaignId });
     let id = writingRequests.current.get(key);
     if (!id) {
       if (writingRequests.current.size >= 32) writingRequests.current.delete(writingRequests.current.keys().next().value);
       id = crypto.randomUUID(); writingRequests.current.set(key, id);
     }
     try {
-      const result = await requestCampaignDraft(authClient(), input, { requestId: id });
+      const result = await requestCampaignDraft(authClient(), { ...input, campaign_id: linkedCampaignId }, { requestId: id });
       writingRequests.current.delete(key);
       return result;
     } catch (error) {
