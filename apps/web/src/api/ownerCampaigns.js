@@ -85,6 +85,35 @@ export async function listOwnerCampaigns(client) {
   return data;
 }
 
+
+// Lightweight Atlas owner read. A verified account and RLS owner filter protect
+// each page; full story, private notes and financial information are omitted.
+// Pagination prevents the management page's initial 100-record limit from
+// silently dropping later locations.
+export async function listOwnerAtlasCampaigns(client) {
+  const owner = await verifiedOwner(client);
+  const PAGE_SIZE = 100;
+  const MAX_PAGES = 100;
+  const columns = "id,owner_id,title,summary,category,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
+  const rows = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const start = page * PAGE_SIZE;
+    const { data, error } = await client.from("ifund_campaigns")
+      .select(columns)
+      .eq("owner_id", owner)
+      .order("created_at", { ascending:false })
+      .order("id", { ascending:false })
+      .range(start, start + PAGE_SIZE - 1);
+    if (error || !Array.isArray(data) || data.some(row => row?.owner_id !== owner || !UUID.test(row?.id || "")))
+      throw new Error("Atlas campaign locations could not be verified for this account.");
+    rows.push(...data);
+    await assertSessionUnchanged(client, owner);
+    if (data.length < PAGE_SIZE) return rows;
+  }
+  // Never pretend a partial list represents all locations.
+  throw new Error("Too many campaigns to load safely in one Atlas view.");
+}
+
 /**
  * Owner campaign list shaped for CampaignCard. The public campaign schema has
  * no funding totals, so those stay null rather than being shown as zero.
