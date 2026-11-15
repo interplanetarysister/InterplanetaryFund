@@ -33,6 +33,7 @@ export function replyEventKey(requestId) {
 export async function appendTeamContext({env,jwt,eventKey,agentId,content,campaignId=null,speaker,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled"};
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
+  if(typeof content!=="string") throw Object.assign(new Error("Invalid team conversation event."),{status:400});
   const args=validateTeamContextEvent({eventKey,agentId,content:redactTeamCredentials(content),campaignId,speaker});
   if(!["user","agent"].includes(speaker)) throw Error("Invalid team context speaker.");
   // Both user and agent event provenance must be attested by a real iFund Worker.
