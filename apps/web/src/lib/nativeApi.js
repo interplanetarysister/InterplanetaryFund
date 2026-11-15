@@ -23,6 +23,13 @@ export function canonicalApiPath(path) {
   return parsed.pathname + parsed.search;
 }
 
+// Email confirmation and recovery must return to the canonical HTTPS site
+// until independently verified native app/universal links are registered.
+// Never send Supabase a capacitor://localhost callback from a production app.
+export function authEmailRedirectOrigin(currentOrigin, capacitor = Capacitor) {
+  return isNativeBundle(capacitor) ? IFUND_API_ORIGIN : currentOrigin;
+}
+
 export function canonicalApiUrl(path) {
   return IFUND_API_ORIGIN + canonicalApiPath(path);
 }
