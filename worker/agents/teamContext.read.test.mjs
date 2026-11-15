@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readTeamContext} from './teamContext.js';
 const env={IFUND_TEAM_CONTEXT_ENABLED:'enabled',SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'public-test-key'};
 const jwt='verified.member.jwt';
-const ownerEvent={id:'11111111-1111-4111-8111-111111111111',event_key:'22222222-2222-4222-8222-222222222222',agent_id:'discover',speaker:'user',content:'Synthetic private request'};
+const ownerEvent={id:'11111111-1111-4111-8111-111111111111',event_key:'22222222-2222-4222-8222-222222222222',agent_id:'discover',speaker:'user',source_kind:'user_statement',recorded_at:'2026-11-15T10:00:00Z',campaign_id:null,content:'Synthetic private request'};
 test('disabled flag fails closed without calling network',async()=>{
  let calls=0;
  const result=await readTeamContext({env:{...env,IFUND_TEAM_CONTEXT_ENABLED:'off'},jwt,fetcher:async()=>{calls++;throw Error('should not fetch')}});
@@ -36,4 +36,15 @@ test('missing JWT and invalid calendar cursor fail before network requests',asyn
  await assert.rejects(readTeamContext({env,jwt:'',fetcher}),/token/);
  await assert.rejects(readTeamContext({env,jwt,before:'not-a-date',beforeId:'44444444-4444-4444-8444-444444444444',fetcher}),/cursor/);
  assert.equal(calls,0);
+});
+
+test('rejects forged provenance, invalid timestamp, and oversized history content',async()=>{
+ for(const row of [
+  {...ownerEvent,source_kind:'agent_response'},
+  {...ownerEvent,recorded_at:'invalid'},
+  {...ownerEvent,content:'x'.repeat(4001)},
+  {...ownerEvent,campaign_id:'not-a-uuid'},
+ ]) {
+  await assert.rejects(readTeamContext({env,jwt,fetcher:async()=>({ok:true,json:async()=>[row]})}),/could not be verified/);
+ }
 });
