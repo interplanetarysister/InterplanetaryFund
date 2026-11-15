@@ -11,6 +11,7 @@ export const DOCUMENT_MAX_BYTES=8*1024*1024;
 export const DOCUMENT_FORMATS=Object.freeze({
   "application/pdf":"pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document":"docx",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":"xlsx",
   "text/plain":"txt","text/markdown":"md","text/csv":"csv"
 });
 export const DOCUMENT_CATEGORIES=Object.freeze({
@@ -30,7 +31,7 @@ export function validateCampaignDocument(file) {
     return "Choose a nonempty document smaller than 8 MB.";
   const extension=DOCUMENT_FORMATS[file.type];
   if(!extension||!String(file.name||"").toLowerCase().endsWith("."+extension))
-    return "Choose a PDF, DOCX, TXT, Markdown, or CSV document.";
+    return "Choose a PDF, DOCX, XLSX, TXT, Markdown, or CSV document.";
   if(!sanitizedName(file.name))return "Choose a document with a valid name.";
   return "";
 }
@@ -39,9 +40,9 @@ export async function verifyCampaignDocumentSignature(file) {
   const header=new Uint8Array(await file.slice(0,8).arrayBuffer());
   if(type==="application/pdf" && String.fromCharCode(...header.slice(0,5))!=="%PDF-")
     throw Error("This file does not have a valid PDF signature.");
-  if(type==="application/vnd.openxmlformats-officedocument.wordprocessingml.document" &&
+  if(["application/vnd.openxmlformats-officedocument.wordprocessingml.document","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"].includes(type) &&
      !(header[0]===0x50&&header[1]===0x4b&&[0x03,0x05,0x07].includes(header[2])))
-    throw Error("This file does not appear to be a valid DOCX archive.");
+    throw Error("This file does not appear to be a valid Office document archive.");
   if(header.includes(0)&&type.startsWith("text/"))
     throw Error("This file contains binary data; choose a plain text document.");
 }
