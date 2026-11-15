@@ -48,7 +48,8 @@ test("mixed topic requests coordinate all relevant specialties without a fixed h
   assert.deepEqual(different.topics,["pulse","discover"]);
   const handoff=proposedSpecialistHandoff("Research a fundraising platform and plan outreach","orbit");
   assert.deepEqual(handoff.workflow,["pulse","discover"]);
-  assert.equal(handoff.requiresOwnerConsent,true);
+  assert.equal(handoff.requiresNewHandoffConsent,false);
+  assert.equal(handoff.usesExistingTeamContext,true);
   assert.equal(handoff.transmitted,false);
   assert.equal(handoff.state,"proposed");
 });
