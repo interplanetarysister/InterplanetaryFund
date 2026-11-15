@@ -21,6 +21,20 @@ export default function TeamConversationHistory(){
       if(mounted.current && generation===requestGeneration.current){setState({status:"ready",items,message:""});setHasMore(items.length===30);setLoadingMore(false);}
     }catch(e){if(mounted.current && generation===requestGeneration.current){setState({status:"error",items:[],message:e.message||"History unavailable."});setLoadingMore(false);}}
   }
+  // Clear account-owned records immediately when auth changes in another tab.
+  // A pending read cannot repopulate the prior owner's conversation after reset.
+  useEffect(()=>{
+    const client=authClient();
+    const {data}=client.auth.onAuthStateChange((event)=>{
+      if(event==="SIGNED_OUT"||event==="SIGNED_IN"||event==="USER_UPDATED"||event==="TOKEN_REFRESHED"){
+        requestGeneration.current++;
+        setState({status:"loading",items:[],message:"Account session changed. Refresh to verify your private history."});
+        setHasMore(false);
+        setEditing("");setCorrection("");setRemoving("");setLoadingMore(false);
+      }
+    });
+    return ()=>data?.subscription?.unsubscribe();
+  },[]);
   useEffect(()=>{let alive=true;mounted.current=true;const generation=++requestGeneration.current;(async()=>{
     try{const items=await loadTeamHistory(authClient());if(alive && generation===requestGeneration.current){setState({status:"ready",items,message:""});setHasMore(items.length===30);}}
     catch(e){if(alive && generation===requestGeneration.current)setState({status:"error",items:[],message:e.message||"History unavailable."});}
@@ -62,7 +76,7 @@ export default function TeamConversationHistory(){
     <h2 className="text-lg font-semibold">Your shared team history</h2>
     <p className="mt-2 text-sm text-muted-foreground">This workspace is being connected to your private shared team context. Saved records will appear here once the service is verified and enabled. A missing entry does not prove a conversation never happened.</p>
     <button type="button" className="mt-3 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={refresh} disabled={state.status==="loading"}>Refresh history</button>
-    {state.status==="loading"&&<p className="mt-3 text-sm" role="status">Loading private team records…</p>}
+    {state.status==="loading"&&<p className="mt-3 text-sm" role="status">{state.message||"Loading private team records…"}</p>}
     {state.status==="error"&&<p className="mt-3 text-sm text-destructive" role="alert">{state.message}</p>}
     {state.status==="ready"&&<div className="mt-4 space-y-3">
       {state.message&&<p className="text-sm" role="status">{state.message}</p>}
