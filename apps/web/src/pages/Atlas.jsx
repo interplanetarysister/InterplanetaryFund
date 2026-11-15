@@ -21,6 +21,7 @@ export default function Atlas() {
   const [ownerCampaigns, setOwnerCampaigns] = useState({ ownerId: null, rows: [] });
   const [query, setQuery] = useState("");
   const [mapView, setMapView] = useState("usa");
+  const mapScopeKey = scope+":"+(scope==="mine" ? user?.id || "signed-out" : "public");
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");
   const [reload, setReload] = useState(0);
@@ -132,7 +133,7 @@ export default function Atlas() {
         <button type="button" aria-pressed={mapView==="earth"} onClick={()=>setMapView("earth")}
           className={`min-h-11 rounded-xl border px-4 text-sm font-semibold ${mapView==="earth"?"border-emerald-400 bg-emerald-500/10":"border-border"}`}>Earth globe</button>
       </div>
-      {mapView==="usa" ? <USCampaignMap campaigns={markers}/> : <CampaignGlobe campaigns={markers}/>}
+      {mapView==="usa" ? <USCampaignMap key={mapScopeKey} campaigns={markers}/> : <CampaignGlobe key={mapScopeKey} campaigns={markers}/>}
       <section className="grid gap-5 lg:grid-cols-2" aria-label="Campaign location charts">
         <div className="ifund-chart-card">
           <p className="ifund-chart-eyebrow">AG Charts Community · Approved locations</p>
