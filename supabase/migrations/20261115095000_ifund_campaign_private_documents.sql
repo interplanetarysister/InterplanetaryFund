@@ -130,7 +130,8 @@ grant execute on function public.ifund_campaign_agent_document_briefs(uuid) to a
 -- Serialize per-campaign inserts so concurrent clients cannot exceed the free
 -- storage allowance; do not let deleting a campaign orphan private Storage objects.
 create or replace function public.ifund_campaign_documents_guard()
-returns trigger language plpgsql security definer set search_path='' as $$
+returns trigger language plpgsql security definer set search_path='' as $
+declare actual_bytes bigint;
 begin
   if tg_op='INSERT' then
     perform 1 from public.ifund_campaigns c where c.id=new.campaign_id
@@ -140,12 +141,49 @@ begin
     -- enforce the free-tier account-wide document storage allowance.
     perform 1 from public.ifund_profiles p where p.id=new.owner_id for update;
     if not found then raise exception 'Active owner required' using errcode='42501'; end if;
+    -- The browser supplies file_size; enforce limits against Storage's own
+    -- finalized object metadata so users cannot evade the shared 200 MB quota.
+    select case
+      when (o.metadata->>'size') ~ '^[0-9]{1,10}
+    if (select count(*) from public.ifund_campaign_documents d
+      where d.owner_id=new.owner_id and d.campaign_id=new.campaign_id)>=15 then
+      raise exception 'Campaign document limit reached' using errcode='23514'; end if;
+  end if;
+  return new;
+end $$;
+revoke all on function public.ifund_campaign_documents_guard() from public,anon,authenticated;
+drop trigger if exists ifund_campaign_documents_guard_insert on public.ifund_campaign_documents;
+create trigger ifund_campaign_documents_guard_insert before insert on public.ifund_campaign_documents
+  for each row execute function public.ifund_campaign_documents_guard();
+
+create or replace function public.ifund_campaign_documents_prevent_orphans()
+returns trigger language plpgsql security definer set search_path='' as $$
+begin
+  -- Interactive owner deletion must clean attachments before deleting the campaign.
+  -- Privileged account erasure may proceed; its external Storage cleanup still
+  -- needs to be executed separately by the account-deletion service.
+  if auth.uid() is not null
+    and exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
+  then raise exception 'Remove private campaign documents before deleting this campaign' using errcode='23514'; end if;
+  return old;
+end $$;
+revoke all on function public.ifund_campaign_documents_prevent_orphans() from public,anon,authenticated;
+drop trigger if exists ifund_campaign_documents_no_orphans on public.ifund_campaigns;
+create trigger ifund_campaign_documents_no_orphans before delete on public.ifund_campaigns
+  for each row execute function public.ifund_campaign_documents_prevent_orphans();
+
+commit;
+
+      then (o.metadata->>'size')::bigint else null end
+      into actual_bytes
+      from storage.objects o
+      where o.bucket_id='ifund-campaign-documents' and o.name=new.storage_path;
+    if actual_bytes is null or actual_bytes not between 1 and 8388608
+      or actual_bytes<>new.file_size
+    then raise exception 'Verified private upload size is required' using errcode='23514'; end if;
     if coalesce((select sum(d.file_size) from public.ifund_campaign_documents d
-      where d.owner_id=new.owner_id),0)+new.file_size>209715200
+      where d.owner_id=new.owner_id),0)+actual_bytes>209715200
     then raise exception 'Private document allowance reached (200 MB per account)' using errcode='23514'; end if;
-    if not exists (select 1 from storage.objects o
-      where o.bucket_id='ifund-campaign-documents' and o.name=new.storage_path)
-    then raise exception 'Uploaded private file required before saving document metadata' using errcode='23514'; end if;
     if (select count(*) from public.ifund_campaign_documents d
       where d.owner_id=new.owner_id and d.campaign_id=new.campaign_id)>=15 then
       raise exception 'Campaign document limit reached' using errcode='23514'; end if;
