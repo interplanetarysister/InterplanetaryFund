@@ -4,6 +4,7 @@ begin;
 insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types)
 values('ifund-campaign-documents','ifund-campaign-documents',false,8388608,
   array['application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain','text/markdown','text/csv']::text[])
 on conflict(id) do update set public=false,file_size_limit=8388608,
   allowed_mime_types=excluded.allowed_mime_types;
@@ -16,6 +17,7 @@ create table if not exists public.ifund_campaign_documents (
   file_name text not null check(length(file_name) between 1 and 160),
   media_type text not null check(media_type in
     ('application/pdf','application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
      'text/plain','text/markdown','text/csv')),
   file_size integer not null check(file_size between 1 and 8388608),
   purpose text not null default 'general' check(purpose in
@@ -28,6 +30,7 @@ create table if not exists public.ifund_campaign_documents (
   check(storage_path=owner_id::text||'/'||campaign_id::text||'/'||id::text||'.'||
     case media_type when 'application/pdf' then 'pdf'
       when 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' then 'docx'
+      when 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' then 'xlsx'
       when 'text/plain' then 'txt' when 'text/markdown' then 'md' when 'text/csv' then 'csv' end),
   check(not allow_agent_use or length(btrim(agent_summary))>=20)
 );
@@ -75,7 +78,7 @@ drop policy if exists ifund_campaign_documents_storage_insert on storage.objects
 create policy ifund_campaign_documents_storage_insert on storage.objects
   for insert to authenticated with check (
     bucket_id='ifund-campaign-documents'
-    and name ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}/[0-9a-f-]{36}[.](pdf|docx|txt|md|csv)$'
+    and name ~ '^[0-9a-f-]{36}/[0-9a-f-]{36}/[0-9a-f-]{36}[.](pdf|docx|xlsx|txt|md|csv)$'
     and public.ifund_owns_campaign_document_context(
       (storage.foldername(name))[1]::uuid,(storage.foldername(name))[2]::uuid)
   );
