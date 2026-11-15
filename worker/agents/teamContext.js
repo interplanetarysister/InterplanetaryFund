@@ -3,6 +3,16 @@
 // the existing privileged Worker credential. Enabled only after DB acceptance.
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","pulse","polaris","forge","link","discover"]);
+// Best-effort safety net for secrets mistakenly included in a conversation.
+// These patterns do not replace authenticated ownership, careful data handling,
+// or specialist vaults for payment/provider credentials.
+export function redactTeamCredentials(value) {
+  return String(value)
+    .replace(/\\bBearer\\s+[A-Za-z0-9._~+\\/-]{12,}/gi,"Bearer [redacted]")
+    .replace(/\\b(?:sk-[A-Za-z0-9_-]{12,}|gh[pousr]_[A-Za-z0-9_]{12,}|xox[baprs]-[A-Za-z0-9-]{12,})\\b/g,"[redacted credential]")
+    .replace(/\\b(password|api[ _-]?key|access[ _-]?token|secret)\\s*[:=]\\s*([^\\s,;]+)/gi,"$1: [redacted]");
+}
+
 export function validateTeamContextEvent({eventKey,agentId,content,campaignId=null,speaker="user"}) {
   if(!["user","agent"].includes(speaker) || !UUID.test(eventKey||"") || !TEAM_CONTEXT_AGENTS.includes(agentId)
     || typeof content!=="string" || !content.trim()
@@ -23,7 +33,7 @@ export function replyEventKey(requestId) {
 export async function appendTeamContext({env,jwt,eventKey,agentId,content,campaignId=null,speaker,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled"};
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
-  const args=validateTeamContextEvent({eventKey,agentId,content,campaignId,speaker});
+  const args=validateTeamContextEvent({eventKey,agentId,content:redactTeamCredentials(content),campaignId,speaker});
   if(!["user","agent"].includes(speaker)) throw Error("Invalid team context speaker.");
   // Both user and agent event provenance must be attested by a real iFund Worker.
   if(!/^[a-f0-9]{64}$/.test(env.IFUND_WORKFORCE_EXECUTOR_KEY||""))
