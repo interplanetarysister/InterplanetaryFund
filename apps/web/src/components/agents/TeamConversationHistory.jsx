@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { authClient } from "@/api/auth";
-import { loadTeamHistory, eraseTeamEvent } from "@/api/teamContext";
+import { loadTeamHistory, eraseTeamEvent, correctTeamStatement } from "@/api/teamContext";
 import { AGENT_IDENTITIES } from "./AgentIdentityIcon";
 
 /** Member-only, read-only by default. No claim all agents have migrated yet. */
 export default function TeamConversationHistory(){
   const [state,setState]=useState({status:"loading",items:[],message:""});
   const [removing,setRemoving]=useState("");
+  const [editing,setEditing]=useState("");
+  const [correction,setCorrection]=useState("");
   async function refresh(){
     setState(prev=>({...prev,status:"loading",message:""}));
     try {
@@ -27,6 +29,16 @@ export default function TeamConversationHistory(){
     }catch(e){setState(prev=>({...prev,message:e.message}));}
     finally{setRemoving("");}
   }
+  async function saveCorrection(row){
+    if(removing||!editing)return;
+    setRemoving(row.id);
+    try{
+      await correctTeamStatement(authClient(),row.event_key,correction);
+      setEditing("");setCorrection("");
+      await refresh();
+    }catch(e){setState(prev=>({...prev,message:e.message||"Correction was not saved."}));}
+    finally{setRemoving("");}
+  }
   return <section className="rounded-2xl border border-border bg-card p-5" aria-label="Your shared team history">
     <h2 className="text-lg font-semibold">Your shared team history</h2>
     <p className="mt-2 text-sm text-muted-foreground">Your iFund agents can use relevant conversations from your account. This view shows saved records only; a missing record does not mean an interaction never happened.</p>
@@ -41,7 +53,17 @@ export default function TeamConversationHistory(){
           <time dateTime={item.recorded_at}>{new Date(item.recorded_at).toLocaleString()}</time>
         </div>
         <p className="mt-2 whitespace-pre-wrap break-words text-sm">{item.content}</p>
-        <button type="button" className="mt-2 min-h-11 rounded-lg border border-border px-3 text-xs" disabled={Boolean(removing)} onClick={()=>remove(item)}>Remove from team history</button>
+        {item.speaker==="user" && <button type="button" className="mt-2 mr-2 min-h-11 rounded-lg border border-border px-3 text-xs" onClick={()=>{setEditing(item.id);setCorrection(item.content);}}>Correct statement</button>}
+                <button type="button" className="mt-2 min-h-11 rounded-lg border border-border px-3 text-xs" disabled={Boolean(removing)} onClick={()=>remove(item)}>Remove from team history</button>
+        {editing===item.id&&<div className="mt-3 space-y-2">
+          <label htmlFor={"correct-"+item.id} className="text-xs font-medium">Correct your saved statement</label>
+          <textarea id={"correct-"+item.id} value={correction} onChange={e=>setCorrection(e.target.value)} maxLength={4000} rows={3}
+            className="w-full rounded-lg border border-border bg-background p-3 text-sm" />
+          <div className="flex gap-2">
+            <button type="button" onClick={()=>saveCorrection(item)} disabled={Boolean(removing)||!correction.trim()} className="min-h-11 rounded-lg bg-primary px-3 text-sm text-primary-foreground">Save correction</button>
+            <button type="button" onClick={()=>{setEditing("");setCorrection("");}} className="min-h-11 rounded-lg border border-border px-3 text-sm">Cancel</button>
+          </div>
+        </div>}
       </article>)}
     </div>}
   </section>;
