@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
+import { authClient } from "@/api/auth";
 import { getMyAccountDeletionRequests, requestAccountDeletion } from "@/lib/accountDeletion";
 
 const STATUS_LABELS={
@@ -11,6 +12,21 @@ const STATUS_LABELS={
 };
 export default function MobileStoreDeleteAccount(){
   const {user,status}=useAuthSession();
+  const [guestUser,setGuestUser]=useState(null);
+  const [guestChecked,setGuestChecked]=useState(false);
+  useEffect(()=>{
+    let alive=true;
+    setGuestUser(null);setGuestChecked(false);
+    if(status==="loading")return()=>{alive=false;};
+    if(user?.id){setGuestChecked(true);return()=>{alive=false;};}
+    Promise.resolve().then(()=>authClient().auth.getUser())
+      .then(({data,error})=>{
+        if(alive&&!error&&data?.user?.is_anonymous===true)setGuestUser(data.user);
+      }).catch(()=>{/* No stored guest session is normal for public visitors. */})
+      .finally(()=>{if(alive)setGuestChecked(true);});
+    return()=>{alive=false;};
+  },[user?.id,status]);
+  const account=user||guestUser;
   const [confirmed,setConfirmed]=useState(false);
   const [busy,setBusy]=useState(false),[error,setError]=useState("");
   const [checking,setChecking]=useState(false),[reload,setReload]=useState(0);
@@ -20,16 +36,16 @@ export default function MobileStoreDeleteAccount(){
   useEffect(()=>{
     let active=true;
     setRequests([]);setCheckedFor(null);setError("");
-    if(status==="loading")return()=>{active=false;};
-    if(!user?.id || user.is_anonymous){setCheckedFor("guest");return()=>{active=false;};}
+    if(status==="loading"||!guestChecked)return()=>{active=false;};
+    if(!account?.id){setCheckedFor("guest");return()=>{active=false;};}
     setChecking(true);
     getMyAccountDeletionRequests().then(rows=>{
-      if(active){setRequests(rows);setCheckedFor(user.id);}
+      if(active){setRequests(rows);setCheckedFor(account.id);}
     }).catch(cause=>{
       if(active)setError(cause?.message||"Could not verify account deletion requests.");
     }).finally(()=>{if(active)setChecking(false);});
     return()=>{active=false;};
-  },[user?.id,user?.is_anonymous,status,reload]);
+  },[account?.id,status,guestChecked,reload]);
 
   async function requestDeletion(event){
     event.preventDefault();
@@ -42,12 +58,12 @@ export default function MobileStoreDeleteAccount(){
         updatedAt:request.requestedAt,
       },...rows.filter(row=>row.id!==request.id)]);
       setConfirmed(false);
-      setCheckedFor(user.id);
+      setCheckedFor(account.id);
     }catch(cause){setError(cause?.message||"Request not confirmed. Please retry.");}
     finally{setBusy(false);}
   }
   const activeRequest=requests.find(r=>["requested","reviewing","requires_legal_retention"].includes(r.status));
-  const accountVerified=checkedFor===user?.id;
+  const accountVerified=checkedFor===account?.id;
 
   return <section className="space-y-6">
     <header className="space-y-3">
@@ -61,16 +77,16 @@ export default function MobileStoreDeleteAccount(){
       <p>If a verification or legal review is necessary, you will be informed. There is no fee to submit a deletion request.</p>
       <Link to="/privacy" className="text-emerald-200 underline">Read the privacy policy</Link>
     </div>
-    {(status==="loading"||checking||(user?.id&&!accountVerified&&!error))&&
+    {(status==="loading"||!guestChecked||checking||(account?.id&&!accountVerified&&!error))&&
       <p role="status" className="text-sm">Checking your account and existing deletion requests…</p>}
-    {status!=="loading"&&!user&&<div className="space-y-3 rounded-xl border border-white/20 p-5">
+    {status!=="loading"&&guestChecked&&!account&&<div className="space-y-3 rounded-xl border border-white/20 p-5">
       <p className="text-sm text-slate-300">Sign in to begin a secure account-deletion request. You can also initiate deletion using the website without keeping this app installed.</p>
       <Link to="/login?returnTo=%2Fdelete-account"
         className="inline-flex min-h-11 items-center rounded-lg bg-emerald-200 px-4 font-semibold text-slate-950">
         Sign in to delete account
       </Link>
     </div>}
-    {user&&accountVerified&&activeRequest&&<div role="status" className="space-y-3 rounded-xl border border-emerald-300/40 bg-emerald-950/30 p-5">
+    {account&&accountVerified&&activeRequest&&<div role="status" className="space-y-3 rounded-xl border border-emerald-300/40 bg-emerald-950/30 p-5">
       <h2 className="text-lg font-bold">Your account deletion is pending</h2>
       <p className="text-sm">Status: {STATUS_LABELS[activeRequest.status]||activeRequest.status}</p>
       <p className="break-all text-xs">Request reference: {activeRequest.id}</p>
@@ -78,10 +94,10 @@ export default function MobileStoreDeleteAccount(){
       <p className="text-sm text-slate-200">This is not a completed deletion. The request stays open until the erasure/retention review is finished.</p>
       <button type="button" onClick={()=>setReload(n=>n+1)} className="min-h-11 rounded-lg border border-white/30 px-4 text-sm">Refresh status</button>
     </div>}
-    {user&&accountVerified&&!activeRequest&&<form onSubmit={requestDeletion}
+    {account&&accountVerified&&!activeRequest&&<form onSubmit={requestDeletion}
       className="space-y-4 rounded-xl border border-rose-300/40 bg-white/5 p-5">
       <h2 className="text-lg font-bold">Start deletion</h2>
-      <p className="break-words text-sm">Signed-in account: <strong>{user.email||"Verified IFund account"}</strong></p>
+      <p className="break-words text-sm">Signed-in account: <strong>{account.is_anonymous?"Authenticated guest session":(account.email||"Verified IFund account")}</strong></p>
       <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
         <input type="checkbox" required checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}
           className="mt-1 h-5 w-5 accent-rose-300"/>
