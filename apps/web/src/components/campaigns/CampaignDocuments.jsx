@@ -10,6 +10,8 @@ import {
 export default function CampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
   const accountGeneration=useRef(0);
+  const fileInputRef=useRef(null);
+  const uploadLock=useRef(false);
   const accountBlocked=useRef(false);
   const [loading,setLoading]=useState(Boolean(campaignId&&ownerId));
   const [error,setError]=useState("");
@@ -61,7 +63,8 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   }
   async function saveFile(event){
     event.preventDefault();
-    if(busy||!file)return;
+    if(busy||uploadLock.current||!file||accountBlocked.current)return;
+    uploadLock.current=true;
     setBusy(true);setError("");setNotice("");
     try{
       await uploadCampaignDocument(authClient(),campaignId,file,{
@@ -70,9 +73,9 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       await reload();
       setNotice("Private document uploaded. It is not visible to campaign visitors.");
       setFile(null);setSummary("");setOwnerExcerpt("");setPurpose("general");setTeamAccess(false);
-      if(event.currentTarget?.elements?.document)event.currentTarget.elements.document.value="";
+      if(fileInputRef.current)fileInputRef.current.value="";
     }catch(e){setError(e.message||"Upload failed.");}
-    finally{setBusy(false);}
+    finally{uploadLock.current=false;setBusy(false);}
   }
   async function saveAccess(row){
     if(busy)return;
@@ -129,7 +132,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
         </p>
         <form onSubmit={saveFile} className="space-y-3 rounded-xl border border-border p-4">
           <label className="block text-sm font-semibold" htmlFor="campaign-reference-file">Upload a fundraising document
-            <input id="campaign-reference-file" name="document" type="file"
+            <input ref={fileInputRef} id="campaign-reference-file" name="document" type="file"
               accept=".pdf,.docx,.xlsx,.txt,.md,.csv,application/pdf,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
               disabled={busy||loading}
               onChange={event=>setFile(event.target.files?.[0]||null)}
