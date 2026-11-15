@@ -94,7 +94,7 @@ BEGIN
      OR nullif(btrim(p_provider_reference),'') IS NULL
      OR p_occurred_at IS NULL OR p_verified_currency IS DISTINCT FROM 'USD'
      OR p_verified_environment IS DISTINCT FROM 'live'
-     OR p_entry_type NOT IN ('payment','refund','reversal')
+     OR p_entry_type IS NULL OR p_entry_type NOT IN ('payment','refund','reversal')
      OR p_amount_cents IS NULL OR
      (p_entry_type='payment' AND p_amount_cents<=0) OR
      (p_entry_type IN ('refund','reversal') AND p_amount_cents>=0) THEN
