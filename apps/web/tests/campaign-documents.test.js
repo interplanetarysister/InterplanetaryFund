@@ -117,9 +117,11 @@ test("deleted object failure retains the document record",async()=>{
 test("source components expose creation and management upload options",()=>{
   const create=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
   const management=readFileSync(new URL("../src/pages/MyCampaigns.jsx",import.meta.url),"utf8");
+  const editor=readFileSync(new URL("../src/pages/EditCampaign.jsx",import.meta.url),"utf8");
   const story=readFileSync(new URL("../../worker/agents/story.js",import.meta.url),"utf8");
   assert.match(create,/<CampaignDocuments/);
   assert.match(management,/<CampaignDocuments/);
+  assert.match(editor,/<CampaignDocuments/);
   assert.match(story,/ifund_campaign_agent_document_briefs/);
   assert.match(story,/IFUND_CAMPAIGN_DOCUMENTS_ENABLED/);
 });
@@ -184,4 +186,18 @@ test("only user-reviewed excerpts are included in document-aware Story prompts",
   assert.match(story,/owner_selected_excerpt_unverified/);
   assert.match(migration,/'owner_excerpt',left\(d.owner_excerpt,1200\)/);
   assert.match(migration,/allow_agent_use=true/);
+});
+
+test("private references recheck grant before manual agent-draft insertion",()=>{
+  const source=readFileSync(new URL("../src/components/agents/AgentDocumentReferences.jsx",import.meta.url),"utf8");
+  assert.match(source,/const fresh=await loadAgentDocumentBriefs/);
+  assert.match(source,/Document agent permission changed/);
+  assert.match(source,/source|unverified/i);
+});
+test("server verifies real Storage file size for free-tier quota",()=>{
+  const migration=readFileSync(new URL("../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
+  assert.match(migration,/metadata->>'size'/);
+  assert.match(migration,/actual_bytes<>new.file_size/);
+  assert.match(migration,/209715200/);
+  assert.match(migration,/owner_excerpt/);
 });
