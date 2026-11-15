@@ -11,23 +11,25 @@ export default function MobileStoreAccount() {
   const [error,setError]=useState(""),[busy,setBusy]=useState(false);
   const [blocked,setBlocked]=useState([]);
   const [blockStatus,setBlockStatus]=useState("loading");
+  const [verifiedFor,setVerifiedFor]=useState(null);
   const [blockError,setBlockError]=useState("");
   const [blockBusy,setBlockBusy]=useState("");
   const [blockRefresh,setBlockRefresh]=useState(0);
   useEffect(()=>{
     let active=true;
-    setBlocked([]);setBlockError("");
+    setBlocked([]);setBlockError("");setVerifiedFor(null);
     if(status==="loading"){setBlockStatus("loading");return()=>{active=false;};}
-    if(!user?.id||user.is_anonymous){setBlockStatus("ready");return()=>{active=false;};}
+    if(!user?.id||user.is_anonymous){setVerifiedFor("guest");setBlockStatus("ready");return()=>{active=false;};}
     setBlockStatus("loading");
     blockedOrganizerIds().then(ids=>{
-      if(active){setBlocked(ids);setBlockStatus("ready");}
+      if(active){setBlocked(ids);setVerifiedFor(user.id);setBlockStatus("ready");}
     }).catch(cause=>{
       if(active){setBlockError(cause?.message||"Cannot read organizer blocks.");setBlockStatus("error");}
     });
     return()=>{active=false;};
   },[user?.id,user?.is_anonymous,status,blockRefresh]);
 
+  const blockPreferencesCurrent=verifiedFor===user?.id;
   async function unblock(id){
     if(blockBusy)return;
     setBlockBusy(id);setBlockError("");
@@ -65,10 +67,10 @@ export default function MobileStoreAccount() {
        <section className="space-y-3 rounded-xl border border-white/20 p-4" aria-label="Blocked organizers">
          <h3 className="font-semibold">Blocked organizers</h3>
          <p className="text-sm text-slate-300">Your blocked organizer list is saved securely with your IFund account and applies on your signed-in devices. Organizer IDs are shown here only to you.</p>
-         {blockStatus==="loading"&&<p role="status" className="text-sm">Checking organizer safety preferences…</p>}
+         {(blockStatus==="loading"||(!blockPreferencesCurrent&&blockStatus==="ready"))&&<p role="status" className="text-sm">Checking organizer safety preferences…</p>}
          {blockStatus==="error"&&<p role="alert" className="text-sm text-rose-200">{blockError}</p>}
          {blockStatus==="error"&&<button type="button" onClick={()=>setBlockRefresh(n=>n+1)} className="min-h-11 rounded-lg border border-rose-300/40 px-4 text-sm">Retry safety settings</button>}
-         {blockStatus==="ready"&&<>
+         {blockStatus==="ready"&&blockPreferencesCurrent&&<>
            <p className="text-sm text-slate-300">{blocked.length} organizers blocked</p>
            {blocked.length===0&&<p className="text-xs text-slate-400">There are no blocked organizers.</p>}
            <ul className="space-y-2">{blocked.map(id=><li key={id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 p-2">
