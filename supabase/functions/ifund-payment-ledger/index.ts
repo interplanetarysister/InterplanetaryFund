@@ -317,24 +317,26 @@ Deno.serve(async req=>{
         &&Number.isSafeInteger(p.last_payment_cents)&&p.last_payment_cents===row.amount_cents
         &&p.currency==="USD"&&paymentAt.getTime()>=new Date(row.created_at).getTime()
         &&(!row.last_reversal_at||paymentAt.getTime()>new Date(row.last_reversal_at).getTime());
-      const failed=Number.isSafeInteger(p.failed_payments_count)?p.failed_payments_count:0;
       let status="pending";
       if(["CANCELLED","EXPIRED"].includes(p.provider_status))status="canceled";
-      else if(p.provider_status==="SUSPENDED"||failed>0||(row.last_reversal_at&&!paymentValid))status="past_due";
+      else if(p.provider_status==="SUSPENDED")status="past_due";
       else if(p.provider_status==="ACTIVE"&&paymentValid)status="active";
       if(status==="active"){
-        const operation="paypal:subscription:payment:"+row.paypal_subscription_id+":"+paymentAt.toISOString();
+        // A capture must have an immutable provider resource ID, never only a timestamp.
+        if(typeof p.provider_reference!=="string"||!p.provider_reference.trim())
+          return fail("Verified capture resource reference required",409);
+        const operation="paypal:subscription:payment:"+p.provider_reference.trim();
         const existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
         if(!existing){
           await db("ifund_subscription_ledger","POST",{
             operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
-            provider_reference:p.provider_reference||null,entry_type:"payment",amount_cents:row.amount_cents,
+            provider_reference:p.provider_reference.trim(),entry_type:"payment",amount_cents:row.amount_cents,
             currency:"USD",environment:"live",provider_occurred_at:paymentAt.toISOString()
           });
         }else if(existing.amount_cents!==row.amount_cents||existing.member_id!==row.member_id){
           return fail("Subscription ledger conflict",409);
-        }else if(!existing.provider_reference&&p.provider_reference){
-          await db("ifund_subscription_ledger?id=eq."+existing.id,"PATCH",{provider_reference:p.provider_reference});
+        }else if(existing.provider_reference!==p.provider_reference){
+          return fail("Immutable subscription capture reference mismatch",409);
         }
       }
       await db("ifund_subscription_intents?id=eq."+row.id,"PATCH",{
