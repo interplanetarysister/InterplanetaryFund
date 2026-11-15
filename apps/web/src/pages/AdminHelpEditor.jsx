@@ -125,7 +125,7 @@ export default function AdminHelpEditor() {
         {helpArticles.map(item => {
           const saved = pages.find(candidate => candidate.slug === helpStudioSlug(item.slug));
           return <button key={item.slug} type="button" aria-current={selected === item.slug ? "true" : undefined}
-            onClick={() => { setSelected(item.slug); setError(""); setNotice(""); }}
+            disabled={busy} onClick={() => { setSelected(item.slug); setError(""); setNotice(""); }}
             className={"w-full rounded-xl border p-3 text-left text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " +
               (selected === item.slug ? "border-cyan-500 bg-cyan-500/10" : "border-border")}>
             <span className="block font-semibold">{item.question}</span>
