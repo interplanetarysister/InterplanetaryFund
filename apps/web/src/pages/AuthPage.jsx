@@ -146,7 +146,7 @@ export default function AuthPage({ mode = "login" }) {
           throw new Error("Your passwords do not match.");
         if (current?.user?.is_anonymous) {
           const linked = await auth.updateUser({ email: email.trim() }, {
-            emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin),
+            emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin, false, isNativeApp),
           });
           if (linked.error) throw linked.error;
           rememberSignupAgreement(sessionStorage, email.trim());
@@ -161,9 +161,8 @@ export default function AuthPage({ mode = "login" }) {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: authRedirectUrl(
-              window.location.origin,
-              afterLogin,
+            emailRedirectTo: emailAuthRedirectUrl(
+              window.location.origin, afterLogin, false, isNativeApp,
             ),
           },
         });
@@ -215,7 +214,7 @@ export default function AuthPage({ mode = "login" }) {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin),
+          emailRedirectTo: emailAuthRedirectUrl(window.location.origin, afterLogin, false, isNativeApp),
         },
       });
       if (error) throw error;
