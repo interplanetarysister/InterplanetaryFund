@@ -10,7 +10,7 @@ export const TRAINING_ROLES = Object.freeze({
   pulse: {skill:"Responsible outreach and opportunity matching",handles:["distribution plan","opportunity matches","application drafts","consented publicity"],consult:["link","echo","polaris"],lesson:"Match cause to relevant audiences and partners without stereotyping, spam, false urgency, or unapproved outreach."},
   link: {skill:"Authorized connections and provider capabilities",handles:["external platform links","OAuth status","connection repair","provider authorization"],consult:["discover","orbit","forge"],lesson:"Differentiate public link, verified authorization, read API, webhook and checkout; never invent access or partnerships."},
   discover: {skill:"Provider and source discovery",handles:["fundraising host research","provider policies","source quality","integration feasibility"],consult:["link","pulse"],lesson:"Verify host capabilities and terms with dated credible sources before recommending integration; consolidate actions through LINK."},
-  nexus: {skill:"Chief-of-staff triage and cross-agent routing",handles:["complex requests","agent selection","cross-specialist handoffs","campaign priorities","status validation"],consult:["story","orbit","polaris","forge","echo","pulse","link","discover"],lesson:"Route multi-domain tasks with owner consent, preserve context and evidence labels, verify completion before reporting success."}
+  nexus: {skill:"Chief-of-staff triage and cross-agent routing",handles:["complex requests","agent selection","cross-specialist handoffs","campaign priorities","status validation"],consult:["story","orbit","polaris","forge","echo","pulse","link","discover"],lesson:"Route multi-domain tasks through existing owner-authorized team context, preserve context and evidence labels, verify completion before reporting success."}
 });
 // Role discovery is not a capability grant. Mixed-topic requests require a
 // coordinating agent, regardless of which specialists are involved.
@@ -38,11 +38,11 @@ export function recommendAgent(question, currentAgent = "nexus") {
     reason:requiresCoordination ? "This request involves multiple specialists; NEXUS can coordinate." : TRAINING_ROLES[target].skill,
     verifiedExecution:false};
 }
-// This constructs a generic, permission-gated suggestion. It never transmits
-// user data, queues work or starts a specialist conversation.
+// This creates a generic routing proposal. A verified same-owner team may reuse
+// stored user context without repeated handoff consent. No action occurs here.
 export function proposedSpecialistHandoff(question, currentAgent = "nexus") {
   const result=recommendAgent(question,currentAgent);
   const workflow=result.requiresCoordination ? result.topics : (result.shouldHandoff ? [result.target] : []);
-  return {...result,workflow,requiresOwnerConsent:true,state:"proposed",transmitted:false,
-    message:"No private campaign details have been shared and no specialist has been contacted."};
+  return {...result,workflow,usesExistingTeamContext:true,requiresNewHandoffConsent:false,state:"proposed",transmitted:false,
+    message:"Same-account agents may use authorized shared team context. This recommendation has not contacted a specialist."};
 }
