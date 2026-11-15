@@ -15,7 +15,10 @@ async function fixture(){
   create table public.ifund_profiles(id uuid primary key,account_status text,account_deletion_pending boolean);
   create table public.ifund_campaigns(id uuid primary key,owner_id uuid);
   create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
-  create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text);
+  create table storage.objects(
+    id uuid primary key default gen_random_uuid(),bucket_id text,name text,
+    metadata jsonb not null default '{"size":1000}'::jsonb
+  );
   alter table storage.objects enable row level security;
   grant select,insert,delete on storage.objects to authenticated;
   create function storage.foldername(path text) returns text[] language sql immutable as $$
@@ -81,4 +84,19 @@ test("owner-scoped storage policies and orphan prevention",async()=>{
   await db.exec("reset role");
   await assert.rejects(db.query("delete from public.ifund_campaigns where id=$1",[campaign]),/Remove private campaign documents/);
  }finally{await db.close();}
+});
+
+test("metadata size must match finalized private Storage object",async()=>{
+  const db=await fixture();
+  try{
+    await as(db,owner);
+    await db.query("insert into storage.objects(bucket_id,name,metadata) values('ifund-campaign-documents',$1,$2)",[
+      path,{size:3400}
+    ]);
+    await assert.rejects(db.query(`insert into public.ifund_campaign_documents
+      (id,owner_id,campaign_id,storage_path,file_name,media_type,file_size)
+      values($1,$2,$3,$4,'budget.pdf','application/pdf',1)`,[id,owner,campaign,path]),/Verified private upload size is required/);
+    const count=await db.query("select count(*)::int n from public.ifund_campaign_documents");
+    assert.equal(count.rows[0].n,0);
+  }finally{await db.close();}
 });
