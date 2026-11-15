@@ -51,6 +51,20 @@ SELECT c.relname AS relation, c.relrowsecurity AS rls_enabled,
 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
 WHERE n.nspname='public' AND c.relname IN ('ifund_subscription_intents','ifund_subscription_ledger')
 ORDER BY c.relname;
+-- Whole-table INSERT/UPDATE checks above do not detect column-scoped grants.
+-- Enumerate effective column rights to avoid false security conclusions.
+SELECT c.relname AS relation, a.attname AS column_name,
+       has_column_privilege('anon',c.oid,a.attname,'INSERT') AS anon_insert,
+       has_column_privilege('anon',c.oid,a.attname,'UPDATE') AS anon_update,
+       has_column_privilege('authenticated',c.oid,a.attname,'INSERT') AS member_insert,
+       has_column_privilege('authenticated',c.oid,a.attname,'UPDATE') AS member_update
+FROM pg_catalog.pg_class c
+JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace
+JOIN pg_catalog.pg_attribute a ON a.attrelid=c.oid
+WHERE n.nspname='public'
+  AND c.relname IN ('ifund_subscription_intents','ifund_subscription_ledger')
+  AND a.attnum>0 AND NOT a.attisdropped
+ORDER BY c.relname,a.attnum;
 -- Enumerate policy metadata without returning protected subscription rows.
 SELECT tablename, policyname, permissive, roles, cmd, qual, with_check
 FROM pg_catalog.pg_policies
