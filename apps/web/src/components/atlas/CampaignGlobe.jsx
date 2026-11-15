@@ -54,7 +54,10 @@ function graticule(rotation) {
 
 export default function CampaignGlobe({ campaigns = [] }) {
   const [rotation, setRotation] = useState(-100);
-  const [selected, setSelected] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
+  // Derive details only from campaigns in the current authorized view.
+  // Switching account or scope must immediately hide any previous selection.
+  const selected = useMemo(() => campaigns.find(c => c.id === selectedId) || null, [campaigns, selectedId]);
   const [autoRotate, setAutoRotate] = useState(false);
   const [showMarkers, setShowMarkers] = useState(true);
   useEffect(() => {
@@ -92,7 +95,7 @@ export default function CampaignGlobe({ campaigns = [] }) {
         <div className="globe-controls">
           <button className="secondary" onClick={() => rotate(-30)} aria-label="Rotate globe west"><ArrowLeft size={18}/></button>
           <button className="secondary" onClick={() => rotate(30)} aria-label="Rotate globe east"><ArrowRight size={18}/></button>
-          <button className="secondary" onClick={() => { setRotation(-100); setSelected(null); setAutoRotate(false); }} aria-label="Focus globe on North America"><RotateCcw size={18}/> <span className="text-xs">North America</span></button>
+          <button className="secondary" onClick={() => { setRotation(-100); setSelectedId(null); setAutoRotate(false); }} aria-label="Focus globe on North America"><RotateCcw size={18}/> <span className="text-xs">North America</span></button>
           <button className="secondary" onClick={() => setShowMarkers(value => !value)} aria-pressed={showMarkers}>{showMarkers ? "Hide pins" : "Show pins"}</button>
           <button className="secondary" onClick={() => setAutoRotate(value => !value)} aria-pressed={autoRotate} aria-label={autoRotate ? "Pause globe rotation" : "Resume globe rotation"}>{autoRotate ? "Pause orbit" : "Resume orbit"}</button>
         </div>
@@ -116,8 +119,8 @@ export default function CampaignGlobe({ campaigns = [] }) {
           </g>
           {markers.map(({ campaign, point }) => (
             <g className="globe-pin" key={campaign.id} tabIndex={0} role="button" aria-label={`Select public campaign: ${campaign.title}`}
-              onClick={() => setSelected(campaign)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(campaign); } }}>
+              onClick={() => setSelectedId(campaign.id)}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(campaign.id); } }}>
               <circle cx={point.x} cy={point.y} r="10" fill="#092942" stroke="#9ef9ff" strokeWidth="1.5"/>
               <circle cx={point.x} cy={point.y} r="4" fill="#e7ffff" />
               <title>{campaign.title} — {campaign.location}, approximate</title>
