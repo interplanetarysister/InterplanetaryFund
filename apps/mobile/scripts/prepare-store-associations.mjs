@@ -16,9 +16,10 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOMAIN = "interplanetaryfund.com";
 const PATHS = [
   "/", "/discover", "/atlas", "/campaign/*", "/social/post/*",
-  "/blogs/*", "/publications/*", "/auth/mobile-callback",
+  "/blogs/*", "/publications/*",
 ];
-export function generateAssociations({ teamId, fingerprint, appId }) {
+export function generateAssociations({ teamId, fingerprint, appId, authVerified = false }) {
+  if (typeof authVerified !== "boolean") throw new TypeError("Native authorization acceptance must be a boolean.");
   if (!/^[A-Z0-9]{10}$/.test(String(teamId || "")) ||
       /^(.)\1{9}$/.test(String(teamId)))
     throw new Error("A verified, non-placeholder Apple Developer Team ID is required.");
@@ -32,7 +33,8 @@ export function generateAssociations({ teamId, fingerprint, appId }) {
     apple: {
       applinks: {
         apps: [],
-        details: [{ appID: teamId + "." + appId, paths: PATHS }],
+        details: [{ appID: teamId + "." + appId,
+          paths: authVerified ? [...PATHS, "/auth/mobile-callback"] : PATHS }],
       },
     },
     android: [{
@@ -63,6 +65,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     const path = writeAssociations({
       teamId: process.env.IFUND_APPLE_TEAM_ID,
       fingerprint: process.env.IFUND_ANDROID_APP_SIGNING_SHA256,
+      authVerified: process.env.IFUND_NATIVE_AUTH_E2E_VERIFIED === "true",
     });
     console.log("Association files prepared for independent inspection (NOT deployed):", path);
   } catch (error) {
