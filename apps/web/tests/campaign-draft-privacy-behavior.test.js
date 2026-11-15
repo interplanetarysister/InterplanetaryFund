@@ -75,3 +75,22 @@ test("corrupt owner record cannot be silently overwritten by autosave", () => {
   assert.equal(rememberBrowserCampaign(s, "A", { title: "New" }, {}), false);
   assert.equal(s.values.get(OWNER("A")), "broken");
 });
+
+test("blank pre-hydration autosave cannot erase an existing nonempty owner draft", () => {
+  const s = storage({ [OWNER("A")]: draft("A", "Keep my story") });
+  assert.equal(rememberBrowserCampaign(s, "A", {}, {}), false);
+  assert.equal(restoreBrowserCampaign(s, "A").title, "Keep my story");
+  assert.equal(rememberBrowserCampaign(s, "A", {}, {}, { allowBlankOverwrite: true }), true);
+  assert.equal(restoreBrowserCampaign(s, "A").title, "");
+});
+
+test("legacy draft owned by another account is never imported into current account", () => {
+  const legacy = "ifund-guest-campaign-v1";
+  const s = storage({ [legacy]: draft("B", "B private") });
+  assert.equal(restoreBrowserCampaign(s, "A").title, "");
+  assert.equal(s.values.has(OWNER("A")), false);
+  assert.equal(s.values.get(legacy), draft("B", "B private"));
+  assert.equal(restoreBrowserCampaign(s, "B").title, "B private");
+  assert.equal(s.values.has(OWNER("B")), true);
+  assert.equal(s.values.has(legacy), false);
+});
