@@ -139,6 +139,20 @@ test("native system sharing rejects off-site and local WebView URLs", async () =
   }
 });
 
+test("web preview sharing remains available without weakening native URL restrictions", async () => {
+  let delivered;
+  const navigatorLike = { share: async payload => { delivered = payload; } };
+  await shareWithDevice({ url: "https://preview.example.dev/campaign/123", title: "Preview" }, {
+    capacitor: web,
+    navigatorLike,
+  });
+  assert.equal(delivered.url, "https://preview.example.dev/campaign/123");
+  await assert.rejects(() => shareWithDevice({ url: "https://preview.example.dev/campaign/123" }, {
+    capacitor: native,
+    nativeShare: { share: async () => { throw new Error("Must not be called"); } },
+  }), TypeError);
+});
+
 test("unapproved native payment writes fail closed before contacting providers", async () => {
   let called = 0;
   const http = { request: async () => { called++; return { status: 200, data: {} }; } };
