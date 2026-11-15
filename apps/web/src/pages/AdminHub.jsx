@@ -15,6 +15,7 @@ const restricted = [
   { to: "/ops", title: "Operations", detail: "Platform system and agent oversight", icon: LayoutDashboard },
   { to: "/platform", title: "Platform", detail: "Super-administrator controls", icon: Server },
   { to: "/admin/audit", title: "Audit log", detail: "Review verified platform audit events", icon: ShieldCheck },
+  { to: "/admin/deletions", title: "Deletion requests", detail: "Review confirmed account erasure requests and legal retention", icon: ShieldCheck },
   { to: "/admin/studio", title: "Website studio", detail: "Manage authorized site content", icon: Sparkles },
   { to: "/admin/help", title: "Help Center editor", detail: "Manage published help guidance", icon: BookOpen },
 ];
