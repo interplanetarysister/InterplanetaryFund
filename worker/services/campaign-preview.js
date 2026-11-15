@@ -33,12 +33,14 @@ export function campaignPreviewInput(raw) {
     Array.isArray(raw) ||
     Object.keys(raw).some(
       (key) =>
-        !["details", "answers", "goal", "request_id", "section"].includes(key),
+        !["details", "answers", "goal", "request_id", "section", "campaign_id"].includes(key),
     )
   )
     fail(400, "Check your campaign details.");
   if (!UUID.test(raw.request_id || ""))
     fail(400, "A writing request reference is required.");
+  if (raw.campaign_id != null && !UUID.test(raw.campaign_id))
+    fail(400, "Choose a saved campaign you own.");
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
@@ -87,6 +89,7 @@ export function campaignPreviewInput(raw) {
     answers: clean,
     goal: raw.goal ?? null,
     request_id: raw.request_id,
+    campaign_id: raw.campaign_id || null,
     section: raw.section?.trim() || null,
   };
 }
@@ -199,7 +202,7 @@ export async function campaignPreview(request, env) {
         headers: { authorization: bearer, "content-type": "application/json" },
         body: JSON.stringify({
           details: nativeDetails(input),
-          campaign_id: null,
+          campaign_id: input.campaign_id,
           section: input.section,
           request_id: input.request_id,
         }),
