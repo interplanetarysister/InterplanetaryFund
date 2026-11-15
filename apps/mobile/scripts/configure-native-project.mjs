@@ -14,12 +14,14 @@ const PATHS = [
   ["/", "path"], ["/discover", "path"], ["/atlas", "path"],
   ["/campaign/", "pathPrefix"], ["/social/post/", "pathPrefix"],
   ["/blogs/", "pathPrefix"], ["/publications/", "pathPrefix"],
-  ["/auth/mobile-callback", "path"],
+  // Mobile OAuth callback is added only after device E2E acceptance.
+
 ];
 const START = "<!-- IFUND_ASSOCIATED_APP_LINKS_BEGIN -->";
 const END = "<!-- IFUND_ASSOCIATED_APP_LINKS_END -->";
 
-export function addAndroidAppLinks(xml) {
+export function addAndroidAppLinks(xml, { authVerified = false } = {}) {
+  if (typeof authVerified !== "boolean") throw new TypeError("Native OAuth acceptance must be a boolean.");
   if (typeof xml !== "string" || !xml.includes("<manifest") ||
       !xml.includes('xmlns:android=') || !xml.includes("<activity"))
     throw new Error("Unexpected AndroidManifest.xml: refuse to edit.");
@@ -27,7 +29,8 @@ export function addAndroidAppLinks(xml) {
   const activity = xml.indexOf("<activity");
   const close = xml.indexOf("</activity>", activity);
   if (close < 0) throw new Error("No Android activity closing tag: refuse to edit.");
-  const filters = PATHS.map(([path, kind]) => `    <intent-filter android:autoVerify="true">
+  const allowedPaths = authVerified ? [...PATHS, ["/auth/mobile-callback", "path"]] : PATHS;
+  const filters = allowedPaths.map(([path, kind]) => `    <intent-filter android:autoVerify="true">
       <action android:name="android.intent.action.VIEW" />
       <category android:name="android.intent.category.DEFAULT" />
       <category android:name="android.intent.category.BROWSABLE" />
@@ -94,7 +97,9 @@ export function configure(platform, targetRoot = root) {
     const path = resolve(targetRoot, "android/app/src/main/AndroidManifest.xml");
     if (!existsSync(path)) throw new Error("Generate the separate Android Capacitor project first.");
     const original = readFileSync(path, "utf8");
-    writeFileSync(path, addAndroidAppLinks(original));
+    writeFileSync(path, addAndroidAppLinks(original, {
+      authVerified: process.env.IFUND_NATIVE_AUTH_E2E_VERIFIED === "true",
+    }));
     return path;
   }
   const path = resolve(targetRoot, "ios/App/App/App.entitlements");
