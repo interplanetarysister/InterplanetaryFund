@@ -1,0 +1,22 @@
+{
+  "name": "ifund-mobile",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Independent iOS/Android packages for the canonical Interplanetary Fund live service",
+  "scripts": {
+    "add:android": "cap add android",
+    "add:ios": "cap add ios",
+    "sync:android": "cap sync android",
+    "sync:ios": "cap sync ios",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.4.3",
+    "@capacitor/android": "8.4.3",
+    "@capacitor/ios": "8.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.4.3"
+  }
+}
