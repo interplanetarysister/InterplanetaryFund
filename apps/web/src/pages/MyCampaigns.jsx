@@ -5,6 +5,7 @@ import { listOwnerCampaigns, setCampaignStatus, deleteDraftCampaign, isCampaignC
 import { campaignStatusLabel, campaignStatusTone, publishReadiness } from "@/lib/campaignLifecycle";
 import { categoryLabels } from "@/components/campaigns/CampaignCard";
 import CampaignShareButton from "@/components/campaigns/CampaignShareButton";
+import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
 import PageError from "@/components/PageError";
 import PrelaunchNotice from "@/components/prelaunch/PrelaunchNotice";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
@@ -29,6 +30,7 @@ export default function MyCampaigns() {
   const [busyId, setBusyId] = useState("");
   const [notice, setNotice] = useState("");
   const [confirmingId, setConfirmingId] = useState("");
+  const [documentCampaignId,setDocumentCampaignId]=useState("");
 
   const load = useCallback(async () => {
     const request = ++generation.current;
@@ -221,6 +223,16 @@ export default function MyCampaigns() {
                   </button>
                 ))}
               </div>
+            </div>
+            <div className="mt-3">
+              <button type="button" className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold"
+                aria-expanded={documentCampaignId===campaign.id}
+                onClick={()=>setDocumentCampaignId(value=>value===campaign.id?"":campaign.id)}>
+                {documentCampaignId===campaign.id?"Hide private documents":"Manage private campaign documents"}
+              </button>
+              {documentCampaignId===campaign.id&&<div className="mt-3">
+                <CampaignDocuments key={campaign.id} campaignId={campaign.id} ownerId={campaign.owner_id} />
+              </div>}
             </div>
             {campaign.status === "active" && (
               <div className="mt-4">
