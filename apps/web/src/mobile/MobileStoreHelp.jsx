@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Flag, ShieldCheck, MessageSquareText } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -15,6 +15,28 @@ export default function MobileStoreHelp() {
   const [topic,setTopic]=useState(TOPICS[0][0]);
   const [details,setDetails]=useState("");
   const [busy,setBusy]=useState(false),[error,setError]=useState(""),[reference,setReference]=useState("");
+  const [tickets,setTickets]=useState([]),[ticketsError,setTicketsError]=useState("");
+  const [ticketLoading,setTicketLoading]=useState(false),[ticketRefresh,setTicketRefresh]=useState(0);
+  const [ticketsVerifiedFor,setTicketsVerifiedFor]=useState(null);
+  useEffect(()=>{
+    let alive=true;
+    setTickets([]);setTicketsError("");setTicketsVerifiedFor(null);
+    if(status==="loading")return()=>{alive=false;};
+    if(!user?.id||user.is_anonymous){setTicketsVerifiedFor("guest");return()=>{alive=false;};}
+    setTicketLoading(true);
+    let client;
+    try{client=authClient();}
+    catch(cause){setTicketsError(cause?.message||"Support history unavailable.");setTicketLoading(false);return;}
+    client.rpc("ifund_my_support_tickets").then(({data,error:issue})=>{
+      if(!alive)return;
+      if(issue||!Array.isArray(data))throw new Error(issue?.message||"Cannot verify support request history.");
+      setTickets(data.slice(0,15));
+      setTicketsVerifiedFor(user.id);
+    }).catch(cause=>{
+      if(alive){setTicketsError(cause?.message||"Support history unavailable.");setTickets([]);}
+    }).finally(()=>{if(alive)setTicketLoading(false);});
+    return()=>{alive=false;};
+  },[user?.id,user?.is_anonymous,status,ticketRefresh]);
 
   async function sendSupport(event) {
     event.preventDefault();
@@ -39,6 +61,7 @@ export default function MobileStoreHelp() {
         throw new Error(rpcError?.message||"The support request was not confirmed.");
       setReference(result[0].ticket_id);
       setDetails("");
+      setTicketRefresh(value=>value+1);
     }catch(cause){setError(cause?.message||"Unable to confirm the request with IFund.");}
     finally{setBusy(false);}
   }
@@ -82,6 +105,21 @@ export default function MobileStoreHelp() {
         <p className="break-all text-sm">Reference: {reference}</p>
         <p className="text-xs text-slate-300">A request was recorded; resolution and response have not yet been verified.</p>
       </div>}
+      {user?.id&&!user.is_anonymous&&<section aria-label="Your support requests" className="space-y-3 border-t border-white/20 pt-4">
+        <h3 className="text-sm font-bold">Your support requests</h3>
+        {ticketLoading&&<p role="status" className="text-xs">Checking your tracked requests…</p>}
+        {ticketsError&&<p role="alert" className="text-xs text-rose-200">{ticketsError}</p>}
+        <button type="button" className="min-h-11 rounded-lg border border-white/30 px-4 text-sm" onClick={()=>setTicketRefresh(n=>n+1)}>Refresh request status</button>
+        {ticketsVerifiedFor===user.id&&!ticketLoading&&<>
+          {tickets.length===0&&<p className="text-xs text-slate-300">No tracked support requests are visible.</p>}
+          <ul className="space-y-2">{tickets.map(ticket=><li key={ticket.ticket_id}
+            className="rounded-lg border border-white/20 p-3 text-xs">
+            <p className="font-semibold">{ticket.subject||"IFund support request"}</p>
+            <p>Status: {ticket.ticket_status||"Unverified"}</p>
+            <p className="break-all text-slate-300">Reference: {ticket.ticket_id}</p>
+          </li>)}</ul>
+        </>}
+      </section>}
       <h3 className="flex items-center gap-2 text-sm font-bold"><Mail aria-hidden="true" className="h-5 w-5 text-emerald-300"/> Public contact email</h3>
       <a href="mailto:hello@interplanetaryfund.com" className="inline-flex min-h-12 items-center rounded-lg border border-emerald-300/40 px-4 text-sm text-emerald-200">hello@interplanetaryfund.com</a>
       <p className="text-xs text-slate-300">Do not email passwords, authentication codes, payment-card numbers or sensitive medical documents. Email delivery must be independently verified.</p>
