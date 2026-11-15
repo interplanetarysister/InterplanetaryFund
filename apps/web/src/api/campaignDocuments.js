@@ -132,6 +132,9 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
   if(!Object.hasOwn(DOCUMENT_CATEGORIES,purpose)||typeof summary!=="string"||summary.length>3000||
     typeof ownerExcerpt!=="string"||ownerExcerpt.length>4000||
     (allowAgentUse&&summary.trim().length<20))throw Error("Review the summary before allowing agent access.");
+  // Async owner/campaign verification above can outlive a session switch.
+  // Recheck immediately before changing consent or the owner's reference text.
+  await unchanged(client,userId);
   const {data,error}=await client.from("ifund_campaign_documents")
     .update({allow_agent_use:allowAgentUse===true,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),purpose})
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
