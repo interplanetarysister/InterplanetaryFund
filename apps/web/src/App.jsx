@@ -67,6 +67,7 @@ const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
 const CampaignEngagement = lazy(() => import("./pages/CampaignEngagement"));
 const MarketingPreferences = lazy(() => import("./pages/MarketingPreferences"));
+const ManagePermissions = lazy(() => import("./pages/ManagePermissions"));
 const CampaignStrategy = lazy(() => import("./pages/CampaignStrategy"));
 const CommunicationsWorkspace = lazy(() => import("./pages/CommunicationsWorkspace"));
 const PublicSubscriptionPlans = lazy(() => import("./pages/PublicSubscriptionPlans"));
@@ -137,7 +138,8 @@ function AppRoutes() {
       <Route path="/subscriptions" element={<MemberAccess><Subscriptions /></MemberAccess>} />
       <Route path="/support" element={<MemberAccess><SupportTickets /></MemberAccess>} />
       <Route path="/engagement" element={<MemberAccess><CampaignEngagement /></MemberAccess>} />
-      <Route path="/preferences" element={<MemberAccess><MarketingPreferences /></MemberAccess>} />
+      <Route path="/preferences" element={<Navigate to="/permissions" replace />} />
+      <Route path="/permissions" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/strategy" element={<MemberAccess><CampaignStrategy /></MemberAccess>} />
       <Route path="/communications" element={<MemberAccess><CommunicationsWorkspace /></MemberAccess>} />
       <Route path="/admin/finance" element={<MemberAccess><AdminAccess><Navigate to="/finances#platform-finance" replace /></AdminAccess></MemberAccess>} />
@@ -157,7 +159,7 @@ function AppRoutes() {
       <Route path="/profile" element={<MemberAccess><Profile /></MemberAccess>} />
       <Route path="/my-profile" element={<Navigate to="/profile" replace />} />
       <Route path="/u/:id" element={<PublicMemberProfile />} />
-      <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
+      <Route path="/connections" element={<MemberAccess><ManagePermissions /></MemberAccess>} />
       <Route path="/fundraising-partners" element={<FundraisingPartners />} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
