@@ -41,6 +41,11 @@ assert(existsSync(resolve(repo, "apps/web/public/mobile-offline.html")), "Offlin
 assert(config.android?.allowMixedContent === false, "Android mixed content must remain disabled");
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
 assert(pkg.dependencies?.["@capacitor/share"] === "8.0.3", "Native system-share plugin is required");
+assert(pkg.dependencies?.["@capacitor/app"] === "8.1.2", "Native public app-link plugin is required");
+assert(read("apps/web/src/main.jsx").includes("installNativePublicLinks()"),
+  "Native public link listeners must install before React mounts");
+assert(read("apps/web/src/lib/nativeLinks.js").includes("safeNativePublicRoute"),
+  "Native public deep links must be validated before routing");
 assert(pkg.devDependencies?.["@capacitor/assets"] === "4.0.0", "Brand asset generation must be pinned");
 assert(read("apps/mobile/assets/icon.svg") === read("apps/web/assets/icon.svg"),
   "Native icon must be the canonical IFund brand art, not the Base44 app");
