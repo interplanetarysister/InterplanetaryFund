@@ -6,7 +6,7 @@ import Connections from "./Connections";
 
 export default function ManagePermissions() {
   const location = useLocation();
-  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : location.pathname === "/preferences" ? "marketing" : "ai");
+  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : new URLSearchParams(location.search).get("section") === "marketing" ? "marketing" : "ai");
   return <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
