@@ -36,7 +36,8 @@ jobs:
       - name: Prepare separate mobile project
         working-directory: apps/mobile
         run: |
-          npm install --no-audit --no-fund
+          npm install --package-lock-only --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npx cap add android
           npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync android
@@ -51,6 +52,8 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: IFund-New-Android-Debug-Only
-          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+            apps/mobile/package-lock.json
           if-no-files-found: error
           retention-days: 14
