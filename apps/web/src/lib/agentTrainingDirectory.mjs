@@ -25,7 +25,7 @@ export const TRAINING_ROUTE_RULES = Object.freeze([
   {target:"polaris",keywords:["strategy","goal","milestone","readiness","audience planning"]},
   {target:"discover",keywords:["research","which platform","fundraising platform options","provider comparison"]}
 ]);
-const normalize = value => String(value || "").normalize("NFKC").toLocaleLowerCase("en-US").replace(/[^\\p{L}\\p{N}]+/gu," ").trim();
+const normalize = value => String(value || "").normalize("NFKC").toLocaleLowerCase("en-US").replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const matchesPhrase = (input, phrase) => (" " + input + " ").includes(" " + normalize(phrase) + " ");
 export function recommendAgent(question, currentAgent = "nexus") {
   const text=normalize(question);
