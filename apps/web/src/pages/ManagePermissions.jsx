@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import AIPermissionPreferences from "@/components/permissions/AIPermissionPreferences";
 import MarketingPreferences from "./MarketingPreferences";
 import Connections from "./Connections";
 
 export default function ManagePermissions() {
-  const [open,setOpen] = useState("ai");
+  const location = useLocation();
+  const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : location.pathname === "/preferences" ? "marketing" : "ai");
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
