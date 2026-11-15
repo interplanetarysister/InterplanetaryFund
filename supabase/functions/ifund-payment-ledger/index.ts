@@ -333,10 +333,16 @@ Deno.serve(async req=>{
             provider_reference:p.provider_reference.trim(),entry_type:"payment",amount_cents:row.amount_cents,
             currency:"USD",environment:"live",provider_occurred_at:paymentAt.toISOString()
           });
-        }else if(existing.amount_cents!==row.amount_cents||existing.member_id!==row.member_id){
-          return fail("Subscription ledger conflict",409);
-        }else if(existing.provider_reference!==p.provider_reference){
-          return fail("Immutable subscription capture reference mismatch",409);
+        }else if(existing.intent_id!==row.id
+          ||existing.member_id!==row.member_id
+          ||existing.paypal_subscription_id!==row.paypal_subscription_id
+          ||existing.entry_type!=="payment"
+          ||existing.amount_cents!==row.amount_cents
+          ||existing.currency!=="USD"
+          ||existing.environment!=="live"
+          ||existing.provider_occurred_at!==paymentAt.toISOString()
+          ||existing.provider_reference!==p.provider_reference){
+          return fail("Subscription capture ledger identity conflict",409);
         }
       }
       await db("ifund_subscription_intents?id=eq."+row.id,"PATCH",{
