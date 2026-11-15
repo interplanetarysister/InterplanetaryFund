@@ -5,6 +5,7 @@ import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
+import { TRAINING_ROLES, TRAINING_VERSION, recommendAgent } from "@/lib/agentTrainingDirectory.mjs";
 
 const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent => agent.identity);
 /**
@@ -15,6 +16,8 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
 export default function AgentsTeam() {
   const [selected, setSelected] = useState(null);
   const [showWriting, setShowWriting] = useState(false);
+  const [agentQuestion, setAgentQuestion] = useState("");
+  const recommendation = agentQuestion.trim() ? recommendAgent(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
   return <div className="mx-auto max-w-5xl space-y-6 px-4 pb-24 pt-6 sm:px-7">
     <header>
@@ -22,6 +25,18 @@ export default function AgentsTeam() {
       <h1 className="mt-2 text-3xl font-semibold text-foreground">Your AI Team</h1>
       <p className="mt-2 text-sm text-muted-foreground">Choose an agent to open an available iFund tool or inspect its operational status. A related page is not proof of independent specialist AI execution.</p>
     </header>
+    <section className="rounded-2xl border border-border bg-card p-5" aria-label="Find the right specialist">
+      <h2 className="text-lg font-semibold">Who should I talk to?</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Describe what you need. We'll identify the relevant specialist without sending your question or sharing private campaign data.</p>
+      <label className="mt-3 block text-sm font-medium" htmlFor="agent-specialist-question">Your question</label>
+      <input id="agent-specialist-question" value={agentQuestion} onChange={e => setAgentQuestion(e.target.value)} placeholder="For example: How should I explain my spending plan in the story?" className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-foreground" />
+      {recommendation && <div className="mt-3 rounded-xl border border-border p-3" aria-live="polite">
+        <p className="text-sm">Suggested specialist: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
+        <p className="mt-1 text-xs text-muted-foreground">Recommendation only; choosing an agent does not create a conversation or transfer your question.</p>
+        <button type="button" onClick={() => {setSelected(recommendation.target);setShowWriting(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">View {AGENT_IDENTITIES[recommendation.target]?.name}</button>
+      </div>}
+      <p className="mt-2 text-xs text-muted-foreground">Shared specialty directory: {TRAINING_VERSION}. Services remain limited to their verified tool permissions.</p>
+    </section>
     <div aria-label="IFund agents" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
         onClick={() => { setSelected(id); setShowWriting(false); }}
@@ -36,6 +51,8 @@ export default function AgentsTeam() {
         <AgentIdentityIcon identity={selected} size={54}/>
         <div><h2 className="text-xl font-semibold">{AGENT_IDENTITIES[selected].name}</h2><p className="text-sm text-muted-foreground">{AGENT_IDENTITIES[selected].role}</p></div>
       </div>
+      <p className="mt-3 text-sm font-medium">Specialty: {TRAINING_ROLES[selected]?.skill}</p>
+      <p className="mt-1 text-sm text-muted-foreground">Can help with: {TRAINING_ROLES[selected]?.handles.join(", ")}. Consults: {TRAINING_ROLES[selected]?.consult.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>
       <p role="status" className="mt-4 text-sm text-muted-foreground">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
       {selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
       {workspace && <div className="mt-4">
