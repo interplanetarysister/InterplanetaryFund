@@ -9,6 +9,7 @@ import {
 // covers or social publishing; per-document agent use is owner-controlled.
 export default function CampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
+  const [accountLocked,setAccountLocked]=useState(false);
   const accountGeneration=useRef(0);
   const fileInputRef=useRef(null);
   const uploadLock=useRef(false);
@@ -32,6 +33,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       if(session?.user?.id===ownerId && session?.user?.is_anonymous!==true)return;
       accountGeneration.current+=1;
       accountBlocked.current=true;
+      setAccountLocked(true);
       setRecords([]);setFile(null);setSummary("");setOwnerExcerpt("");setTeamAccess(false);
       setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
       setNotice("");setLoading(false);
@@ -42,13 +44,22 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   useEffect(()=>{
     let active=true;
     accountGeneration.current+=1;
-    accountBlocked.current=false;
+    accountBlocked.current=true;
+    setAccountLocked(true);
     const generation=accountGeneration.current;
     setRecords([]);setError("");setNotice("");
     if(!campaignId||!ownerId){setLoading(false);return()=>{active=false;};}
     setLoading(true);
-    listCampaignDocuments(authClient(),campaignId)
-      .then(rows=>{if(active&&generation===accountGeneration.current&&!accountBlocked.current)setRecords(rows);})
+    (async()=>{
+      const client=authClient();
+      const {data:{user},error:identityError}=await client.auth.getUser();
+      if(identityError||user?.id!==ownerId||user?.is_anonymous===true)throw new Error("Verify your account before opening private documents.");
+      if(!active||generation!==accountGeneration.current)return;
+      const rows=await listCampaignDocuments(client,campaignId);
+      const {data:{user:confirmed},error:confirmationError}=await client.auth.getUser();
+      if(confirmationError||confirmed?.id!==ownerId||confirmed?.is_anonymous===true)throw new Error("Account changed while loading documents.");
+      if(active&&generation===accountGeneration.current){accountBlocked.current=false;setAccountLocked(false);setRecords(rows);}
+    })()
       .catch(e=>{if(active&&generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Document library unavailable.");})
       .finally(()=>{if(active&&generation===accountGeneration.current)setLoading(false);});
     return()=>{active=false;};
@@ -57,13 +68,17 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   async function reload(){
     const generation=accountGeneration.current;
     if(accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
+    const client=authClient();
+    const {data:{user},error:identityError}=await client.auth.getUser();
+    if(identityError||user?.id!==ownerId||user?.is_anonymous===true)throw new Error("Private document owner verification failed.");
     const rows=await listCampaignDocuments(authClient(),campaignId);
-    if(generation!==accountGeneration.current||accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
+    const {data:{user:confirmed},error:confirmationError}=await client.auth.getUser();
+    if(confirmationError||confirmed?.id!==ownerId||confirmed?.is_anonymous===true||generation!==accountGeneration.current||accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
     setRecords(rows);
   }
   async function saveFile(event){
     event.preventDefault();
-    if(busy||uploadLock.current||!file||accountBlocked.current)return;
+    if(busy||uploadLock.current||!file||accountBlocked.current||accountLocked)return;
     uploadLock.current=true;
     setBusy(true);setError("");setNotice("");
     try{
@@ -78,7 +93,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     finally{uploadLock.current=false;setBusy(false);}
   }
   async function saveAccess(row){
-    if(busy)return;
+    if(busy||accountBlocked.current||accountLocked)return;
     setBusy(true);setError("");setNotice("");
     try{
       await updateDocumentAgentAccess(authClient(),campaignId,row,{
@@ -134,43 +149,44 @@ export default function CampaignDocuments({campaignId,ownerId}) {
           <label className="block text-sm font-semibold" htmlFor="campaign-reference-file">Upload a fundraising document
             <input ref={fileInputRef} id="campaign-reference-file" name="document" type="file"
               accept=".pdf,.docx,.xlsx,.txt,.md,.csv,application/pdf,text/plain,text/markdown,text/csv,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              disabled={busy||loading}
+              disabled={busy||loading||accountLocked}
               onChange={event=>setFile(event.target.files?.[0]||null)}
               className="mt-2 block w-full text-sm" />
           </label>
           <label className="block text-sm font-semibold">Document category
             <select value={purpose} onChange={e=>setPurpose(e.target.value)}
-              disabled={busy} className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3">
+              disabled={busy||accountLocked} className="mt-2 min-h-11 w-full rounded-lg border border-border bg-background px-3">
               {Object.entries(DOCUMENT_CATEGORIES).map(([id,title])=><option key={id} value={id}>{title}</option>)}
             </select>
           </label>
           <label className="block text-sm font-semibold">What should your agents know about this document?
             <textarea value={summary} onChange={e=>setSummary(e.target.value)}
-              rows={3} maxLength={3000} disabled={busy}
+              rows={3} maxLength={3000} disabled={busy||accountLocked}
               placeholder="Summarize the facts agents may reference. Include relevant figures, dates, audience or requirements."
               className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
           </label>
           <label className="block text-sm font-semibold">Important document excerpts (optional)
             <textarea value={ownerExcerpt} onChange={e=>setOwnerExcerpt(e.target.value)}
-              rows={3} maxLength={4000} disabled={busy}
+              rows={3} maxLength={4000} disabled={busy||accountLocked}
               placeholder="Paste only the sections you want your agents to consider. Avoid passwords, payment details or private third-party contact information."
               className="mt-2 w-full rounded-lg border border-border bg-background p-3 text-sm" />
           </label>
           <label className="flex items-start gap-3 text-sm">
-            <input type="checkbox" checked={teamAccess} onChange={e=>setTeamAccess(e.target.checked)} disabled={busy}
+            <input type="checkbox" checked={teamAccess} onChange={e=>setTeamAccess(e.target.checked)} disabled={busy||accountLocked}
               className="mt-1" />
             <span>Allow my iFund agent team to use this document's description and supported text excerpts when preparing campaign materials. This does not publish the file or approve outreach.</span>
           </label>
-          <button type="submit" disabled={!file||busy||loading||records.length>=15||(teamAccess&&summary.trim().length<20)}
+          <button type="submit" disabled={!file||busy||loading||accountLocked||records.length>=15||(teamAccess&&summary.trim().length<20)}
             className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
             {busy?"Saving…":"Upload private document"}
           </button>
         </form>
         {loading&&<p className="text-sm" role="status">Loading private documents…</p>}
+        {accountLocked&&<p role="status" className="text-sm text-muted-foreground">Private documents are hidden until this account is verified.</p>}
         {error&&<p className="text-sm text-destructive" role="alert">{error}</p>}
         {notice&&<p className="text-sm" role="status">{notice}</p>}
-        {!loading&&records.length===0&&<p className="text-sm text-muted-foreground">No documents uploaded for this campaign.</p>}
-        {records.length>0&&<ul className="space-y-3">
+        {!loading&&!accountLocked&&records.length===0&&<p className="text-sm text-muted-foreground">No documents uploaded for this campaign.</p>}
+        {!accountLocked&&records.length>0&&<ul className="space-y-3">
           {records.map(row=><li key={row.id} className="rounded-xl border border-border p-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
@@ -180,10 +196,10 @@ export default function CampaignDocuments({campaignId,ownerId}) {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={busy} onClick={()=>download(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Download</button>
-                <button type="button" disabled={busy} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",ownerExcerpt:row.owner_excerpt||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
+                <button type="button" disabled={busy||accountLocked} onClick={()=>download(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Download</button>
+                <button type="button" disabled={busy||accountLocked} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",ownerExcerpt:row.owner_excerpt||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
                   className="min-h-11 rounded-lg border border-border px-3 text-sm">Agent settings</button>
-                <button type="button" disabled={busy} onClick={()=>remove(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove</button>
+                <button type="button" disabled={busy||accountLocked} onClick={()=>remove(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove</button>
               </div>
             </div>
             {editing===row.id&&<div className="mt-3 space-y-3">
@@ -205,7 +221,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
                 onChange={e=>setDraft(v=>({...v,allowAgentUse:e.target.checked}))} />
                 Let my agent team reference this description and supported text</label>
               <div className="flex gap-2">
-                <button type="button" disabled={busy||(draft.allowAgentUse&&draft.summary.trim().length<20)}
+                <button type="button" disabled={busy||accountLocked||(draft.allowAgentUse&&draft.summary.trim().length<20)}
                   onClick={()=>saveAccess(row)} className="min-h-11 rounded-lg bg-primary px-3 text-sm text-primary-foreground">Save settings</button>
                 <button type="button" onClick={()=>setEditing(null)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Cancel</button>
               </div>
