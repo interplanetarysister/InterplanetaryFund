@@ -17,6 +17,7 @@ export default function MobileStoreCampaign() {
   const {user,status:sessionStatus}=useAuthSession();
   const [organizerId,setOrganizerId]=useState(null);
   const [safety,setSafety]=useState("loading");
+  const [checkedFor,setCheckedFor]=useState(null);
   const [organizerBlocked,setOrganizerBlocked]=useState(false);
   const [safetyRetry,setSafetyRetry]=useState(0);
   const [blockBusy,setBlockBusy]=useState(false);
@@ -36,12 +37,13 @@ export default function MobileStoreCampaign() {
     let active=true;
     setOrganizerId(null);
     setOrganizerBlocked(false);
+    setCheckedFor(null);
     setSafety("loading");
     if(sessionStatus==="loading")return()=>{active=false;};
     if(!user?.id||user?.is_anonymous){
-      setSafety("ready");return()=>{active=false;};
+      setCheckedFor("guest");setSafety("ready");return()=>{active=false;};
     }
-    if(!UUID.test(id||"")){setSafety("ready");return()=>{active=false;};
+    if(!UUID.test(id||"")){setCheckedFor(user.id);setSafety("ready");return()=>{active=false;};
     Promise.all([
       verifiedOrganizersForCampaigns([id]),
       blockedOrganizerIds(),
@@ -50,6 +52,7 @@ export default function MobileStoreCampaign() {
       const owner=owners.get(id)||null;
       setOrganizerId(owner);
       setOrganizerBlocked(Boolean(owner&&blocked.includes(owner)));
+      setCheckedFor(user.id);
       setSafety("ready");
     }).catch(()=>{
       // Never reveal a known-blocked organizer on a failed safety lookup.
@@ -116,7 +119,8 @@ export default function MobileStoreCampaign() {
     }catch(e){setNotice(e.message||"Report could not be recorded. Please contact IFund.");}
     finally{setReportBusy(false);}
   }
-  if(phase==="ready" && (sessionStatus==="loading" || safety==="loading"))
+  const currentAccount=user?.id && !user?.is_anonymous ? user.id : "guest";
+  if(phase==="ready" && (sessionStatus==="loading" || safety==="loading" || checkedFor!==currentAccount))
     return <p role="status" className="py-10">Applying your account safety preferences…</p>;
   if(phase==="ready" && safety==="error")
     return <section role="alert" className="space-y-4 rounded-xl border border-amber-300/40 p-6">
