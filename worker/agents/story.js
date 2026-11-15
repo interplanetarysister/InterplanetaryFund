@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { appendTeamContext, readTeamContext, replyEventKey, redactTeamCredentials } from "./teamContext.js";
+import { appendTeamContext, readTeamContext, readCampaignDocumentContext, replyEventKey, redactTeamCredentials } from "./teamContext.js";
 import {
   beginStoryAssignment,
   invokeImplementation,
@@ -606,10 +606,10 @@ export async function storyRoute(request, env, fetcher = fetch) {
     // Only owner-enabled document summaries and bounded plaintext excerpts are
     // eligible as untrusted source context. PDF/DOCX binaries are not extracted.
     if (input.campaign_id && env.IFUND_CAMPAIGN_DOCUMENTS_ENABLED === "enabled") {
-      const briefs = await rpc("ifund_campaign_agent_document_briefs", {
-        p_campaign_id: input.campaign_id,
+      const references=await readCampaignDocumentContext({
+        env,jwt,campaignId:input.campaign_id,fetcher
       });
-      context.campaign_reference_documents = Array.isArray(briefs) ? briefs : [];
+      context.campaign_reference_documents=references.briefs;
     }
     // All user-facing agents read the same owner-scoped history. Retrieval is
     // performed server-side using the current authenticated member JWT;
