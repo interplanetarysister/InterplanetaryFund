@@ -104,6 +104,8 @@ const navSections = [
       { to: "/admin/integrations", label: "Admin Integrations", icon: Plug },
       { to: "/admin/audit", label: "Audit Log", icon: Server },
       { to: "/admin/sustainability", label: "Planet Impact", icon: Leaf },
+      { to: "/admin/social-moderation", label: "Community Moderation", icon: Radio },
+      { to: "/admin/finance", label: "Platform Finance", icon: Wallet },
       { to: "/admin/help", label: "Help Center Editor", icon: BookOpen },
     ],
   },
@@ -219,7 +221,7 @@ export default function Layout() {
               if (to === "/agents") return hasAiAgents;
               const superAdminOnly = ["/ops", "/platform", "/admin/studio", "/admin/audit", "/admin/help"].includes(to);
               if (superAdminOnly) return isSuperAdmin;
-              const adminOnly = ["/admin/integrations", "/admin/sustainability"].includes(to);
+              const adminOnly = ["/admin/integrations", "/admin/sustainability", "/admin/social-moderation", "/admin/finance"].includes(to);
               return !adminOnly || isAdmin || isSuperAdmin;
             }).map(({ to, label, icon: Icon }) => (
               <NavLink
