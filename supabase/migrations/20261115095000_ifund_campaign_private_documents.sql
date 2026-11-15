@@ -110,4 +110,37 @@ from (select * from public.ifund_campaign_documents
 $$;
 revoke all on function public.ifund_campaign_agent_document_briefs(uuid) from public,anon;
 grant execute on function public.ifund_campaign_agent_document_briefs(uuid) to authenticated;
+
+-- Serialize per-campaign inserts so concurrent clients cannot exceed the free
+-- storage allowance; do not let deleting a campaign orphan private Storage objects.
+create or replace function public.ifund_campaign_documents_guard()
+returns trigger language plpgsql security definer set search_path='' as $
+begin
+  if tg_op='INSERT' then
+    perform 1 from public.ifund_campaigns c where c.id=new.campaign_id
+      and c.owner_id=new.owner_id for update;
+    if not found then raise exception 'Owned campaign required' using errcode='42501'; end if;
+    if (select count(*) from public.ifund_campaign_documents d
+      where d.owner_id=new.owner_id and d.campaign_id=new.campaign_id)>=15 then
+      raise exception 'Campaign document limit reached' using errcode='23514'; end if;
+  end if;
+  return new;
+end $;
+revoke all on function public.ifund_campaign_documents_guard() from public,anon,authenticated;
+drop trigger if exists ifund_campaign_documents_guard_insert on public.ifund_campaign_documents;
+create trigger ifund_campaign_documents_guard_insert before insert on public.ifund_campaign_documents
+  for each row execute function public.ifund_campaign_documents_guard();
+
+create or replace function public.ifund_campaign_documents_prevent_orphans()
+returns trigger language plpgsql security definer set search_path='' as $
+begin
+  if exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
+  then raise exception 'Remove private campaign documents before deleting this campaign' using errcode='23514'; end if;
+  return old;
+end $;
+revoke all on function public.ifund_campaign_documents_prevent_orphans() from public,anon,authenticated;
+drop trigger if exists ifund_campaign_documents_no_orphans on public.ifund_campaigns;
+create trigger ifund_campaign_documents_no_orphans before delete on public.ifund_campaigns
+  for each row execute function public.ifund_campaign_documents_prevent_orphans();
+
 commit;
