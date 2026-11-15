@@ -83,7 +83,7 @@ test("owner correction replaces prior user statement without altering another us
     await as(db,OTHER);
     await assert.rejects(
       db.query("select public.ifund_team_correct($1,$2,'Hijacked correction.')",[AGENT_EVENT,"66666666-6666-4666-8666-666666666666"]),
-      /Owned active statement required/
+      /Owned statement required/
     );
   }finally{await db.close();}
 });
@@ -98,4 +98,35 @@ test("authenticated member without Worker attestation cannot create a user-label
       /Verified executor required/
     );
   }finally{await db.close();}
+});
+
+test("owner correction replay is stable, while conflicting and erased retries fail",async()=>{
+  const db=await setup();
+  const CORRECTED="77777777-7777-4777-8777-777777777777";
+  try {
+    await as(db,OWNER);
+    await db.query("select public.ifund_team_record_user($1,'story','Original private story.',null)",[USER_EVENT]);
+    const first=await db.query("select public.ifund_team_correct($1,$2,'Corrected private story.') id",[USER_EVENT,CORRECTED]);
+    const replay=await db.query("select public.ifund_team_correct($1,$2,'Corrected private story.') id",[USER_EVENT,CORRECTED]);
+    assert.equal(first.rows[0].id,replay.rows[0].id);
+    await assert.rejects(
+      db.query("select public.ifund_team_correct($1,$2,'Changed content on replay.')",[USER_EVENT,CORRECTED]),
+      /already corrected or erased/
+    );
+    await assert.rejects(
+      db.query("select public.ifund_team_correct($1,$2,'Corrected private story.')",[USER_EVENT,AGENT_EVENT]),
+      /already corrected or erased/
+    );
+    assert.equal((await db.query("select public.ifund_team_erase($1) result",[CORRECTED])).rows[0].result,true);
+    await assert.rejects(
+      db.query("select public.ifund_team_correct($1,$2,'Corrected private story.')",[USER_EVENT,CORRECTED]),
+      /already corrected or erased/
+    );
+    assert.equal((await db.query("select count(*)::int n from public.ifund_team_recent(null,30)")).rows[0].n,0);
+    await as(db,OTHER);
+    await assert.rejects(
+      db.query("select public.ifund_team_correct($1,$2,'Cross-owner change.')",[USER_EVENT,AGENT_EVENT]),
+      /Owned statement required/
+    );
+  }finally {await db.close();}
 });
