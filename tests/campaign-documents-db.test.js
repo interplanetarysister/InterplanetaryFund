@@ -68,9 +68,15 @@ test("owner-scoped storage policies and orphan prevention",async()=>{
   await as(db,other);
   await assert.rejects(db.query("insert into storage.objects(bucket_id,name) values('ifund-campaign-documents',$1)",[path]),/row-level security/);
   await as(db,owner);
+  // Storage metadata is deliberately not readable until the owner has
+  // registered the matching campaign-document metadata row.
   await db.query("insert into storage.objects(bucket_id,name) values('ifund-campaign-documents',$1)",[path]);
+  assert.equal((await db.query("select count(*)::int n from storage.objects")).rows[0].n,0);
+  await db.query(`insert into public.ifund_campaign_documents
+    (id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,agent_summary)
+    values($1,$2,$3,$4,'budget.pdf','application/pdf',1000,
+    'Owner-reviewed budget and intended cost breakdown')`,[id,owner,campaign,path]);
   assert.equal((await db.query("select count(*)::int n from storage.objects")).rows[0].n,1);
-  await insert(db);
   await db.exec("reset role");
   await assert.rejects(db.query("delete from public.ifund_campaigns where id=$1",[campaign]),/Remove private campaign documents/);
  }finally{await db.close();}
