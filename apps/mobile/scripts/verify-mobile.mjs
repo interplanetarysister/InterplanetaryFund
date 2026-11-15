@@ -25,7 +25,7 @@ assert(!Object.hasOwn(config.server || {}, "url"), "Store candidate may not use 
 assert(config.server?.hostname === "localhost", "Native bundle must serve assets from local Capacitor origin");
 assert(config.server?.iosScheme === "capacitor", "iOS native scheme must be fixed");
 assert(config.server?.androidScheme === "https", "Android secure scheme must be fixed");
-assert(config.webDir === "../web/dist", "Both native packages must bundle the canonical built web UI");
+assert(config.webDir === "../web/dist-mobile", "Both native packages must bundle the independent store-reviewed UI");
 assert(config.plugins?.CapacitorHttp?.enabled === false,
   "Use scoped API requests, not a global native HTTP override");
 const apiTransport = read("apps/web/src/lib/nativeApi.js");
@@ -83,25 +83,55 @@ for (const name of ["android", "ios"]) {
   assert(workflow.includes("com.interplanetaryfund.app"), name + " workflow lacks independent identity assertion");
 }
 
-const manifest = JSON.parse(read("apps/web/ci/route-acceptance.json"));
-assert(manifest.schema_version === 1 && Array.isArray(manifest.routes), "Unknown web acceptance manifest");
-const unfinished = manifest.routes.filter(route =>
-  route.source_status !== "source_ready" ||
-  !route.source_evidence?.trim() ||
-  !route.behavior_evidence?.trim() ||
-  (route.role !== "public" && !route.backend_evidence?.trim())
+// The mobile store application is independently scoped. An incomplete
+// administrator-only website route must never be disguised as mobile QA,
+// nor should it unnecessarily prevent preparing the reviewed mobile binary.
+const scope = JSON.parse(read("apps/mobile/ci/store-scope.json"));
+const mobileSource = read("apps/web/src/MobileStoreApp.jsx");
+const mobileEntrypoint = read("apps/web/src/mobile-main.jsx");
+const mobileBuild = read("apps/web/vite.mobile.config.js");
+assert(scope.schema_version === 1 && scope.app_id === config.appId,
+  "Mobile store review scope must use the independent application identity");
+assert(Array.isArray(scope.routes) && scope.routes.length >= 15, "Store route scope is missing");
+assert(scope.output_dir === "apps/web/dist-mobile", "Store build must be independent");
+const missingMobileRoutes = scope.routes.filter(route =>
+  !mobileSource.includes('<Route path="' + route + '"')
 );
+assert(missingMobileRoutes.length === 0,
+  "Unregistered store routes: " + missingMobileRoutes.join(", "));
+for (const route of scope.excluded_routes || []) {
+  assert(!mobileSource.includes('<Route path="' + route + '"'),
+    "Store build includes an unreviewed website feature: " + route);
+}
+assert(!mobileSource.includes('import App from "@/App"') &&
+  !mobileSource.includes('import App from "./App"'),
+  "Native store binary must not bundle the full website router");
+assert(mobileEntrypoint.includes("MobileStoreApp") &&
+  mobileEntrypoint.includes("installNativeApiTransport()"),
+  "Store entrypoint must load scoped, connected app");
+assert(mobileBuild.includes("publicDir: false") &&
+  mobileBuild.includes('renameSync(generated, resolve(out, "index.html"))'),
+  "Store build must have local index and not copy unrelated public web archives");
+assert(read("apps/web/src/mobile/MobileStoreDeleteAccount.jsx").includes("ifund_create_support_ticket"),
+  "In-app deletion must initiate an authenticated, tracked permanent deletion request");
+assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("ifund_create_support_ticket"),
+  "UGC reports must be submitted to the real canonical support moderation queue");
+assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("shareWithDevice"),
+  "Native campaign sharing must use the OS share sheet");
+assert(read("apps/web/src/mobile/MobileReadiness.jsx").includes("not") &&
+  read("apps/web/src/mobile/MobileReadiness.jsx").includes("prediction"),
+  "Planning checklist must not claim to predict fundraising success");
+const unfinished = missingMobileRoutes.length;
 if (mode === "--store") {
   assert(existsSync(resolve(root, "package-lock.json")),
     "A reviewed, committed native dependency lockfile is required before a signed store release");
-  assert(manifest.routes.length >= 80, "Incomplete canonical route inventory");
-  assert(unfinished.length === 0, unfinished.length + " routes lack source/behavior/backend acceptance");
+  assert(unfinished === 0, "A reviewed mobile route is not registered");
   const approval = resolve(root, "release-evidence.json");
   assert(existsSync(approval), "Store release requires independent evidence file, signed artifact and provider compliance review");
   // Evidence must be independently reviewed even when this file eventually exists.
   if (existsSync(approval)) {
     const evidence = JSON.parse(readFileSync(approval, "utf8"));
-    for (const key of ["ios_device_passed", "android_device_passed", "auth_and_oauth_passed", "privacy_review_passed", "fundraising_policy_review_passed", "reviewer_approved"]) {
+    for (const key of ["ios_device_passed", "android_device_passed", "auth_and_oauth_passed", "privacy_review_passed", "fundraising_policy_review_passed", "reviewer_approved", "mobile_scope_e2e_passed", "ugc_moderation_passed", "account_deletion_passed", "google_api_36_passed", "android_16kb_passed", "store_metadata_complete"]) {
       assert(evidence[key] === true, key + " not independently verified");
     }
     assert(evidence.schema_version === 1, "Unsupported store acceptance evidence schema");
@@ -117,7 +147,7 @@ if (mode === "--store") {
     assert(typeof evidence.approved_by === "string" && evidence.approved_by.trim().length >= 3,
       "Independent QA reviewer identity is missing");
     for (const key of ["ios_device", "android_device", "auth_and_oauth",
-      "privacy_review", "fundraising_policy_review", "full_route_acceptance"]) {
+      "privacy_review", "fundraising_policy_review", "mobile_scope_e2e", "ugc_moderation", "account_deletion", "google_api_36", "android_16kb", "store_metadata"]) {
       let valid = false;
       try {
         const url = new URL(evidence.evidence_urls?.[key] || "");
@@ -133,5 +163,5 @@ if (errors.length) {
   process.exit(1);
 }
 console.log("IFund mobile " + mode + " structural checks passed; " +
-  unfinished.length + " canonical routes still lack complete acceptance. " +
+  unfinished + " mobile store routes are missing from source. " +
   "Candidate compilation is NOT store or live-service certification.");
