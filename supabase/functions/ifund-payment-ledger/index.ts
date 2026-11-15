@@ -342,7 +342,7 @@ Deno.serve(async req=>{
           ||existing.currency!=="USD"
           ||existing.environment!=="live"
           ||existing.provider_occurred_at!==paymentAt.toISOString()
-          ||existing.provider_reference!==p.provider_reference){
+          ||existing.provider_reference!==p.provider_reference.trim()){
           return fail("Subscription capture ledger identity conflict",409);
         }
       }
