@@ -20,7 +20,7 @@ create index if not exists ifund_agent_team_owner_recent_idx on public.ifund_age
 create index if not exists ifund_agent_team_campaign_recent_idx on public.ifund_agent_team_events(owner_id,campaign_id,recorded_at desc);
 alter table public.ifund_agent_team_events enable row level security;
 revoke all on public.ifund_agent_team_events from public,anon,authenticated;
-grant select on public.ifund_agent_team_events to authenticated;
+-- No direct browser table grants: all reads require verified-member RPCs.
 drop policy if exists ifund_agent_team_owner_read on public.ifund_agent_team_events;
 create policy ifund_agent_team_owner_read on public.ifund_agent_team_events for select
   to authenticated using (owner_id=(select auth.uid()) and deleted_at is null);
