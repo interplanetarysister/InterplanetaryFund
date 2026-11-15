@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, RefreshCw, MapPinned } from "lucide-react";
 import { listActiveCampaigns } from "@/api/publicData";
+import { useAuthSession } from "@/hooks/useAuthSession";
+import { readBlockedOrganizers, verifiedOrganizersForCampaigns } from "@/mobile/organizerBlock";
 
 const money = value => Number.isFinite(value) && value >= 0 ?
   new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(value) : null;
@@ -9,6 +11,8 @@ const safeMedia = url => typeof url === "string" && /^https:\/\/[^\s]+$/i.test(u
 
 export default function MobileStoreDiscover() {
   const [campaigns,setCampaigns]=useState([]);
+  const {user}=useAuthSession();
+  const [organizerIds,setOrganizerIds]=useState(new Map());
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
   const [search,setSearch]=useState("");
@@ -31,8 +35,20 @@ export default function MobileStoreDiscover() {
     });
     return ()=>{live=false;};
   },[reload]);
+  useEffect(()=>{
+    let active=true;
+    if(!user?.id || user.is_anonymous || campaigns.length===0){
+      setOrganizerIds(new Map());return()=>{active=false;};
+    }
+    verifiedOrganizersForCampaigns(campaigns.map(c=>c.id)).then(ids=>{
+      if(active)setOrganizerIds(ids);
+    }).catch(()=>{if(active)setOrganizerIds(new Map());});
+    return()=>{active=false;};
+  },[user?.id,user?.is_anonymous,campaigns]);
+  const blocked=new Set(user?.id?readBlockedOrganizers(user.id):[]);
   const visible=useMemo(()=>campaigns.filter(c=>!hidden.includes(c.id) &&
-    [c.title,c.summary,c.category,c.location].join(" ").toLowerCase().includes(search.trim().toLowerCase())),[campaigns,hidden,search]);
+    !blocked.has(organizerIds.get(c.id)) &&
+    [c.title,c.summary,c.category,c.location].join(" ").toLowerCase().includes(search.trim().toLowerCase())),[campaigns,hidden,search,organizerIds,user?.id]);
   function resetHidden(){setHidden([]);try{localStorage.removeItem("ifund-mobile-hidden-campaigns");}catch{}}
   return <div className="space-y-6">
     <header className="space-y-3">
