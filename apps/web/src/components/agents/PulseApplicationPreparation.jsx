@@ -34,7 +34,7 @@ export default function PulseApplicationPreparation({opportunity,campaign}) {
   {expanded&&<div className="mt-3 space-y-3">
    <p className="text-xs text-muted-foreground">This worksheet is made locally. It does not submit to the provider, verify that you qualify, or upload private campaign content.</p>
    {campaign?.isOwned===true&&<AgentDocumentReferences campaignId={campaign.id} onInsert={facts=>{
-      setNotes(previous=>(previous?previous+"\n":"")+"Reference facts to verify: "+facts.slice(0,500));
+      setNotes(previous=>((previous?previous+"\n":"")+"Reference facts to verify: "+facts).slice(0,800));
       setNotice("Added owner-approved reference notes to your private worksheet only. No application was submitted.");
     }} />}
    <label className="block text-sm font-medium">Optional owner notes
