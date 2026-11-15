@@ -22,10 +22,8 @@ export default function TeamConversationHistory(){
     if(removing)return;
     setRemoving(row.id);
     try{
-      // Erasure uses the idempotency event key, not the internal row id.
-      // Until a matching server-authorized event_key is returned, no erasure
-      // control should be enabled; record ID is not sufficient.
-      throw Error("Conversation erasure is awaiting a verified event reference.");
+      await eraseTeamEvent(authClient(),row.event_key);
+      setState(prev=>({...prev,items:prev.items.filter(item=>item.id!==row.id),message:"Entry removed from shared team history."}));
     }catch(e){setState(prev=>({...prev,message:e.message}));}
     finally{setRemoving("");}
   }
@@ -36,12 +34,14 @@ export default function TeamConversationHistory(){
     {state.status==="loading"&&<p className="mt-3 text-sm" role="status">Loading private team records…</p>}
     {state.status==="error"&&<p className="mt-3 text-sm text-muted-foreground" role="status">{state.message}</p>}
     {state.status==="ready"&&<div className="mt-4 space-y-3">
+      {state.message&&<p className="text-sm" role="status">{state.message}</p>}
       {state.items.length===0 ? <p className="text-sm text-muted-foreground">No recorded team exchanges yet.</p> : state.items.map(item=><article key={item.id} className="rounded-xl border border-border p-3">
         <div className="flex flex-wrap justify-between gap-2 text-xs text-muted-foreground">
           <strong>{AGENT_IDENTITIES[item.agent_id]?.name||"iFund agent"} · {item.speaker==="user"?"You":"Agent"}</strong>
           <time dateTime={item.recorded_at}>{new Date(item.recorded_at).toLocaleString()}</time>
         </div>
         <p className="mt-2 whitespace-pre-wrap break-words text-sm">{item.content}</p>
+        <button type="button" className="mt-2 min-h-11 rounded-lg border border-border px-3 text-xs" disabled={Boolean(removing)} onClick={()=>remove(item)}>Remove from team history</button>
       </article>)}
     </div>}
   </section>;
