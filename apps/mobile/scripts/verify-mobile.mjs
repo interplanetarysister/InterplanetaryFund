@@ -21,7 +21,20 @@ const pkg = JSON.parse(read("apps/mobile/package.json"));
 assert(config.appId === "com.interplanetaryfund.app", "Independent application ID must match the new mobile package");
 assert(legacy.appId === "com.base6a67a778342a8fe05ee79cba.app", "Legacy Base44 identity changed: stop");
 assert(config.appId !== legacy.appId, "Native package must not overwrite Base44");
-assert(config.server?.url === "https://interplanetaryfund.com", "Native package must use canonical HTTPS live site");
+assert(!Object.hasOwn(config.server || {}, "url"), "Store candidate may not use a remote development server.url");
+assert(config.server?.hostname === "localhost", "Native bundle must serve assets from local Capacitor origin");
+assert(config.server?.iosScheme === "capacitor", "iOS native scheme must be fixed");
+assert(config.server?.androidScheme === "https", "Android secure scheme must be fixed");
+assert(config.webDir === "../web/dist", "Both native packages must bundle the canonical built web UI");
+assert(config.plugins?.CapacitorHttp?.enabled === false,
+  "Use scoped API requests, not a global native HTTP override");
+const apiTransport = read("apps/web/src/lib/nativeApi.js");
+assert(apiTransport.includes('export const IFUND_API_ORIGIN = "https://interplanetaryfund.com"'),
+  "Native API origin must be canonical");
+assert(apiTransport.includes("export function installNativeApiTransport"),
+  "Native API origin adapter must be installed");
+assert(read("apps/web/src/main.jsx").includes("installNativeApiTransport()"),
+  "Web app entrypoint must install native API transport before rendering");
 assert(config.server?.cleartext === false, "Cleartext HTTP must remain disabled");
 assert(config.server?.errorPath === "mobile-offline.html", "Native app must provide an offline recovery screen");
 assert(existsSync(resolve(repo, "apps/web/public/mobile-offline.html")), "Offline screen is missing from the copied web assets");
