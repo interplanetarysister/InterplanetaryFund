@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 
 const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const mobile = JSON.parse(read("../../mobile/capacitor.config.json"));
@@ -34,4 +35,16 @@ test("new native builds are manual-only and cannot deploy or overwrite Base44", 
   }
   assert.match(iosWorkflow, /CODE_SIGNING_ALLOWED=NO/);
   assert.match(androidWorkflow, /assembleDebug/);
+});
+
+test("native candidate preflight succeeds but store release stays fail-closed", () => {
+  const script = new URL("../../mobile/scripts/verify-mobile.mjs", import.meta.url);
+  const candidate = spawnSync(process.execPath, [script.pathname, "--candidate"], { encoding: "utf8" });
+  assert.equal(candidate.status, 0, candidate.stderr);
+  assert.match(candidate.stdout, /NOT store or live-service certification/);
+  const store = spawnSync(process.execPath, [script.pathname, "--store"], { encoding: "utf8" });
+  assert.notEqual(store.status, 0, "Store readiness must fail until independently verified");
+  assert.match(store.stderr, /routes lack source\/behavior\/backend acceptance/);
+  for (const workflow of [iosWorkflow, androidWorkflow])
+    assert.match(workflow, /node apps\/mobile\/scripts\/verify-mobile\.mjs --candidate/);
 });
