@@ -228,5 +228,7 @@ test("member analytics tabs support roving focus and directional keyboard naviga
   assert.match(analytics, /tabRefs\.current\[next\]\?\.focus\(\)/);
   assert.match(analytics, /role="tabpanel" tabIndex=\{0\}/);
   assert.match(analytics, /aria-labelledby=\{"analytics-tab-"\+view\}/);
+  assert.match(analytics, /aria-controls="analytics-panel"/);
+  assert.match(analytics, /id="analytics-panel" role="tabpanel"/);
   assert.match(analytics, /event\.preventDefault\(\)/);
 });
