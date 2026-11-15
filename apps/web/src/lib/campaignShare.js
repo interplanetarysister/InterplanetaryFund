@@ -10,6 +10,23 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // platform, so a preview or hostile origin can never be shared as canonical.
 export const CANONICAL_ORIGIN = "https://interplanetaryfund.com";
 
+// Native Capacitor bundles can run at capacitor://localhost or http://localhost.
+// Do not share a local WebView address or use it in copy/embed targets.
+// This changes public link generation only; API and auth origins are handled separately.
+export function publicShareOrigin(origin) {
+  try {
+    const url = new URL(String(origin || ""));
+    if (url.protocol === "capacitor:" || url.protocol === "ionic:" ||
+        url.hostname === "localhost" || url.hostname === "127.0.0.1" ||
+        url.hostname === "[::1]") return CANONICAL_ORIGIN;
+    if (url.protocol !== "https:" && url.protocol !== "http:") return CANONICAL_ORIGIN;
+    return url.origin;
+  } catch {
+    return CANONICAL_ORIGIN;
+  }
+}
+
+
 function normalizeOrigin(origin) {
   if (typeof origin !== "string" || origin === "") return CANONICAL_ORIGIN;
   try {
