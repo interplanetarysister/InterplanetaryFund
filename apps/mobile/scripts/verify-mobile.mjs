@@ -23,6 +23,8 @@ assert(legacy.appId === "com.base6a67a778342a8fe05ee79cba.app", "Legacy Base44 i
 assert(config.appId !== legacy.appId, "Native package must not overwrite Base44");
 assert(config.server?.url === "https://interplanetaryfund.com", "Native package must use canonical HTTPS live site");
 assert(config.server?.cleartext === false, "Cleartext HTTP must remain disabled");
+assert(config.server?.errorPath === "mobile-offline.html", "Native app must provide an offline recovery screen");
+assert(existsSync(resolve(repo, "apps/web/public/mobile-offline.html")), "Offline screen is missing from the copied web assets");
 assert(config.android?.allowMixedContent === false, "Android mixed content must remain disabled");
 assert(!!pkg.dependencies?.["@capacitor/ios"] && !!pkg.dependencies?.["@capacitor/android"], "Both native platforms are required");
 for (const name of ["android", "ios"]) {
