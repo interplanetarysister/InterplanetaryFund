@@ -401,7 +401,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">
         {suggesting ? "Preparing ideas…" : "Generate campaign ideas"}
       </button>
-      {suggestionError && <p role="alert" className="text-destructive">{suggestionError}</p>}
+      {suggestionError && <p role="alert" className="text-destructive">{suggestionError} <Link to="/permissions" className="underline">Review AI permissions in My Profile</Link></p>}
       {writingQueued && <p className="text-sm"><Link to="/agents" className="underline">View saved writing requests</Link></p>}
       {suggestions && <div aria-label="Campaign ideas" className="space-y-4" role="region">
         <p role="status" className="text-sm">{suggesting || suggestionError ? (suggestions.assistance === "outline" ? "Your previous basic outline remains available below for review." : "Your previous writing suggestions remain available below for review.") : suggestions.assistance === "outline" ? "A basic outline is ready, using only the facts you supplied. Edit it and choose what to include." : "Writing suggestions are ready. Check the facts and choose which ideas to apply below."}</p>
