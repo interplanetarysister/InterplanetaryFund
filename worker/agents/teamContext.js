@@ -12,8 +12,8 @@ export function redactTeamCredentials(value) {
     // OAuth authorization codes in URL query/fragment parameters are credentials.
     // Limit replacement to a URL's code parameter, not ordinary prose using "code".
     // Preserve parameter separators and neighboring state values.
-    .replace(/(https?:\\/\\/[^\\s<>"']+|\\/[A-Za-z0-9_./%-]+\\?[^\\s<>"']+)/gi,
-      url => url.replace(/([?#&]code=)([^&#\\s]+)/gi, (_part,prefix)=>prefix+'[redacted]'))
+    .replace(/(https?:[/][/][^\s<>"']+|[/][A-Za-z0-9_./%-]+[?][^\s<>"']+)/gi,
+      url => url.replace(/([?#&]code=)([^&#\s]+)/gi, (_part,prefix)=>prefix+'[redacted]'))
     // Escaped JSON embedded in logs or serialized conversation strings.
     .replace(/(\\["'])(?:[A-Za-z0-9_-]*_)?(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code|code)\1(\s*:\s*)(\\["'])(?:\\.|(?!\\["'])[\s\S])*?\4/gi,
       (_match,quote,key,separator)=>quote+key+quote+separator+'\\"[redacted]\\"')
