@@ -14,7 +14,10 @@ test("Android link filters are native-only, verified HTTPS and idempotent", () =
   assert.match(revised, /android:autoVerify="true"/);
   assert.match(revised, /android:scheme="https"/);
   assert.match(revised, /android:host="interplanetaryfund.com"/);
-  assert.match(revised, /android:path="\/auth\/mobile-callback"/);
+  assert.doesNotMatch(revised, /android:path="\\/auth\\/mobile-callback"/);
+  const authEnabled = addAndroidAppLinks(original, { authVerified: true });
+  assert.match(authEnabled, /android:path="\\/auth\\/mobile-callback"/);
+  assert.throws(() => addAndroidAppLinks(original, { authVerified: "yes" }), TypeError);
   assert.doesNotMatch(revised, /android:path="\/auth\/callback"/);
   assert.match(revised, /android:pathPrefix="\/campaign\/"/);
   assert.equal(addAndroidAppLinks(revised), revised);
