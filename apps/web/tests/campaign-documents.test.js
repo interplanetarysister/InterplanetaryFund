@@ -47,7 +47,7 @@ function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is
             records.push(query.payload);
             return {data:{id:query.payload.id,owner_id:query.payload.owner_id,campaign_id:query.payload.campaign_id},error:null};
           }
-          if(query.operation==="update")return {data:{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,allow_agent_use:true},error:null};
+          if(query.operation==="update")return {data:{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,allow_agent_use:query.payload.allow_agent_use},error:null};
           if(query.operation==="delete")return {data:{id:FILE_ID},error:null};
           return {data:null,error:null};
         },
@@ -143,6 +143,9 @@ test("agent opt-in remains off by default and owners can revoke it",async()=>{
     allowAgentUse:false,summary:"This reference is no longer available to agents.",purpose:"budget"
   });
   assert.equal(update.id,FILE_ID);
+  assert.equal(update.allow_agent_use,false,"Revocation must be persisted as false, not just return a matching document ID.");
+  const change=x.calls.find(call=>call.action==="table"&&call.table==="ifund_campaign_documents");
+  assert.ok(change,"A document metadata operation must be attempted.");
 });
 test("private reference UI responds to account switching and does not publish documents",()=>{
   const uploader=readFileSync(new URL("../src/components/campaigns/CampaignDocuments.jsx",import.meta.url),"utf8");
