@@ -49,7 +49,7 @@ jobs:
             echo "Independent QA evidence secret is missing."; exit 1;
           }
           # Materialize evidence only in the isolated runner, never in Git.
-          printf '%s' "$IFUND_NATIVE_RELEASE_EVIDENCE_B64" | base64 --decode > apps/mobile/release-evidence.json
+          printf '%s' "$IFUND_NATIVE_RELEASE_EVIDENCE_B64" | /usr/bin/base64 -D > apps/mobile/release-evidence.json
           chmod 600 apps/mobile/release-evidence.json
           node -e "const fs=require('fs'); const o=JSON.parse(fs.readFileSync('apps/mobile/release-evidence.json','utf8')); if(o.tested_commit!==process.env.GITHUB_SHA) process.exit(1);"
       - name: Enforce full site, device and financial store acceptance
