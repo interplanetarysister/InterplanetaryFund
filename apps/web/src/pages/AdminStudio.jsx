@@ -55,9 +55,12 @@ export default function AdminStudio() {
   useEffect(() => { selectedPageId.current = page?.id || null; }, [page?.id]);
 
   const api = useCallback(async (path, method = "GET", body, extraHeaders = {}) => {
-    const { data, error: sessionError } = await db.auth.getSession();
-    const token = data?.session?.access_token;
-    if (sessionError || !token) throw new Error("Your administrator session has expired. Sign in again.");
+    const [before, session] = await Promise.all([db.auth.getUser(), db.auth.getSession()]);
+    const token = session.data?.session?.access_token;
+    const ownerId = before.data?.user?.id;
+    if (before.error || session.error || !ownerId ||
+        session.data?.session?.user?.id !== ownerId || !token)
+      throw new Error("Your administrator session could not be verified. Sign in again.");
     const response = await fetch(path, {
       method,
       headers: {
@@ -69,6 +72,9 @@ export default function AdminStudio() {
     });
     const result = await response.json().catch(() => null);
     if (!response.ok) throw new Error(result?.error || "Studio request failed (" + response.status + ").");
+    const after = await db.auth.getUser();
+    if (after.error || after.data?.user?.id !== ownerId)
+      throw new Error("Your administrator account changed during the request. Reload before continuing.");
     return result;
   }, [db]);
 
