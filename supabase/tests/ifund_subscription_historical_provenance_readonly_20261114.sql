@@ -1,4 +1,6 @@
 -- READ-ONLY provenance audit for staged subscription event migration.
+-- Compatible with pre-migration production schema: optional resource identity
+-- is inspected through to_jsonb rather than referencing an absent column.
 -- Run with a privileged read-only transaction; never infer provider event time
 -- from mutable intent summary timestamps without external reconciliation.
 BEGIN READ ONLY;
@@ -13,11 +15,11 @@ FROM public.ifund_subscription_intents;
 SELECT
   count(*) AS ledger_rows,
   count(*) FILTER (WHERE provider_occurred_at IS NULL) AS missing_provider_event_time,
-  count(*) FILTER (WHERE provider_resource_id IS NULL) AS missing_immutable_resource_id,
-  count(*) FILTER (WHERE entry_type IN ('refund','reversal') AND provider_resource_id IS NULL)
+  count(*) FILTER (WHERE nullif(to_jsonb(l)->>'provider_resource_id','') IS NULL) AS missing_immutable_resource_id,
+  count(*) FILTER (WHERE entry_type IN ('refund','reversal') AND nullif(to_jsonb(l)->>'provider_resource_id','') IS NULL)
     AS reversals_without_resource_id,
   count(*) FILTER (WHERE provider_occurred_at > now()) AS future_provider_event_time
-FROM public.ifund_subscription_ledger;
+FROM public.ifund_subscription_ledger AS l;
 -- Count only, no member or payment identifiers leave the database.
 SELECT count(*) AS intents_with_ledger_time_disagreement
 FROM public.ifund_subscription_intents i
