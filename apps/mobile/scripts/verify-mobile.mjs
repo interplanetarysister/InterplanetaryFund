@@ -60,6 +60,19 @@ assert(pkg.devDependencies?.["@capacitor/assets"] === "4.0.0", "Brand asset gene
 assert(read("apps/mobile/assets/icon.svg") === read("apps/web/assets/icon.svg"),
   "Native icon must be the canonical IFund brand art, not the Base44 app");
 assert(apiTransport.includes('registerPlugin("Share")'), "Native share bridge missing");
+const nativeProfile = read("apps/web/src/lib/memberProfile.js");
+const nativeAvatar = read("apps/web/src/lib/nativeAvatar.js");
+assert(nativeProfile.includes("nativeAvatarRequest(url, request)"),
+  "Native profile image uploader must use bounded authenticated binary transport");
+assert(nativeAvatar.includes('"/api/profile/avatar"') &&
+  nativeAvatar.includes("MAX_AVATAR_BYTES"),
+  "Native avatar endpoint and 2MB binary limits must remain enforced");
+assert(read("apps/web/src/lib/nativeOAuth.js").includes("redirect.pathname !== MOBILE_AUTH_CALLBACK"),
+  "Native social OAuth must require a verified mobile PKCE return route");
+assert(read("apps/web/src/components/auth/OAuthButtons.jsx").includes("VITE_NATIVE_APPLE_SIGNIN_READY"),
+  "iOS social login must remain gated on approved Sign in with Apple");
+assert(read("apps/web/src/pages/Profile.jsx").includes("/support?request=delete-account"),
+  "Members must be able to initiate a tracked deletion request inside the app");
 assert(read("apps/web/src/components/campaigns/CampaignShareButton.jsx").includes("shareWithDevice("),
   "Campaign share sheet is not integrated with native sharing");
 
