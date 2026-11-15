@@ -7,7 +7,7 @@ import Connections from "./Connections";
 export default function ManagePermissions() {
   const location = useLocation();
   const [open,setOpen] = useState(location.pathname === "/connections" ? "platforms" : location.pathname === "/preferences" ? "marketing" : "ai");
-  return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
+  return <div className="mx-auto max-w-5xl space-y-6 px-4 py-8">
     <header className="space-y-2">
       <p className="text-sm font-semibold text-primary">My Account / My Profile</p>
       <h1 className="font-display text-3xl font-bold">Manage iFund Permissions</h1>
@@ -26,5 +26,5 @@ export default function ManagePermissions() {
     </div>}
     {open==="marketing" && <MarketingPreferences/>}
     <p className="text-sm text-muted-foreground">Revoking an iFund preference cannot revoke permissions you granted directly at an external provider; disconnect the account here and check the provider's settings to revoke its authorization.</p>
-  </main>;
+  </div>;
 }
