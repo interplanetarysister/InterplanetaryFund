@@ -22,3 +22,18 @@ test('invalid cursor and unverified response are rejected',async()=>{
  await assert.rejects(readTeamContext({env,jwt,before:'2026-11-15T10:00:00Z'}),/cursor/);
  await assert.rejects(readTeamContext({env,jwt,fetcher:async()=>({ok:true,json:async()=>[{...ownerEvent,agent_id:'other'}]})}),/could not be verified/);
 });
+
+test('valid JWT and ISO cursor reach Supabase without privileged executor header',async()=>{
+ const beforeId='44444444-4444-4444-8444-444444444444';
+ let request;
+ await readTeamContext({env,jwt,before:'2026-11-15T10:00:00Z',beforeId,fetcher:async(url,init)=>{request={url,init};return {ok:true,json:async()=>[]}}});
+ assert.equal(request.url,env.SUPABASE_URL+'/rest/v1/rpc/ifund_team_recent');
+ assert.equal(JSON.parse(request.init.body).p_before_id,beforeId);
+ assert.equal(request.init.headers['x-ifund-workforce-key'],undefined);
+});
+test('missing JWT and invalid calendar cursor fail before network requests',async()=>{
+ let calls=0;const fetcher=async()=>{calls++;throw Error('unexpected network')};
+ await assert.rejects(readTeamContext({env,jwt:'',fetcher}),/token/);
+ await assert.rejects(readTeamContext({env,jwt,before:'not-a-date',beforeId:'44444444-4444-4444-8444-444444444444',fetcher}),/cursor/);
+ assert.equal(calls,0);
+});
