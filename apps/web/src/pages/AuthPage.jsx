@@ -5,6 +5,7 @@ import OAuthButtons from "@/components/auth/OAuthButtons";
 import { authClient } from "@/api/auth";
 import { safeReturnTo } from "@/lib/safeReturnTo";
 import { authRedirectUrl, verifiedAuthUser } from "@/lib/authFlow";
+import { authEmailRedirectOrigin, isNativeBundle } from "@/lib/nativeApi";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { rememberSignupAgreement, finalizeSignupAgreement, recordLegalAcceptance } from "@/lib/legalAcceptance";
 import { enterGuestMode, payoutIdentity } from "@/lib/guestAccess";
@@ -28,6 +29,7 @@ export default function AuthPage({ mode = "login" }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const isNativeApp = isNativeBundle();
   const isRegister = mode === "register";
   const isReset = mode === "forgot-password";
   async function continueAsGuest() {
@@ -58,7 +60,7 @@ export default function AuthPage({ mode = "login" }) {
       const auth = authClient().auth;
       if (isReset && !recoveryCodeSent) {
         const { error: err } = await auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: authRedirectUrl(window.location.origin, afterLogin, true),
+          redirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin, true),
         });
         if (err) throw err;
         setRecoveryCodeSent(true);
@@ -115,12 +117,12 @@ export default function AuthPage({ mode = "login" }) {
           throw new Error("Your passwords do not match.");
         if (current?.user?.is_anonymous) {
           const linked = await auth.updateUser({ email: email.trim() }, {
-            emailRedirectTo: authRedirectUrl(window.location.origin, afterLogin),
+            emailRedirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin),
           });
           if (linked.error) throw linked.error;
           rememberSignupAgreement(sessionStorage, email.trim());
           setConfirmationPending(true);
-          setMessage("Open the confirmation link in your email to finish registration. Your guest account will become an email account. Two-factor setup is not required to post.");
+          setMessage("Open the confirmation link in your email on the secure IFund website. Then return to the app and sign in. Your guest account will become an email account. Two-factor setup is not required to post.");
           return;
         }
         // Store preliminary signup selections only in this tab; not an authorization grant.
@@ -182,7 +184,7 @@ export default function AuthPage({ mode = "login" }) {
         type: "signup",
         email: email.trim(),
         options: {
-          emailRedirectTo: authRedirectUrl(window.location.origin, afterLogin),
+          emailRedirectTo: authRedirectUrl(authEmailRedirectOrigin(window.location.origin), afterLogin),
         },
       });
       if (error) throw error;
