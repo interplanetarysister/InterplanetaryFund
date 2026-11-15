@@ -34,7 +34,7 @@ export default function AnalyticsCenter() {
     <div role="tablist" aria-label="Analytics views" aria-orientation="horizontal" className="flex flex-wrap gap-2">
       {tabs.map(([id,label], index) => <button key={id} type="button" role="tab"
         id={"analytics-tab-"+id} aria-selected={view===id}
-        aria-controls={view===id ? "analytics-"+id : undefined}
+        aria-controls="analytics-panel"
         tabIndex={view===id ? 0 : -1}
         ref={node => { tabRefs.current[index] = node; }}
         onClick={() => setView(id)}
@@ -49,7 +49,7 @@ export default function AnalyticsCenter() {
         {label}
       </button>)}
     </div>
-    <section id={"analytics-"+view} role="tabpanel" tabIndex={0}
+    <section id="analytics-panel" role="tabpanel" tabIndex={0}
       aria-labelledby={"analytics-tab-"+view}>
       {view==="engagement" ? <CampaignEngagement/> : view==="finance" ? <FinanceDashboard/> : <Atlas/>}
     </section>
