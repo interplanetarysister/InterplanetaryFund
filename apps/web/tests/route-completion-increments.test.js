@@ -182,3 +182,17 @@ test("studio requests bind to one administrator identity and reject stale auth c
   assert.match(studio, /after\.data\?\.user\?\.id !== ownerId \|\| generation !== accountGeneration\.current/);
   assert.match(studio, /setPages\(\[\]\); setPage\(null\); setVersions\(\[\]\)/);
 });
+
+test("admin moderation and platform finance links are visible only through authorized navigation", () => {
+  const layout = readFileSync(new URL("../src/components/Layout.jsx", import.meta.url), "utf8");
+  assert.match(layout, /to: "\/admin\/social-moderation", label: "Community Moderation"/);
+  assert.match(layout, /to: "\/admin\/finance", label: "Platform Finance"/);
+  assert.match(layout, /const adminOnly = \[[^\]]*"\/admin\/social-moderation"[^\]]*"\/admin\/finance"/);
+  assert.match(layout, /return !adminOnly \|\| isAdmin \|\| isSuperAdmin/);
+  for (const path of ["/admin/social-moderation", "/admin/finance"]) {
+    const entry = route(path);
+    assert.ok(entry?.includes("<AdminAccess>"), path + " must enforce the member/admin route gate");
+  }
+  assert.match(layout, /to: "\/analytics", label: "Command Center"/,
+    "member analytics stays independent of admin-only finance");
+});
