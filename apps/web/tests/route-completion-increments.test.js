@@ -173,3 +173,12 @@ test("private Atlas campaign reads verify the same confirmed owner on both sides
   assert.match(atlas, /after\.data\?\.user\?\.id !== user\.id/);
   assert.match(atlas, /setOwnerCampaigns\(\{ownerId:user\.id,rows:rows\.map\(mapAtlasCampaign\)\}\)/);
 });
+
+test("studio requests bind to one administrator identity and reject stale auth changes", () => {
+  const studio = page("AdminStudio");
+  assert.match(studio, /const generation = accountGeneration\.current/);
+  assert.match(studio, /db\.auth\.getUser\(\), db\.auth\.getSession\(\)/);
+  assert.match(studio, /session\.data\?\.session\?\.user\?\.id !== ownerId/);
+  assert.match(studio, /after\.data\?\.user\?\.id !== ownerId \|\| generation !== accountGeneration\.current/);
+  assert.match(studio, /setPages\(\[\]\); setPage\(null\); setVersions\(\[\]\)/);
+});
