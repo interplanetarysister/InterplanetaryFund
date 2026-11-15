@@ -88,6 +88,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     if (!ownerId || draftId) return false;
     try { return hasUnclaimedGuestCampaign(sessionStorage); } catch { return true; } // Fail closed when guest ownership cannot be checked.
   });
+  // Defense in depth: the parent keys this editor by verified owner, but an
+  // unexpected no-remount identity transition must still fail closed before
+  // any browser write or AI request can run for the new account.
+  const initialOwnerId = useRef(ownerId);
+  const ownerTransitionPending = initialOwnerId.current !== ownerId;
+  useEffect(() => {
+    if (!ownerTransitionPending) return;
+    setGuestDecisionPending(true);
+    setGuestImportMessage("Your account changed. Reload the campaign editor before importing or saving a browser draft.");
+  }, [ownerId, ownerTransitionPending]);
+  const privacyDecisionPending = guestDecisionPending || ownerTransitionPending;
   const [guestImportMessage, setGuestImportMessage] = useState("");
   const [autosaveError, setAutosaveError] = useState("");
   const [restoredBrief] = useState(() => {
@@ -129,7 +140,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     }
   }
   async function regenerateSection(index) {
-    if (guestDecisionPending || writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
+    if (privacyDecisionPending || writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
     writingLock.current = true;
     setRegeneratingSection(index);
     setSectionError("");
@@ -156,7 +167,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
 
   async function suggestDraft() {
-    if (guestDecisionPending || writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
+    if (privacyDecisionPending || writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
     writingLock.current = true;
     setSuggesting(true); setSuggestionError(""); setWritingQueued(false);
     try {
@@ -182,15 +193,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     // A confirmed account save owns the current form until the user edits it.
     // Autosaving that same form again would recreate a browser copy immediately
     // after cleanup, or erase the retained-copy privacy warning on failure.
-    if (guestDecisionPending || draftId || (saved && campaignId.current === saved)) return;
+    if (privacyDecisionPending || draftId || (saved && campaignId.current === saved)) return;
     try {
       const stored = rememberBrowserCampaign(sessionStorage, ownerId, form, { writingPath, details: draftDetails, beneficiary: draftBeneficiary, need: draftNeed }, { allowBlankOverwrite: userEditedDraft.current });
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
-  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, guestDecisionPending]);
-  const disabled = Boolean(guestDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, privacyDecisionPending]);
+  const disabled = Boolean(privacyDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function decideGuestDraft(importIt) {
+    if (ownerTransitionPending) return; // No consent can bridge two account identities without a remount.
     if (!importIt) {
       setGuestImportMessage("Guest draft kept separately on this device.");
       setGuestDecisionPending(false);
