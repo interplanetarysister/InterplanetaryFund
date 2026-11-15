@@ -54,3 +54,30 @@ export async function appendTeamContext({env,jwt,eventKey,agentId,content,campai
   if(!UUID.test(id||"")) throw Error("The team context receipt could not be verified.");
   return {state:"saved",id};
 }
+
+/**
+ * Same-owner retrieval for any of the nine authorized agents. The caller must
+ * pass the current verified member JWT, never an owner ID supplied by a model.
+ * The database RPC enforces owner and campaign scope, plus deletion tombstones.
+ */
+export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=null,beforeId=null,fetcher=fetch}) {
+  if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled",events:[]};
+  if(!/^[-\\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
+  if(campaignId!==null&&!UUID.test(campaignId)) throw Object.assign(new Error("Invalid campaign reference."),{status:400});
+  if(!Number.isInteger(limit)||limit<1||limit>60) throw Object.assign(new Error("Invalid history page size."),{status:400});
+  if((before===null)!==(beforeId===null)||beforeId!==null&&!UUID.test(beforeId))
+    throw Object.assign(new Error("Invalid history cursor."),{status:400});
+  if(before!==null&&(typeof before!=="string"||!/^\\d{4}-\\d{2}-\\d{2}T/.test(before)||!Number.isFinite(Date.parse(before))))
+    throw Object.assign(new Error("Invalid history cursor."),{status:400});
+  const response=await fetcher(env.SUPABASE_URL+"/rest/v1/rpc/ifund_team_recent",{
+    method:"POST",
+    headers:{"Content-Type":"application/json",apikey:env.SUPABASE_PUBLISHABLE_KEY,Authorization:"Bearer "+jwt},
+    body:JSON.stringify({p_campaign_id:campaignId,p_limit:limit,p_before:before,p_before_id:beforeId}),
+    signal:AbortSignal.timeout(12000)
+  });
+  if(!response.ok) throw Error("Your private team history is temporarily unavailable.");
+  const events=await response.json();
+  if(!Array.isArray(events)||events.length>limit||events.some(e=>!UUID.test(e?.id||"")||!UUID.test(e?.event_key||"")||!TEAM_CONTEXT_AGENTS.includes(e?.agent_id)||!["user","agent"].includes(e?.speaker)||typeof e?.content!=="string"))
+    throw Error("The team history response could not be verified.");
+  return {state:"ready",events};
+}
