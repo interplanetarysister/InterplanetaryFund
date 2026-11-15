@@ -27,7 +27,7 @@ export async function verifiedAuthUser(auth) {
 
 export function legacyAuthCallbackUrl(href) {
   const url = new URL(href);
-  if (["/auth/callback", "/reset-password"].includes(url.pathname) ||
+  if (["/auth/callback", "/auth/mobile-callback", "/reset-password"].includes(url.pathname) ||
       /^\/oauth\/callback\/[a-z_]+\/?$/.test(url.pathname)) return null;
   const fragment = new URLSearchParams(url.hash.slice(1));
   const hasCredentials =
