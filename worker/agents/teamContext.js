@@ -13,7 +13,19 @@ export function redactTeamCredentials(value) {
     // Limit replacement to a URL's code parameter, not ordinary prose using "code".
     // Preserve parameter separators and neighboring state values.
     .replace(/(https?:[/][/][^\s<>"']+|[/][A-Za-z0-9_./%-]+[?][^\s<>"']+)/gi,
-      url => url.replace(/([?#&]code=)([^&#\s]+)/gi, (_part,prefix)=>prefix+'[redacted]'))
+      url => {
+        const normalized=url
+          .replace(/&(?:amp|#0*38|#x0*26);/gi,'&')
+          .replace(/%26/gi,'&')
+          .replace(/%63ode/gi,'code')
+          .replace(/code%3d/gi,'code=');
+        const cleaned=normalized.replace(/([?#&]code=)([^&#\s]+)/gi,
+          (_part,prefix)=>prefix+'[redacted]');
+        // Double encoding or unrecognized callback syntax: fail closed.
+        if (/%25(?:26|3d|63)/i.test(cleaned) && /code/i.test(cleaned))
+          return '[redacted credential URL]';
+        return cleaned;
+      })
     // Escaped JSON embedded in logs or serialized conversation strings.
     .replace(/(\\["'])(?:[A-Za-z0-9_-]*_)?(password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code|code)\1(\s*:\s*)(\\["'])(?:\\.|(?!\\["'])[\s\S])*?\4/gi,
       (_match,quote,key,separator)=>quote+key+quote+separator+'\\"[redacted]\\"')
