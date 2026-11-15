@@ -16,7 +16,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOMAIN = "interplanetaryfund.com";
 const PATHS = [
   "/", "/discover", "/atlas", "/campaign/*", "/social/post/*",
-  "/blogs/*", "/publications/*", "/auth/callback", "/reset-password",
+  "/blogs/*", "/publications/*", "/auth/mobile-callback",
 ];
 export function generateAssociations({ teamId, fingerprint, appId }) {
   if (!/^[A-Z0-9]{10}$/.test(String(teamId || "")) ||
