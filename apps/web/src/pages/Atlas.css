@@ -58,3 +58,14 @@
 @media (prefers-reduced-motion:reduce) {
   .ifund-atlas-shell .globe-controls button { transition:none; }
 }
+
+/* U.S. map markers: accessible interaction against the fixed deep-ocean canvas. */
+.ifund-atlas-shell .ifund-us-pin { cursor:pointer; outline:none; }
+.ifund-atlas-shell .ifund-us-pin-target { pointer-events:all; }
+.ifund-atlas-shell .ifund-us-pin:hover circle:nth-of-type(3),
+.ifund-atlas-shell .ifund-us-pin:focus-visible circle:nth-of-type(3) {
+  stroke:#fff; stroke-width:4;
+}
+.ifund-atlas-shell .ifund-us-pin:focus-visible circle:nth-of-type(2) {
+  stroke:#f2c46d; stroke-width:3;
+}
