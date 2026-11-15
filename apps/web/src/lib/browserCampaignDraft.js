@@ -68,9 +68,14 @@ export function importGuestCampaign(storage, ownerId) {
   if (ownerId == null) return { status: "invalid_owner" };
   const destination = ownerKey(ownerId);
   let guestRaw;
+  let guestSource = ownerKey(null);
   try {
     if (storage.getItem(destination)) return { status: "owner_exists" };
-    guestRaw = storage.getItem(ownerKey(null));
+    guestRaw = storage.getItem(guestSource);
+    if (!guestRaw) {
+      guestSource = KEY;
+      guestRaw = storage.getItem(guestSource);
+    }
   } catch { return { status: "storage_error" }; }
   if (!guestRaw) return { status: "missing_guest" };
   let guest;
@@ -82,7 +87,7 @@ export function importGuestCampaign(storage, ownerId) {
     storage.setItem(destination, JSON.stringify({ ...guest, owner_id: ownerId }));
   } catch { return { status: "write_failed" }; }
   try {
-    storage.removeItem(ownerKey(null));
+    storage.removeItem(guestSource);
   } catch {
     return { status: "imported_guest_retained" };
   }
