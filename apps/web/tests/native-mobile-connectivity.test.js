@@ -18,7 +18,9 @@ test("mobile offline state does not claim that backend or payments are current",
   assert.match(banner, /window\.addEventListener\("online"/);
   assert.match(banner, /fetch\("\/api\/health"/);
   assert.match(banner, /cache: "no-store"/);
-  assert.match(banner, /response\.ok \? "unknown" : "unavailable"/);
+  assert.match(banner, /payload\?\.status === "ok"/);
+  assert.match(banner, /payload\?\.service === "ifund-migration-api"/);
+  assert.match(banner, /setStatus\(healthy \? "unknown" : "unavailable"\)/);
   assert.match(banner, /Changes and payments cannot be confirmed/);
   assert.doesNotMatch(banner, /localStorage|indexedDB|serviceWorker|cache\.put\(/);
 });
