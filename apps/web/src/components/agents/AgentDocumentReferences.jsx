@@ -65,12 +65,23 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
     const {generation,owner,campaignId:activeCampaign}=scope.current;
     if(disabled||!owner||activeCampaign!==campaignId||typeof onInsert!=="function")return;
     try{
+      // A second tab may have revoked this reference after it was loaded.
+      // Refresh authorization immediately before inserting into any draft.
+      const fresh=await loadAgentDocumentBriefs(authClient(),campaignId);
+      const latest=fresh.find(ref=>ref.document_id===item.document_id);
+      if(!latest){
+        if(scope.current.generation===generation){
+          setState({loading:false,items:fresh,error:"Document agent permission changed. The revoked reference was not inserted."});
+        }
+        return;
+      }
       const {data,error}=await authClient().auth.getUser();
       if(error||data?.user?.id!==owner||scope.current.generation!==generation||scope.current.owner!==owner)return;
+      const selected=latest;
       const facts=[
-        item.summary && "Owner summary (unverified): "+item.summary,
-        item.owner_excerpt && "Owner-selected excerpt (unverified): "+item.owner_excerpt,
-        item.extracted_excerpt && "Plain-text file excerpt (unverified): "+item.extracted_excerpt,
+        selected.summary && "Owner summary (unverified): "+selected.summary,
+        selected.owner_excerpt && "Owner-selected excerpt (unverified): "+selected.owner_excerpt,
+        selected.extracted_excerpt && "Plain-text file excerpt (unverified): "+selected.extracted_excerpt,
       ].filter(Boolean).join("\n\n").slice(0,2200);
       onInsert(facts);
     }catch{/* Fail closed on identity errors. */}
