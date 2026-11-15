@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isNativeBundle } from "./nativeApi.js";
 
 // The Cloudflare Worker is the authoritative runtime payment gate.
 // Fail closed on network/configuration errors rather than displaying a live
@@ -6,6 +7,9 @@ import { useEffect, useState } from "react";
 export function usePublicCampaignFundraising() {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {
+    // Store payment methods have not yet cleared native compliance review.
+    // A bundled app may show real balances and receipts, but no local checkout.
+    if (isNativeBundle()) { setEnabled(false); return; }
     let active = true;
     fetch("/api/payments/health", { cache: "no-store" })
       .then(async response => response.ok ? response.json() : null)
