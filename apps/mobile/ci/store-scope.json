@@ -28,7 +28,9 @@
     "/terms",
     "/privacy",
     "/health-privacy",
-    "*"
+    "*",
+    "/dashboard",
+    "/onboarding"
   ],
   "excluded_routes": [
     "/admin",
