@@ -481,6 +481,10 @@ async function subscriptionWebhook(payload,env) {
   const kind=String(payload.event_type||"");
   const id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
     String(payload.resource?.id||"");
+  // A refund with no subscription binding is not a harmless unrelated event:
+  // reject it rather than silently acknowledge an untraceable economic reversal.
+  if((kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED")&&!SUBSCRIPTION_ID.test(id))
+    return asError("subscription_refund_subscription_unverified",409);
   if(!SUBSCRIPTION_ID.test(id))return asJson({ok:true,ignored:true,reason:"no_subscription_reference"});
   if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
   if(kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED"){
