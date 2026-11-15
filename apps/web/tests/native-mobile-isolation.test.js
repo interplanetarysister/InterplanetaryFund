@@ -17,7 +17,13 @@ test("mobile identity is distinct from preserved Base44 package", () => {
 });
 
 test("both new mobile shells share the canonical production service", () => {
-  assert.equal(mobile.server.url, "https://interplanetaryfund.com");
+  assert.equal(mobile.server.url, undefined, "Do not distribute a live-reload WebView");
+  assert.equal(mobile.server.hostname, "localhost");
+  assert.equal(mobile.server.iosScheme, "capacitor");
+  assert.equal(mobile.server.androidScheme, "https");
+  assert.equal(mobile.webDir, "../web/dist");
+  assert.equal(mobile.plugins.CapacitorHttp.enabled, false);
+  assert.match(read("../src/lib/nativeApi.js"), /IFUND_API_ORIGIN = "https:\/\/interplanetaryfund\.com"/);
   assert.equal(mobile.server.cleartext, false);
   assert.equal(mobile.android.allowMixedContent, false);
   assert.ok(packageJson.dependencies["@capacitor/android"]);
