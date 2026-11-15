@@ -44,6 +44,8 @@ create or replace function public.ifund_team_record_user(
 ) returns uuid language plpgsql security definer set search_path='' as $$
 declare actor uuid:=public.ifund_team_member_id(); existing uuid; saved uuid;
 begin
+  -- Only a trusted iFund service can assert which agent received the message.
+  perform ifund_workforce_runtime.require_worker();
   if p_event_key is null or p_agent_id not in ('nexus','echo','pulse','orbit','polaris','forge','link','discover','story')
     or p_content is null or length(btrim(p_content)) not between 1 and 4000 then
     raise exception 'Invalid agent conversation event' using errcode='22023';
