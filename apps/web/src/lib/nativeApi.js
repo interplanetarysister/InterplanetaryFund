@@ -4,9 +4,33 @@
 // must go to the ONE existing Cloudflare HTTPS service, not local file assets.
 // CapacitorHttp performs a native request. No server-side credentials are
 // embedded or invented here. Authorization remains on the canonical server.
-import { Capacitor, CapacitorHttp } from "@capacitor/core";
+import { Capacitor, CapacitorHttp, registerPlugin } from "@capacitor/core";
 
 export const IFUND_API_ORIGIN = "https://interplanetaryfund.com";
+
+const NativeShare = registerPlugin("Share");
+
+// Use the operating system share sheet in real Capacitor apps, not just
+// navigator.share in a potentially restricted WebView. The web remains intact.
+export async function shareWithDevice(payload, adapters = {}) {
+  const cap = adapters.capacitor || Capacitor;
+  const nativeShare = adapters.nativeShare || NativeShare;
+  const navigatorLike = adapters.navigatorLike || globalThis.navigator;
+  const url = new URL(String(payload?.url || ""));
+  if (url.protocol !== "https:" || url.origin !== IFUND_API_ORIGIN ||
+      url.username || url.password) {
+    throw new TypeError("Only public canonical IFund URLs may be shared.");
+  }
+  const data = {
+    title: String(payload?.title || "Interplanetary Fund"),
+    text: String(payload?.text || ""),
+    url: url.href,
+  };
+  if (isNativeBundle(cap)) return nativeShare.share(data);
+  if (navigatorLike && typeof navigatorLike.share === "function")
+    return navigatorLike.share(data);
+  throw new Error("Device sharing is not available.");
+}
 
 export function isNativeBundle(capacitor = Capacitor) {
   return Boolean(capacitor?.isNativePlatform?.());
