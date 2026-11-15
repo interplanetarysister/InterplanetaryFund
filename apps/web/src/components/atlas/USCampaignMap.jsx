@@ -14,7 +14,7 @@ export default function USCampaignMap({ campaigns = [] }) {
   // campaign details from showing after a scope switch or account change.
   const selected=markers.find(row=>row.campaign.id===selectedId)?.campaign||null;
   const outside=campaigns.filter(c=>c.status==="active"&&isApprovedAtlasLocation(c)&&!projectUsPoint(c.latitude,c.longitude)).length;
-  return <section className="ifund-us-map rounded-2xl border border-emerald-500/30 p-4 sm:p-5" aria-label="United States campaign location map">
+  return <section className="ifund-us-map rounded-2xl border border-emerald-500/30 bg-[#0b1928] p-4 text-slate-100 sm:p-5" aria-label="United States campaign location map">
     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">Living Earth · U.S. location overview</p>
@@ -23,7 +23,7 @@ export default function USCampaignMap({ campaigns = [] }) {
       </div>
       <span className="rounded-full border border-emerald-300/30 px-3 py-1 text-sm font-semibold text-emerald-200">{markers.length} plotted</span>
     </div>
-    <svg role="img" aria-label={markers.length+" approved U.S. campaign locations"} viewBox="0 0 960 510" className="block w-full" xmlns="http://www.w3.org/2000/svg">
+    <svg role="group" aria-label={markers.length+" approved U.S. campaign locations"} viewBox="0 0 960 510" className="block w-full" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="us-atlas-sea" x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#102b3b"/><stop offset=".58" stopColor="#092337"/><stop offset="1" stopColor="#17213d"/>
@@ -58,9 +58,9 @@ export default function USCampaignMap({ campaigns = [] }) {
     {outside>0 && <p className="mt-2 text-sm text-slate-300">{outside} approved location{outside===1?" is":"s are"} outside the U.S. view. Switch to Earth globe to see them.</p>}
     {selected && <div className="mt-3 rounded-xl border border-emerald-400/35 bg-emerald-950/20 p-4">
       <h3 className="font-semibold">{selected.title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{selected.location} · approximate</p>
+      <p className="mt-1 text-sm text-slate-300">{selected.location} · approximate</p>
       <Link to={"/campaign/"+encodeURIComponent(selected.id)} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-300 underline">View published campaign</Link>
     </div>}
-    {!markers.length && <p className="mt-3 text-sm text-muted-foreground">No approved U.S. campaign locations yet. Organizers can choose an approximate city area in the campaign editor.</p>}
+    {!markers.length && <p className="mt-3 text-sm text-slate-300">No approved U.S. campaign locations yet. Organizers can choose an approximate city area in the campaign editor.</p>}
   </section>;
 }
