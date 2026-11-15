@@ -4,7 +4,8 @@
  * Capacitor iOS or Android project. This script does not publish domain
  * associations, change the website or edit the legacy Base44 Android app.
  */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -112,6 +113,13 @@ export function configure(platform, targetRoot = root) {
   const projectText = readFileSync(project, "utf8");
   const configured = addIosSigningEntitlements(projectText);
   if (configured !== projectText) writeFileSync(project, configured);
+  const privacyTemplate = resolve(targetRoot, "assets/PrivacyInfo.xcprivacy");
+  const privacyOutput = resolve(targetRoot, "ios/App/App/PrivacyInfo.xcprivacy");
+  if (!existsSync(privacyTemplate))
+    throw new Error("App Privacy manifest template missing; cannot prepare iOS store package.");
+  copyFileSync(privacyTemplate, privacyOutput);
+  execFileSync("ruby", [resolve(targetRoot, "scripts/attach-ios-privacy.rb"),
+    project, privacyOutput], { stdio: "inherit" });
   return path;
 }
 
