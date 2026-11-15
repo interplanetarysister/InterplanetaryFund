@@ -82,26 +82,35 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     if(busy||uploadLock.current||!file||accountBlocked.current||accountLocked)return;
     uploadLock.current=true;
     setBusy(true);setError("");setNotice("");
+    const generation=accountGeneration.current;
     try{
+      const {data:before,error:beforeError}=await authClient().auth.getUser();
+      if(beforeError||before?.user?.id!==ownerId||before?.user?.is_anonymous===true||generation!==accountGeneration.current||accountBlocked.current)return;
       await uploadCampaignDocument(authClient(),campaignId,file,{
         purpose,summary,ownerExcerpt,allowAgentUse:teamAccess
       });
       await reload();
+      if(generation!==accountGeneration.current||accountBlocked.current)return;
       setNotice("Private document uploaded. It is not visible to campaign visitors.");
       setFile(null);setSummary("");setOwnerExcerpt("");setPurpose("general");setTeamAccess(false);
       if(fileInputRef.current)fileInputRef.current.value="";
-    }catch(e){setError(e.message||"Upload failed.");}
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Upload failed.");}
     finally{uploadLock.current=false;setBusy(false);}
   }
   async function saveAccess(row){
     if(busy||accountBlocked.current||accountLocked)return;
+    const generation=accountGeneration.current;
     setBusy(true);setError("");setNotice("");
     try{
+      const {data:before,error:beforeError}=await authClient().auth.getUser();
+      if(beforeError||before?.user?.id!==ownerId||generation!==accountGeneration.current||accountBlocked.current)return;
       await updateDocumentAgentAccess(authClient(),campaignId,row,{
         allowAgentUse:draft.allowAgentUse,summary:draft.summary,ownerExcerpt:draft.ownerExcerpt,purpose:draft.purpose
       });
-      await reload();setEditing(null);setNotice("Agent reference settings updated.");
-    }catch(e){setError(e.message||"Document settings were not saved.");}
+      await reload();
+      if(generation!==accountGeneration.current||accountBlocked.current)return;
+      setEditing(null);setNotice("Agent reference settings updated.");
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Document settings were not saved.");}
     finally{setBusy(false);}
   }
   async function download(row){
@@ -117,17 +126,22 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       link.href=objectUrl;link.download=row.file_name;link.rel="noopener";
       document.body.appendChild(link);link.click();link.remove();
       setTimeout(()=>URL.revokeObjectURL(objectUrl),30000);
-    }catch(e){setError(e.message||"The file could not be downloaded.");}
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"The file could not be downloaded.");}
     finally{setBusy(false);}
   }
   async function remove(row){
     if(busy||accountBlocked.current||accountLocked)return;
     if(!window.confirm(`Remove "${row.file_name}" from your private campaign documents?`))return;
+    const generation=accountGeneration.current;
     setBusy(true);setError("");setNotice("");
     try{
+      const {data:before,error:beforeError}=await authClient().auth.getUser();
+      if(beforeError||before?.user?.id!==ownerId||generation!==accountGeneration.current||accountBlocked.current)return;
       await removeCampaignDocument(authClient(),campaignId,row);
-      await reload();setNotice("Document removed from your campaign library.");
-    }catch(e){setError(e.message||"The document could not be removed.");}
+      await reload();
+      if(generation!==accountGeneration.current||accountBlocked.current)return;
+      setNotice("Document removed from your campaign library.");
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"The document could not be removed.");}
     finally{setBusy(false);}
   }
 
