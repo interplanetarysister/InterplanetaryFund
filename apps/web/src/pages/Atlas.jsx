@@ -67,7 +67,7 @@ export default function Atlas() {
       }
     })();
     return () => { alive = false; };
-  }, [scope, sessionStatus, user?.id, user?.is_anonymous, reload]);
+  }, [scope, sessionStatus, user?.id, user?.is_anonymous, user?.email_confirmed_at, reload]);
 
   // Account scope is only ever populated by the server-verified owner read.
   // Unpublished campaigns can appear in the PRIVATE grid, not public globe pins.
