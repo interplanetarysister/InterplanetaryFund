@@ -47,6 +47,8 @@ export default function AdminStudio() {
   const [dragged, setDragged] = useState(null);
   const dirtyRef = useRef(false);
   const selectedPageId = useRef(null);
+  // Offset counts actual backend rows, not the locally inserted/edited page list.
+  const serverPageOffset = useRef(0);
   const blocks = page?.content?.blocks || [];
 
   useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
@@ -75,6 +77,7 @@ export default function AdminStudio() {
     setError("");
     try {
       const rows = await api("/api/studio/pages?limit=100&offset=0");
+      serverPageOffset.current = rows.length;
       setPages(rows);
       setHasMore(rows.length === 100);
       const selectedId = selectedPageId.current;
@@ -196,7 +199,8 @@ export default function AdminStudio() {
     if (loadingMore || busy || !hasMore) return;
     setLoadingMore(true);
     try {
-      const rows = await api("/api/studio/pages?limit=100&offset=" + pages.length);
+      const rows = await api("/api/studio/pages?limit=100&offset=" + serverPageOffset.current);
+      serverPageOffset.current += rows.length;
       setPages((current) => [...current, ...rows.filter((row) => !current.some((old) => old.id === row.id))]);
       setHasMore(rows.length === 100);
     } catch (err) { setError(err.message); }
