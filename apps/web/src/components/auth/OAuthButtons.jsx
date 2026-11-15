@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { authClient } from "@/api/auth";
 import { configuredProviders, startOAuthSignIn } from "@/lib/oauthProviders";
+import { isNativeBundle } from "@/lib/nativeApi";
 
 // Rendered only when at least one provider is configured for this build, so a
 // deployment without social sign-in shows no dead controls.
@@ -9,6 +10,14 @@ export default function OAuthButtons({ returnTo, onError, disabled = false }) {
     import.meta.env.VITE_SUPABASE_OAUTH_PROVIDERS,
   );
   const [busy, setBusy] = useState("");
+  // A bundled WebView must not begin an OAuth flow that returns to a separate
+  // browser session until native app/universal link handling is verified.
+  if (isNativeBundle()) return (
+    <p className="mt-5 text-sm text-slate-300" role="status">
+      Social sign-in is available on the IFund website. In this app, use your email
+      and password to access the same account and live campaigns.
+    </p>
+  );
   if (providers.length === 0) return null;
 
   async function begin(provider) {
