@@ -14,6 +14,7 @@ export default function Privacy() {
         <h2 className="text-lg font-semibold">{section.title}</h2>
         {section.paragraphs.map((p,i) => <p key={i} className="text-sm leading-7 text-foreground">{p}</p>)}
       </section>)}
+      <div className="rounded-xl border border-border bg-card p-4 text-sm">To permanently delete your IFund account and eligible associated personal data, visit <Link to="/delete-account" className="font-semibold text-primary underline">Account deletion</Link>. This starts a direct verified deletion request; legally required financial and dispute records may be retained.</div>
       <div className="text-sm"><Link to="/health-privacy" className="text-primary underline">Consumer Health Data Privacy Notice</Link> — for illness, injury, treatment or other health information in campaigns.</div>
       <div className="border-t border-border pt-4 text-sm">Read: <Link to="/terms" className="text-primary underline">Terms of Service</Link> · Questions: <a href={`mailto:${LEGAL_CONTACT}`} className="underline">{LEGAL_CONTACT}</a></div>
     </article>
