@@ -171,6 +171,7 @@ Deno.serve(async req=>{
         ||typeof p.paypal_product_id!=="string"||p.paypal_product_id.length<6
         ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1
         ||typeof p.plan_ready!=="boolean"||typeof p.webhook_ready!=="boolean"
+        ||(p.webhook_ready===true && (typeof p.paypal_webhook_id!=="string" || p.paypal_webhook_id.length<8))
         ||(p.paypal_webhook_id!==null&&p.paypal_webhook_id!==undefined&&
           (typeof p.paypal_webhook_id!=="string"||p.paypal_webhook_id.length<8)))
         return fail("Invalid subscription provider readiness");
