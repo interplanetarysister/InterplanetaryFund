@@ -45,6 +45,7 @@ jobs:
           npm install --package-lock-only --no-audit --no-fund
           npm ci --no-audit --no-fund
           npx cap add ios
+          node scripts/configure-native-project.mjs ios
           npx @capacitor/assets generate --ios --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync ios
       - name: Confirm independent bundle identity
