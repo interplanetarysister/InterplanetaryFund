@@ -218,3 +218,15 @@ test("help editor prevents changing the target topic while a revision is saving"
   assert.match(helpEditor, /setBusy\(true\); setError\(""\); setNotice\(""\)/);
   assert.match(helpEditor, /finally \{ setBusy\(false\); \}/);
 });
+
+test("member analytics tabs support roving focus and directional keyboard navigation", () => {
+  const analytics = page("AnalyticsCenter");
+  for (const key of ["ArrowRight", "ArrowLeft", "Home", "End"]) {
+    assert.ok(analytics.includes('key === "' + key + '"'));
+  }
+  assert.match(analytics, /tabIndex=\{view===id \? 0 : -1\}/);
+  assert.match(analytics, /tabRefs\.current\[next\]\?\.focus\(\)/);
+  assert.match(analytics, /role="tabpanel" tabIndex=\{0\}/);
+  assert.match(analytics, /aria-labelledby=\{"analytics-tab-"\+view\}/);
+  assert.match(analytics, /event\.preventDefault\(\)/);
+});
