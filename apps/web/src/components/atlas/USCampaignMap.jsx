@@ -46,6 +46,7 @@ export default function USCampaignMap({ campaigns = [] }) {
         onClick={()=>setSelectedKey(key)}
         onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedKey(key);}}}
         transform={`translate(${point.x} ${point.y})`}>
+        <circle r="22" fill="transparent" className="ifund-us-pin-target"/>
         <circle r="18" fill="#6de5b1" fillOpacity=".18"/>
         <circle r="12" fill="#081f2c" stroke="#8ffff0" strokeWidth="2.5"/>
         <text y="4.5" textAnchor="middle" fontSize="12" fontWeight="700" fill="#e3fff3">{items.length}</text>
