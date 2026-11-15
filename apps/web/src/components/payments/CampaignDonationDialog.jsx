@@ -5,6 +5,7 @@ import { paymentQuoteCents } from "@/lib/paymentQuote";
 import GooglePayDonationButton from "./GooglePayDonationButton";
 import { authClient } from "@/api/auth";
 import { Link } from "react-router-dom";
+import { isNativeBundle } from "@/lib/nativeApi";
 
 // PayPal-hosted card fields; no cardholder PAN/CVV touches iFund.
 let sdkPromise, sdkClient;
@@ -43,6 +44,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
   const paypalHost=useRef(null), nameHost=useRef(null),numberHost=useRef(null),expiryHost=useRef(null),cvvHost=useRef(null);
   const cardSession=useRef(null), tokens=useRef(new Map()), keys=useRef(new Map()), checkoutTokens=useRef(new Map()), latestPaid=useRef(onPaid);
   useEffect(()=>{latestPaid.current=onPaid;});
+  const nativeCheckoutUnavailable = isNativeBundle();
   const checkoutLocked=status==="capturing"||complete;
   const gift=Math.round(Number(amount)*100);
   const valid=Number.isSafeInteger(gift)&&gift>=100&&gift<=100000000;
@@ -93,6 +95,9 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
     tokens.current.delete(id);setComplete(true);setStatus("complete");latestPaid.current?.(result);
   };
   useEffect(()=>{
+    // Do not load PayPal buttons or hosted card fields inside an unapproved
+    // native store build. The website checkout remains unchanged.
+    if(nativeCheckoutUnavailable)return;
     if(!open||!valid||!campaign?.id||campaign.status!=="active"||campaign.preview_only)return;
     let cancelled=false,buttons=null;
     setError("");setStatus("loading");setEligible(null);
@@ -141,7 +146,30 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         try{node?.replaceChildren();}catch(_){}
       }
     };
-  },[open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid]);
+  },[nativeCheckoutUnavailable,open,campaign?.id,campaign?.status,campaign?.preview_only,gift,tip,valid]);
+  // Native payment eligibility remains provider- and store-policy gated.
+  // Preserve access to financial history while preventing an unusable PayPal
+  // iframe or a misleading payment success state inside the native shell.
+  if (nativeCheckoutUnavailable) return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md bg-white p-6 text-slate-900">
+        <DialogHeader>
+          <DialogTitle>Mobile donations are not available yet</DialogTitle>
+          <DialogDescription>
+            This app cannot begin or complete a donation until its payment flow
+            has passed the required app-store and provider checks. No payment
+            was started or recorded.
+          </DialogDescription>
+        </DialogHeader>
+        <p className="text-sm text-slate-700" role="status">
+          Your existing campaign and giving records remain available through
+          your signed-in account.
+        </p>
+        <Link to="/giving" className="inline-flex min-h-11 items-center rounded-lg
+          bg-slate-900 px-4 py-2 text-sm font-semibold text-white">View My Giving</Link>
+      </DialogContent>
+    </Dialog>
+  );
   const field="min-h-12 w-full rounded-lg border border-slate-300 bg-white px-3 py-2";
   return <Dialog open={open} onOpenChange={value=>{
     if(!value&&status==="capturing")return;
