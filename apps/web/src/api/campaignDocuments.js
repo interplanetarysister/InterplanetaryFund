@@ -93,6 +93,9 @@ export async function uploadCampaignDocument(client,campaignId,file,{
   if(file.type.startsWith("text/")){
     extracted=(await file.slice(0,12000).text()).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g," ").slice(0,6000);
   }
+  // File inspection and text extraction are asynchronous. Fail closed if the
+  // authenticated account changed before any private Storage write begins.
+  await unchanged(client,userId);
   const storage=client.storage.from(DOCUMENT_BUCKET);
   const {data:uploaded,error:uploadError}=await storage.upload(path,file,{
     contentType:file.type,cacheControl:"0",upsert:false
