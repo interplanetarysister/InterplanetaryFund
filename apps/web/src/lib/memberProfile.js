@@ -1,4 +1,6 @@
 import { authClient } from "@/api/auth";
+import { isNativeBundle } from "./nativeApi.js";
+import { nativeAvatarRequest } from "./nativeAvatar.js";
 
 export const MEMBER_ID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 export const avatarUrl = (id, key) => `/api/profile/avatar?id=${encodeURIComponent(id)}&key=${encodeURIComponent(key)}`;
@@ -37,10 +39,13 @@ export async function getPublicProfile(id) {
 export async function profilePhotoRequest(url, options = {}) {
   const { data } = await authClient().auth.getSession();
   if (!data?.session?.access_token) throw new Error("Sign in to manage your photo.");
-  const response = await fetch(url, {
+  const request = {
     ...options,
     headers: { authorization: `Bearer ${data.session.access_token}` },
-  });
+  };
+  const response = isNativeBundle()
+    ? await nativeAvatarRequest(url, request)
+    : await fetch(url, request);
   if (!response.ok) {
     const message = await response.json().catch(() => null);
     throw new Error(message?.error || "Your profile photo could not be loaded.");
