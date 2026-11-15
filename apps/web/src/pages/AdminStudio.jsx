@@ -49,12 +49,25 @@ export default function AdminStudio() {
   const selectedPageId = useRef(null);
   // Offset counts actual backend rows, not the locally inserted/edited page list.
   const serverPageOffset = useRef(0);
+  const accountGeneration = useRef(0);
+  useEffect(() => {
+    const { data } = db.auth.onAuthStateChange((event) => {
+      if (!["SIGNED_OUT", "SIGNED_IN", "USER_UPDATED"].includes(event)) return;
+      accountGeneration.current += 1;
+      setPages([]); setPage(null); setVersions([]);
+      setHasMore(false); setDirty(false); setAiEnabled(false);
+      setNotice("");
+      setError("Your account session changed. Refresh to verify Studio access before continuing.");
+    });
+    return () => data?.subscription?.unsubscribe();
+  }, [db]);
   const blocks = page?.content?.blocks || [];
 
   useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
   useEffect(() => { selectedPageId.current = page?.id || null; }, [page?.id]);
 
   const api = useCallback(async (path, method = "GET", body, extraHeaders = {}) => {
+    const generation = accountGeneration.current;
     const [before, session] = await Promise.all([db.auth.getUser(), db.auth.getSession()]);
     const token = session.data?.session?.access_token;
     const ownerId = before.data?.user?.id;
@@ -73,7 +86,7 @@ export default function AdminStudio() {
     const result = await response.json().catch(() => null);
     if (!response.ok) throw new Error(result?.error || "Studio request failed (" + response.status + ").");
     const after = await db.auth.getUser();
-    if (after.error || after.data?.user?.id !== ownerId)
+    if (after.error || after.data?.user?.id !== ownerId || generation !== accountGeneration.current)
       throw new Error("Your administrator account changed during the request. Reload before continuing.");
     return result;
   }, [db]);
