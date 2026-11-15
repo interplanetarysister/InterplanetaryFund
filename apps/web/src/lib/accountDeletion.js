@@ -17,8 +17,8 @@ export async function requestAccountDeletion(client=authClient()){
 }
 export async function getMyAccountDeletionRequests(client=authClient()){
   const {data:auth,error:identityError}=await client.auth.getUser();
-  if(identityError||!auth?.user?.id||auth.user.is_anonymous ||
-     !auth.user.email_confirmed_at)
+  if(identityError||!auth?.user?.id||
+     (!auth.user.is_anonymous && !auth.user.email_confirmed_at))
     throw new Error("An authenticated account or guest session is required to view deletion requests.");
   const {data,error}=await client.rpc("ifund_my_account_deletion_requests");
   if(error||!Array.isArray(data))
