@@ -2,17 +2,15 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { projectUsPoint, mainlandOutlinePath, US_REGIONS } from "@/lib/usAtlasProjection.mjs";
 import { isApprovedAtlasLocation } from "@/lib/atlasLocations.mjs";
+import { groupUSCampaignMarkers } from "@/lib/usAtlasClusters.mjs";
 
 /** Public-safe, vendor-free geographic schematic. No inference or geocoding. */
 export default function USCampaignMap({ campaigns = [] }) {
-  const [selectedId,setSelectedId]=useState(null);
-  const markers=useMemo(()=>campaigns
-    .filter(c=>c.status==="active"&&isApprovedAtlasLocation(c))
-    .map(c=>({campaign:c,point:projectUsPoint(c.latitude,c.longitude)}))
-    .filter(entry=>entry.point),[campaigns]);
-  // Selection is recalculated only from current props, preventing cached owner
-  // campaign details from showing after a scope switch or account change.
-  const selected=markers.find(row=>row.campaign.id===selectedId)?.campaign||null;
+  const [selectedKey,setSelectedKey]=useState(null);
+  const clusters=useMemo(()=>groupUSCampaignMarkers(campaigns),[campaigns]);
+  const plotted=clusters.reduce((sum,cluster)=>sum+cluster.campaigns.length,0);
+  // Derive selection from current props to prevent cross-owner data persistence.
+  const selected=clusters.find(cluster=>cluster.key===selectedKey)||null;
   const outside=campaigns.filter(c=>c.status==="active"&&isApprovedAtlasLocation(c)&&!projectUsPoint(c.latitude,c.longitude)).length;
   return <section className="ifund-us-map rounded-2xl border border-emerald-500/30 bg-[#0b1928] p-4 text-slate-100 sm:p-5" aria-label="United States campaign location map">
     <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
@@ -21,9 +19,9 @@ export default function USCampaignMap({ campaigns = [] }) {
         <h2 className="mt-1 text-xl font-semibold">Campaigns across America</h2>
         <p className="mt-1 text-xs text-slate-300">Schematic latitude/longitude layout with separate Alaska and Hawaii insets. For approximate campaign discovery, not navigation.</p>
       </div>
-      <span className="rounded-full border border-emerald-300/30 px-3 py-1 text-sm font-semibold text-emerald-200">{markers.length} plotted</span>
+      <span className="rounded-full border border-emerald-300/30 px-3 py-1 text-sm font-semibold text-emerald-200">{plotted} plotted</span>
     </div>
-    <svg role="group" aria-label={markers.length+" approved U.S. campaign locations"} viewBox="0 0 960 510" className="block w-full" xmlns="http://www.w3.org/2000/svg">
+    <svg role="group" aria-label={plotted+" approved U.S. campaigns at "+clusters.length+" locations"} viewBox="0 0 960 510" className="block w-full" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="us-atlas-sea" x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#102b3b"/><stop offset=".58" stopColor="#092337"/><stop offset="1" stopColor="#17213d"/>
@@ -43,24 +41,25 @@ export default function USCampaignMap({ campaigns = [] }) {
         <rect x={r.view.x} y={r.view.y} width={r.view.w} height={r.view.h} rx="14" fill="#1a3e4b" fillOpacity=".62" stroke="#71bba8" strokeOpacity=".4" strokeWidth="1.4"/>
         <text x={r.view.x+12} y={r.view.y+22} fontSize="14" fill="#c3f2de" fontWeight="600">{r.name}</text>
       </g>)}
-      {markers.map(({campaign,point})=><g key={campaign.id} role="button" tabIndex={0} className="ifund-us-pin"
-        aria-label={"Select "+campaign.title+" in "+campaign.location}
-        onClick={()=>setSelectedId(campaign.id)}
-        onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedId(campaign.id);}}}
+      {clusters.map(({key,point,campaigns:items})=><g key={key} role="button" tabIndex={0} className="ifund-us-pin"
+        aria-label={"Select "+items.length+" campaign"+(items.length===1?"":"s")+" near "+items[0].location}
+        onClick={()=>setSelectedKey(key)}
+        onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedKey(key);}}}
         transform={`translate(${point.x} ${point.y})`}>
-        <circle r="14" fill="#6de5b1" fillOpacity=".16"/>
-        <circle r="7.5" fill="#081f2c" stroke="#8ffff0" strokeWidth="2.5"/>
-        <circle r="2.5" fill="#d5fff5"/>
-        <title>{campaign.title} — {campaign.location}</title>
+        <circle r="18" fill="#6de5b1" fillOpacity=".18"/>
+        <circle r="12" fill="#081f2c" stroke="#8ffff0" strokeWidth="2.5"/>
+        <text y="4.5" textAnchor="middle" fontSize="12" fontWeight="700" fill="#e3fff3">{items.length}</text>
+        <title>{items.length} campaign{items.length===1?"":"s"} — {items[0].location}</title>
       </g>)}
       <text x="930" y="494" textAnchor="end" fill="#b5cbd1" fontSize="11">Approximate organizer-approved locations · schematic</text>
     </svg>
     {outside>0 && <p className="mt-2 text-sm text-slate-300">{outside} approved location{outside===1?" is":"s are"} outside the U.S. view. Switch to Earth globe to see them.</p>}
     {selected && <div className="mt-3 rounded-xl border border-emerald-400/35 bg-emerald-950/20 p-4">
-      <h3 className="font-semibold">{selected.title}</h3>
-      <p className="mt-1 text-sm text-slate-300">{selected.location} · approximate</p>
-      <Link to={"/campaign/"+encodeURIComponent(selected.id)} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-emerald-300 underline">View published campaign</Link>
+      <h3 className="font-semibold">{selected.campaigns.length} campaign{selected.campaigns.length===1?"":"s"} near {selected.campaigns[0].location}</h3>
+      <ul className="mt-2 space-y-2">{selected.campaigns.map(c=><li key={c.id}>
+        <Link to={"/campaign/"+encodeURIComponent(c.id)} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-300 underline">{c.title}</Link>
+      </li>)}</ul>
     </div>}
-    {!markers.length && <p className="mt-3 text-sm text-slate-300">No approved U.S. campaign locations yet. Organizers can choose an approximate city area in the campaign editor.</p>}
+    {!plotted && <p className="mt-3 text-sm text-slate-300">No approved U.S. campaign locations yet. Organizers can choose an approximate city area in the campaign editor.</p>}
   </section>;
 }
