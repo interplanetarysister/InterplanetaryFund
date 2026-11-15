@@ -5,7 +5,7 @@ import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
-import { TRAINING_ROLES, TRAINING_VERSION, recommendAgent } from "@/lib/agentTrainingDirectory.mjs";
+import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
 
 const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent => agent.identity);
 /**
@@ -17,7 +17,7 @@ export default function AgentsTeam() {
   const [selected, setSelected] = useState(null);
   const [showWriting, setShowWriting] = useState(false);
   const [agentQuestion, setAgentQuestion] = useState("");
-  const recommendation = agentQuestion.trim() ? recommendAgent(agentQuestion) : null;
+  const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
   return <div className="mx-auto max-w-5xl space-y-6 px-4 pb-24 pt-6 sm:px-7">
     <header>
@@ -27,12 +27,13 @@ export default function AgentsTeam() {
     </header>
     <section className="rounded-2xl border border-border bg-card p-5" aria-label="Find the right specialist">
       <h2 className="text-lg font-semibold">Who should I talk to?</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Describe what you need. We'll identify the relevant specialist without sending your question or sharing private campaign data.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Describe what you need. Agents on your iFund team may use the conversation context stored for your account. This finder does not itself send any message.</p>
       <label className="mt-3 block text-sm font-medium" htmlFor="agent-specialist-question">Your question</label>
       <input id="agent-specialist-question" value={agentQuestion} onChange={e => setAgentQuestion(e.target.value)} placeholder="For example: How should I explain my spending plan in the story?" className="mt-2 min-h-11 w-full rounded-xl border border-border bg-background px-3 text-foreground" />
       {recommendation && <div className="mt-3 rounded-xl border border-border p-3" aria-live="polite">
         <p className="text-sm">Suggested specialist: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
-        <p className="mt-1 text-xs text-muted-foreground">Recommendation only; choosing an agent does not create a conversation or transfer your question.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Your team can reuse your account's shared context. This recommendation does not itself start a specialist conversation.</p>
+        {recommendation.requiresCoordination && <p className="mt-1 text-xs text-muted-foreground">Relevant specialists: {recommendation.topics.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>}
         <button type="button" onClick={() => {setSelected(recommendation.target);setShowWriting(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">View {AGENT_IDENTITIES[recommendation.target]?.name}</button>
       </div>}
       <p className="mt-2 text-xs text-muted-foreground">Shared specialty directory: {TRAINING_VERSION}. Services remain limited to their verified tool permissions.</p>
