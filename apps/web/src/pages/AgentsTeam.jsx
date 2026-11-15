@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import StoryAgent from "./StoryAgent";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
+import TeamConversationHistory from "@/components/agents/TeamConversationHistory";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
@@ -64,6 +65,7 @@ export default function AgentsTeam() {
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => setSelected(null)}>Return to team</button>
     </section>}
     <EditorialAgentQueue />
+    <TeamConversationHistory />
     <section className="rounded-2xl border border-border bg-card p-5">
       <h2 className="text-lg font-semibold">Available AI writing workspace</h2>
       <p className="mt-2 text-sm text-muted-foreground">The existing Story Agent can create private campaign writing suggestions. Standalone specialist chat is still undergoing individual verification.</p>
