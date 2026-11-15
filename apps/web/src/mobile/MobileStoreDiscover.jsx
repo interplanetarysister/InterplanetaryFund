@@ -15,6 +15,7 @@ export default function MobileStoreDiscover() {
   const [organizerIds,setOrganizerIds]=useState(new Map());
   const [blockedIds,setBlockedIds]=useState([]);
   const [blockState,setBlockState]=useState("loading");
+  const [checkedFor,setCheckedFor]=useState(null);
   const [phase,setPhase]=useState("loading");
   const [error,setError]=useState("");
   const [search,setSearch]=useState("");
@@ -41,9 +42,10 @@ export default function MobileStoreDiscover() {
   },[reload]);
   useEffect(()=>{
     let active=true;
+    setCheckedFor(null);
     if(sessionStatus==="loading"){setBlockState("loading");return()=>{active=false;};}
     if(!user?.id||user.is_anonymous){
-      setOrganizerIds(new Map());setBlockedIds([]);setBlockState("ready");
+      setOrganizerIds(new Map());setBlockedIds([]);setCheckedFor("guest");setBlockState("ready");
       return()=>{active=false;};
     }
     setBlockState("loading");
@@ -52,7 +54,7 @@ export default function MobileStoreDiscover() {
       verifiedOrganizersForCampaigns(campaigns.map(row=>row.id)),
     ]).then(([blocks,owners])=>{
       if(!active)return;
-      setBlockedIds(blocks);setOrganizerIds(owners);setBlockState("ready");
+      setBlockedIds(blocks);setOrganizerIds(owners);setCheckedFor(user.id);setBlockState("ready");
     }).catch(()=>{
       // Never bypass a previously configured block because Supabase failed.
       if(active){setOrganizerIds(new Map());setBlockedIds([]);setBlockState("error");}
@@ -65,6 +67,7 @@ export default function MobileStoreDiscover() {
     [row.title,row.summary,row.category,row.location].join(" ")
       .toLowerCase().includes(search.trim().toLowerCase())),
     [campaigns,hidden,search,organizerIds,blockedIds]);
+  const matchingIdentity=checkedFor===(user?.id && !user.is_anonymous ? user.id : "guest");
   function resetHidden(){setHidden([]);try{localStorage.removeItem("ifund-mobile-hidden-campaigns");}catch{}}
   return <div className="space-y-6">
     <header className="space-y-3">
@@ -87,7 +90,7 @@ export default function MobileStoreDiscover() {
       <button type="button" className="min-h-11 rounded-lg border px-4" onClick={()=>setReload(n=>n+1)}>Try again</button>
     </section>}
     {phase==="ready" && sessionStatus==="loading" && <p role="status">Verifying your account preferences…</p>}
-    {phase==="ready" && sessionStatus!=="loading" && blockState==="loading" &&
+    {phase==="ready" && sessionStatus!=="loading" && (blockState==="loading" || !matchingIdentity) &&
       <p role="status">Applying your organizer safety settings…</p>}
     {phase==="ready" && blockState==="error" && <section role="alert"
       className="space-y-3 rounded-xl border border-amber-300/40 p-5">
@@ -95,7 +98,7 @@ export default function MobileStoreDiscover() {
       <button type="button" onClick={()=>setReload(n=>n+1)}
         className="min-h-11 rounded-lg border px-4">Retry safety check</button>
     </section>}
-    {phase==="ready"&&sessionStatus!=="loading"&&blockState==="ready"&&<section aria-label="Published campaigns" className="space-y-4">
+    {phase==="ready"&&sessionStatus!=="loading"&&blockState==="ready"&&matchingIdentity&&<section aria-label="Published campaigns" className="space-y-4">
       <p className="text-sm text-slate-300" aria-live="polite">{visible.length} campaigns matching your filters</p>
       {!visible.length&&<p className="rounded-xl border border-white/15 p-5 text-sm text-slate-300">
         No published campaigns match this search. Try different words or clear hidden campaigns.
