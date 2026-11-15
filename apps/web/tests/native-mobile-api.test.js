@@ -108,6 +108,18 @@ test("native confirmation and recovery return to the same verified HTTPS account
   assert.equal(authEmailRedirectOrigin("http://localhost:5173", web), "http://localhost:5173");
 });
 
+test("native API callers can stop waiting for an in-flight request", async () => {
+  const controller = new AbortController();
+  let resolveRequest;
+  const http = { request: () => new Promise(resolve => { resolveRequest = resolve; }) };
+  const pending = ifundApiFetch("/api/health", { signal: controller.signal },
+    { capacitor: native, http });
+  controller.abort();
+  await assert.rejects(pending, { name: "AbortError" });
+  // The native socket may still finish; a late result must not report success.
+  resolveRequest({ status: 200, data: { ok: true }, headers: {} });
+});
+
 test("native system sharing rejects off-site and local WebView URLs", async () => {
   let shared;
   const nativeShare = { share: async args => { shared = args; return {}; } };
@@ -118,6 +130,13 @@ test("native system sharing rejects off-site and local WebView URLs", async () =
     { capacitor: native, nativeShare }), TypeError);
   await assert.rejects(() => shareWithDevice({ url: "https://fraud.invalid/phishing" },
     { capacitor: native, nativeShare }), TypeError);
+  for (const bad of [
+    IFUND_API_ORIGIN + "/campaign/123?token_hash=secret",
+    IFUND_API_ORIGIN + "/campaign/123#access_token=secret",
+  ]) {
+    await assert.rejects(() => shareWithDevice({ url: bad },
+      { capacitor: native, nativeShare }), TypeError);
+  }
 });
 
 test("unapproved native payment writes fail closed before contacting providers", async () => {
