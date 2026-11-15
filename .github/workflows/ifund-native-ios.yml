@@ -32,7 +32,7 @@ jobs:
         working-directory: apps/web
         env:
           VITE_SUPABASE_URL: https://ssibsfmtodgximseeqsv.supabase.co
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_x9AX2hyHLr_kb2mewuH69Q_T66poFyL' }}
         run: |
           test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" || { echo "Missing canonical publishable build variable"; exit 1; }
           npm ci --no-audit --no-fund
