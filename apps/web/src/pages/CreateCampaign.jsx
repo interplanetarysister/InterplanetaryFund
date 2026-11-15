@@ -306,6 +306,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         } catch { throw new Error("Browser storage is unavailable. Copy your draft before leaving."); }
         return;
       }
+      // A verified account can change while this editor is mounted (for example,
+      // another tab signs out and a different account signs in). Never save
+      // the previous account's private form under the newly active identity.
+      if (!ownerId || user.id !== ownerId) {
+        setError("Your account changed while editing. Copy any unsaved changes, then reload the campaign editor before saving.");
+        return;
+      }
       const problems = validateCampaignForm(form, { publish: status === "active" });
       if (problems.length) { setError(problems[0]); return; }
       const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status, expectedStatus: "draft" });
