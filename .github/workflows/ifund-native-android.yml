@@ -42,6 +42,7 @@ jobs:
           npm install --package-lock-only --legacy-peer-deps --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add android
+          node scripts/verify-android-sdk.mjs
           node scripts/configure-native-project.mjs android
           npx @capacitor/assets generate --android --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync android
