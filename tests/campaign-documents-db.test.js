@@ -8,6 +8,7 @@ async function fixture(){
  const db=new PGlite();
  await db.exec(`
   create role anon;create role authenticated;create schema auth;create schema storage;
+  grant usage on schema auth,storage to anon,authenticated;
   create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
   create function auth.jwt() returns jsonb language sql stable as $$ select jsonb_build_object('sub',current_setting('request.jwt.claim.sub',true),'is_anonymous',false) $$;
   create table auth.users(id uuid primary key,email_confirmed_at timestamptz);
