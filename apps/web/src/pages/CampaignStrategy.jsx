@@ -5,6 +5,7 @@ import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
 import { reviewCampaignWideEditorial } from "@/lib/campaignEditorialImprovements.mjs";
 import CampaignBudgetPlanner from "@/components/agents/CampaignBudgetPlanner";
+import AgentDocumentReferences from "@/components/agents/AgentDocumentReferences";
 
 const fieldId = finding => finding.field === "title" || finding.id === "title_repetition" ? "campaign-title"
   : finding.field === "summary" || finding.id === "summary_repeated" ? "campaign-summary"
@@ -89,6 +90,7 @@ export default function CampaignStrategy() {
             </li>
           )}</ul>
           <p className="text-xs text-muted-foreground">Cover check verifies only that a reference exists, not that its image URL loads or that you have image rights.</p>
+          <AgentDocumentReferences campaignId={item.campaign_id}/>
           {item.editorial && [...item.editorial.findings, ...item.campaignWide.filter(f=>!item.editorial.findings.some(g=>g.id===f.id))].length>0 && <section className="space-y-3 rounded-xl border border-border p-3" aria-label="Contextual campaign writing guidance">
             <h3 className="font-semibold">POLARIS · Writing improvements</h3>
             <p className="text-xs text-muted-foreground">These recommendations come from this campaign's saved text. They never fabricate supporting facts or rewrite your story without approval.</p>
