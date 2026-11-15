@@ -171,6 +171,18 @@ export function storyMessages(input, context) {
         section: input.section,
         current_campaign: campaign,
         writing_guidance: brief,
+        // Prior exchanges from the same member's authorized agent team.
+        // This is not verified financial/provider evidence or an instruction
+        // to publish, change account access, or override this current request.
+        team_conversation_context: Array.isArray(context.shared_agent_history)
+          ? context.shared_agent_history.slice(0, 8).map(row => ({
+              source_agent: String(row.agent_id || "").slice(0, 32),
+              speaker: row.speaker === "agent" ? "agent" : "user",
+              recorded_at: String(row.recorded_at || "").slice(0, 40),
+              source_kind: String(row.source_kind || "").slice(0, 40),
+              excerpt: String(row.content || "").slice(0, 600),
+            }))
+          : [],
         owner_preferences: Array.isArray(context.preferences)
           ? context.preferences
               .filter(
@@ -580,6 +592,16 @@ export async function storyRoute(request, env, fetcher = fetch) {
     const context = await rpc("ifund_story_context", {
       p_campaign_id: input.campaign_id,
     });
+    // All user-facing agents read the same owner-scoped history. Retrieval is
+    // performed server-side using the current authenticated member JWT;
+    // prior messages are untrusted facts, not developer/system instructions.
+    if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+      const recent = await rpc("ifund_team_recent", {
+        p_campaign_id: input.campaign_id,
+        p_limit: 12,
+      });
+      context.shared_agent_history = Array.isArray(recent) ? recent : [];
+    }
     const messages = storyMessages(input, context);
     const claim = workforce
       ? await beginStoryAssignment(env, rpc, input, hash, messages)
@@ -671,7 +693,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
       });
       await appendTeamContext({
         env, jwt, eventKey: replyEventKey(request_id), agentId: "story",
-        content: (input.section ? suggestion.section : suggestion.story).slice(0,4000),
+        content: JSON.stringify(suggestion),
         campaignId: input.campaign_id, speaker: "agent", fetcher,
       });
     }
