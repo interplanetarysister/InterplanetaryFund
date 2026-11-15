@@ -116,3 +116,28 @@ test("agent document context fails closed on unverified or oversized records",as
       owner_supplied:false,source_type:"uploaded_private_document_summary"}]})
   }),/reference response was invalid/);
 });
+
+
+test("redacts encoded OAuth, PayPal and Basic credentials without removing ordinary prose",async()=>{
+  const fixtures=[
+    ['{"access_token":"synthetic-secret-123"}',"synthetic-secret-123"],
+    ['{\\\"access_token\\\":\\\"synthetic-secret-123\\\"}',"synthetic-secret-123"],
+    ["PAYPAL_CLIENT_SECRET=synthetic-secret-123","synthetic-secret-123"],
+    ["Authorization: Basic c3ludGhldGljLWNyZWRlbnRpYWw=","c3ludGhldGljLWNyZWRlbnRpYWw="],
+    ['{"code":"synthetic-oauth-code-123"}',"synthetic-oauth-code-123"],
+    ["Bearer syntheticBearer12345","syntheticBearer12345"]
+  ];
+  for(const [content,secret] of fixtures){
+    let saved;
+    await appendTeamContext({env:ENV,jwt:"valid.member.jwt",...candidate,content,speaker:"user",
+      fetcher:async(_url,request)=>{saved=JSON.parse(request.body).p_content;return {ok:true,json:async()=>RESPONSE_ID};}
+    });
+    assert.ok(!saved.includes(secret),"credential persisted in synthetic event");
+  }
+  const ordinary="ordinary code examples and donor count 23";
+  let saved;
+  await appendTeamContext({env:ENV,jwt:"valid.member.jwt",...candidate,content:ordinary,speaker:"user",
+    fetcher:async(_url,request)=>{saved=JSON.parse(request.body).p_content;return {ok:true,json:async()=>RESPONSE_ID};}
+  });
+  assert.equal(saved,ordinary);
+});
