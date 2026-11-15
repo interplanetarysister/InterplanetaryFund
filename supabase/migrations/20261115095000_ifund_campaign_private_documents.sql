@@ -123,6 +123,9 @@ begin
     perform 1 from public.ifund_campaigns c where c.id=new.campaign_id
       and c.owner_id=new.owner_id for update;
     if not found then raise exception 'Owned campaign required' using errcode='42501'; end if;
+    if not exists (select 1 from storage.objects o
+      where o.bucket_id='ifund-campaign-documents' and o.name=new.storage_path)
+    then raise exception 'Uploaded private file required before saving document metadata' using errcode='23514'; end if;
     if (select count(*) from public.ifund_campaign_documents d
       where d.owner_id=new.owner_id and d.campaign_id=new.campaign_id)>=15 then
       raise exception 'Campaign document limit reached' using errcode='23514'; end if;
