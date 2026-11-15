@@ -51,12 +51,14 @@ function scopedRecord(storage, ownerId) {
 // an explicit user action. An import is non-destructive until the owner slot
 // is written successfully; no existing owner draft is overwritten.
 export function hasUnclaimedGuestCampaign(storage) {
-  const raw = storage.getItem(ownerKey(null));
+  // Older preview builds stored guest drafts under the legacy unscoped key.
+  // Detect those BEFORE owner hydration; never import them without consent.
+  const raw = storage.getItem(ownerKey(null)) || storage.getItem(KEY);
   if (!raw) return false;
   try {
     const record = JSON.parse(raw);
-    return record?.version === 2 && record.owner_id === null &&
-      record.form && typeof record.form === "object" && !Array.isArray(record.form);
+    return Boolean(record?.version === 2 && record.owner_id === null &&
+      record.form && typeof record.form === "object" && !Array.isArray(record.form));
   } catch { return false; }
 }
 
