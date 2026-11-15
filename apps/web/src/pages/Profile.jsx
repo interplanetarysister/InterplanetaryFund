@@ -129,6 +129,7 @@ export default function Profile() {
       <h1 className="font-display text-3xl font-bold">My Profile</h1>
       <Link to={`/u/${profile.id}`} className={action}>View public profile</Link>
     </header>
+    <section className={panel} aria-label="Permissions and connected accounts"><h2 className="text-xl font-semibold">iFund AI & account permissions</h2><p className="text-sm text-muted-foreground">Control AI assistance, platform connections, and optional communications from one place.</p><Link to="/permissions" className={action}>Manage iFund Permissions</Link></section>
     <section className={panel} aria-labelledby="profile-account">
       <h2 id="profile-account" className="text-xl font-semibold">Account</h2>
       <p className="break-all text-sm text-muted-foreground">{profile.email}</p>
@@ -226,7 +227,7 @@ export default function Profile() {
       <div className="flex flex-wrap gap-2">
         {[
           ["/campaigns", "My Campaigns"], ["/following", "Following"], ["/my-blog", "My Blog"],
-          ["/connections", "Connections"], ["/notifications", "Notifications"], ["/preferences", "Communication preferences"], ["/help", "Help Center"],
+          ["/permissions", "Manage iFund Permissions"], ["/notifications", "Notifications"], ["/help", "Help Center"],
         ].map(([to, label]) => <Link key={to} to={to} className={action}>{label}</Link>)}
         <button type="button" className={action} disabled={Boolean(busy)} onClick={() => act("sign-out", async () => {
           const { error: signOutError } = await authClient().auth.signOut();
