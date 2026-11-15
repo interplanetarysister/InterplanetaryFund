@@ -83,6 +83,8 @@ completion. Account creation is **not store acceptable** until that erasure
 process and the public deletion URL are proven to work on the released site.
 The backend migration is additive; it has not modified financial records.
 
+The mobile `Browse without an account` path **does not create a Supabase anonymous user**. The canonical website's guest onboarding is unaffected. For any existing real Supabase anonymous session, the mobile deletion screen separately checks the authenticated JWT and allows a direct deletion request through the same protected request table. Anonymous unauthenticated public-role callers cannot request deletion of someone else's account.
+
 The Help page submits verified support tickets directly and reads owner-scoped
 request statuses; public mailto remains optional. Reports on campaigns use the
 existing moderated support queue. Cross-device organizer blocking uses
