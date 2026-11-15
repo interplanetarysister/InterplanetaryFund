@@ -22,10 +22,27 @@ export default function AIPermissionPreferences() {
     let active = true;
     setPhase("loading");
     authClient().from("ifund_ai_permission_preferences").select(fields.join(",")).maybeSingle()
-      .then(({data,error}) => {
+      .then(async ({data,error}) => {
         if (!active) return;
         if (error) throw error;
-        setValues(data ? Object.fromEntries(fields.map(key => [key, key === "default_action" ? (["ask","draft","manual"].includes(data[key]) ? data[key] : "ask") : data[key] === true])) : INITIAL);
+        if (data) {
+          setValues(Object.fromEntries(fields.map(key => [key, key === "default_action" ? (["ask","draft","manual"].includes(data[key]) ? data[key] : "ask") : data[key] === true])));
+        } else {
+          // Preliminary signup choices are local interest only. Match the verified
+          // account and require a deliberate Save; never activate or infer scopes.
+          let proposed = INITIAL;
+          try {
+            const pending = JSON.parse(sessionStorage.getItem("ifund-signup-ai-interest-v1") || "null");
+            const {data:authData} = await authClient().auth.getUser();
+            const user = authData?.user;
+            if (user?.email_confirmed_at && user.email?.toLowerCase() === pending?.email
+              && Date.now() - pending.timestamp < 86400000 && Date.now() >= pending.timestamp) {
+              proposed = {...INITIAL,...Object.fromEntries(choices.map(([key]) => [key,pending.choices?.[key] === true]))};
+              setNotice("Your signup choices are ready to review. Select Save AI preferences to activate them for your account.");
+            }
+          } catch { /* Fail closed if browser storage is unavailable. */ }
+          setValues(proposed);
+        }
         setPhase("ready");
       })
       .catch(() => { if(active) setPhase("error"); });
@@ -42,6 +59,7 @@ export default function AIPermissionPreferences() {
       const payload = {owner_id:userData.user.id,...values,updated_at:new Date().toISOString()};
       const {data,error} = await authClient().from("ifund_ai_permission_preferences").upsert(payload,{onConflict:"owner_id"}).select("owner_id").single();
       if(error || data?.owner_id !== userData.user.id) throw new Error("Preferences could not be verified as saved.");
+      try { sessionStorage.removeItem("ifund-signup-ai-interest-v1"); } catch { /* preference was saved on server */ }
       setPhase("ready");setNotice("Your AI preferences were saved. No external platform access was granted.");
     } catch(error) { setPhase("ready");setNotice(error?.message || "Unable to save preferences."); }
   }
