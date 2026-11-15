@@ -1,0 +1,41 @@
+name: IFund New iOS App Simulator Candidate
+
+# Separate iOS app com.interplanetaryfund.app. Simulator-only build; not an IPA.
+# Manual trigger only. Requires macOS runner, Xcode; no distribution signing.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ios-simulator-candidate:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify shared canonical frontend
+        working-directory: apps/web
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+      - name: Prepare separate iOS project
+        working-directory: apps/mobile
+        run: |
+          npm install --no-audit --no-fund
+          npx cap add ios
+          npx cap sync ios
+      - name: Confirm independent bundle identity
+        working-directory: apps/mobile
+        run: |
+          grep -q '"appId": "com.interplanetaryfund.app"' capacitor.config.json
+          ! grep -q 'com.base6a67a778342a8fe05ee79cba.app' capacitor.config.json
+      - name: Compile simulator app without distribution signing
+        working-directory: apps/mobile/ios/App
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
