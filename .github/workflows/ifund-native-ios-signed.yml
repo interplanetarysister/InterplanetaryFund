@@ -1,0 +1,154 @@
+name: IFund iOS Signed Store Candidate
+
+# Explicit manual-only signing. Never uploads to App Store Connect or edits Base44.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-native-ios-signed
+  cancel-in-progress: false
+
+jobs:
+  signed-ios-candidate:
+    environment: native-store-release
+    runs-on: macos-latest
+    env:
+      IFUND_APPLE_TEAM_ID: ${{ vars.IFUND_APPLE_TEAM_ID }}
+      IFUND_IOS_P12_B64: ${{ secrets.IFUND_IOS_P12_B64 }}
+      IFUND_IOS_P12_PASSWORD: ${{ secrets.IFUND_IOS_P12_PASSWORD }}
+      IFUND_IOS_PROVISIONING_B64: ${{ secrets.IFUND_IOS_PROVISIONING_B64 }}
+      IFUND_IOS_PROFILE_NAME: ${{ vars.IFUND_IOS_PROFILE_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            apps/web/package-lock.json
+            apps/mobile/package-lock.json
+      - name: Require Xcode 26 or newer
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          major="$(xcodebuild -version | awk '/^Xcode /{split($2,v,"."); print v[1]}')"
+          test -n "$major" && test "$major" -ge 26 || {
+            echo "Capacitor 8 and App Store distribution require Xcode 26+."; exit 1;
+          }
+      - name: Enforce full site, device and financial store acceptance
+        run: node apps/mobile/scripts/verify-mobile.mjs --store
+      - name: Validate independent Apple signing input names
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in IFUND_APPLE_TEAM_ID IFUND_IOS_P12_B64 IFUND_IOS_P12_PASSWORD IFUND_IOS_PROVISIONING_B64 IFUND_IOS_PROFILE_NAME; do
+            test -n "${!name:-}" || { echo "Missing independent Apple signing input: $name"; exit 1; }
+          done
+          [[ "$IFUND_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || exit 1
+          [[ "$IFUND_IOS_PROFILE_NAME" =~ ^[A-Za-z0-9._\ -]{1,100}$ ]] || {
+            echo "Unsafe or malformed provisioning profile name."; exit 1;
+          }
+      - name: Test and build canonical web frontend
+        working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: https://ssibsfmtodgximseeqsv.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_x9AX2hyHLr_kb2mewuH69Q_T66poFyL' }}
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run build
+          test -s dist/index.html
+      - name: Build independent native iPhone project and associated domains
+        working-directory: apps/mobile
+        run: |
+          npm ci --no-audit --no-fund
+          npx cap add ios
+          node scripts/configure-native-project.mjs ios
+          npx @capacitor/assets generate --ios --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
+          npx cap sync ios
+      - name: Import independently verified Apple signing identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          cert="$RUNNER_TEMP/ifund-distribution.p12"
+          profile="$RUNNER_TEMP/ifund.mobileprovision"
+          keychain="$RUNNER_TEMP/ifund-signing.keychain-db"
+          printf '%s' "$IFUND_IOS_P12_B64" | /usr/bin/base64 -D > "$cert"
+          printf '%s' "$IFUND_IOS_PROVISIONING_B64" | /usr/bin/base64 -D > "$profile"
+          chmod 600 "$cert" "$profile"
+          security cms -D -i "$profile" > "$RUNNER_TEMP/ifund-profile.plist"
+          profile_id="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$RUNNER_TEMP/ifund-profile.plist")"
+          app_id="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$RUNNER_TEMP/ifund-profile.plist")"
+          test "$app_id" = "$IFUND_APPLE_TEAM_ID.com.interplanetaryfund.app" || {
+            echo "Provisioning profile is not for the independent IFund bundle."; exit 1;
+          }
+          test -n "$profile_id"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$profile" "$HOME/Library/MobileDevice/Provisioning Profiles/$profile_id.mobileprovision"
+          keychain_password="$(openssl rand -hex 18)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          security import "$cert" -k "$keychain" -P "$IFUND_IOS_P12_PASSWORD" -T /usr/bin/codesign
+          security list-keychains -d user -s "$keychain"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$keychain_password" "$keychain"
+          security find-identity -v -p codesigning "$keychain" | grep -q 'Apple Distribution' || {
+            echo "A usable Apple Distribution signing certificate was not supplied."; exit 1;
+          }
+          printf 'IFUND_PROFILE_UUID=%s\nIFUND_TEMP_KEYCHAIN=%s\n' "$profile_id" "$keychain" >> "$GITHUB_ENV"
+      - name: Archive signed iPhone application
+        working-directory: apps/mobile/ios/App
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -workspace App.xcworkspace -scheme App -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/IFund.xcarchive" \
+            DEVELOPMENT_TEAM="$IFUND_APPLE_TEAM_ID" CODE_SIGN_STYLE=Manual \
+            PROVISIONING_PROFILE_SPECIFIER="$IFUND_IOS_PROFILE_NAME" \
+            PRODUCT_BUNDLE_IDENTIFIER=com.interplanetaryfund.app \
+            CODE_SIGN_ENTITLEMENTS=App/App.entitlements archive
+          test -d "$RUNNER_TEMP/IFund.xcarchive/Products/Applications/App.app"
+          codesign --verify --deep --verbose=2 "$RUNNER_TEMP/IFund.xcarchive/Products/Applications/App.app"
+      - name: Export signed iPhone IPA for independent store review
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p apps/mobile/output
+          export_opts="$RUNNER_TEMP/IFundExportOptions.plist"
+          cat > "$export_opts" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+          <key>method</key><string>app-store-connect</string>
+          <key>signingStyle</key><string>manual</string>
+          <key>teamID</key><string>$IFUND_APPLE_TEAM_ID</string>
+          <key>provisioningProfiles</key><dict>
+          <key>com.interplanetaryfund.app</key><string>$IFUND_IOS_PROFILE_NAME</string>
+          </dict>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath "$RUNNER_TEMP/IFund.xcarchive" \
+            -exportOptionsPlist "$export_opts" -exportPath apps/mobile/output
+          ipa="$(find apps/mobile/output -maxdepth 1 -name '*.ipa' -print -quit)"
+          test -s "$ipa"
+          shasum -a 256 "$ipa" > apps/mobile/output/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IFund-iPhone-SIGNED-Store-Candidate
+          path: |
+            apps/mobile/output/*.ipa
+            apps/mobile/output/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove temporary signing keychain
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${IFUND_TEMP_KEYCHAIN:-}" ]; then
+            security delete-keychain "$IFUND_TEMP_KEYCHAIN" || true
+          fi
