@@ -16,6 +16,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Confirm Capacitor 8 build Xcode is supported
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | awk '/^Xcode /{print $2}')"
+          test -n "$version"
+          major="${version%%.*}"
+          if [ "$major" -lt 26 ]; then
+            echo "Capacitor 8 requires Xcode 26 or later."
+            exit 1
+          fi
       - name: Check independent native identity before build
         run: node apps/mobile/scripts/verify-mobile.mjs --candidate
       - name: Test and build bundled canonical frontend
@@ -46,4 +56,15 @@ jobs:
         run: |
           xcodebuild -workspace App.xcworkspace -scheme App -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
-            CODE_SIGNING_ALLOWED=NO build
+            -derivedDataPath "$PWD/build" CODE_SIGNING_ALLOWED=NO build
+          test -d build/Build/Products/Debug-iphonesimulator/App.app
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/Build/Products/Debug-iphonesimulator/App.app ../../IFund-iOS-Simulator.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: IFund-iOS-Simulator-Only
+          path: |
+            apps/mobile/IFund-iOS-Simulator.zip
+            apps/mobile/package-lock.json
+          if-no-files-found: error
+          retention-days: 14
