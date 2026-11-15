@@ -64,6 +64,7 @@ const EmbedCampaign = lazy(() => import("./pages/EmbedCampaign"));
 const DownloadApp = lazy(() => import("./pages/DownloadApp"));
 const AdminStudio = lazy(() => import("./pages/AdminStudio"));
 const AdminHub = lazy(() => import("./pages/AdminHub"));
+const AdminDeletionQueue = lazy(() => import("./pages/AdminDeletionQueue"));
 const StudioPublishedPage = lazy(() => import("./pages/StudioPublishedPage"));
 const Subscriptions = lazy(() => import("./pages/Subscriptions"));
 const SupportTickets = lazy(() => import("./pages/SupportTickets"));
@@ -150,6 +151,7 @@ function AppRoutes() {
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><AdminDeletionQueue /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
