@@ -1,0 +1,20 @@
+# Native directories generated for the new app at build time; do not alter Base44.
+android/
+ios/
+node_modules/
+package-lock.tmp.json
+# Store identities are generated from verified owners only and never auto-deployed.
+release-associations/
+output/
+dist/
+build/
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+*.ipa
+*.aab
+*.apk
+*.xcarchive
+*.env
+!.env.example
