@@ -21,7 +21,7 @@ test("both new mobile shells share the canonical production service", () => {
   assert.equal(mobile.server.hostname, "localhost");
   assert.equal(mobile.server.iosScheme, "capacitor");
   assert.equal(mobile.server.androidScheme, "https");
-  assert.equal(mobile.webDir, "../web/dist");
+  assert.equal(mobile.webDir, "../web/dist-mobile");
   assert.equal(mobile.plugins.CapacitorHttp.enabled, false);
   assert.match(read("../src/lib/nativeApi.js"), /IFUND_API_ORIGIN = "https:\/\/interplanetaryfund\.com"/);
   assert.equal(mobile.server.cleartext, false);
@@ -50,7 +50,7 @@ test("native candidate preflight succeeds but store release stays fail-closed", 
   assert.match(candidate.stdout, /NOT store or live-service certification/);
   const store = spawnSync(process.execPath, [script.pathname, "--store"], { encoding: "utf8" });
   assert.notEqual(store.status, 0, "Store readiness must fail until independently verified");
-  assert.match(store.stderr, /routes lack source\/behavior\/backend acceptance/);
+  assert.match(store.stderr, /reviewed, committed native dependency lockfile|Store release requires independent evidence|not independently verified/);
   for (const workflow of [iosWorkflow, androidWorkflow])
     assert.match(workflow, /node apps\/mobile\/scripts\/verify-mobile\.mjs --candidate/);
 });
