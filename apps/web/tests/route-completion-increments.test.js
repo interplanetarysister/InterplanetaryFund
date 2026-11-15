@@ -30,6 +30,17 @@ test("admin operations paths are guarded and do not silently grant privileges", 
   assert.ok(route("/admin/*")?.includes("<PageNotFound"), "unknown admin path should be intentional 404, not ComingSoon");
 });
 
+test("member analytics is discoverable without exposing administrator links", () => {
+  const layout = readFileSync(new URL("../src/components/Layout.jsx", import.meta.url), "utf8");
+  const explore = layout.split('label: "Explore"')[1]?.split('label: "Campaigns & Giving"')[0];
+  const administration = layout.split('label: "Administration"')[1]?.split('const navItems')[0];
+  assert.match(explore || "", /to: "\/analytics", label: "Command Center"/);
+  assert.doesNotMatch(administration || "", /to: "\/analytics"/);
+  assert.match(layout, /navSections\.filter\(section => isAdmin \|\| isSuperAdmin \|\| section\.label !== "Administration"\)/);
+  assert.ok(route("/analytics")?.includes("<MemberAccess><AnalyticsCenter"),
+    "member analytics must remain account-protected rather than administrator-only");
+});
+
 test("working aliases retain existing permission and financial boundaries", () => {
   assert.ok(route("/mission")?.includes("<MemberAccess><AgentsTeam"));
   assert.ok(route("/donors")?.includes("<MemberAccess><CampaignEngagement"));
