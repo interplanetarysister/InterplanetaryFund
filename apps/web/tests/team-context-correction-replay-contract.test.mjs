@@ -5,7 +5,7 @@ const sql=readFileSync(new URL('../../../supabase/migrations/20261115094500_ifun
 const correct=sql.split('create or replace function public.ifund_team_correct(')[1]?.split('end $team_correct$;')[0];
 test('owner correction locks the original event before inspecting replay',()=>{
  assert.ok(correct);
- assert.match(correct,/owner_id=actor and event_key=p_old_event_key[\\s\\S]*?for update;/i);
+ assert.match(correct,/owner_id=actor and event_key=p_old_event_key[\s\S]*?for update;/i);
 });
 test('same owner and exact new event identity/content required for idempotent replay',()=>{
  assert.match(correct,/old_event\.corrected_by is not null/);
