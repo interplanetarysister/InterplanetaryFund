@@ -21,6 +21,7 @@ const Institutions = lazy(() => import("./pages/Institutions"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
+const DeleteAccount = lazy(() => import("./pages/DeleteAccount"));
 const HealthPrivacy = lazy(() => import("./pages/HealthPrivacy"));
 const Help = lazy(() => import("./pages/Help"));
 const Contact = lazy(() => import("./pages/Contact"));
@@ -75,6 +76,7 @@ const OperationsHub = lazy(() => import("./pages/OperationsHub"));
 const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
+const AdminDeletionQueue = lazy(() => import("./pages/AdminDeletionQueue"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
@@ -97,6 +99,7 @@ function AppRoutes() {
     <Route path="/about" element={<About />} />
     <Route path="/terms" element={<Terms />} />
     <Route path="/privacy" element={<Privacy />} />
+    <Route path="/delete-account" element={<DeleteAccount />} />
     <Route path="/health-privacy" element={<HealthPrivacy />} />
     <Route path="/contact" element={<Contact />} />
     <Route path="/login" element={<AuthPage key="login" mode="login" />} />
@@ -143,6 +146,7 @@ function AppRoutes() {
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><AdminDeletionQueue /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
       <Route path="/social" element={<SocialRoute />} />
