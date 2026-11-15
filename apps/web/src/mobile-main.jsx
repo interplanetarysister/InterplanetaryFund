@@ -1,6 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
+import "./mobile.css";
 import MobileStoreApp from "./MobileStoreApp.jsx";
 import NativeConnectivityBanner from "./components/native/NativeConnectivityBanner.jsx";
 import ErrorBoundary from "./components/ErrorBoundary";
