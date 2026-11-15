@@ -34,6 +34,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx cap add ios
+          npx @capacitor/assets generate --ios --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync ios
       - name: Confirm independent bundle identity
         working-directory: apps/mobile
