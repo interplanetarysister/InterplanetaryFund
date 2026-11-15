@@ -297,3 +297,46 @@ test("failed legacy guest storage read blocks consent detection instead of treat
   assert.throws(() => hasUnclaimedGuestCampaign(storage), /storage blocked/);
   assert.deepEqual(importGuestCampaign(storage, A), { status: "storage_error" });
 });
+
+test("a corrupt scoped guest slot cannot conceal a valid older guest draft", () => {
+  const storage = store();
+  const scoped = "ifund-guest-campaign-v1:guest";
+  const legacy = "ifund-guest-campaign-v1";
+  const rawScoped = "{recoverable broken guest bytes";
+  const form = { ...emptyCampaignForm(), title: "Older legitimate guest" };
+  storage.setItem(scoped, rawScoped);
+  storage.setItem(legacy, JSON.stringify({ version: 2, owner_id: null, form }));
+  assert.equal(hasUnclaimedGuestCampaign(storage), true);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.equal(storage.getItem(scoped), rawScoped, "corrupt source remains available for recovery");
+  assert.equal(storage.getItem(legacy), null);
+  assert.deepEqual(restoreBrowserCampaign(storage, B), emptyCampaignForm());
+});
+
+test("a valid scoped guest wins over legacy without deleting the older copy", () => {
+  const storage = store();
+  const scoped = "ifund-guest-campaign-v1:guest";
+  const legacy = "ifund-guest-campaign-v1";
+  const scopedForm = { ...emptyCampaignForm(), title: "Newer guest" };
+  const legacyRaw = JSON.stringify({ version: 2, owner_id: null,
+    form: { ...emptyCampaignForm(), title: "Older guest" } });
+  storage.setItem(scoped, JSON.stringify({ version: 2, owner_id: null, form: scopedForm }));
+  storage.setItem(legacy, legacyRaw);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
+  assert.deepEqual(restoreBrowserCampaign(storage, A), scopedForm);
+  assert.equal(storage.getItem(legacy), legacyRaw);
+});
+
+test("existing owner draft is never overwritten during fallback legacy import", () => {
+  const storage = store();
+  const owner = { ...emptyCampaignForm(), title: "Existing owner content" };
+  const legacy = { ...emptyCampaignForm(), title: "Unclaimed legacy" };
+  assert.equal(rememberBrowserCampaign(storage, A, owner), true);
+  storage.setItem("ifund-guest-campaign-v1:guest", "{corrupt");
+  storage.setItem("ifund-guest-campaign-v1", JSON.stringify({ version: 2, owner_id: null, form: legacy }));
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "owner_exists" });
+  assert.deepEqual(restoreBrowserCampaign(storage, A), owner);
+  assert.equal(hasUnclaimedGuestCampaign(storage), true);
+});
