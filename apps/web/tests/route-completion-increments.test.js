@@ -196,3 +196,11 @@ test("admin moderation and platform finance links are visible only through autho
   assert.match(layout, /to: "\/analytics", label: "Command Center"/,
     "member analytics stays independent of admin-only finance");
 });
+
+test("sustainability screen does not mislabel public campaign totals as verified payments", () => {
+  const sustainability = page("AdminSustainability");
+  assert.match(sustainability, /Publicly reported fundraising/);
+  assert.match(sustainability, /does not independently establish provider verification/);
+  assert.doesNotMatch(sustainability, /"Provider-verified fundraising"/);
+  assert.doesNotMatch(sustainability, /Financial figures exclude pending, refunded, unverified and sandbox transactions/);
+});
