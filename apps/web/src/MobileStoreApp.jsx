@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink, Link, Navigate, useLocation } from "react-router-dom";
-import { Compass, Home, Leaf, UserCircle, ShieldCheck, MapPinned } from "lucide-react";
+import { Compass, Home, Leaf, UserCircle, Bookmark } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import AuthPage from "@/pages/AuthPage";
 import ResetPassword from "@/pages/ResetPassword";
@@ -8,6 +8,7 @@ import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import HealthPrivacy from "@/pages/HealthPrivacy";
 import MobileStoreDiscover from "@/mobile/MobileStoreDiscover";
+import MobileStoreSaved from "@/mobile/MobileStoreSaved";
 import MobileStoreCampaign from "@/mobile/MobileStoreCampaign";
 import MobileStoreAccount from "@/mobile/MobileStoreAccount";
 import MobileStoreDeleteAccount from "@/mobile/MobileStoreDeleteAccount";
@@ -20,6 +21,7 @@ import MobileStoreAtlas from "@/mobile/MobileStoreAtlas";
 const tabs = [
   ["/", "Home", Home],
   ["/discover", "Explore", Compass],
+  ["/saved", "Saved", Bookmark],
   ["/plan", "Plan", Leaf],
   ["/account", "Account", UserCircle],
 ];
@@ -42,6 +44,7 @@ function Frame() {
       <Routes>
         <Route path="/" element={<MobileStoreHome/>}/>
         <Route path="/discover" element={<MobileStoreDiscover/>}/>
+        <Route path="/saved" element={<MobileStoreSaved/>}/>
         <Route path="/campaign/:id" element={<MobileStoreCampaign/>}/>
         <Route path="/plan" element={<MobileReadiness/>}/>
         <Route path="/atlas" element={<MobileStoreAtlas/>}/>
@@ -69,7 +72,7 @@ function Frame() {
       </Routes>
     </main>
     {!authentication && <nav aria-label="Mobile app navigation" className="fixed inset-x-0 bottom-0 z-50 border-t border-emerald-300/20 bg-[#0b1d28]/95 px-3 pt-2 backdrop-blur" style={{paddingBottom:"max(env(safe-area-inset-bottom), 8px)"}}>
-      <div className="mx-auto grid max-w-3xl grid-cols-4 gap-2">
+      <div className="mx-auto grid max-w-3xl grid-cols-5 gap-1 sm:gap-2">
         {tabs.map(([to,title,Icon])=><NavLink key={to} to={to} end={to==="/"} className={tabStyle}>
           <Icon aria-hidden="true" className="h-5 w-5"/><span>{title}</span>
         </NavLink>)}
