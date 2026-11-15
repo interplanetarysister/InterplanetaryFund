@@ -71,7 +71,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
         item.summary && "Owner summary (unverified): "+item.summary,
         item.owner_excerpt && "Owner-selected excerpt (unverified): "+item.owner_excerpt,
         item.extracted_excerpt && "Plain-text file excerpt (unverified): "+item.extracted_excerpt,
-      ].filter(Boolean).join("\\n\\n").slice(0,2200);
+      ].filter(Boolean).join("\n\n").slice(0,2200);
       onInsert(facts);
     }catch{/* Fail closed on identity errors. */}
   }
