@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "tested_commit": "",
+  "verified_at": "",
+  "approved_by": "",
+  "ios_device_passed": false,
+  "android_device_passed": false,
+  "auth_and_oauth_passed": false,
+  "privacy_review_passed": false,
+  "fundraising_policy_review_passed": false,
+  "reviewer_approved": false,
+  "evidence_urls": {
+    "ios_device": "",
+    "android_device": "",
+    "auth_and_oauth": "",
+    "privacy_review": "",
+    "fundraising_policy_review": "",
+    "full_route_acceptance": ""
+  }
+}
