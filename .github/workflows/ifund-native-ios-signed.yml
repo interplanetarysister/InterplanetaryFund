@@ -83,7 +83,10 @@ jobs:
         run: |
           npm ci --legacy-peer-deps --no-audit --no-fund
           npx cap add ios
+          ruby -e 'require "xcodeproj"' || gem install xcodeproj -v 1.27.0 --no-document
           node scripts/configure-native-project.mjs ios
+          grep -q 'PrivacyInfo.xcprivacy' ios/App/App.xcodeproj/project.pbxproj
+          test -s ios/App/App/PrivacyInfo.xcprivacy
           npx @capacitor/assets generate --ios --iconBackgroundColor '#0b1824' --splashBackgroundColor '#0b1824'
           npx cap sync ios
       - name: Import independently verified Apple signing identity
