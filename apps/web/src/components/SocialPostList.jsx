@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { publicShareOrigin } from "@/lib/campaignShare";
 import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Flag, Share2 } from "lucide-react";
 import { Image } from "@/components/ui/image";
@@ -15,7 +16,7 @@ function safeExternalUrl(raw) {
 }
 
 async function sharePost(post) {
-  const url = `${window.location.origin}/social/post/${encodeURIComponent(post.id)}`;
+  const url = `${publicShareOrigin(window.location.origin)}/social/post/${encodeURIComponent(post.id)}`;
   const data = { title: "Interplanetary Fund community update", text: post.body, url };
   if (navigator.share) {
     try { await navigator.share(data); return; }
