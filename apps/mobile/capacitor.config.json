@@ -1,0 +1,12 @@
+{
+  "appId": "com.interplanetaryfund.app",
+  "appName": "Interplanetary Fund",
+  "webDir": "../web/dist",
+  "server": {
+    "url": "https://interplanetaryfund.com",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}
