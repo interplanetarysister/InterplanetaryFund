@@ -34,11 +34,23 @@ export default function Atlas() {
     (async () => {
       try {
         if (scope === "mine") {
-          if (!user?.id || user.is_anonymous === true) {
+          if (!user?.id || user.is_anonymous === true || !user.email_confirmed_at) {
             if (alive) { setOwnerCampaigns({ownerId:null,rows:[]}); setStatus("signed-out"); }
             return;
           }
-          const rows = await listOwnerAtlasCampaigns(authClient());
+          const client = authClient();
+          // The session can switch in another tab while a private campaign
+          // request is pending. Verify the same email-confirmed owner both
+          // before and after the query, not merely when React rendered.
+          const before = await client.auth.getUser();
+          if (before.error || before.data?.user?.id !== user.id ||
+              before.data.user.is_anonymous === true || !before.data.user.email_confirmed_at)
+            throw new Error("Owner verification failed");
+          const rows = await listOwnerAtlasCampaigns(client);
+          const after = await client.auth.getUser();
+          if (after.error || after.data?.user?.id !== user.id ||
+              after.data.user.is_anonymous === true || !after.data.user.email_confirmed_at)
+            throw new Error("Owner changed during location read");
           if (alive) { setOwnerCampaigns({ownerId:user.id,rows:rows.map(mapAtlasCampaign)}); setStatus("ready"); }
         } else {
           // This is a public geography-only query: no payment RPC is needed.
