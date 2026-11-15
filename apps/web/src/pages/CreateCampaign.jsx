@@ -15,6 +15,7 @@ import PrepublicationGate from "@/components/campaigns/PrepublicationGate";
 import CampaignReadinessScore from "@/components/campaigns/CampaignReadinessScore";
 import CampaignLocationFields from "@/components/atlas/CampaignLocationFields";
 import ExternalCampaignHandoff from "@/components/campaigns/ExternalCampaignHandoff";
+import CampaignDocuments from "@/components/campaigns/CampaignDocuments";
 import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 
 export default function CreateCampaign() {
@@ -368,6 +369,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} />
+    <CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||"new")} campaignId={draftId||saved||null} ownerId={ownerId} />
     <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { userEditedDraft.current = true; setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
