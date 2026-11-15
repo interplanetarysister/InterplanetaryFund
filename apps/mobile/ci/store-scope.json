@@ -59,7 +59,11 @@
     "user_content_reporting",
     "content_hiding",
     "privacy_and_support",
-    "on_device_saved_campaign_links"
+    "on_device_saved_campaign_links",
+    "direct_self_service_account_deletion_request",
+    "owner_scoped_deletion_request_status",
+    "live_support_ticket_submission_and_status",
+    "cross_device_organizer_blocking"
   ],
   "disabled_features": [
     "in_app_fundraising_payments",
