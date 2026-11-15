@@ -12,8 +12,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DOMAIN = "interplanetaryfund.com";
 const PATHS = [
   ["/", "path"], ["/discover", "path"], ["/atlas", "path"],
-  ["/campaign/", "pathPrefix"], ["/social/post/", "pathPrefix"],
-  ["/blogs/", "pathPrefix"], ["/publications/", "pathPrefix"],
+  ["/campaign/", "pathPrefix"],
   // Mobile OAuth callback is added only after device E2E acceptance.
 
 ];
