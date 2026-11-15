@@ -1,0 +1,35 @@
+// Schematic North American map projection. The input is an organizer-approved
+// approximate point only; the outline is illustrative, not for navigation.
+// The mainland is intentionally plotted in longitude/latitude space, with
+// separate AK/HI insets so non-contiguous American campaigns remain visible.
+export const US_REGIONS=Object.freeze([
+  {id:"mainland",name:"Contiguous United States",bounds:{west:-125,east:-66,south:24,north:50},view:{x:55,y:55,w:850,h:310}},
+  {id:"alaska",name:"Alaska",bounds:{west:-170,east:-129,south:51,north:72},view:{x:65,y:392,w:225,h:95}},
+  {id:"hawaii",name:"Hawaii",bounds:{west:-161,east:-154,south:18,north:23},view:{x:328,y:392,w:180,h:95}},
+]);
+export function usRegionForPoint(latitude,longitude) {
+  const lat=Number(latitude),lng=Number(longitude);
+  if(latitude==null||longitude==null||!Number.isFinite(lat)||!Number.isFinite(lng))return null;
+  return US_REGIONS.find(r=>lat>=r.bounds.south&&lat<=r.bounds.north&&lng>=r.bounds.west&&lng<=r.bounds.east)||null;
+}
+export function projectUsPoint(latitude,longitude) {
+  const region=usRegionForPoint(latitude,longitude);
+  if(!region)return null;
+  const {bounds:b,view:v}=region;
+  return {x:v.x+((Number(longitude)-b.west)/(b.east-b.west))*v.w,
+    y:v.y+((b.north-Number(latitude))/(b.north-b.south))*v.h,region:region.id};
+}
+export const CONTIGUOUS_OUTLINE=Object.freeze([
+  [48.5,-124.7],[46,-124],[43,-124.4],[42,-124.3],[40,-124.3],[38,-123],[36,-121],[34.5,-120.5],[32.5,-117.1],
+  [32.6,-114.7],[31.3,-111],[31.3,-108.2],[31.4,-106.5],[29.6,-104.4],[29.0,-103],[29.6,-100],
+  [26.0,-97],[28,-96],[29.6,-94],[29.0,-91],[29.6,-89],[30.2,-85],[29.8,-83],[25.2,-80.4],
+  [29,-81.1],[32,-81],[35,-75.5],[37,-76],[39,-75],[40.8,-73.8],[41.2,-71.8],[42,-70.5],
+  [44,-67],[45,-71],[45.5,-73],[43,-79],[42,-82],[43,-84],[46.5,-84.8],[47,-89],[49,-95],
+  [49,-110],[49,-120],[49,-123],[48.5,-124.7]
+]);
+export function mainlandOutlinePath(){
+  return CONTIGUOUS_OUTLINE.map(([lat,lon],i)=>{
+    const p=projectUsPoint(lat,lon);
+    return (i===0?"M":"L")+p.x.toFixed(1)+" "+p.y.toFixed(1);
+  }).join(" ")+" Z";
+}
