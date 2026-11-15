@@ -126,10 +126,10 @@ test("legacy v2 owned draft remains scoped to its matching identity", () => {
 test("quota and unavailable storage failures cannot produce a saved receipt", () => {
   const storage = store();
   storage.setItem = () => { throw new Error("QuotaExceededError"); };
-  assert.throws(() => rememberBrowserCampaign(storage, A, emptyCampaignForm()), /QuotaExceededError/);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
   const unavailable = { getItem: () => { throw new Error("Storage disabled"); } };
-  assert.throws(() => restoreBrowserCampaign(unavailable, A), /Storage disabled/);
-  assert.throws(() => rememberBrowserCampaign(unavailable, A, emptyCampaignForm()), /Storage disabled/);
+  assert.deepEqual(restoreBrowserCampaign(unavailable, A), emptyCampaignForm());
+  assert.equal(rememberBrowserCampaign(unavailable, A, emptyCampaignForm()), false);
 });
 
 test("initial mount and autosave preserve malformed and foreign scoped records", () => {
@@ -201,7 +201,7 @@ test("failed legacy migration retains original source when destination write thr
   const raw = JSON.stringify({ version: 2, owner_id: A, form });
   storage.setItem("ifund-guest-campaign-v1", raw);
   storage.setItem = () => { throw new Error("QuotaExceededError"); };
-  assert.throws(() => rememberBrowserCampaign(storage, A, form), /QuotaExceededError/);
+  assert.equal(rememberBrowserCampaign(storage, A, form), false);
   assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
 });
 
@@ -231,7 +231,7 @@ test("legacy remove failure never erases migrated text", () => {
   const raw = JSON.stringify({ version: 2, owner_id: A, form });
   storage.setItem("ifund-guest-campaign-v1", raw);
   storage.removeItem = () => { throw new Error("RemoveBlocked"); };
-  assert.throws(() => rememberBrowserCampaign(storage, A, emptyCampaignForm()), /RemoveBlocked/);
+  assert.equal(rememberBrowserCampaign(storage, A, emptyCampaignForm()), false);
   assert.equal(storage.getItem("ifund-guest-campaign-v1"), raw);
   assert.equal(storage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(A)), raw);
 });
