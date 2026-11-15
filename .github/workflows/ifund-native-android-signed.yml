@@ -87,6 +87,7 @@ jobs:
         working-directory: apps/mobile/android
         run: |
           ./gradlew bundleRelease
+          bash "$GITHUB_WORKSPACE/apps/mobile/scripts/check-android-native-libs.sh" "$GITHUB_WORKSPACE/apps/mobile/android/app/build/outputs/bundle/release/app-release.aab"
           test -s app/build/outputs/bundle/release/app-release.aab
       - name: Verify independent upload key, sign AAB and check signature
         shell: bash
