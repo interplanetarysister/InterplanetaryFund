@@ -45,6 +45,7 @@ const PublicMemberProfile = lazy(() => import("./pages/PublicMemberProfile"));
 const Profile = lazy(() => import("./pages/Profile"));
 const OAuthCallback = lazy(() => import("./pages/OAuthCallback"));
 const Connections = lazy(() => import("./pages/Connections"));
+const FundraisingPartners = lazy(() => import("./pages/FundraisingPartners"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const WithdrawalVerification = lazy(() => import("./pages/WithdrawalVerification"));
 const FoundingMembers = lazy(() => import("./pages/FoundingMembers"));
@@ -157,6 +158,7 @@ function AppRoutes() {
       <Route path="/my-profile" element={<Navigate to="/profile" replace />} />
       <Route path="/u/:id" element={<PublicMemberProfile />} />
       <Route path="/connections" element={<MemberAccess><Connections /></MemberAccess>} />
+      <Route path="/fundraising-partners" element={<FundraisingPartners />} />
       <Route path="/following" element={<MemberAccess><FollowedCampaigns /></MemberAccess>} />
       <Route path="/notifications" element={<MemberAccess><Notifications /></MemberAccess>} />
       <Route path="/inbox" element={<MemberAccess><Inbox /></MemberAccess>} />
