@@ -59,3 +59,45 @@ test('synthetic: unsigned or provider-unverified webhooks are never financial pr
   assert.equal(webhookAdmissible({signatureVerified:true,providerLookupVerified:false}),false);
   assert.equal(webhookAdmissible({signatureVerified:true,providerLookupVerified:true}),true);
 });
+
+test('synthetic: same refund resource delivered under a new webhook ID must not create a second debit',()=>{
+  const posted = new Map();
+  function record(e) {
+    const key=economicKey(e),prior=posted.get(key);
+    if(prior) return validIdentity(prior,e) ? 'replay' : 'conflict';
+    posted.set(key,e); return 'inserted';
+  }
+  assert.equal(record(refund()),'inserted');
+  assert.equal(record(refund({eventId:'WH-SYNTHETIC-003'})),'replay');
+  assert.equal(record(refund({eventId:'WH-SYNTHETIC-004',cents:251})),'conflict');
+  assert.equal(posted.size,1);
+});
+test('synthetic: partial refunds on two captures must be independently bounded',()=>{
+  const a={captureId:'CAPTURE-SYNTHETIC-A',cents:500,refunded:[250]};
+  const b={captureId:'CAPTURE-SYNTHETIC-B',cents:800,refunded:[100]};
+  assert.equal(refundFitsCapture(a.cents,a.refunded,251),false);
+  assert.equal(refundFitsCapture(b.cents,b.refunded,700),true);
+  assert.equal(refundFitsCapture(b.cents,b.refunded,701),false);
+  assert.equal(refundFitsCapture(a.cents,[250,250],1),false);
+});
+test('synthetic: equal-time reversal wins but cannot be undone by lower precedence status',()=>{
+  const timestamp='2026-11-14T12:00:00Z';
+  const paid={type:'payment',occurredAt:timestamp};
+  const reversed={type:'reversal',occurredAt:timestamp};
+  assert.equal(canApplyState(reversed,paid),true);
+  assert.equal(canApplyState(paid,reversed),false);
+  assert.equal(canApplyState(reversed,reversed),false);
+});
+test('synthetic: no unsigned or unverified webhook may enter economic replay register',()=>{
+  const accepted=new Map();
+  for(const overrides of [{signatureVerified:false,providerLookupVerified:true},
+    {signatureVerified:true,providerLookupVerified:false},
+    {signatureVerified:false,providerLookupVerified:false}]) {
+    const e={...refund(),...overrides};
+    if(webhookAdmissible(e))accepted.set(economicKey(e),e);
+  }
+  assert.equal(accepted.size,0);
+  const verified={...refund(),signatureVerified:true,providerLookupVerified:true};
+  if(webhookAdmissible(verified))accepted.set(economicKey(verified),verified);
+  assert.equal(accepted.size,1);
+});
