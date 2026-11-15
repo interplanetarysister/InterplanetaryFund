@@ -28,7 +28,7 @@ export default function TeamConversationHistory(){
     const {data}=client.auth.onAuthStateChange((event)=>{
       if(event==="SIGNED_OUT"||event==="SIGNED_IN"||event==="USER_UPDATED"){
         requestGeneration.current++;
-        setState({status:"loading",items:[],message:"Account session changed. Refresh to verify your private history."});
+        setState({status:"error",items:[],message:"Account session changed. Refresh to verify your private history."});
         setHasMore(false);
         setEditing("");setCorrection("");setRemoving("");setLoadingMore(false);
       }
@@ -55,22 +55,27 @@ export default function TeamConversationHistory(){
   }
   async function remove(row){
     if(removing||editing)return;
+    const generation=requestGeneration.current;
     setRemoving(row.id);
     try{
       await eraseTeamEvent(authClient(),row.event_key);
-      setState(prev=>({...prev,items:prev.items.filter(item=>item.id!==row.id),message:"Entry removed from shared team history."}));
-    }catch(e){setState(prev=>({...prev,message:e.message}));}
-    finally{setRemoving("");}
+      if(mounted.current && generation===requestGeneration.current)
+        setState(prev=>({...prev,items:prev.items.filter(item=>item.id!==row.id),message:"Entry removed from shared team history."}));
+    }catch(e){if(mounted.current && generation===requestGeneration.current)setState(prev=>({...prev,message:e.message||"Removal failed."}));}
+    finally{if(mounted.current && generation===requestGeneration.current)setRemoving("");}
   }
   async function saveCorrection(row){
     if(removing||editing!==row.id)return;
+    const generation=requestGeneration.current;
     setRemoving(row.id);
     try{
       await correctTeamStatement(authClient(),row.event_key,correction);
-      setEditing("");setCorrection("");
-      await refresh();
-    }catch(e){setState(prev=>({...prev,message:e.message||"Correction was not saved."}));}
-    finally{setRemoving("");}
+      if(mounted.current && generation===requestGeneration.current){
+        setEditing("");setCorrection("");
+        await refresh();
+      }
+    }catch(e){if(mounted.current && generation===requestGeneration.current)setState(prev=>({...prev,message:e.message||"Correction was not saved."}));}
+    finally{if(mounted.current && generation===requestGeneration.current)setRemoving("");}
   }
   return <section className="rounded-2xl border border-border bg-card p-5" aria-label="Your shared team history">
     <h2 className="text-lg font-semibold">Your shared team history</h2>
