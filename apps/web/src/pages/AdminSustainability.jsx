@@ -49,8 +49,7 @@ export default function AdminSustainability() {
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">Planet impact and sustainability</h1>
       <p className="text-sm text-muted-foreground">
-        Read-only overview of published environmental campaigns. The verified campaign payment ledger reports
-        donations, not measured environmental outcomes. No estimated carbon savings or volunteer impact is presented as fact.
+        Read-only overview of published environmental campaigns. Public campaign fundraising totals are not evidence of provider-verified payments or measured environmental outcomes. No estimated carbon savings or volunteer impact is presented as fact.
       </p>
     </header>
     {state.phase === "loading" && <p role="status">Checking published environmental campaigns…</p>}
@@ -63,7 +62,7 @@ export default function AdminSustainability() {
         {[
           ["Published environmental campaigns", stats.total.toLocaleString()],
           ["Campaigns opting into the public Atlas", stats.publiclyMapped.toLocaleString()],
-          ["Provider-verified fundraising", stats.verifiedRaisedCents === null ? "Unavailable" : currency.format(stats.verifiedRaisedCents / 100)],
+          ["Publicly reported fundraising", stats.verifiedRaisedCents === null ? "Unavailable" : currency.format(stats.verifiedRaisedCents / 100)],
         ].map(([label,value]) => <div key={label} className="rounded-2xl border border-border bg-card p-5">
           <dt className="text-xs text-muted-foreground">{label}</dt>
           <dd className="mt-2 text-2xl font-semibold tabular-nums">{value}</dd>
@@ -82,7 +81,7 @@ export default function AdminSustainability() {
               <span className="text-sm font-medium">{moneyCents(c.raised_amount) !== null ? currency.format(moneyCents(c.raised_amount) / 100) : "Funding unavailable"}</span>
             </li>)}</ul>}
       </section>
-      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published campaigns in the canonical public API. Financial figures exclude pending, refunded, unverified and sandbox transactions. Environmental outcomes require separately validated measurement data.</p>
+      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published campaigns in the canonical public API. The public campaign API does not independently establish provider verification, refunds, payment environment or attribution. Treat displayed fundraising as reported campaign data, not confirmed gifts. Environmental outcomes require separately validated measurements.</p>
     </>}
   </main>;
 }
