@@ -3,11 +3,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { UserCircle, LogOut, ShieldCheck, FolderKanban } from "lucide-react";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
+import { clearBlockedOrganizers, readBlockedOrganizers } from "@/mobile/organizerBlock";
 
 export default function MobileStoreAccount() {
   const {status,user}=useAuthSession();
   const navigate=useNavigate();
   const [error,setError]=useState(""),[busy,setBusy]=useState(false);
+  const [blockVersion,setBlockVersion]=useState(0);
+  const blocked=user?.id?readBlockedOrganizers(user.id):[];
   async function signOut(){
     setError("");setBusy(true);
     try{
@@ -33,6 +36,14 @@ export default function MobileStoreAccount() {
        <h2 className="break-words text-lg font-bold">{user.email||"Your IFund account"}</h2>
        <Link to="/campaigns" className="flex min-h-12 items-center gap-3 rounded-xl border border-white/20 p-3"><FolderKanban aria-hidden="true" className="h-5 w-5"/> Review your campaigns</Link>
        <Link to="/delete-account" className="flex min-h-12 items-center gap-3 rounded-xl border border-rose-300/30 p-3 text-rose-200"><ShieldCheck aria-hidden="true" className="h-5 w-5"/> Request account and data deletion</Link>
+       <div className="space-y-2 rounded-xl border border-white/20 p-4">
+         <h3 className="font-semibold">Blocked organizers</h3>
+         <p className="text-sm text-slate-300">{blocked.length} blocked organizer accounts on this device. Blocking hides their campaign listings and details in this app; it does not change the public website or another device.</p>
+         {blocked.length>0&&<button type="button" className="min-h-11 rounded-lg border border-white/40 px-4 text-sm" onClick={()=>{
+           clearBlockedOrganizers(user.id);
+           setBlockVersion(n=>n+1);
+         }}>Clear blocked organizers</button>}
+       </div>
        <button type="button" onClick={signOut} disabled={busy} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm disabled:opacity-50"><LogOut aria-hidden="true" className="h-5 w-5"/> {busy?"Signing out…":"Sign out"}</button>
        {error&&<p role="alert" className="text-sm text-rose-200">{error}</p>}
      </section>}
