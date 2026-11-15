@@ -181,7 +181,7 @@ export async function loadAgentDocumentBriefs(client,campaignId){
   if(error||!Array.isArray(data))throw Error("Agent document references are unavailable.");
   if(data.some(item=>!UUID.test(item.document_id||"")||
     typeof item.summary!=="string"||item.summary.length>3000||
-    typeof item.purpose!=="string"))
+    typeof item.purpose!=="string"||typeof item.file_name!=="string"||item.file_name.length>160))
     throw Error("The campaign reference list could not be verified.");
   return data.slice(0,6);
 }
