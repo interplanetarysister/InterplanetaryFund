@@ -26,7 +26,7 @@ export default function TeamConversationHistory(){
   useEffect(()=>{
     const client=authClient();
     const {data}=client.auth.onAuthStateChange((event)=>{
-      if(event==="SIGNED_OUT"||event==="SIGNED_IN"||event==="USER_UPDATED"||event==="TOKEN_REFRESHED"){
+      if(event==="SIGNED_OUT"||event==="SIGNED_IN"||event==="USER_UPDATED"){
         requestGeneration.current++;
         setState({status:"loading",items:[],message:"Account session changed. Refresh to verify your private history."});
         setHasMore(false);
