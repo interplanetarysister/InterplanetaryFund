@@ -77,7 +77,15 @@ export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=n
   });
   if(!response.ok) throw Error("Your private team history is temporarily unavailable.");
   const events=await response.json();
-  if(!Array.isArray(events)||events.length>limit||events.some(e=>!UUID.test(e?.id||"")||!UUID.test(e?.event_key||"")||!TEAM_CONTEXT_AGENTS.includes(e?.agent_id)||!["user","agent"].includes(e?.speaker)||typeof e?.content!=="string"))
+  if(!Array.isArray(events)||events.length>limit||events.some(e=>
+    !UUID.test(e?.id||"")||!UUID.test(e?.event_key||"")||
+    !TEAM_CONTEXT_AGENTS.includes(e?.agent_id)||
+    !["user","agent"].includes(e?.speaker)||
+    e?.source_kind!==(e?.speaker==="user"?"user_statement":"agent_response")||
+    typeof e?.content!=="string"||!e.content.trim()||
+    e.content.length>(e.speaker==="user"?4000:24000)||
+    (e?.campaign_id!=null&&!UUID.test(e.campaign_id))||
+    typeof e?.recorded_at!=="string"||!Number.isFinite(Date.parse(e.recorded_at))))
     throw Error("The team history response could not be verified.");
   return {state:"ready",events};
 }
