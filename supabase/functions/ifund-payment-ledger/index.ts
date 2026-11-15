@@ -260,7 +260,7 @@ Deno.serve(async req=>{
       const p=body.data||{};
       if(!subscriptionId.test(p.paypal_subscription_id||"")||!eventId.test(p.paypal_event_id||"")
         ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1||p.currency!=="USD"
-        ||!["PAYMENT.SALE.REFUNDED","BILLING.SUBSCRIPTION.PAYMENT.FAILED"].includes(p.event_type))
+        ||p.event_type!=="PAYMENT.SALE.REFUNDED")
         return fail("Invalid subscription reversal");
       const row=await findOne("ifund_subscription_intents?select=*&paypal_subscription_id=eq."+encodeURIComponent(p.paypal_subscription_id));
       if(!row)return fail("Subscription not found",404);
@@ -268,8 +268,10 @@ Deno.serve(async req=>{
       if(!Number.isFinite(occurred.getTime()))return fail("Invalid reversal time");
       const operation="paypal:subscription:reversal:"+p.paypal_event_id;
       const existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
-      const entryType=p.event_type==="PAYMENT.SALE.REFUNDED"?"refund":"reversal";
-      const providerReference=p.provider_reference||p.paypal_event_id;
+      const entryType="refund";
+      // A webhook event ID is not a PayPal refund resource ID. Reject missing provenance.
+      if(typeof p.provider_reference!=="string"||!p.provider_reference.trim())return fail("Verified refund resource reference required");
+      const providerReference=p.provider_reference.trim();
       if(existing && (existing.intent_id!==row.id || existing.member_id!==row.member_id
         || existing.paypal_subscription_id!==row.paypal_subscription_id
         || existing.provider_reference!==providerReference || existing.entry_type!==entryType
@@ -296,7 +298,7 @@ Deno.serve(async req=>{
         ?"last_reversal_at=eq."+encodeURIComponent(row.last_reversal_at)
         :"last_reversal_at=is.null");
       const updated=await db("ifund_subscription_intents?id=eq."+row.id+guard,"PATCH",{
-        status:"past_due",last_reversal_at:occurred.toISOString(),updated_at:new Date().toISOString()
+        last_reversal_at:occurred.toISOString(),updated_at:new Date().toISOString()
       });
       if(!Array.isArray(updated)||updated.length!==1)
         return fail("Subscription reversal state changed concurrently; retry reconciliation",409);
