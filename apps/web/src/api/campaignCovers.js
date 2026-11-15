@@ -51,8 +51,11 @@ export async function uploadCampaignCover(client, file, { makeId = () => crypto.
     throw Error("Your session changed during the image upload. Sign in again.");
   const { data: publicData } = storage.getPublicUrl(path);
   const url = new URL(publicData?.publicUrl || "");
-  if (url.protocol !== "https:" ||
-      !url.pathname.includes("/storage/v1/object/public/" + COVER_BUCKET + "/") ||
+  const expectedOrigin = new URL(client.supabaseUrl || "");
+  const expectedPath = `/storage/v1/object/public/${COVER_BUCKET}/${path}`;
+  if (expectedOrigin.protocol !== "https:" || url.protocol !== "https:" ||
+      url.origin !== expectedOrigin.origin || url.username || url.password ||
+      url.pathname !== expectedPath || url.search || url.hash ||
       url.href.length > 2000) throw Error("The uploaded cover URL could not be verified.");
   return url.href;
 }
