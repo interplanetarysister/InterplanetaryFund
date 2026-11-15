@@ -69,8 +69,10 @@ export function addIosSigningEntitlements(pbxproj) {
   }
   // Match only the generated App target's two build configurations.
   // The regular expression stops at the next configuration boundary.
-  const pattern = /\/\* (?:Debug|Release) \*\/ = \{[\s\S]*?isa = XCBuildConfiguration;[\s\S]*?PRODUCT_BUNDLE_IDENTIFIER = com\.interplanetaryfund\.app;[\s\S]*?\n\s*\};/g;
-  const blocks = [...pbxproj.matchAll(pattern)].map(match => match[0]);
+  const pattern = /\/\* (?:Debug|Release) \*\/ = \{[\s\S]*?\n\s*\};/g;
+  const blocks = [...pbxproj.matchAll(pattern)].map(match => match[0])
+    .filter(block => block.includes("isa = XCBuildConfiguration;") &&
+      block.includes("PRODUCT_BUNDLE_IDENTIFIER = com.interplanetaryfund.app;"));
   if (blocks.length !== 2 || !blocks.every(block => block.includes("CODE_SIGN_STYLE = Automatic;")))
     throw new Error("Unable to identify both App target signing configurations.");
   let output = pbxproj;
