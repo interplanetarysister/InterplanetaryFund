@@ -64,3 +64,20 @@ test("rejects mismatched replay and direct client mutation of transcript",async(
     await assert.rejects(db.query("insert into public.ifund_agent_team_events(owner_id,event_key,agent_id,speaker,source_kind,content) values($1,$2,'story','user','user_statement','forged')",[OTHER,AGENT_EVENT]),/permission denied/);
   }finally{await db.close();}
 });
+
+test("owner correction replaces prior user statement without altering another user",async()=>{
+  const db=await setup();
+  try{
+    await as(db,OWNER);
+    await db.query("select public.ifund_team_record_user($1,'story','Old budget estimate.',null)",[USER_EVENT]);
+    const changed=await db.query("select public.ifund_team_correct($1,$2,'Corrected budget estimate.') id",[USER_EVENT,AGENT_EVENT]);
+    assert.ok(changed.rows[0].id);
+    const history=await db.query("select speaker,content from public.ifund_team_recent(null,30)");
+    assert.deepEqual(history.rows,[{speaker:"user",content:"Corrected budget estimate."}]);
+    await as(db,OTHER);
+    await assert.rejects(
+      db.query("select public.ifund_team_correct($1,$2,'Hijacked correction.')",[AGENT_EVENT,"66666666-6666-4666-8666-666666666666"]),
+      /Owned active statement required/
+    );
+  }finally{await db.close();}
+});
