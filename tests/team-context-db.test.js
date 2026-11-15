@@ -59,6 +59,7 @@ test("rejects mismatched replay and direct client mutation of transcript",async(
   const db=await setup();
   try{
     await as(db,OWNER);
+    await assert.rejects(db.query("select * from public.ifund_agent_team_events"),/permission denied/);
     await db.query("select public.ifund_team_record_user($1,'story','The first description of this plan.',null)",[USER_EVENT]);
     await assert.rejects(db.query("select public.ifund_team_record_user($1,'orbit','Different contents.',null)",[USER_EVENT]),/conflict/);
     await assert.rejects(db.query("insert into public.ifund_agent_team_events(owner_id,event_key,agent_id,speaker,source_kind,content) values($1,$2,'story','user','user_statement','forged')",[OTHER,AGENT_EVENT]),/permission denied/);
