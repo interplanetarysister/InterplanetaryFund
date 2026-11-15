@@ -63,3 +63,9 @@ test("Atlas pagination does not fetch financial fields or expose cross-owner rec
   assert.match(part,/row\?\.owner_id !== owner/);
   assert.doesNotMatch(part,/story,|goal_amount|donor_count|raised_amount/);
 });
+
+test("Atlas retries owner read after email verification changes",()=>{
+  const atlas=read("../src/pages/Atlas.jsx");
+  assert.match(atlas,/user\?\.email_confirmed_at, reload\]/);
+  assert.match(atlas,/!user\.email_confirmed_at/);
+});
