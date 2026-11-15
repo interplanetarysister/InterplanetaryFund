@@ -1,0 +1,68 @@
+/* Independent Apple/Play mobile review app.
+   System fonts; no remote font provider or unreviewed website theme imports. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    --background: 207 51% 9%;
+    --foreground: 210 40% 98%;
+    --card: 209 35% 14%;
+    --card-foreground: 210 40% 98%;
+    --popover: 209 35% 14%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 159 73% 74%;
+    --primary-foreground: 170 55% 10%;
+    --secondary: 205 32% 19%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 22% 19%;
+    --muted-foreground: 210 20% 77%;
+    --accent: 161 35% 19%;
+    --accent-foreground: 160 70% 85%;
+    --destructive: 0 65% 44%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 205 29% 26%;
+    --input: 207 29% 26%;
+    --ring: 160 70% 72%;
+    --radius: .85rem;
+    --sidebar-background: 207 51% 9%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 159 73% 74%;
+    --sidebar-primary-foreground: 170 55% 10%;
+    --sidebar-accent: 209 35% 14%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 205 29% 26%;
+    --sidebar-ring: 160 70% 72%;
+    --font-heading: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display: ui-serif, Georgia, serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { font-family: var(--font-body); scroll-behavior: smooth; }
+  body {
+    margin: 0; min-width: 280px;
+    background-color: #091821; color: #eef7f9;
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+  }
+  button, input, select, textarea { font: inherit; }
+  button { cursor: pointer; }
+  button:disabled { cursor: not-allowed; }
+  a, button, input, select, textarea { touch-action: manipulation; }
+  :focus-visible { outline: 2px solid #a7f3d0; outline-offset: 3px; }
+  img { max-width: 100%; height: auto; }
+  progress { accent-color: #a7f3d0; }
+  h1, h2, h3 { overflow-wrap: anywhere; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
