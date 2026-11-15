@@ -11,7 +11,7 @@ export default function OperationsHub({ platform = false }) {
   const areas = [
     { to: "/admin/studio", label: "Website Studio", detail: "Edit and review approved site content" },
     { to: "/admin/social-moderation", label: "Community moderation", detail: "Review reported community content" },
-    { to: "/finances#platform-finance", label: "Verified financial reporting", detail: "Provider-confirmed records and authorized reconciliation" },
+    { to: "/admin/finance", label: "Platform finance", detail: "Open the administrator-gated financial workspace; verification depends on the underlying records" },
     { to: "/connections", label: "Member connections", detail: "Review account-scoped provider connections" },
     { to: "/hackathon/tracker", label: "Judge demo tracker", detail: "Separate sandbox evidence and acceptance records" },
   ];
