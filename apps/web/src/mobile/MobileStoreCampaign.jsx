@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Share2, Flag, EyeOff } from "lucide-react";
+import { ArrowLeft, Share2, Flag, EyeOff, Bookmark } from "lucide-react";
 import { getCampaignDetail } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { shareWithDevice } from "@/lib/nativeApi.js";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { blockOrganizer, readBlockedOrganizers, verifiedOrganizersForCampaigns } from "@/mobile/organizerBlock";
+import { savedCampaignIds, setCampaignSaved } from "@/mobile/savedCampaigns";
 
 const ORIGIN="https://interplanetaryfund.com";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -15,6 +16,7 @@ export default function MobileStoreCampaign() {
   const {id}=useParams();
   const {user}=useAuthSession();
   const [organizerId,setOrganizerId]=useState(null);
+  const [saved,setSaved]=useState(()=>savedCampaignIds().includes(id));
   const navigate=useNavigate();
   const [campaign,setCampaign]=useState(null),[phase,setPhase]=useState("loading"),[error,setError]=useState("");
   const [notice,setNotice]=useState(""),[reporting,setReporting]=useState(false),[reason,setReason]=useState("");
@@ -45,6 +47,13 @@ export default function MobileStoreCampaign() {
     }catch(cause){setNotice(cause.message||"Organizer blocking is unavailable.");}
   }
 
+  useEffect(()=>setSaved(savedCampaignIds().includes(id)),[id]);
+  function bookmark(){
+    try{
+      setSaved(setCampaignSaved(id,!saved));
+      setNotice(saved?"Removed from saved campaigns.":"Saved a link on this device.");
+    }catch{setNotice("This device could not save the campaign link.");}
+  }
   const shareUrl=ORIGIN+"/campaign/"+encodeURIComponent(String(id||""));
   async function share(){
     setNotice("");
@@ -105,6 +114,7 @@ export default function MobileStoreCampaign() {
     </header>
     <div className="flex flex-wrap gap-3">
       <button type="button" onClick={share} className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-emerald-200 px-5 text-sm font-bold text-slate-950"><Share2 aria-hidden="true" className="h-5 w-5"/> Share campaign</button>
+      <button type="button" onClick={bookmark} aria-pressed={saved} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-emerald-300/40 px-4 text-sm"><Bookmark aria-hidden="true" className="h-4 w-4"/>{saved?"Saved":"Save campaign"}</button>
       <button type="button" onClick={()=>setReporting(x=>!x)} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm"><Flag aria-hidden="true" className="h-4 w-4"/> Report content</button>
       <button type="button" onClick={block} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm"><EyeOff aria-hidden="true" className="h-4 w-4"/> Hide campaign</button>
       {user?.id&&organizerId&&organizerId!==user.id&&<button type="button" onClick={blockAuthor} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-rose-300/40 px-4 text-sm"><EyeOff aria-hidden="true" className="h-4 w-4"/> Block organizer</button>}
