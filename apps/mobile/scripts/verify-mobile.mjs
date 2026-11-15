@@ -112,8 +112,11 @@ assert(mobileEntrypoint.includes("MobileStoreApp") &&
 assert(mobileBuild.includes("publicDir: false") &&
   mobileBuild.includes('renameSync(generated, resolve(out, "index.html"))'),
   "Store build must have local index and not copy unrelated public web archives");
-assert(read("apps/web/src/mobile/MobileStoreDeleteAccount.jsx").includes("ifund_create_support_ticket"),
-  "In-app deletion must initiate an authenticated, tracked permanent deletion request");
+assert(read("apps/web/src/mobile/MobileStoreDeleteAccount.jsx").includes("requestAccountDeletion(") &&
+  read("apps/web/src/lib/accountDeletion.js").includes('client.rpc("ifund_request_account_deletion")') &&
+  read("apps/web/src/lib/accountDeletion.js").includes('client.rpc("ifund_my_account_deletion_requests")') &&
+  read("apps/web/src/pages/DeleteAccount.jsx").includes("MobileStoreDeleteAccount"),
+  "Mobile and public website must use the dedicated, verified self-service deletion process");
 assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("ifund_create_support_ticket"),
   "UGC reports must be submitted to the real canonical support moderation queue");
 assert(read("apps/web/src/mobile/MobileStoreCampaign.jsx").includes("shareWithDevice"),
@@ -126,6 +129,9 @@ assert(read("apps/web/src/mobile/organizerBlock.js").includes("ifund_mobile_bloc
 assert(read("apps/web/src/mobile/MobileStoreSaved.jsx").includes("blockedOrganizerIds()") &&
   read("apps/web/src/mobile/MobileStoreDiscover.jsx").includes("blockedOrganizerIds()"),
   "All native campaign feeds must honor account-scoped organizer blocking");
+assert(read("apps/web/src/mobile/MobileStoreHelp.jsx").includes('client.rpc("ifund_create_support_ticket"') &&
+  read("apps/web/src/mobile/MobileStoreHelp.jsx").includes("ticket_id"),
+  "Native support must record a verified ticket without relying solely on email");
 
 assert(read("apps/web/src/mobile/MobileReadiness.jsx").includes("not") &&
   read("apps/web/src/mobile/MobileReadiness.jsx").includes("prediction"),
