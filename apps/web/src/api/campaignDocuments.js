@@ -5,7 +5,7 @@ import { payoutIdentity } from "../lib/guestAccess.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 import { loadOwnerCampaign } from "./ownerCampaigns.js";
 
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const DOCUMENT_BUCKET="ifund-campaign-documents";
 export const DOCUMENT_MAX_BYTES=8*1024*1024;
 export const DOCUMENT_FORMATS=Object.freeze({
