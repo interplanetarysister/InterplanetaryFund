@@ -1,3 +1,14 @@
+## Partner-first hybrid fundraising direction (owner approved 2026-11-14)
+
+**Business objective:** iFund is the AI-powered operating system for fundraising success: campaign creation, growth, distribution and verified outcome measurement **alongside** established fundraising hosts. Partner-first, not a competing donation destination. **Hybrid** means preserving existing iFund PayPal/ledger while allowing creators to link and promote fundraisers hosted on authorized outside platforms. This directive governs **all builders, agents, subagents and release reviewers** and is fully specified in [the partner-first operating model](docs/architecture/PARTNER_FIRST_HYBRID_MODEL_20261114.md).
+
+- Prioritize existing broken website/admin routes; implement partner-first on canonical `apps/web` and shared Cloudflare/Supabase services, then independently packaged `apps/mobile`. Original Base44 APK/repo is read-only.
+- Never receive outside-platform donations into iFund and forward them after taking 7%, absent a separately approved compliant contract. External supporter CTA goes to the outside provider's own checkout. Leave existing iFund withdrawal fee untouched for verified first-party transactions.
+- Campaigns may have verified owner-scoped outside-host links; host URL is **not** proof of ownership or permission. Never represent unapproved provider OAuth/API access as enabled.
+- Quality rubric must explain evidence and cannot claim to predict success. Track source-labeled clicks, confirmed partner referrals, provider-verified donation events, and separately owner-reported/estimated/sandbox data. Never count clicks as gifts or claim causality from before/after fundraising.
+- **Frontend:** selection, partner direct-checkout disclosure, external-link management, analytics presentation, responsive/mobile. **Backend:** additive external campaign mapping, URL validation, Supabase RLS/authorization, consent and source provenance. **Finance/integrations:** preserve existing PayPal, direct-to-provider flow, receipts, legal/partner checks and approved connectors. **QA/review/audit:** negative cases and verified vs reported data. **Coordinator:** delegate bounded work, avoid branch/PR conflicts, preserve release controls.
+- No build or deployment triggered by adopting this direction. Do not claim a feature live until tested and authorized through the release contract.
+
 # Interplanetary Fund — mandatory builder instructions
 
 ## Owner's non-negotiable platform work order (2026-11-13)
