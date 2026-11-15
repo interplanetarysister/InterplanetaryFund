@@ -153,3 +153,12 @@ test("website studio never silently unpublishes a dirty page during navigation",
   assert.match(studio, /serverPageOffset\.current \+= rows\.length/);
   assert.match(studio, /offset=" \+ serverPageOffset\.current/);
 });
+
+test("team history invalidates in-flight actions on account changes and permits manual recovery", () => {
+  const history = readFileSync(new URL("../src/components/agents/TeamConversationHistory.jsx", import.meta.url), "utf8");
+  assert.match(history, /status:"error",items:\[\],message:"Account session changed/);
+  assert.match(history, /const generation=requestGeneration\.current;\s*setRemoving\(row\.id\)/);
+  assert.match(history, /generation===requestGeneration\.current\)\s*setState\(prev=>\(\{\.\.\.prev,items:prev\.items\.filter/);
+  assert.match(history, /generation===requestGeneration\.current\)\{\s*setEditing\(""\)/);
+  assert.match(history, /disabled=\{state\.status==="loading"\}/);
+});
