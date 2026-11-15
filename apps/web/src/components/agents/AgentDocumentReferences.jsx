@@ -85,7 +85,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
     {!state.loading&&!state.error&&items.length===0&&<p className="mt-2 text-xs text-muted-foreground">No references available. Enable documents under My campaigns, or sign in and try again.</p>}
     {items.length>0&&<ul className="mt-3 space-y-2">
       {items.map(item=><li key={item.document_id} className="rounded-lg border border-border p-3">
-        <p className="text-xs font-semibold">{DOCUMENT_CATEGORIES[item.purpose]||"Campaign reference"}</p>
+        <p className="text-xs font-semibold">{DOCUMENT_CATEGORIES[item.purpose]||"Campaign reference"} · {item.file_name||"Owner reference"}</p>
         <p className="mt-1 whitespace-pre-wrap break-words text-xs">{item.summary}</p>
         {item.owner_excerpt&&<p className="mt-2 whitespace-pre-wrap break-words border-l-2 border-border pl-3 text-xs"><strong>Owner-selected excerpt (not independently verified):</strong> {item.owner_excerpt}</p>}
         {item.extracted_excerpt&&<p className="mt-2 whitespace-pre-wrap break-words border-l-2 border-border pl-3 text-xs"><strong>Plain-text document extract (not independently verified):</strong> {item.extracted_excerpt}</p>}
