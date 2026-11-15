@@ -15,7 +15,7 @@ export function safeSupabaseAuthorizationUrl(value) {
         url.port || url.username || url.password ||
         url.pathname !== "/auth/v1/authorize" || url.hash)
       return "";
-    if (!["google", "facebook"].includes(url.searchParams.get("provider"))) return "";
+    if (!["apple", "google", "facebook"].includes(url.searchParams.get("provider"))) return "";
     return url.href;
   } catch { return ""; }
 }
@@ -25,7 +25,7 @@ export async function startNativeOAuthSignIn({
   browser = Browser, origin = "capacitor://localhost",
 }) {
   if (!capacitor?.isNativePlatform?.() ||
-      !["google", "facebook"].includes(provider) ||
+      !["apple", "google", "facebook"].includes(provider) ||
       typeof auth?.signInWithOAuth !== "function")
     return { started: false, message: "Native social sign-in is unavailable." };
   try {
