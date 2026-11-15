@@ -1,4 +1,5 @@
 import {useMemo,useState} from "react";
+import AgentDocumentReferences from "./AgentDocumentReferences";
 
 /** Application preparation only; no external submission or source-data export. */
 export default function PulseApplicationPreparation({opportunity,campaign}) {
@@ -32,6 +33,10 @@ export default function PulseApplicationPreparation({opportunity,campaign}) {
    onClick={()=>setExpanded(x=>!x)}>{expanded?"Hide":"Prepare"} an application worksheet</button>
   {expanded&&<div className="mt-3 space-y-3">
    <p className="text-xs text-muted-foreground">This worksheet is made locally. It does not submit to the provider, verify that you qualify, or upload private campaign content.</p>
+   {campaign?.isOwned===true&&<AgentDocumentReferences campaignId={campaign.id} onInsert={facts=>{
+      setNotes(previous=>(previous?previous+"\n":"")+"Reference facts to verify: "+facts.slice(0,500));
+      setNotice("Added owner-approved reference notes to your private worksheet only. No application was submitted.");
+    }} />}
    <label className="block text-sm font-medium">Optional owner notes
     <textarea maxLength={800} value={notes} onChange={e=>setNotes(e.target.value)}
       className="mt-1 min-h-20 w-full rounded-lg border border-border bg-background p-2"/>
