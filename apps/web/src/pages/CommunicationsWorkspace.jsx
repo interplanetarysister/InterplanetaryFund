@@ -100,7 +100,7 @@ export default function CommunicationsWorkspace() {
           value={message} onChange={e=>setMessage(e.target.value)} />
       </label>
       <AgentDocumentReferences campaignId={campaignId} onInsert={facts=>{
-        setMessage(prev=>(prev ? prev+"\n\n" : "")+"Reference facts to verify before sharing:\n"+facts).slice(0,4000));
+        setMessage(prev=>((prev ? prev+"\n\n" : "")+"Reference facts to verify before sharing:\n"+facts).slice(0,4000));
         setStatus("Reference inserted into this editable draft only. Review its accuracy and confirm any intended outreach separately.");
       }} />
       <EchoSavedTemplates message={message} onApply={setMessage}/>
