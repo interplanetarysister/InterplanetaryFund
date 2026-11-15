@@ -31,3 +31,17 @@ export async function eraseTeamEvent(client,eventKey){
   if(error||data!==true)throw Error("This team event could not be removed.");
   return true;
 }
+
+export async function correctTeamStatement(client,oldEventKey,correctedText){
+  const owner=await member(client);
+  if(!UUID.test(oldEventKey)||typeof correctedText!=="string"||!correctedText.trim()
+    ||correctedText.trim().length>4000) throw Error("Enter a valid correction.");
+  const {data,error}=await client.rpc("ifund_team_correct",{
+    p_old_event_key:oldEventKey,
+    p_new_event_key:crypto.randomUUID(),
+    p_content:correctedText.trim(),
+  });
+  await sameOwner(client,owner);
+  if(error||!UUID.test(data||""))throw Error("The correction could not be recorded.");
+  return data;
+}
