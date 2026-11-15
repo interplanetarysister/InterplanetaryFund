@@ -65,7 +65,7 @@ export function installNativeAuthLinks(target = globalThis, options = {}) {
       if (consumed.size > 40) consumed.delete(consumed.values().next().value);
     }
   };
-  Promise.resolve(app.addListener("appUrlOpen", event => { void handle(event?.url); }))
+  Promise.resolve(app.addListener("appUrlOpen", event => { void handle(event?.url).catch(() => { /* Fail closed. */ }); }))
     .catch(() => { /* No native app link listener; no authorization fallback. */ });
   Promise.resolve(app.getLaunchUrl())
     .then(event => handle(event?.url))
