@@ -8,7 +8,7 @@ const text=(value,max)=>typeof value==="string"?value.slice(0,max):"";
 export function campaignSetupPayload(form={},draftStep=0){
   const brief=form.writing_brief||form.ai_profile?.writing_brief||{};
   const profile={tone:text(form.ai_profile?.tone,200),never_change:text(form.ai_profile?.never_change,2000),
-    writing_brief:{writingPath:text(brief.writingPath,40),details:text(brief.details,1500),beneficiary:text(brief.beneficiary,100),need:text(brief.need,100)}};
+    writing_brief:{wizard_version:2,writingPath:text(brief.writingPath,40),details:text(brief.details,1500),beneficiary:text(brief.beneficiary,100),need:text(brief.need,100)}};
   if(new TextEncoder().encode(JSON.stringify(profile)).length>7900)throw Error("Your writing preferences are too long. Shorten the instructions before saving.");
   const versions=Array.isArray(form.story_versions)?form.story_versions.filter(v=>typeof v?.text==="string"&&v.text.trim()).slice(-20).map(v=>({text:v.text.slice(0,15000),saved_at:text(v.saved_at,50)})):[];
   while(versions.length&&new TextEncoder().encode(JSON.stringify(versions)).length>180000)versions.shift();
@@ -22,7 +22,7 @@ export function campaignSetupPayload(form={},draftStep=0){
     if(value===""||value==null)return null;
     const n=Number(value);if(!Number.isFinite(n)||Math.abs(n)>limit)throw Error("Choose a valid private campaign location.");return n;
   };
-  return {draft_step:Number.isInteger(draftStep)?Math.max(0,Math.min(3,draftStep)):0,end_date:endDate,
+  return {draft_step:Number.isInteger(draftStep)?Math.max(0,Math.min(2,brief.wizard_version===2?draftStep:(draftStep===3?2:draftStep===2?1:0))):0,end_date:endDate,
     location:text(form.location,160),location_lat:coordinate(form.location_lat,90),location_lng:coordinate(form.location_lng,180),
     cover_image_is_ai:form.cover_image_is_ai===true,ai_profile:profile,story_versions:versions};
 }
