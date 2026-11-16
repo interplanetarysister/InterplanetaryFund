@@ -498,7 +498,7 @@ async function subscriptionWebhook(payload,env) {
     const sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(providerReference));
     if(sale?.id!==providerReference||sale?.billing_agreement_id!==id
       ||sale?.state!=="completed"||sale?.amount?.currency!=="USD"
-      ||!/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(String(sale?.amount?.total||""))
+      ||!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(sale?.amount?.total||""))
       ||cents(sale.amount.total)<1)
       return asError("subscription_sale_receipt_unverified",409);
   }
