@@ -5,7 +5,7 @@ import { reviewCampaignPublication, proposePunctuationRepair, proposeRedundancyR
 import { reviewCampaignWideEditorial, proposeCampaignWidePunctuation, proposeCampaignWideRedundancy } from "@/lib/campaignEditorialImprovements.mjs";
 
 /** Free, local prepublication editor with an optional owner-authorized team queue. */
-export default function PrepublicationGate({ form, campaignId, onApply, onApplyFields, disabled = false, canSend = true }) {
+export default function PrepublicationGate({ form, campaignId, onApply, onApplyFields, disabled = false, canSend = true, onFocusField }) {
   const audit = useMemo(() => reviewCampaignPublication(form), [form]);
   const punctuation = useMemo(() => proposePunctuationRepair(form?.story), [form?.story]);
   const duplication = useMemo(() => proposeRedundancyRepair(form?.story), [form?.story]);
@@ -23,6 +23,7 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
 
   function focusImprovementField(item) {
     const field = item.field || (item.id === "title_repetition" ? "title" : item.id === "summary_repeated" ? "summary" : "story");
+    if(onFocusField){onFocusField(field);setError("");return;}
     const target = field === "title" ? "campaign-title" : field === "summary" ? "campaign-summary" : "campaign-story";
     const inputElement = document.getElementById(target);
     if (!inputElement) { setError("The requested editor field is unavailable."); return; }

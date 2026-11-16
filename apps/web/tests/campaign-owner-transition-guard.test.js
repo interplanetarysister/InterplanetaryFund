@@ -7,7 +7,7 @@ test("verified owner changes fail closed without relying on parent remount", () 
   assert.match(source, /initialOwnerId\.current !== ownerId/);
   assert.match(source, /privacyDecisionPending = guestDecisionPending \|\| ownerTransitionPending/);
   assert.match(source, /if \(!storageReadable \|\| privacyDecisionPending \|\| draftId/);
-  assert.match(source, /Boolean\(!storageReadable \|\| privacyDecisionPending \|\| busy/);
+  assert.match(source, /Boolean\(\(!storageReadable&&!draftId\) \|\| privacyDecisionPending \|\| busy/);
   assert.match(source, /if \(ownerTransitionPending\) return; \/\/ No consent/);
 });
 

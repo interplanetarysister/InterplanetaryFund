@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { useNavigate } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { loadWritingWorkspaceAccess } from "@/lib/writingWorkspace";
@@ -10,7 +11,7 @@ import {
   WritingHandoffError,
 } from "@/lib/writingCampaignHandoff";
 
-export default function StoryAgent() {
+export default function StoryAgent({ initialCampaignId=null }) {
   const navigate = useNavigate();
   const [details, setDetails] = useState("");
   const [section, setSection] = useState("");
@@ -142,12 +143,15 @@ export default function StoryAgent() {
           if (error || !user) throw Error("Please sign in again.");
           const response = await client
             .from("ifund_campaigns")
-            .select("id,title")
+            .select("id,owner_id,title")
             .eq("owner_id", user.id)
             .order("updated_at", { ascending: false })
             .limit(50);
           if (response.error)
             throw Error("Your campaigns could not be loaded.");
+          const fresh=await client.auth.getUser();
+          if(fresh.error||fresh.data?.user?.id!==user.id)throw Error("Your account changed. Reopen writing.");
+          if(!Array.isArray(response.data)||response.data.some(row=>row.owner_id!==user.id))throw Error("Your campaigns could not be verified.");
           return response.data;
         })(),
       ]);
@@ -155,6 +159,9 @@ export default function StoryAgent() {
         setDrafts(result.drafts);
         if (result.queued_requests) setQueuedRequests(result.queued_requests);
         setCampaigns(owned);
+        const requested=campaignFromOwnedList(initialCampaignId,owned);
+        setCampaignId(requested);
+        if(initialCampaignId&&!requested)setNotice("The requested campaign is unavailable for this account. Choose one of your own campaigns.");
       }
     })()
       .catch((err) => {

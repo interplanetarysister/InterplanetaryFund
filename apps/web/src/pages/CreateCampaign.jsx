@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover, validateCoverFile } from "@/api/campaignMedia";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { loadCampaignSetup, saveCampaignSetup, campaignSetupPayload } from "@/api/campaignSetup";
 import { WIZARD_STEPS, emptyWizard, restoreWizard, rememberWizard, forgetWizard, importGuestWizard, withStoryVersion } from "@/lib/campaignWizard";
+import AgentFeatureLauncher from "@/components/agents/AgentFeatureLauncher";
+import { rememberPendingCampaignSetup, pendingCampaignSetup, clearPendingCampaignSetup } from "@/lib/campaignCreationRecovery.mjs";
 import { createOwnerSessionGuard } from "@/lib/ownerSessionGuard";
 import { createCampaignWritingRequests } from "@/lib/campaignWritingRequests";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
@@ -25,10 +27,7 @@ import { usePublicCampaignFundraising } from "@/lib/useFundraisingMode";
 export default function CreateCampaign() {
   const [params] = useSearchParams();
   const draftId = params.get("draft");
-  // The member gate clears private saved text when the account changes.
-  return draftId
-    ? <MemberAccess><NewCampaign draftId={draftId} /></MemberAccess>
-    : <NewCampaign />;
+  return <NewCampaign draftId={draftId} />;
 }
 
 function NewCampaign({ draftId = null }) {
@@ -39,7 +38,15 @@ function NewCampaign({ draftId = null }) {
   const ownerId = session.user?.is_anonymous === true || !session.user?.email_confirmed_at ? null : (session.user?.id || null);
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
-  return <CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
+  const composer=<CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
+  // Confirmed members can accept the current agreement before their first save.
+  // Guest drafting remains available; private saved drafts always require access.
+  return ownerId || draftId ? <MemberAccess><CampaignEntry key={(ownerId||"guest")+":"+(draftId||"new")} ownerId={ownerId} draftId={draftId}>{composer}</CampaignEntry></MemberAccess> : composer;
+}
+
+function CampaignEntry({ownerId,draftId,children}){
+  const [recovery]=useState(()=>{try{return ownerId&&!draftId?pendingCampaignSetup(sessionStorage,ownerId):null;}catch{return null;}});
+  return recovery?<Navigate to={"/create?draft="+encodeURIComponent(recovery.campaignId)} replace />:children;
 }
 
 function CampaignComposer({ memberAccess = false, ownerId = null }) {
@@ -51,12 +58,23 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
   const headingRef=useRef(null);
+  const fieldToFocus=useRef(null);
   const storyEditStarted=useRef(false);
   const [wizard,setWizard]=useState(()=>{try{return restoreWizard(sessionStorage,ownerId,draftId);}catch{return emptyWizard();}});
   const [wizardError,setWizardError]=useState("");
   const [progressNotice,setProgressNotice]=useState("");
   const step=wizard.draft_step;
-  useEffect(()=>{headingRef.current?.focus();},[step]);
+  useEffect(()=>{
+    if(fieldToFocus.current){
+      const target=document.getElementById(fieldToFocus.current);fieldToFocus.current=null;
+      target?.scrollIntoView({behavior:"smooth",block:"center"});target?.focus({preventScroll:true});
+    }else headingRef.current?.focus();
+  },[step]);
+  function focusCampaignField(field){
+    const target=field==="title"?"campaign-title":field==="summary"?"campaign-summary":field==="goal_amount"?"campaign-goal":field==="category"?"campaign-category":field==="cover_image_url"?"campaign-cover-url":"campaign-story";
+    fieldToFocus.current=target;
+    setWizard(previous=>({...previous,draft_step:["title","goal_amount","category","cover_image_url"].includes(field)?1:2}));
+  }
   // Explicit edits, not mount/effect replays, authorize clearing restored text.
   const userEditedDraft = useRef(false);
   const coverUploadLock = useRef(false);
@@ -90,7 +108,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
         if (active && alive.current) {
           invalidateWriting();
-          const restoredSetup=setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard();
+          let recovery=null;try{recovery=pendingCampaignSetup(sessionStorage,ownerId,draftId);}catch{/* Account saves remain available without device storage. */}
+          const restoredSetup=recovery?.setup||(setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard());
+          if(recovery)setProgressNotice("Your campaign is saved. Recovered setup changes still need Save private draft to confirm them to your account.");
           setWizard(restoredSetup);
           const brief=restoredSetup.ai_profile.writing_brief;
           setWritingPath(CAMPAIGN_WRITING_PATHS.some(path=>path.id===brief.writingPath)?brief.writingPath:"write");
@@ -284,7 +304,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       setAutosaveError(stored ? "" : "Automatic draft saving failed. Copy your changes before leaving.");
     } catch { setAutosaveError("Browser storage is unavailable. Copy your changes before leaving."); }
   }, [form, draftId, saved, ownerId, writingPath, draftDetails, draftBeneficiary, draftNeed, privacyDecisionPending, storageReadable]);
-  const disabled = Boolean(!storageReadable || privacyDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
+  const disabled = Boolean((!storageReadable&&!draftId) || privacyDecisionPending || busy || coverUploading || handoffBusy || loadingDraft || draftLoadError || (draftId && loadedDraftId !== draftId));
   const readiness = publishReadiness(form);
   function decideGuestDraft(importIt) {
     if (ownerTransitionPending) return; // No consent can bridge two account identities without a remount.
@@ -445,6 +465,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       scope.assertActive();
       campaignId.current = data.id;
       setSaved(data.id);
+      let recoveryStored=false;try{recoveryStored=rememberPendingCampaignSetup(sessionStorage,ownerId,data.id,setupToSave);}catch{/* Preserve the confirmed account receipt below. */}
+      if(!recoveryStored)setAutosaveError("Campaign data is saved, but setup recovery could not be kept in this browser. Keep this page open until setup saving succeeds.");
       await saveCampaignSetup(client,data.id,setupToSave,setupToSave.draft_step,scope);
       if(status==="active")await saveOwnerCampaign(client,form,{id:data.id,status:"active",expectedStatus:"draft",scope});
       if(!alive.current)return false;
@@ -456,7 +478,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       let browserCleanupFailed = false;
       try {
         const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
-        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id);
+        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id)&&clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
         browserCleanupFailed = !cleared||!wizardCleared;
         if (browserCleanupFailed) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. It may contain private information on this device. Review browser storage before using a shared device.");
         else setAutosaveError("");
@@ -486,10 +508,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
+    <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
     {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
     {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
-      <p>Browser draft storage could not be read. Saving is paused to protect any existing private draft. Copy your work before leaving this page.</p>
+      <p>{draftId?"Browser draft storage could not be read. Your account draft can still be saved; a device copy may remain until storage is available.":"Browser draft storage could not be read. Saving is paused to protect any existing private draft. Copy your work before leaving this page."}</p>
       <button type="button" onClick={retryStorageRead} className="min-h-12 rounded-xl border border-border px-4 font-semibold">Retry browser storage</button>
     </section>}
     {guestDecisionPending && <section role="region" aria-label="Guest draft transfer" className="space-y-3 rounded-xl border p-3"><p>A guest campaign draft is stored on this device and may belong to another person. Import it only if it is yours. Existing account drafts will not be overwritten.</p><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(true)}>Import my guest draft</button><button type="button" className="min-h-11 rounded border px-3" onClick={() => decideGuestDraft(false)}>Keep separate</button></div></section>}
@@ -503,6 +526,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <fieldset disabled={disabled} className="space-y-4">
       <div hidden={step!==0} className="space-y-4">
       <h2 className="text-xl font-semibold">Your campaign details</h2>
+      <label className="block font-semibold">Working campaign title
+        <input id="campaign-working-title" maxLength={TITLE_MAX} value={form.title} onChange={event=>change("title",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
+      </label>
+      <p className="text-sm text-muted-foreground">Add a working title to save these answers as a private account draft. You can change it as you build your campaign.</p>
       <fieldset className="space-y-3">
         <legend className="font-semibold">What kind of campaign are you creating?</legend>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -605,7 +632,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
         {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
         <label className="block text-sm font-semibold">Or paste an image URL
-          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
+          <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
             onChange={event => { change("cover_image_url",event.target.value); setCoverUploadMessage(""); }}
             className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
         </label>
@@ -623,13 +650,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </form>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
-      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={`/campaign/${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
+      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
 
     {step===2&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
     {step===3&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"Add a short description before publishing."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
     <div hidden={step!==3}><CampaignReadinessScore form={form} /></div>
-    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
-    <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} /></div>
+    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
+    <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} onFocusField={focusCampaignField} /></div>
     <section hidden={step!==3} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
@@ -642,7 +669,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
       <button type="button" disabled={disabled||step===0} onClick={()=>advanceWizard(step-1)} className="min-h-12 rounded-xl border border-border px-5 font-semibold disabled:opacity-50">Back</button>
       {step<3&&<button type="button" disabled={disabled} onClick={()=>advanceWizard(step+1)} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">Save progress and continue</button>}
-      {step<3&&<button type="button" disabled={disabled} onClick={()=>save("draft")} className="min-h-12 rounded-xl border border-border px-5 font-semibold">Save private draft</button>}
+      {step<3&&<button type="button" onClick={()=>save("draft")} className="min-h-12 rounded-xl border border-border px-5 font-semibold" disabled={disabled||(Boolean(ownerId)&&!form.title.trim())}>Save private draft</button>}
     </div>
   </main>;
 }

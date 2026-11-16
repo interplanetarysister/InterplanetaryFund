@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSpecialistService } from "@/hooks/useSpecialistService";
+import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { selectedRevisions, verifiedMessagePreview } from "@/lib/specialistSession";
 
 const button = "min-h-11 rounded-lg border border-border px-4 py-2 text-sm font-semibold disabled:opacity-40";
@@ -9,6 +10,18 @@ const field = "mt-2 min-h-11 w-full rounded-lg border border-border bg-backgroun
 const rows = value => Array.isArray(value) ? value : [];
 const id = () => crypto.randomUUID();
 const toggle = (values, value, checked) => checked ? [...new Set([...values, value])] : values.filter(item => item !== value);
+
+function useRequestedCampaign(requested,service,ownerId,apply) {
+  const initialized=useRef(false);
+  useEffect(()=>{
+    if(initialized.current||service.phase!=="ready"||!Array.isArray(service.workspace?.campaigns))return;
+    initialized.current=true;
+    const selected=campaignFromOwnedList(requested,service.workspace.campaigns,ownerId);
+    apply(selected);
+  },[requested,service.phase,service.workspace,ownerId]);
+  return Boolean(requested&&service.phase==="ready"&&Array.isArray(service.workspace?.campaigns)&&!campaignFromOwnedList(requested,service.workspace.campaigns,ownerId));
+}
+const SelectionNotice=({missing})=>missing?<p role="alert">The requested campaign is unavailable for this account. Choose one of your own campaigns to continue.</p>:null;
 
 function ServiceStatus({ service, onReload }) {
   return <div className="space-y-3">
@@ -32,11 +45,12 @@ function CampaignSelect({ campaigns, value, onChange, disabled, accountScope = f
   </label>;
 }
 
-export function PlanningServiceWorkspace({ agent, ownerId }) {
+export function PlanningServiceWorkspace({ agent, ownerId, initialCampaignId=null }) {
   const service = useSpecialistService(agent, ownerId);
   const [objective, setObjective] = useState("Where should I focus my fundraising effort next?");
-  const [campaignIds, setCampaignIds] = useState([]), [selected, setSelected] = useState([]), [review, setReview] = useState(null);
+  const [campaignIds, setCampaignIds] = useState(()=>{const id=campaignFromOwnedList(initialCampaignId,service.workspace?.campaigns,ownerId);return id?[id]:[];}), [selected, setSelected] = useState([]), [review, setReview] = useState(null);
   const [validation, setValidation] = useState("");
+  const missingCampaign=useRequestedCampaign(initialCampaignId,service,ownerId,id=>setCampaignIds(id?[id]:[]));
   const workspace = service.workspace;
   const recommendations = rows(workspace?.recommendations), group = recommendations.slice(0, 50);
   const locked = service.locked || !!review;
@@ -51,10 +65,11 @@ export function PlanningServiceWorkspace({ agent, ownerId }) {
   return <section className="space-y-5" aria-label={growth ? "FORGE saved growth reports" : "POLARIS saved strategy plans"}>
     <h3 className="text-xl font-semibold">{growth ? "Saved growth reports" : "Saved strategy plans"}</h3>
     <p className="text-sm text-muted-foreground">Review priorities and save decisions without changing campaigns or publishing content. New report generation is available only when the service verifies its AI capability.</p>
+    <SelectionNotice missing={missingCampaign}/>
     <ServiceStatus service={service} onReload={() => service.reload(() => { setSelected([]); setReview(null); })}/>
     {service.phase === "changed" ? null : workspace?.access_available === false ? <p>An eligible plan is required for these saved planning tools. Your existing free related tools remain available.</p> : workspace && <>
       <form className="space-y-3 rounded-xl border border-border p-4" onSubmit={event => {
-        event.preventDefault(); if (locked || workspace.ai_available !== true || !objective.trim()) return;
+        event.preventDefault(); if (locked || workspace.ai_available !== true || !objective.trim() || (missingCampaign&&!campaignIds.length)) return;
         const body = { request_id: id(), objective: objective.trim(), ...(campaignIds.length ? { campaign_ids: campaignIds } : {}) };
         service.mutate("brief", body, () => { setSelected([]); setReview(null); });
       }}>
@@ -70,7 +85,7 @@ export function PlanningServiceWorkspace({ agent, ownerId }) {
           <textarea className={field} rows={4} maxLength={2000} required value={objective} disabled={locked} onChange={event => setObjective(event.target.value)}/>
         </label>
         {workspace.ai_available !== true && <p role="status" className="text-sm">New AI reports are unavailable. You can review saved records when present.</p>}
-        <button className={button} disabled={locked || workspace.ai_available !== true || !objective.trim()}>Prepare {growth ? "growth report" : "strategy plan"}</button>
+        <button className={button} disabled={locked || workspace.ai_available !== true || !objective.trim() || (missingCampaign&&!campaignIds.length)}>Prepare {growth ? "growth report" : "strategy plan"}</button>
       </form>
       {workspace.brief && <article className="space-y-4 rounded-xl border border-border p-4">
         <h4 className="font-semibold">Your saved report</h4><p className="whitespace-pre-wrap break-words">{workspace.brief.summary}</p>
@@ -107,11 +122,12 @@ export function PlanningServiceWorkspace({ agent, ownerId }) {
 }
 
 const EMPTY_MESSAGE = { message_id: null, revision: null, campaign_id: "", subject: "", content: "", comm_type: "update" };
-export function CommunicationsServiceWorkspace({ ownerId }) {
+export function CommunicationsServiceWorkspace({ ownerId, initialCampaignId=null }) {
   const service = useSpecialistService("communications", ownerId);
-  const [form, setForm] = useState(EMPTY_MESSAGE), [details, setDetails] = useState(""), [selected, setSelected] = useState([]);
+  const [form, setForm] = useState(()=>({...EMPTY_MESSAGE,campaign_id:campaignFromOwnedList(initialCampaignId,service.workspace?.campaigns,ownerId)})), [details, setDetails] = useState(""), [selected, setSelected] = useState([]);
   const [review, setReview] = useState(null), [validation, setValidation] = useState(""), [outcomes, setOutcomes] = useState([]);
   const preview = useRef(null);
+  const missingCampaign=useRequestedCampaign(initialCampaignId,service,ownerId,id=>setForm(value=>({...value,campaign_id:id})));
   const workspace = service.workspace, messages = rows(workspace?.messages), drafts = messages.filter(message => message.status === "draft"), group = drafts.slice(0, 50);
   const locked = service.locked || !!review;
   const after = receipt => { setSelected([]); setReview(null); setForm(EMPTY_MESSAGE); preview.current = null; setOutcomes(rows(receipt.outcomes)); };
@@ -130,6 +146,7 @@ export function CommunicationsServiceWorkspace({ ownerId }) {
   }
   return <section className="space-y-5" aria-label="ECHO saved supporter updates">
     <h3 className="text-xl font-semibold">Saved supporter updates</h3>
+    <SelectionNotice missing={missingCampaign}/>
     <p className="text-sm text-muted-foreground">Save editable messages and review exact text and eligible audiences before in-app delivery. Email, social posting and autonomous messaging are not authorized here.</p>
     <ServiceStatus service={service}/>
     {service.phase !== "changed" && workspace && <>
@@ -181,10 +198,11 @@ export function CommunicationsServiceWorkspace({ ownerId }) {
 }
 
 const REQUEST_ACTIVE = new Set(["requested", "assigned", "in_progress", "waiting_user", "waiting_external", "needs_review"]);
-export function ManagedConnectionsServiceWorkspace({ ownerId }) {
+export function ManagedConnectionsServiceWorkspace({ ownerId, initialCampaignId=null }) {
   const service = useSpecialistService("connections", ownerId);
-  const [provider, setProvider] = useState(""), [campaign, setCampaign] = useState(""), [action, setAction] = useState("connect"), [connection, setConnection] = useState("");
+  const [provider, setProvider] = useState(""), [campaign, setCampaign] = useState(()=>campaignFromOwnedList(initialCampaignId,service.workspace?.campaigns,ownerId)), [action, setAction] = useState("connect"), [connection, setConnection] = useState("");
   const [confirmed, setConfirmed] = useState(false), [selected, setSelected] = useState([]), [review, setReview] = useState(null), [validation, setValidation] = useState(""), [methods, setMethods] = useState(null);
+  const missingCampaign=useRequestedCampaign(initialCampaignId,service,ownerId,setCampaign);
   const workspace = service.workspace, providers = rows(workspace?.providers), permissions = rows(workspace?.permissions), requests = rows(workspace?.requests), connections = rows(workspace?.connections);
   const chosen = providers.find(item => item.id === provider), locked = service.locked || !!review;
   const currentPermission = permissions.find(item => item.provider === provider && item.campaign_id === (campaign || null) && item.status === "active" && item.policy_version === workspace?.policy_version && Date.parse(item.expires_at) > Date.now());
@@ -200,6 +218,7 @@ export function ManagedConnectionsServiceWorkspace({ ownerId }) {
     } catch (error) { setValidation(error.message); }
   }
   return <section className="space-y-5" aria-label="LINK scoped connection help">
+    <SelectionNotice missing={missingCampaign}/>
     <h3 className="text-xl font-semibold">Scoped connection help</h3><p className="text-sm text-muted-foreground">Save provider-specific requests and review permissions. A saved request or public link is not provider authorization, account creation or permission to publish or move money.</p>
     <ServiceStatus service={service}/>
     {service.phase !== "changed" && workspace && <>
@@ -248,12 +267,13 @@ export function ManagedConnectionsServiceWorkspace({ ownerId }) {
 }
 
 const SERVICES = { polaris: "strategy", forge: "growth", echo: "communications", link: "connections" };
-export default function SpecialistServiceWorkspace({ identity }) {
+export default function SpecialistServiceWorkspace({ identity, initialCampaignId=null }) {
   const { status, user } = useAuthSession();
   const agent = SERVICES[identity];
   if (!agent) return null;
   if (status === "loading") return <p role="status">Verifying your account…</p>;
   if (!user) return <p>Sign in with your confirmed account to open saved specialist tools. <Link className="underline" to="/login?returnTo=%2Fagents">Sign in</Link></p>;
-  const props = { ownerId: user.id, key: agent + ":" + user.id };
-  return agent === "communications" ? <CommunicationsServiceWorkspace {...props}/> : agent === "connections" ? <ManagedConnectionsServiceWorkspace {...props}/> : <PlanningServiceWorkspace {...props} agent={agent}/>;
+  const props = { ownerId: user.id, initialCampaignId };
+  const scopeKey=agent + ":" + user.id + ":" + (initialCampaignId||"account");
+  return agent === "communications" ? <CommunicationsServiceWorkspace key={scopeKey} {...props}/> : agent === "connections" ? <ManagedConnectionsServiceWorkspace key={scopeKey} {...props}/> : <PlanningServiceWorkspace key={scopeKey} {...props} agent={agent}/>;
 }

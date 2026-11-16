@@ -7,7 +7,7 @@ test("Outreach research can match signed-in creator drafts without exporting the
   assert.match(ui,/const client=authClient\(\)/);
   assert.match(ui,/client\.auth\.getUser\(\)/);
   assert.match(ui,/\.eq\("owner_id",user\.id\)/);
-  assert.match(ui,/select\("id,title,summary,story,category,status"\)/);
+  assert.match(ui,/select\("id,owner_id,title,summary,story,category,status"\)/);
   assert.match(ui,/ownerCampaigns/);
   assert.match(ui,/private draft content is not sent to external providers/);
   assert.match(ui,/listActiveCampaigns\(\{limit:100\}\)/);

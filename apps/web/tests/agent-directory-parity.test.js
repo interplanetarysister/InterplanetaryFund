@@ -26,7 +26,7 @@ test("nine registered roles remain, with DISCOVER consolidated into LINK on the 
 test("Story opens existing authenticated AI workspace instead of fake specialist chat", () => {
   assert.match(cards, /selected === "story"/);
   assert.match(cards, /setShowWriting\(true\)/);
-  assert.match(cards, /<StoryAgent\/>/);
+  assert.match(cards, /<StoryAgent[^>]*initialCampaignId=\{selection\.campaignId\}/);
   assert.match(cards, /Selecting this role does not send a message/);
 });
 
