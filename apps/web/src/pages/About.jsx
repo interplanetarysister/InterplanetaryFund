@@ -47,6 +47,7 @@ export default function About() {
         <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/10 p-5">
           <h2 className="font-display text-xl sm:text-2xl text-foreground mb-3">Fund a healthier planet</h2>
           <p className="text-muted-foreground leading-relaxed">Interplanetary Fund welcomes fundraising for environmental projects, from habitat restoration to waste reduction and cleaner energy. We are working to make our own software more efficient too. Our hosting energy use and overall emissions have not yet been independently verified, and campaign categories alone are not proof of environmental outcomes.</p>
+          <Link to="/planetary-impact" className="mr-4 mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline">Explore our Planetary Impact <ArrowRight size={16} /></Link>
           <Link to="/discover?category=environment" className="mt-3 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary underline">Explore Planet &amp; Environment campaigns <ArrowRight size={16} /></Link>
         </div>
 
