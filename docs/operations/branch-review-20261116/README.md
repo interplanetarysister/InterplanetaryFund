@@ -15,7 +15,7 @@ Verification actually executed:
 - Demo TypeScript check, Worker build and **150 tests passed**. These use synthetic sandbox fixtures, not real payment acceptance.
 - Root and canonical web production builds passed locally. Mobile locked install passed; no signed native build or store release was performed.
 - Root, web and mobile runtime dependency audits reported **0 vulnerabilities**. The existing required formatting gate and `git diff --check` passed.
-- The compiled-artifact anonymous browser check is recorded separately in `browser.json` when complete. This cannot establish signed-in, provider, native-device or deployed Functions acceptance.
+- The compiled-artifact anonymous browser sweep passed **172/172 route/viewport checks**, with zero page errors and zero horizontal overflow, recorded in `browser.json`. This cannot establish signed-in, provider, native-device or deployed Functions acceptance.
 
 Twelve active branch heads remain unmerged. Their exact refs and findings are in [branches.json](branches.json). The unresolved work includes the four-stage campaign wizard and saved setup, original specialist execution contracts, Shorts, source media/preview parity, the separate geocode adapter, and atomic subscription accounting. The unsafe live-charge proposal points at a nonexistent route and must not be activated as written. Relevant financial input and replay repairs were carried out of the source-staged branch, but its unfinished atomic SQL was not applied or represented as complete.
 
