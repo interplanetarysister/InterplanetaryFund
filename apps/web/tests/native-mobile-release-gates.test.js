@@ -51,7 +51,7 @@ test("store workflow gates are manual and evidence-loaded without adding an app 
     assert.match(signed, /environment: native-store-release/);
     assert.match(signed, /IFUND_NATIVE_RELEASE_EVIDENCE_B64/);
     assert.match(signed, /node apps\/mobile\/scripts\/verify-mobile\.mjs --store/);
-    assert.match(signed, /com\.interplanetaryfund\.app/);
+    assert.match(read("../../mobile/capacitor.config.json"), /com\.interplanetaryfund\.app/);
     assert.doesNotMatch(signed, /app-store-connect.*upload|google-play.*publish/i);
     assert.match(debug, /node apps\/mobile\/scripts\/verify-mobile\.mjs --candidate/);
   }
