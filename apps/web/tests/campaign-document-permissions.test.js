@@ -118,3 +118,14 @@ test("bulk revoke is an invoker RPC, not a privileged cross-account update",()=>
   assert.match(sql,/d.owner_id=v_owner and d.allow_agent_use=true/);
   assert.match(sql,/grant execute on function public.ifund_campaign_documents_revoke_all_agent_use\(\) to authenticated/);
 });
+
+test("account-scoped permission screen rejects late data after sign-out or account switch",()=>{
+  const source=readFileSync(new URL("../src/components/permissions/CampaignDocumentPermissions.jsx",import.meta.url),"utf8");
+  assert.match(source,/const authEpoch=useRef\(0\)/);
+  assert.match(source,/authEpoch\.current\+=1/);
+  assert.match(source,/stillOwner\(client,data\.user\.id,epoch\)/);
+  assert.match(source,/stillOwner\(client,expected,epoch\)/);
+  assert.match(source,/authEpoch\.current===epoch/);
+  assert.match(source,/onAuthStateChange/);
+  assert.match(source,/setRecords\(\[\]\);setHasMore\(false\)/);
+});
