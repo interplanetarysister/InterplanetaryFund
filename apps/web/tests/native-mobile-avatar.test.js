@@ -48,7 +48,7 @@ test("native avatar private reads decode bytes into an actual image response", a
     });
   assert.equal(options.responseType, "arraybuffer");
   assert.equal(response.headers.get("cache-control"), "private, no-store");
-  assert.equal((await response.blob()).type, "image/png");
+  assert.equal((await response.clone().blob()).type, "image/png");
   assert.deepEqual(new Uint8Array(await response.arrayBuffer()), PNG_BYTES);
 });
 
