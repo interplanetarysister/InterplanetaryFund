@@ -731,11 +731,10 @@ export default {
       catch(_){return asJson({ok:false,error:"payout_execution_unavailable"},503,cors)}
     }
     if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){
-      if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")
-        return asJson({ok:false,error:"payout_execution_disabled"},503,cors);
-      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
-      try{const response=await executePayout(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
-      catch(_){return asJson({ok:false,error:"payout_reconciliation_unavailable"},503,cors)}
+      // Never route a read/reconcile request through executePayout: that path
+      // can CREATE a new real-money payout. Await an independently accepted
+      // authenticated reconciliation-only contract before enabling this route.
+      return asJson({ok:false,error:"payout_reconcile_only_contract_unavailable"},503,cors);
     }
     if(path==="/api/payments/subscriptions/plans"&&request.method==="GET"){
       try{const response=asJson(await subscriptionPlans(env),200,cors);return response}
@@ -761,6 +760,10 @@ export default {
       catch(_){return asJson({ok:false,error:"subscription_cancellation_unavailable"},503,cors)}
     }
     if(path==="/api/payments/webhook"&&request.method==="POST") {
+      // This provider client uses LIVE endpoints; reject sandbox/live mismatch.
+      // Keep live notifications available when new checkouts are paused.
+      if(env.IFUND_PAYPAL_MODE!=="live")
+        return asError("webhook_environment_unavailable",503);
       try {return await webhook(request,env)}catch(_) {return asError("webhook_retry_required",503)}
     }
     if(path==="/api/payments/capture-order"&&request.method==="POST") {
@@ -778,6 +781,7 @@ export default {
       catch(_){return asJson({ok:false,error:"paypal_config_unavailable"},503,cors)}
     }
     if(path==="/api/payments/create-order"&&request.method==="POST"){
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       try{const response=await createOrder(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"checkout_start_unavailable"},503,cors)}
     }
