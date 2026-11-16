@@ -54,6 +54,17 @@ export default function USCampaignMap({ campaigns = [] }) {
       </g>)}
       <text x="930" y="494" textAnchor="end" fill="#b5cbd1" fontSize="11">Approximate organizer-approved locations · schematic</text>
     </svg>
+    {clusters.length>0 && <div className="mt-4 space-y-2" aria-label="Accessible mapped location selection">
+      <h3 className="text-sm font-semibold text-emerald-100">Select a mapped location</h3>
+      <div className="grid max-h-60 grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
+        {clusters.map(({key,campaigns:items})=><button key={key} type="button"
+          aria-pressed={selectedKey===key} onClick={()=>setSelectedKey(key)}
+          className="min-h-11 rounded-lg border border-emerald-300/30 bg-emerald-950/20 px-3 py-2 text-left text-sm text-emerald-100 hover:border-emerald-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-200">
+          <span className="block font-semibold">{items.length} campaign{items.length===1?"":"s"}</span>
+          <span className="block text-xs text-slate-300">{[...new Set(items.map(item=>item.location))].join(" · ")}</span>
+        </button>)}
+      </div>
+    </div>}
     {outside>0 && <p className="mt-2 text-sm text-slate-300">{outside} approved location{outside===1?" is":"s are"} outside the U.S. view. Switch to Earth globe to see them.</p>}
     {selected && <div className="mt-3 rounded-xl border border-emerald-400/35 bg-emerald-950/20 p-4">
       <h3 className="font-semibold">{selected.campaigns.length} campaign{selected.campaigns.length===1?"":"s"} at this approximate location</h3>
