@@ -43,3 +43,16 @@ test('delimiterless nested capital-C code key fails closed without harming prose
   }
   assert.equal(redactTeamCredentials('I wrote Code=example in prose.'), 'I wrote Code=example in prose.');
 });
+
+
+test('malformed percent-encoded callback bytes cannot crash redaction or leak codes', () => {
+  for (const malformed of ['%FF', '%C3%28', '%E0%A4%A', '%FE%FF']) {
+    const input = `https://example.test/cb?state=${malformed}&code=synthetic-secret-123`;
+    assert.doesNotThrow(() => redactTeamCredentials(input));
+    assert.ok(!redactTeamCredentials(input).includes(secret));
+  }
+  assert.equal(
+    redactTeamCredentials('I wrote code=example in prose, not an OAuth URL.'),
+    'I wrote code=example in prose, not an OAuth URL.'
+  );
+});
