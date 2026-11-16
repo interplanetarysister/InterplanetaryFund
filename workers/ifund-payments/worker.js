@@ -621,9 +621,11 @@ async function webhook(req,env) {
     const amount=payload.resource?.amount;
     if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount.value||""))
       ||cents(amount.value)<1)return asError("reversal_amount_unverified",409);
-    const reversed=await signLedger(env,"reverse",{paypal_capture_id:captureId,
-      paypal_event_id:payload.id,event_type:kind,refunded_cents:cents(amount.value)});
-    return asJson({ok:true,reversed:true,donation_id:reversed.donation_id});
+    // The legacy reverse operation lacks provider-refund resource replay identity,
+    // parent-capture cumulative ceilings and an independently verified receipt.
+    // A signed notification is not sufficient authorization to mutate the ledger.
+    // Retain this fail-closed response until the atomic A2 contract is accepted.
+    return asError("capture_refund_atomic_ledger_unavailable",503);
   }
   return asJson({ok:true,ignored:true});
 }
