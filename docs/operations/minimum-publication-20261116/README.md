@@ -11,3 +11,5 @@ Automatic approval review rejected the initial no-op trigger proposal. The imple
 Actual PGlite tests cover direct publication, repeated migration, missing/whitespace fields, zero/null/NaN/infinite amount, cross-owner reads/writes and owner isolation. Client/Worker tests cover the same minimum publication contract. Desktop/mobile browser checks of the compiled artifact used a short story and blank summary, including interrupted-save recovery with one campaign insertion; HTTP/Auth transport was synthetic and does not certify live member/provider acceptance.
 
 Production deployment remains conditional on full-site acceptance. This change does not weaken the existing release gate, enable payments/agents/providers, or apply unrelated pending migrations.
+
+Final verification: **901 root/security tests passed**, **857 web tests passed**, **28 focused minimum-publication/Worker/recovery/progress checks passed**, and the canonical web production build passed. The required route release checker still reports **117 acceptance omissions**; production promotion was not performed while that gate failed.
