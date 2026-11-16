@@ -130,3 +130,17 @@ test("owner may finish metadata erasure only after moving document into pending 
   assert.equal((await db.query("select count(*)::int n from public.ifund_campaign_documents")).rows[0].n,0);
  } finally {await db.close();}
 });
+
+test("orphaned private Storage bytes prevent campaign deletion without metadata",async()=>{
+ const db=await fixture();
+ try {
+  await as(db,owner);
+  await db.query("insert into storage.objects(bucket_id,name,metadata) values('ifund-campaign-documents',$1,$2)",[path,{size:1000}]);
+  await db.exec("reset role");
+  await assert.rejects(
+    db.query("delete from public.ifund_campaigns where id=$1",[campaign]),
+    /Remove private campaign documents/
+  );
+  assert.equal((await db.query("select count(*)::int n from public.ifund_campaigns where id=$1",[campaign])).rows[0].n,1);
+ } finally {await db.close();}
+});
