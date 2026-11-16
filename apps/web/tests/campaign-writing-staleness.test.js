@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { withStoryVersion } from "../src/lib/campaignWizard.js";
 import { createCampaignWritingRequests } from "../src/lib/campaignWritingRequests.js";
 const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
 function deferred(){let resolve,reject;const promise=new Promise((yes,no)=>{resolve=yes;reject=no;});return {promise,resolve,reject};}
@@ -59,7 +60,8 @@ test("section edits save through the canonical story update and saved drafts exp
 function sectionEditor(initial) {
   const storySectionsRef={current:[...initial]},userEditedDraft={current:false};
   const state={sections:[...initial],form:{title:"Unchanged title",story:initial.join("\n\n")},invalidations:0};
-  const names={storySectionsRef,userEditedDraft,
+  let wizard={story_versions:[],draft_step:0};
+  const names={storySectionsRef,userEditedDraft,form:state.form,storyEditStarted:{current:false},withStoryVersion,setWizard:update=>{wizard=update(wizard);},
     invalidateWriting:()=>{state.invalidations++;},setSaved(){},setBrowserSaved(){},
     setStorySections:value=>{state.sections=value;},setForm:update=>{state.form=update(state.form);}};
   const start=source.indexOf("  function editSection(index, value) {");
