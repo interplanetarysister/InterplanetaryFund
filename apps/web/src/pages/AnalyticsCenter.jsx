@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import CampaignEngagement from "./CampaignEngagement";
 import FinanceDashboard from "./FinanceDashboard";
 import Atlas from "./Atlas";
+import CampaignStrategy from "./CampaignStrategy";
 
 /**
  * Reuses the established owner-scoped finance/engagement RPCs and public
@@ -25,11 +26,12 @@ export default function AnalyticsCenter() {
     ["engagement", "Supporter engagement"],
     ["finance", "Verified finances"],
     ["atlas", "Campaign atlas"],
+    ["ai-analysis", "AI Analysis"],
   ];
   return <div className="mx-auto max-w-6xl space-y-5 px-4 py-8 sm:px-7">
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">Campaign command center</h1>
-      <p className="text-sm text-muted-foreground">Review account-scoped campaign engagement, verified financial records, and public campaign geography. Financial data excludes unverified and sandbox transactions.</p>
+      <p className="text-sm text-muted-foreground">Review account-scoped campaign engagement, verified financial records, and public campaign geography, and optional campaign-writing refinements. Financial data excludes unverified and sandbox transactions.</p>
     </header>
     <div role="tablist" aria-label="Analytics views" aria-orientation="horizontal" className="flex flex-wrap gap-2">
       {tabs.map(([id,label], index) => <button key={id} type="button" role="tab"
@@ -51,7 +53,7 @@ export default function AnalyticsCenter() {
     </div>
     <section id="analytics-panel" role="tabpanel" tabIndex={0}
       aria-labelledby={"analytics-tab-"+view}>
-      {view==="engagement" ? <CampaignEngagement/> : view==="finance" ? <FinanceDashboard/> : <Atlas/>}
+      {view==="engagement" ? <CampaignEngagement/> : view==="finance" ? <FinanceDashboard/> : view==="atlas" ? <Atlas/> : <CampaignStrategy embedded/>}
     </section>
   </div>;
 }
