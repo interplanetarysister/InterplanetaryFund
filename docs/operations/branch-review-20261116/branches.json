@@ -59,7 +59,13 @@
       "mobile": 0
     },
     "production_route_gate": "BLOCKED; preserved",
-    "authenticated_and_provider_acceptance": "NOT TESTED"
+    "authenticated_and_provider_acceptance": "NOT TESTED",
+    "full_dependency_audits_including_development": {
+      "root": 0,
+      "web": 0,
+      "mobile": 0,
+      "demo": 0
+    }
   },
   "branches": [
     {"branch":"agent-3/tls-hardening","reviewed_head":"579155188fcf5f5310b9b4fbe0c3ce1d05e14edd","ahead_at_baseline":1,"behind_at_baseline":2130,"review_family":"coordinator","disposition":"retired_deployment_proposal","review":"Only modifies retired vercel.json. Current canonical Cloudflare _headers already enforces HSTS. Do not restore Vercel/Convex configuration or widen policy to unverified subdomains.","paths":[],"integrated_into_candidate":true,"runtime_acceptance":"NOT CERTIFIED: source review and synthetic/local tests do not establish signed-in/provider/production acceptance.","changed_path_count":0},
