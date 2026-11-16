@@ -13,7 +13,7 @@ export default function DeleteAccount(){
         </Link>
         <p className="text-xs font-bold uppercase tracking-[.2em] text-emerald-200">Account and privacy</p>
       </header>
-      <MobileStoreDeleteAccount/>
+      <MobileStoreDeleteAccount returnTo="/profile" webMode />
       <footer className="space-y-2 border-t border-white/15 py-6 text-xs text-slate-300">
         <p>This page is available without the mobile app. Signed-in requests are submitted directly to the official IFund account-deletion queue. No monetary payment is required.</p>
         <p><Link to="/privacy" className="text-emerald-200 underline">Privacy policy</Link> · <Link to="/contact" className="text-emerald-200 underline">Contact IFund</Link></p>
