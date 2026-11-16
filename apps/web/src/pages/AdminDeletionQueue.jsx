@@ -20,6 +20,7 @@ export default function AdminDeletionQueue(){
   const [processing,setProcessing]=useState("");
   const [notice,setNotice]=useState("");
   const reviewScope=useRef(null);
+  const actionLock=useRef(false);
   useEffect(()=>{
     let alive=true;
     const scope=createAdminReviewSession(()=>{
@@ -86,17 +87,23 @@ export default function AdminDeletionQueue(){
   }
   async function act(row,reviewOnly=false){
     const scope=reviewScope.current;
-    if(processing||!scope?.active||!scope.ownerId)return;
+    if(processing||actionLock.current||!scope?.active||!scope.ownerId)return;
     if(!reviewOnly&&!window.confirm("Permanently remove this reviewed account's private campaign document files? This is irreversible and does not complete financial or account deletion."))return;
+    // Bind review evidence to the selected request before any asynchronous verification.
+    // A changed textarea/selection must never authorize a different request.
+    const evidence=reviewOnly&&selected===row.request_id?reviewNote.trim():"";
+    if(reviewOnly&&(selected!==row.request_id||evidence.length<30||evidence.length>1000)){
+      setError("Select this request and record 30–1,000 characters of review evidence.");
+      return;
+    }
+    actionLock.current=true;
     setProcessing(row.request_id);setError("");setNotice("");
     try{
       const client=authClient();
       await scope.verify(client);
       if(reviewOnly){
-        if(reviewNote.trim().length<30||reviewNote.trim().length>1000)
-          throw Error("Record a review decision of 30–1,000 characters.");
         const {data,error:approvalError}=await runAdminReview(scope,client,()=>client.rpc("ifund_super_admin_review_private_document_cleanup",{
-          p_request_id:row.request_id,p_review_note:reviewNote.trim()
+          p_request_id:row.request_id,p_review_note:evidence
         }));
         scope.assertActive();
         if(approvalError||data!==true)throw Error("Administrative file-cleanup review was not accepted.");
@@ -131,7 +138,7 @@ export default function AdminDeletionQueue(){
     }catch(cause){
       if(!scope.active)return;
       setError(cause?.message||"The operation was not completed.");
-    }finally{if(scope.active)setProcessing("");}
+    }finally{actionLock.current=false;if(scope.active)setProcessing("");}
   }
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-10">
     <header className="space-y-3">
@@ -142,7 +149,7 @@ export default function AdminDeletionQueue(){
         third-party records, outstanding transactions and applicable retention obligations before
         taking independently audited erasure action. This view cannot delete users or financial records.
       </p>
-      <button type="button" onClick={()=>setRefresh(n=>n+1)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4">
+      <button type="button" disabled={Boolean(processing)} onClick={()=>setRefresh(n=>n+1)} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border px-4">
         <RefreshCw aria-hidden="true" className="h-4 w-4"/> Refresh queue
       </button>
     </header>
@@ -175,7 +182,7 @@ export default function AdminDeletionQueue(){
         </section>}
         {["requested","reviewing"].includes(row.request_status)&&reviewed[row.request_id]!==true&&<div className="rounded-xl border border-border p-3 space-y-2">
           <label className="block text-sm font-semibold" htmlFor={"review-"+row.request_id}>Private-document cleanup review evidence</label>
-          <textarea id={"review-"+row.request_id} value={selected===row.request_id?reviewNote:""}
+          <textarea id={"review-"+row.request_id} disabled={Boolean(processing)} value={selected===row.request_id?reviewNote:""}
             onFocus={()=>{if(selected!==row.request_id){setSelected(row.request_id);setReviewNote("");}}}
             onChange={event=>{setSelected(row.request_id);setReviewNote(event.target.value);}}
             maxLength={1000} rows={3} className="w-full rounded-lg border border-border bg-background p-3 text-sm"
