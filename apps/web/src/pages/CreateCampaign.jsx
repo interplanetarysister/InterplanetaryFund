@@ -107,12 +107,24 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
             clearPendingCampaignSetup(sessionStorage,ownerId,draftId);
           throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
         }
-        const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
+        // A failed setup request must not hide an already-saved campaign row.
+        // Only use a local recovery payload that is verified for this owner
+        // AND this exact campaign. Never silently fall back to an empty setup.
+        const localRecovery=ownerId?pendingCampaignSetup(sessionStorage,ownerId,draftId):null;
+        let setup=null;
+        let setupUnavailable=false;
+        try {
+          setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
+        } catch (setupError) {
+          if(!localRecovery)throw setupError;
+          setupUnavailable=true;
+        }
         if (active && alive.current) {
           invalidateWriting();
-          const localRecovery=ownerId?pendingCampaignSetup(sessionStorage,ownerId,draftId):null;
-           const restoredSetup=localRecovery?.setup||(setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard());
-           if(localRecovery)setProgressNotice("Your campaign is saved. Recovered setup changes still need Save private draft to confirm them to your account.");
+          const restoredSetup=localRecovery?.setup||(setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard());
+          if(localRecovery)setProgressNotice(setupUnavailable
+            ?"Your campaign details are saved. Setup service is unavailable; recovered changes are kept in this tab. Retry Save private draft before leaving."
+            :"Your campaign is saved. Recovered setup changes still need Save private draft to confirm them to your account.");
           setWizard(restoredSetup);
           const brief=restoredSetup.ai_profile.writing_brief;
           setWritingPath(CAMPAIGN_WRITING_PATHS.some(path=>path.id===brief.writingPath)?brief.writingPath:"write");
