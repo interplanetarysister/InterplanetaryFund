@@ -185,7 +185,7 @@ export async function readCampaignDocumentContext({
     document_id:d.document_id,
     source_type:"owner_uploaded_reference_unverified",
     file_name:redactTeamCredentials(d.file_name).slice(0,160),
-    purpose:d.purpose,
+    purpose:redactTeamCredentials(d.purpose).slice(0,40),
     summary:redactTeamCredentials(d.summary).slice(0,3000),
     owner_excerpt:redactTeamCredentials(d.owner_excerpt).slice(0,1200),
     extracted_excerpt:redactTeamCredentials(d.extracted_excerpt).slice(0,2000),
