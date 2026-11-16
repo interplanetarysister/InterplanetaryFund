@@ -62,7 +62,7 @@ export default function AdminDeletionQueue(){
       setRows(queue.data);
       setLoading(false);
     })().catch(cause=>{
-      if(alive){setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setError(cause.message||"Queue unavailable.");setLoading(false);}
+      if(alive&&scope.active){setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setError(cause.message||"Queue unavailable.");setLoading(false);}
     });
     return()=>{alive=false;scope.invalidate();subscription?.subscription?.unsubscribe();};
   },[refresh]);
