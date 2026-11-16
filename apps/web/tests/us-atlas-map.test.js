@@ -8,7 +8,7 @@ const read=path=>readFileSync(new URL(path,import.meta.url),"utf8");
 test("approved American city coordinates land in correct projections",()=>{
   const cases=[
     [47.6,-122.3,"mainland"],[40.7,-74,"mainland"],
-    [25.8,-80.2,"mainland"],[27.95,-82.46,"mainland"],[25.90,-97.49,"mainland"],[24.56,-81.78,"mainland"],[47.6,-122.3,"mainland"],[61.2,-149.9,"alaska"],[21.3,-157.9,"hawaii"]
+    [25.8,-80.2,"mainland"],[27.95,-82.46,"mainland"],[25.90,-97.49,"mainland"],[24.56,-81.78,"mainland"],[47.6,-122.3,"mainland"],[61.2,-149.9,"alaska"],[21.3,-157.9,"hawaii"],[18.5,-66.1,"puerto-rico"]
   ];
   for(const [lat,lng,region] of cases){
     const projection=projectUsPoint(lat,lng);
@@ -24,6 +24,12 @@ test("non-American or missing coordinates never appear as American markers",()=>
     assert.equal(usRegionForPoint(lat,lng),null);
   }
 });
+test("Puerto Rico is mapped separately from mainland and unauthorized regions",()=>{
+  assert.equal(usRegionForPoint(18.5,-66.1)?.id,"puerto-rico");
+  assert.equal(projectUsPoint(18.5,-66.1)?.region,"puerto-rico");
+  assert.equal(projectUsPoint(18.5,-66.1)?.x > 550,true);
+});
+
 test("the mainland has illustrative coastline geometry",()=>{
   const path=mainlandOutlinePath();
   assert.ok(path.startsWith("M"));
