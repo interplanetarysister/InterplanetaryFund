@@ -22,8 +22,8 @@ This repository is the **independent migration destination** from Base44.
 - Original Base44 source repository: read-only functional reference
 - Original Base44 app: legacy (not the canonical production URL)
 
-The official domain (`interplanetaryfund.com`) is the intended public entry point.  
-However, the migration’s **user/admin, data, payment, and workflow acceptance tests must pass** before cutting over or retiring Base44.
+The official domain (`interplanetaryfund.com`) is the **active Cloudflare Pages production website**. A narrowly scoped account-deletion release has been independently confirmed deployed; the wider migration and native store release are **not** certified. See the time-stamped deployment register above.  
+The migration’s **user/admin, data, payment, and workflow acceptance tests must pass** before treating unverified features as accepted or retiring the Base44 reference.
 
 A repository link does **not** prove that the destination site is fully deployed and ready.
 
@@ -89,4 +89,4 @@ Follow the instructions in the relevant apps/ and documentation folders, and res
 
 The original software in this repository is licensed under the **[GNU Affero General Public License, version 3.0 (AGPL-3.0)](LICENSE)**. See [COPYRIGHT.md](COPYRIGHT.md) for copyright, brand, and third-party notices. Third-party components retain their applicable licenses.
 
-Status as of November 2026: Independent migration in progress. Base44 remains the current live system until acceptance tests pass and cutover is explicitly approved.
+Status as of November 15, 2026: The independent Cloudflare Pages website is live, including an isolated account-deletion page release. Most staged route, backend, payment, agent-context, and native-app acceptance remains pending. Base44 source/APK remain preserved and read-only; do not infer migration completion from the domain being online.
