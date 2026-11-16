@@ -1,4 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
+import { normalizeWritingPreferences } from "./writingPreferences.js";
 import { appendTeamContext, readTeamContext, readCampaignDocumentContext, replyEventKey, redactTeamCredentials } from "./teamContext.js";
 import {
   beginStoryAssignment,
@@ -23,7 +24,7 @@ const fail = (status, message) => {
 export function storyInput(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     fail(400, "Describe the campaign you want help with.");
-  const allowed = ["details", "campaign_id", "section", "request_id"];
+  const allowed = ["details", "campaign_id", "section", "request_id", "writing_preferences"];
   if (Object.keys(raw).some((k) => !allowed.includes(k)))
     fail(400, "Unsupported drafting option.");
   if (!UUID.test(raw.request_id || ""))
@@ -43,11 +44,13 @@ export function storyInput(raw) {
       raw.section.length > 4000)
   )
     fail(400, "The story section is too long.");
+  const writingPreferences = normalizeWritingPreferences(raw.writing_preferences);
   return {
     details: raw.details.trim(),
     campaign_id: raw.campaign_id || null,
     section: raw.section?.trim() || null,
     request_id: raw.request_id,
+    ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
 }
 
@@ -124,6 +127,14 @@ export function storyOutput(raw, section = false) {
   };
 }
 
+function redactPromptData(value) {
+  if (typeof value === "string") return redactTeamCredentials(value);
+  if (Array.isArray(value)) return value.map(redactPromptData);
+  if (value && typeof value === "object")
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, redactPromptData(item)]));
+  return value;
+}
+
 export function storyMessages(input, context) {
   const brief =
     context.research?.available === true
@@ -163,11 +174,14 @@ export function storyMessages(input, context) {
     },
     {
       role: "user",
-      content: JSON.stringify({
+      content: JSON.stringify(redactPromptData({
         task: input.section
           ? "Revise this section for owner review"
           : "Prepare a campaign draft for owner review",
         organizer_details: input.details,
+        organizer_writing_preferences: input.writing_preferences
+          ? { source: "organizer_supplied_untrusted_style_data", ...input.writing_preferences }
+          : null,
         section: input.section,
         current_campaign: campaign,
         writing_guidance: brief,
@@ -215,7 +229,7 @@ export function storyMessages(input, context) {
                 provenance: "owner_statement",
               }))
           : [],
-      }),
+      })),
     },
   ];
   if (new TextEncoder().encode(JSON.stringify(messages)).byteLength > 24000)

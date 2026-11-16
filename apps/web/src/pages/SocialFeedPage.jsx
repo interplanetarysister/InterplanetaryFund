@@ -180,6 +180,7 @@ export default function SocialFeedPage({ community = false }) {
     <nav aria-label="Community pages" className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border pb-3 text-primary underline">
       <Link to="/social" aria-current={community ? undefined : "page"}>Social Feed</Link>
       <Link to="/community" aria-current={community ? "page" : undefined}>Community</Link>
+      <Link to="/shorts">Orbit Shorts</Link>
       <Link to="/blogs">Stories &amp; Blogs</Link>
       <Link to="/news">IFund Newscaster</Link>
     </nav>

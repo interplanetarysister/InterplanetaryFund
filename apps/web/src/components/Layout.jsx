@@ -23,7 +23,7 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 const PAGE_TITLES = {
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
+  "/discover": "Discover", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
@@ -53,6 +53,7 @@ const navSections = [
       { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
+      { to: "/shorts", label: "Orbit Shorts", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
   { to: "/institutions", label: "Opportunities", icon: Building2 },
     ],

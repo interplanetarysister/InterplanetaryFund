@@ -8,7 +8,13 @@ export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","
 // or specialist vaults for payment/provider credentials.
 // Redaction is defense-in-depth, not a substitute for rejecting credentials at ingress.
 export function redactTeamCredentials(value) {
-  return String(value)
+  const text=String(value);
+  // Structured JSON credential fields can contain nested objects, arrays,
+  // numeric tokens or booleans. Reject the whole ambiguous payload rather
+  // than preserving a secret inside an incompletely sanitized structure.
+  if (/\\*["'](?:[A-Za-z0-9_-]*[_-])?(?:password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code)\\*["']\s*:\s*(?:\[|\{|-?\d|true\b|false\b|null\b)/i.test(text))
+    return '[redacted credential payload]';
+  return text
     // OAuth authorization codes in URL query/fragment parameters are credentials.
     // Limit replacement to a URL's code parameter, not ordinary prose using "code".
     // Preserve parameter separators and neighboring state values.
@@ -16,7 +22,7 @@ export function redactTeamCredentials(value) {
       url => {
         // A percent-encoded key without a delimiter may be concatenated to
         // another parameter during normalization. Never preserve that URL.
-        if (/%(?:25)*63ode(?:=|%(?:25)*3d)/i.test(url))
+        if (/%(?:25)*(?:63|43)ode(?:=|%(?:25)*3d)/i.test(url))
           return '[redacted credential URL]';
         // Normalize nested query encodings. Treat authorization codes and
         // aliases as credentials; leave non-secret parameters intact.
@@ -24,11 +30,20 @@ export function redactTeamCredentials(value) {
         for(let i=0;i<12;i++) {
           const next=normalized
             .replace(/&(?:amp|#0*38|#x0*26);/gi,'&')
-            .replace(/%[0-9a-f]{2}/gi,part=>decodeURIComponent(part));
+            .replace(/%[0-9a-f]{2}/gi,part=>{
+              const byte=parseInt(part.slice(1),16);
+              // decodeURIComponent throws on standalone non-UTF8 bytes.
+              // Decode only ASCII parameter syntax; fail closed on ambiguity.
+              return byte<128?String.fromCharCode(byte):part;
+            });
           if(next===normalized) break;
           normalized=next;
         }
-        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)';
+        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)';
+        // Array-style and control-character suffixed credential keys must not
+        // survive merely because they are not exact `code=` matches.
+        if (/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)(?:\[[^\]&#;]*\]|\.[^=&#;\s]*|[\x00-\x1f])=/i.test(normalized))
+          return '[redacted credential URL]';
         const codeParam=new RegExp('([?#&;]'+codeKey+'=)([^&#;\\s]+)','gi');
         const cleaned=normalized.replace(codeParam,(_part,prefix)=>prefix+'[redacted]');
         // If nested encodings still obscure a potentially secret parameter,
@@ -170,7 +185,7 @@ export async function readCampaignDocumentContext({
     document_id:d.document_id,
     source_type:"owner_uploaded_reference_unverified",
     file_name:redactTeamCredentials(d.file_name).slice(0,160),
-    purpose:d.purpose,
+    purpose:redactTeamCredentials(d.purpose).slice(0,40),
     summary:redactTeamCredentials(d.summary).slice(0,3000),
     owner_excerpt:redactTeamCredentials(d.owner_excerpt).slice(0,1200),
     extracted_excerpt:redactTeamCredentials(d.extracted_excerpt).slice(0,2000),

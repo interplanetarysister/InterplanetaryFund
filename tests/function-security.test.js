@@ -149,6 +149,28 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   // unblocking remains available without an active membership requirement.
   "public.ifund_mobile_block_organizer",
   "public.ifund_mobile_unblock_organizer",
+  // Restored specialist contracts were matched against all 55 hosted function
+  // bodies before source integration. Their executable *-agent-db tests cover
+  // owner/lifecycle/entitlement denial, leases, receipt replay and atomic bulk
+  // changes. Delivery also rechecks the reviewed audience and current opt-out;
+  // provider connection requests cannot execute OAuth, publishing or payments.
+  "ifund_strategy_runtime.begin_request",
+  "ifund_strategy_runtime.finish_request",
+  "ifund_strategy_runtime.bulk_update",
+  "ifund_growth_runtime.begin_request",
+  "ifund_growth_runtime.finish_request",
+  "ifund_growth_runtime.bulk_update",
+  "ifund_communications_runtime.save_draft",
+  "ifund_communications_runtime.save_owner",
+  "ifund_communications_runtime.begin_request",
+  "ifund_communications_runtime.finish_request",
+  "ifund_communications_runtime.cancel",
+  "ifund_communications_runtime.prepare_send",
+  "ifund_communications_runtime.send",
+  "ifund_connections_runtime.grant_help",
+  "ifund_connections_runtime.request_action",
+  "ifund_connections_runtime.change_selected",
+  "ifund_connections_runtime.campaign_deleted",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */

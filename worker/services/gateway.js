@@ -1,6 +1,14 @@
 import { serviceCatalog } from "./catalog.js";
 import { campaignPreview } from "./campaign-preview.js";
 import { handlePrivateDocumentErasure } from "./privateDocumentErasure.js";
+import { readJsonBody } from "../bodyLimit.js";
+
+const specialistAdapters = Object.freeze({
+  strategy_agent: ["IFUND_STRATEGY_AGENT", "strategy", ["workspace", "brief", "bulk", "subscription"]],
+  growth_agent: ["IFUND_GROWTH_AGENT", "growth", ["workspace", "brief", "bulk", "subscription"]],
+  communications_agent: ["IFUND_COMMUNICATIONS_AGENT", "communications", ["workspace", "save", "drafts", "cancel", "prepare-send", "send"]],
+  managed_connection_agent: ["IFUND_CONNECTIONS_AGENT", "connections", ["workspace", "methods", "grant-help", "requests", "change-selected"]],
+});
 
 const json = (status, data) =>
   Response.json(data, { status, headers: { "cache-control": "no-store" } });
@@ -45,8 +53,19 @@ export async function serviceGateway(request, env) {
       return json(verified.status === 401 ? 401 : 403, {
         error: "Confirm access to your fundraising services.",
       });
+    let entitlement;
+    try { entitlement = await readJsonBody(verified, 16000); }
+    catch { return json(503, { error: "Service access could not be verified." }); }
+    if (!entitlement || typeof entitlement.active !== "boolean" ||
+        !Number.isInteger(entitlement.level) || entitlement.level < 0 || entitlement.level > 4 ||
+        entitlement.active !== (entitlement.level > 0))
+      return json(503, { error: "Service access could not be verified." });
     return json(200, {
-      services: serviceCatalog().map(({ id, title }) => ({ id, title })),
+      // The other specialist endpoints are supervised tools. Their presence
+      // does not establish an independently accepted conversational service.
+      services: serviceCatalog().filter(item => item.id === "story_agent" &&
+        entitlement.active && entitlement.level >= item.min_plan_level)
+        .map(({ id, title }) => ({ id, title })),
     });
   }
   const story =
@@ -61,6 +80,16 @@ export async function serviceGateway(request, env) {
     const url = new URL(request.url);
     url.pathname = "/api/agents/story/" + story[1];
     return env.IFUND_STORY_AGENT.fetch(new Request(url, request));
+  }
+  const specialist = /^\/api\/services\/([^/]+)\/([^/]+)$/.exec(path);
+  const adapter = specialist && Object.hasOwn(specialistAdapters, specialist[1])
+    ? specialistAdapters[specialist[1]] : null;
+  if (adapter && adapter[2].includes(specialist[2])) {
+    const binding = env[adapter[0]];
+    if (!binding?.fetch) return json(503, { error: "This specialist service is temporarily unavailable." });
+    const url = new URL(request.url);
+    url.pathname = "/api/agents/" + adapter[1] + "/" + specialist[2];
+    return binding.fetch(new Request(url, request));
   }
   return json(404, { error: "This service is not available here yet." });
 }

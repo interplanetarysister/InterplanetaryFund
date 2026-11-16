@@ -1,0 +1,1261 @@
+{
+  "artifact_index_sha256": "5d510b70e5ff7e17e79d3123c0109e4e21483b2f09ad49ce27a1344e05c91845",
+  "checked": 174,
+  "type": "compiled artifact anonymous route smoke; no hosted Functions, signed-in, native device or provider acceptance",
+  "routes": [
+    {
+      "route": "*",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/about",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/activate",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/*",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/audit",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/deletions",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/finance",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/help",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/integrations",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/social-moderation",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/studio",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/sustainability",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/agents",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ai-images",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/analytics",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/atlas",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/auth/callback",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/auth/mobile-callback",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blog",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blogs",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blogs/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaign/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaigns",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaigns/:id/edit",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/communications",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/community",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/community/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/connect",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/connections",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/contact",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/create",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/dashboard",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/delete-account",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/devices",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/discover",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/donors",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/download",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/embed/campaign/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/engagement",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/finances",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/following",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/forgot-password",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/founding-members",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/fundraising-partners",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/giving",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/globe",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/hackathon",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/hackathon/tracker",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/health-privacy",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/help",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/help/:slug",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/inbox",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/institutions",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/institutions/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ledger",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/login",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/mission",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/my-blog",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/my-profile",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/news",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/notifications",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/oauth/callback/:provider",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/oauth/consent",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/onboarding",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ops",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/p/:slug",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/permissions",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/plans",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/platform",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/preferences",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/privacy",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/profile",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/publication",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/publications/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/register",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/reset-password",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/social",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/social/post/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/strategy",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/subscriptions",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/support",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/terms",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/u/:id",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/withdrawals",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/shorts",
+      "viewport": 1440,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "*",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/about",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/activate",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/*",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/audit",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/deletions",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/finance",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/help",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/integrations",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/social-moderation",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/studio",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/admin/sustainability",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/agents",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ai-images",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/analytics",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/atlas",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/auth/callback",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/auth/mobile-callback",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blog",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blogs",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/blogs/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaign/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaigns",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/campaigns/:id/edit",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/communications",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/community",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/community/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/connect",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/connections",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/contact",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/create",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/dashboard",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/delete-account",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/devices",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/discover",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/donors",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/download",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/embed/campaign/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/engagement",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/finances",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/following",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/forgot-password",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/founding-members",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/fundraising-partners",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/giving",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/globe",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/hackathon",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/hackathon/tracker",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/health-privacy",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/help",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/help/:slug",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/inbox",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/institutions",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/institutions/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ledger",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/login",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/mission",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/my-blog",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/my-profile",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/news",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/notifications",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/oauth/callback/:provider",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/oauth/consent",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/onboarding",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/ops",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/p/:slug",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/permissions",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/plans",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/platform",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/preferences",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/privacy",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/profile",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/publication",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/publications/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/register",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/reset-password",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/social",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/social/post/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/strategy",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/subscriptions",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/support",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/terms",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/u/:id",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/withdrawals",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    },
+    {
+      "route": "/shorts",
+      "viewport": 390,
+      "status": 200,
+      "errors": [],
+      "overflow": false
+    }
+  ],
+  "wizard": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "pass": true,
+      "checks": [
+        "four stage navigation",
+        "stage persistence across reload",
+        "raw form and preference restoration",
+        "guest never writes database",
+        "incomplete guest publication blocked",
+        "no page errors",
+        "no horizontal overflow"
+      ],
+      "live_owner_database_acceptance": "NOT TESTED"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "pass": true,
+      "checks": [
+        "four stage navigation",
+        "stage persistence across reload",
+        "raw form and preference restoration",
+        "guest never writes database",
+        "incomplete guest publication blocked",
+        "no page errors",
+        "no horizontal overflow"
+      ],
+      "live_owner_database_acceptance": "NOT TESTED"
+    }
+  ]
+}

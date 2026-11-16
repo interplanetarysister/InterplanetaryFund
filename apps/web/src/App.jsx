@@ -16,6 +16,7 @@ const HackathonDemo = lazy(() => import("./pages/HackathonDemo"));
 const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
+const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
 const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
@@ -120,6 +121,7 @@ function AppRoutes() {
     <Route path="/oauth/consent" element={<LegacyAuthorizationNotice />} />
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
+      <Route path="/shorts" element={<OrbitShorts />} />
       <Route path="/globe" element={<Atlas />} />
       <Route path="/institutions" element={<Institutions />} />
       <Route path="/institutions/:id" element={<Institutions />} />

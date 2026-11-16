@@ -1,5 +1,6 @@
 import { BodyError, readJsonBody } from "../bodyLimit.js";
 import { storyOutput } from "../agents/story.js";
+import { normalizeWritingPreferences, WritingPreferencesError } from "../agents/writingPreferences.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const json = (status, body) =>
@@ -33,7 +34,7 @@ export function campaignPreviewInput(raw) {
     Array.isArray(raw) ||
     Object.keys(raw).some(
       (key) =>
-        !["details", "answers", "goal", "request_id", "section", "campaign_id"].includes(key),
+        !["details", "answers", "goal", "request_id", "section", "campaign_id", "writing_preferences"].includes(key),
     )
   )
     fail(400, "Check your campaign details.");
@@ -84,6 +85,7 @@ export function campaignPreviewInput(raw) {
       invalidControl(raw.section))
   )
     fail(400, "Choose a story section of up to 4,000 characters.");
+  const writingPreferences = normalizeWritingPreferences(raw.writing_preferences);
   return {
     details: raw.details.trim(),
     answers: clean,
@@ -91,6 +93,7 @@ export function campaignPreviewInput(raw) {
     request_id: raw.request_id,
     campaign_id: raw.campaign_id || null,
     section: raw.section?.trim() || null,
+    ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
 }
 
@@ -204,6 +207,7 @@ export async function campaignPreview(request, env) {
           details: nativeDetails(input),
           campaign_id: input.campaign_id,
           section: input.section,
+          ...(input.writing_preferences ? { writing_preferences: input.writing_preferences } : {}),
           request_id: input.request_id,
         }),
       }),
@@ -258,7 +262,7 @@ export async function campaignPreview(request, env) {
       image_rendered: false,
     });
   } catch (error) {
-    const trusted = error instanceof BodyError || error?.previewError === true;
+    const trusted = error instanceof BodyError || error instanceof WritingPreferencesError || error?.previewError === true;
     const status = trusted ? error.status : error?.status === 502 ? 502 : 503;
     return json(status, {
       error: trusted

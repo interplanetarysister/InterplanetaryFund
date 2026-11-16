@@ -6,12 +6,22 @@ import { oauthCorsOrigin, routeOAuthRequest } from './oauth.js';
 import { serviceGateway } from './services/gateway.js';
 import { routeImageStudio } from './imageStudio.js';
 import { routeImageImprove } from './imageImprove.js';
+import { routeGeocodeCity } from './geocodeCity.js';
+import { strategyRoute } from './agents/strategy.js';
+import { growthRoute } from './agents/growth.js';
+import { communicationsRoute } from './agents/communications.js';
+import { handleManagedConnections } from './agents/managedConnections.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest, routePublicHelpIndex } from './studioRoutes.js';
 
 /** Independent migration API. No Base44 proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
+    if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
+    if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
+    if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
+    if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
+    if (pathname.startsWith('/api/agents/connections/')) return handleManagedConnections(request, env);
     if (pathname.startsWith('/api/oauth/')) {
       const origin = oauthCorsOrigin(request, env);
       if (request.method === 'OPTIONS' && !origin) return response(403, { error: 'Origin not allowed.' });

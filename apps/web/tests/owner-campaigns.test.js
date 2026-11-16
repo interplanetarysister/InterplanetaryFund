@@ -11,6 +11,23 @@ const OWNER = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
 const DRAFT_ID = "33333333-3333-4333-8333-333333333333";
 const ACTIVE_ID = "44444444-4444-4444-8444-444444444444";
+
+test("composer scope invalidation during legal acceptance blocks the campaign insert",async()=>{
+ const {client,calls}=fakeClient();let active=true;
+ const original=client.from.bind(client);
+ client.from=table=>{const query=original(table);if(table==='ifund_legal_acceptances'){
+  const read=query.maybeSingle.bind(query);query.maybeSingle=async()=>{const result=await read();active=false;return result;};
+ }return query;};
+ const scope={ownerId:OWNER,assertActive(){if(!active)throw Error('Your account changed.');}};
+ await assert.rejects(saveOwnerCampaign(client,campaign(),{scope}),/account changed/);
+ assert.ok(!calls.some(call=>call.type==='insert'));
+});
+
+test("composer's original account must match the API identity before creating a campaign",async()=>{
+ const {client,calls}=fakeClient();
+ await assert.rejects(saveOwnerCampaign(client,campaign(),{scope:{ownerId:OTHER,assertActive(){}}}),/account changed/);
+ assert.ok(!calls.some(call=>call.table==='ifund_legal_acceptances'));
+});
 const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "utf8");
 
 const campaign = (over = {}) => ({

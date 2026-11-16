@@ -1,13 +1,18 @@
+import {CAMPAIGN_DOCUMENTS_ACTIVE} from "@/lib/campaignDocumentAvailability.mjs";
 import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {
   DOCUMENT_CATEGORIES,DOCUMENT_MAX_BYTES,listCampaignDocuments,uploadCampaignDocument,
-  updateDocumentAgentAccess,downloadPrivateCampaignDocument,removeCampaignDocument
+  updateDocumentAgentAccess,downloadPrivateCampaignDocument,removeCampaignDocument,
+  findStaleCampaignDocumentUploads,removeStaleCampaignDocumentUpload
 } from "@/api/campaignDocuments";
 
 // One owner-scoped private library per saved campaign. Files never enter public
 // covers or social publishing; per-document agent use is owner-controlled.
-export default function CampaignDocuments({campaignId,ownerId}) {
+export default function CampaignDocuments(props) {
+  return CAMPAIGN_DOCUMENTS_ACTIVE?<EnabledCampaignDocuments {...props}/>:null;
+}
+function EnabledCampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
   const [accountLocked,setAccountLocked]=useState(false);
   const [retryCount,setRetryCount]=useState(0);
@@ -28,6 +33,8 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   const [ownerExcerpt,setOwnerExcerpt]=useState("");
   const [teamAccess,setTeamAccess]=useState(false);
   const [editing,setEditing]=useState(null);
+  const [staleUploads,setStaleUploads]=useState([]);
+  const [staleScanned,setStaleScanned]=useState(false);
   const [draft,setDraft]=useState({summary:"",ownerExcerpt:"",purpose:"general",allowAgentUse:false});
 
   useEffect(()=>{
@@ -39,7 +46,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       accountBlocked.current=true;
       setAccountLocked(true);
       visibleScope.current={ownerId:null,campaignId:null};
-      setRecords([]);setFile(null);setSummary("");setOwnerExcerpt("");setTeamAccess(false);
+      setRecords([]);setStaleUploads([]);setStaleScanned(false);setFile(null);setSummary("");setOwnerExcerpt("");setTeamAccess(false);
       setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
       setNotice("");setLoading(false);
     });
@@ -53,7 +60,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     setAccountLocked(true);
     const generation=accountGeneration.current;
     visibleScope.current={ownerId:null,campaignId:null};
-    setRecords([]);setError("");setNotice("");
+    setRecords([]);setStaleUploads([]);setStaleScanned(false);setError("");setNotice("");
     if(!campaignId||!ownerId){setLoading(false);return()=>{active=false;};}
     setLoading(true);
     (async()=>{
@@ -135,6 +142,33 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"The file could not be downloaded.");}
     finally{setBusy(false);}
   }
+  async function scanOrphans(){
+    if(busy||accountBlocked.current||accountLocked)return;
+    const generation=accountGeneration.current;
+    setBusy(true);setError("");setNotice("");
+    try{
+      const docs=await findStaleCampaignDocumentUploads(authClient(),campaignId);
+      if(generation!==accountGeneration.current||accountBlocked.current)return;
+      setStaleUploads(docs);setStaleScanned(true);
+      setNotice(docs.length
+        ?docs.length+" incomplete old uploads found. Registered campaign files will not be removed."
+        :"No incomplete uploads older than 24 hours were found.");
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Unable to inspect incomplete uploads.");}
+    finally{setBusy(false);}
+  }
+  async function removeOrphan(candidate){
+    if(busy||accountBlocked.current||accountLocked)return;
+    if(!window.confirm("Delete this incomplete upload? This only removes a private file older than 24 hours with no saved campaign document record."))return;
+    const generation=accountGeneration.current;
+    setBusy(true);setError("");setNotice("");
+    try{
+      await removeStaleCampaignDocumentUpload(authClient(),campaignId,candidate.path);
+      if(generation!==accountGeneration.current||accountBlocked.current)return;
+      setStaleUploads(current=>current.filter(row=>row.path!==candidate.path));
+      setNotice("Incomplete private upload securely removed.");
+    }catch(e){if(generation===accountGeneration.current&&!accountBlocked.current)setError(e.message||"Incomplete upload could not be removed.");}
+    finally{setBusy(false);}
+  }
   async function remove(row){
     if(busy||accountBlocked.current||accountLocked)return;
     if(!window.confirm(`Remove "${row.file_name}" from your private campaign documents?`))return;
@@ -153,6 +187,8 @@ export default function CampaignDocuments({campaignId,ownerId}) {
 
   const scopeMatches=visibleScope.current.ownerId===ownerId&&visibleScope.current.campaignId===campaignId;
   const visibleRecords=scopeMatches&&!accountLocked?records:[];
+  const visibleOrphans=scopeMatches&&!accountLocked?staleUploads:[];
+  const orphanScanForCurrentCampaign=scopeMatches&&!accountLocked&&staleScanned;
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Private campaign documents">
     <div>
       <h2 className="text-xl font-semibold">Campaign documents</h2>
@@ -207,6 +243,23 @@ export default function CampaignDocuments({campaignId,ownerId}) {
             {busy?"Saving…":"Upload private document"}
           </button>
         </form>
+        <div className="rounded-xl border border-border p-4 space-y-3">
+          <p className="text-sm font-semibold">Recover storage from interrupted uploads</p>
+          <p className="text-xs text-muted-foreground">
+            Check for files uploaded more than 24 hours ago that never received a campaign document record.
+            Registered documents are protected and are never deleted by this cleanup.
+          </p>
+          <button type="button" onClick={()=>void scanOrphans()} disabled={busy||loading||accountLocked}
+            className="min-h-11 rounded-lg border border-border px-3 text-sm">Find incomplete uploads</button>
+          {orphanScanForCurrentCampaign&&visibleOrphans.length===0&&<p role="status" className="text-xs">No stale incomplete uploads to remove.</p>}
+          {visibleOrphans.length>0&&<ul className="space-y-2">
+            {visibleOrphans.map(item=><li key={item.path} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-2">
+              <span className="break-all text-xs">{item.name} · Incomplete upload</span>
+              <button type="button" disabled={busy||accountLocked} onClick={()=>void removeOrphan(item)}
+                className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove incomplete file</button>
+            </li>)}
+          </ul>}
+        </div>
         {loading&&<p className="text-sm" role="status">Loading private documents…</p>}
         {accountLocked&&<div role="status" className="space-y-2 text-sm text-muted-foreground"><p>Private documents are hidden until this account is verified.</p><button type="button" disabled={loading||busy} onClick={()=>setRetryCount(n=>n+1)} className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">Retry account verification</button></div>}
         {error&&<p className="text-sm text-destructive" role="alert">{error}</p>}

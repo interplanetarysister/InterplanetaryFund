@@ -123,9 +123,10 @@ export async function listMyCampaigns(client) {
   return rows.map((row) => ({ ...row, raised_amount: null, donor_count: null }));
 }
 
-export async function loadOwnerCampaign(client, id) {
+export async function loadOwnerCampaign(client, id, scope) {
   if (!UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   const owner = await verifiedOwner(client);
+  if(scope){scope.assertActive();if(scope.ownerId!==owner)throw new Error("Your account changed. Reload your campaigns.");}
   const { data, error } = await client.from("ifund_campaigns")
     .select(OWNER_CAMPAIGN_COLUMNS)
     .eq("id", id)
@@ -143,11 +144,13 @@ export async function loadOwnerCampaign(client, id) {
  * `expectedStatus` optionally pins the state the caller edited, so the creator
  * cannot overwrite a campaign another session has already published or paused.
  */
-export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus } = {}) {
+export async function saveOwnerCampaign(client, form, { id = null, status = "draft", expectedStatus, scope } = {}) {
   if (!CAMPAIGN_STATUSES.includes(status)) throw new Error("Invalid campaign status.");
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid campaign reference.");
   if (expectedStatus !== undefined && !CAMPAIGN_STATUSES.includes(expectedStatus)) throw new Error("Invalid expected campaign status.");
   const owner = await verifiedOwner(client);
+  const checkScope=()=>{if(scope){scope.assertActive();if(scope.ownerId!==owner)throw new Error("Your account changed. Reload your campaigns.");}};
+  checkScope();
   const { data: acceptance, error: legalError } = await client.from("ifund_legal_acceptances")
     .select("owner_id,terms_version,explicit_consent")
     .eq("owner_id", owner).eq("terms_version", TERMS_VERSION).maybeSingle();
@@ -163,6 +166,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
 
   if (id === null) {
     if (!canTransition(null, status)) throw new Error("A new campaign cannot start in that state.");
+    checkScope();
     const { data, error } = await client.from("ifund_campaigns")
       .insert({ ...payload, owner_id: owner })
       .select(OWNER_CAMPAIGN_COLUMNS)
@@ -192,6 +196,7 @@ export async function saveOwnerCampaign(client, form, { id = null, status = "dra
   }
   // Compare-and-swap on the validated status so a concurrent publish or pause
   // cannot be silently overwritten by this stale save.
+  checkScope();
   const { data, error } = await client.from("ifund_campaigns")
     .update(payload)
     .eq("id", id)

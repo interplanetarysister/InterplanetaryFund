@@ -1,3 +1,4 @@
+import {CAMPAIGN_DOCUMENTS_ACTIVE} from "@/lib/campaignDocumentAvailability.mjs";
 import {useEffect,useRef,useState} from "react";
 import {Link} from "react-router-dom";
 import {authClient} from "@/api/auth";
@@ -8,6 +9,14 @@ import {
 
 const PAGE_SIZE=40;
 export default function CampaignDocumentPermissions(){
+  if(!CAMPAIGN_DOCUMENTS_ACTIVE)
+    return <section className="rounded-xl border border-border p-5" aria-label="Campaign document permissions unavailable">
+      <h2 className="font-semibold">Campaign documents</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Private document upload and agent permissions are being prepared. They will be available after the secure storage service is enabled.</p>
+    </section>;
+  return <EnabledCampaignDocumentPermissions/>;
+}
+function EnabledCampaignDocumentPermissions(){
   const [records,setRecords]=useState([]);
   const [hasMore,setHasMore]=useState(false);
   const [loading,setLoading]=useState(true);
@@ -16,13 +25,25 @@ export default function CampaignDocumentPermissions(){
   const [error,setError]=useState("");
   const [refresh,setRefresh]=useState(0);
   const ownerRef=useRef(null);
+  const authEpoch=useRef(0);
+  async function stillOwner(client,expectedOwner,epoch){
+    if(!expectedOwner||authEpoch.current!==epoch||ownerRef.current!==expectedOwner)return false;
+    const {data,error}=await client.auth.getUser();
+    return !error&&data?.user?.id===expectedOwner&&data?.user?.is_anonymous!==true&&
+      authEpoch.current===epoch&&ownerRef.current===expectedOwner;
+  }
   useEffect(()=>{
     let active=true;
+    authEpoch.current+=1;
+    const epoch=authEpoch.current;
+    ownerRef.current=null;
     setRecords([]);setError("");setMessage("");setLoading(true);
     const client=authClient();
     const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
       if(!active||!ownerRef.current)return;
       if(session?.user?.id!==ownerRef.current){
+        authEpoch.current+=1;
+        ownerRef.current=null;
         setRecords([]);setHasMore(false);setError("Your account changed. Reload your private document permissions.");
         setLoading(false);
       }
@@ -32,45 +53,54 @@ export default function CampaignDocumentPermissions(){
       if(identityError||!data?.user?.id)throw Error("Sign in to manage private document permissions.");
       ownerRef.current=data.user.id;
       const docs=await listOwnerDocumentPermissions(client,{limit:PAGE_SIZE});
-      if(!active)return;
+      if(!active||!await stillOwner(client,data.user.id,epoch))return;
       setRecords(docs);setHasMore(docs.length===PAGE_SIZE);setLoading(false);
-    })().catch(e=>{if(active){setRecords([]);setHasMore(false);setError(e.message||"Document permissions unavailable.");setLoading(false);}});
-    return()=>{active=false;ownerRef.current=null;subscription?.subscription?.unsubscribe();};
+    })().catch(e=>{if(active&&authEpoch.current===epoch){setRecords([]);setHasMore(false);setError(e.message||"Document permissions unavailable.");setLoading(false);}});
+    return()=>{active=false;authEpoch.current+=1;ownerRef.current=null;subscription?.subscription?.unsubscribe();};
   },[refresh]);
 
   async function setAccess(row,enabled){
     if(busy||row.deletion_requested_at)return;
     setBusy(true);setError("");setMessage("");
+    const client=authClient(),expected=ownerRef.current,epoch=authEpoch.current;
     try{
-      await updateDocumentAgentAccess(authClient(),row.campaign_id,row,{
+      if(!await stillOwner(client,expected,epoch))throw Error("Account changed during document permission review.");
+      await updateDocumentAgentAccess(client,row.campaign_id,row,{
         allowAgentUse:enabled,
         summary:row.agent_summary||"",
         ownerExcerpt:row.owner_excerpt||"",
         purpose:row.purpose,
       });
+      if(!await stillOwner(client,expected,epoch))return;
       setRecords(existing=>existing.map(item=>item.id===row.id?{...item,allow_agent_use:enabled}:item));
       setMessage(enabled?"Agent reference enabled for this document only.":"Agent reference revoked for this document.");
-    }catch(e){setError(e.message||"Permission not updated.");}
+    }catch(e){if(authEpoch.current===epoch)setError(e.message||"Permission not updated.");}
     finally{setBusy(false);}
   }
   async function revokeAll(){
     if(busy||!window.confirm("Turn off iFund agent access to all uploaded campaign documents? Your private files will be kept."))return;
     setBusy(true);setError("");setMessage("");
+    const client=authClient(),expected=ownerRef.current,epoch=authEpoch.current;
     try{
-      const changed=await revokeAllOwnerDocumentAgentUse(authClient());
+      if(!await stillOwner(client,expected,epoch))throw Error("Account changed during document revocation.");
+      const changed=await revokeAllOwnerDocumentAgentUse(client);
+      if(!await stillOwner(client,expected,epoch))return;
       setRecords(rows=>rows.map(row=>({...row,allow_agent_use:false})));
       setMessage("Agent use disabled for "+changed+" documents across your account. The files remain private and stored.");
-    }catch(e){setError(e.message||"Unable to revoke account-wide agent document access.");}
+    }catch(e){if(authEpoch.current===epoch)setError(e.message||"Unable to revoke account-wide agent document access.");}
     finally{setBusy(false);}
   }
   async function more(){
     if(busy||loading||!hasMore)return;
     setBusy(true);setError("");
+    const client=authClient(),expected=ownerRef.current,epoch=authEpoch.current;
     try{
-      const page=await listOwnerDocumentPermissions(authClient(),{offset:records.length,limit:PAGE_SIZE});
+      if(!await stillOwner(client,expected,epoch))throw Error("Account changed during document loading.");
+      const page=await listOwnerDocumentPermissions(client,{offset:records.length,limit:PAGE_SIZE});
+      if(!await stillOwner(client,expected,epoch))return;
       setRecords(rows=>[...rows,...page.filter(doc=>!rows.some(existing=>existing.id===doc.id))]);
       setHasMore(page.length===PAGE_SIZE);
-    }catch(e){setError(e.message||"Older documents could not be loaded.");}
+    }catch(e){if(authEpoch.current===epoch)setError(e.message||"Older documents could not be loaded.");}
     finally{setBusy(false);}
   }
   const authorized=records.filter(row=>row.allow_agent_use&&!row.deletion_requested_at).length;
