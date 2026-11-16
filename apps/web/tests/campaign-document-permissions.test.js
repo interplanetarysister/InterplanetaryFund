@@ -14,7 +14,7 @@ const ROW={id:DOCUMENT,owner_id:OWNER,campaign_id:CAMPAIGN,file_name:"plan.pdf",
   owner_excerpt:"",allow_agent_use:true,deletion_requested_at:null,created_at:"2026-11-15T10:00:00Z"};
 
 function fixture({user={id:OWNER,email_confirmed_at:"2026-11-15",is_anonymous:false},
-  rows=[ROW],switchAccount=false}={}){
+  rows=[ROW],switchAccount=false,bypassFilter=false}={}){
   const calls=[],docs=rows.map(row=>({...row}));
   let authReads=0;
   const client={
@@ -33,7 +33,7 @@ function fixture({user={id:OWNER,email_confirmed_at:"2026-11-15",is_anonymous:fa
         update(value){action="update";update=value;calls.push({action,update:value});return query;},
         maybeSingle:async()=>({data:{account_status:"active",account_deletion_pending:false},error:null}),
         then(resolve,reject){
-          const matches=docs.filter(row=>filters.every(([key,val])=>row[key]===val));
+          const matches=bypassFilter?docs:docs.filter(row=>filters.every(([key,val])=>row[key]===val));
           if(action==="update")for(const row of matches)Object.assign(row,update);
           const result=action==="update"
             ?matches.map(row=>({id:row.id,owner_id:row.owner_id,allow_agent_use:row.allow_agent_use}))
@@ -55,7 +55,7 @@ test("central account permissions list only owner documents",async()=>{
   assert.equal(result[0].allow_agent_use,true);
 });
 test("a foreign document in a response is rejected rather than displayed",async()=>{
-  const f=fixture({rows:[{...ROW,owner_id:"44444444-4444-4444-8444-444444444444"}]});
+  const f=fixture({bypassFilter:true,rows:[{...ROW,owner_id:"44444444-4444-4444-8444-444444444444"}]});
   await assert.rejects(listOwnerDocumentPermissions(f.client),/could not be verified/);
 });
 test("account switch clears permission retrieval before returning private records",async()=>{
