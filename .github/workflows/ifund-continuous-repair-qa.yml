@@ -1,0 +1,67 @@
+name: IFund continuous source repair QA
+# Source-only automatic regression gate for the existing integration branch.
+# No cloud credentials, no writes, no builds, no deploys, no Base44 changes.
+on:
+  push:
+    branches:
+      - feature/route-completion-20261113
+    paths:
+      - '.github/workflows/ifund-continuous-repair-qa.yml'
+      - 'worker/agents/teamContext.js'
+      - 'worker/agents/teamContext.redaction.test.mjs'
+      - 'workers/ifund-payments/worker.js'
+      - 'workers/ifund-payments/subscription-refund-boundary.test.mjs'
+      - 'tests/team-context*.test.js'
+      - 'tests/*refund*.test.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-safe-source-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse actual worker code
+        run: |
+          set -euo pipefail
+          node --check worker/agents/teamContext.js
+          node --check workers/ifund-payments/worker.js
+      - name: Execute actual credential-redaction and refund-source tests
+        run: |
+          set -euo pipefail
+          node --test \
+            worker/agents/teamContext.redaction.test.mjs \
+            workers/ifund-payments/subscription-refund-boundary.test.mjs \
+            2>&1 | tee ifund-repair-qa.log
+      - name: Record executed QA and next repair actions
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '### IFund source repair gate'
+            echo "- Commit: ${GITHUB_SHA}"
+            echo '- Scope: actual Node tests of encoded OAuth redaction and refund fail-closed handler'
+            echo '- A green check covers only these tests, not deployed Workers, RLS, or live provider validation.'
+            echo '- Failure: inspect the artifact, correct the underlying code, rerun, and record exact SHA in issue #203.'
+            echo '- No finance/SQL/agent flags, Base44, or production environment was modified.'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve regression evidence on pass or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifund-continuous-repair-qa
+          path: ifund-repair-qa.log
+          if-no-files-found: ignore
+          retention-days: 7
