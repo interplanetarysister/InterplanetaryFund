@@ -118,3 +118,26 @@ test("campaign change hides prior campaign's stale orphan names before effects r
   assert.match(ui,/visibleOrphans\.map/);
   assert.match(ui,/removeStaleCampaignDocumentUpload/);
 });
+
+test("large Storage inventories fail closed instead of showing a partial orphan list",async()=>{
+  const files=Array.from({length:100},(_,n)=>({
+    id:ID,name:n.toString(16).padStart(8,"0")+"-3333-4333-8333-333333333333.pdf",
+    created_at:OLD
+  }));
+  const x=fixture({files});
+  await assert.rejects(findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW}),/too large for safe recovery/);
+  assert.equal(x.events.some(event=>event.action==="remove"),false);
+});
+test("switching accounts during Storage listing refuses stale owner references",async()=>{
+  const x=fixture({switchUser:true});
+  await assert.rejects(findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW}),/account changed/i);
+  assert.equal(x.events.some(event=>event.action==="remove"),false);
+});
+test("invalid Storage object names are ignored instead of trusted for cleanup",async()=>{
+  const x=fixture({files:[
+    {id:ID,name:"../"+ID+".pdf",created_at:OLD},
+    {id:ID,name:ID+".pdf/foreign",created_at:OLD},
+    {id:null,name:ID+".pdf",created_at:OLD}
+  ]});
+  assert.deepEqual(await findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW}),[]);
+});
