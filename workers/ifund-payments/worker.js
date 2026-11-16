@@ -330,7 +330,18 @@ async function reconcilePendingPayouts(env) {
   }
 }
 
+async function subscriptionAtomicReadiness(env) {
+  if(env.IFUND_SUBSCRIPTION_ATOMIC_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")
+    return {ready:false};
+  try{
+    const result=await signLedger(env,"subscription_atomic_readiness",{});
+    return {ready:result.enabled===true&&result.version===1&&ORDER_ID.test(result.merchant_id||""),
+      merchant_id:result.merchant_id||null};
+  }catch(_){return {ready:false};}
+}
 async function subscriptionReadiness(env) {
+  const atomic=await subscriptionAtomicReadiness(env);
+  if(!atomic.ready)return {ready:false,plan_ready:false,webhook_ready:false,atomic_ready:false};
   const webhookId=await getSecret(env.PAYPAL_WEBHOOK_ID);
   if(!webhookId)return {ready:false,plan_ready:false,webhook_ready:false};
   const [plan,hook]=await Promise.all([
@@ -351,28 +362,26 @@ async function subscriptionReadiness(env) {
   }
   return {ready:planReady&&webhookReady,plan_ready:planReady,webhook_ready:webhookReady};
 }
-async function reconcileSubscription(env,subscriptionReference,token="",providerReference=null) {
+async function reconcileSubscription(env,subscriptionReference,token="",financial=null) {
+  const atomic=await subscriptionAtomicReadiness(env);
+  if(!atomic.ready)throw new Error("subscription_atomic_ledger_unavailable");
+  if(financial&&financial.merchant_id!==atomic.merchant_id)
+    throw new Error("subscription_merchant_changed_during_verification");
   const lookup=await signLedger(env,token?"subscription_get":"subscription_lookup",{
-    paypal_subscription_id:subscriptionReference,
-    ...(token?{member_access_token:token}:{})
+    paypal_subscription_id:subscriptionReference,...(token?{member_access_token:token}:{})
   });
   const intent=lookup.intent;
   const subscription=await paypal(env,"/v1/billing/subscriptions/"+encodeURIComponent(subscriptionReference));
   if(subscription?.id!==subscriptionReference||subscription?.plan_id!==intent.paypal_plan_id||
-    subscription?.custom_id!==intent.custom_id) throw new Error("subscription_provider_identity_mismatch");
-  const payment=subscription?.billing_info?.last_payment;
-  const amount=payment?.amount;
-  const lastPaymentCents=amount?.currency_code==="USD"&&/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||""))
-    ?cents(amount.value):null;
-  const result=await signLedger(env,"subscription_reconcile",{
-    paypal_subscription_id:subscriptionReference,paypal_plan_id:subscription.plan_id,
-    custom_id:subscription.custom_id,provider_status:String(subscription.status||"").toUpperCase(),
-    last_payment_cents:lastPaymentCents,last_payment_at:payment?.time||null,
-    currency:amount?.currency_code||null,
-    next_billing_time:subscription?.billing_info?.next_billing_time||null,
-    failed_payments_count:Number(subscription?.billing_info?.failed_payments_count||0),
-    provider_reference:providerReference
-  });
+    subscription?.custom_id!==intent.custom_id)throw new Error("subscription_provider_identity_mismatch");
+  const statusAt=new Date(subscription.status_update_time||"");
+  if(!Number.isFinite(statusAt.getTime()))throw new Error("subscription_status_timestamp_unverified");
+  const result=await signLedger(env,"subscription_atomic_event",{event:{
+    kind:"status",...financial,intent_id:intent.id,member_id:intent.member_id,
+    subscription_id:subscriptionReference,plan_id:intent.paypal_plan_id,custom_id:intent.custom_id,
+    merchant_id:atomic.merchant_id,currency:"USD",environment:"live",
+    provider_status:String(subscription.status||"").toUpperCase(),status_at:statusAt.toISOString()
+  }});
   return {ok:true,status:result.status,tier:intent.tier,interval:intent.interval,
     subscription_id:subscriptionReference,next_billing_time:subscription?.billing_info?.next_billing_time||null};
 }
@@ -434,6 +443,7 @@ async function subscriptionStatus(req,env) {
   }
 }
 async function cancelSubscription(req,env) {
+  if(!(await subscriptionAtomicReadiness(env)).ready)return asError("subscription_atomic_ledger_unavailable",503);
   const token=memberToken(req);
   if(!token)return asError("sign_in_required",401);
   const stored=await signLedger(env,"subscription_status",{member_access_token:token});
@@ -444,50 +454,67 @@ async function cancelSubscription(req,env) {
     {reason:"Canceled by Interplanetary Fund member"},"ifund-cancel-"+id);
   return asJson(await reconcileSubscription(env,id,token));
 }
+// Verify the authenticated merchant's immutable sale receipt and its subscription.
+async function verifiedSubscriptionSale(env,saleId,subscriptionId,merchantId,allowRefunded=false) {
+  const sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(saleId));
+  if(sale?.id!==saleId||sale?.billing_agreement_id!==subscriptionId||!(allowRefunded?["completed","refunded","partially_refunded"]:["completed"]).includes(sale?.state)
+    ||sale?.amount?.currency!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(sale?.amount?.total||""))
+    ||!Number.isSafeInteger(cents(sale.amount.total))||cents(sale.amount.total)<1)
+    throw new Error("subscription_sale_receipt_unverified");
+  let actualMerchant=sale.payee?.merchant_id;
+  if(!actualMerchant){
+    const parent=Array.isArray(sale.links)?sale.links.find(link=>link?.rel==="parent_payment"):null;
+    let path;
+    try{
+      const url=new URL(parent?.href||"");
+      if(url.origin!==PAYPAL_API||url.search||url.hash||!/^\/v1\/payments\/payment\/PAY-[A-Za-z0-9_-]+$/.test(url.pathname))
+        throw new Error("Invalid parent payment URL");
+      path=url.pathname;
+    }catch(_){throw new Error("subscription_merchant_receipt_unverified");}
+    const payment=await paypal(env,path);
+    const transactions=(payment?.transactions||[]).filter(transaction=>
+      transaction.related_resources?.some(resource=>resource.sale?.id===saleId));
+    if(transactions.length!==1)throw new Error("subscription_merchant_receipt_unverified");
+    actualMerchant=transactions[0].payee?.merchant_id;
+  }
+  if(actualMerchant!==merchantId)throw new Error("subscription_merchant_identity_mismatch");
+  return sale;
+}
 async function subscriptionWebhook(payload,env) {
   const kind=String(payload.event_type||"");
   const id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
     String(payload.resource?.id||"");
-  // A refund with no subscription binding is not a harmless unrelated event:
-  // reject it rather than silently acknowledge an untraceable economic reversal.
-  if((kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED")&&!SUBSCRIPTION_ID.test(id))
-    return asError("subscription_refund_subscription_unverified",409);
-  if(!SUBSCRIPTION_ID.test(id))return asJson({ok:true,ignored:true,reason:"no_subscription_reference"});
+  if(!SUBSCRIPTION_ID.test(id))return asError("subscription_reference_unverified",409);
   if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
-  if(kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED"){
-    // A webhook delivery ID is NEVER an economic refund ID. Legacy sale refunds
-    // require an immutable refund resource and its original sale (capture) ID.
-    // Until the atomic, parent-capture-validated ledger RPC is accepted, do not
-    // record any subscription reversal from this non-atomic Edge operation.
-    const resource=payload.resource;
-    if(kind!=="PAYMENT.SALE.REFUNDED")
-      return asError("subscription_reversal_event_unverified",409);
-    const refundId=resource?.id;
-    const parentSaleId=resource?.sale_id;
-    if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(parentSaleId||"")
-      ||refundId===payload.id||refundId===parentSaleId)
-      return asError("subscription_refund_identity_unverified",409);
-    const amount=resource?.amount;
-    if(amount?.currency_code!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||""))
-      ||cents(amount.value)<1)
-      return asError("subscription_reversal_amount_unverified",409);
-    // Signed webhook delivery alone is not a provider-backed refund receipt.
-    // Fetch the resource and verify immutable identity, parent and exact amount.
-    const receipt=await paypal(env,"/v1/payments/refund/"+encodeURIComponent(refundId));
-    if(receipt?.id!==refundId||receipt?.sale_id!==parentSaleId
-      ||receipt?.state!=="completed"||receipt?.amount?.currency!=="USD"
-      ||cents(receipt?.amount?.total)!==cents(amount.value))
-      return asError("subscription_refund_receipt_unverified",409);
-    // The current Edge subscription_reversal accepts neither parentSaleId nor
-    // atomic per-parent refund ceilings. Reject safely until A2's tested RPC
-    // and the corresponding Edge contract are implemented and accepted.
-    return asError("subscription_refund_atomic_ledger_unavailable",503);
+  if(kind==="PAYMENT.SALE.REVERSED")return asError("subscription_reversal_event_unverified",409);
+  const atomic=await subscriptionAtomicReadiness(env);
+  if(!atomic.ready)return asError("subscription_atomic_ledger_unavailable",503);
+  if(kind==="PAYMENT.SALE.COMPLETED"||kind==="PAYMENT.SALE.REFUNDED"){
+    const resource=payload.resource,resourceId=resource?.id;
+    if(!ORDER_ID.test(resourceId||"")||resourceId===payload.id)
+      return asError("subscription_economic_identity_unverified",409);
+    let receipt,parentId=null;
+    if(kind==="PAYMENT.SALE.REFUNDED"){
+      parentId=resource?.sale_id;
+      if(!ORDER_ID.test(parentId||"")||parentId===resourceId)return asError("subscription_refund_identity_unverified",409);
+      receipt=await paypal(env,"/v1/payments/refund/"+encodeURIComponent(resourceId));
+      if(receipt?.id!==resourceId||receipt?.sale_id!==parentId||receipt?.state!=="completed")
+        return asError("subscription_refund_receipt_unverified",409);
+      await verifiedSubscriptionSale(env,parentId,id,atomic.merchant_id,true);
+    }else receipt=await verifiedSubscriptionSale(env,resourceId,id,atomic.merchant_id);
+    const amount=receipt?.amount;
+    if(amount?.currency!=="USD"||!/^\d+(?:\.\d{1,2})?$/.test(String(amount?.total||""))
+      ||!Number.isSafeInteger(cents(amount.total))||cents(amount.total)<1)
+      return asError("subscription_economic_amount_unverified",409);
+    const occurred=new Date(receipt.create_time||"");
+    if(!Number.isFinite(occurred.getTime()))return asError("subscription_economic_time_unverified",409);
+    const result=await reconcileSubscription(env,id,"",{
+      kind:kind==="PAYMENT.SALE.COMPLETED"?"payment":"refund",resource_id:resourceId,merchant_id:atomic.merchant_id,
+      parent_resource_id:parentId,event_id:payload.id,amount_cents:cents(amount.total),occurred_at:occurred.toISOString()
+    });
+    return asJson({ok:true,subscription_status:result.status});
   }
-  const providerReference=kind==="PAYMENT.SALE.COMPLETED"?payload.resource?.id||null:null;
-  const reconciled=await reconcileSubscription(env,id,"",providerReference);
-  await signLedger(env,"subscription_event",{
-    paypal_event_id:payload.id,paypal_subscription_id:id,event_type:kind
-  });
+  const reconciled=await reconcileSubscription(env,id);
   return asJson({ok:true,subscription_status:reconciled.status});
 }
 
