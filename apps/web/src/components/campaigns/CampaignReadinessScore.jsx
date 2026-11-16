@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { DonutChart } from "@/components/analytics/CampaignMetrics";
 import { calculateCampaignReadiness } from "@/lib/campaignReadinessScore.mjs";
 
-export default function CampaignReadinessScore({ form }) {
+export default function CampaignReadinessScore({ form, onFocusField }) {
   const [sharingPlan,setSharingPlan]=useState(false);
   const review=useMemo(()=>calculateCampaignReadiness(form,{sharingPlan}),[form,sharingPlan]);
   const data=[
@@ -22,8 +22,8 @@ export default function CampaignReadinessScore({ form }) {
     </div>
     <DonutChart data={data} title="Campaign editorial readiness categories" valueText={review.total+" out of 100 editorial points"} />
     <p className="text-xs text-muted-foreground">{review.disclosure}</p>
-    <label id="campaign-sharing-plan" className="flex gap-3 rounded-xl border border-border p-3 text-sm">
-      <input type="checkbox" checked={sharingPlan} onChange={event=>setSharingPlan(event.target.checked)}
+    <label htmlFor="campaign-sharing-plan" className="flex gap-3 rounded-xl border border-border p-3 text-sm">
+      <input id="campaign-sharing-plan" type="checkbox" checked={sharingPlan} onChange={event=>setSharingPlan(event.target.checked)}
         className="mt-1 h-4 w-4 shrink-0" />
       <span>I have a responsible plan to share this campaign with my community. <span className="block text-xs text-muted-foreground">Self-declared; this does not connect accounts or publish posts.</span></span>
     </label>
@@ -33,7 +33,7 @@ export default function CampaignReadinessScore({ form }) {
       <ul className="space-y-2">{review.tips.map(row=><li key={row.key} className="rounded-xl border border-border p-3">
         <div className="flex items-center justify-between gap-2 text-sm"><strong>{row.label}</strong><span className="tabular-nums text-muted-foreground">{row.earned}/{row.max}</span></div>
         <p className="mt-1 text-xs text-muted-foreground">{row.tip}</p>
-        <a href={"#"+row.field} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</a>
+        <button type="button" onClick={()=>onFocusField?.(row.field)} className="mt-2 inline-block min-h-10 py-2 text-sm font-semibold text-primary underline">Improve this section</button>
       </li>)}</ul>}
     </div>
     <p className="text-sm text-muted-foreground">A low readiness score does not prevent publishing. Standard account, required-field, story-format and financial safety checks still apply.</p>
