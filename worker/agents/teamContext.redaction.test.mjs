@@ -2,7 +2,7 @@
 // Synthetic fixtures only. Does not enable shared context or deploy a Worker.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { redactTeamCredentials, appendTeamContext } from './teamContext.js';
+import { redactTeamCredentials, appendTeamContext, readCampaignDocumentContext } from './teamContext.js';
 
 const cases = [
   ['standard', 'https://example.test/callback?state=x&code=synthetic-secret-123'],
@@ -95,5 +95,31 @@ test('OAuth ID and session token callback values are never retained', () => {
   for (const prose of ['The token economy is growing.', 'The code is illustrative.',
     'https://example.test/cb?state=safe&theme=dark']) {
     assert.equal(redactTeamCredentials(prose),prose);
+  }
+});
+
+test('private document brief purpose is redacted while ordinary purpose survives', async () => {
+  const doc = purpose => ({
+    document_id:'11111111-1111-4111-8111-111111111111',
+    file_name:'plan.txt',purpose,summary:'owner summary',owner_excerpt:'',
+    extracted_excerpt:'',owner_supplied:true,
+    source_type:'uploaded_private_document_summary'
+  });
+  for (const [purpose,expected] of [
+    ['PAYPAL_CLIENT_SECRET=synthetic-secret-123',false],
+    ['Outreach budget',true]
+  ]) {
+    const result=await readCampaignDocumentContext({
+      env:{IFUND_CAMPAIGN_DOCUMENTS_ENABLED:'enabled',
+        SUPABASE_URL:'https://example.test',SUPABASE_PUBLISHABLE_KEY:'synthetic'},
+      jwt:'synthetic.jwt.token',
+      campaignId:'22222222-2222-4222-8222-222222222222',
+      fetcher:async()=>({ok:true,json:async()=>[doc(purpose)]})
+    });
+    assert.equal(result.state,'ready');
+    assert.equal(result.briefs.length,1);
+    assert.equal(result.briefs[0].purpose.includes('synthetic-secret-123'),false);
+    if(expected) assert.equal(result.briefs[0].purpose,purpose);
+    else assert.match(result.briefs[0].purpose,/\[redacted\]/);
   }
 });
