@@ -11,7 +11,7 @@ const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ifund-
 const request=()=>new Request("https://ifund.example/api/services/admin/private-document-erasure",{
  method:"POST",headers:{authorization:"Bearer admin.jwt","content-type":"application/json"},body:JSON.stringify({request_id:REQUEST})
 });
-function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false,orphan=false,missingBytes=false}={}){
+function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false,orphan=false,missingBytes=false,missingCode="NoSuchKey"}={}){
  const calls=[];let inventory=1;
  const fetcher=async(url,options)=>{
    const parsed=new URL(url);const method=options.method;
@@ -31,7 +31,7 @@ function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPend
      return Response.json([{name:path}]);
    }
    if(parsed.pathname.includes("/storage/v1/object/info/ifund-campaign-documents/"))
-     return Response.json({error:"not found"},{status:404});
+     return Response.json({code:missingCode,message:"not found"},{status:404});
    if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="DELETE"){
      inventory=0;return Response.json([{id:DOCUMENT}]);
    }
@@ -128,7 +128,7 @@ test("large owner document inventory returns an explicitly incomplete resumable 
     if(route==="/storage/v1/object/ifund-campaign-documents")
       return Response.json([{name:PATH}]);
     if(route.includes("/storage/v1/object/info/"))
-      return Response.json({error:"missing"},{status:404});
+      return Response.json({code:"NoSuchKey",message:"missing"},{status:404});
     if(route==="/rest/v1/ifund_campaign_documents"&&options.method==="DELETE"){
       remaining--;
       return Response.json([{id:DOCUMENT}]);
@@ -188,4 +188,12 @@ test("active Supabase session is required for every destructive admin RPC",()=>{
  assert.match(sql,/auth\.jwt\(\)->>'session_id'/);
  assert.equal((sql.match(/or not coalesce\(public\.ifund_private_document_admin_session_valid\(\),false\)/g)||[]).length,3);
  assert.match(sql,/revoke all on function public\.ifund_private_document_admin_session_valid\(\) from public,anon,authenticated/);
+});
+
+test("missing Storage bucket is not proof the file bytes were erased",async()=>{
+ const s=service({missingCode:"NoSuchBucket"});
+ await assert.rejects(cleanupPrivateCampaignDocuments({
+   fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"
+ }),/missing-file proof/);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/rest/v1/ifund_campaign_documents"),false);
 });
