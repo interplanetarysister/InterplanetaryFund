@@ -36,6 +36,8 @@ export async function loadComponent(entry) {
     format: "esm",
     jsx: "automatic",
     platform: "neutral",
+    // Neutral builds need explicit package entry fields for Capacitor.
+    mainFields: ["module", "main"],
     alias: { "@": path.join(webRoot, "src") },
     external: ["react", "react-dom", "react/jsx-runtime", "react-router", "react-router-dom"],
     logLevel: "silent",
