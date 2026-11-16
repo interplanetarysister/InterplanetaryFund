@@ -25,3 +25,25 @@ test('provider refund receipt amount mismatch is rejected',async()=>{const h=har
 test('provider refund receipt incomplete is rejected',async()=>{const h=harness({id:'REFUND12345',sale_id:'SALE1234567',state:'pending',amount:{currency:'USD',total:'3.00'}});assert.equal((await h.fn(base(),{})).status,409);assert.equal(h.stats().writes,0)});
 // Signed webhook entrypoint, stale/equal-time ordering, SQL ceilings and environment
 // isolation require separate integration fixtures; this suite does NOT certify them.
+
+// These remain fail-closed at the provider boundary, even if two signed events
+// have identical or stale timestamps. Ledger ordering requires A2's atomic RPC.
+for (const [name, timestamp] of [
+  ['equal-time distinct webhook delivery', '2026-11-15T12:00:00Z'],
+  ['stale distinct webhook delivery', '2026-11-14T12:00:00Z']
+]) test(name, async () => {
+  const h=harness();
+  const event={...base(),id:'WH-EVENT-7654321',create_time:timestamp};
+  assert.equal((await h.fn(event,{})).status,503);
+  assert.equal(h.stats().writes,0);
+});
+test('provider refund receipt ID mismatch is rejected',async()=>{
+  const h=harness({id:'DIFFERENTREFUND',sale_id:'SALE1234567',state:'completed',amount:{currency:'USD',total:'3.00'}});
+  assert.equal((await h.fn(base(),{})).status,409);
+  assert.equal(h.stats().writes,0);
+});
+test('provider refund receipt currency mismatch is rejected',async()=>{
+  const h=harness({id:'REFUND12345',sale_id:'SALE1234567',state:'completed',amount:{currency:'EUR',total:'3.00'}});
+  assert.equal((await h.fn(base(),{})).status,409);
+  assert.equal(h.stats().writes,0);
+});
