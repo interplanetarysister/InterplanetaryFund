@@ -210,14 +210,14 @@ export default function CampaignDocuments({campaignId,ownerId}) {
               <div className="min-w-0">
                 <p className="break-all text-sm font-semibold">{row.file_name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {DOCUMENT_CATEGORIES[row.purpose]||"Reference"} · {(row.file_size/1024).toFixed(0)} KB · {row.allow_agent_use?"Agent reference enabled":"Private, not shared with agents"}
+                  {DOCUMENT_CATEGORIES[row.purpose]||"Reference"} · {(row.file_size/1024).toFixed(0)} KB · {row.deletion_requested_at?"Pending secure deletion":row.allow_agent_use?"Agent reference enabled":"Private, not shared with agents"}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <button type="button" disabled={busy||accountLocked} onClick={()=>download(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Download</button>
-                <button type="button" disabled={busy||accountLocked} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",ownerExcerpt:row.owner_excerpt||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
+                <button type="button" disabled={busy||accountLocked||Boolean(row.deletion_requested_at)} onClick={()=>download(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Download</button>
+                <button type="button" disabled={busy||accountLocked||Boolean(row.deletion_requested_at)} onClick={()=>{setEditing(row.id);setDraft({summary:row.agent_summary||"",ownerExcerpt:row.owner_excerpt||"",purpose:row.purpose,allowAgentUse:row.allow_agent_use});}}
                   className="min-h-11 rounded-lg border border-border px-3 text-sm">Agent settings</button>
-                <button type="button" disabled={busy||accountLocked} onClick={()=>remove(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove</button>
+                <button type="button" disabled={busy||accountLocked} onClick={()=>remove(row)} className="min-h-11 rounded-lg border border-border px-3 text-sm">{row.deletion_requested_at?"Retry secure removal":"Remove"}</button>
               </div>
             </div>
             {editing===row.id&&<div className="mt-3 space-y-3">
