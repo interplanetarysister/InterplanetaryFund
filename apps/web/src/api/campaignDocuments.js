@@ -183,9 +183,20 @@ export async function removeCampaignDocument(client,campaignId,row){
   }
   // Stage 2: remove bytes. A failed removal leaves a pending entry that is
   // invisible to all agent brief RPCs, and can be retried by the same owner.
-  const {error:storageError}=await client.storage.from(DOCUMENT_BUCKET).remove([row.storage_path]);
+  const privateStorage=client.storage.from(DOCUMENT_BUCKET);
+  const {error:storageError}=await privateStorage.remove([row.storage_path]);
   await unchanged(client,userId);
   if(storageError)throw Error("File cleanup did not finish. Retry removal of the pending document.");
+  // A successful DELETE receipt does not independently prove absence. Query
+  // the same private object endpoint before removing the durable metadata row.
+  // Only a specific NoSuchKey result establishes absence; generic 404s may
+  // also represent a missing bucket or insufficient Storage authorization.
+  if(typeof privateStorage.info!=="function")
+    throw Error("Private file deletion needs independent Storage verification.");
+  const {data:remaining,error:infoError}=await privateStorage.info(row.storage_path);
+  await unchanged(client,userId);
+  if(remaining||infoError?.code!=="NoSuchKey")
+    throw Error("Private file absence could not be verified. Retry secure removal.");
   const {data,error}=await client.from("ifund_campaign_documents").delete()
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
     .not("deletion_requested_at","is",null)
