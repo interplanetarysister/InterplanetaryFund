@@ -20,7 +20,7 @@ export function mapAtlasCampaign(row = {}) {
 }
 export function isApprovedAtlasLocation(row) {
   return row?.map_opt_in === true &&
-    typeof row.location === "string" && row.location.trim().length > 1 &&
+    typeof row.location === "string" && isBroadPublicLocationLabel(row.location) &&
     coordinate(row.latitude,90) !== null && coordinate(row.longitude,180) !== null;
 }
 export function atlasLocationRows(campaigns = []) {
