@@ -33,7 +33,8 @@ permissions:
   contents: read
 concurrency:
   group: ifund-atlas-source-${{ github.ref }}
-  cancel-in-progress: true
+  # Continuous agents update this branch often; let source QA finish on its exact SHA.
+  cancel-in-progress: false
 jobs:
   verify-atlas:
     runs-on: ubuntu-latest
