@@ -9,9 +9,16 @@ function cents(value) {
 export function merchantReceiptExceptions(receipts) {
   if(!Array.isArray(receipts))return null;
   const exceptions=[];
+  const counts=new Map();
+  for(const r of receipts) {
+    const id=typeof r?.paypal_transaction_id==="string"?r.paypal_transaction_id.trim():"";
+    if(id)counts.set(id,(counts.get(id)||0)+1);
+  }
   for(const r of receipts) {
     const id=typeof r?.paypal_transaction_id==="string"?r.paypal_transaction_id:"Unavailable";
     const issues=[];
+    if(id==="Unavailable"||!id.trim())issues.push("Missing PayPal transaction identifier");
+    else if((counts.get(id.trim())||0)>1)issues.push("Duplicate PayPal transaction identifier in merchant receipts");
     const gross=cents(r?.gross_cents),fee=cents(r?.processing_fee_cents),net=cents(r?.net_cents);
     if(gross===null||fee===null||net===null)issues.push("Missing or invalid verified cent amounts");
     else if(fee>gross || gross-fee!==net)issues.push("Gross, processor fee and net totals do not reconcile");
