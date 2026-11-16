@@ -6,6 +6,7 @@ export const US_REGIONS=Object.freeze([
   {id:"mainland",name:"Contiguous United States",bounds:{west:-125,east:-66,south:24,north:50},view:{x:55,y:55,w:850,h:310}},
   {id:"alaska",name:"Alaska",bounds:{west:-170,east:-129,south:51,north:72},view:{x:65,y:392,w:225,h:95}},
   {id:"hawaii",name:"Hawaii",bounds:{west:-161,east:-154,south:18,north:23},view:{x:328,y:392,w:180,h:95}},
+  {id:"puerto-rico",name:"Puerto Rico",bounds:{west:-67.5,east:-65.2,south:17.8,north:18.6},view:{x:562,y:392,w:260,h:95}},
 ]);
 export function usRegionForPoint(latitude,longitude) {
   const lat=Number(latitude),lng=Number(longitude);
