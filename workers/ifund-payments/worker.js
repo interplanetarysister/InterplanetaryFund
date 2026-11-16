@@ -472,7 +472,7 @@ async function subscriptionWebhook(payload,env) {
   // reject it rather than silently acknowledge an untraceable economic reversal.
   if((kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED")&&!SUBSCRIPTION_ID.test(id))
     return asError("subscription_refund_subscription_unverified",409);
-  if(!SUBSCRIPTION_ID.test(id))return asJson({ok:true,ignored:true,reason:"no_subscription_reference"});
+  // All subscribed event types require an immutable subscription reference.\n  // A signed but unbound sale must be retried/investigated, not acknowledged.\n  if(!SUBSCRIPTION_ID.test(id))return asError("subscription_reference_unverified",409);
   if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
   if(kind==="PAYMENT.SALE.REFUNDED"||kind==="PAYMENT.SALE.REVERSED"){
     // A webhook delivery ID is NEVER an economic refund ID. Legacy sale refunds
