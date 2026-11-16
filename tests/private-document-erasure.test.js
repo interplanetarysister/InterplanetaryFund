@@ -10,7 +10,7 @@ const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ifund-
 const request=()=>new Request("https://ifund.example/api/services/admin/private-document-erasure",{
  method:"POST",headers:{authorization:"Bearer admin.jwt","content-type":"application/json"},body:JSON.stringify({request_id:REQUEST})
 });
-function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false}={}){
+function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false,orphan=false,missingBytes=false}={}){
  const calls=[];let inventory=1;
  const fetcher=async(url,options)=>{
    const parsed=new URL(url);const method=options.method;
@@ -18,14 +18,17 @@ function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPend
    if(failAt && parsed.pathname.includes(failAt))return Response.json({error:"private upstream detail"},{status:500});
    if(parsed.pathname.includes("/rpc/ifund_super_admin_account_deletion_queue"))
      return Response.json([{request_id:REQUEST,request_status:status,requested_user_id:owner}]);
-   if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="GET"){
-     return Response.json(inventory===0?[]:[{id:DOCUMENT,storage_path:path,
-       deletion_requested_at:alreadyPending?"2026-11-15T10:00:00Z":null}]);
+   if(parsed.pathname.includes("/rpc/ifund_super_admin_private_document_inventory")){
+     return Response.json(inventory===0?[]:[{document_id:orphan?null:DOCUMENT,storage_path:path,
+       deletion_requested_at:alreadyPending?"2026-11-15T10:00:00Z":null,
+       storage_present:!missingBytes,metadata_present:!orphan}]);
    }
    if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="PATCH")
      return Response.json([{id:DOCUMENT,deletion_requested_at:"2026-11-15T10:00:00Z",allow_agent_use:false}]);
-   if(parsed.pathname==="/storage/v1/object/ifund-campaign-documents" && method==="DELETE")
+   if(parsed.pathname==="/storage/v1/object/ifund-campaign-documents" && method==="DELETE"){
+     if(orphan)inventory=0;
      return Response.json([{name:path}]);
+   }
    if(parsed.pathname.includes("/storage/v1/object/info/ifund-campaign-documents/"))
      return Response.json({error:"not found"},{status:404});
    if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="DELETE"){
@@ -82,4 +85,20 @@ test("sanitized endpoint response never exposes private user IDs",async()=>{
  const fail=await handlePrivateDocumentErasure(request(),ENV,{fetcher:denial.fetcher});
  assert.equal(fail.status,503);
  assert.equal((await fail.text()).includes(OWNER),false);
+});
+
+test("orphan object without metadata is erased for the reviewed owner",async()=>{
+ const s=service({orphan:true});
+ const result=await cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"});
+ assert.equal(result.documents_removed,1);
+ assert.equal(s.calls.some(c=>c.method==="PATCH"),false);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/rest/v1/ifund_campaign_documents"),false);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/storage/v1/object/ifund-campaign-documents"),true);
+});
+test("stale metadata without bytes is independently cleaned up",async()=>{
+ const s=service({missingBytes:true});
+ const result=await cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"});
+ assert.equal(result.documents_removed,1);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/storage/v1/object/ifund-campaign-documents"),false);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/rest/v1/ifund_campaign_documents"),true);
 });
