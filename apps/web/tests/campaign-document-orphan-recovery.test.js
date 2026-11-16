@@ -50,7 +50,7 @@ function fixture({files=[{id:ID,name:ID+".pdf",created_at:OLD}],
       return {
         list:async(prefix,options)=>{
           events.push({action:"list",prefix,options});
-          return {data:files,error:null};
+          return {data:files.slice(options.offset,options.offset+options.limit),error:null};
         },
         remove:async paths=>{
           events.push({action:"remove",paths});
@@ -119,13 +119,25 @@ test("campaign change hides prior campaign's stale orphan names before effects r
   assert.match(ui,/removeStaleCampaignDocumentUpload/);
 });
 
-test("large Storage inventories fail closed instead of showing a partial orphan list",async()=>{
-  const files=Array.from({length:100},(_,n)=>({
+test("paginated owner listings recover stale uploads beyond the first 100 files",async()=>{
+  const files=Array.from({length:105},(_,n)=>({
+    id:ID,name:n.toString(16).padStart(8,"0")+"-3333-4333-8333-333333333333.pdf",
+    created_at:n<100?RECENT:OLD
+  }));
+  const x=fixture({files});
+  const result=await findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW});
+  assert.equal(result.length,5);
+  assert.ok(x.events.filter(event=>event.action==="list").length>=2);
+  assert.equal(x.events.some(event=>event.action==="remove"),false);
+});
+test("unbounded Storage inventories fail closed at the 1,000-object scan limit",async()=>{
+  const files=Array.from({length:1001},(_,n)=>({
     id:ID,name:n.toString(16).padStart(8,"0")+"-3333-4333-8333-333333333333.pdf",
     created_at:OLD
   }));
   const x=fixture({files});
-  await assert.rejects(findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW}),/too large for safe recovery/);
+  await assert.rejects(findStaleCampaignDocumentUploads(x.client,CAMPAIGN,{now:NOW}),/exceeds 1,000 items/);
+  assert.equal(x.events.filter(event=>event.action==="list").length,10);
   assert.equal(x.events.some(event=>event.action==="remove"),false);
 });
 test("switching accounts during Storage listing refuses stale owner references",async()=>{
