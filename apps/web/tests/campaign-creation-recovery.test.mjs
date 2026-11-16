@@ -105,3 +105,15 @@ test("saved campaign agent launcher only offers existing member routes",()=>{
  }
  assert.doesNotMatch(source,/publish\(|sendMessage\(|withdraw\(/);
 });
+
+test("campaign-prefilled agent workspaces verify the signed-in owner before selecting records",()=>{
+ const agents=readFileSync(new URL("../src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
+ const story=readFileSync(new URL("../src/pages/StoryAgent.jsx",import.meta.url),"utf8");
+ const echo=readFileSync(new URL("../src/pages/CommunicationsWorkspace.jsx",import.meta.url),"utf8");
+ const strategy=readFileSync(new URL("../src/pages/CampaignStrategy.jsx",import.meta.url),"utf8");
+ assert.match(agents,/initialCampaignId=\{campaignId\}/);
+ assert.match(story,/owned\.some\(item=>item\.id===initialCampaignId\)/);
+ assert.match(echo,/data\.some\(item=>item\.id===requestedCampaign\)/);
+ assert.match(strategy,/items\.filter\(item=>item\.campaign_id===requestedCampaign\)/);
+ assert.match(strategy,/owner_id===owner/);
+});
