@@ -158,3 +158,16 @@ test("admin erasure never marks the wider account deletion completed",()=>{
  assert.match(worker,/account_deleted:false/);
  assert.match(worker,/batchLimit=10/);
 });
+
+test("reviewing status alone cannot authorize client-side cleanup action",()=>{
+  const ui=readFileSync(new URL("../apps/web/src/pages/AdminDeletionQueue.jsx",import.meta.url),"utf8");
+  const sql=readFileSync(new URL("../supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql",import.meta.url),"utf8");
+  assert.match(ui,/ifund_super_admin_private_document_reviewed_queue/);
+  assert.match(ui,/row.request_status==="reviewing"&&reviewed\[row.request_id\]===true/);
+  assert.match(sql,/document_cleanup_reviewed_by is not null/);
+  assert.match(sql,/document_cleanup_reviewed_at is not null/);
+  assert.match(sql,/status in \('requested','reviewing'\)/);
+  assert.match(sql,/reviewed_by is null/);
+  assert.match(sql,/Verified super administrator required/);
+  assert.match(ui,/Private-file cleanup is a separate irreversible action/);
+});
