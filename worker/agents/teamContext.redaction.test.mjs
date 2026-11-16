@@ -57,7 +57,10 @@ test('structured non-string JSON credential values fail closed without over-reda
     '{"access_token":{"nested":{"value":"synthetic-secret-123"}}}',
     '{"client_secret":false}',
     '{"api_key":null}',
-    'log entry {"refresh_token":["synthetic-secret-123"]} after event'
+    'log entry {"refresh_token":["synthetic-secret-123"]} after event',
+    String.raw`{\\\"access_token\\\":[\\\"synthetic-secret-123\\\"]}`,
+    String.raw`{\\\"client_secret\\\":{\\\"value\\\":\\\"synthetic-secret-123\\\"}}`,
+    '{"api-key":["synthetic-secret-123"]}'
   ]) {
     const actual = redactTeamCredentials(input);
     assert.equal(actual, '[redacted credential payload]');
