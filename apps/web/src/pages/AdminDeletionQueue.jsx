@@ -88,15 +88,20 @@ export default function AdminDeletionQueue(){
     const scope=reviewScope.current;
     if(processing||!scope?.active||!scope.ownerId)return;
     if(!reviewOnly&&!window.confirm("Permanently remove this reviewed account's private campaign document files? This is irreversible and does not complete financial or account deletion."))return;
+    // Bind review evidence to the selected request before any asynchronous verification.
+    // A changed textarea/selection must never authorize a different request.
+    const evidence=reviewOnly&&selected===row.request_id?reviewNote.trim():"";
+    if(reviewOnly&&(selected!==row.request_id||evidence.length<30||evidence.length>1000)){
+      setError("Select this request and record 30–1,000 characters of review evidence.");
+      return;
+    }
     setProcessing(row.request_id);setError("");setNotice("");
     try{
       const client=authClient();
       await scope.verify(client);
       if(reviewOnly){
-        if(reviewNote.trim().length<30||reviewNote.trim().length>1000)
-          throw Error("Record a review decision of 30–1,000 characters.");
         const {data,error:approvalError}=await runAdminReview(scope,client,()=>client.rpc("ifund_super_admin_review_private_document_cleanup",{
-          p_request_id:row.request_id,p_review_note:reviewNote.trim()
+          p_request_id:row.request_id,p_review_note:evidence
         }));
         scope.assertActive();
         if(approvalError||data!==true)throw Error("Administrative file-cleanup review was not accepted.");
