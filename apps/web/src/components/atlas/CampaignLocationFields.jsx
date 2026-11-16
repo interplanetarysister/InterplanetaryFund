@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Globe2, LocateFixed, MapPin, ShieldCheck } from "lucide-react";
 import { US_CITY_CENTERS, selectUSCity } from "@/lib/usCityCenters.mjs";
+import { authClient } from "@/api/auth";
+import { lookupCampaignCity } from "@/api/cityGeocode";
 
 /**
  * Explicit, approximate Atlas opt-in. Raw GPS coordinates are rounded in memory
@@ -9,8 +11,49 @@ import { US_CITY_CENTERS, selectUSCity } from "@/lib/usCityCenters.mjs";
  */
 export default function CampaignLocationFields({ form, change, disabled = false }) {
   const [message, setMessage] = useState("");
+  const [cityQuery, setCityQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const revision = useRef(0);
+  const controller = useRef(null);
+  const mounted = useRef(true);
   const enabled = form?.map_opt_in === true;
+  const editable = useRef(false);
+  editable.current = enabled && !disabled;
+  function cancelLookup() {
+    ++revision.current;
+    controller.current?.abort();
+    setSearching(false);
+  }
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; ++revision.current; controller.current?.abort(); };
+  }, []);
+  useEffect(() => { if (!enabled || disabled) cancelLookup(); }, [enabled, disabled]);
+  async function searchCity() {
+    if (!editable.current || searching) return;
+    cancelLookup();
+    const ticket = revision.current;
+    const active = () => mounted.current && editable.current && ticket === revision.current;
+    controller.current = new AbortController();
+    setSearching(true);setMessage("Finding a broad city-centre location…");
+    try {
+      const city = await lookupCampaignCity(authClient(), cityQuery, { signal: controller.current.signal });
+      if (!active()) return;
+      change("public_location_label", city.display);
+      change("map_latitude", String(city.lat));
+      change("map_longitude", String(city.lng));
+      setMessage("Broad city-centre point selected. Verify the city before saving. Nothing has been saved or published by this lookup.");
+    } catch (cause) {
+      if (active() && cause?.name !== "AbortError") {
+        const safeMessage = typeof cause?.message === "string" &&
+          /^(Enter a city|Sign in with|Your account changed|City search |City not found|The city location)/.test(cause.message)
+          ? cause.message : "City search is unavailable. Choose a broad city preset instead.";
+        setMessage(safeMessage);
+      }
+    } finally { if (active()) setSearching(false); }
+  }
   function toggle(next) {
+    cancelLookup();
     change("map_opt_in", next);
     if (!next) {
       change("public_location_label", "");
@@ -22,6 +65,8 @@ export default function CampaignLocationFields({ form, change, disabled = false 
       : "Public map location disabled. Coordinates will not be saved.");
   }
   function approximateDevice() {
+    cancelLookup();
+    const ticket = revision.current;
     if (!navigator.geolocation) {
       setMessage("Device location is unavailable. You can enter an approximate city-centre latitude and longitude manually.");
       return;
@@ -29,6 +74,7 @@ export default function CampaignLocationFields({ form, change, disabled = false 
     setMessage("Requesting browser permission. Nothing is published until you save the campaign.");
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
+        if (!mounted.current || !editable.current || ticket !== revision.current) return;
         const lat = Math.round(coords.latitude * 10) / 10;
         const lng = Math.round(coords.longitude * 10) / 10;
         if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
@@ -40,7 +86,7 @@ export default function CampaignLocationFields({ form, change, disabled = false 
         change("map_longitude", String(lng));
         setMessage("Approximate coordinates selected (about 5–11 km resolution). Check the city/region name before saving.");
       },
-      () => setMessage("Location permission was denied or unavailable. Enter an approximate city-centre point manually, or turn off Atlas visibility."),
+      () => { if (mounted.current && editable.current && ticket === revision.current) setMessage("Location permission was denied or unavailable. Search for a city, choose a preset, or turn off Atlas visibility."); },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 },
     );
   }
@@ -52,8 +98,22 @@ export default function CampaignLocationFields({ form, change, disabled = false 
         <span>Show my campaign's <strong>approximate city or region</strong> as a public marker on the Atlas globe. Never use a home address or precise device location.</span>
       </label>
       {enabled && <>
+        <section className="space-y-3 rounded-xl border border-border p-3" aria-label="Find a broad city location">
+          <label className="block text-sm font-medium">Find a city or town
+            <input type="text" maxLength={80} value={cityQuery} autoComplete="off"
+              onChange={event => { cancelLookup(); setCityQuery(event.target.value); setMessage(""); }}
+              placeholder="e.g. Paris, France" className="mt-2 min-h-11 w-full rounded-xl border border-input bg-background p-3" />
+          </label>
+          <button type="button" disabled={searching || cityQuery.trim().length < 2} onClick={searchCity}
+            className="min-h-11 rounded-xl border border-cyan-500/50 px-4 text-sm font-semibold disabled:opacity-50">
+            {searching ? "Finding city…" : "Find city centre"}
+          </button>
+          <p className="text-xs text-muted-foreground">Confirmed email sign-in is required for online search. Enter city names only, never a street address or postal code. Lookup does not save or publish a campaign.</p>
+          <p className="text-xs text-muted-foreground">City search data: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline">© OpenStreetMap contributors</a>. Existing U.S. presets work without online lookup.</p>
+        </section>
         <label className="block text-sm font-medium">Quick place: choose a broad U.S. city area
           <select value="" onChange={event=>{
+            cancelLookup();
             const city=selectUSCity(event.target.value);
             if(!city) return;
             change("public_location_label",city.label);
@@ -68,19 +128,19 @@ export default function CampaignLocationFields({ form, change, disabled = false 
         <p className="text-xs text-muted-foreground">This is an organizer-selected approximate city-centre marker, not a detected location. Use the fields below for other regions; never add an exact address.</p>
         <label className="block text-sm font-medium">Public city or region label
           <input type="text" maxLength={80} value={form.public_location_label || ""}
-            onChange={e => change("public_location_label",e.target.value)}
+            onChange={e => { cancelLookup(); change("public_location_label",e.target.value); }}
             placeholder="e.g. Seattle area, Washington"
             className="mt-2 min-h-11 w-full rounded-xl border border-input bg-background p-3" />
         </label>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="block text-sm font-medium">Approximate latitude
             <input type="number" inputMode="decimal" step="0.1" min="-90" max="90"
-              value={form.map_latitude ?? ""} onChange={e => change("map_latitude", e.target.value)}
+              value={form.map_latitude ?? ""} onChange={e => { cancelLookup(); change("map_latitude", e.target.value); }}
               placeholder="47.6" className="mt-2 min-h-11 w-full rounded-xl border border-input bg-background p-3" />
           </label>
           <label className="block text-sm font-medium">Approximate longitude
             <input type="number" inputMode="decimal" step="0.1" min="-180" max="180"
-              value={form.map_longitude ?? ""} onChange={e => change("map_longitude",e.target.value)}
+              value={form.map_longitude ?? ""} onChange={e => { cancelLookup(); change("map_longitude",e.target.value); }}
               placeholder="-122.3" className="mt-2 min-h-11 w-full rounded-xl border border-input bg-background p-3" />
           </label>
         </div>

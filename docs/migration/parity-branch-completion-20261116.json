@@ -1,0 +1,434 @@
+{
+  "schema_version": 1,
+  "review_date_utc": "2026-11-16",
+  "branches": [
+    {
+      "branch": "migration/geocode-city",
+      "head": "8974814caf49ba6674f47577fad8519c7f690838",
+      "source_baseline": "7b5c362a9a5c5b8b818bf14354a48ba7e11e03e1",
+      "path_count": 24,
+      "decisions": [
+        {
+          "path": ".kiro/agents/ifund-engineer.json",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": ".kiro/steering/engineering-policies.md",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": ".kiro/steering/tech.md",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": "AGENTS.md",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": "docs/kiro/global-policies.template.md",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": "docs/migration/BLOCKERS.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/GEOCODE_CITY.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/INVENTORY.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/STATUS.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/contracts/automations.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/contracts/entities.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/contracts/functions.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/contracts/geocode-deployment.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/contracts/site-observations.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/role-platform-evidence.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "tests/fixtures/geocode/README.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "tests/fixtures/geocode/accountGuard.ts.txt",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "tests/fixtures/geocode/entry.ts.txt",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "tests/geocode-city.test.js",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "worker/geocodeCity.js",
+          "disposition": "reimplemented_hardened_canonical",
+          "evidence": "worker/geocodeCity.js + shared cityGeocodeContract + current form/transport replaces old unbounded/per-provider usage behavior"
+        },
+        {
+          "path": "worker/geocodeVerifier.js",
+          "disposition": "retired_isolated_runtime",
+          "evidence": "Current canonical session + shared router replaces separate staging Worker and credential-entry verifier"
+        },
+        {
+          "path": "worker/geocodeWorker.js",
+          "disposition": "retired_isolated_runtime",
+          "evidence": "Current canonical session + shared router replaces separate staging Worker and credential-entry verifier"
+        },
+        {
+          "path": "worker/index.js",
+          "disposition": "coordinator_integration_required",
+          "evidence": "Dispatch routeGeocodeCity only at /api/geocode/city; no legacy SDK dispatch or alternate Worker"
+        },
+        {
+          "path": "worker/wrangler.geocode.json",
+          "disposition": "retired_isolated_runtime",
+          "evidence": "Current canonical session + shared router replaces separate staging Worker and credential-entry verifier"
+        }
+      ],
+      "integration_decision": "safe to reconcile after coordinator /api/geocode/city dispatch and combined tests/build; keep runtime gate disabled until signed-in hosted acceptance",
+      "runtime_status": "NOT TESTED; no deployment, provider writes, SQL changes or automatic source trigger modifications"
+    },
+    {
+      "branch": "fix/source-backed-preview",
+      "head": "fc714ef72611f3236c87961afff9a3c11daa1065",
+      "source_baseline": "7b5c362a9a5c5b8b818bf14354a48ba7e11e03e1",
+      "path_count": 56,
+      "decisions": [
+        {
+          "path": ".devcontainer/devcontainer.json",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": ".devcontainer/setup.sh",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": ".gitignore",
+          "disposition": "adopted_missing_hygiene",
+          "evidence": "Add .dev.vars/.dev.vars.* ignores; pycache protections already present"
+        },
+        {
+          "path": "AGENTS.md",
+          "disposition": "retired_stale_policy",
+          "evidence": "Current owner/platform/release instructions supersede branch-era Nov1 deployment and migration policy"
+        },
+        {
+          "path": "apps/web/README.md",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/asset-sources.json",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/package-lock.json",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/package.json",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/public/fonts/fraunces-7234ed860a9cc830.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/fraunces-OFL.txt",
+          "disposition": "adopted_license_text_trailing_whitespace_normalized",
+          "evidence": "Original OFL text preserved; source and normalized hashes/byte counts in asset-sources.json"
+        },
+        {
+          "path": "apps/web/public/fonts/fraunces-a2930b27d13a228b.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/fraunces-f18853f63a870ebe.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/ifund-fonts.css",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-1be3448e292fbf05.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-3100e775e8616cd2.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-34b9c504cab7a73e.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-5c66f9e07e90c6d4.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-6e9e020a25f9b56d.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-71d5ee93cc1e9f1d.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-OFL.txt",
+          "disposition": "adopted_license_text_trailing_whitespace_normalized",
+          "evidence": "Original OFL text preserved; source and normalized hashes/byte counts in asset-sources.json"
+        },
+        {
+          "path": "apps/web/public/fonts/inter-ca157063339ac4ad.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-2f7335119075b207.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-3c09135e88bbfcd8.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-447c49583b1b735c.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-8c2def024c1bf31a.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-OFL.txt",
+          "disposition": "adopted_license_text_trailing_whitespace_normalized",
+          "evidence": "Original OFL text preserved; source and normalized hashes/byte counts in asset-sources.json"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-dbf64d973b398784.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/fonts/manrope-e507c109c31789b3.woff2",
+          "disposition": "adopted_exact_bytes_and_hash_manifest",
+          "evidence": "22 public source files verified, including 16 fonts/CSS/3OFL licenses, local PayPal logo and existing hero"
+        },
+        {
+          "path": "apps/web/public/images/home-hero.jpg",
+          "disposition": "equivalent_existing_asset",
+          "evidence": "Existing archive hero SHA256468ed782bacfa2e70c5ec524dae7d2ecebadf18c5ebce9b1fa849722d4d06d3e; no duplicate restored"
+        },
+        {
+          "path": "apps/web/public/images/paypal-wordmark-color.svg",
+          "disposition": "adopted_exact_bytes",
+          "evidence": "Original SVG restored locally and both platform-support components updated"
+        },
+        {
+          "path": "apps/web/scripts/build-backend.mjs",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/scripts/verify-artifact.mjs",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/server/worker.js",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "apps/web/src/components/AuthLayout.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/components/GoogleIcon.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/components/Layout.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/components/auth/SocialButtons.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/components/payments/PayPalDonateButton.jsx",
+          "disposition": "adopted_local_artwork_reference",
+          "evidence": "Current payment boundary preserved; use bundled PayPal logo only"
+        },
+        {
+          "path": "apps/web/src/index.css",
+          "disposition": "adopted_local_font_dependency",
+          "evidence": "Canonical CSS now imports original bundled public font stylesheet"
+        },
+        {
+          "path": "apps/web/src/lib/presentation.js",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/lib/useMemberSession.js",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/pages/AuthPage.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/pages/Discover.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/pages/Home.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/src/pages/SocialFeedPage.jsx",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/tests/pages-worker.test.js",
+          "disposition": "superseded_current_product_flow",
+          "evidence": "Current canonical auth/session/guest-draft/navigation and Pages routing preserve newer behavior; asset/geocode differences handled explicitly"
+        },
+        {
+          "path": "apps/web/vite.config.js",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "build_preview.py",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "docs/migration/INVENTORY.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/PREVIEW_EVIDENCE.json",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "docs/migration/STATUS.md",
+          "disposition": "historical_evidence_replaced_current_contract",
+          "evidence": "Historical snapshot/old differential fixture remains in Git history; current tests/docs cover intentional tightened city/privacy/rate contract"
+        },
+        {
+          "path": "package.json",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "scripts/dev-preview.mjs",
+          "disposition": "retired_parallel_preview_tooling",
+          "evidence": "Current canonical Pages Functions/manual immutable artifact workflow supersedes alternate backend exporter/build/devcontainer/proxy scripts and dependency changes"
+        },
+        {
+          "path": "worker/geocodeCity.js",
+          "disposition": "reimplemented_hardened_canonical",
+          "evidence": "worker/geocodeCity.js + shared cityGeocodeContract + current form/transport replaces old unbounded/per-provider usage behavior"
+        },
+        {
+          "path": "worker/index.js",
+          "disposition": "coordinator_integration_required",
+          "evidence": "Dispatch routeGeocodeCity only at /api/geocode/city; no legacy SDK dispatch or alternate Worker"
+        },
+        {
+          "path": "worker/reads.js",
+          "disposition": "superseded_more_restrictive_canonical",
+          "evidence": "Current public feed uses moderated ifund_public_social_feed RPC instead of raw post table projection"
+        }
+      ],
+      "integration_decision": "safe to reconcile after coordinator /api/geocode/city dispatch and combined tests/build; keep runtime gate disabled until signed-in hosted acceptance",
+      "runtime_status": "NOT TESTED; no deployment, provider writes, SQL changes or automatic source trigger modifications"
+    }
+  ],
+  "local_tests": {
+    "command": "node --test tests/geocode-city.test.js apps/web/tests/city-geocode.test.js apps/web/tests/bundled-source-assets.test.js apps/web/tests/us-city-presets.test.js apps/web/tests/atlas-locations.test.js apps/web/tests/atlas-owner-integration.test.js",
+    "passed": 34,
+    "failed": 0
+  },
+  "source_assets": "apps/web/asset-sources.json",
+  "missing_branch_public_asset_bytes": [],
+  "separate_source_media_queue": "Outside public bundled asset reconciliation; not certified imported/R2 verified"
+}
