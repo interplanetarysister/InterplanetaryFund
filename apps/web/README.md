@@ -15,6 +15,10 @@ npm run preview
 
 Node 20 or newer.
 
+## Private campaign document rollout
+
+The owner-only fundraising document library is committed behind a **disabled-by-default** browser flag. Set `VITE_IFUND_CAMPAIGN_DOCUMENTS_ENABLED=enabled` only after applying the private Supabase document and reviewed-erasure migrations, creating the private Storage bucket, verifying two distinct owners' upload/download/revoke/delete RLS behavior and authorizing the existing preview-first release gate. The Story Worker additionally requires `IFUND_CAMPAIGN_DOCUMENTS_ENABLED=enabled` in its server environment. Reviewed administrative erasure uses a separately gated `IFUND_DOCUMENT_ERASURE_ENABLED` and a server-only Supabase credential; never put server keys in `VITE_*` variables. Disabling the browser flag must not be considered a replacement for backend RLS.
+
 ## Environment variables
 
 | Name | Purpose |
