@@ -10,9 +10,24 @@ export default function AdminDeletionQueue(){
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [refresh,setRefresh]=useState(0);
+  const [inspection,setInspection]=useState({});
+  const [inspectionLoading,setInspectionLoading]=useState("");
+  const [inspectionError,setInspectionError]=useState({});
+  const inspect=async requestId=>{
+    setInspectionLoading(requestId);
+    setInspectionError(current=>({...current,[requestId]:""}));
+    try{
+      const {data,error:issue}=await authClient().rpc("ifund_admin_account_erasure_preflight",{p_request_id:requestId});
+      if(issue||!data||data.open_request!==true)throw new Error(issue?.message||"Dependency review unavailable.");
+      setInspection(current=>({...current,[requestId]:data}));
+    }catch(cause){
+      setInspection(current=>{const next={...current};delete next[requestId];return next;});
+      setInspectionError(current=>({...current,[requestId]:cause.message||"Dependency review unavailable."}));
+    }finally{setInspectionLoading("");}
+  };
   useEffect(()=>{
     let alive=true;
-    setLoading(true);setError("");setRows([]);
+    setLoading(true);setError("");setRows([]);setInspection({});setInspectionError({});
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
@@ -47,6 +62,20 @@ export default function AdminDeletionQueue(){
         <p className="text-sm">Current status: <strong>{row.request_status}</strong></p>
         <p className="text-xs text-muted-foreground">Submitted: {row.submitted_at?new Date(row.submitted_at).toLocaleString():"Unknown"}</p>
         <p className="text-xs text-muted-foreground">Updated: {row.updated_at?new Date(row.updated_at).toLocaleString():"Unknown"}</p>
+        <button type="button" disabled={inspectionLoading===row.request_id} onClick={()=>inspect(row.request_id)} className="min-h-11 rounded-xl border border-border px-4 text-sm disabled:opacity-50">
+          {inspectionLoading===row.request_id?"Inspecting…":"Review dependent data"}
+        </button>
+        {inspectionError[row.request_id]&&<p role="alert" className="text-sm text-destructive">{inspectionError[row.request_id]}</p>}
+        {inspection[row.request_id]&&<section aria-label="Partial account erasure dependency review" className="space-y-2 rounded-lg border border-border p-4 text-sm">
+          <p className="font-semibold">Read-only dependency snapshot (not clearance to erase)</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Campaigns: {inspection[row.request_id].campaigns}</li>
+            <li>Connected providers: {inspection[row.request_id].connections}</li>
+            <li>Notifications: {inspection[row.request_id].notifications}</li>
+            <li>Supabase Storage objects: {inspection[row.request_id].storage_objects}</li>
+          </ul>
+          <p className="text-muted-foreground">Financial records, other database schemas, R2 objects and external providers still require independent review. This interface cannot approve or perform deletion.</p>
+        </section>}
       </article>)}</div>
     </section>}
     <p className="border-t border-border pt-5 text-xs text-muted-foreground">
