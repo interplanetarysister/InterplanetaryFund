@@ -103,17 +103,21 @@ export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,request
    throw Error("Verified deletion request and administrator session required.");
  const owner=await authorizeRequest({fetcher,url,key,jwt,requestId});
  let removed=0;
- // No offset paging: successful deletion removes each processed row. This
- // makes retries idempotent and does not skip items when the table shrinks.
- for(let pass=0;pass<100;pass++){
+ // Bound the work per invocation for free-tier Worker request duration.
+ // Each successful deletion shrinks the next inventory query, so retries
+ // cannot skip or duplicate records. Another explicit call resumes cleanup.
+ const batchLimit=10;
+ while(removed<batchLimit){
    const rows=await listOwnerDocuments({fetcher,url,key,owner,requestId,jwt});
-   if(!rows.length)return {verified:true,documents_removed:removed,account_deleted:false};
-   for(const row of rows){
+   if(!rows.length)return {verified:true,more_documents:false,documents_removed:removed,account_deleted:false};
+   for(const row of rows.slice(0,batchLimit-removed)){
      await deleteOne({fetcher,url,key,owner,row});
      removed++;
    }
  }
- throw Error("Private-document cleanup exceeds bounded batch limit.");
+ const remaining=await listOwnerDocuments({fetcher,url,key,owner,requestId,jwt});
+ return {verified:remaining.length===0,more_documents:remaining.length>0,
+   documents_removed:removed,account_deleted:false};
 }
 export async function handlePrivateDocumentErasure(request,env,{fetcher=fetch}={}){
  if(request.method!=="POST")return json(405,{error:"Method not allowed."});
