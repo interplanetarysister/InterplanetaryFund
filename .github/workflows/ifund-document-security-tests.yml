@@ -4,8 +4,6 @@ name: IFund isolated private-document security tests
 # Existing manual Pages release gate remains unchanged.
 # GitHub-hosted runners unavailable through November 2026. No push-triggered
 # jobs; keep the suite available for explicit dispatch after runner capacity returns.
-# GitHub hosted runner minutes unavailable through November 2026. Keep QA
-# available for explicit dispatch after capacity is restored, not push.
 on:
   workflow_dispatch:
 
