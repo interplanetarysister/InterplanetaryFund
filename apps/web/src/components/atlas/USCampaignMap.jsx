@@ -42,7 +42,7 @@ export default function USCampaignMap({ campaigns = [] }) {
         <text x={r.view.x+12} y={r.view.y+22} fontSize="14" fill="#c3f2de" fontWeight="600">{r.name}</text>
       </g>)}
       {clusters.map(({key,point,campaigns:items})=><g key={key} role="button" tabIndex={0} className="ifund-us-pin"
-        aria-label={"Select "+items.length+" campaign"+(items.length===1?"":"s")+" near "+items[0].location}
+        aria-label={"Select "+items.length+" campaign"+(items.length===1?"":"s")+" at this approximate map point"}
         onClick={()=>setSelectedKey(key)}
         onKeyDown={e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();setSelectedKey(key);}}}
         transform={`translate(${point.x} ${point.y})`}>
@@ -50,15 +50,16 @@ export default function USCampaignMap({ campaigns = [] }) {
         <circle r="18" fill="#6de5b1" fillOpacity=".18"/>
         <circle r="12" fill="#081f2c" stroke="#8ffff0" strokeWidth="2.5"/>
         <text y="4.5" textAnchor="middle" fontSize="12" fontWeight="700" fill="#e3fff3">{items.length}</text>
-        <title>{items.length} campaign{items.length===1?"":"s"} — {items[0].location}</title>
+        <title>{items.length} campaign{items.length===1?"":"s"} at this approximate map point</title>
       </g>)}
       <text x="930" y="494" textAnchor="end" fill="#b5cbd1" fontSize="11">Approximate organizer-approved locations · schematic</text>
     </svg>
     {outside>0 && <p className="mt-2 text-sm text-slate-300">{outside} approved location{outside===1?" is":"s are"} outside the U.S. view. Switch to Earth globe to see them.</p>}
     {selected && <div className="mt-3 rounded-xl border border-emerald-400/35 bg-emerald-950/20 p-4">
-      <h3 className="font-semibold">{selected.campaigns.length} campaign{selected.campaigns.length===1?"":"s"} near {selected.campaigns[0].location}</h3>
+      <h3 className="font-semibold">{selected.campaigns.length} campaign{selected.campaigns.length===1?"":"s"} at this approximate location</h3>
       <ul className="mt-2 space-y-2">{selected.campaigns.map(c=><li key={c.id}>
         <Link to={"/campaign/"+encodeURIComponent(c.id)} className="inline-flex min-h-11 items-center text-sm font-semibold text-emerald-300 underline">{c.title}</Link>
+        <p className="text-xs text-slate-300">{c.location}</p>
       </li>)}</ul>
     </div>}
     {!plotted && <p className="mt-3 text-sm text-slate-300">No approved U.S. campaign locations yet. Organizers can choose an approximate city area in the campaign editor.</p>}
