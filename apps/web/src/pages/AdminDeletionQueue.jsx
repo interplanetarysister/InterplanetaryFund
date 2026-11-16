@@ -159,7 +159,7 @@ export default function AdminDeletionQueue(){
             <li>Supabase Storage objects: {dependencySnapshot[row.request_id].storage_objects}</li>
           </ul>
           <p className="text-muted-foreground">Financial records, other schemas, R2 and external providers require independent review; this snapshot never authorizes erasure.</p>
-        </section>
+        </section>}
         {["requested","reviewing"].includes(row.request_status)&&reviewed[row.request_id]!==true&&<div className="rounded-xl border border-border p-3 space-y-2">
           <label className="block text-sm font-semibold" htmlFor={"review-"+row.request_id}>Private-document cleanup review evidence</label>
           <textarea id={"review-"+row.request_id} value={selected===row.request_id?reviewNote:""}
