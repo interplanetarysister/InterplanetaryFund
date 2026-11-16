@@ -1,0 +1,38 @@
+[
+  {
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "pass": true,
+    "checks": [
+      "current agreement before write",
+      "private first-stage save",
+      "single campaign insert",
+      "setup persistence",
+      "three-stage progression",
+      "explicit publish updates same owner campaign",
+      "no page errors",
+      "no horizontal overflow"
+    ],
+    "backend": "Synthetic HTTP fixtures; actual SQL/RLS checked separately"
+  },
+  {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "pass": true,
+    "checks": [
+      "current agreement before write",
+      "private first-stage save",
+      "single campaign insert",
+      "setup persistence",
+      "three-stage progression",
+      "explicit publish updates same owner campaign",
+      "no page errors",
+      "no horizontal overflow"
+    ],
+    "backend": "Synthetic HTTP fixtures; actual SQL/RLS checked separately"
+  }
+]

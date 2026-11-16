@@ -18,13 +18,13 @@ const base = story => ({
   cover_image_url:"https://example.org/cover.jpg",
 });
 
-test("3500 characters are required for publishing but drafts remain editable",()=>{
+test("story length guidance is optional for publishing and drafts",()=>{
   assert.equal(MIN_PUBLICATION_STORY_CHARACTERS,3500);
   assert.equal(reviewCampaignPublication(base("A".repeat(3499))).remainingCharacters,1);
-  assert.equal(publishReadiness(base("A".repeat(3499))).ready,false);
-  assert.ok(validateCampaignForm(base("A".repeat(3499)),{publish:true}).some(v=>/3,500/.test(v)));
+  assert.equal(publishReadiness(base("A".repeat(3499))).ready,true);
+  assert.deepEqual(validateCampaignForm(base("A".repeat(3499)),{publish:true}),[]);
   assert.deepEqual(validateCampaignForm(base("A".repeat(3499)),{publish:false}),[]);
-  assert.equal(publishReadiness(base("A".repeat(3500))).ready,false, "Unstructured content is not publishable");
+  assert.equal(publishReadiness(base("A".repeat(3500))).ready,true, "Structure is optional");
   const sentence="This campaign explains verified expenses and how community neighbors will receive progress updates "+ "a".repeat(550)+".";
   const structured=[sentence+" "+sentence+" "+sentence,sentence+" "+sentence+" "+sentence].join("\n\n");
   assert.ok(structured.length>=3500);
@@ -32,7 +32,7 @@ test("3500 characters are required for publishing but drafts remain editable",()
 });
 test("unicode characters are counted consistently with PostgreSQL char_length",()=>{
   assert.equal(reviewCampaignPublication(base("🚀".repeat(3499))).storyCharacters,3499);
-  assert.equal(reviewCampaignPublication(base("🚀".repeat(3500))).reviewReady,false, "Sentence and paragraph limits still apply");
+  assert.equal(reviewCampaignPublication(base("🚀".repeat(3500))).reviewReady,true, "Sentence and paragraph guidance is optional");
 });
 test("punctuation and repeated story/summary sentences yield nonblocking editorial improvements",()=>{
   const sentence="Community funds will support verified lighting work for the neighborhood.";
@@ -41,7 +41,7 @@ test("punctuation and repeated story/summary sentences yield nonblocking editori
   const keys=review.findings.map(v=>v.id);
   assert.ok(keys.includes("repeated_sentences"));
   assert.ok(keys.includes("excess_punctuation"));
-  assert.equal(review.reviewReady,false, "Repeated one-paragraph text does not meet story format");
+  assert.equal(review.reviewReady,true, "Editorial repetition findings do not block publishing");
 });
 test("cross-field duplicate summary and unusually long passages are identified",()=>{
   const summary="A community funding project with a documented need and a clear plan.";

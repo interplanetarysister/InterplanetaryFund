@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import CampaignEngagement from "./CampaignEngagement";
 import FinanceDashboard from "./FinanceDashboard";
 import Atlas from "./Atlas";
+import CampaignStrategy from "./CampaignStrategy";
 
 /**
  * Reuses the established owner-scoped finance/engagement RPCs and public
@@ -19,9 +20,10 @@ function nextTabIndex(index, key, count) {
 }
 
 export default function AnalyticsCenter() {
-  const [view, setView] = useState("engagement");
+  const [view, setView] = useState("analysis");
   const tabRefs = useRef([]);
   const tabs = [
+    ["analysis", "AI Analysis & refinement"],
     ["engagement", "Supporter engagement"],
     ["finance", "Verified finances"],
     ["atlas", "Campaign atlas"],
@@ -29,7 +31,7 @@ export default function AnalyticsCenter() {
   return <div className="mx-auto max-w-6xl space-y-5 px-4 py-8 sm:px-7">
     <header className="space-y-2">
       <h1 className="text-3xl font-bold">Campaign command center</h1>
-      <p className="text-sm text-muted-foreground">Review account-scoped campaign engagement, verified financial records, and public campaign geography. Financial data excludes unverified and sandbox transactions.</p>
+      <p className="text-sm text-muted-foreground">Review and refine campaign quality, supporter engagement, verified finances, and public campaign geography. Writing advice does not guarantee fundraising results.</p>
     </header>
     <div role="tablist" aria-label="Analytics views" aria-orientation="horizontal" className="flex flex-wrap gap-2">
       {tabs.map(([id,label], index) => <button key={id} type="button" role="tab"
@@ -51,7 +53,7 @@ export default function AnalyticsCenter() {
     </div>
     <section id="analytics-panel" role="tabpanel" tabIndex={0}
       aria-labelledby={"analytics-tab-"+view}>
-      {view==="engagement" ? <CampaignEngagement/> : view==="finance" ? <FinanceDashboard/> : <Atlas/>}
+      {view==="analysis" ? <CampaignStrategy/> : view==="engagement" ? <CampaignEngagement/> : view==="finance" ? <FinanceDashboard/> : <Atlas/>}
     </section>
   </div>;
 }

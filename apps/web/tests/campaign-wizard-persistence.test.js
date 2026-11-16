@@ -38,7 +38,7 @@ function clientFixture(){
 }
 test("each wizard stage and private context survives reload without crossing account or campaign scope",()=>{
   const s=storage();let wizard=emptyWizard();
-  for(let stage=0;stage<4;stage++){
+  for(let stage=0;stage<3;stage++){
     wizard={...wizard,draft_step:stage,location:"Private organizer note",ai_profile:{tone:"Warm and practical",never_change:"Preserve exact budget",writing_brief:{details:"Pantry needs refrigeration",beneficiary:"Local pantry",need:"Fridge",writingPath:"write"}}};
     assert.equal(rememberWizard(s,owner,campaign,wizard),true);
     assert.equal(restoreWizard(s,owner,campaign).draft_step,stage);
@@ -48,7 +48,7 @@ test("each wizard stage and private context survives reload without crossing acc
   assert.equal(restoreWizard(s,owner,null).location,"");
   assert.equal(restoreWizard(s,null,campaign).location,"");
   assert.equal(forgetWizard(s,other,campaign),true);
-  assert.equal(restoreWizard(s,owner,campaign).draft_step,3);
+  assert.equal(restoreWizard(s,owner,campaign).draft_step,2);
 });
 test("guest wizard context transfers only after explicit import and never overwrites an owner draft",()=>{
   const s=storage(),wizard={...emptyWizard(),draft_step:2,location:"Guest's private place"};
@@ -76,7 +76,7 @@ test("setup save and reload preserve progress, deadline, instructions and writin
   assert.equal(written.ai_profile.writing_brief.details,"Budget details");
   assert.equal((await loadCampaignSetup(h.client,campaign)).end_date,"2026-12-30");
   await saveCampaignSetup(h.client,campaign,snapshot,3);
-  assert.equal((await loadCampaignSetup(h.client,campaign)).draft_step,3);
+  assert.equal((await loadCampaignSetup(h.client,campaign)).draft_step,2);
   assert.ok(h.calls.some(q=>q.op==="update"&&q.filters.some(([key])=>key==="updated_at")),"progress updates compare the version read before saving");
 });
 test("other owners and anonymous or unconfirmed identities cannot load or save private setup",async()=>{

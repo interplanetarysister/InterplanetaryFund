@@ -73,7 +73,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   function focusCampaignField(field){
     const target=field==="title"?"campaign-title":field==="summary"?"campaign-summary":field==="goal_amount"?"campaign-goal":field==="category"?"campaign-category":field==="cover_image_url"?"campaign-cover-url":"campaign-story";
     fieldToFocus.current=target;
-    setWizard(previous=>({...previous,draft_step:["title","goal_amount","category","cover_image_url"].includes(field)?1:2}));
+    setWizard(previous=>({...previous,draft_step:["title","goal_amount","category","cover_image_url"].includes(field)?0:1}));
   }
   // Explicit edits, not mount/effect replays, authorize clearing restored text.
   const userEditedDraft = useRef(false);
@@ -104,12 +104,15 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     (async () => {
       try {
         const data = await loadOwnerCampaign(authClient(), draftId, ownerScope.current);
-        if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
+        if (data.status !== "draft") {
+          try{if(ownerId&&pendingCampaignSetup(sessionStorage,ownerId,draftId))clearPendingCampaignSetup(sessionStorage,ownerId,draftId);}catch{/* Keep private recovery untouched if storage cannot be checked. */}
+          throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
+        }
         const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
         if (active && alive.current) {
           invalidateWriting();
           let recovery=null;try{recovery=pendingCampaignSetup(sessionStorage,ownerId,draftId);}catch{/* Account saves remain available without device storage. */}
-          const restoredSetup=recovery?.setup||(setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard());
+          const restoredSetup=recovery?.setup||(setup?campaignSetupPayload({...setup,writing_brief:{...setup.ai_profile?.writing_brief,wizard_version:setup.ai_profile?.writing_brief?.wizard_version===2?2:1}},setup.draft_step):emptyWizard());
           if(recovery)setProgressNotice("Your campaign is saved. Recovered setup changes still need Save private draft to confirm them to your account.");
           setWizard(restoredSetup);
           const brief=restoredSetup.ai_profile.writing_brief;
@@ -364,7 +367,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     setter(value);
   }
   function wizardSnapshot(nextStep=step){
-    return campaignSetupPayload({...wizard,writing_brief:{writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed}},nextStep);
+    return campaignSetupPayload({...wizard,writing_brief:{wizard_version:2,writingPath,details:draftDetails,beneficiary:draftBeneficiary,need:draftNeed}},nextStep);
   }
   function changeWizard(field,value){
     invalidateWriting(true);setSaved("");setProgressNotice("");
@@ -478,7 +481,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       let browserCleanupFailed = false;
       try {
         const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
-        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id)&&clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
+        const wizardNewCleared=forgetWizard(sessionStorage,ownerId,null);
+        const wizardCampaignCleared=forgetWizard(sessionStorage,ownerId,data.id);
+        const recoveryCleared=clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
+        const wizardCleared=wizardNewCleared&&wizardCampaignCleared&&recoveryCleared;
         browserCleanupFailed = !cleared||!wizardCleared;
         if (browserCleanupFailed) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. It may contain private information on this device. Review browser storage before using a shared device.");
         else setAutosaveError("");
@@ -502,12 +508,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     finally { saveLock.current = false; if(alive.current)setBusy(false); }
   }
   const actions = <div className="flex flex-wrap gap-3">
-    <button form="campaign-editor" type="submit" disabled={disabled} className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save private draft"}</button>
-    {step===3&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
+    <button form="campaign-editor" type="submit" disabled={disabled} className="min-h-12 rounded-xl border border-border px-6 font-semibold disabled:opacity-50">{busy === "draft" ? "Saving…" : "Save draft"}</button>
+    {step===2&&<button type="button" onClick={() => save("active")} disabled={disabled || !readiness.ready} aria-describedby="campaign-publish-readiness" className="min-h-12 rounded-xl bg-primary px-6 font-semibold text-primary-foreground disabled:opacity-50">{busy === "active" ? "Publishing…" : "Publish campaign"}</button>}
   </div>;
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
-    <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
+    <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
     {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
@@ -520,9 +526,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
-    <div hidden={step<2}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
-    <div hidden={step!==2}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
-    <section hidden={step!==0&&step!==2} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+    <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
+    <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
+    <section hidden={step!==0&&step!==1} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <div hidden={step!==0} className="space-y-4">
       <h2 className="text-xl font-semibold">Your campaign details</h2>
@@ -557,7 +563,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Preferred writing tone<input maxLength={200} value={wizard.ai_profile.tone} onChange={event=>changeWritingPreference("tone",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" placeholder="For example: clear, warm and practical" /></label>
       <label className="block font-semibold">Facts or wording to preserve<textarea maxLength={2000} rows={4} value={wizard.ai_profile.never_change} onChange={event=>changeWritingPreference("never_change",event.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       <p className="text-sm text-muted-foreground">Writing preferences guide proposed copy. They never authorize publishing, messages or financial actions.</p>
-      </div><div hidden={step!==2} className="space-y-4">
+      </div><div hidden={step!==1} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
       <button type="button" onClick={suggestDraft}
         disabled={suggesting || busy || loadingDraft || Boolean(draftLoadError) || draftDetails.trim().length < 12}
@@ -611,13 +617,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       </>}
       </div></fieldset>
     </section>
-    <form hidden={step===0||step===3} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <form hidden={step===2} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <fieldset disabled={disabled} className="space-y-5">
-      <div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      </div><div hidden={step!==2} className="space-y-5"><label className="block font-semibold">Short description<textarea id="campaign-summary" aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      <p className="text-sm text-muted-foreground">Full story format: 2–3 paragraphs separated by a blank line, each containing 3–5 complete sentences.</p>
+      <div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      </div><div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Short description (optional)<textarea id="campaign-summary" aria-label="Short description" maxLength={SUMMARY_MAX} rows={3} value={form.summary} onChange={e=>change("summary",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
+      <p className="text-sm text-muted-foreground">Write as much or as little as you need. There is no minimum story length or required paragraph format.</p>
       <label className="block font-semibold">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
-      </div><div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
+      </div><div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <div id="campaign-cover" className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
         <div>
@@ -652,12 +658,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
       {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
 
-    {step===2&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
-    {step===3&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"Add a short description before publishing."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
-    <div hidden={step!==3}><CampaignReadinessScore form={form} /></div>
+    {step===1&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
+    {step===2&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"No optional short description added."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
+    <div hidden={step!==2}><CampaignReadinessScore form={form} /></div>
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
-    <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} onFocusField={focusCampaignField} /></div>
-    <section hidden={step!==3} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
+    <div hidden={step!==2}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} onFocusField={focusCampaignField} /></div>
+    <section hidden={step!==2} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
         {readiness.ready ? <p className="mt-2 text-sm text-muted-foreground">Publishing makes your campaign visible on Discover and gives you a public link to share.</p>
@@ -668,8 +674,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </section>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
       <button type="button" disabled={disabled||step===0} onClick={()=>advanceWizard(step-1)} className="min-h-12 rounded-xl border border-border px-5 font-semibold disabled:opacity-50">Back</button>
-      {step<3&&<button type="button" disabled={disabled} onClick={()=>advanceWizard(step+1)} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">Save progress and continue</button>}
-      {step<3&&<button type="button" onClick={()=>save("draft")} className="min-h-12 rounded-xl border border-border px-5 font-semibold" disabled={disabled||(Boolean(ownerId)&&!form.title.trim())}>Save private draft</button>}
+      {step<2&&<button type="button" disabled={disabled} onClick={()=>advanceWizard(step+1)} className="min-h-12 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">Continue</button>}
+      {step<2&&<button type="button" disabled={disabled} onClick={()=>save("draft")} className="min-h-12 rounded-xl border border-border px-5 font-semibold">Save private draft</button>}
     </div>
   </main>;
 }

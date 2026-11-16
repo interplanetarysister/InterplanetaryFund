@@ -10,15 +10,10 @@ export function reviewCampaignPublication(form = {}) {
   const title = clean(form.title), summary = clean(form.summary), story = clean(form.story);
   const storyCharacters = length(story);
   const remainingCharacters = Math.max(0, MIN_PUBLICATION_STORY_CHARACTERS - storyCharacters);
-  const blockers = remainingCharacters > 0
-    ? [`A full-length story needs at least ${MIN_PUBLICATION_STORY_CHARACTERS.toLocaleString("en-US")} characters; add ${remainingCharacters.toLocaleString("en-US")} more.`]
-    : [];
-  // Distinct structural eligibility rule; readiness points never gate publication.
-  // Drafts remain editable even while the format is incomplete.
+  // Story length and paragraph structure are optional editorial guidance.
+  // Publishing still requires a nonempty story via the lifecycle and database.
+  const blockers = [];
   const structure = analyzeStoryStructure(story);
-  if (story && !structure.valid) blockers.push(
-    "Write the full story in 2–3 paragraphs separated by blank lines, with 3–5 sentences in each paragraph."
-  );
   const findings = [];
   const add = (id, agent, title, advice) => {
     if (!findings.some(item => item.id === id)) findings.push({id, agent, title, advice});
@@ -55,10 +50,10 @@ export function reviewCampaignPublication(form = {}) {
       "Check any percentages, guarantees, certification language or absolute outcomes against reliable evidence. Remove unsupported claims.");
   if (story && !structure.valid)
     add("story_paragraph_format", "story", "Structure the full story",
-      "Use 2 or 3 paragraphs separated by blank lines and 3 to 5 complete sentences in each.");
-  if (storyCharacters < MIN_PUBLICATION_STORY_CHARACTERS)
-    add("story_depth", "story", "Develop the full-length story",
-      "Explain the verified situation, budget, timeline, who benefits, and how supporters will be updated. Do not invent facts.");
+      "Use short readable paragraphs if they help convey the situation. No fixed paragraph count is required.");
+  if (story && storyCharacters < MIN_PUBLICATION_STORY_CHARACTERS)
+    add("story_depth", "story", "Consider adding useful detail",
+      "Optional: explain known needs, spending, timing and updates without inventing facts.");
   if (!/(?:\$|\bbudget\b|\bexpenses?\b|\bcosts?\b|\bfunds?\s+will\b)/iu.test(story))
     add("budget_clarity", "orbit", "Clarify intended use of funds",
       "Explain the budget in plain language without promising unverified funding outcomes.");

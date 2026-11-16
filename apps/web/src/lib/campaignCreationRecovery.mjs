@@ -21,7 +21,7 @@ function readRecord(storage,owner){
   return {state:'invalid'};
  try{
   return {state:'ready',raw,campaignId:identifier(record.campaign_id),
-   setup:campaignSetupPayload(record.setup,record.setup.draft_step)};
+   setup:campaignSetupPayload({...record.setup,writing_brief:{...record.setup.ai_profile?.writing_brief,wizard_version:record.setup.ai_profile?.writing_brief?.wizard_version===2?2:1}},record.setup.draft_step)};
  }catch{return {state:'invalid'};}
 }
 

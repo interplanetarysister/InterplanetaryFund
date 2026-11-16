@@ -78,11 +78,11 @@ test('publish validates complete content, while valid publish succeeds', async (
   const good = await routeCampaignWrite(request(valid), env, remote([]));
   assert.equal(good.status, 201);
 });
-test('publishing rejects a short story even when all other fields are complete', async () => {
+test('publishing accepts a short story without requiring optional summary', async () => {
   const calls=[];
-  const response=await routeCampaignWrite(request({...valid,story:"Too short."}),env,remote(calls));
-  assert.equal(response.status,422);
-  assert.equal(calls.length,1,"The Worker must not write a short active story to Supabase.");
+  const response=await routeCampaignWrite(request({...valid,story:"A short need.",summary:""}),env,remote(calls));
+  assert.equal(response.status,201);
+  assert.ok(calls.length>1,"The complete minimal campaign reaches the owner-authorized database write.");
 });
 test('writes reject owner override, financial fields, unsafe links and invalid money', async () => {
   const invalid = [
