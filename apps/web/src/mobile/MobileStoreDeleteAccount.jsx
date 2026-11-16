@@ -10,7 +10,7 @@ const STATUS_LABELS={
   requires_legal_retention:"Checking legally required financial retention",
   completed:"Deletion recorded as complete",
 };
-export default function MobileStoreDeleteAccount(){
+export default function MobileStoreDeleteAccount({ returnTo = "/account", webMode = false }){
   const {user,status}=useAuthSession();
   const [guestUser,setGuestUser]=useState(null);
   const [guestChecked,setGuestChecked]=useState(false);
@@ -113,8 +113,8 @@ export default function MobileStoreDeleteAccount(){
       <button type="button" className="min-h-11 rounded-lg border border-rose-300/40 px-4"
         onClick={()=>setReload(n=>n+1)}>Retry secure deletion check</button>
     </div>}
-    <p className="text-sm text-slate-300">Outside the app: <a href="https://interplanetaryfund.com/delete-account"
-      className="text-emerald-200 underline">IFund account deletion page</a>.</p>
-    <Link to="/account" className="inline-flex min-h-11 items-center text-emerald-200 underline">Back to account</Link>
+    {!webMode&&<p className="text-sm text-slate-300">Outside the app: <a href="https://interplanetaryfund.com/delete-account"
+      className="text-emerald-200 underline">IFund account deletion page</a>.</p>}
+    <Link to={returnTo} className="inline-flex min-h-11 items-center text-emerald-200 underline">Back to account</Link>
   </section>;
 }
