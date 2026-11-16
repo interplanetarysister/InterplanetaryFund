@@ -55,7 +55,7 @@ test("account deletion is initiated from app and public Google Play deletion URL
   assert.doesNotMatch(deletion,/ifund_create_support_ticket/);
   assert.match(publicPage,/MobileStoreDeleteAccount/);
   assert.match(deletion,/https:\/\/interplanetaryfund\.com\/delete-account/);
-  assert.match(publicPage,/permanent deletion/i);
+  assert.match(deletion,/Permanently delete your IFund account/i);
   assert.match(website,/path="\/delete-account"/);
   assert.match(read("src/mobile/MobileStoreAccount.jsx"), /to="\/delete-account"/);
 });
