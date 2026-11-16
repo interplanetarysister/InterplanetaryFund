@@ -73,6 +73,7 @@ export default function MobileStoreDeleteAccount(){
     <div className="space-y-3 rounded-xl border border-white/20 bg-white/5 p-5 text-sm leading-6 text-slate-300">
       <h2 className="text-lg font-bold text-white">What happens after you request deletion?</h2>
       <p>Your request is recorded directly in the IFund deletion queue. Account ownership and any required withdrawal, tax, legal, fraud or dispute retention are reviewed before eligible data is erased. Requesting deletion does not immediately remove published campaigns or financial records.</p>
+      <p>Eligible private fundraising documents attached to your campaigns are included in the account-erasure review. Their agent access can be disabled separately in campaign document settings. File cleanup may require verified, retryable Storage deletion and is not completed when you submit this request. Any financial or legally retained records follow separate requirements.</p>
       <p>You will see a reference and request status. We will confirm when deletion is complete. Any legally retained records will be limited to the applicable purpose and retention obligation; personal and published content is otherwise included in the deletion request.</p>
       <p>If a verification or legal review is necessary, you will be informed. There is no fee to submit a deletion request.</p>
       <Link to="/privacy" className="text-emerald-200 underline">Read the privacy policy</Link>
