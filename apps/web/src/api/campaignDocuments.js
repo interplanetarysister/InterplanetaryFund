@@ -252,3 +252,67 @@ export async function revokeAllOwnerDocumentAgentUse(client){
     throw Error("Account-wide document agent access could not be revoked.");
   return data;
 }
+
+const STALE_UPLOAD_AGE_MS=24*60*60*1000;
+const STORAGE_FILE=/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\\.(pdf|docx|xlsx|txt|md|csv)$/i;
+/**
+ * Review orphaned Storage uploads older than a day. A failed metadata insert
+ * must never silently consume the owner's free-tier storage indefinitely.
+ * One owner-scoped directory only; do not traverse another campaign's files.
+ */
+export async function findStaleCampaignDocumentUploads(client,campaignId,{now=Date.now()}={}){
+  const userId=await owner(client,campaignId);
+  if(!Number.isFinite(now))throw Error("Invalid recovery reference time.");
+  const records=await listCampaignDocuments(client,campaignId);
+  const storage=client.storage.from(DOCUMENT_BUCKET);
+  const {data,error}=await storage.list(userId+"/"+campaignId,{
+    limit:100,offset:0,sortBy:{column:"name",order:"asc"}
+  });
+  await unchanged(client,userId);
+  if(error||!Array.isArray(data)||data.length>=100)
+    throw Error("Private storage inventory is unavailable or too large for safe recovery.");
+  const registered=new Set(records.map(row=>row.storage_path));
+  const prefix=userId+"/"+campaignId+"/";
+  const candidates=[];
+  for(const entry of data){
+    if(!entry?.id||typeof entry.name!=="string"||!STORAGE_FILE.test(entry.name))
+      continue;
+    const when=Date.parse(entry.created_at||"");
+    if(!Number.isFinite(when)||when>now-STALE_UPLOAD_AGE_MS)continue;
+    const path=prefix+entry.name;
+    if(!registered.has(path))candidates.push({path,name:entry.name,createdAt:entry.created_at});
+  }
+  return candidates.slice(0,25);
+}
+/**
+ * Owner-initiated cleanup for a stale upload with NO associated metadata.
+ * Never deletes a registered reference or a recent in-flight upload.
+ */
+export async function removeStaleCampaignDocumentUpload(client,campaignId,storagePath,{now=Date.now()}={}){
+  const userId=await owner(client,campaignId);
+  if(typeof storagePath!=="string"||!storagePath.startsWith(userId+"/"+campaignId+"/"))
+    throw Error("Only an owned private campaign upload can be cleaned up.");
+  const candidates=await findStaleCampaignDocumentUploads(client,campaignId,{now});
+  if(!candidates.some(item=>item.path===storagePath))
+    throw Error("This file is not a verified stale upload. Refresh the list.");
+  // Repeat database absence check immediately before removal. Uploads that
+  // acquired metadata while the recovery screen was open must be preserved.
+  const {data,error}=await client.from("ifund_campaign_documents")
+    .select("id")
+    .eq("owner_id",userId).eq("campaign_id",campaignId)
+    .eq("storage_path",storagePath).limit(1);
+  await unchanged(client,userId);
+  if(error||!Array.isArray(data)||data.length)
+    throw Error("This upload is registered or cannot be safely verified.");
+  const storage=client.storage.from(DOCUMENT_BUCKET);
+  const {error:removeError}=await storage.remove([storagePath]);
+  await unchanged(client,userId);
+  if(removeError)throw Error("The stale upload could not be removed.");
+  if(typeof storage.info!=="function")
+    throw Error("Private cleanup needs independent file absence verification.");
+  const {data:remaining,error:infoError}=await storage.info(storagePath);
+  await unchanged(client,userId);
+  if(remaining||infoError?.code!=="NoSuchKey")
+    throw Error("The old upload may still exist. Retry cleanup.");
+  return true;
+}
