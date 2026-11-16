@@ -69,13 +69,11 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Prepublication quality gate">
     <div>
       <h2 className="text-xl font-semibold">Prepublication quality review</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Story length is mandatory for new publication. Editorial suggestions are reviewable and never automatically change campaign claims.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Story length and paragraph structure are your choice. Optional suggestions never automatically change campaign claims.</p>
     </div>
     <div className="rounded-xl bg-muted/30 p-4" role="status" aria-live="polite">
-      <p className="font-semibold">Full story: {audit.storyCharacters.toLocaleString()} / {audit.minimumCharacters.toLocaleString()} characters</p>
-      <p className="mt-1 text-sm">{audit.reviewReady
-        ? "Full-length minimum met. Continue to review punctuation, duplication and accuracy."
-        : `Add ${audit.remainingCharacters.toLocaleString()} characters before publishing.`}</p>
+      <p className="font-semibold">Story length: {audit.storyCharacters.toLocaleString()} characters (no minimum)</p>
+      <p className="mt-1 text-sm">"Review punctuation, clarity and factual accuracy if helpful. These are recommendations, not publishing requirements."</p>
     </div>
     {audit.blockers.length > 0 && <ul className="list-disc space-y-1 pl-6 text-sm text-amber-700">{audit.blockers.map(v=><li key={v}>{v}</li>)}</ul>}
     <div className="space-y-2">
