@@ -43,7 +43,7 @@ export default function MobileStoreCampaign() {
     if(!user?.id||user?.is_anonymous){
       setCheckedFor("guest");setSafety("ready");return()=>{active=false;};
     }
-    if(!UUID.test(id||"")){setCheckedFor(user.id);setSafety("ready");return()=>{active=false;};
+    if(!UUID.test(id||"")){setCheckedFor(user.id);setSafety("ready");return()=>{active=false;};}
     Promise.all([
       verifiedOrganizersForCampaigns([id]),
       blockedOrganizerIds(),
