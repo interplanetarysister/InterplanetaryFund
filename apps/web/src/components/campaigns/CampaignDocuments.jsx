@@ -187,6 +187,8 @@ function EnabledCampaignDocuments({campaignId,ownerId}) {
 
   const scopeMatches=visibleScope.current.ownerId===ownerId&&visibleScope.current.campaignId===campaignId;
   const visibleRecords=scopeMatches&&!accountLocked?records:[];
+  const visibleOrphans=scopeMatches&&!accountLocked?staleUploads:[];
+  const orphanScanForCurrentCampaign=scopeMatches&&!accountLocked&&staleScanned;
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Private campaign documents">
     <div>
       <h2 className="text-xl font-semibold">Campaign documents</h2>
@@ -249,9 +251,9 @@ function EnabledCampaignDocuments({campaignId,ownerId}) {
           </p>
           <button type="button" onClick={()=>void scanOrphans()} disabled={busy||loading||accountLocked}
             className="min-h-11 rounded-lg border border-border px-3 text-sm">Find incomplete uploads</button>
-          {staleScanned&&staleUploads.length===0&&<p role="status" className="text-xs">No stale incomplete uploads to remove.</p>}
-          {staleUploads.length>0&&<ul className="space-y-2">
-            {staleUploads.map(item=><li key={item.path} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-2">
+          {orphanScanForCurrentCampaign&&visibleOrphans.length===0&&<p role="status" className="text-xs">No stale incomplete uploads to remove.</p>}
+          {visibleOrphans.length>0&&<ul className="space-y-2">
+            {visibleOrphans.map(item=><li key={item.path} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border p-2">
               <span className="break-all text-xs">{item.name} · Incomplete upload</span>
               <button type="button" disabled={busy||accountLocked} onClick={()=>void removeOrphan(item)}
                 className="min-h-11 rounded-lg border border-border px-3 text-sm">Remove incomplete file</button>
