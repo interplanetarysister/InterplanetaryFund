@@ -12,8 +12,8 @@ test("content creation is gated by an email account while public browsing stays 
 test("guest drafts stay local until cloud save and never require login", () => {
   const creator = read("../src/pages/CreateCampaign.jsx");
   assert.match(creator, /rememberBrowserCampaign\(sessionStorage, ownerId, form,/);
-  assert.match(creator, /forgetBrowserCampaign\(sessionStorage\)/);
-  assert.match(creator, /key=\{[^}]*ownerId \|\| "guest"/);
+  assert.match(creator, /forgetBrowserCampaign\(sessionStorage, ownerId\)/);
+  assert.match(creator, /<CampaignComposer key=\{\(draftId \|\| "new"\) \+ ":" \+ \(ownerId \|\| "guest"\)/);
   assert.match(creator, /rememberBrowserCampaign\(sessionStorage, null, form,/);
   assert.doesNotMatch(creator, /navigate\("\/login\?returnTo="/);
   assert.match(creator, /Draft saved in this browser tab only/);

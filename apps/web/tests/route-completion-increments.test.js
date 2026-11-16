@@ -105,7 +105,8 @@ test("browser drafts use isolated owner and guest keys", () => {
   const draft = readFileSync(new URL("../src/lib/browserCampaignDraft.js", import.meta.url), "utf8");
   assert.ok(draft.includes('KEY + ":guest"'));
   assert.ok(draft.includes('KEY + ":owner:" + encodeURIComponent(ownerId)'));
-  assert.ok(draft.includes("guest?.version === 2 && guest.owner_id === null"));
+  assert.ok(draft.includes("record?.version === 2 && record.owner_id === null"));
+  assert.ok(draft.includes('return invalid ? { invalid: true } : null;'));
   assert.ok(draft.includes("parsed?.version === 2 && parsed.owner_id === ownerId"));
 });
 
