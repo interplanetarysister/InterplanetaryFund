@@ -260,6 +260,11 @@ async function executePayout(req,env) {
     return asJson({ok:true,status:"SUCCESS",withdrawal_id:payout.withdrawal_id,payout_batch_id:payout.payout_batch_id});
   if(payout.payout_batch_id)
     return asJson(await reconcilePayoutBatch(env,payout.withdrawal_id,payout.payout_batch_id));
+  // Never resubmit a provider-unknown payout, even from an authenticated
+  // administrator: the previous POST may have succeeded without a batch ID.
+  // Only a verified provider reconciliation may resolve that uncertainty.
+  if(payout.current_status==="provider_status_unknown")
+    return asError("payout_status_unknown_manual_provider_reconciliation_required",409);
 
   const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
     sender_batch_header:{
