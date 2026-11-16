@@ -72,18 +72,23 @@ test("live donations never implicitly enable PayPal payout execution",()=>{
   assert.ok(gate.indexOf('IFUND_PAYOUT_EXECUTION_ENABLED')<gate.indexOf('executePayout(request,env)'));
 });
 
-test("all payout submission paths independently fail closed when payouts are disabled",()=>{
-  assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)\s*return asJson\(\{ok:false,error:"payout_execution_disabled"\},503,cors\)/);
-  assert.match(worker,/async function retryApprovedPayout\(env,withdrawalId\)/);
-  assert.match(worker,/if\(env\.IFUND_PAYOUT_EXECUTION_ENABLED!=="true"\)return \{ok:false,status:"PAYOUT_EXECUTION_DISABLED"\}/);
-  const reconcileRoute = worker.indexOf('if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){');
-  assert.ok(reconcileRoute >= 0, "Payout reconciliation route must exist.");
-  const reconcileGate = worker.slice(reconcileRoute, reconcileRoute + 350);
-  assert.match(reconcileGate,/IFUND_PAYOUT_EXECUTION_ENABLED!=="true"/);
-  assert.match(reconcileGate,/payout_execution_disabled/);
-  assert.match(worker,/if\(payout\.payout_batch_id\)return await reconcilePayoutBatch/);
+test("payout execution is independently gated and scheduled reconciliation cannot resubmit transfers",()=>{
+  const start=worker.indexOf("async function executePayout(req,env) {");
+  const gate=worker.slice(start,start+500);
+  assert.match(gate,/IFUND_PAYOUT_EXECUTION_ENABLED!=="true"/);
+  assert.match(gate,/asError\("payout_execution_disabled",503\)/);
+  const retryStart=worker.indexOf("async function retryApprovedPayout(env,withdrawalId)");
+  const retry=worker.slice(retryStart,retryStart+1100);
+  assert.match(retry,/provider_status_unknown/);
+  assert.match(retry,/MANUAL_PROVIDER_RECONCILIATION_REQUIRED/);
+  assert.match(retry,/reconcilePayoutBatch/);
+  assert.doesNotMatch(retry,/executePayout\(/);
+  const reconcileRoute=worker.indexOf('if(path==="/api/payments/payouts/reconcile"&&request.method==="POST"){');
+  assert.ok(reconcileRoute>=0);
+  const route=worker.slice(reconcileRoute,reconcileRoute+550);
+  assert.match(route,/payout_reconcile_only_contract_unavailable/);
+  assert.doesNotMatch(route,/executePayout\(/);
 });
-
 
 test("internal payout execution helper independently fails closed before token or provider calls",()=>{
   const start=worker.indexOf("async function executePayout(req,env) {");
