@@ -305,53 +305,20 @@ async function executePayout(req,env) {
 }
 
 async function retryApprovedPayout(env,withdrawalId) {
-  // Reconciliation must never create a new provider payout while execution is gated.
+  // Cron and reconciliation are READ-ONLY with respect to new money movement.
+  // A provider_status_unknown batch must NOT be resubmitted automatically,
+  // even if the separate manual execution flag is enabled: the first request
+  // might have succeeded without returning its batch ID.
+  if(!UUID.test(withdrawalId||""))return {ok:false,status:"INVALID_REFERENCE"};
   const lookup=await signLedger(env,"payout_lookup",{withdrawal_id:withdrawalId});
   const payout=lookup.payout;
   if(!payout)return {ok:false,status:"NOT_FOUND"};
   if(payout.current_status==="paid")return {ok:true,status:"SUCCESS"};
-  if(payout.payout_batch_id)return await reconcilePayoutBatch(env,withdrawalId,payout.payout_batch_id);
-  if(payout.current_status!=="provider_status_unknown")return {ok:true,status:payout.current_status};
-  if(env.IFUND_PAYOUT_EXECUTION_ENABLED!=="true")return {ok:false,status:"PAYOUT_EXECUTION_DISABLED"};
-
-  const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
-    sender_batch_header:{
-      sender_batch_id:payout.sender_batch_id,recipient_type:"EMAIL",
-      email_subject:"Your Interplanetary Fund withdrawal",
-      email_message:"Your verified campaign withdrawal is being processed through PayPal."
-    },
-    items:[{
-      recipient_type:"EMAIL",
-      amount:{currency:"USD",value:usd(Number(payout.net_cents))},
-      receiver:payout.receiver_email,
-      sender_item_id:payout.sender_item_id,
-      note:"Interplanetary Fund campaign withdrawal after the 7% platform fee.",
-      purpose:"DONATIONS"
-    }]
-  });
-  if(!response.ok){
-    const duplicateBatch=payoutBatchIdFromLinks(response.data?.links);
-    if(duplicateBatch){
-      await signLedger(env,"payout_submitted",{withdrawal_id:withdrawalId,payout_batch_id:duplicateBatch});
-      return await reconcilePayoutBatch(env,withdrawalId,duplicateBatch);
-    }
-    const code=String(response.data?.name||response.data?.message||("HTTP_"+response.status)).slice(0,120);
-    await signLedger(env,"payout_submission_outcome",{
-      withdrawal_id:withdrawalId,payout_batch_id:null,
-      outcome:response.status>=500?"unknown":"failed",error_code:code||"PAYPAL_PAYOUT_REJECTED"
-    });
-    return {ok:false,status:response.status>=500?"UNKNOWN":"FAILED"};
-  }
-  const batchId=response.data?.batch_header?.payout_batch_id;
-  if(!ORDER_ID.test(batchId||"")){
-    await signLedger(env,"payout_submission_outcome",{
-      withdrawal_id:withdrawalId,payout_batch_id:null,outcome:"unknown",
-      error_code:"PAYPAL_ACCEPTED_WITHOUT_BATCH_ID"
-    });
-    return {ok:false,status:"UNKNOWN"};
-  }
-  await signLedger(env,"payout_submitted",{withdrawal_id:withdrawalId,payout_batch_id:batchId});
-  return await reconcilePayoutBatch(env,withdrawalId,batchId);
+  if(payout.payout_batch_id)
+    return await reconcilePayoutBatch(env,withdrawalId,payout.payout_batch_id);
+  if(payout.current_status==="provider_status_unknown")
+    return {ok:false,status:"MANUAL_PROVIDER_RECONCILIATION_REQUIRED"};
+  return {ok:true,status:payout.current_status};
 }
 async function reconcilePendingPayouts(env) {
   if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")return;
