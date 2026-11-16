@@ -1,0 +1,28 @@
+# Branch review and source integration
+
+Reviewed November 15, 2026 Pacific (November 16 UTC), against initial main `20f98c4c0a60a751be35d441405454f69ba779d8`. All 250 remote branch refs were inventoried; 161 had commits absent from main. The candidate incorporates 149 of those heads. This includes explicit retirement of incompatible or superseded implementations while preserving the canonical tree. It does **not** mean 149 features were newly implemented or certified live. Branch refs, source history, production records and assets were preserved.
+
+The latest concurrent route branch change, `ca229ff6`, was also reviewed and merged. Its new payment origin checks were repaired to reject an empty configured allowlist rather than admit requests without an Origin header.
+
+Implemented repairs include account-switch isolation for dashboard campaigns, administrative deletion reviews, withdrawal balances and MFA secrets; synchronous checks before privileged operations and before private response display; exact donation cents and totals; subscription replay identity and timestamp checks; duplicate merchant receipt detection; strict demo payment amounts; bounded streaming request parsing; stale campaign-writing response rejection and raw section edit persistence. Independent review caught and corrected two regressions before publication.
+
+The workflow failure controller now has valid event filters, trusted checkout, repository/branch/workflow identity checks, pending-run protection and safe numeric recovery. No workflow was manually disabled or enabled. The optional APIMatic read-only contract tooling was merged and tested without adding an application caller. Mobile and demo dependency locks were added; demo typecheck failures can no longer be hidden by its logging pipeline. Test discovery now includes previously omitted module/security suites.
+
+Verification actually executed:
+
+- Root/security suite: **716 passed, 0 failed**, including real PGlite SQL/RLS execution. Later payment-origin and withdrawal boundary checks: **37 passed, 0 failed**.
+- Canonical web suite: **757 passed, 0 failed**, including deferred response, microtask-boundary, credential-redaction and route regression checks.
+- Demo TypeScript check, Worker build and **150 tests passed**. These use synthetic sandbox fixtures, not real payment acceptance.
+- Root and canonical web production builds passed locally. Mobile locked install passed; no signed native build or store release was performed.
+- Root, web and mobile runtime dependency audits reported **0 vulnerabilities**. The existing required formatting gate and `git diff --check` passed.
+- The compiled-artifact anonymous browser check is recorded separately in `browser.json` when complete. This cannot establish signed-in, provider, native-device or deployed Functions acceptance.
+
+Twelve active branch heads remain unmerged. Their exact refs and findings are in [branches.json](branches.json). The unresolved work includes the four-stage campaign wizard and saved setup, original specialist execution contracts, Shorts, source media/preview parity, the separate geocode adapter, and atomic subscription accounting. The unsafe live-charge proposal points at a nonexistent route and must not be activated as written. Relevant financial input and replay repairs were carried out of the source-staged branch, but its unfinished atomic SQL was not applied or represented as complete.
+
+Production is **not certified**. The existing route release gate still fails with 116 findings. Live read-only checks confirmed private campaign-document table/bucket/RPC dependencies are absent and the migration OAuth Worker has incomplete bindings. The document and cover implementation's Supabase Storage usage conflicts with the R2-only architecture contract and requires reconciliation. Three foundational RPCs absent from repository DDL were verified present in the hosted catalog with their actual authorization definitions; source reproducibility still needs reconciliation. See [routes.md](routes.md) and [financial-release-blocks.md](financial-release-blocks.md).
+
+GitHub check annotations state: **“The job was not started because your account is locked due to a billing issue.”** The observed failed jobs executed zero steps. Local passes do not remove that CI infrastructure blocker.
+
+This review performed no deployment, SQL application, actual charge, payout, DNS/mail change or asset deletion. Cloudflare automatic Git deployments were changed from the unsafe deprecated enabled state to all three required disabled settings and verified again. Another active process published production deployment `ae7d59bb-7224-4125-892b-2ff421a3b4b4` from `fa09a97b` during the review; that deployment was observed, not performed or certified by this work. Existing live payment and payout flags were left untouched.
+
+The full per-branch review, route mapping and source acceptance limits accompany this record. Historical source reviews describe their original review base; the resolutions in `branches.json` distinguish the final source treatment from actual runtime acceptance.
