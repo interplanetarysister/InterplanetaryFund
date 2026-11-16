@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
@@ -23,10 +23,18 @@ export default function CampaignStrategy({ embedded = false }) {
   const requestedCampaign=params.get("campaign");
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
   const [retry, setRetry] = useState(0);
+  const ownerGeneration = useRef(0);
   useEffect(() => {
     let active = true;
-    setState({ status: "loading", items: [], error: "" });
+    const generation = ++ownerGeneration.current;
     const client=authClient();
+    const { data: authListener } = client.auth.onAuthStateChange(() => {
+      if (!active) return;
+      ++ownerGeneration.current;
+      setState({ status: "loading", items: [], error: "" });
+      setRetry(n => n + 1);
+    });
+    setState({ status: "loading", items: [], error: "" });
     (async()=>{
       const before=await client.auth.getUser();
       const owner=before?.data?.user?.id;
@@ -36,7 +44,7 @@ export default function CampaignStrategy({ embedded = false }) {
         listOwnerCampaigns(client),
       ]);
       const after=await client.auth.getUser();
-      if(!active)return;
+      if(!active || generation !== ownerGeneration.current)return;
       if(after?.error||after?.data?.user?.id!==owner)
         throw Error("Your account changed. Reload strategy before viewing its recommendations.");
       if(error||!Array.isArray(data)||!Array.isArray(campaigns))
@@ -51,9 +59,10 @@ export default function CampaignStrategy({ embedded = false }) {
       // Filter only after the server result is intersected with owner-verified
       // campaigns. A foreign ID can never reveal another member's strategy.
       const selected=requestedCampaign?items.filter(item=>item.campaign_id===requestedCampaign):items;
+      if (!active || generation !== ownerGeneration.current) return;
       setState({status:"ready",items:selected,error:requestedCampaign&&!selected.length?"The linked campaign was not available in your owned strategy records.":""});
-    })().catch(e => {if(active)setState({status:"error",items:[],error:e.message||"Unavailable"});});
-    return () => { active = false };
+    })().catch(e => {if(active && generation === ownerGeneration.current)setState({status:"error",items:[],error:e.message||"Unavailable"});});
+    return () => { active = false; ++ownerGeneration.current; authListener?.subscription?.unsubscribe(); };
   }, [retry,requestedCampaign]);
 
   return <section className={embedded ? "space-y-6" : "mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8"} aria-label="Campaign strategy and AI analysis">
