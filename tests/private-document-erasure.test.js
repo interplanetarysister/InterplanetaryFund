@@ -46,7 +46,7 @@ test("disabled route never accesses accounts",async()=>{
 test("reviewed deletion removes bytes before metadata, never financial records",async()=>{
  const s=service();
  const output=await cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"});
- assert.deepEqual(output,{verified:true,documents_removed:1,account_deleted:false});
+ assert.deepEqual(output,{verified:true,more_documents:false,documents_removed:1,account_deleted:false});
  const deleteStorage=s.calls.findIndex(c=>c.url==="/storage/v1/object/ifund-campaign-documents"&&c.method==="DELETE");
  const mark=s.calls.findIndex(c=>c.method==="PATCH");
  const deleteMetadata=s.calls.findIndex(c=>c.url==="/rest/v1/ifund_campaign_documents"&&c.method==="DELETE");
@@ -101,4 +101,36 @@ test("stale metadata without bytes is independently cleaned up",async()=>{
  assert.equal(result.documents_removed,1);
  assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/storage/v1/object/ifund-campaign-documents"),false);
  assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/rest/v1/ifund_campaign_documents"),true);
+});
+
+test("large owner document inventory returns an explicitly incomplete resumable batch",async()=>{
+  let remaining=15;
+  const calls=[];
+  const fetcher=async(url,options)=>{
+    const route=new URL(url).pathname;
+    calls.push({route,method:options.method});
+    if(route.endsWith("/rpc/ifund_super_admin_account_deletion_queue"))
+      return Response.json([{request_id:REQUEST,request_status:"reviewing",requested_user_id:OWNER}]);
+    if(route.endsWith("/rpc/ifund_super_admin_private_document_inventory"))
+      return Response.json(remaining===0?[]:[{
+        document_id:DOCUMENT,storage_path:PATH,
+        deletion_requested_at:null,storage_present:true,metadata_present:true
+      }]);
+    if(route==="/rest/v1/ifund_campaign_documents"&&options.method==="PATCH")
+      return Response.json([{id:DOCUMENT,allow_agent_use:false,deletion_requested_at:"2026-11-15T17:00:00Z"}]);
+    if(route==="/storage/v1/object/ifund-campaign-documents")
+      return Response.json([{name:PATH}]);
+    if(route.includes("/storage/v1/object/info/"))
+      return Response.json({error:"missing"},{status:404});
+    if(route==="/rest/v1/ifund_campaign_documents"&&options.method==="DELETE"){
+      remaining--;
+      return Response.json([{id:DOCUMENT}]);
+    }
+    throw Error("Unexpected request "+route);
+  };
+  const result=await cleanupPrivateCampaignDocuments({
+    fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"
+  });
+  assert.deepEqual(result,{verified:false,more_documents:true,documents_removed:10,account_deleted:false});
+  assert.equal(remaining,5);
 });
