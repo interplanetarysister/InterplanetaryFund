@@ -64,3 +64,15 @@ test("migrations restrict public deletion access and preserve actual erasure rev
   assert.match(guest,/u\.is_anonymous is true/);
   assert.doesNotMatch(base,/delete from auth\.users/i);
 });
+
+test("restricted deletion administration provides a read-only dependency review",()=>{
+  const page=read("src/pages/AdminDeletionQueue.jsx");
+  const migration=read("../../supabase/migrations/20261115_ifund_account_erasure_preflight.sql");
+  assert.match(page,/ifund_admin_account_erasure_preflight/);
+  assert.match(page,/Review dependent data/);
+  assert.match(page,/not clearance to erase/);
+  assert.match(migration,/ifund_current_user_is_verified_super_admin/);
+  assert.match(migration,/revoke all on function public\\.ifund_admin_account_erasure_preflight\\(uuid\\) from public, anon, authenticated/);
+  assert.match(migration,/safe_to_erase', false/);
+  assert.doesNotMatch(migration,/delete from auth\\.users/i);
+});
