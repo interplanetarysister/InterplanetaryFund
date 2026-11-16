@@ -20,7 +20,7 @@ export default function AdminDeletionQueue(){
   const [notice,setNotice]=useState("");
   useEffect(()=>{
     let alive=true;
-    setLoading(true);setError("");setRows([]);setReviewed({});
+    setLoading(true);setError("");setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setSelected("");setReviewNote("");setNotice("");
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
@@ -28,7 +28,7 @@ export default function AdminDeletionQueue(){
     const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
       if(!alive||!verifiedAdmin)return;
       if(session?.user?.id!==verifiedAdmin){
-        setRows([]);setReviewed({});
+        setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setSelected("");setReviewNote("");setNotice("");
         setError("The administrative session changed. Reload to verify access.");
         setLoading(false);
       }
@@ -58,7 +58,7 @@ export default function AdminDeletionQueue(){
       setRows(queue.data);
       setLoading(false);
     })().catch(cause=>{
-      if(alive){setRows([]);setReviewed({});setError(cause.message||"Queue unavailable.");setLoading(false);}
+      if(alive){setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setError(cause.message||"Queue unavailable.");setLoading(false);}
     });
     return()=>{alive=false;subscription?.subscription?.unsubscribe();};
   },[refresh]);
