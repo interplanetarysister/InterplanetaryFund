@@ -41,6 +41,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
       if(owner&&campaignId)void load(owner,token);
     }
     let initialLookupPending=true;
+    let firstAuthEvent=true;
     const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
       if(!alive)return;
       const owner=session?.user?.id||null;
@@ -50,7 +51,10 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
         ++scope.current.generation;
       }
       // Invalidate outstanding work even when A -> B -> A happens before resolution.
-      if(owner!==scope.current.owner)switchOwner(owner);
+      if(owner!==scope.current.owner||firstAuthEvent){
+        firstAuthEvent=false;
+        switchOwner(owner);
+      }
     });
     // Initial identity lookup must not overwrite a newer auth event.
     const initialToken=scope.current.generation;
