@@ -230,7 +230,7 @@ export default function Profile() {
         retained for legal or financial obligations. Requesting deletion does not
         immediately erase confirmed financial records.
       </p>
-      <Link to="/support?request=delete-account"
+      <Link to="/delete-account"
         className="inline-flex min-h-11 items-center rounded-xl border border-red-600/50 px-4 py-2 text-sm font-semibold text-red-700 dark:text-red-300">
         Request account deletion
       </Link>
@@ -240,7 +240,7 @@ export default function Profile() {
       <div className="flex flex-wrap gap-2">
         {[
           ["/campaigns", "My Campaigns"], ["/following", "Following"], ["/my-blog", "My Blog"],
-          ["/permissions", "Manage iFund Permissions"], ["/notifications", "Notifications"], ["/help", "Help Center"],
+          ["/permissions", "Manage iFund Permissions"], ["/delete-account", "Delete account & data"], ["/notifications", "Notifications"], ["/help", "Help Center"],
         ].map(([to, label]) => <Link key={to} to={to} className={action}>{label}</Link>)}
         <button type="button" className={action} disabled={Boolean(busy)} onClick={() => act("sign-out", async () => {
           const { error: signOutError } = await authClient().auth.signOut();

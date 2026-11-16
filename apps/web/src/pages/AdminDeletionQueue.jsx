@@ -7,6 +7,9 @@ import { authClient } from "@/api/auth";
 // the server-side super-admin role; this view cannot mark deletion completed.
 export default function AdminDeletionQueue(){
   const [rows,setRows]=useState([]);
+  const [dependencySnapshot,setDependencySnapshot]=useState({});
+  const [dependencyBusy,setDependencyBusy]=useState("");
+  const [dependencyIssue,setDependencyIssue]=useState({});
   const [reviewed,setReviewed]=useState({});
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
@@ -60,6 +63,18 @@ export default function AdminDeletionQueue(){
     return()=>{alive=false;subscription?.subscription?.unsubscribe();};
   },[refresh]);
 
+  async function inspectDependencies(row){
+    setDependencyBusy(row.request_id);
+    setDependencyIssue(current=>({...current,[row.request_id]:""}));
+    try {
+      const {data,error:issue}=await authClient().rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id});
+      if(issue||data?.open_request!==true||data?.safe_to_erase!==false)throw Error(issue?.message||"Verified dependency snapshot unavailable.");
+      setDependencySnapshot(current=>({...current,[row.request_id]:data}));
+    }catch(cause){
+      setDependencySnapshot(current=>{const next={...current};delete next[row.request_id];return next;});
+      setDependencyIssue(current=>({...current,[row.request_id]:cause.message||"Dependency review unavailable."}));
+    }finally{setDependencyBusy("");}
+  }
   async function act(row,reviewOnly=false){
     if(processing)return;
     if(!reviewOnly&&!window.confirm("Permanently remove this reviewed account's private campaign document files? This is irreversible and does not complete financial or account deletion."))return;
