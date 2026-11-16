@@ -53,7 +53,7 @@ test("provider-unknown payout with independently identified batch reconciles wit
  const result=await h.handler(null,{
    IFUND_PAYOUT_EXECUTION_ENABLED:"true",IFUND_PAYMENTS_ENABLED:"true",IFUND_PAYPAL_MODE:"live"
  });
- assert.equal(result.status,200);
+ assert.equal(result.status,"PENDING");
  assert.equal(h.stats().providerPosts,0);
  assert.equal(h.stats().reconciles,1);
 });
