@@ -6,6 +6,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 const app = read("../src/App.jsx");
 const profile = read("../src/pages/Profile.jsx");
 const signup = read("../src/pages/AuthPage.jsx");
+const signupChoices = read("../src/lib/signupAIPreferences.js");
 const onboarding = read("../src/pages/MemberOnboarding.jsx");
 const hub = read("../src/pages/ManagePermissions.jsx");
 const ai = read("../src/components/permissions/AIPermissionPreferences.jsx");
@@ -23,8 +24,8 @@ test("account navigation consolidates user-facing permissions", () => {
 });
 
 test("signup interest never silently grants third party authorization", () => {
-  assert.match(signup, /ifund-signup-ai-interest-v1/);
-  assert.match(signup, /false,allow_ai_outreach_drafts:false,interested_in_future_automation:false/);
+  assert.match(signupChoices, /ifund-signup-ai-interest-v1/);
+  assert.match(signup, /allow_ai_campaign_drafts:false,allow_ai_outreach_drafts:false,interested_in_future_automation:false/);
   assert.match(ai, /email_confirmed_at/);
   assert.match(ai, /userData\?\.user\?\.id/);
   assert.match(ai, /upsert\(payload/);
