@@ -261,6 +261,11 @@ async function executePayout(req,env) {
   if(payout.payout_batch_id)
     return asJson(await reconcilePayoutBatch(env,payout.withdrawal_id,payout.payout_batch_id));
 
+  // A timed-out provider POST may have succeeded. Only independent provider
+  // reconciliation can resolve uncertainty; never create another payout here.
+  if(payout.current_status==="provider_status_unknown")
+    return asError("payout_status_unknown_manual_provider_reconciliation_required",409);
+
   const response=await paypalDetailed(env,"/v1/payments/payouts","POST",{
     sender_batch_header:{
       sender_batch_id:payout.sender_batch_id,recipient_type:"EMAIL",

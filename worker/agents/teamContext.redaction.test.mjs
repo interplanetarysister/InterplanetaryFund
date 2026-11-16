@@ -16,13 +16,17 @@ const cases = [
   ['encoded semicolon separator', 'https://example.test/callback?state=x%3Bcode=synthetic-secret-123'],
   ['triple encoded separator', 'https://example.test/callback?state=x%252526code=synthetic-secret-123'],
   ['nested encoded key', 'https://example.test/callback?state=x%252563ode=synthetic-secret-123'],
+  ['array-style code key', 'https://example.test/callback?state=ok&code%5B%5D=synthetic-secret-123'],
+  ['control-suffixed code key', 'https://example.test/callback?state=ok&code%00=synthetic-secret-123'],
+  ['nested oauth array key', 'https://example.test/callback?state=ok&oauth%5Fcode%5B0%5D=synthetic-secret-123'],
+  ['newline-suffixed authorization key', 'https://example.test/callback?state=ok&authorization_code%0a=synthetic-secret-123'],
 ];
 for (const [name, input] of cases) {
   test('callback secret redacted: ' + name, () => {
     const output = redactTeamCredentials(input);
     assert.doesNotMatch(output, /synthetic-secret-123/);
     assert.match(output, /\[redacted(?: credential URL)?\]/);
-    if (!['encoded key','double encoded separator','nested html entity','encoded semicolon separator','triple encoded separator','nested encoded key'].includes(name)) assert.match(output, /state=x|code=\[redacted\]/);
+    if (output !== '[redacted credential URL]') assert.match(output, /state=x|code=\[redacted\]/);
   });
 }
 test('ordinary prose and non-secret state survive', () => {
@@ -47,4 +51,49 @@ test('flag off never calls persistence', async () => {
   });
   assert.equal(result.state, 'disabled');
   assert.equal(calls, 0);
+});
+
+test('structured non-string JSON credential values fail closed without over-redacting prose', () => {
+  for (const input of [
+    '{"access_token":123456789012345}',
+    '{"access_token":["synthetic-secret-123"]}',
+    '{"access_token":{"nested":{"value":"synthetic-secret-123"}}}',
+    '{"client_secret":false}',
+    '{"api_key":null}',
+    'log entry {"refresh_token":["synthetic-secret-123"]} after event',
+    String.raw`{\\\"access_token\\\":[\\\"synthetic-secret-123\\\"]}`,
+    String.raw`{\\\"client_secret\\\":{\\\"value\\\":\\\"synthetic-secret-123\\\"}}`,
+    '{"api-key":["synthetic-secret-123"]}'
+  ]) {
+    const actual = redactTeamCredentials(input);
+    assert.equal(actual, '[redacted credential payload]');
+    assert.doesNotMatch(actual, /synthetic-secret-123|123456789012345/);
+  }
+  assert.equal(redactTeamCredentials('I wrote code=example in prose.'),
+    'I wrote code=example in prose.');
+  assert.equal(redactTeamCredentials('{"access_token":"synthetic-secret-123"}'),
+    '{"access_token":"[redacted]"}');
+});
+
+// Dotted OAuth parameter aliases must fail closed, including percent-encoded dots.
+test('dotted callback credential keys are never persisted verbatim', () => {
+  for (const key of ['code.foo','code%2Efoo','oauth_code.extra','authorization_code%2Edeep']) {
+    const output = redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    assert.doesNotMatch(output, /synthetic-secret-123/);
+    assert.match(output, /\[redacted credential URL\]/);
+  }
+  assert.equal(redactTeamCredentials('The code.foo example is prose.'), 'The code.foo example is prose.');
+});
+
+test('OAuth ID and session token callback values are never retained', () => {
+  for (const key of ['id_token', '%69d_token', 'id%5Ftoken',
+    'id_token%5B%5D', 'session_token', 'jwt', 'token']) {
+    const actual=redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    assert.doesNotMatch(actual, /synthetic-secret-123/);
+    assert.match(actual, /\[redacted(?: credential URL)?\]/);
+  }
+  for (const prose of ['The token economy is growing.', 'The code is illustrative.',
+    'https://example.test/cb?state=safe&theme=dark']) {
+    assert.equal(redactTeamCredentials(prose),prose);
+  }
 });

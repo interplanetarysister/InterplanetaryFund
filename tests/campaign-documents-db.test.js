@@ -167,3 +167,19 @@ test("metadata deletion fails closed until the private Storage object is erased"
   assert.equal((await db.query("delete from public.ifund_campaign_documents where id=$1 returning id",[id])).rows[0].id,id);
  } finally { await db.close(); }
 });
+
+test("single invoker RPC revokes all owner agent document consent but not another account",async()=>{
+ const db=await fixture();
+ try{
+  await as(db,owner);await insert(db);
+  await db.query("update public.ifund_campaign_documents set allow_agent_use=true where id=$1",[id]);
+  const revoked=await db.query("select public.ifund_campaign_documents_revoke_all_agent_use() n");
+  assert.equal(revoked.rows[0].n,1);
+  assert.equal((await db.query("select allow_agent_use from public.ifund_campaign_documents where id=$1",[id])).rows[0].allow_agent_use,false);
+  assert.equal((await db.query("select public.ifund_campaign_documents_revoke_all_agent_use() n")).rows[0].n,0);
+  await as(db,other);
+  assert.equal((await db.query("select public.ifund_campaign_documents_revoke_all_agent_use() n")).rows[0].n,0);
+  await as(db,null,"anon");
+  await assert.rejects(db.query("select public.ifund_campaign_documents_revoke_all_agent_use()"),/permission denied/);
+ }finally{await db.close();}
+});

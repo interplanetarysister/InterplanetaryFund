@@ -15,6 +15,10 @@ npm run preview
 
 Node 20 or newer.
 
+## Private campaign document rollout
+
+The owner-only fundraising document library remains disabled by default. Its legacy Supabase Storage adapter is source-only and conflicts with the canonical R2-only media contract. Do not enable `VITE_IFUND_CAMPAIGN_DOCUMENTS_ENABLED` or apply its unapplied migrations as a rollout shortcut. First reconcile private R2 storage and metadata authorization, verify two owners' upload/download/revoke/delete behavior and obtain the applicable preview-first release acceptance. Story and reviewed administrative erasure have separate server flags; browser flags never replace server authorization. No document storage, SQL, or provider activation was performed by this source integration.
+
 ## Environment variables
 
 | Name | Purpose |

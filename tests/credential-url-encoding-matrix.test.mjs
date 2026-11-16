@@ -35,3 +35,24 @@ test('ordinary prose stays intact and state-only callbacks remain recognizable',
   const clean = 'https://example.test/callback?state=safe';
   assert.equal(redactTeamCredentials(clean), clean);
 });
+
+test('delimiterless nested capital-C code key fails closed without harming prose', () => {
+  for (const encodedKey of ['%43ode', '%2543ode', '%252543ode', '%25252543ode']) {
+    const url = `https://example.test/callback?state=x${encodedKey}=synthetic-secret-123`;
+    assert.ok(!redactTeamCredentials(url).includes(secret), `leaked ${encodedKey}`);
+  }
+  assert.equal(redactTeamCredentials('I wrote Code=example in prose.'), 'I wrote Code=example in prose.');
+});
+
+
+test('malformed percent-encoded callback bytes cannot crash redaction or leak codes', () => {
+  for (const malformed of ['%FF', '%C3%28', '%E0%A4%A', '%FE%FF']) {
+    const input = `https://example.test/cb?state=${malformed}&code=synthetic-secret-123`;
+    assert.doesNotThrow(() => redactTeamCredentials(input));
+    assert.ok(!redactTeamCredentials(input).includes(secret));
+  }
+  assert.equal(
+    redactTeamCredentials('I wrote code=example in prose, not an OAuth URL.'),
+    'I wrote code=example in prose, not an OAuth URL.'
+  );
+});

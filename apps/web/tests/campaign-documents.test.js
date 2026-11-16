@@ -263,3 +263,24 @@ test("owner cleanup checks Storage object absence before metadata deletion",asyn
   const verify=x.calls.findIndex(event=>event.action==="storage-info");
   assert.ok(remove>=0&&verify>remove);
 });
+
+test("web production Storage SDK exposes structured missing-object codes",()=>{
+  const lock=JSON.parse(readFileSync(new URL("../package-lock.json",import.meta.url),"utf8"));
+  const version=lock.packages?.["node_modules/@supabase/storage-js"]?.version;
+  assert.ok(typeof version==="string","Locked browser Storage SDK is required");
+  const [major,minor]=version.split(".").map(Number);
+  assert.ok(major>2||(major===2&&minor>=112),
+    "StorageApiError.code was introduced in storage-js 2.112.0; private deletion needs NoSuchKey");
+});
+
+test("all document UI adapters fail closed when the browser feature is disabled",()=>{
+  const config=readFileSync(new URL("../src/lib/campaignDocumentAvailability.mjs",import.meta.url),"utf8");
+  const uploader=readFileSync(new URL("../src/components/campaigns/CampaignDocuments.jsx",import.meta.url),"utf8");
+  const refs=readFileSync(new URL("../src/components/agents/AgentDocumentReferences.jsx",import.meta.url),"utf8");
+  const settings=readFileSync(new URL("../src/components/permissions/CampaignDocumentPermissions.jsx",import.meta.url),"utf8");
+  assert.match(config,/VITE_IFUND_CAMPAIGN_DOCUMENTS_ENABLED === "enabled"/);
+  assert.match(uploader,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledCampaignDocuments/);
+  assert.match(refs,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledAgentDocumentReferences/);
+  assert.match(settings,/if\(!CAMPAIGN_DOCUMENTS_ACTIVE\)/);
+  assert.match(settings,/Private document upload and agent permissions are being prepared/);
+});

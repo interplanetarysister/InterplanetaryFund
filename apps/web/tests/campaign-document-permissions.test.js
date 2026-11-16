@@ -18,6 +18,14 @@ function fixture({user={id:OWNER,email_confirmed_at:"2026-11-15",is_anonymous:fa
   const calls=[],docs=rows.map(row=>({...row}));
   let authReads=0;
   const client={
+    rpc:async name=>{
+      calls.push({action:"rpc",name});
+      if(name!=="ifund_campaign_documents_revoke_all_agent_use")
+        return {data:null,error:{message:"Unexpected document RPC"}};
+      const eligible=docs.filter(row=>row.owner_id===user.id&&row.allow_agent_use===true&&!row.deletion_requested_at);
+      for(const row of eligible)row.allow_agent_use=false;
+      return {data:eligible.length,error:null};
+    },
     auth:{getUser:async()=>{
       authReads++;
       const current=switchAccount&&authReads>1?{...user,id:"44444444-4444-4444-8444-444444444444"}:user;
@@ -67,8 +75,8 @@ test("owner-wide revocation disables agent use without deleting any file",async(
   const removed=await revokeAllOwnerDocumentAgentUse(f.client);
   assert.equal(removed,1);
   assert.equal(f.docs[0].allow_agent_use,false);
-  assert.ok(f.calls.some(event=>event.action==="update"&&event.update.allow_agent_use===false));
-  assert.equal(f.calls.some(event=>event.action==="delete"),false);
+  assert.ok(f.calls.some(event=>event.action==="rpc"&&event.name==="ifund_campaign_documents_revoke_all_agent_use"));
+  assert.equal(f.calls.some(event=>event.action==="delete"||event.action==="update"),false);
 });
 test("invalid pagination does not query other people's documents",async()=>{
   const f=fixture();
@@ -85,4 +93,39 @@ test("centralized My Account document controls are visible and default to revoca
   assert.match(ui,/updateDocumentAgentAccess/);
   assert.match(ui,/agent_summary/);
   assert.doesNotMatch(ui,/getPublicUrl|storage\.remove/);
+});
+
+test("bulk revoke is independent of PostgREST returned row limits",async()=>{
+  const rows=Array.from({length:1100},(_,i)=>({
+    ...ROW,id:(i+1).toString(16).padStart(8,"0")+"-1111-4111-8111-111111111111"
+  }));
+  const f=fixture({rows});
+  const count=await revokeAllOwnerDocumentAgentUse(f.client);
+  assert.equal(count,1100);
+  assert.equal(f.docs.filter(row=>row.allow_agent_use).length,0);
+  assert.equal(f.calls.some(event=>event.action==="update"),false);
+});
+test("bulk revoke does not resurrect a document pending deletion",async()=>{
+  const pending={...ROW,id:"44444444-4444-4444-8444-444444444444",deletion_requested_at:"2026-11-15T18:00:00Z",allow_agent_use:false};
+  const f=fixture({rows:[ROW,pending]});
+  assert.equal(await revokeAllOwnerDocumentAgentUse(f.client),1);
+  assert.equal(f.docs.find(row=>row.id===pending.id).allow_agent_use,false);
+});
+test("bulk revoke is an invoker RPC, not a privileged cross-account update",()=>{
+  const sql=readFileSync(new URL("../../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
+  assert.match(sql,/ifund_campaign_documents_revoke_all_agent_use/);
+  assert.match(sql,/returns integer language plpgsql security invoker/);
+  assert.match(sql,/d.owner_id=v_owner and d.allow_agent_use=true/);
+  assert.match(sql,/grant execute on function public.ifund_campaign_documents_revoke_all_agent_use\(\) to authenticated/);
+});
+
+test("account-scoped permission screen rejects late data after sign-out or account switch",()=>{
+  const source=readFileSync(new URL("../src/components/permissions/CampaignDocumentPermissions.jsx",import.meta.url),"utf8");
+  assert.match(source,/const authEpoch=useRef\(0\)/);
+  assert.match(source,/authEpoch\.current\+=1/);
+  assert.match(source,/stillOwner\(client,data\.user\.id,epoch\)/);
+  assert.match(source,/stillOwner\(client,expected,epoch\)/);
+  assert.match(source,/authEpoch\.current===epoch/);
+  assert.match(source,/onAuthStateChange/);
+  assert.match(source,/setRecords\(\[\]\);setHasMore\(false\)/);
 });
