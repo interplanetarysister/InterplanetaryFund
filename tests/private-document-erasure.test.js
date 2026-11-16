@@ -53,6 +53,12 @@ test("reviewed deletion removes bytes before metadata, never financial records",
  const deleteMetadata=s.calls.findIndex(c=>c.url==="/rest/v1/ifund_campaign_documents"&&c.method==="DELETE");
  assert.ok(mark>=0&&mark<deleteStorage&&deleteStorage<deleteMetadata);
  assert.equal(s.calls.some(c=>c.url.includes("finance")||c.url.includes("ledger")),false);
+ const serviceCall=s.calls.find(c=>c.method==="DELETE"&&c.url==="/storage/v1/object/ifund-campaign-documents");
+ assert.ok(serviceCall);
+ assert.equal(serviceCall.headers.Authorization,undefined);
+ assert.equal(serviceCall.headers.apikey,ENV.SUPABASE_SECRET_KEY);
+ const adminRpc=s.calls.find(c=>c.url.endsWith("/rpc/ifund_super_admin_account_deletion_queue"));
+ assert.equal(adminRpc.headers.Authorization,"Bearer admin.jwt");
 });
 test("unreviewed request cannot delete anything",async()=>{
  const s=service({status:"requested"});
