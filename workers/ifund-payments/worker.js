@@ -379,7 +379,7 @@ async function reconcileSubscription(env,subscriptionReference,token="",provider
       ||verifiedSale.state!=="completed"||verifiedSale.amount?.currency!=="USD"
       ||lastPaymentCents!==cents(verifiedSale.amount.total)
       ||!Number.isFinite(saleTime)||!Number.isFinite(paymentTime)
-      ||Math.abs(saleTime-paymentTime)>300000)
+      // A five-minute window can bind the wrong same-amount recurring sale.\n      // Require the provider's recorded payment instant to match the sale.\n      ||saleTime!==paymentTime)
       throw new Error("subscription_sale_last_payment_unverified");
   }
   const result=await signLedger(env,"subscription_reconcile",{
