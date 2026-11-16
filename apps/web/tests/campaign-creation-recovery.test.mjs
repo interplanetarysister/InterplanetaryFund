@@ -85,6 +85,18 @@ test("creator persists pending setup before its server metadata request and clea
  assert.match(source,/const localRecovery=ownerId\?pendingCampaignSetup/);
  assert.match(source,/Navigate to=\{"\/create\?draft="/);
 });
+test("saved campaign details stay recoverable when setup loading fails",()=>{
+ const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
+ const details=source.indexOf("await loadOwnerCampaign");
+ const recovery=source.indexOf("const localRecovery=ownerId?pendingCampaignSetup",details);
+ const request=source.indexOf("await loadCampaignSetup",recovery);
+ const fallback=source.indexOf("if(!localRecovery)throw setupError",request);
+ const hydrate=source.indexOf("setForm({ title:data.title",fallback);
+ assert.ok(details>=0 && recovery>details && request>recovery && fallback>request && hydrate>fallback);
+ assert.match(source,/const restoredSetup=localRecovery\\?\\.setup\\|\\|/);
+ assert.match(source,/Setup service is unavailable; recovered changes are kept in this tab/);
+});
+
 test("saved draft links stay private and editorial field review can navigate across stages",()=>{
  const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
  const gate=readFileSync(new URL("../src/components/campaigns/PrepublicationGate.jsx",import.meta.url),"utf8");
