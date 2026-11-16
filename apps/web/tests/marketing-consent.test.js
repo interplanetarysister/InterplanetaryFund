@@ -24,7 +24,10 @@ test("owner controls are gated and cannot silently submit consent",()=>{
   assert.match(page,/rpc\("ifund_set_marketing_consent"/);
   assert.match(page,/disabled=\{busy\|\|state\.optIn===state\.original\}/);
   assert.match(page,/No marketing permission is inferred from existing notification settings/);
-  assert.match(profile,/Communication preferences/);
+  assert.match(profile,/Manage iFund Permissions/);
+  const consolidated=read("../src/pages/ManagePermissions.jsx");
+  assert.match(consolidated,/import MarketingPreferences from/);
+  assert.match(consolidated,/open==="marketing" && <MarketingPreferences\/>/);
 });
 
 test("consent audit appends only on initial choice or explicit changes",()=>{
