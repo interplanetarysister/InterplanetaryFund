@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { listOwnerCampaigns } from "@/api/ownerCampaigns";
 import { reviewCampaignPublication } from "@/lib/prepublicationReview.mjs";
@@ -19,6 +19,8 @@ const CHECKS = [
   ["has_cover_reference", "A campaign cover reference", "Choose an image you own or can use"],
 ];
 export default function CampaignStrategy() {
+  const [params]=useSearchParams();
+  const requestedCampaign=params.get("campaign");
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
   const [retry, setRetry] = useState(0);
   useEffect(() => {
@@ -46,7 +48,10 @@ export default function CampaignStrategy() {
           campaignWide:reviewCampaignWideEditorial(campaign)};
       });
       if(items.length!==data.length)throw Error("Strategy results did not match your owned campaigns.");
-      setState({status:"ready",items,error:""});
+      // Filter only after the server result is intersected with owner-verified
+      // campaigns. A foreign ID can never reveal another member's strategy.
+      const selected=requestedCampaign?items.filter(item=>item.campaign_id===requestedCampaign):items;
+      setState({status:"ready",items:selected,error:requestedCampaign&&!selected.length?"The linked campaign was not available in your owned strategy records.":""});
     })().catch(e => {if(active)setState({status:"error",items:[],error:e.message||"Unavailable"});});
     return () => { active = false };
   }, [retry]);
@@ -61,6 +66,7 @@ export default function CampaignStrategy() {
       </p>
     </header>
     <CampaignBudgetPlanner />
+    {state.status==="ready"&&state.error&&<p role="status" className="text-sm text-muted-foreground">{state.error}</p>}
     {state.status === "loading" && <p role="status">Checking your owned campaign drafts…</p>}
     {state.status === "error" && <section role="alert" className="rounded-xl border border-red-500/40 p-5">
       <p>{state.error}</p><button className="mt-3 min-h-11 rounded-lg border px-4" onClick={() => setRetry(n => n + 1)}>Retry</button>
