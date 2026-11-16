@@ -171,3 +171,11 @@ test("reviewing status alone cannot authorize client-side cleanup action",()=>{
   assert.match(sql,/Verified super administrator required/);
   assert.match(ui,/Private-file cleanup is a separate irreversible action/);
 });
+
+test("admin queue does not expose prior administrator requests after session change",()=>{
+  const source=readFileSync(new URL("../apps/web/src/pages/AdminDeletionQueue.jsx",import.meta.url),"utf8");
+  assert.match(source,/onAuthStateChange/);
+  assert.match(source,/setRows\(\[\]\);setReviewed\(\{\}\)/);
+  assert.match(source,/after\?\.user\?\.id!==verifiedAdmin/);
+  assert.match(source,/subscription\?\.subscription\?\.unsubscribe/);
+});
