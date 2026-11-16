@@ -1,0 +1,64 @@
+name: IFund Atlas source regression tests
+# Source and privacy regression only. No deployment/build, no financial keys.
+on:
+  push:
+    branches:
+      - feature/route-completion-20261113
+    paths:
+      - '.github/workflows/ifund-atlas-source-tests.yml'
+      - 'apps/web/src/lib/atlasLocations.mjs'
+      - 'apps/web/src/lib/usAtlasProjection.mjs'
+      - 'apps/web/src/lib/usAtlasClusters.mjs'
+      - 'apps/web/src/lib/usCityCenters.mjs'
+      - 'apps/web/src/pages/Atlas.jsx'
+      - 'apps/web/src/components/atlas/**'
+      - 'apps/web/src/api/ownerCampaigns.js'
+      - 'apps/web/src/api/publicData.js'
+      - 'apps/web/tests/atlas-*.test.js'
+      - 'apps/web/tests/us-atlas-map.test.js'
+      - 'apps/web/tests/us-city-presets.test.js'
+  pull_request:
+    paths:
+      - '.github/workflows/ifund-atlas-source-tests.yml'
+      - 'apps/web/src/lib/atlasLocations.mjs'
+      - 'apps/web/src/lib/usAtlasProjection.mjs'
+      - 'apps/web/src/lib/usAtlasClusters.mjs'
+      - 'apps/web/src/lib/usCityCenters.mjs'
+      - 'apps/web/src/pages/Atlas.jsx'
+      - 'apps/web/src/components/atlas/**'
+      - 'apps/web/tests/atlas-*.test.js'
+      - 'apps/web/tests/us-atlas-map.test.js'
+      - 'apps/web/tests/us-city-presets.test.js'
+permissions:
+  contents: read
+concurrency:
+  group: ifund-atlas-source-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify-atlas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Atlas source tests without building or deploying
+        run: |
+          set -euo pipefail
+          node --test \
+            apps/web/tests/atlas-locations.test.js \
+            apps/web/tests/atlas-owner-integration.test.js \
+            apps/web/tests/us-atlas-map.test.js \
+            apps/web/tests/us-city-presets.test.js \
+            2>&1 | tee /tmp/ifund-atlas-source-results.log
+      - name: Publish source test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifund-atlas-source-tests
+          path: /tmp/ifund-atlas-source-results.log
+          if-no-files-found: ignore
+          retention-days: 7
