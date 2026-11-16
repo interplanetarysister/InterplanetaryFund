@@ -356,7 +356,7 @@ async function subscriptionReadiness(env) {
   }
   return {ready:planReady&&webhookReady,plan_ready:planReady,webhook_ready:webhookReady};
 }
-async function reconcileSubscription(env,subscriptionReference,token="",providerReference=null) {
+async function reconcileSubscription(env,subscriptionReference,token="",providerReference=null,verifiedSale=null) {
   const lookup=await signLedger(env,token?"subscription_get":"subscription_lookup",{
     paypal_subscription_id:subscriptionReference,
     ...(token?{member_access_token:token}:{})
@@ -369,6 +369,18 @@ async function reconcileSubscription(env,subscriptionReference,token="",provider
   const amount=payment?.amount;
   const lastPaymentCents=amount?.currency_code==="USD"&&/^\d+(?:\.\d{1,2})?$/.test(String(amount?.value||""))
     ?cents(amount.value):null;
+  // A verified sale receipt is not proof that the subscription's *current*
+  // last_payment is the same sale. Never attach an older/different sale ID
+  // to a newer last-payment amount or timestamp in the canonical ledger.
+  if(verifiedSale){
+    const saleTime=Date.parse(String(verifiedSale.create_time||""));
+    const paymentTime=Date.parse(String(payment?.time||""));
+    if(!providerReference||verifiedSale.id!==providerReference
+      ||lastPaymentCents!==cents(verifiedSale.amount.total)
+      ||!Number.isFinite(saleTime)||!Number.isFinite(paymentTime)
+      ||Math.abs(saleTime-paymentTime)>300000)
+      throw new Error("subscription_sale_last_payment_unverified");
+  }
   const result=await signLedger(env,"subscription_reconcile",{
     paypal_subscription_id:subscriptionReference,paypal_plan_id:subscription.plan_id,
     custom_id:subscription.custom_id,provider_status:String(subscription.status||"").toUpperCase(),
@@ -489,6 +501,7 @@ async function subscriptionWebhook(payload,env) {
     return asError("subscription_refund_atomic_ledger_unavailable",503);
   }
   const providerReference=kind==="PAYMENT.SALE.COMPLETED"?payload.resource?.id||null:null;
+  let verifiedSale=null;
   if(kind==="PAYMENT.SALE.COMPLETED"){
     // Do not promote a signed delivery ID or an unverified sale to an
     // economic subscription receipt. Confirm the immutable provider sale
@@ -501,8 +514,9 @@ async function subscriptionWebhook(payload,env) {
       ||!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(String(sale?.amount?.total||""))
       ||cents(sale.amount.total)<1)
       return asError("subscription_sale_receipt_unverified",409);
+    verifiedSale=sale;
   }
-  const reconciled=await reconcileSubscription(env,id,"",providerReference);
+  const reconciled=await reconcileSubscription(env,id,"",providerReference,verifiedSale);
   await signLedger(env,"subscription_event",{
     paypal_event_id:payload.id,paypal_subscription_id:id,event_type:kind
   });
