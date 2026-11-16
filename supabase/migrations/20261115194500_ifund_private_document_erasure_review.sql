@@ -14,6 +14,23 @@ revoke select on public.ifund_account_deletion_requests from authenticated;
 grant select(id,user_id,status,requested_at,updated_at,completed_at)
   on public.ifund_account_deletion_requests to authenticated;
 
+-- Verify that the administrator's JWT still belongs to an active session.
+create or replace function public.ifund_private_document_admin_session_valid()
+returns boolean language sql stable security definer set search_path='' as $session$
+ select auth.uid() is not null
+   and case
+     when coalesce(auth.jwt()->>'session_id','')
+       ~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+     then exists (
+       select 1 from auth.sessions s
+       where s.id=(auth.jwt()->>'session_id')::uuid
+         and s.user_id=auth.uid()
+         and (s.not_after is null or s.not_after>now())
+     )
+     else false end;
+$session$;
+revoke all on function public.ifund_private_document_admin_session_valid() from public,anon,authenticated;
+
 create or replace function public.ifund_super_admin_review_private_document_cleanup(
  p_request_id uuid,p_review_note text
 ) returns boolean
@@ -21,6 +38,7 @@ language plpgsql security definer set search_path='' as $ifund$
 declare actor uuid:=auth.uid(); affected integer;
 begin
   if not coalesce(public.ifund_current_user_is_verified_super_admin(),false)
+    or not coalesce(public.ifund_private_document_admin_session_valid(),false)
     or actor is null then
     raise exception 'Verified super administrator required' using errcode='42501';
   end if;
@@ -66,6 +84,7 @@ language plpgsql security definer set search_path='' as $ifund$
 declare v_owner uuid;
 begin
  if not coalesce(public.ifund_current_user_is_verified_super_admin(),false)
+    or not coalesce(public.ifund_private_document_admin_session_valid(),false)
    or p_request_id is null or p_limit is null or p_limit not between 1 and 100 then
    raise exception 'Verified administrator and bounded request required' using errcode='42501';
  end if;
@@ -100,7 +119,8 @@ create or replace function public.ifund_super_admin_private_document_reviewed_qu
 returns table(request_id uuid, review_ready boolean)
 language plpgsql stable security definer set search_path='' as $ifund$
 begin
-  if not coalesce(public.ifund_current_user_is_verified_super_admin(),false) then
+  if not coalesce(public.ifund_current_user_is_verified_super_admin(),false)
+    or not coalesce(public.ifund_private_document_admin_session_valid(),false) then
     raise exception 'Verified super administrator required' using errcode='42501';
   end if;
   return query
