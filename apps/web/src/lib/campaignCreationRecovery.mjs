@@ -4,7 +4,7 @@
 import {campaignSetupPayload} from "../api/campaignSetup.js";
 
 const PREFIX="ifund-campaign-setup-recovery-v1";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const indexKey=owner=>PREFIX+":owner:"+encodeURIComponent(owner);
 
 function verifiedRecord(record,owner,campaignId=null){
