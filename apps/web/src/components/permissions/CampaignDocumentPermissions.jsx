@@ -55,7 +55,7 @@ function EnabledCampaignDocumentPermissions(){
       const docs=await listOwnerDocumentPermissions(client,{limit:PAGE_SIZE});
       if(!active||!await stillOwner(client,data.user.id,epoch))return;
       setRecords(docs);setHasMore(docs.length===PAGE_SIZE);setLoading(false);
-    })().catch(e=>{if(active){setRecords([]);setHasMore(false);setError(e.message||"Document permissions unavailable.");setLoading(false);}});
+    })().catch(e=>{if(active&&authEpoch.current===epoch){setRecords([]);setHasMore(false);setError(e.message||"Document permissions unavailable.");setLoading(false);}});
     return()=>{active=false;authEpoch.current+=1;ownerRef.current=null;subscription?.subscription?.unsubscribe();};
   },[refresh]);
 
