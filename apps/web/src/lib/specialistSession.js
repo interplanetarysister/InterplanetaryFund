@@ -6,13 +6,14 @@ const ACTIONS = Object.freeze({
   communications: ["workspace", "save", "drafts", "cancel", "prepare-send", "send"],
   connections: ["workspace", "methods", "grant-help", "requests", "change-selected"],
 });
+const SERVICE_IDS = Object.freeze({ strategy: "strategy_agent", growth: "growth_agent", communications: "communications_agent", connections: "managed_connection_agent" });
 const READS = new Set(["workspace", "subscription", "methods"]);
 const changed = () => new Error("Your account changed. Reopen this workspace before continuing.");
 
 // One service panel belongs permanently to one verified owner. Returning to the
 // same account never revives old requests or approval previews.
 export function createSpecialistSession({ client, ownerId, agent, fetcher = fetch, onInvalidate = () => {} }) {
-  if (!ACTIONS[agent] || !ownerId) throw Error("Choose an available specialist workspace.");
+  if (!Object.hasOwn(ACTIONS, agent) || !ownerId) throw Error("Choose an available specialist workspace.");
   let active = true;
   const controllers = new Set();
   const invalidate = () => {
@@ -53,7 +54,7 @@ export function createSpecialistSession({ client, ownerId, agent, fetcher = fetc
     try {
       // No await between the last synchronous guard and the network operation.
       assertActive();
-      const response = await fetcher("/api/agents/" + agent + "/" + name + (query ? "?" + query : ""), {
+      const response = await fetcher("/api/services/" + SERVICE_IDS[agent] + "/" + name + (query ? "?" + query : ""), {
         method: body === undefined ? "GET" : "POST",
         headers: { Authorization: "Bearer " + identity.data.session.access_token,
           ...(body === undefined ? {} : { "content-type": "application/json" }) },

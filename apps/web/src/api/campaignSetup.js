@@ -26,11 +26,12 @@ export function campaignSetupPayload(form={},draftStep=0){
     location:text(form.location,160),location_lat:coordinate(form.location_lat,90),location_lng:coordinate(form.location_lng,180),
     cover_image_is_ai:form.cover_image_is_ai===true,ai_profile:profile,story_versions:versions};
 }
-async function ownerFor(client,id){
+async function ownerFor(client,id,scope){
   if(!UUID.test(id||""))throw Error("Invalid campaign reference.");
   const {data,error}=await client.auth.getUser();
   if(error||!isVerifiedEmailUser(data?.user)||data.user.is_anonymous===true||!UUID.test(data.user.id))throw Error("Sign in with a confirmed account to save campaign setup details.");
   const owner=data.user.id;
+  if(scope){scope.assertActive();if(scope.ownerId!==owner)throw Error("The account changed while accessing your campaign setup.");}
   const lifecycle=await verifyAccountLifecycle(client,data.user);
   if(!lifecycle.ok)throw Error(lifecycle.message||"Account access could not be verified.");
   const parent=await client.from("ifund_campaigns").select("id,owner_id,status").eq("id",id).eq("owner_id",owner).maybeSingle();
@@ -45,17 +46,19 @@ async function sameOwner(client,owner){
 function assertRow(data,id,owner){
   if(data&&(data.campaign_id!==id||data.owner_id!==owner))throw Error("The campaign setup was not verified for your account.");
 }
-export async function loadCampaignSetup(client,id){
-  const owner=await ownerFor(client,id);
+export async function loadCampaignSetup(client,id,scope){
+  const owner=await ownerFor(client,id,scope);
+  scope?.assertActive();
   const {data,error}=await client.from("ifund_campaign_creation_state").select(SETUP_COLUMNS).eq("campaign_id",id).eq("owner_id",owner).maybeSingle();
   if(error)throw Error("Campaign setup details could not be loaded. Please retry before editing.");
   assertRow(data,id,owner);await sameOwner(client,owner);return data||null;
 }
-export async function saveCampaignSetup(client,id,form,step){
-  const owner=await ownerFor(client,id),payload=campaignSetupPayload(form,step);
+export async function saveCampaignSetup(client,id,form,step,scope){
+  const owner=await ownerFor(client,id,scope),payload=campaignSetupPayload(form,step);
   const existing=await client.from("ifund_campaign_creation_state").select("campaign_id,owner_id,updated_at").eq("campaign_id",id).eq("owner_id",owner).maybeSingle();
   if(existing.error)throw Error("Your campaign setup could not be checked before saving.");
   assertRow(existing.data,id,owner);await sameOwner(client,owner);
+  scope?.assertActive();
   let query=client.from("ifund_campaign_creation_state");
   if(existing.data){
     query=query.update({...payload,updated_at:new Date().toISOString()}).eq("campaign_id",id).eq("owner_id",owner);

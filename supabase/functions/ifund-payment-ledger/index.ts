@@ -25,8 +25,20 @@ async function db(path,method="GET",payload) {
   return value;
 }
 async function verifiedBody(req) {
-  const raw=await req.text();
-  if(raw.length>65536) throw new Error("Payload too large");
+  const maximum=65536, declared=req.headers.get("content-length");
+  if(declared!==null&&(!/^\d+$/.test(declared)||Number(declared)>maximum))
+    throw Object.assign(new Error("Payload too large"),{status:413});
+  const reader=req.body?.getReader();
+  if(!reader)throw new Error("Missing service body");
+  const chunks=[];let length=0;
+  try {
+    while(true){const {value,done}=await reader.read();if(done)break;
+      if(!(value instanceof Uint8Array))throw new Error("Invalid body stream");
+      length+=value.byteLength;if(length>maximum)throw Object.assign(new Error("Payload too large"),{status:413});chunks.push(value);
+    }
+  }catch(error){await reader.cancel().catch(()=>{});throw error;}finally{reader.releaseLock();}
+  const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+  const raw=new TextDecoder("utf-8",{fatal:true}).decode(bytes);
   const time=req.headers.get("x-ifund-timestamp")||"";
   const signature=req.headers.get("x-ifund-signature")||"";
   const tick=Number(time);

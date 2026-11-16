@@ -219,6 +219,7 @@ test("sending requires a current owner review and explicit runtime enablement, n
   const calls = [];
   const fetcher = async (url, init) => {
     calls.push([url, init.body ? JSON.parse(init.body) : null]);
+    if (url.endsWith("ifund_communications_delivery_contract")) return Response.json(2);
     return Response.json(
       url.includes("/ifund_ai_permission_preferences?") ? [{ allow_ai_campaign_drafts: true, allow_ai_outreach_drafts: true }] : url.endsWith("/user")
         ? { id: uid, email_confirmed_at: "today" }

@@ -4,6 +4,16 @@ import {readFileSync} from "node:fs";
 import {emptyWizard,restoreWizard,rememberWizard,forgetWizard,importGuestWizard,withStoryVersion} from "../src/lib/campaignWizard.js";
 import {campaignSetupPayload,loadCampaignSetup,saveCampaignSetup} from "../src/api/campaignSetup.js";
 const owner="11111111-1111-4111-8111-111111111111",other="22222222-2222-4222-8222-222222222222",campaign="33333333-3333-4333-8333-333333333333";
+
+test("wizard scope permanently blocks a setup write after the final version read",async()=>{
+ const h=clientFixture();let active=true;
+ const original=h.client.from.bind(h.client);
+ h.client.from=table=>{const query=original(table);if(table==='ifund_campaign_creation_state'){
+  const read=query.maybeSingle.bind(query);query.maybeSingle=async()=>{const result=await read();active=false;return result;};
+ }return query;};
+ await assert.rejects(saveCampaignSetup(h.client,campaign,emptyWizard(),2,{ownerId:owner,assertActive(){if(!active)throw Error('Account changed');}}),/Account changed/);
+ assert.equal(h.getState(),null);
+});
 function storage(){const rows=new Map();return {rows,getItem:key=>rows.get(key)||null,setItem:(key,value)=>rows.set(key,value),removeItem:key=>rows.delete(key)};}
 function clientFixture(){
   let user={id:owner,email_confirmed_at:"2026-11-15",is_anonymous:false},state=null;

@@ -5,6 +5,7 @@ import { uploadCampaignCover, validateCoverFile } from "@/api/campaignMedia";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { loadCampaignSetup, saveCampaignSetup, campaignSetupPayload } from "@/api/campaignSetup";
 import { WIZARD_STEPS, emptyWizard, restoreWizard, rememberWizard, forgetWizard, importGuestWizard, withStoryVersion } from "@/lib/campaignWizard";
+import { createOwnerSessionGuard } from "@/lib/ownerSessionGuard";
 import { createCampaignWritingRequests } from "@/lib/campaignWritingRequests";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
@@ -65,6 +66,16 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const storySectionsRef = useRef([]);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; writingRevision.current.invalidate(); writingLock.current = false; }; }, []);
+  const ownerScope=useRef(null);
+  useEffect(()=>{
+    if(!ownerId)return;
+    const scope=createOwnerSessionGuard(authClient().auth,ownerId,()=>{
+      alive.current=false;writingRevision.current.invalidate();
+      setError("Your account changed. Reload the campaign editor before continuing.");
+    });
+    ownerScope.current=scope;
+    return()=>{scope.dispose();if(ownerScope.current===scope)ownerScope.current=null;};
+  },[ownerId]);
   const [loadedDraftId, setLoadedDraftId] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
@@ -74,10 +85,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     let active = true;
     (async () => {
       try {
-        const data = await loadOwnerCampaign(authClient(), draftId);
+        const data = await loadOwnerCampaign(authClient(), draftId, ownerScope.current);
         if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
-        const setup=await loadCampaignSetup(authClient(),draftId);
-        if (active) {
+        const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
+        if (active && alive.current) {
           invalidateWriting();
           const restoredSetup=setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard();
           setWizard(restoredSetup);
@@ -424,14 +435,18 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       }
       const problems = validateCampaignForm(form, { publish: status === "active" });
       if (problems.length) { setError(problems[0]); return; }
+      const scope=ownerScope.current;
+      if(!scope)throw Error("Your account could not be verified. Reload before saving.");
+      scope.assertActive();
       const setupToSave=wizardSnapshot(wizardSaveStep.current??step);
-      const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status:"draft", expectedStatus: "draft" });
+      const data = await saveOwnerCampaign(client, form, { id: campaignId.current, status:"draft", expectedStatus: "draft", scope });
       // Set the receipt before routing so another click cannot insert a second
       // campaign while React is committing the new URL.
+      scope.assertActive();
       campaignId.current = data.id;
       setSaved(data.id);
-      await saveCampaignSetup(client,data.id,setupToSave,setupToSave.draft_step);
-      if(status==="active")await saveOwnerCampaign(client,form,{id:data.id,status:"active",expectedStatus:"draft"});
+      await saveCampaignSetup(client,data.id,setupToSave,setupToSave.draft_step,scope);
+      if(status==="active")await saveOwnerCampaign(client,form,{id:data.id,status:"active",expectedStatus:"draft",scope});
       if(!alive.current)return false;
       setSavedStatus(status);setProgressNotice("Campaign and setup progress saved to your account.");
       storyEditStarted.current=false;

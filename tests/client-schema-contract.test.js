@@ -36,7 +36,8 @@ const PENDING = [
   "supabase/migrations/20261115010000_ifund_ai_permission_preferences.sql",
   "supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",
   "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
-  "supabase/migrations/20261103192435_ifund_communications_preferences_20261103.sql",
+  "supabase/migrations/20261110_ifund_current_legal_terms_sync.sql",
+  "supabase/migrations/20261110225840_ifund_campaign_creation_state_20261110.sql",
 ];
 
 const PGlite = await loadPGlite();
@@ -202,6 +203,12 @@ const getDb = () =>
     `);
     await applyMigrations(db, COMMITTED_MIGRATIONS);
     await applyMigrations(db, PENDING);
+    // The restored preference migration requires the hosted lifecycle-aware
+    // owner policy, rather than the older owner-only initial-schema policy.
+    await db.exec(`alter policy ifund_profiles_update on public.ifund_profiles
+      using (id=(select auth.uid()) and public.ifund_current_account_is_active())
+      with check (id=(select auth.uid()) and public.ifund_current_account_is_active());`);
+    await applyMigrations(db, ["supabase/migrations/20261103192435_ifund_communications_preferences_20261103.sql"]);
     return db;
   })());
 

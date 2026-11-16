@@ -1,3 +1,5 @@
+BEGIN;
+
 -- SOURCE ONLY: additive; requires independent catalog/provider acceptance before application.
 -- Hosted catalog inspected 2026-11-16: no subscription intents or ledger rows and no atomic RPC.
 -- Preserve every historical row; never infer a provider resource or refund parent from timestamps.
@@ -237,3 +239,5 @@ begin
 end $$;
 revoke all on function public.ifund_apply_verified_subscription_event(jsonb) from public,anon,authenticated;
 grant execute on function public.ifund_apply_verified_subscription_event(jsonb) to service_role;
+
+COMMIT;

@@ -25,7 +25,7 @@ test("specialist transport uses the verified member token and fixed canonical ac
   const h = harness(); let published;
   await h.scope.run(api => api("brief", { request_id: A, objective: "Review my campaign" }), result => { published = result; });
   assert.deepEqual(published, { campaigns: [], recommendations: [] });
-  assert.equal(h.calls[0][0], "/api/agents/strategy/brief");
+  assert.equal(h.calls[0][0], "/api/services/strategy_agent/brief");
   assert.equal(h.calls[0][1].method, "POST");
   assert.equal(h.calls[0][1].headers.Authorization, "Bearer synthetic-user-token");
   assert.equal(JSON.parse(h.calls[0][1].body).owner_id, undefined);

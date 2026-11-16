@@ -168,13 +168,18 @@ export function communicationsMessages(input, context) {
     fail(413, "Shorten the message details before trying again.");
   return messages;
 }
+async function verifiedDeliveryContract(api) {
+  try { return await api.rpc("ifund_communications_delivery_contract") === 2; }
+  catch { return false; }
+}
+
 export async function communicationsRoute(request, env, fetcher = fetch) {
   const path = new URL(request.url).pathname;
   if (path === "/health")
     return reply(200, {
       service: "ifund-communications-agent",
       enabled: env.IFUND_COMMUNICATIONS_ENABLED === "enabled",
-      sending_in_app: env.IFUND_COMMUNICATIONS_SEND_ENABLED === "enabled",
+      sending_in_app: env.IFUND_COMMUNICATIONS_SEND_ENABLED === "enabled" && await verifiedDeliveryContract(api),
       email: false,
     });
   const action = path.startsWith("/api/agents/communications/")
@@ -208,7 +213,7 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
           await api.aiPermission("outreach", false),
         delivery_available:
           data.delivery_available === true &&
-          env.IFUND_COMMUNICATIONS_SEND_ENABLED === "enabled",
+          env.IFUND_COMMUNICATIONS_SEND_ENABLED === "enabled" && await verifiedDeliveryContract(api),
         email_available: false,
       });
     }
@@ -252,6 +257,7 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
       );
     }
     if (action === "prepare-send") {
+      if (!await verifiedDeliveryContract(api)) fail(503, "In-app sending is temporarily unavailable. Your messages remain saved as drafts.");
       shape(raw, ["preview_id", "items"]);
       if (!UUID.test(raw.preview_id || ""))
         fail(400, "A fresh message review is required.");
@@ -272,6 +278,7 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
           503,
           "Sending is not available in this preview. Your messages are saved as drafts.",
         );
+      if (!await verifiedDeliveryContract(api)) fail(503, "In-app sending is temporarily unavailable. Your messages remain saved as drafts.");
       return reply(
         200,
         await rpc("ifund_communications_send", {
