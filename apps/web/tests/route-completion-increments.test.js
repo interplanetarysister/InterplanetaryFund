@@ -116,9 +116,9 @@ test("unverified sessions cannot claim guest drafts or falsely acknowledge rejec
     "only email-verified identities can claim a guest draft");
   assert.match(composer, /const stored = rememberBrowserCampaign\(sessionStorage, null, form/,
     "guest save must retain the storage helper result");
-  assert.match(composer, /setBrowserSaved\(stored\)/,
+  assert.match(composer, /setBrowserSaved\(stored&&wizardStored\)/,
     "a rejected owner-mismatch write must not show a saved receipt");
-  assert.match(composer, /if \(!stored\) setError\(/,
+  assert.match(composer, /if \(!stored\|\|!wizardStored\) setError\(/,
     "rejected writes must provide a visible error");
 });
 
