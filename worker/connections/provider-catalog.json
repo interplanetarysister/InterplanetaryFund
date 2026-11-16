@@ -1,0 +1,394 @@
+{
+  "schema_version": 1,
+  "source_ref": "interplanetarysister/interplanetary-fund2@fb2afc64d72194c51c552bc7b5260a479d7566eb",
+  "source_sha256": "9ece5a317522a767b445b0057cde34c8dfbb136c0e7b4a6d8dfe0308afefa37f",
+  "providers": [
+    {
+      "id": "justgiving",
+      "name": "JustGiving",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/justgiving.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "gofundme",
+      "name": "GoFundMe",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/gofundme.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "kickstarter",
+      "name": "Kickstarter",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/kickstarter.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "indiegogo",
+      "name": "Indiegogo",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/indiegogo.png",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "fundrazr",
+      "name": "FundRazr",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/fundrazr.png",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "givesendgo",
+      "name": "GiveSendGo",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/givesendgo.png",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "kofi",
+      "name": "Ko-fi",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/kofi.svg",
+      "legacy_auth_hint": "token",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "buymeacoffee",
+      "name": "Buy Me a Coffee",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/buymeacoffee.svg",
+      "legacy_auth_hint": "token",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "patreon",
+      "name": "Patreon",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/patreon.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "spotfund",
+      "name": "Spotfund",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/spotfund.png",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "eventbrite",
+      "name": "Eventbrite",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/eventbrite.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "gumroad",
+      "name": "Gumroad",
+      "kind": "crowdfunding",
+      "logo": "/platform-logos/gumroad.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "custom",
+      "name": "Custom Campaign URL",
+      "kind": "crowdfunding",
+      "logo": null,
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "wordpress_com",
+      "name": "WordPress.com",
+      "kind": "social",
+      "logo": "/platform-logos/wordpress_com.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "bluesky",
+      "name": "Bluesky",
+      "kind": "social",
+      "logo": "/platform-logos/bluesky.svg",
+      "legacy_auth_hint": "multi",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "mastodon",
+      "name": "Mastodon",
+      "kind": "social",
+      "logo": "/platform-logos/mastodon.svg",
+      "legacy_auth_hint": "multi",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "facebook",
+      "name": "Facebook",
+      "kind": "social",
+      "logo": "/platform-logos/facebook.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "instagram",
+      "name": "Instagram",
+      "kind": "social",
+      "logo": "/platform-logos/instagram.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "threads",
+      "name": "Threads",
+      "kind": "social",
+      "logo": "/platform-logos/threads.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "x",
+      "name": "X (Twitter)",
+      "kind": "social",
+      "logo": "/platform-logos/x.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "linkedin",
+      "name": "LinkedIn",
+      "kind": "social",
+      "logo": "/platform-logos/linkedin.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "tiktok",
+      "name": "TikTok",
+      "kind": "social",
+      "logo": "/platform-logos/tiktok.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "pinterest",
+      "name": "Pinterest",
+      "kind": "social",
+      "logo": "/platform-logos/pinterest.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "reddit",
+      "name": "Reddit",
+      "kind": "social",
+      "logo": "/platform-logos/reddit.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "kind": "social",
+      "logo": "/platform-logos/youtube.svg",
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "kind": "social",
+      "logo": "/platform-logos/discord.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "gmail",
+      "name": "Gmail",
+      "kind": "app",
+      "logo": "/platform-logos/gmail.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googledrive",
+      "name": "Google Drive",
+      "kind": "app",
+      "logo": "/platform-logos/googledrive.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googlecalendar",
+      "name": "Google Calendar",
+      "kind": "app",
+      "logo": "/platform-logos/googlecalendar.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "google_contacts",
+      "name": "Google Contacts",
+      "kind": "app",
+      "logo": "/platform-logos/google_contacts.png",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "google_photos",
+      "name": "Google Photos",
+      "kind": "app",
+      "logo": "/platform-logos/google_photos.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googlesheets",
+      "name": "Google Sheets",
+      "kind": "app",
+      "logo": "/platform-logos/googlesheets.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googledocs",
+      "name": "Google Docs",
+      "kind": "app",
+      "logo": "/platform-logos/googledocs.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googleforms",
+      "name": "Google Forms",
+      "kind": "app",
+      "logo": "/platform-logos/googleforms.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "googletasks",
+      "name": "Google Tasks",
+      "kind": "app",
+      "logo": "/platform-logos/googletasks.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "kind": "app",
+      "logo": "/platform-logos/slack.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "kind": "app",
+      "logo": "/platform-logos/notion.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "outlook",
+      "name": "Outlook",
+      "kind": "app",
+      "logo": "/platform-logos/outlook.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "microsoft_teams",
+      "name": "Microsoft Teams",
+      "kind": "app",
+      "logo": "/platform-logos/microsoft_teams.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "one_drive",
+      "name": "OneDrive",
+      "kind": "app",
+      "logo": "/platform-logos/one_drive.png",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "kind": "app",
+      "logo": "/platform-logos/dropbox.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "kind": "app",
+      "logo": "/platform-logos/github.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "gitlab",
+      "name": "GitLab",
+      "kind": "app",
+      "logo": "/platform-logos/gitlab.svg",
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    }
+  ]
+}
