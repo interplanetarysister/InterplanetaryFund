@@ -21,14 +21,30 @@ export default function AdminDeletionQueue(){
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
-    Promise.all([
-      client.rpc("ifund_super_admin_account_deletion_queue",{p_limit:100}),
-      client.rpc("ifund_super_admin_private_document_reviewed_queue",{}),
-    ]).then(([queue,approvals])=>{
-      if(!alive)return;
+    let verifiedAdmin=null;
+    const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
+      if(!alive||!verifiedAdmin)return;
+      if(session?.user?.id!==verifiedAdmin){
+        setRows([]);setReviewed({});
+        setError("The administrative session changed. Reload to verify access.");
+        setLoading(false);
+      }
+    });
+    (async()=>{
+      const {data:before,error:beforeError}=await client.auth.getUser();
+      if(beforeError||!before?.user?.id)throw Error("Verified administrator required.");
+      verifiedAdmin=before.user.id;
+      const [queue,approvals]=await Promise.all([
+        client.rpc("ifund_super_admin_account_deletion_queue",{p_limit:100}),
+        client.rpc("ifund_super_admin_private_document_reviewed_queue",{}),
+      ]);
       if(queue.error||!Array.isArray(queue.data)||
          approvals.error||!Array.isArray(approvals.data))
-        throw new Error("The protected account-deletion review queue is unavailable.");
+        throw Error("The protected account-deletion review queue is unavailable.");
+      const {data:after,error:afterError}=await client.auth.getUser();
+      if(afterError||after?.user?.id!==verifiedAdmin)
+        throw Error("The administrative session changed during review.");
+      if(!alive)return;
       const ids=new Set(queue.data.map(item=>item.request_id));
       const status={};
       for(const item of approvals.data){
@@ -38,10 +54,10 @@ export default function AdminDeletionQueue(){
       setReviewed(status);
       setRows(queue.data);
       setLoading(false);
-    }).catch(cause=>{
+    })().catch(cause=>{
       if(alive){setRows([]);setReviewed({});setError(cause.message||"Queue unavailable.");setLoading(false);}
     });
-    return()=>{alive=false;};
+    return()=>{alive=false;subscription?.subscription?.unsubscribe();};
   },[refresh]);
 
   async function act(row,reviewOnly=false){
