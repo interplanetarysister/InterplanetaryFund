@@ -35,3 +35,11 @@ test('ordinary prose stays intact and state-only callbacks remain recognizable',
   const clean = 'https://example.test/callback?state=safe';
   assert.equal(redactTeamCredentials(clean), clean);
 });
+
+test('delimiterless nested capital-C code key fails closed without harming prose', () => {
+  for (const encodedKey of ['%43ode', '%2543ode', '%252543ode', '%25252543ode']) {
+    const url = `https://example.test/callback?state=x${encodedKey}=synthetic-secret-123`;
+    assert.ok(!redactTeamCredentials(url).includes(secret), `leaked ${encodedKey}`);
+  }
+  assert.equal(redactTeamCredentials('I wrote Code=example in prose.'), 'I wrote Code=example in prose.');
+});
