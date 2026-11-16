@@ -32,8 +32,8 @@ test("subscription ledger is durable, idempotent, and member scoped",()=>{
   assert.match(migration,/operation_key text not null unique/);
   assert.match(migration,/ifund_subscription_ledger_sign/);
   assert.match(migration,/using \(\(select auth\.uid\(\)\) = member_id\)/);
-  assert.match(edge,/paypal:subscription:payment:/);
-  assert.match(edge,/paypal:subscription:reversal:/);
+  assert.match(edge,/ifund_apply_verified_subscription_event/);
+  assert.match(edge,/Non-atomic subscription accounting is retired/);
   assert.match(edge,/subscription_event/);
 });
 
