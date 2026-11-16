@@ -15,7 +15,17 @@ const source = (path) => readFileSync(new URL("../" + path, import.meta.url), "u
 
 const campaign = (over = {}) => ({
   id: DRAFT_ID, owner_id: OWNER, title: "Plaza lights", summary: "Light the plaza.",
-  story: ("The community needs clearly documented support. We will track expenses and share updates with neighbors each month. ").repeat(35), category: "community", goal_amount: 1200,
+  // Publishing requires 3,500 characters in 2 paragraphs with 4 sentences
+  // apiece; fixtures must reflect the actual editorial gate rather than bypass it.
+  story: Array.from({ length: 2 }, (_, section) =>
+    Array.from({ length: 4 }, (_, sentence) =>
+      "Our organizers documented a real neighborhood need and will explain each planned budget item, " +
+      "with regular progress reports and careful public updates so contributors can assess the proposed work. " +
+      ("The volunteer team will share factual milestones and reviewed expenses with community members, " +
+       "without disclosing beneficiaries' private details or claiming guaranteed outcomes, ").repeat(6) +
+      "and will invite questions as new information becomes available."
+    ).join(" ")
+  ).join("\\n\\n"), category: "community", goal_amount: 1200,
   cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", ...over,
 });
 
