@@ -24,10 +24,20 @@ function useWithdrawalSession(authUser, onInvalidate) {
     scope.current = guard;
     return () => { guard.dispose(); if (scope.current === guard) scope.current = null; };
   }, [authUser.id]);
-  return useCallback(operation => {
-    if (!scope.current) return Promise.reject(new Error("Your account session is unavailable."));
-    return scope.current.run(operation);
-  }, []);
+  const runForOwner = useCallback(operation => {
+    const guard=scope.current;
+    if (!guard || guard.ownerId!==authUser.id) return Promise.reject(new Error("Your account session is unavailable."));
+    return guard.run(operation);
+  }, [authUser.id]);
+  const assertOwnerCurrent = useCallback(() => {
+    const guard=scope.current;
+    if (!guard || guard.ownerId!==authUser.id) throw new Error("Your account session changed.");
+    guard.assertActive();
+  }, [authUser.id]);
+  const ownerIsCurrent = useCallback(() => {
+    try { assertOwnerCurrent(); return true; } catch { return false; }
+  }, [assertOwnerCurrent]);
+  return [runForOwner, assertOwnerCurrent, ownerIsCurrent];
 }
 // The only user action here is an atomic, owner-only hold for payout REVIEW.
 // No money is disbursed by this UI; an independently verified provider clearing
@@ -42,7 +52,7 @@ function WithdrawalBalancePanel({ authUser }) {
   // Keep the original operation key across uncertain network responses. A fresh
   // key on every retry could create a second, separately valid funds hold.
   const pendingRequestKeys=useRef(new Map());
-  const runForOwner=useWithdrawalSession(authUser,()=>{
+  const [runForOwner,assertOwnerCurrent,ownerIsCurrent]=useWithdrawalSession(authUser,()=>{
     setState({phase:"error",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:"Your account changed. Reload before continuing."});
     setAmounts({});setAttest(false);setNotice("");setError("");pendingRequestKeys.current.clear();
   });
@@ -54,6 +64,7 @@ function WithdrawalBalancePanel({ authUser }) {
       client.rpc("ifund_owner_payout_readiness"),
       client.rpc("ifund_owner_payout_destination")
     ]));
+    assertOwnerCurrent();
     if(balances.error||requests.error||readiness.error||destination.error||!Array.isArray(balances.data)||
        !Array.isArray(requests.data)||!Array.isArray(readiness.data)||!Array.isArray(destination.data))
       throw Error("Provider-cleared withdrawal readiness could not be verified.");
@@ -61,32 +72,37 @@ function WithdrawalBalancePanel({ authUser }) {
     setState({phase:"ready",balances:balances.data,requests:requests.data,
       destination:destination.data[0]||null,payoutReady:gate.payout_account_ready===true,
       readinessReason:gate.readiness_reason||"",error:""});
-  },[runForOwner]);
+  },[runForOwner,assertOwnerCurrent]);
   useEffect(()=>{
-    refresh().catch(e=>setState({phase:"error",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:e.message}));
-  },[refresh]);
+    let active=true;
+    refresh().catch(e=>{if(active&&ownerIsCurrent())setState({phase:"error",balances:[],requests:[],destination:null,payoutReady:false,readinessReason:"",error:e.message});});
+    return()=>{active=false;};
+  },[refresh,ownerIsCurrent]);
   async function connectDestination() {
     if(busy||!attest)return;
     setBusy(true);setError("");setNotice("");
     try{
       const result=await runForOwner(()=>authClient().rpc("ifund_connect_paypal_payout_to_verified_email",{p_attest:true}));
+      assertOwnerCurrent();
       if(result.error||!Array.isArray(result.data)||!result.data[0]?.payouts_enabled)
         throw Error(result.error?.message||"PayPal payout destination could not be saved.");
       setAttest(false);
       await refresh();
+      assertOwnerCurrent();
       setNotice("Your verified IFund account email is now the PayPal payout recipient. PayPal will require any provider-side account verification before funds can settle.");
-    }catch(cause){setError(cause.message||"Unable to connect the payout destination.");}
-    finally{setBusy(false);}
+    }catch(cause){if(ownerIsCurrent())setError(cause.message||"Unable to connect the payout destination.");}
+    finally{if(ownerIsCurrent())setBusy(false);}
   }
   async function disconnectDestination() {
     if(busy)return;
     setBusy(true);setError("");setNotice("");
     try{
       const result=await runForOwner(()=>authClient().rpc("ifund_disconnect_paypal_payout_destination"));
+      assertOwnerCurrent();
       if(result.error||result.data!==true)throw Error(result.error?.message||"Payout destination could not be disconnected.");
-      await refresh();setNotice("The PayPal payout destination was disabled.");
-    }catch(cause){setError(cause.message||"Unable to disconnect the payout destination.");}
-    finally{setBusy(false);}
+      await refresh();assertOwnerCurrent();setNotice("The PayPal payout destination was disabled.");
+    }catch(cause){if(ownerIsCurrent())setError(cause.message||"Unable to disconnect the payout destination.");}
+    finally{if(ownerIsCurrent())setBusy(false);}
   }
   async function requestWithdrawal(item) {
     if(busy||!state.payoutReady)return;
@@ -106,23 +122,26 @@ function WithdrawalBalancePanel({ authUser }) {
       const result=await runForOwner(()=>authClient().rpc("ifund_request_withdrawal",{
         p_campaign_id:item.campaign_id,p_gross_cents:gross,p_request_key:requestKey
       }));
+      assertOwnerCurrent();
       if(result.error||!result.data)throw Error(result.error?.message||"Withdrawal reservation was not confirmed.");
       setAmounts(v=>({...v,[item.campaign_id]:""}));
       await refresh();
+      assertOwnerCurrent();
       pendingRequestKeys.current.delete(requestIdentity);
       setNotice("Withdrawal reserved for review. The 7% platform fee is calculated server-side; no payout has been sent yet.");
-    }catch(cause){setError(cause.message||"Unable to reserve the withdrawal.");}
-    finally{setBusy(false);}
+    }catch(cause){if(ownerIsCurrent())setError(cause.message||"Unable to reserve the withdrawal.");}
+    finally{if(ownerIsCurrent())setBusy(false);}
   }
 
   async function cancel(id) {
     if(busy)return;setBusy(true);setError("");setNotice("");
     try{
       const result=await runForOwner(()=>authClient().rpc("ifund_cancel_withdrawal_request",{p_withdrawal_id:id}));
+      assertOwnerCurrent();
       if(result.error||result.data!==true)throw Error(result.error?.message||"Cancellation not confirmed.");
-      await refresh();setNotice("The pending reservation was cancelled. No transfer was sent.");
-    }catch(cause){setError(cause.message||"Unable to cancel the request.");}
-    finally{setBusy(false);}
+      await refresh();assertOwnerCurrent();setNotice("The pending reservation was cancelled. No transfer was sent.");
+    }catch(cause){if(ownerIsCurrent())setError(cause.message||"Unable to cancel the request.");}
+    finally{if(ownerIsCurrent())setBusy(false);}
   }
   return <section className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6">
     <h2 className="text-xl font-bold">Step 3: Verified available funds</h2>
@@ -211,7 +230,7 @@ function WithdrawalMfaGate({ authUser }) {
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const runForOwner = useWithdrawalSession(authUser, () => {
+  const [runForOwner,assertOwnerCurrent,ownerIsCurrent] = useWithdrawalSession(authUser, () => {
     setState("error");setFactor(null);setEnrollment(null);setCode("");setError("");
   });
   const inspect = useCallback(async () => {
@@ -220,6 +239,7 @@ function WithdrawalMfaGate({ authUser }) {
       auth.mfa.getAuthenticatorAssuranceLevel(),
       auth.mfa.listFactors(),
     ]));
+    assertOwnerCurrent();
     if (assurance.error) throw assurance.error;
     if (factors.error) throw factors.error;
     if (assurance.data?.currentLevel === "aal2") {
@@ -229,17 +249,18 @@ function WithdrawalMfaGate({ authUser }) {
       if (verified) { setFactor(verified); setState("challenge"); }
       else setState("enroll");
     }
-  }, [runForOwner]);
+  }, [runForOwner, assertOwnerCurrent]);
   useEffect(() => {
     let live = true;
-    inspect().catch(() => { if (live) setState("error"); });
+    inspect().catch(() => { if (live && ownerIsCurrent()) setState("error"); });
     return () => { live = false; };
-  }, [inspect]);
+  }, [inspect, ownerIsCurrent]);
   async function beginEnrollment() {
     if (busy) return;
     setBusy(true); setError("");
     try {
       const result = await runForOwner(() => authClient().auth.mfa.enroll({ factorType: "totp" }));
+      assertOwnerCurrent();
       if (result.error) throw result.error;
       if (!result.data?.id || !result.data?.totp?.secret)
         throw new Error("Authenticator setup did not return an enrollment.");
@@ -250,8 +271,8 @@ function WithdrawalMfaGate({ authUser }) {
       });
       setState("confirm-enrollment");
     } catch (cause) {
-      setError(cause.message || "Authenticator setup is unavailable.");
-    } finally { setBusy(false); }
+      if(ownerIsCurrent())setError(cause.message || "Authenticator setup is unavailable.");
+    } finally { if(ownerIsCurrent())setBusy(false); }
   }
   async function verifyCode(event) {
     event.preventDefault();
@@ -260,11 +281,12 @@ function WithdrawalMfaGate({ authUser }) {
     setBusy(true); setError("");
     try {
       await runForOwner(() => confirmWithdrawalFactor(authClient().auth, authUser, factorId, code.trim()));
+      assertOwnerCurrent();
       setCode(""); setEnrollment(null);
       setState("verified");
     } catch (cause) {
-      setError(cause.message || "The authenticator code was not accepted.");
-    } finally { setBusy(false); }
+      if(ownerIsCurrent())setError(cause.message || "The authenticator code was not accepted.");
+    } finally { if(ownerIsCurrent())setBusy(false); }
   }
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-6">
     <h2 className="text-xl font-semibold">Step 2: Two-factor authentication</h2>

@@ -13,6 +13,13 @@ export function createAdminReviewSession(onInvalidate = () => {}) {
     get active() { return active; },
     get ownerId() { return ownerId; },
     invalidate,
+    assertActive() {
+      if (!active || !ownerId) throw Error("The administrative session changed. Reload to verify access.");
+    },
+    publish(consume) {
+      this.assertActive();
+      return consume();
+    },
     observe(userId) {
       observedId = userId || null;
       if (ownerId && observedId !== ownerId) invalidate();
@@ -38,7 +45,8 @@ export function createAdminReviewSession(onInvalidate = () => {}) {
 
 export async function runAdminReview(scope, client, operation) {
   await scope.verify(client);
-  const result = await operation();
+  // Auth callbacks may run between the verification promise and this continuation.
+  const result = await scope.publish(operation);
   await scope.verify(client);
-  return result;
+  return scope.publish(() => result);
 }
