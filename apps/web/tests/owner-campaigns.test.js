@@ -20,12 +20,12 @@ const campaign = (over = {}) => ({
   story: Array.from({ length: 2 }, (_, section) =>
     Array.from({ length: 4 }, (_, sentence) =>
       "Our organizers documented a real neighborhood need and will explain each planned budget item, " +
-      "with regular progress reports and careful public updates so contributors can assess the proposed work. " +
+      "with regular progress reports and careful public updates so contributors can assess the proposed work, " +
       ("The volunteer team will share factual milestones and reviewed expenses with community members, " +
        "without disclosing beneficiaries' private details or claiming guaranteed outcomes, ").repeat(6) +
       "and will invite questions as new information becomes available."
     ).join(" ")
-  ).join("\\n\\n"), category: "community", goal_amount: 1200,
+  ).join("\n\n"), category: "community", goal_amount: 1200,
   cover_image_url: "", status: "draft", created_at: "2026-11-01T10:00:00Z", ...over,
 });
 
