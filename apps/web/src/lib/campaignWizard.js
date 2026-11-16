@@ -36,7 +36,7 @@ export function importGuestWizard(storage,owner){
   let record;try{record=JSON.parse(raw);}catch{return false;}
   if(record?.version!==1||record.owner_id!==null||record.campaign_id!==null)return false;
   if(!rememberWizard(storage,owner,null,record.setup))return false;
-  try{storage.removeItem(keyFor(null,null));}catch{return false;}return true;
+  try{storage.removeItem(keyFor(null,null));return storage.getItem(keyFor(null,null))===null;}catch{return false;}
 }
 export function withStoryVersion(setup,story,now=()=>new Date().toISOString()){
   if(typeof story!=="string"||!story.trim()||setup.story_versions?.at(-1)?.text===story)return setup;
