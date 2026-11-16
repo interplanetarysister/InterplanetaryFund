@@ -128,6 +128,26 @@ $$;
 revoke all on function public.ifund_campaign_agent_document_briefs(uuid) from public,anon;
 grant execute on function public.ifund_campaign_agent_document_briefs(uuid) to authenticated;
 
+-- Atomic owner-wide revocation used by My Account. Return an actual affected-row
+-- count without PostgREST's default response cap; security invoker preserves
+-- the table's active-account and ownership RLS. No file bytes are affected.
+create or replace function public.ifund_campaign_documents_revoke_all_agent_use()
+returns integer language plpgsql security invoker set search_path='' as $revoke$
+declare
+  v_owner uuid:=(select auth.uid());
+  v_count integer;
+begin
+  if v_owner is null then raise exception 'Verified campaign owner required' using errcode='42501'; end if;
+  update public.ifund_campaign_documents d
+    set allow_agent_use=false
+    where d.owner_id=v_owner and d.allow_agent_use=true
+      and d.deletion_requested_at is null;
+  get diagnostics v_count=row_count;
+  return v_count;
+end $revoke$;
+revoke all on function public.ifund_campaign_documents_revoke_all_agent_use() from public,anon;
+grant execute on function public.ifund_campaign_documents_revoke_all_agent_use() to authenticated;
+
 -- Serialize per-campaign inserts so concurrent clients cannot exceed the free
 -- storage allowance; do not let deleting a campaign orphan private Storage objects.
 create or replace function public.ifund_campaign_documents_guard()
