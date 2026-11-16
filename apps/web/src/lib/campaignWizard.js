@@ -15,7 +15,9 @@ export function rememberWizard(storage,owner,campaign,setup){
     const key=keyFor(owner,campaign),raw=storage.getItem(key);
     if(raw){let previous;try{previous=JSON.parse(raw);}catch{return false;}
       if(previous?.version!==1||previous.owner_id!==(owner||null)||previous.campaign_id!==(campaign||null))return false;}
-    storage.setItem(key,JSON.stringify({version:1,owner_id:owner||null,campaign_id:campaign||null,setup:campaignSetupPayload(setup,setup.draft_step)}));return true;
+    const serialized=JSON.stringify({version:1,owner_id:owner||null,campaign_id:campaign||null,setup:campaignSetupPayload(setup,setup.draft_step)});
+    storage.setItem(key,serialized);
+    return storage.getItem(key)===serialized;
   }catch{return false;}
 }
 export function forgetWizard(storage,owner,campaign=null){
