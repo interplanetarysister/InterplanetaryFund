@@ -619,7 +619,7 @@ async function webhook(req,env) {
     if(kind==="PAYMENT.CAPTURE.REFUNDED"
       &&(!ORDER_ID.test(refundId||"")||refundId===captureId||refundId===payload.id))
       return asError("capture_refund_identity_unverified",409);
-    if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||"")
+    if(!ORDER_ID.test(captureId||"")||!PAYPAL_EVENT_ID.test(String(payload.id||""))
       ||(linked&&related&&linked!==related)||linkedCaptures.size>1)
       return asError("reversal_reference_missing",409);
     // Supabase requires a verified amount to reject partial or mismatched reversals.
