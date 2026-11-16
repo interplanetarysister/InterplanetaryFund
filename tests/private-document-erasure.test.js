@@ -179,3 +179,13 @@ test("admin queue does not expose prior administrator requests after session cha
   assert.match(source,/after\?\.user\?\.id!==verifiedAdmin/);
   assert.match(source,/subscription\?\.subscription\?\.unsubscribe/);
 });
+
+test("active Supabase session is required for every destructive admin RPC",()=>{
+ const sql=readFileSync(new URL("../supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql",import.meta.url),"utf8");
+ assert.match(sql,/from auth\.sessions s/);
+ assert.match(sql,/s\.user_id=auth\.uid\(\)/);
+ assert.match(sql,/s\.not_after is null or s\.not_after>now\(\)/);
+ assert.match(sql,/auth\.jwt\(\)->>'session_id'/);
+ assert.equal((sql.match(/or not coalesce\(public\.ifund_private_document_admin_session_valid\(\),false\)/g)||[]).length,3);
+ assert.match(sql,/revoke all on function public\.ifund_private_document_admin_session_valid\(\) from public,anon,authenticated/);
+});
