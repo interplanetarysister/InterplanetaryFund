@@ -10,7 +10,7 @@ import {
   WritingHandoffError,
 } from "@/lib/writingCampaignHandoff";
 
-export default function StoryAgent() {
+export default function StoryAgent({initialCampaignId=null}) {
   const navigate = useNavigate();
   const [details, setDetails] = useState("");
   const [section, setSection] = useState("");
@@ -155,6 +155,10 @@ export default function StoryAgent() {
         setDrafts(result.drafts);
         if (result.queued_requests) setQueuedRequests(result.queued_requests);
         setCampaigns(owned);
+        // Only select URL-provided campaign context after the owner list has
+        // proven that the signed-in account manages this campaign.
+        if(initialCampaignId&&Array.isArray(owned)&&owned.some(item=>item.id===initialCampaignId))
+          setCampaignId(initialCampaignId);
       }
     })()
       .catch((err) => {
