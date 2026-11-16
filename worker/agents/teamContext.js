@@ -16,7 +16,7 @@ export function redactTeamCredentials(value) {
       url => {
         // A percent-encoded key without a delimiter may be concatenated to
         // another parameter during normalization. Never preserve that URL.
-        if (/%(?:25)*63ode(?:=|%(?:25)*3d)/i.test(url))
+        if (/%(?:25)*(?:63|43)ode(?:=|%(?:25)*3d)/i.test(url))
           return '[redacted credential URL]';
         // Normalize nested query encodings. Treat authorization codes and
         // aliases as credentials; leave non-secret parameters intact.
