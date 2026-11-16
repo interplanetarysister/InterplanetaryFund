@@ -2,28 +2,9 @@ name: IFund isolated private-document security tests
 
 # Source acceptance only. Never builds, deploys, publishes, or uses secrets.
 # Existing manual Pages release gate remains unchanged.
+# GitHub-hosted runners unavailable through November 2026. No push-triggered
+# jobs; keep the suite available for explicit dispatch after runner capacity returns.
 on:
-  push:
-    branches:
-      - feature/route-completion-20261113
-    paths:
-      - '.github/workflows/ifund-document-security-tests.yml'
-      - 'supabase/migrations/20261115095000_ifund_campaign_private_documents.sql'
-      - 'supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql'
-      - 'worker/services/privateDocumentErasure.js'
-      - 'worker/agents/teamContext.js'
-      - 'worker/agents/story.js'
-      - 'apps/web/src/api/campaignDocuments.js'
-      - 'apps/web/src/pages/ManagePermissions.jsx'
-      - 'apps/web/src/components/permissions/CampaignDocumentPermissions.jsx'
-      - 'apps/web/src/components/campaigns/CampaignDocuments.jsx'
-      - 'apps/web/src/components/agents/AgentDocumentReferences.jsx'
-      - 'apps/web/src/lib/legalPolicy.js'
-      - 'apps/web/src/mobile/MobileStoreDeleteAccount.jsx'
-      - 'tests/*document*.test.js'
-      - 'tests/team-context*.test.js'
-      - 'apps/web/tests/campaign-document*.test.js'
-      - 'apps/web/tests/campaign-documents.test.js'
   workflow_dispatch:
 
 permissions:
