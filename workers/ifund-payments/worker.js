@@ -670,7 +670,7 @@ async function captureOrder(req,env) {
 export default {
   async fetch(request,env) {
     const url=new URL(request.url),origin=request.headers.get("origin")||"";
-    const permitted=String(env.IFUND_ALLOWED_ORIGINS||"").split(",").map(x=>x.trim());
+    const permitted=String(env.IFUND_ALLOWED_ORIGINS||"").split(",").map(x=>x.trim()).filter(Boolean);
     const cors=permitted.includes(origin)?{"access-control-allow-origin":origin,"vary":"Origin",
       "access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"Content-Type,Authorization"}:{};
     if(request.method==="OPTIONS")return new Response(null,{status:permitted.includes(origin)?204:403,headers:cors});
