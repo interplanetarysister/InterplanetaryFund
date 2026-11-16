@@ -40,6 +40,20 @@ export async function loadComponent(entry) {
     mainFields: ["module", "main"],
     alias: { "@": path.join(webRoot, "src") },
     external: ["react", "react-dom", "react/jsx-runtime", "react-router", "react-router-dom"],
+    // SSR snapshots do not execute OS sharing. The native bridge is packaged
+    // only in independently built Capacitor apps, not this Node test runner.
+    plugins: entry.endsWith("CampaignShareButton.jsx") ? [{
+      name: "server-render-native-bridge",
+      setup(builder) {
+        builder.onResolve({ filter: /nativeApi$/ }, () => ({
+          path: "native-bridge", namespace: "ifund-ssr"
+        }));
+        builder.onLoad({ filter: /.*/, namespace: "ifund-ssr" }, () => ({
+          contents: 'export const isNativeBundle=()=>false; export async function shareWithDevice(){throw Error("Native sharing unavailable in SSR");}',
+          loader: "js",
+        }));
+      },
+    }] : [],
     logLevel: "silent",
   });
   stubBrowserGlobals();

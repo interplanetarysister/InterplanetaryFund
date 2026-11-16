@@ -57,16 +57,17 @@ test("withdrawal is paid only from provider item SUCCESS and fee is realized at 
   assert.match(worker,/cents\(amount\.value\)!==Number\(expected\.net_cents\)/);
 });
 
-test("scheduled recovery reconciles pending and ambiguous payouts with the same provider identity",()=>{
+test("scheduled recovery reads pending payouts but never retries uncertain provider transfers",()=>{
   assert.match(worker,/payout_pending/);
   assert.match(worker,/retryApprovedPayout/);
-  assert.match(worker,/current_status==="provider_status_unknown"/);
+  assert.match(worker,/payout\.current_status==="provider_status_unknown"/);
   assert.match(worker,/MANUAL_PROVIDER_RECONCILIATION_REQUIRED/);
-  const retry = worker.slice(worker.indexOf("async function retryApprovedPayout("), worker.indexOf("async function reconcilePendingPayouts("));
-  assert.doesNotMatch(retry,/\/v1\/payments\/payouts["'],\s*["']POST/);
-  assert.match(worker,/sender_batch_id:payout\.sender_batch_id/);
+  assert.match(worker,/if\(payout\.payout_batch_id\)/);
   assert.match(worker,/async scheduled\(_event,env,ctx\)/);
   assert.match(worker,/ctx\.waitUntil\(reconcilePendingPayouts\(env\)\)/);
+  const retry=worker.slice(worker.indexOf("async function retryApprovedPayout"),worker.indexOf("async function reconcilePendingPayouts"));
+  assert.doesNotMatch(retry,/executePayout\(/);
+  assert.doesNotMatch(retry,/\/v1\/payments\/payouts[^-]/);
 });
 
 test("PayPal payout webhooks are signature-gated and independently reconciled",()=>{
