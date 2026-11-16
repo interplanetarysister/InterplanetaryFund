@@ -1,5 +1,6 @@
 import { serviceCatalog } from "./catalog.js";
 import { campaignPreview } from "./campaign-preview.js";
+import { handlePrivateDocumentErasure } from "./privateDocumentErasure.js";
 
 const json = (status, data) =>
   Response.json(data, { status, headers: { "cache-control": "no-store" } });
@@ -7,6 +8,8 @@ const json = (status, data) =>
 /** Permanent service addresses are independent of the worker/model that performs the service. */
 export async function serviceGateway(request, env) {
   const path = new URL(request.url).pathname;
+  if (path === "/api/services/admin/private-document-erasure")
+    return handlePrivateDocumentErasure(request, env);
   if (path === "/api/services/story_agent/campaign-preview")
     return campaignPreview(request, env);
   if (path === "/api/services/status") {
