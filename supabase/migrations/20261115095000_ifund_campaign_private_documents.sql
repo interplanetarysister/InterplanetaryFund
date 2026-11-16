@@ -26,6 +26,7 @@ create table if not exists public.ifund_campaign_documents (
   extracted_text text not null default '' check(length(extracted_text)<=6000),
   owner_excerpt text not null default '' check(length(owner_excerpt)<=4000),
   allow_agent_use boolean not null default false,
+  deletion_requested_at timestamptz,
   created_at timestamptz not null default now(),
   unique(owner_id,campaign_id,id),
   check(storage_path=owner_id::text||'/'||campaign_id::text||'/'||id::text||'.'||
@@ -33,14 +34,15 @@ create table if not exists public.ifund_campaign_documents (
       when 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' then 'docx'
       when 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' then 'xlsx'
       when 'text/plain' then 'txt' when 'text/markdown' then 'md' when 'text/csv' then 'csv' end),
-  check(not allow_agent_use or length(btrim(agent_summary))>=20)
+  check(not allow_agent_use or length(btrim(agent_summary))>=20),
+  check(deletion_requested_at is null or allow_agent_use=false)
 );
 create index if not exists ifund_campaign_documents_owner_campaign_idx
   on public.ifund_campaign_documents(owner_id,campaign_id,created_at desc);
 alter table public.ifund_campaign_documents enable row level security;
 revoke all on public.ifund_campaign_documents from public,anon,authenticated;
 grant select,insert,delete on public.ifund_campaign_documents to authenticated;
-grant update(allow_agent_use,agent_summary,purpose,owner_excerpt) on public.ifund_campaign_documents to authenticated;
+grant update(allow_agent_use,agent_summary,purpose,owner_excerpt,deletion_requested_at) on public.ifund_campaign_documents to authenticated;
 
 create or replace function public.ifund_owns_campaign_document_context(p_owner uuid,p_campaign uuid)
 returns boolean language sql stable security definer set search_path='' as $$
@@ -122,7 +124,7 @@ select coalesce(jsonb_agg(jsonb_build_object(
 ) order by d.created_at desc),'[]'::jsonb)
 from (select * from public.ifund_campaign_documents
       where campaign_id=p_campaign_id and owner_id=(select auth.uid())
-        and allow_agent_use=true order by created_at desc limit 6) d;
+        and deletion_requested_at is null and allow_agent_use=true order by created_at desc limit 6) d;
 $$;
 revoke all on function public.ifund_campaign_agent_document_briefs(uuid) from public,anon;
 grant execute on function public.ifund_campaign_agent_document_briefs(uuid) to authenticated;
@@ -164,6 +166,27 @@ revoke all on function public.ifund_campaign_documents_guard() from public,anon,
 drop trigger if exists ifund_campaign_documents_guard_insert on public.ifund_campaign_documents;
 create trigger ifund_campaign_documents_guard_insert before insert on public.ifund_campaign_documents
   for each row execute function public.ifund_campaign_documents_guard();
+
+-- A deletion request is irreversible through the browser. An owner may
+-- finish cleaning up Storage or an authorized erasure worker may do so.
+create or replace function public.ifund_campaign_document_deletion_guard()
+returns trigger language plpgsql security definer set search_path='' as $
+begin
+  if old.deletion_requested_at is not null then
+    if new.deletion_requested_at is distinct from old.deletion_requested_at
+      or new.allow_agent_use is distinct from false
+      or new.owner_excerpt is distinct from old.owner_excerpt
+      or new.agent_summary is distinct from old.agent_summary
+      or new.purpose is distinct from old.purpose then
+      raise exception 'Document deletion already requested' using errcode='23514';
+    end if;
+  end if;
+  return new;
+end $;
+revoke all on function public.ifund_campaign_document_deletion_guard() from public,anon,authenticated;
+drop trigger if exists ifund_campaign_document_deletion_guard on public.ifund_campaign_documents;
+create trigger ifund_campaign_document_deletion_guard before update on public.ifund_campaign_documents
+  for each row execute function public.ifund_campaign_document_deletion_guard();
 
 create or replace function public.ifund_campaign_documents_prevent_orphans()
 returns trigger language plpgsql security definer set search_path='' as $$
