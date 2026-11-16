@@ -9,14 +9,15 @@ const secret = 'synthetic-secret-123';
 const keys = [
   'code', '%63ode', '%2563ode', '%252563ode', '%25252563ode',
   '%2525252563ode', 'Code', 'CODE', '%43ode', '%2563ODE',
-  'oauth_code', 'oauth%5Fcode'
+  'oauth_code', 'oauth%5Fcode', 'auth_code', 'authorization_code',
+  'auth%5Fcode', 'authorization%5Fcode'
 ];
 const separators = [
   '&', '&amp;', '&amp;amp;', '&#38;', '%26', '%2526',
   '%252526', ';', '%3B', '%253B'
 ];
 
-test('all 120 encoded callback variants remove authorization-code secrets', async t => {
+test('all encoded callback variants remove authorization-code secrets', async t => {
   for (const key of keys) {
     for (const separator of separators) {
       await t.test(`key=${key}, separator=${separator}`, () => {
