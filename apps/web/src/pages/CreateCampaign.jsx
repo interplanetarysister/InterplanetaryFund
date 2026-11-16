@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover, validateCoverFile } from "@/api/campaignMedia";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
 import { loadCampaignSetup, saveCampaignSetup, campaignSetupPayload } from "@/api/campaignSetup";
 import { WIZARD_STEPS, emptyWizard, restoreWizard, rememberWizard, forgetWizard, importGuestWizard, withStoryVersion } from "@/lib/campaignWizard";
+import AgentFeatureLauncher from "@/components/agents/AgentFeatureLauncher";
+import {rememberPendingCampaignSetup,pendingCampaignSetup,clearPendingCampaignSetup} from "@/lib/campaignCreationRecovery.mjs";
 import { createOwnerSessionGuard } from "@/lib/ownerSessionGuard";
 import { createCampaignWritingRequests } from "@/lib/campaignWritingRequests";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
@@ -37,6 +39,10 @@ function NewCampaign({ draftId = null }) {
   // Anonymous Supabase sessions are guests, not durable draft owners.
   // Keep their browser draft eligible for handoff after email verification.
   const ownerId = session.user?.is_anonymous === true || !session.user?.email_confirmed_at ? null : (session.user?.id || null);
+  // Recover an owned campaign row saved before separate setup metadata.
+  let pending=null;
+  if(ownerId&&!draftId){try{pending=pendingCampaignSetup(sessionStorage,ownerId);}catch{}}
+  if(pending)return <MemberAccess><Navigate to={"/create?draft="+encodeURIComponent(pending.campaignId)} replace /></MemberAccess>;
   // Reset all unsaved form and assistant state on account changes, preserving
   // only the explicit guest-to-first-owner handoff in scoped browser storage.
   return <CampaignComposer key={(draftId || "new") + ":" + (ownerId || "guest")} ownerId={ownerId} memberAccess={Boolean(draftId)} />;
@@ -90,7 +96,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
         if (active && alive.current) {
           invalidateWriting();
-          const restoredSetup=setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard();
+          const localRecovery=ownerId?pendingCampaignSetup(sessionStorage,ownerId,draftId):null;
+           const restoredSetup=localRecovery?.setup||(setup?campaignSetupPayload(setup,setup.draft_step):emptyWizard());
+           if(localRecovery)setProgressNotice("Your campaign is saved. Recovered setup changes still need Save private draft to confirm them to your account.");
           setWizard(restoredSetup);
           const brief=restoredSetup.ai_profile.writing_brief;
           setWritingPath(CAMPAIGN_WRITING_PATHS.some(path=>path.id===brief.writingPath)?brief.writingPath:"write");
@@ -445,6 +453,8 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       scope.assertActive();
       campaignId.current = data.id;
       setSaved(data.id);
+      const recoveryStored=rememberPendingCampaignSetup(sessionStorage,ownerId,data.id,setupToSave);
+      if(!recoveryStored)setAutosaveError("Campaign details saved, but setup recovery could not be stored in this browser. Keep this page open until setup saving succeeds.");
       await saveCampaignSetup(client,data.id,setupToSave,setupToSave.draft_step,scope);
       if(status==="active")await saveOwnerCampaign(client,form,{id:data.id,status:"active",expectedStatus:"draft",scope});
       if(!alive.current)return false;
@@ -456,7 +466,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       let browserCleanupFailed = false;
       try {
         const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
-        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id);
+        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id)&&clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
         browserCleanupFailed = !cleared||!wizardCleared;
         if (browserCleanupFailed) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. It may contain private information on this device. Review browser storage before using a shared device.");
         else setAutosaveError("");
@@ -486,6 +496,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
+    <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
     {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
     {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
@@ -605,7 +616,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         {coverUploading && <p role="status" className="text-sm text-blue-700">Uploading cover image securely… Saving and publishing are temporarily disabled.</p>}
         {coverUploadMessage && <p role="status" className="text-sm text-emerald-700">{coverUploadMessage}</p>}
         <label className="block text-sm font-semibold">Or paste an image URL
-          <input type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
+          <input id="campaign-cover-url" type="url" maxLength={COVER_URL_MAX} value={form.cover_image_url}
             onChange={event => { change("cover_image_url",event.target.value); setCoverUploadMessage(""); }}
             className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" />
         </label>
@@ -623,12 +634,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </form>
       {error && <p role="alert" className="text-destructive">{error}</p>}
       {browserSaved && <p role="status" className="rounded-xl border border-cyan-500/40 p-4">Draft saved in this browser tab only. It has not been uploaded or published. Keep this tab open until your account is linked.</p>}
-      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={`/campaign/${encodeURIComponent(saved)}`} className="underline">View saved campaign</Link></p>}
+      {saved && !loadingDraft && !draftLoadError && <p role="status" className="rounded-xl border border-border p-4">{savedStatus === "active" ? "Campaign published to your account." : "Private draft saved to your account."} <Link to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`} className="underline">{savedStatus==="active"?"View published campaign":"Reopen saved draft"}</Link></p>}
 
     {step===2&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
     {step===3&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"Add a short description before publishing."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
     <div hidden={step!==3}><CampaignReadinessScore form={form} /></div>
-    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
+    {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>{savedStatus==="active"?"View published campaign":"Reopen saved draft"}</Link>}</div>}
     <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} /></div>
     <section hidden={step!==3} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
