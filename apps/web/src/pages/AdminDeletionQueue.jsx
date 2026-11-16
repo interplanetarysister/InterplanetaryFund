@@ -10,6 +10,10 @@ export default function AdminDeletionQueue(){
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [refresh,setRefresh]=useState(0);
+  const [selected,setSelected]=useState("");
+  const [reviewNote,setReviewNote]=useState("");
+  const [processing,setProcessing]=useState("");
+  const [notice,setNotice]=useState("");
   useEffect(()=>{
     let alive=true;
     setLoading(true);setError("");setRows([]);
@@ -23,6 +27,47 @@ export default function AdminDeletionQueue(){
     }).catch(cause=>{if(alive){setRows([]);setError(cause.message||"Queue unavailable.");setLoading(false);}});
     return()=>{alive=false;};
   },[refresh]);
+
+  async function act(row,reviewOnly=false){
+    if(processing)return;
+    if(!reviewOnly&&!window.confirm("Permanently remove this reviewed account's private campaign document files? This is irreversible and does not complete financial or account deletion."))return;
+    setProcessing(row.request_id);setError("");setNotice("");
+    try{
+      const client=authClient();
+      const {data:identity,error:identityError}=await client.auth.getUser();
+      if(identityError||!identity?.user?.id)throw Error("Administrator session is not verified.");
+      if(reviewOnly){
+        if(reviewNote.trim().length<30||reviewNote.trim().length>1000)
+          throw Error("Record a review decision of 30–1,000 characters.");
+        const {data,error:approvalError}=await client.rpc("ifund_super_admin_review_private_document_cleanup",{
+          p_request_id:row.request_id,p_review_note:reviewNote.trim()
+        });
+        if(approvalError||data!==true)throw Error("Administrative file-cleanup review was not accepted.");
+        setNotice("Review recorded. This does not complete the account deletion.");
+        setReviewNote("");
+      }else{
+        const {data:session,error:sessionError}=await client.auth.getSession();
+        if(sessionError||session?.session?.user?.id!==identity.user.id||!session.session.access_token)
+          throw Error("Administrator session changed.");
+        const reply=await fetch("/api/services/admin/private-document-erasure",{
+          method:"POST",
+          headers:{authorization:"Bearer "+session.session.access_token,"content-type":"application/json"},
+          body:JSON.stringify({request_id:row.request_id}),
+          signal:AbortSignal.timeout(90000)
+        });
+        const result=await reply.json().catch(()=>null);
+        if(!reply.ok||result?.verified!==true||!Number.isInteger(result.documents_removed)||
+           result.account_deleted!==false)
+          throw Error("Private document cleanup is not verified. Review the restricted service and retry.");
+        const {data:after,error:changed}=await client.auth.getUser();
+        if(changed||after?.user?.id!==identity.user.id)throw Error("Administrator session changed.");
+        setNotice(result.documents_removed+" private campaign documents removed. Financial and account erasure remains separately pending.");
+      }
+      setRefresh(value=>value+1);
+    }catch(cause){
+      setError(cause?.message||"The operation was not completed.");
+    }finally{setProcessing("");}
+  }
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-10">
     <header className="space-y-3">
       <Link to="/admin" className="text-sm text-primary underline">Administration</Link>
@@ -38,6 +83,7 @@ export default function AdminDeletionQueue(){
     </header>
     {loading&&<p role="status">Checking authorized deletion requests…</p>}
     {error&&<p role="alert" className="rounded-lg border border-destructive p-4 text-sm">{error}</p>}
+    {notice&&<p role="status" className="rounded-lg border border-border p-4 text-sm">{notice}</p>}
     {!loading&&!error&&<section aria-label="Pending account-deletion requests" className="space-y-4">
       <p className="text-sm text-muted-foreground">{rows.length} requests returned (up to 100 oldest)</p>
       {!rows.length&&<p className="rounded-xl border border-border p-5">No outstanding deletion requests.</p>}
@@ -47,6 +93,24 @@ export default function AdminDeletionQueue(){
         <p className="text-sm">Current status: <strong>{row.request_status}</strong></p>
         <p className="text-xs text-muted-foreground">Submitted: {row.submitted_at?new Date(row.submitted_at).toLocaleString():"Unknown"}</p>
         <p className="text-xs text-muted-foreground">Updated: {row.updated_at?new Date(row.updated_at).toLocaleString():"Unknown"}</p>
+        {row.request_status==="requested"&&<div className="rounded-xl border border-border p-3 space-y-2">
+          <label className="block text-sm font-semibold" htmlFor={"review-"+row.request_id}>Private-document cleanup review evidence</label>
+          <textarea id={"review-"+row.request_id} value={selected===row.request_id?reviewNote:""}
+            onFocus={()=>{if(selected!==row.request_id){setSelected(row.request_id);setReviewNote("");}}}
+            onChange={event=>{setSelected(row.request_id);setReviewNote(event.target.value);}}
+            maxLength={1000} rows={3} className="w-full rounded-lg border border-border bg-background p-3 text-sm"
+            placeholder="Record the completed authorization, retention and financial dependency checks; this only approves document-file cleanup." />
+          <button type="button" disabled={Boolean(processing)||selected!==row.request_id||reviewNote.trim().length<30}
+            onClick={()=>act(row,true)} className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">
+            Record reviewed file-cleanup authorization
+          </button>
+        </div>}
+        {row.request_status==="reviewing"&&<button type="button" disabled={Boolean(processing)}
+          onClick={()=>act(row,false)}
+          className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">
+          Remove reviewed account's private campaign documents
+        </button>}
+
       </article>)}</div>
     </section>}
     <p className="border-t border-border pt-5 text-xs text-muted-foreground">
