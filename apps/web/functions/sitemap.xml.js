@@ -31,7 +31,7 @@ async function fetchPublished(env, resource, filter, orderColumn, pathPrefix) {
     url.searchParams.set("limit", String(PAGE));
     url.searchParams.set("offset", String(offset));
     const response = await fetch(url, {
-      headers: { apikey: key, Authorization: "Bearer " + key, Accept: "application/json" },
+      headers: { apikey: key, Accept: "application/json" },
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) throw Error("Public content query failed");
