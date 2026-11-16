@@ -12,13 +12,15 @@ const cases = [
   ['encoded key', 'https://example.test/callback?%63ode=synthetic-secret-123'],
   ['encoded equals', 'https://example.test/callback?code%3Dsynthetic-secret-123'],
   ['double encoded separator', 'https://example.test/callback?state=x%2526code=synthetic-secret-123'],
+  ['nested html entity', 'https://example.test/callback?state=x&amp;amp;code=synthetic-secret-123'],
+  ['encoded semicolon separator', 'https://example.test/callback?state=x%3Bcode=synthetic-secret-123'],
 ];
 for (const [name, input] of cases) {
   test('callback secret redacted: ' + name, () => {
     const output = redactTeamCredentials(input);
     assert.doesNotMatch(output, /synthetic-secret-123/);
     assert.match(output, /\[redacted(?: credential URL)?\]/);
-    if (name !== 'double encoded separator') assert.match(output, /state=x|code=\[redacted\]/);
+    if (!['double encoded separator','nested html entity','encoded semicolon separator'].includes(name)) assert.match(output, /state=x|code=\[redacted\]/);
   });
 }
 test('ordinary prose and non-secret state survive', () => {
