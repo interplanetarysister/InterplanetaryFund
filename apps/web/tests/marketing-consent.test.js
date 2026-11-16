@@ -19,7 +19,7 @@ test("marketing permissions require explicit independent opt-in",()=>{
   assert.doesNotMatch(migration,/update public\.ifund_profiles[\s\S]*comm_prefs/);
 });
 test("owner controls are gated and cannot silently submit consent",()=>{
-  assert.match(app,/path="\/preferences" element=\{<MemberAccess><MarketingPreferences \/><\/MemberAccess>\}/);
+  assert.match(app,/path="\\/preferences" element=\\{<Navigate to="\\/permissions\\?section=marketing" replace \\/>\\}/);
   assert.match(page,/rpc\("ifund_my_marketing_consent"\)/);
   assert.match(page,/rpc\("ifund_set_marketing_consent"/);
   assert.match(page,/disabled=\{busy\|\|state\.optIn===state\.original\}/);
