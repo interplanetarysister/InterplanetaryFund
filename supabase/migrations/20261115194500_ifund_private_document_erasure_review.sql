@@ -36,7 +36,9 @@ begin
     document_cleanup_reviewed_by=actor,
     document_cleanup_reviewed_at=now(),
     updated_at=now()
-  where r.id=p_request_id and r.status='requested'
+  where r.id=p_request_id and r.status in ('requested','reviewing')
+    and r.document_cleanup_reviewed_by is null
+    and r.document_cleanup_reviewed_at is null
     and r.user_id is not null and r.user_id<>actor;
   get diagnostics affected=row_count;
   if affected<>1 then
@@ -89,5 +91,30 @@ $ifund$;
 revoke all on function public.ifund_super_admin_private_document_inventory(uuid,integer) from public,anon;
 grant execute on function public.ifund_super_admin_private_document_inventory(uuid,integer) to authenticated;
 
+
+
+-- Expose only review readiness, not internal rationale or reviewer identity.
+-- The admin queue may contain requests transitioned to reviewing for unrelated
+-- legal checks; those requests are NOT automatically approved for file cleanup.
+create or replace function public.ifund_super_admin_private_document_reviewed_queue()
+returns table(request_id uuid, review_ready boolean)
+language plpgsql stable security definer set search_path='' as $ifund$
+begin
+  if not coalesce(public.ifund_current_user_is_verified_super_admin(),false) then
+    raise exception 'Verified super administrator required' using errcode='42501';
+  end if;
+  return query
+    select r.id,
+      (r.status='reviewing'
+        and r.document_cleanup_reviewed_by is not null
+        and r.document_cleanup_reviewed_at is not null)
+    from public.ifund_account_deletion_requests r
+    where r.status<>'completed'
+    order by r.requested_at,r.id
+    limit 200;
+end
+$ifund$;
+revoke all on function public.ifund_super_admin_private_document_reviewed_queue() from public,anon;
+grant execute on function public.ifund_super_admin_private_document_reviewed_queue() to authenticated;
 
 commit;
