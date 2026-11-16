@@ -84,7 +84,7 @@ Deno.serve(async req=>{
         || !Number.isSafeInteger(p.gift_cents)||p.gift_cents<100||p.gift_cents>100000000
         || !Number.isSafeInteger(p.optional_support_cents)||p.optional_support_cents<0
         || p.optional_support_cents>Math.round(p.gift_cents*0.1)
-        || !Number.isSafeInteger(p.total_cents)||p.total_cents<p.gift_cents+p.optional_support_cents
+        || !Number.isSafeInteger(p.total_cents)||p.total_cents!==p.gift_cents+p.optional_support_cents
         || !/^[0-9a-f]{64}$/.test(p.checkout_token_hash||"")) return fail("Invalid payment quote");
       const donorId=await resolveVerifiedDonor(p.donor_access_token);
       const campaign=await findOne("ifund_campaigns?select=id,status&id=eq."+p.campaign_id);
@@ -171,6 +171,7 @@ Deno.serve(async req=>{
         ||typeof p.paypal_product_id!=="string"||p.paypal_product_id.length<6
         ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1
         ||typeof p.plan_ready!=="boolean"||typeof p.webhook_ready!=="boolean"
+        ||(p.webhook_ready===true && (typeof p.paypal_webhook_id!=="string" || p.paypal_webhook_id.length<8))
         ||(p.paypal_webhook_id!==null&&p.paypal_webhook_id!==undefined&&
           (typeof p.paypal_webhook_id!=="string"||p.paypal_webhook_id.length<8)))
         return fail("Invalid subscription provider readiness");
@@ -259,25 +260,51 @@ Deno.serve(async req=>{
     if(body.op==="subscription_reversal"){
       const p=body.data||{};
       if(!subscriptionId.test(p.paypal_subscription_id||"")||!eventId.test(p.paypal_event_id||"")
-        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1||p.currency!=="USD")
+        ||!Number.isSafeInteger(p.amount_cents)||p.amount_cents<1||p.currency!=="USD"
+        ||p.event_type!=="PAYMENT.SALE.REFUNDED"
+        ||typeof p.provider_reference!=="string"||!p.provider_reference.trim())
         return fail("Invalid subscription reversal");
       const row=await findOne("ifund_subscription_intents?select=*&paypal_subscription_id=eq."+encodeURIComponent(p.paypal_subscription_id));
       if(!row)return fail("Subscription not found",404);
       const occurred=new Date(p.occurred_at||"");
       if(!Number.isFinite(occurred.getTime()))return fail("Invalid reversal time");
       const operation="paypal:subscription:reversal:"+p.paypal_event_id;
-      const existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+      const providerReference=p.provider_reference.trim();
+      const ledgerMatches=entry=>entry.intent_id===row.id && entry.member_id===row.member_id
+        &&entry.paypal_subscription_id===row.paypal_subscription_id
+        &&entry.provider_reference===providerReference && entry.entry_type==="refund"
+        &&entry.amount_cents===-p.amount_cents && entry.currency==="USD"
+        &&entry.environment==="live" && entry.provider_occurred_at===occurred.toISOString();
+      let existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+      if(existing&&!ledgerMatches(existing))return fail("Subscription reversal ledger identity conflict",409);
       if(!existing){
-        await db("ifund_subscription_ledger","POST",{
-          operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
-          provider_reference:p.provider_reference||p.paypal_event_id,
-          entry_type:p.event_type==="PAYMENT.SALE.REFUNDED"?"refund":"reversal",
-          amount_cents:-p.amount_cents,currency:"USD",environment:"live",provider_occurred_at:occurred.toISOString()
-        });
+        try{
+          await db("ifund_subscription_ledger","POST",{
+            operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
+            provider_reference:providerReference,entry_type:"refund",
+            amount_cents:-p.amount_cents,currency:"USD",environment:"live",provider_occurred_at:occurred.toISOString()
+          });
+        }catch(error){
+          if(error.status!==409)throw error;
+          existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+          if(!existing||!ledgerMatches(existing))return fail("Subscription reversal ledger identity conflict",409);
+        }
       }
-      await db("ifund_subscription_intents?id=eq."+row.id,"PATCH",{
+      // A stale or duplicate delivery must not regress a later provider-confirmed payment.
+      const reversalAt=row.last_reversal_at?Date.parse(row.last_reversal_at):null;
+      const paymentAt=row.last_payment_at?Date.parse(row.last_payment_at):null;
+      if((reversalAt!==null&&reversalAt>=occurred.getTime())
+        ||(paymentAt!==null&&paymentAt>occurred.getTime()))
+        return Response.json({ok:true,duplicate:!!existing,stale:true});
+      const reversalGuard=row.last_reversal_at
+        ?"&last_reversal_at=eq."+encodeURIComponent(row.last_reversal_at):"&last_reversal_at=is.null";
+      const paymentGuard=row.last_payment_at
+        ?"&last_payment_at=eq."+encodeURIComponent(row.last_payment_at):"&last_payment_at=is.null";
+      const updated=await db("ifund_subscription_intents?id=eq."+row.id+reversalGuard+paymentGuard,"PATCH",{
         status:"past_due",last_reversal_at:occurred.toISOString(),updated_at:new Date().toISOString()
       });
+      if(!Array.isArray(updated)||updated.length!==1)
+        return fail("Subscription reversal state changed concurrently; retry reconciliation",409);
       return Response.json({ok:true});
     }
     if(body.op==="subscription_reconcile"){
@@ -299,18 +326,37 @@ Deno.serve(async req=>{
       else if(p.provider_status==="SUSPENDED"||failed>0||(row.last_reversal_at&&!paymentValid))status="past_due";
       else if(p.provider_status==="ACTIVE"&&paymentValid)status="active";
       if(status==="active"){
+        // Preserve historical keys until an audited resource-unique migration reconciles existing rows.
         const operation="paypal:subscription:payment:"+row.paypal_subscription_id+":"+paymentAt.toISOString();
-        const existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+        let existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+        // Status refreshes do not contain a sale ID. They may reuse an existing,
+        // fully matching receipt, but can never invent a new capture reference.
+        if(p.provider_reference!==null&&p.provider_reference!==undefined
+          &&(typeof p.provider_reference!=="string"||!p.provider_reference.trim()))
+          return fail("Verified capture resource reference required",409);
+        const providerReference=typeof p.provider_reference==="string"
+          ?p.provider_reference.trim():existing?.provider_reference;
+        if(typeof providerReference!=="string"||!providerReference.trim())
+          return fail("Verified capture resource reference required",409);
+        const ledgerMatches=entry=>entry.intent_id===row.id && entry.member_id===row.member_id
+          &&entry.paypal_subscription_id===row.paypal_subscription_id
+          &&entry.entry_type==="payment" && entry.amount_cents===row.amount_cents
+          &&entry.currency==="USD" && entry.environment==="live"
+          &&entry.provider_occurred_at===paymentAt.toISOString() && entry.provider_reference===providerReference;
         if(!existing){
-          await db("ifund_subscription_ledger","POST",{
-            operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
-            provider_reference:p.provider_reference||null,entry_type:"payment",amount_cents:row.amount_cents,
-            currency:"USD",environment:"live",provider_occurred_at:paymentAt.toISOString()
-          });
-        }else if(existing.amount_cents!==row.amount_cents||existing.member_id!==row.member_id){
-          return fail("Subscription ledger conflict",409);
-        }else if(!existing.provider_reference&&p.provider_reference){
-          await db("ifund_subscription_ledger?id=eq."+existing.id,"PATCH",{provider_reference:p.provider_reference});
+          try{
+            await db("ifund_subscription_ledger","POST",{
+              operation_key:operation,intent_id:row.id,member_id:row.member_id,paypal_subscription_id:row.paypal_subscription_id,
+              provider_reference:providerReference,entry_type:"payment",amount_cents:row.amount_cents,
+              currency:"USD",environment:"live",provider_occurred_at:paymentAt.toISOString()
+            });
+          }catch(error){
+            if(error.status!==409)throw error;
+            existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
+            if(!existing||!ledgerMatches(existing))return fail("Subscription capture ledger identity conflict",409);
+          }
+        }else if(!ledgerMatches(existing)){
+          return fail("Subscription capture ledger identity conflict",409);
         }
       }
       await db("ifund_subscription_intents?id=eq."+row.id,"PATCH",{
@@ -336,6 +382,11 @@ Deno.serve(async req=>{
         });
       }catch(error){
         if(error.status!==409)throw error;
+        const recorded=await findOne("ifund_subscription_events?select=paypal_subscription_id,event_type&paypal_event_id=eq."
+          +encodeURIComponent(p.paypal_event_id));
+        if(!recorded||recorded.paypal_subscription_id!==p.paypal_subscription_id||recorded.event_type!==p.event_type)
+          return fail("Subscription event identity conflict",409);
+        return Response.json({ok:true,recorded:true,duplicate:true});
       }
       return Response.json({ok:true,recorded:true});
     }
