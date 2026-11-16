@@ -16,13 +16,14 @@ function sample() {
     ...emptyCampaignForm(),
     title:"Community aid fundraiser",
     summary:"Helping neighbors",
-    story:Array(2).fill([
-      "Our community has an urgent need and the organizing team has reviewed the facts " + "with neighbors ".repeat(45) + ".",
-      "The proposed budget supports practical steps " + "for repairs and supplies ".repeat(40) + ".",
-      "We intend to share documented progress and regular updates " + "with the community ".repeat(42) + ".",
-    ].join(" ")).join("\
-\
-"),
+    story:Array.from({length:2},(_,section) =>
+      Array.from({length:4},(_,sentence) =>
+        "Our community has reviewed this verified fundraising need with its organizers and will share measured progress, " +
+        "documented budget information, and realistic updates with neighbors who have agreed to participate, " +
+        ("while protecting private information and discussing practical steps with the intended beneficiaries, ").repeat(7) +
+        "so every donor can understand the intended use of funds."
+      ).join(" ")
+    ).join("\n\n"),
     goal_amount:"5000",
   };
 }
