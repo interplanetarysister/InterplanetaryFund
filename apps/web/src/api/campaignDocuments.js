@@ -46,16 +46,21 @@ export async function verifyCampaignDocumentSignature(file) {
   if(header.includes(0)&&type.startsWith("text/"))
     throw Error("This file contains binary data; choose a plain text document.");
 }
-async function owner(client,campaignId) {
-  requireUUID(campaignId,"Save your campaign before attaching documents.");
+async function verifiedDocumentOwner(client) {
   const {data,error}=await client.auth.getUser(),user=data?.user;
   if(error||!isVerifiedEmailUser(user)||!payoutIdentity(user)||!UUID.test(user?.id||""))
     throw Error("Sign in with a confirmed email account to manage campaign documents.");
   const lifecycle=await verifyAccountLifecycle(client,user);
   if(!lifecycle.ok)throw Error(lifecycle.message||"Your account could not be verified.");
+  return user.id;
+}
+async function owner(client,campaignId) {
+  requireUUID(campaignId,"Save your campaign before attaching documents.");
+  const userId=await verifiedDocumentOwner(client);
   const campaign=await loadOwnerCampaign(client,campaignId);
   if(campaign.id!==campaignId)throw Error("The campaign could not be verified.");
-  return user.id;
+  await unchanged(client,userId);
+  return userId;
 }
 async function unchanged(client,ownerId) {
   const {data,error}=await client.auth.getUser();
@@ -203,4 +208,38 @@ export async function loadAgentDocumentBriefs(client,campaignId){
     typeof item.purpose!=="string"||typeof item.file_name!=="string"||item.file_name.length>160))
     throw Error("The campaign reference list could not be verified.");
   return data.slice(0,6);
+}
+
+/** Owner-only global control surface for My Account / Manage Permissions. */
+export async function listOwnerDocumentPermissions(client,{offset=0,limit=40}={}){
+  if(!Number.isSafeInteger(offset)||offset<0||offset>100000||
+     !Number.isSafeInteger(limit)||limit<1||limit>100)
+    throw Error("Invalid private document page.");
+  const userId=await verifiedDocumentOwner(client);
+  const {data,error}=await client.from("ifund_campaign_documents")
+    .select("id,owner_id,campaign_id,file_name,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
+    .eq("owner_id",userId)
+    .order("created_at",{ascending:false})
+    .order("id",{ascending:false})
+    .range(offset,offset+limit-1);
+  await unchanged(client,userId);
+  if(error||!Array.isArray(data)||data.some(row=>
+    row.owner_id!==userId||!UUID.test(row.id||"")||!UUID.test(row.campaign_id||"")))
+    throw Error("Your document permission records could not be verified.");
+  return data;
+}
+/** Immediate account-wide revocation; preserves private files and per-file notes. */
+export async function revokeAllOwnerDocumentAgentUse(client){
+  const userId=await verifiedDocumentOwner(client);
+  await unchanged(client,userId);
+  const {data,error}=await client.from("ifund_campaign_documents")
+    .update({allow_agent_use:false})
+    .eq("owner_id",userId)
+    .eq("allow_agent_use",true)
+    .is("deletion_requested_at",null)
+    .select("id,owner_id,allow_agent_use");
+  await unchanged(client,userId);
+  if(error||!Array.isArray(data)||data.some(row=>row.owner_id!==userId||row.allow_agent_use!==false))
+    throw Error("Account-wide document agent access could not be revoked.");
+  return data.length;
 }
