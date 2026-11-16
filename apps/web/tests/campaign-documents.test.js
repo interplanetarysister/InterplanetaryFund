@@ -272,3 +272,15 @@ test("web production Storage SDK exposes structured missing-object codes",()=>{
   assert.ok(major>2||(major===2&&minor>=112),
     "StorageApiError.code was introduced in storage-js 2.112.0; private deletion needs NoSuchKey");
 });
+
+test("all document UI adapters fail closed when the browser feature is disabled",()=>{
+  const config=readFileSync(new URL("../src/lib/campaignDocumentAvailability.mjs",import.meta.url),"utf8");
+  const uploader=readFileSync(new URL("../src/components/campaigns/CampaignDocuments.jsx",import.meta.url),"utf8");
+  const refs=readFileSync(new URL("../src/components/agents/AgentDocumentReferences.jsx",import.meta.url),"utf8");
+  const settings=readFileSync(new URL("../src/components/permissions/CampaignDocumentPermissions.jsx",import.meta.url),"utf8");
+  assert.match(config,/VITE_IFUND_CAMPAIGN_DOCUMENTS_ENABLED === "enabled"/);
+  assert.match(uploader,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledCampaignDocuments/);
+  assert.match(refs,/CAMPAIGN_DOCUMENTS_ACTIVE\?<EnabledAgentDocumentReferences/);
+  assert.match(settings,/if\(!CAMPAIGN_DOCUMENTS_ACTIVE\)/);
+  assert.match(settings,/Private document upload and agent permissions are being prepared/);
+});
