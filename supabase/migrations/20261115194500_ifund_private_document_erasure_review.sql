@@ -7,6 +7,13 @@ alter table public.ifund_account_deletion_requests
   add column if not exists document_cleanup_reviewed_by uuid references auth.users(id) on delete set null,
   add column if not exists document_cleanup_reviewed_at timestamptz;
 
+-- Adding private reviewer evidence to a table with a broad SELECT grant would
+-- expose that note to the requesting member. Keep their status accessible,
+-- but restrict review details to super-admin SECURITY DEFINER functions.
+revoke select on public.ifund_account_deletion_requests from authenticated;
+grant select(id,user_id,status,requested_at,updated_at,completed_at)
+  on public.ifund_account_deletion_requests to authenticated;
+
 create or replace function public.ifund_super_admin_review_private_document_cleanup(
  p_request_id uuid,p_review_note text
 ) returns boolean
