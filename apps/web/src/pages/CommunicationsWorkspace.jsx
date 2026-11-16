@@ -21,6 +21,12 @@ export default function CommunicationsWorkspace() {
   const [status,setStatus]=useState("");
   useEffect(()=>{
     let active=true, revision=0, observedId=null;
+    // A changed campaign link must never leave the previous selection active
+    // while the signed-in owner's campaign list is being reverified.
+    setCampaignId("");
+    setMessage("");
+    setStatus("");
+    setState({phase:"loading",campaigns:[],error:""});
     const client=authClient();
     async function load(){
       const ticket=++revision;
