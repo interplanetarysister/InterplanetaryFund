@@ -376,6 +376,7 @@ async function reconcileSubscription(env,subscriptionReference,token="",provider
     const saleTime=Date.parse(String(verifiedSale.create_time||""));
     const paymentTime=Date.parse(String(payment?.time||""));
     if(!providerReference||verifiedSale.id!==providerReference
+      ||verifiedSale.state!=="completed"||verifiedSale.amount?.currency!=="USD"
       ||lastPaymentCents!==cents(verifiedSale.amount.total)
       ||!Number.isFinite(saleTime)||!Number.isFinite(paymentTime)
       ||Math.abs(saleTime-paymentTime)>300000)
