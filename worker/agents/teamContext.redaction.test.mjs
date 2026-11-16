@@ -74,3 +74,13 @@ test('structured non-string JSON credential values fail closed without over-reda
   assert.equal(redactTeamCredentials('{"access_token":"synthetic-secret-123"}'),
     '{"access_token":"[redacted]"}');
 });
+
+// Dotted OAuth parameter aliases must fail closed, including percent-encoded dots.
+test('dotted callback credential keys are never persisted verbatim', () => {
+  for (const key of ['code.foo','code%2Efoo','oauth_code.extra','authorization_code%2Edeep']) {
+    const output = redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    assert.doesNotMatch(output, /synthetic-secret-123/);
+    assert.match(output, /\[redacted credential URL\]/);
+  }
+  assert.equal(redactTeamCredentials('The code.foo example is prose.'), 'The code.foo example is prose.');
+});
