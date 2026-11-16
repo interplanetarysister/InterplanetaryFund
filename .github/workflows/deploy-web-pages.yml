@@ -59,15 +59,15 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
 
+      - name: Block release until every navigation route is implemented
+        run: node apps/web/ci/verify-route-readiness.mjs
+
       - name: Run private data and financial boundary tests before any build
         run: |
           set -euo pipefail
           npm ci --no-audit --no-fund
           node --test tests/campaign-documents-db.test.js tests/private-document-erasure.test.js tests/team-context-db.test.js tests/team-context-worker.test.js 2>&1 | tee /tmp/ifund-private-data-tests.log
           node --test workers/ifund-payments/capture-refund-boundary.test.mjs workers/ifund-payments/subscription-refund-boundary.test.mjs workers/ifund-payments/payout-subscription-sale-guards.test.mjs 2>&1 | tee /tmp/ifund-finance-boundary-tests.log
-
-      - name: Block release until every navigation route is implemented
-        run: node apps/web/ci/verify-route-readiness.mjs
 
       - name: Refuse to deploy without a backend URL
         if: ${{ vars.VITE_SUPABASE_URL == '' }}

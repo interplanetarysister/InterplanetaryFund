@@ -5,9 +5,9 @@ const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.
 test("draft links reopen and update the owned draft",()=>{
  assert.match(source,/useSearchParams/);
  assert.match(source,/params\.get\("draft"\)/);
- assert.match(source,/loadOwnerCampaign\(authClient\(\), draftId\)/);
+ assert.match(source,/loadOwnerCampaign\(authClient\(\), draftId, ownerScope\.current\)/);
  assert.match(source,/data\.status !== "draft"/);
- assert.match(source,/saveOwnerCampaign\(client, form, \{ id: campaignId\.current, status:"draft", expectedStatus: "draft" \}\)/);
+ assert.match(source,/saveOwnerCampaign\(client, form, \{ id: campaignId\.current, status:"draft", expectedStatus: "draft", scope \}\)/);
  assert.doesNotMatch(source,/\.from\("ifund_campaigns"\)/);
 });
 test("form submission saves privately and publishing requires a separate explicit action",()=>{
