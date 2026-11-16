@@ -27,9 +27,15 @@ async function fetchJson(fetcher,url,init){
  return value;
 }
 function validateRow(row,owner){
- if(!UUID.test(row?.id||"")||typeof row.storage_path!=="string")throw Error("Unverifiable document reference.");
+ if(typeof row?.storage_path!=="string"||
+    typeof row.storage_present!=="boolean"||typeof row.metadata_present!=="boolean"||
+    (!row.storage_present&&!row.metadata_present)||
+    (row.metadata_present&&!UUID.test(row.document_id||""))||
+    (!row.metadata_present&&row.document_id!==null))
+   throw Error("Unverifiable document inventory.");
  const m=PATH.exec(row.storage_path);
- if(!m||m[1]!==owner||m[3]!==row.id)throw Error("Document path does not belong to deletion requester.");
+ if(!m||m[1]!==owner||(row.document_id&&m[3]!==row.document_id))
+   throw Error("Document path does not belong to deletion requester.");
  return row.storage_path;
 }
 async function authorizeRequest({fetcher,url,key,jwt,requestId}){
@@ -45,46 +51,51 @@ async function authorizeRequest({fetcher,url,key,jwt,requestId}){
    throw Error("An independently reviewed account deletion request is required.");
  return item.requested_user_id;
 }
-async function listOwnerDocuments({fetcher,url,key,owner}){
- const endpoint=url+"/rest/v1/ifund_campaign_documents?owner_id=eq."+
-   encodeURIComponent(owner)+"&select=id,storage_path,deletion_requested_at&order=id.asc&limit=100";
- const rows=await fetchJson(fetcher,endpoint,{method:"GET",headers:serviceHeaders(key)});
+async function listOwnerDocuments({fetcher,url,key,owner,requestId,jwt}){
+ const rows=await fetchJson(fetcher,url+"/rest/v1/rpc/ifund_super_admin_private_document_inventory",{
+   method:"POST",headers:{"apikey":key,Authorization:"Bearer "+jwt,"content-type":"application/json"},
+   body:JSON.stringify({p_request_id:requestId,p_limit:100})
+ });
  if(!Array.isArray(rows)||rows.length>100)throw Error("Private-document inventory is invalid.");
  rows.forEach(row=>validateRow(row,owner));
  return rows;
 }
 async function markPending({fetcher,url,key,owner,row}){
- if(row.deletion_requested_at)return;
- const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.id+
+ if(!row.metadata_present||row.deletion_requested_at)return;
+ const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.document_id+
    "&owner_id=eq."+owner+"&deletion_requested_at=is.null";
  const result=await fetchJson(fetcher,endpoint,{method:"PATCH",
    headers:serviceHeaders(key,true),
    body:JSON.stringify({allow_agent_use:false,deletion_requested_at:new Date().toISOString()})
  });
- if(!Array.isArray(result)||result.length!==1||result[0].id!==row.id||
+ if(!Array.isArray(result)||result.length!==1||result[0].id!==row.document_id||
     result[0].allow_agent_use!==false||!result[0].deletion_requested_at)
    throw Error("Private document consent revocation could not be confirmed.");
 }
 async function deleteOne({fetcher,url,key,owner,row}){
  const path=validateRow(row,owner);
  await markPending({fetcher,url,key,owner,row});
- const remove=await fetchJson(fetcher,url+"/storage/v1/object/ifund-campaign-documents",{
-   method:"DELETE",headers:serviceHeaders(key),body:JSON.stringify({prefixes:[path]})
- });
- if(!Array.isArray(remove))throw Error("Private Storage cleanup receipt is invalid.");
+ if(row.storage_present){
+   const remove=await fetchJson(fetcher,url+"/storage/v1/object/ifund-campaign-documents",{
+     method:"DELETE",headers:serviceHeaders(key),body:JSON.stringify({prefixes:[path]})
+   });
+   if(!Array.isArray(remove))throw Error("Private Storage cleanup receipt is invalid.");
+ }
  // Confirm missing bytes BEFORE removing the only durable cleanup reference.
  const encoded=path.split("/").map(encodeURIComponent).join("/");
  const info=await fetcher(url+"/storage/v1/object/info/ifund-campaign-documents/"+encoded,{
    method:"GET",headers:serviceHeaders(key),signal:AbortSignal.timeout(20000)
  });
  if(info.status!==404)throw Error("Private Storage deletion could not be independently verified.");
- const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.id+"&owner_id=eq."+owner+
-   "&deletion_requested_at=not.is.null";
- const deleted=await fetchJson(fetcher,endpoint,{
-   method:"DELETE",headers:serviceHeaders(key,true)
- });
- if(!Array.isArray(deleted)||deleted.length!==1||deleted[0].id!==row.id)
-   throw Error("Private document metadata cleanup was not confirmed.");
+ if(row.metadata_present){
+   const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.document_id+"&owner_id=eq."+owner+
+     "&deletion_requested_at=not.is.null";
+   const deleted=await fetchJson(fetcher,endpoint,{
+     method:"DELETE",headers:serviceHeaders(key,true)
+   });
+   if(!Array.isArray(deleted)||deleted.length!==1||deleted[0].id!==row.document_id)
+     throw Error("Private document metadata cleanup was not confirmed.");
+ }
 }
 export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,requestId,jwt}){
  const {url,key}=config(env);
@@ -95,7 +106,7 @@ export async function cleanupPrivateCampaignDocuments({fetcher=fetch,env,request
  // No offset paging: successful deletion removes each processed row. This
  // makes retries idempotent and does not skip items when the table shrinks.
  for(let pass=0;pass<100;pass++){
-   const rows=await listOwnerDocuments({fetcher,url,key,owner});
+   const rows=await listOwnerDocuments({fetcher,url,key,owner,requestId,jwt});
    if(!rows.length)return {verified:true,documents_removed:removed,account_deleted:false};
    for(const row of rows){
      await deleteOne({fetcher,url,key,owner,row});
