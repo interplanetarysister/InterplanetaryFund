@@ -48,3 +48,23 @@ test('flag off never calls persistence', async () => {
   assert.equal(result.state, 'disabled');
   assert.equal(calls, 0);
 });
+
+
+test('structured non-string JSON credential values fail closed without over-redacting prose', () => {
+  for (const input of [
+    '{"access_token":123456789012345}',
+    '{"access_token":["synthetic-secret-123"]}',
+    '{"access_token":{"nested":{"value":"synthetic-secret-123"}}}',
+    '{"client_secret":false}',
+    '{"api_key":null}',
+    'log entry {"refresh_token":["synthetic-secret-123"]} after event'
+  ]) {
+    const actual = redactTeamCredentials(input);
+    assert.equal(actual, '[redacted credential payload]');
+    assert.doesNotMatch(actual, /synthetic-secret-123|123456789012345/);
+  }
+  assert.equal(redactTeamCredentials('I wrote code=example in prose.'),
+    'I wrote code=example in prose.');
+  assert.equal(redactTeamCredentials('{"access_token":"synthetic-secret-123"}'),
+    '{"access_token":"[redacted]"}');
+});
