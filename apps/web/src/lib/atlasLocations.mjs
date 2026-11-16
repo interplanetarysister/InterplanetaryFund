@@ -41,3 +41,18 @@ export function atlasLocationSummary(campaigns = []) {
   const mapped=published.filter(isApprovedAtlasLocation).length;
   return {published:published.length,mapped,unmapped:published.length-mapped,nonPublic:campaigns.length-published.length};
 }
+
+/**
+ * Advisory client-side privacy screening for an organizer's public location label.
+ * This is not geocoding or proof that a label is a safe/public place. The owner
+ * must approve a broad city/region. These patterns reject obvious address/ZIP
+ * strings without disallowing common locations such as "District 9, Seattle".
+ */
+export function isBroadPublicLocationLabel(value) {
+  const label=String(value??"").trim();
+  if(label.length<2||label.length>80)return false;
+  if(/\b\d{5}(?:-\d{4})?\b/u.test(label))return false;
+  if(/\b(?:p\.?\s*o\.?\s*box|apartment|apt\.?\s*#?\d+|suite\s*\d+|unit\s*#?\d+)\b/iu.test(label))return false;
+  if(/^\s*\d{1,6}\s+(?:(?:[\p{L}'-]+|[NSEW])\s+){0,5}(?:street|st\.?|avenue|ave\.?|road|rd\.?|boulevard|blvd\.?|drive|dr\.?|lane|ln\.?|court|ct\.?|way|place|pl\.?)\b/iu.test(label))return false;
+  return true;
+}
