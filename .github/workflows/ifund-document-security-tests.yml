@@ -1,0 +1,74 @@
+name: IFund isolated private-document security tests
+
+# Source acceptance only. Never builds, deploys, publishes, or uses secrets.
+# Existing manual Pages release gate remains unchanged.
+on:
+  push:
+    branches:
+      - feature/route-completion-20261113
+    paths:
+      - '.github/workflows/ifund-document-security-tests.yml'
+      - 'supabase/migrations/20261115095000_ifund_campaign_private_documents.sql'
+      - 'supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql'
+      - 'worker/services/privateDocumentErasure.js'
+      - 'worker/agents/teamContext.js'
+      - 'worker/agents/story.js'
+      - 'apps/web/src/api/campaignDocuments.js'
+      - 'apps/web/src/components/campaigns/CampaignDocuments.jsx'
+      - 'apps/web/src/components/agents/AgentDocumentReferences.jsx'
+      - 'apps/web/src/lib/legalPolicy.js'
+      - 'apps/web/src/mobile/MobileStoreDeleteAccount.jsx'
+      - 'tests/*document*.test.js'
+      - 'tests/team-context*.test.js'
+      - 'apps/web/tests/campaign-document*.test.js'
+      - 'apps/web/tests/campaign-documents.test.js'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ifund-private-document-source-tests
+  cancel-in-progress: true
+
+jobs:
+  private-data-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked root dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Execute real Postgres-in-WASM and Worker tests (no build)
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/campaign-documents-db.test.js \
+            tests/private-document-erasure.test.js \
+            tests/team-context-db.test.js \
+            tests/team-context-worker.test.js \
+            2>&1 | tee /tmp/ifund-private-document-root.log
+      - name: Execute web document contract tests (no build)
+        run: |
+          set -euo pipefail
+          node --test \
+            apps/web/tests/campaign-documents.test.js \
+            apps/web/tests/campaign-document-privacy-notice.test.js \
+            2>&1 | tee /tmp/ifund-private-document-web.log
+      - name: Preserve test logs even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ifund-private-document-source-qa
+          path: |
+            /tmp/ifund-private-document-root.log
+            /tmp/ifund-private-document-web.log
+          if-no-files-found: ignore
+          retention-days: 7
