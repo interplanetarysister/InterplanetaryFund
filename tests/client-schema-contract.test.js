@@ -29,6 +29,13 @@ const PENDING = [
   // New canonical community tables are independently reviewed and already applied
   // to production; include their DDL in this isolated schema-contract harness.
   "supabase/migrations/20261113_ifund_public_community_groups.sql",
+  // These are source contracts, not an assertion that these migrations have
+  // been applied to production. Execute their real DDL so new client reads
+  // cannot pass against a hand-written imitation of the application schema.
+  "supabase/migrations/20261111154500_ifund_opt_in_atlas_and_owner_agent_focus.sql",
+  "supabase/migrations/20261115010000_ifund_ai_permission_preferences.sql",
+  "supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",
+  "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
 ];
 
 const PGlite = await loadPGlite();
@@ -171,6 +178,27 @@ let dbPromise;
 const getDb = () =>
   (dbPromise ??= (async () => {
     const db = await freshDb(PGlite);
+    // Supabase-owned Auth/Storage objects referenced by the application DDL.
+    // Application tables and columns below still come only from migrations.
+    await db.exec(`
+      alter table auth.users add column email_confirmed_at timestamptz,
+        add column is_anonymous boolean default false;
+      create function auth.jwt() returns jsonb language sql stable as $$
+        select jsonb_build_object('sub', current_setting('test.uid', true),
+          'is_anonymous', false)
+      $$;
+      create schema storage;
+      create table storage.buckets(id text primary key, name text,
+        public boolean, file_size_limit bigint, allowed_mime_types text[]);
+      create table storage.objects(id uuid primary key default gen_random_uuid(),
+        bucket_id text, name text, metadata jsonb);
+      alter table storage.objects enable row level security;
+      create function storage.foldername(path text) returns text[]
+        language sql immutable as $$
+          select (string_to_array(path, '/'))[1:
+            (array_length(string_to_array(path, '/'), 1) - 1)]
+        $$;
+    `);
     await applyMigrations(db, COMMITTED_MIGRATIONS);
     await applyMigrations(db, PENDING);
     return db;
