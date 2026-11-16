@@ -108,7 +108,6 @@ export function validateCampaignForm(form, { publish = false } = {}) {
     }
   }
   if (publish) {
-    if (!summary) errors.push("Add a short description before publishing.");
     if (!story) errors.push("Add your campaign story before publishing.");
     if (story) errors.push(...reviewCampaignPublication(value).blockers);
     if (!goal) errors.push("Set a fundraising goal before publishing.");

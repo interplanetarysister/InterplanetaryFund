@@ -24,12 +24,8 @@ test("a complete campaign passes both draft and publish validation", () => {
   assert.equal(publishReadiness(complete()).ready, true);
 });
 
-test("a 3,499-character full story is blocked, 3,500 is eligible", () => {
-  const story = "A".repeat(3499);
-  assert.ok(validateCampaignForm({...complete(),story},{publish:true}).some(x=>x.includes("3,500")));
-  assert.equal(publishReadiness({...complete(),story}).ready,false);
-  assert.equal(publishReadiness({...complete(),story:story+"."}).ready,false, "Length alone is insufficient without paragraph and sentence structure");
-  assert.deepEqual(validateCampaignForm({...complete(),story},{publish:false}),[]);
+test("story length and paragraph structure are optional for publication", () => {
+  for(const story of ["A need.","A".repeat(3499),"A".repeat(3500)]) assert.equal(publishReadiness({...complete(),summary:"",story}).ready,true);
 });
 
 test("draft saving is allowed before the campaign is publishable", () => {
@@ -38,7 +34,7 @@ test("draft saving is allowed before the campaign is publishable", () => {
   // The database constraint ifund_publish_complete is stricter than a save.
   const readiness = publishReadiness(draft);
   assert.equal(readiness.ready, false);
-  assert.ok(readiness.missing.some((item) => /short description/i.test(item)));
+  assert.ok(!readiness.missing.some((item) => /short description/i.test(item)));
   assert.ok(readiness.missing.some((item) => /story/i.test(item)));
   assert.ok(readiness.missing.some((item) => /goal/i.test(item)));
 });

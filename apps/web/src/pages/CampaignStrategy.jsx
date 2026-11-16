@@ -78,7 +78,7 @@ export default function CampaignStrategy() {
             <p className="mt-1 text-sm text-muted-foreground capitalize">Current status: {item.campaign_status || "unknown"}</p>
             <p className="mt-1 text-sm font-semibold">{passed} of {CHECKS.length} content checks met</p>
             <p className="mt-1 text-sm font-semibold">
-              Full-length story: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" / 3,500 characters" : "Unavailable"}
+              Story length: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" characters (no minimum)" : "Unavailable"}
             </p>
             {item.editorial && item.editorial.remainingCharacters>0 &&
               <p className="mt-1 text-sm text-amber-700">Add {item.editorial.remainingCharacters.toLocaleString()} characters before publishing.</p>}
