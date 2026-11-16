@@ -4,47 +4,35 @@ import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
 import CampaignCard from "@/components/campaigns/CampaignCard";
-import { memberIdentity } from "@/lib/guestAccess";
+import { observeDashboardSession } from "@/lib/dashboardSession";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { hasGuestNotice } from "@/lib/guestAccess";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  const [state, setState] = useState("loading");
+  const [account, setAccount] = useState({ phase: "loading", user: null, campaigns: [], error: "" });
+  const { user, phase: state, campaigns: myCampaigns, error: myCampaignError } = account;
   const [campaigns, setCampaigns] = useState([]);
-  const [myCampaigns, setMyCampaigns] = useState([]);
-  const [myCampaignError, setMyCampaignError] = useState("");
   const [campaignError, setCampaignError] = useState("");
   useEffect(() => {
     let alive = true;
-    let subscription;
+    let stopAccount;
     try {
       const client = authClient();
-      client.auth.getUser().then(({ data, error }) => {
-        if (!alive) return;
-        if (error || !memberIdentity(data?.user)) { setUser(null); setState("guest"); return; }
-        setUser(data.user); setState("ready");
-        // Owner rows go through the same verified transport as every other
-        // owner read: confirmed email, verified account lifecycle and
-        // owner-scoped, validated rows. No ad-hoc inline query.
-        listMyCampaigns(client)
-          .then((owned) => { if (alive) setMyCampaigns(owned); })
-          .catch((cause) => { if (alive) setMyCampaignError(cause?.message || "Your campaigns could not be loaded."); });
-      }).catch(() => { if (alive) setState("error"); });
-      const { data } = client.auth.onAuthStateChange((event) => {
-        if (alive && event === "SIGNED_OUT") { setUser(null); setState("guest"); }
+      stopAccount = observeDashboardSession(client, {
+        // Preserve the verified owner transport and its lifecycle/RLS checks.
+        loadCampaigns: () => listMyCampaigns(client),
+        onChange: next => { if (alive) setAccount(next); },
       });
-      subscription = data.subscription;
       listActiveCampaigns({ limit: 12 }).then(items => {
         if (alive) setCampaigns(items);
       }).catch(() => { if (alive) setCampaignError("Public campaigns could not be loaded."); });
-    } catch { setState("error"); }
-    return () => { alive = false; subscription?.unsubscribe(); };
+    } catch { setAccount({ phase: "error", user: null, campaigns: [], error: "" }); }
+    return () => { alive = false; stopAccount?.(); };
   }, [navigate]);
   async function signOut() {
     try { const { error } = await authClient().auth.signOut(); if (error) throw error; navigate("/dashboard", { replace: true }); }
-    catch { setState("error"); }
+    catch { setAccount({ phase: "error", user: null, campaigns: [], error: "" }); }
   }
   if (state === "loading") return <main role="status" className="mx-auto max-w-5xl p-8">Verifying your session…</main>;
   if (state === "guest") return <main className="mx-auto max-w-5xl space-y-6 px-5 py-10 sm:px-8">

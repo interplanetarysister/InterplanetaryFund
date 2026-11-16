@@ -157,8 +157,12 @@ test("metadata deletion fails closed until the private Storage object is erased"
   );
   assert.equal((await db.query("select count(*)::int n from public.ifund_campaign_documents where id=$1",[id])).rows[0].n,1);
   await as(db,other);
-  await assert.rejects(db.query("delete from storage.objects where name=$1",[path]),/row-level security|permission denied/);
+  // PostgreSQL RLS hides the other owner's row from DELETE. A successful
+  // statement affecting zero rows is a denial, not an authorization bypass.
+  const denied=await db.query("delete from storage.objects where name=$1 returning id",[path]);
+  assert.equal(denied.rows.length,0);
   await as(db,owner);
+  assert.equal((await db.query("select count(*)::int n from storage.objects where name=$1",[path])).rows[0].n,1);
   await db.query("delete from storage.objects where name=$1",[path]);
   assert.equal((await db.query("delete from public.ifund_campaign_documents where id=$1 returning id",[id])).rows[0].id,id);
  } finally { await db.close(); }

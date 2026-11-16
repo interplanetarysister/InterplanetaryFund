@@ -1,0 +1,64 @@
+openapi: 3.0.3
+info:
+  title: PayPal Orders API - iFund read-only integration
+  version: 0.1.0
+  description: >
+    Narrow upstream PayPal API contract for generating an optional APIMatic
+    TypeScript client. Not an iFund public API or a payment capture contract.
+servers:
+  - url: https://api-m.sandbox.paypal.com
+    description: Sandbox
+  - url: https://api-m.paypal.com
+    description: Live (server-side only)
+security:
+  - paypalOAuth: []
+paths:
+  /v2/checkout/orders/{order_id}:
+    get:
+      operationId: getPayPalOrder
+      summary: Retrieve a PayPal checkout order
+      description: Read-only lookup. Never treat order status alone as sufficient to credit a donation; reconcile verified captures and webhook signatures in the existing backend.
+      parameters:
+        - in: path
+          name: order_id
+          required: true
+          schema:
+            type: string
+            pattern: '^[A-Za-z0-9]{8,32}$'
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '401':
+          description: Invalid or expired credentials
+        '404':
+          description: Order not found
+        '422':
+          description: Invalid order request
+components:
+  securitySchemes:
+    paypalOAuth:
+      type: oauth2
+      flows:
+        clientCredentials:
+          tokenUrl: https://api-m.sandbox.paypal.com/v1/oauth2/token
+          scopes: {}
+  schemas:
+    Order:
+      type: object
+      required: [id, status]
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [CREATED, SAVED, APPROVED, VOIDED, COMPLETED, PAYER_ACTION_REQUIRED]
+        purchase_units:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+      additionalProperties: true

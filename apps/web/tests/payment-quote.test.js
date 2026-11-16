@@ -22,7 +22,7 @@ test("donor charge matches the production Worker quote in integer cents", () => 
 });
 
 test("invalid quote inputs do not produce charge estimates", () => {
-  for (const [gift,tip] of [[99,0],[NaN,0],[100,11],[100,-1],[100,1.1]]) {
+  for (const [gift,tip] of [[99,0],[NaN,0],[100,11],[100,-1],[100,1.1],[100000001,0],[Number.MAX_SAFE_INTEGER,0]]) {
     assert.equal(paymentQuoteCents(gift,tip), null);
   }
 });
@@ -45,4 +45,12 @@ test("PayPal order has itemized gift and optional support without a mandatory su
   assert.match(workerSource, /name:"Optional IFund support"/);
   assert.match(workerSource, /breakdown:\{item_total:amount\}/);
   assert.match(workerSource, /\.\.\.paypalOrderBreakdown\(gift,tip\)/);
+});
+
+
+test("maximum gift and optional support remain exact integer cents", () => {
+  const quote = paymentQuoteCents(100000000, 10000000);
+  assert.equal(quote.totalCents, 110000000);
+  assert.equal(quote.giftCents, 100000000);
+  assert.equal(quote.optionalSupportCents, 10000000);
 });

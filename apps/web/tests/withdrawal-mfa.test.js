@@ -6,7 +6,7 @@ const email = { id: "member", email_confirmed_at: "2026-11-10T01:00:00Z", is_ano
 const anon = { id: "guest", is_anonymous: true };
 function mock(level="aal2") {
  const calls = [];
- const auth = { mfa: {
+ const auth = { onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}), getUser:async()=>({data:{user:email},error:null}), mfa: {
    async challenge({factorId}) {calls.push(["challenge",factorId]);return {data:{id:"challenge-1"},error:null};},
    async verify({factorId,challengeId,code}) {calls.push(["verify",factorId,challengeId,code]);return {data:{},error:null};},
    async getAuthenticatorAssuranceLevel(){calls.push(["assurance"]);return {data:{currentLevel:level},error:null};}
