@@ -45,6 +45,7 @@ jobs:
             apps/web/tests/campaign-documents.test.js \
             apps/web/tests/campaign-document-privacy-notice.test.js \
             apps/web/tests/campaign-document-permissions.test.js \
+            apps/web/tests/document-reference-safety.test.js \
             2>&1 | tee /tmp/ifund-private-document-web.log
       - name: Preserve test logs even on failure
         if: always()
