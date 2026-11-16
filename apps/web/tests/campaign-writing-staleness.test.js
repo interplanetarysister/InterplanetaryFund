@@ -47,11 +47,46 @@ for(const kind of ["section","ideas"]){
   });
 }
 test("section edits save through the canonical story update and saved drafts expose their section editor",()=>{
-  assert.match(source,/function editSection\(index, value\)[\s\S]*?change\("story",sections.join/);
+  assert.match(source,/function editSection\(index, value\)[\s\S]*?setForm\(previous=>\(\{\.\.\.previous,story:sections.join/);
   assert.match(source,/const sections=splitStory\(data.story \|\| ""\)/);
   const editor=source.indexOf('aria-label="Story section editor"');
   const visibleGuard=source.lastIndexOf('{storySections.length>0&&<>',editor);
   assert.ok(visibleGuard>=0);
   assert.match(source,/function changeWritingBrief\(setter, value\) \{\s*invalidateWriting\(true\)/);
   assert.match(source,/key==="category"\|\|key==="goal_amount"\)invalidateWriting\(true\)/);
+});
+
+function sectionEditor(initial) {
+  const storySectionsRef={current:[...initial]},userEditedDraft={current:false};
+  const state={sections:[...initial],form:{title:"Unchanged title",story:initial.join("\n\n")},invalidations:0};
+  const names={storySectionsRef,userEditedDraft,
+    invalidateWriting:()=>{state.invalidations++;},setSaved(){},setBrowserSaved(){},
+    setStorySections:value=>{state.sections=value;},setForm:update=>{state.form=update(state.form);}};
+  const start=source.indexOf("  function editSection(index, value) {");
+  const end=source.indexOf("\n  async function writingSuggestion(input)",start);
+  assert.ok(start>=0&&end>start);
+  const edit=new Function(...Object.keys(names),source.slice(start,end)+";return editSection;")(...Object.values(names));
+  return {state,storySectionsRef,userEditedDraft,edit};
+}
+test("actual section editor preserves trailing spaces while typing the next word",()=>{
+  const h=sectionEditor(["Hello","Other paragraph"]);
+  h.edit(0,"Hello ");
+  assert.equal(h.state.sections[0],"Hello ");
+  assert.equal(h.storySectionsRef.current[0],"Hello ");
+  assert.equal(h.state.form.story,"Hello \n\nOther paragraph");
+  h.edit(0,"Hello world ");
+  assert.equal(h.state.sections[0],"Hello world ");
+  assert.equal(h.state.form.title,"Unchanged title");
+  assert.equal(h.userEditedDraft.current,true);
+  assert.equal(h.state.invalidations,2);
+});
+test("actual section editor retains empty paragraphs and stable later textarea indices",()=>{
+  const h=sectionEditor(["First","Second","Third"]);
+  h.edit(1,"");
+  assert.deepEqual(h.state.sections,["First","","Third"]);
+  assert.deepEqual(h.storySectionsRef.current,["First","","Third"]);
+  assert.equal(h.state.form.story,"First\n\n\n\nThird");
+  h.edit(2,"Third revised");
+  assert.deepEqual(h.state.sections,["First","","Third revised"]);
+  assert.equal(h.state.form.story,"First\n\n\n\nThird revised");
 });

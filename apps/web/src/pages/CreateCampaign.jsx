@@ -163,7 +163,12 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
   function editSection(index, value) {
     const sections=storySectionsRef.current.map((part,i)=>i===index?value:part);
-    change("story",sections.join("\n\n"));
+    // Preserve raw textarea input: splitting/trimming here would eat spaces
+    // while typing and remove emptied sections, shifting all later indices.
+    invalidateWriting();
+    storySectionsRef.current=sections;setStorySections(sections);
+    userEditedDraft.current=true;setSaved("");setBrowserSaved(false);
+    setForm(previous=>({...previous,story:sections.join("\n\n")}));
   }
   async function writingSuggestion(input) {
     const linkedCampaignId = ownerId ? (draftId || saved || campaignId.current || null) : null;
