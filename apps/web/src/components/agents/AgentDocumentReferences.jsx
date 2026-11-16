@@ -106,7 +106,8 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
     }
   }
   if(!campaignId)return null;
-  const items=verifiedOwner&&scope.current.owner===verifiedOwner?state.items:[];
+  // Effects run after render: never expose the previous campaign’s items for even one frame.
+  const items=verifiedOwner&&scope.current.owner===verifiedOwner&&scope.current.campaignId===campaignId?state.items:[];
   return <section className="rounded-xl border border-border p-4" aria-label="Campaign document reference suggestions">
     <h3 className="text-sm font-semibold">Private campaign references</h3>
     <p className="mt-1 text-xs text-muted-foreground">Only owner-enabled, user-supplied references appear here. They are not independently verified. Review before using in public materials.</p>
