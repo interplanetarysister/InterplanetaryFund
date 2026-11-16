@@ -14,34 +14,23 @@ export function redactTeamCredentials(value) {
     // Preserve parameter separators and neighboring state values.
     .replace(/(https?:[/][/][^\s<>"']+|[/][A-Za-z0-9_./%-]+[?][^\s<>"']+)/gi,
       url => {
-        // Nested percent-encoded OAuth parameter keys can concatenate with a
-        // preceding non-secret state value after decoding. Reject before decoding.
-        if (/%25(?:25)*63ode(?:=|%3d|%253d)/i.test(url))
-          return '[redacted credential URL]';
-        // Decode a bounded number of nested URL/HTML encodings before matching.
-        // Unknown/deeper encodings fail closed rather than entering shared history.
+        // Normalize nested query encodings. Treat authorization codes and
+        // aliases as credentials; leave non-secret parameters intact.
         let normalized=url;
-        for(let i=0;i<6;i++) {
+        for(let i=0;i<12;i++) {
           const next=normalized
             .replace(/&(?:amp|#0*38|#x0*26);/gi,'&')
-            .replace(/%25/gi,'%')
-            .replace(/%26/gi,'&')
-            .replace(/%3b/gi,';')
-            .replace(/%63/gi,'c')
-            .replace(/%3d/gi,'=');
+            .replace(/%[0-9a-f]{2}/gi,part=>decodeURIComponent(part));
           if(next===normalized) break;
           normalized=next;
         }
-        if(/(?:%25|&amp;|&#(?:0*38|x0*26);)/i.test(normalized) &&
-          /(?:code|%63ode|%2563ode)/i.test(normalized))
-          return '[redacted credential URL]';
-        const cleaned=normalized.replace(/([?#&]code=)([^&#\s]+)/gi,
-          (_part,prefix)=>prefix+'[redacted]');
-        // Encoded or nested separators can survive one normalization pass.
-        // Reject the whole URL rather than risk storing an OAuth code.
-        if (/%25(?:26|3d|63|3b)/i.test(cleaned) && /code/i.test(cleaned))
-          return '[redacted credential URL]';
-        if (/(?:&(?:amp;)+|%3b|%253b|;)(?:code|%63ode)(?:=|%3d)/i.test(cleaned))
+        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)';
+        const codeParam=new RegExp('([?#&;]'+codeKey+'=)([^&#;\\s]+)','gi');
+        const cleaned=normalized.replace(codeParam,(_part,prefix)=>prefix+'[redacted]');
+        // If nested encodings still obscure a potentially secret parameter,
+        // discard the entire URL instead of returning it to shared history.
+        if(/%[0-9a-f]{2}|&(?:amp|#0*38|#x0*26);/i.test(cleaned) &&
+          /(?:code|%[0-9a-f]{2})/i.test(cleaned))
           return '[redacted credential URL]';
         return cleaned;
       })
