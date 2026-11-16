@@ -20,7 +20,7 @@ export default function PlatformSupportHostedButton() {
         <a href={IFUND_PLATFORM_SUPPORT_PAYMENT_LINK} target="_blank" rel="noopener noreferrer"
           aria-label="Support Interplanetary Fund with PayPal, opens secure provider checkout"
           className="mx-auto inline-flex min-h-12 w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-[#FFC439] px-5 py-3 text-sm font-bold text-[#003087] shadow-sm transition hover:bg-[#f2bb2c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 focus-visible:ring-offset-2">
-          <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
+          <img src="/images/paypal-wordmark-color.svg"
             alt="" aria-hidden="true" className="h-5 max-w-[72px]" />
           <span>Support IFund</span>
         </a>

@@ -51,7 +51,7 @@ export default function PayPalDonateButton({ label = "Support Interplanetary Fun
           <a href={IFUND_PLATFORM_SUPPORT_PAYMENT_LINK} target="_blank" rel="noopener noreferrer"
             onClick={() => setOpen(false)}
             className="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#FFC439] px-5 py-3 font-extrabold text-[#003087] shadow-sm transition hover:bg-[#f5ba24] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#003087]">
-            Continue to <img src="https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-wordmark-color.svg"
+            Continue to <img src="/images/paypal-wordmark-color.svg"
               alt="PayPal" className="h-5 max-w-[85px]" />
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </a>
