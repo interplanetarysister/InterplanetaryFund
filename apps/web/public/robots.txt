@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /campaigns/
+Disallow: /create
+Disallow: /account
+Disallow: /inbox
+Disallow: /notifications
+Disallow: /oauth/
+Disallow: /auth/
+
+Sitemap: https://interplanetaryfund.com/sitemap.xml
