@@ -14,6 +14,8 @@ on:
       - 'worker/agents/teamContext.js'
       - 'worker/agents/story.js'
       - 'apps/web/src/api/campaignDocuments.js'
+      - 'apps/web/src/pages/ManagePermissions.jsx'
+      - 'apps/web/src/components/permissions/CampaignDocumentPermissions.jsx'
       - 'apps/web/src/components/campaigns/CampaignDocuments.jsx'
       - 'apps/web/src/components/agents/AgentDocumentReferences.jsx'
       - 'apps/web/src/lib/legalPolicy.js'
@@ -61,6 +63,7 @@ jobs:
           node --test \
             apps/web/tests/campaign-documents.test.js \
             apps/web/tests/campaign-document-privacy-notice.test.js \
+            apps/web/tests/campaign-document-permissions.test.js \
             2>&1 | tee /tmp/ifund-private-document-web.log
       - name: Preserve test logs even on failure
         if: always()
