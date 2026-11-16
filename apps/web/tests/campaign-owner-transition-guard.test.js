@@ -6,8 +6,8 @@ const source = readFileSync(new URL("../src/pages/CreateCampaign.jsx", import.me
 test("verified owner changes fail closed without relying on parent remount", () => {
   assert.match(source, /initialOwnerId\.current !== ownerId/);
   assert.match(source, /privacyDecisionPending = guestDecisionPending \|\| ownerTransitionPending/);
-  assert.match(source, /if \(privacyDecisionPending \|\| draftId/);
-  assert.match(source, /Boolean\(privacyDecisionPending \|\| busy/);
+  assert.match(source, /if \(!storageReadable \|\| privacyDecisionPending \|\| draftId/);
+  assert.match(source, /Boolean\(!storageReadable \|\| privacyDecisionPending \|\| busy/);
   assert.match(source, /if \(ownerTransitionPending\) return; \/\/ No consent/);
 });
 
