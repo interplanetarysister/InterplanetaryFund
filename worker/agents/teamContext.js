@@ -39,10 +39,10 @@ export function redactTeamCredentials(value) {
           if(next===normalized) break;
           normalized=next;
         }
-        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)';
+        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)';
         // Array-style and control-character suffixed credential keys must not
         // survive merely because they are not exact `code=` matches.
-        if (/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)(?:\[[^\]&#;]*\]|\.[^=&#;\s]*|[\x00-\x1f])=/i.test(normalized))
+        if (/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)(?:\[[^\]&#;]*\]|\.[^=&#;\s]*|[\x00-\x1f])=/i.test(normalized))
           return '[redacted credential URL]';
         const codeParam=new RegExp('([?#&;]'+codeKey+'=)([^&#;\\s]+)','gi');
         const cleaned=normalized.replace(codeParam,(_part,prefix)=>prefix+'[redacted]');
