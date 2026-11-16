@@ -21,8 +21,11 @@ export function redactTeamCredentials(value) {
           .replace(/code%3d/gi,'code=');
         const cleaned=normalized.replace(/([?#&]code=)([^&#\s]+)/gi,
           (_part,prefix)=>prefix+'[redacted]');
-        // Double encoding or unrecognized callback syntax: fail closed.
-        if (/%25(?:26|3d|63)/i.test(cleaned) && /code/i.test(cleaned))
+        // Encoded or nested separators can survive one normalization pass.
+        // Reject the whole URL rather than risk storing an OAuth code.
+        if (/%25(?:26|3d|63|3b)/i.test(cleaned) && /code/i.test(cleaned))
+          return '[redacted credential URL]';
+        if (/(?:&(?:amp;)+|%3b|%253b|;)(?:code|%63ode)(?:=|%3d)/i.test(cleaned))
           return '[redacted credential URL]';
         return cleaned;
       })
