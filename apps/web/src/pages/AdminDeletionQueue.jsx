@@ -23,7 +23,7 @@ export default function AdminDeletionQueue(){
     let alive=true;
     const epoch=++generation.current;
     const valid=()=>alive&&generation.current===epoch;
-    setLoading(true);setError("");setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setSelected("");setReviewNote("");setNotice("");
+    setLoading(true);setError("");setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setDependencyBusy("");setProcessing("");setSelected("");setReviewNote("");setNotice("");
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
