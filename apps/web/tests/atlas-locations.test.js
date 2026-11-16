@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAtlasLocation } from "../src/lib/atlasLocations.mjs";
+import { mapAtlasCampaign, atlasLocationRows, atlasLocationSummary, isApprovedAtlasLocation, isBroadPublicLocationLabel } from "../src/lib/atlasLocations.mjs";
 
 const campaign=(overrides={})=>({
  id:"00000000-0000-4000-8000-000000000001",title:"Community Garden",
@@ -39,4 +39,15 @@ test("no campaign geolocation inferred from title or owner profile",()=>{
  assert.equal(row.location,"");
  assert.equal(row.latitude,null);
  assert.equal(row.longitude,null);
+});
+
+test("precise-looking street labels are excluded even if map opt-in is true",()=>{
+  for(const label of ["123 Main Street","100 N Broadway Ave","Seattle, WA 98101","P.O. Box 123","Apartment 5, Seattle"]){
+    assert.equal(isBroadPublicLocationLabel(label),false,label);
+    const row=mapAtlasCampaign(campaign({public_location_label:label}));
+    assert.equal(isApprovedAtlasLocation(row),false,label);
+  }
+  for(const label of ["Seattle area, Washington","Portland, Oregon","District 9, Seattle"]){
+    assert.equal(isBroadPublicLocationLabel(label),true,label);
+  }
 });
