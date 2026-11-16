@@ -57,12 +57,20 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
   const headingRef=useRef(null);
+  const pendingFocusRef=useRef(null);
   const storyEditStarted=useRef(false);
   const [wizard,setWizard]=useState(()=>{try{return restoreWizard(sessionStorage,ownerId,draftId);}catch{return emptyWizard();}});
   const [wizardError,setWizardError]=useState("");
   const [progressNotice,setProgressNotice]=useState("");
   const step=wizard.draft_step;
-  useEffect(()=>{headingRef.current?.focus();},[step]);
+  useEffect(()=>{
+    headingRef.current?.focus();
+    const id=pendingFocusRef.current;
+    if(id){
+      const target=document.getElementById(id);
+      if(target&&target.getClientRects().length){pendingFocusRef.current=null;target.scrollIntoView({block:"center"});target.focus({preventScroll:true});}
+    }
+  },[step]);
   // Explicit edits, not mount/effect replays, authorize clearing restored text.
   const userEditedDraft = useRef(false);
   const coverUploadLock = useRef(false);
@@ -324,6 +332,22 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     } catch {
       setGuestImportMessage("Browser storage failed. Guest draft was not intentionally deleted. Choose Keep separate.");
     }
+  }
+  function focusCampaignField(id){
+    const steps={
+      "campaign-title":1,"campaign-goal":1,"campaign-category":1,
+      "campaign-cover":1,"campaign-cover-url":1,
+      "campaign-summary":2,"campaign-story":2,
+      "campaign-sharing-plan":3
+    };
+    if(!Object.hasOwn(steps,id)||disabled)return;
+    pendingFocusRef.current=id;
+    setWizard(previous=>({...previous,draft_step:steps[id]}));
+    // Same-stage clicks do not rerun the step effect.
+    requestAnimationFrame(()=>{
+      const target=document.getElementById(id);
+      if(target&&target.getClientRects().length){pendingFocusRef.current=null;target.scrollIntoView({block:"center"});target.focus({preventScroll:true});}
+    });
   }
   function change(key, value) {
     if(key==="category"||key==="goal_amount")invalidateWriting(true);
@@ -638,9 +662,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
 
     {step===2&&wizard.story_versions.length>0&&<details className="rounded-xl border border-border p-4"><summary>Previous story versions ({wizard.story_versions.length})</summary><ul className="space-y-3 pt-3">{wizard.story_versions.map((version,index)=><li key={index} className="space-y-2"><p className="max-h-40 overflow-auto whitespace-pre-wrap text-sm">{version.text}</p><button type="button" disabled={disabled} onClick={()=>change("story",version.text)} className="min-h-11 rounded-lg border px-3 text-sm">Restore this version</button></li>)}</ul></details>}
     {step===3&&<section aria-label="Campaign launch review" className="space-y-3 rounded-xl border border-border p-5"><h2 className="text-xl font-semibold">{form.title||"Untitled campaign"}</h2><p>{form.summary||"Add a short description before publishing."}</p><p className="whitespace-pre-wrap">{form.story||"Add your campaign story before publishing."}</p><p className="text-sm text-muted-foreground">{wizard.end_date?"End date: "+wizard.end_date:"No end date set"}. Private setup details are never published by this review.</p></section>}
-    <div hidden={step!==3}><CampaignReadinessScore form={form} /></div>
+    <div hidden={step!==3}><CampaignReadinessScore form={form} onFocusField={focusCampaignField} /></div>
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={savedStatus==="active"?`/campaign/${encodeURIComponent(saved)}`:`/create?draft=${encodeURIComponent(saved)}`}>{savedStatus==="active"?"View published campaign":"Reopen saved draft"}</Link>}</div>}
-    <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} /></div>
+    <div hidden={step!==3}><PrepublicationGate form={form} campaignId={draftId || saved || null} onFocusField={focusCampaignField} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} /></div>
     <section hidden={step!==3} aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
