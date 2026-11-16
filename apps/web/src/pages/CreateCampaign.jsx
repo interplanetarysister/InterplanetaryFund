@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { uploadCampaignCover, validateCoverFile } from "@/api/campaignCovers";
 import { makeDraftRequest, requestCampaignDraft } from "@/api/campaignDraft";
+import { createCampaignWritingRequests } from "@/lib/campaignWritingRequests";
 import { CAMPAIGN_WRITING_PATHS, guidedCampaignDetails } from "@/lib/campaignWritingPaths";
 import { loadOwnerCampaign, saveOwnerCampaign, isCampaignConflict } from "@/api/ownerCampaigns";
 import { CAMPAIGN_CATEGORIES, TITLE_MAX, SUMMARY_MAX, STORY_MAX, COVER_URL_MAX, validateCampaignForm, publishReadiness } from "@/lib/campaignLifecycle";
@@ -50,8 +51,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const coverUploadLock = useRef(false);
   const writingLock = useRef(false);
   const writingRequests = useRef(new Map());
+  const writingRevision = useRef(createCampaignWritingRequests());
+  const storySectionsRef = useRef([]);
   const alive = useRef(true);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; writingRevision.current.invalidate(); writingLock.current = false; }; }, []);
   const [loadedDraftId, setLoadedDraftId] = useState(null);
   const [loadingDraft, setLoadingDraft] = useState(Boolean(draftId));
   const [draftLoadError, setDraftLoadError] = useState("");
@@ -64,6 +67,9 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         const data = await loadOwnerCampaign(authClient(), draftId);
         if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
         if (active) {
+          invalidateWriting();
+          const sections=splitStory(data.story || "");
+          storySectionsRef.current=sections;setStorySections(sections);
           setForm({ title:data.title||"", summary:data.summary||"", story:data.story||"", category:data.category||"community", goal_amount:Number(data.goal_amount)>0 ? String(data.goal_amount) : "", cover_image_url:data.cover_image_url||"", map_opt_in:data.map_opt_in===true, public_location_label:data.public_location_label||"", map_latitude:data.map_latitude===null ? "" : String(data.map_latitude), map_longitude:data.map_longitude===null ? "" : String(data.map_longitude) });
           setLoadedDraftId(draftId);
           setSaved(data.id);
@@ -99,6 +105,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const ownerTransitionPending = initialOwnerId.current !== ownerId;
   useEffect(() => {
     if (!ownerTransitionPending) return;
+    invalidateWriting(true);
     setGuestDecisionPending(true);
     setGuestImportMessage("Your account changed. Reload the campaign editor before importing or saving a browser draft.");
   }, [ownerId, ownerTransitionPending]);
@@ -139,15 +146,24 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
   const [writingQueued, setWritingQueued] = useState(false);
-  const [storySections, setStorySections] = useState([]);
+  const [storySections, setStorySections] = useState(() => {
+    const sections=splitStory(form.story);storySectionsRef.current=sections;return sections;
+  });
   const [sectionProposals, setSectionProposals] = useState({});
   const [regeneratingSection, setRegeneratingSection] = useState(-1);
   const [sectionError, setSectionError] = useState("");
   function splitStory(story) {
     return String(story || "").split(/\n\s*\n/).map(part => part.trim()).filter(Boolean);
   }
+  function invalidateWriting(clearIdeas = false) {
+    writingRevision.current.invalidate();writingLock.current=false;
+    setSuggesting(false);setRegeneratingSection(-1);setSectionProposals({});
+    setSuggestionError("");setSectionError("");setWritingQueued(false);
+    if(clearIdeas)setSuggestions(null);
+  }
   function editSection(index, value) {
-    setStorySections(previous => previous.map((part, i) => i === index ? value : part));
+    const sections=storySectionsRef.current.map((part,i)=>i===index?value:part);
+    change("story",sections.join("\n\n"));
   }
   async function writingSuggestion(input) {
     const linkedCampaignId = ownerId ? (draftId || saved || campaignId.current || null) : null;
@@ -168,11 +184,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   }
   async function regenerateSection(index) {
     if (privacyDecisionPending || writingLock.current || regeneratingSection !== -1 || suggesting || busy) return;
+    const request=writingRevision.current.begin();
+    if(!request)return;
     writingLock.current = true;
     setRegeneratingSection(index);
     setSectionError("");
     try {
-      const original = storySections[index];
+      const original = storySectionsRef.current[index];
       const result = await writingSuggestion({
         details: ("Rewrite only this section of a campaign story, preserving all supplied facts. Original section: " + original + ". Campaign context: " + draftDetails).slice(0, 1500),
         beneficiary: draftBeneficiary,
@@ -181,20 +199,24 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         goal: form.goal_amount,
         section: original,
       });
-      if (!alive.current) return;
+      if (!alive.current || !writingRevision.current.current(request)) return;
       const proposed = result.story.trim();
       if (!proposed) throw new Error("No replacement section returned.");
       setSectionProposals(previous => ({ ...previous, [index]: proposed }));
     } catch (err) {
-      if (alive.current) { setSectionError(err?.message || "Unable to regenerate section."); setWritingQueued(err?.code === "queued"); }
+      if (alive.current && writingRevision.current.current(request)) { setSectionError(err?.message || "Unable to regenerate section."); setWritingQueued(err?.code === "queued"); }
     } finally {
-      writingLock.current = false;
-      if (alive.current) setRegeneratingSection(-1);
+      if(writingRevision.current.finish(request)){
+        writingLock.current = false;
+        if (alive.current) setRegeneratingSection(-1);
+      }
     }
   }
 
   async function suggestDraft() {
     if (privacyDecisionPending || writingLock.current || busy || suggesting || loadingDraft || draftLoadError) return;
+    const request=writingRevision.current.begin();
+    if(!request)return;
     writingLock.current = true;
     setSuggesting(true); setSuggestionError(""); setWritingQueued(false);
     try {
@@ -205,15 +227,17 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         cause: form.category,
         goal: form.goal_amount,
       });
-      if (!alive.current) return;
+      if (!alive.current || !writingRevision.current.current(request)) return;
       setSuggestions(result);
-      setStorySections(splitStory(result.story));
+      const sections=splitStory(result.story);storySectionsRef.current=sections;setStorySections(sections);
       setSectionProposals({});
     } catch (error) {
-      if (alive.current) { setSuggestionError(error?.message || "Could not prepare your draft."); setWritingQueued(error?.code === "queued"); }
+      if (alive.current && writingRevision.current.current(request)) { setSuggestionError(error?.message || "Could not prepare your draft."); setWritingQueued(error?.code === "queued"); }
     } finally {
-      writingLock.current = false;
-      if (alive.current) setSuggesting(false);
+      if(writingRevision.current.finish(request)){
+        writingLock.current = false;
+        if (alive.current) setSuggesting(false);
+      }
     }
   }
   useEffect(() => {
@@ -243,7 +267,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           : "Import could not be completed (" + outcome.status.replaceAll("_", " ") + "). The guest draft was not intentionally deleted. Choose Keep separate.");
         return;
       }
-      setForm(restoreBrowserCampaign(sessionStorage, ownerId));
+      const restored=restoreBrowserCampaign(sessionStorage, ownerId);
+      invalidateWriting(true);
+      storySectionsRef.current=splitStory(restored.story);setStorySections(storySectionsRef.current);
+      setForm(restored);
       const brief = restoreWritingBrief(sessionStorage, ownerId);
       setWritingPath(brief.writingPath); setDraftDetails(brief.details);
       setDraftBeneficiary(brief.beneficiary); setDraftNeed(brief.need);
@@ -253,8 +280,23 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       setGuestImportMessage("Browser storage failed. Guest draft was not intentionally deleted. Choose Keep separate.");
     }
   }
-  function change(key, value) { userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value })); }
+  function change(key, value) {
+    if(key==="category"||key==="goal_amount")invalidateWriting(true);
+    if(key==="story"){
+      invalidateWriting();
+      storySectionsRef.current=splitStory(value);setStorySections(storySectionsRef.current);
+    }
+    userEditedDraft.current = true; setSaved(""); setBrowserSaved(false); setForm(prev => ({ ...prev, [key]: value }));
+  }
+  function applyCampaignFields(fields) {
+    invalidateWriting();
+    if(typeof fields.story==="string"){
+      storySectionsRef.current=splitStory(fields.story);setStorySections(storySectionsRef.current);
+    }
+    userEditedDraft.current=true;setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);
+  }
   function changeWritingBrief(setter, value) {
+    invalidateWriting(true);
     // Writing-brief edits are user edits too: otherwise a prior server receipt
     // suppresses browser autosave and silently loses the updated brief.
     userEditedDraft.current = true;
@@ -371,7 +413,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} />
     <CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} />
-    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { userEditedDraft.current = true; setForm(previous => ({ ...previous, ...copy })); setSaved(""); setError(""); }} />
+    <WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} />
     <section className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
       <fieldset disabled={disabled} className="space-y-4">
       <h2 className="text-xl font-semibold">Campaign writing assistant</h2>
@@ -423,14 +465,19 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         <h3 className="font-semibold">Story idea</h3>
         <p className="whitespace-pre-wrap">{suggestions.story}</p>
         <button type="button" className="rounded-xl border border-border px-4 py-2"
-          onClick={() => { change("story",suggestions.story); setStorySections(splitStory(suggestions.story)); }}>Use story</button>
+          onClick={() => change("story",suggestions.story)}>Use story</button>
+        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
+          <p>{suggestions.imagePrompt}</p>
+        </details>}
+      </div>}
+      {storySections.length>0&&<>
         <div className="space-y-4" aria-label="Story section editor">
-          <p className="text-sm text-muted-foreground">{suggestions.assistance === "outline" ? "Edit this basic outline section by section, then apply your edited story below." : "Edit each section separately. Rewriting produces a suggestion for your review and never overwrites other sections."}</p>
+          <p className="text-sm text-muted-foreground">{suggestions?.assistance === "outline" ? "Edit this basic outline section by section, then apply your edited story below." : "Edit each section separately. Rewriting produces a suggestion for your review and never overwrites other sections."}</p>
           {storySections.map((part, index) => <div key={index} className="space-y-2 rounded-xl border border-border p-4">
             <label className="block font-semibold">Section {index + 1}
               <textarea rows={5} value={part} onChange={e => editSection(index,e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-3" />
             </label>
-            <button type="button" disabled={suggestions.assistance === "outline" || regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
+            <button type="button" disabled={suggestions?.assistance === "outline" || regeneratingSection !== -1 || suggesting || busy} onClick={() => regenerateSection(index)} className="rounded-xl border border-border px-4 py-2 disabled:opacity-50">
               {regeneratingSection === index ? "Generating…" : "Regenerate this section"}
             </button>
             {sectionProposals[index] && <div className="space-y-2 rounded-xl border border-primary/30 p-3">
@@ -443,10 +490,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           {sectionError && <p role="alert">{sectionError}</p>}
           <button type="button" className="rounded-xl border border-border px-4 py-2" onClick={() => change("story",storySections.join("\n\n"))}>Use edited story sections</button>
         </div>
-        {suggestions.imagePrompt && <details><summary>Suggested illustration concept (no image generated)</summary>
-          <p>{suggestions.imagePrompt}</p>
-        </details>}
-      </div>}
+      </>}
       </fieldset>
     </section>
     <form id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
@@ -487,7 +531,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </form>
     <CampaignReadinessScore form={form} />
     {autosaveError && <div role="alert" className="space-y-2 text-sm text-destructive break-words"><p>{autosaveError}</p>{saved && <Link className="inline-block underline font-semibold" to={`/campaign/${encodeURIComponent(saved)}`}>View saved campaign</Link>}</div>}
-    <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={fields=>{userEditedDraft.current = true;setForm(previous=>({...previous,...fields}));setSaved("");setBrowserSaved(false);}} />
+    <PrepublicationGate form={form} campaignId={draftId || saved || null} disabled={disabled} onApply={value=>change("story", value)} onApplyFields={applyCampaignFields} />
     <section aria-label="Save or publish campaign" className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <div id="campaign-publish-readiness" aria-live="polite">
         <h2 className="text-xl font-semibold">{readiness.ready ? "Ready to publish" : "Before you publish"}</h2>
