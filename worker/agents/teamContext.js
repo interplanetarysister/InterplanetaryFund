@@ -40,6 +40,10 @@ export function redactTeamCredentials(value) {
           normalized=next;
         }
         const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)';
+        // Array-style and control-character suffixed credential keys must not
+        // survive merely because they are not exact `code=` matches.
+        if (/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code)(?:\[[^\]&#;]*\]|[\x00-\x1f])=/i.test(normalized))
+          return '[redacted credential URL]';
         const codeParam=new RegExp('([?#&;]'+codeKey+'=)([^&#;\\s]+)','gi');
         const cleaned=normalized.replace(codeParam,(_part,prefix)=>prefix+'[redacted]');
         // If nested encodings still obscure a potentially secret parameter,
