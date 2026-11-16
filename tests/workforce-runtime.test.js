@@ -90,7 +90,7 @@ function fetcher(calls, overrides = {}) {
     if (name === "user")
       return Response.json({ id: uid, email_confirmed_at: "2026-01-01" });
     if (url.includes("/ifund_ai_permission_preferences?"))
-      return Response.json([{allow_ai_campaign_drafts:true}]);
+      return Response.json([{ allow_ai_campaign_drafts: true }]);
     if (name === "ifund_story_context")
       return Response.json({ campaign: null, research: null });
     if (name === "ifund_workforce_snapshot")
@@ -463,6 +463,8 @@ test("the permanent Story address preserves released drafting when procurement i
       calls.map((c) => c.name),
       [
         "user",
+        "ifund_ai_permission_preferences?select=allow_ai_campaign_drafts&owner_id=eq." +
+          uid,
         "ifund_story_context",
         "ifund_story_begin",
         "ifund_story_finish",

@@ -187,6 +187,27 @@ drop trigger if exists ifund_campaign_document_deletion_guard on public.ifund_ca
 create trigger ifund_campaign_document_deletion_guard before update on public.ifund_campaign_documents
   for each row execute function public.ifund_campaign_document_deletion_guard();
 
+-- Metadata may only disappear after the private object is absent. This
+-- applies to privileged deletion as well as owner DELETE, preventing silent
+-- orphan creation by direct table deletes or cascade operations.
+create or replace function public.ifund_campaign_document_metadata_delete_guard()
+returns trigger language plpgsql security definer set search_path='' as $guard$
+begin
+  if exists (select 1 from storage.objects o
+    where o.bucket_id='ifund-campaign-documents' and o.name=old.storage_path) then
+    raise exception 'Remove private Storage object before document metadata'
+      using errcode='23514';
+  end if;
+  return old;
+end $guard$;
+revoke all on function public.ifund_campaign_document_metadata_delete_guard()
+  from public,anon,authenticated;
+drop trigger if exists ifund_campaign_document_metadata_delete_guard
+  on public.ifund_campaign_documents;
+create trigger ifund_campaign_document_metadata_delete_guard
+  before delete on public.ifund_campaign_documents
+  for each row execute function public.ifund_campaign_document_metadata_delete_guard();
+
 create or replace function public.ifund_campaign_documents_prevent_orphans()
 returns trigger language plpgsql security definer set search_path='' as $$
 begin

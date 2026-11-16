@@ -144,3 +144,26 @@ test("orphaned private Storage bytes prevent campaign deletion without metadata"
   assert.equal((await db.query("select count(*)::int n from public.ifund_campaigns where id=$1",[campaign])).rows[0].n,1);
  } finally {await db.close();}
 });
+
+test("metadata deletion fails closed until the private Storage object is erased",async()=>{
+ const db=await fixture();
+ try {
+  await as(db,owner);
+  await insert(db);
+  await db.query("update public.ifund_campaign_documents set allow_agent_use=false,deletion_requested_at=now() where id=$1",[id]);
+  await assert.rejects(
+    db.query("delete from public.ifund_campaign_documents where id=$1",[id]),
+    /Remove private Storage object before document metadata/
+  );
+  assert.equal((await db.query("select count(*)::int n from public.ifund_campaign_documents where id=$1",[id])).rows[0].n,1);
+  await as(db,other);
+  // PostgreSQL RLS hides the other owner's row from DELETE. A successful
+  // statement affecting zero rows is a denial, not an authorization bypass.
+  const denied=await db.query("delete from storage.objects where name=$1 returning id",[path]);
+  assert.equal(denied.rows.length,0);
+  await as(db,owner);
+  assert.equal((await db.query("select count(*)::int n from storage.objects where name=$1",[path])).rows[0].n,1);
+  await db.query("delete from storage.objects where name=$1",[path]);
+  assert.equal((await db.query("delete from public.ifund_campaign_documents where id=$1 returning id",[id])).rows[0].id,id);
+ } finally { await db.close(); }
+});
