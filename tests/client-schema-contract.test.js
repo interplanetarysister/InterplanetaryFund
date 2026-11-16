@@ -36,6 +36,7 @@ const PENDING = [
   "supabase/migrations/20261115010000_ifund_ai_permission_preferences.sql",
   "supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",
   "supabase/migrations/20261115_ifund_mobile_organizer_blocks.sql",
+  "supabase/migrations/20261103192435_ifund_communications_preferences_20261103.sql",
 ];
 
 const PGlite = await loadPGlite();
