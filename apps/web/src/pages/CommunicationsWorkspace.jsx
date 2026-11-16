@@ -57,7 +57,7 @@ export default function CommunicationsWorkspace() {
     });
     load();
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
-  },[]);
+  },[requestedCampaign]);
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
     if(!item){setStatus("Select one of your campaigns.");return}
