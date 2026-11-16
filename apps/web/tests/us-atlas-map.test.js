@@ -30,6 +30,13 @@ test("Puerto Rico is mapped separately from mainland and unauthorized regions",(
   assert.equal(projectUsPoint(18.5,-66.1)?.x > 550,true);
 });
 
+test("coastline draws even when a border vertex is not an eligible campaign location",()=>{
+  const path=mainlandOutlinePath();
+  assert.ok(path.startsWith("M") && path.endsWith(" Z"));
+  assert.doesNotMatch(path,/NaN|undefined|null/);
+  assert.equal(projectUsPoint(49.2,-123.1),null, "Canadian city is not a U.S. marker");
+  assert.ok(projectUsPoint(25.8,-80.2), "Miami remains eligible");
+});
 test("the mainland has illustrative coastline geometry",()=>{
   const path=mainlandOutlinePath();
   assert.ok(path.startsWith("M"));
