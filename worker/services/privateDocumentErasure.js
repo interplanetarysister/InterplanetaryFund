@@ -17,7 +17,8 @@ function config(env){
  return {url,key};
 }
 const serviceHeaders=(key,returnRows=false)=>({
-  "apikey":key,Authorization:"Bearer "+key,"content-type":"application/json",
+  // Opaque sb_secret keys authenticate through apikey, not a Bearer JWT.
+  "apikey":key,"content-type":"application/json",
   ...(returnRows?{Prefer:"return=representation"}:{})
 });
 async function fetchJson(fetcher,url,init){
