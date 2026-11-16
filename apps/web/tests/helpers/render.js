@@ -43,7 +43,7 @@ export async function loadComponent(entry) {
     plugins: entry.endsWith("CampaignShareButton.jsx") ? [{
       name: "server-render-native-bridge",
       setup(builder) {
-        builder.onResolve({ filter: /^@\\/lib\\/nativeApi$/ }, () => ({
+        builder.onResolve({ filter: /nativeApi$/ }, () => ({
           path: "native-bridge", namespace: "ifund-ssr"
         }));
         builder.onLoad({ filter: /.*/, namespace: "ifund-ssr" }, () => ({
