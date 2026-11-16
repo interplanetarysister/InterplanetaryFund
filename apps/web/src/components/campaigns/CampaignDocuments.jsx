@@ -1,3 +1,4 @@
+import {CAMPAIGN_DOCUMENTS_ACTIVE} from "@/lib/campaignDocumentAvailability.mjs";
 import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {
@@ -7,7 +8,10 @@ import {
 
 // One owner-scoped private library per saved campaign. Files never enter public
 // covers or social publishing; per-document agent use is owner-controlled.
-export default function CampaignDocuments({campaignId,ownerId}) {
+export default function CampaignDocuments(props) {
+  return CAMPAIGN_DOCUMENTS_ACTIVE?<EnabledCampaignDocuments {...props}/>:null;
+}
+function EnabledCampaignDocuments({campaignId,ownerId}) {
   const [records,setRecords]=useState([]);
   const [accountLocked,setAccountLocked]=useState(false);
   const [retryCount,setRetryCount]=useState(0);
