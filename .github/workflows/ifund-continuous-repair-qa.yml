@@ -13,6 +13,7 @@ on:
       - 'workers/ifund-payments/subscription-refund-boundary.test.mjs'
       - 'tests/team-context*.test.js'
       - 'tests/*refund*.test.js'
+      - 'tests/credential-url-encoding-matrix.test.mjs'
   workflow_dispatch:
 
 permissions:
@@ -43,6 +44,7 @@ jobs:
           set -euo pipefail
           node --test \
             worker/agents/teamContext.redaction.test.mjs \
+            tests/credential-url-encoding-matrix.test.mjs \
             workers/ifund-payments/subscription-refund-boundary.test.mjs \
             2>&1 | tee ifund-repair-qa.log
       - name: Record executed QA and next repair actions
