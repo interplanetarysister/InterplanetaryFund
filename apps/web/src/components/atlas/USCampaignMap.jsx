@@ -17,7 +17,7 @@ export default function USCampaignMap({ campaigns = [] }) {
       <div>
         <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">Living Earth · U.S. location overview</p>
         <h2 className="mt-1 text-xl font-semibold">Campaigns across America</h2>
-        <p className="mt-1 text-xs text-slate-300">Schematic latitude/longitude layout with separate Alaska and Hawaii insets. For approximate campaign discovery, not navigation.</p>
+        <p className="mt-1 text-xs text-slate-300">Schematic latitude/longitude layout with separate Alaska, Hawaii, and Puerto Rico insets. For approximate campaign discovery, not navigation.</p>
       </div>
       <span className="rounded-full border border-emerald-300/30 px-3 py-1 text-sm font-semibold text-emerald-200">{plotted} plotted</span>
     </div>
