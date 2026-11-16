@@ -12,7 +12,7 @@ export function redactTeamCredentials(value) {
   // Structured JSON credential fields can contain nested objects, arrays,
   // numeric tokens or booleans. Reject the whole ambiguous payload rather
   // than preserving a secret inside an incompletely sanitized structure.
-  if (/["'](?:[A-Za-z0-9_]*_)?(?:password|passphrase|api[_ ]?key|access[_ ]?token|refresh[_ ]?token|client[_ ]?secret|private[_ ]?key|authorization|oauth[_ ]?code)["']\s*:\s*(?:\[|\{|-?\d|true\b|false\b|null\b)/i.test(text))
+  if (/\\?["'](?:[A-Za-z0-9_-]*[_-])?(?:password|passphrase|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|client[_ -]?secret|private[_ -]?key|authorization|oauth[_ -]?code)\\?["']\s*:\s*(?:\[|\{|-?\d|true\b|false\b|null\b)/i.test(text))
     return '[redacted credential payload]';
   return text
     // OAuth authorization codes in URL query/fragment parameters are credentials.
