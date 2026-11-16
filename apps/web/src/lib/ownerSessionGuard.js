@@ -23,11 +23,23 @@ export function createOwnerSessionGuard(auth, ownerId, onInvalidate = () => {}) 
     catch (error) { invalidate(); throw error; }
     if (!active) throw new Error("Your account changed. Reload before continuing.");
   };
+  const assertActive = () => {
+    if (!active) throw new Error("Your account changed. Reload before continuing.");
+  };
   return {
+    ownerId,
+    assertActive,
+    publish(consume) {
+      assertActive();
+      return consume();
+    },
     async run(operation) {
       await check();
+      // An auth callback can invalidate the scope after check resolves.
+      assertActive();
       const result = await operation();
       await check();
+      assertActive();
       return result;
     },
     dispose() { active = false; data?.subscription?.unsubscribe(); },

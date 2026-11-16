@@ -75,6 +75,7 @@ export default function AdminDeletionQueue(){
     try {
       const client=authClient();
       const {data,error:issue}=await runAdminReview(scope,client,()=>client.rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id}));
+      scope.assertActive();
       if(issue||data?.open_request!==true||data?.safe_to_erase!==false)throw Error(issue?.message||"Verified dependency snapshot unavailable.");
       setDependencySnapshot(current=>({...current,[row.request_id]:data}));
     }catch(cause){
@@ -97,6 +98,7 @@ export default function AdminDeletionQueue(){
         const {data,error:approvalError}=await runAdminReview(scope,client,()=>client.rpc("ifund_super_admin_review_private_document_cleanup",{
           p_request_id:row.request_id,p_review_note:reviewNote.trim()
         }));
+        scope.assertActive();
         if(approvalError||data!==true)throw Error("Administrative file-cleanup review was not accepted.");
         setNotice("Review recorded. This does not complete the account deletion.");
         setReviewNote("");
@@ -119,6 +121,7 @@ export default function AdminDeletionQueue(){
            (result.verified===false&&result.more_documents!==true))
           throw Error("Private document cleanup is not verified. Review the restricted service and retry.");
         await scope.verify(client);
+        scope.assertActive();
         setNotice(result.documents_removed+" private campaign documents removed. "+(result.verified
           ? "Private document cleanup is verified complete."
           : "More private documents remain; repeat the reviewed cleanup.")+
