@@ -28,8 +28,10 @@ export default function CampaignStrategy({ embedded = false }) {
     let active = true;
     const generation = ++ownerGeneration.current;
     const client=authClient();
-    const { data: authListener } = client.auth.onAuthStateChange(() => {
-      if (!active) return;
+    const { data: authListener } = client.auth.onAuthStateChange((event) => {
+      // INITIAL_SESSION is emitted on subscription, not an account transition.
+      // Retrying for it would resubscribe and cause an unbounded loading loop.
+      if (!active || event === "INITIAL_SESSION") return;
       ++ownerGeneration.current;
       setState({ status: "loading", items: [], error: "" });
       setRetry(n => n + 1);
