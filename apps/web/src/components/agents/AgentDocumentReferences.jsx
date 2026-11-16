@@ -40,19 +40,29 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
       setState({loading:Boolean(owner&&campaignId),items:[],error:owner?"":"Sign in to view private references."});
       if(owner&&campaignId)void load(owner,token);
     }
+    let initialLookupPending=true;
     const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
       if(!alive)return;
       const owner=session?.user?.id||null;
+      // Even a signed-out event must invalidate an older in-flight getUser().
+      if(initialLookupPending){
+        initialLookupPending=false;
+        ++scope.current.generation;
+      }
       // Invalidate outstanding work even when A -> B -> A happens before resolution.
       if(owner!==scope.current.owner)switchOwner(owner);
     });
     // Initial identity lookup must not overwrite a newer auth event.
     const initialToken=scope.current.generation;
     client.auth.getUser().then(({data,error})=>{
-      if(!alive||scope.current.generation!==initialToken)return;
+      if(!alive||!initialLookupPending||scope.current.generation!==initialToken)return;
+      initialLookupPending=false;
       switchOwner(error?null:data?.user?.id||null);
     }).catch(()=>{
-      if(alive&&scope.current.generation===initialToken)switchOwner(null);
+      if(alive&&initialLookupPending&&scope.current.generation===initialToken){
+        initialLookupPending=false;
+        switchOwner(null);
+      }
     });
     return()=>{
       alive=false;
