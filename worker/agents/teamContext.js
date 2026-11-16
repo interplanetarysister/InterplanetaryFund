@@ -118,7 +118,11 @@ export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=n
     (e?.campaign_id!=null&&!UUID.test(e.campaign_id))||
     typeof e?.recorded_at!=="string"||!Number.isFinite(Date.parse(e.recorded_at))))
     throw Error("The team history response could not be verified.");
-  return {state:"ready",events};
+  // Defense in depth for historical records created before ingress redaction.
+  // Never return raw persisted credential material to another team agent.
+  return {state:"ready",events:events.map(event=>({
+    ...event,content:redactTeamCredentials(event.content)
+  }))};
 }
 
 /**
