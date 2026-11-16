@@ -59,19 +59,23 @@ function guestRecordForImport(storage) {
     [scopedKey, storage.getItem(scopedKey)],
     [KEY, storage.getItem(KEY)],
   ];
+  let invalid = false;
   for (const [source, raw] of candidates) {
     if (!raw) continue;
     let record;
-    try { record = JSON.parse(raw); } catch { continue; }
+    try { record = JSON.parse(raw); } catch { invalid = true; continue; }
     if (record?.version === 2 && record.owner_id === null &&
         record.form && typeof record.form === "object" && !Array.isArray(record.form))
       return { source, raw, record };
+    // Do not interpret another owner's legacy record as guest corruption.
+    if (source === scopedKey || record?.owner_id === null) invalid = true;
   }
-  return null;
+  return invalid ? { invalid: true } : null;
 }
 
 export function hasUnclaimedGuestCampaign(storage) {
-  return Boolean(guestRecordForImport(storage));
+  const candidate = guestRecordForImport(storage);
+  return Boolean(candidate && !candidate.invalid);
 }
 
 export function importGuestCampaign(storage, ownerId) {
@@ -83,7 +87,7 @@ export function importGuestCampaign(storage, ownerId) {
     if (storage.getItem(destination)) return { status: "owner_exists" };
     guest = guestRecordForImport(storage);
   } catch { return { status: "storage_error" }; }
-  if (!guest) return { status: "missing_guest" };
+  if (!guest || guest.invalid) return { status: guest?.invalid ? "invalid_guest" : "missing_guest" };
   try {
     storage.setItem(destination, JSON.stringify({ ...guest.record, owner_id: ownerId }));
   } catch { return { status: "write_failed" }; }
