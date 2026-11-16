@@ -612,7 +612,13 @@ async function webhook(req,env) {
       }catch(_){}
     }
     const linked=linkedCaptures.size===1?[...linkedCaptures][0]:null;
+    // Capture reversal events may identify a capture, but that is NOT an
+    // immutable refund resource ID. Never substitute it for refund identity.
+    const refundId=kind==="PAYMENT.CAPTURE.REFUNDED"?payload.resource?.id:null;
     const captureId=related||linked||(kind==="PAYMENT.CAPTURE.REVERSED"?payload.resource?.id:null);
+    if(kind==="PAYMENT.CAPTURE.REFUNDED"
+      &&(!ORDER_ID.test(refundId||"")||refundId===captureId||refundId===payload.id))
+      return asError("capture_refund_identity_unverified",409);
     if(!ORDER_ID.test(captureId||"")||!ORDER_ID.test(payload.id||"")
       ||(linked&&related&&linked!==related)||linkedCaptures.size>1)
       return asError("reversal_reference_missing",409);
