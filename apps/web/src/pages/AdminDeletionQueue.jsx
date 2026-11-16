@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import { authClient } from "@/api/auth";
@@ -6,6 +6,7 @@ import { authClient } from "@/api/auth";
 // Route is guarded by MemberAccess + SuperAdminAccess. RPC separately verifies
 // the server-side super-admin role; this view cannot mark deletion completed.
 export default function AdminDeletionQueue(){
+  const generation=useRef(0);
   const [rows,setRows]=useState([]);
   const [dependencySnapshot,setDependencySnapshot]=useState({});
   const [dependencyBusy,setDependencyBusy]=useState("");
@@ -20,14 +21,17 @@ export default function AdminDeletionQueue(){
   const [notice,setNotice]=useState("");
   useEffect(()=>{
     let alive=true;
+    const epoch=++generation.current;
+    const valid=()=>alive&&generation.current===epoch;
     setLoading(true);setError("");setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setSelected("");setReviewNote("");setNotice("");
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
     let verifiedAdmin=null;
     const {data:subscription}=client.auth.onAuthStateChange((_event,session)=>{
-      if(!alive||!verifiedAdmin)return;
+      if(!valid()||!verifiedAdmin)return;
       if(session?.user?.id!==verifiedAdmin){
+        generation.current++;
         setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setSelected("");setReviewNote("");setNotice("");
         setError("The administrative session changed. Reload to verify access.");
         setLoading(false);
@@ -47,7 +51,7 @@ export default function AdminDeletionQueue(){
       const {data:after,error:afterError}=await client.auth.getUser();
       if(afterError||after?.user?.id!==verifiedAdmin)
         throw Error("The administrative session changed during review.");
-      if(!alive)return;
+      if(!valid())return;
       const ids=new Set(queue.data.map(item=>item.request_id));
       const status={};
       for(const item of approvals.data){
@@ -58,24 +62,29 @@ export default function AdminDeletionQueue(){
       setRows(queue.data);
       setLoading(false);
     })().catch(cause=>{
-      if(alive){setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setError(cause.message||"Queue unavailable.");setLoading(false);}
+      if(valid()){setRows([]);setReviewed({});setDependencySnapshot({});setDependencyIssue({});setError(cause.message||"Queue unavailable.");setLoading(false);}
     });
-    return()=>{alive=false;subscription?.subscription?.unsubscribe();};
+    return()=>{alive=false;generation.current++;subscription?.subscription?.unsubscribe();};
   },[refresh]);
 
   async function inspectDependencies(row){
+    const epoch=generation.current;
+    const valid=()=>generation.current===epoch;
     setDependencyBusy(row.request_id);
     setDependencyIssue(current=>({...current,[row.request_id]:""}));
     try {
       const {data,error:issue}=await authClient().rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id});
       if(issue||data?.open_request!==true||data?.safe_to_erase!==false)throw Error(issue?.message||"Verified dependency snapshot unavailable.");
-      setDependencySnapshot(current=>({...current,[row.request_id]:data}));
+      if(valid())setDependencySnapshot(current=>({...current,[row.request_id]:data}));
     }catch(cause){
+      if(!valid())return;
       setDependencySnapshot(current=>{const next={...current};delete next[row.request_id];return next;});
       setDependencyIssue(current=>({...current,[row.request_id]:cause.message||"Dependency review unavailable."}));
-    }finally{setDependencyBusy("");}
+    }finally{if(valid())setDependencyBusy("");}
   }
   async function act(row,reviewOnly=false){
+    const epoch=generation.current;
+    const valid=()=>generation.current===epoch;
     if(processing)return;
     if(!reviewOnly&&!window.confirm("Permanently remove this reviewed account's private campaign document files? This is irreversible and does not complete financial or account deletion."))return;
     setProcessing(row.request_id);setError("");setNotice("");
@@ -90,6 +99,7 @@ export default function AdminDeletionQueue(){
           p_request_id:row.request_id,p_review_note:reviewNote.trim()
         });
         if(approvalError||data!==true)throw Error("Administrative file-cleanup review was not accepted.");
+        if(!valid())return;
         setNotice("Review recorded. This does not complete the account deletion.");
         setReviewNote("");
       }else{
@@ -110,15 +120,16 @@ export default function AdminDeletionQueue(){
           throw Error("Private document cleanup is not verified. Review the restricted service and retry.");
         const {data:after,error:changed}=await client.auth.getUser();
         if(changed||after?.user?.id!==identity.user.id)throw Error("Administrator session changed.");
+        if(!valid())return;
         setNotice(result.documents_removed+" private campaign documents removed. "+(result.verified
           ? "Private document cleanup is verified complete."
           : "More private documents remain; repeat the reviewed cleanup.")+
           " Financial and account erasure remain separately pending.");
       }
-      setRefresh(value=>value+1);
+      if(valid())setRefresh(value=>value+1);
     }catch(cause){
-      setError(cause?.message||"The operation was not completed.");
-    }finally{setProcessing("");}
+      if(valid())setError(cause?.message||"The operation was not completed.");
+    }finally{if(valid())setProcessing("");}
   }
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-10">
     <header className="space-y-3">
