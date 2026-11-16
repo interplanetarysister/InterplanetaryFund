@@ -627,7 +627,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       <label className="block font-semibold">Your story<textarea id="campaign-story" aria-label="Your story" maxLength={STORY_MAX} rows={8} value={form.story} onChange={e=>change("story",e.target.value)} className="mt-2 w-full rounded-xl border border-input bg-background p-4" /></label>
       </div><div hidden={step!==1} className="space-y-5"><label className="block font-semibold">Category<select id="campaign-category" value={form.category} onChange={e=>change("category",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4">{CAMPAIGN_CATEGORIES.map(value => <option key={value} value={value}>{categoryLabels[value] || value}</option>)}</select></label>
       <label className="block font-semibold">Fundraising goal (USD)<input id="campaign-goal" inputMode="decimal" value={form.goal_amount} onChange={e=>change("goal_amount",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
-      <div id="campaign-cover" className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
+      <div id="campaign-cover" tabIndex={-1} className="space-y-3 rounded-2xl border border-border p-4" aria-label="Campaign cover image">
         <div>
           <h3 className="font-semibold">Campaign cover image (optional)</h3>
           <p className="mt-1 text-sm text-muted-foreground">Upload a JPG, PNG, WebP or AVIF image up to 5 MB. Uploaded covers are publicly viewable when someone has their link; do not upload private documents or images without permission.</p>
