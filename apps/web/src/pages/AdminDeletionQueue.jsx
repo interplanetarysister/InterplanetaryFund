@@ -73,8 +73,13 @@ export default function AdminDeletionQueue(){
     setDependencyBusy(row.request_id);
     setDependencyIssue(current=>({...current,[row.request_id]:""}));
     try {
-      const {data,error:issue}=await authClient().rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id});
+      const client=authClient();
+      const {data:before,error:beforeError}=await client.auth.getUser();
+      if(beforeError||!before?.user?.id)throw Error("Verified administrator required.");
+      const {data,error:issue}=await client.rpc("ifund_admin_account_erasure_preflight",{p_request_id:row.request_id});
       if(issue||data?.open_request!==true||data?.safe_to_erase!==false)throw Error(issue?.message||"Verified dependency snapshot unavailable.");
+      const {data:after,error:afterError}=await client.auth.getUser();
+      if(afterError||after?.user?.id!==before.user.id)throw Error("Administrative session changed during dependency review.");
       if(valid())setDependencySnapshot(current=>({...current,[row.request_id]:data}));
     }catch(cause){
       if(!valid())return;
