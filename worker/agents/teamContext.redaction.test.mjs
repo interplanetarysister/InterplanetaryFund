@@ -106,7 +106,7 @@ test('private document brief purpose is redacted while ordinary purpose survives
     source_type:'uploaded_private_document_summary'
   });
   for (const [purpose,expected] of [
-    ['PAYPAL_CLIENT_SECRET=synthetic-secret-123',false],
+    ['PAYPAL_CLIENT_SECRET=synthetic-key-123',false],
     ['Outreach budget',true]
   ]) {
     const result=await readCampaignDocumentContext({
@@ -118,7 +118,7 @@ test('private document brief purpose is redacted while ordinary purpose survives
     });
     assert.equal(result.state,'ready');
     assert.equal(result.briefs.length,1);
-    assert.equal(result.briefs[0].purpose.includes('synthetic-secret-123'),false);
+    assert.equal(result.briefs[0].purpose.includes('synthetic-key-123'),false);
     if(expected) assert.equal(result.briefs[0].purpose,purpose);
     else assert.match(result.briefs[0].purpose,/\[redacted\]/);
   }

@@ -1,5 +1,7 @@
 # Branch review and source integration
 
+**Continuation:** All baseline branch heads and the subsequently discovered chunk-recovery branch are now reconciled in the source candidate. See [the continuation report](CONTINUATION.md), [current branch dispositions](branches.json) and [latest browser evidence](continuation-browser.json). Production remains blocked by the unchanged release gate and hosted prerequisites. The following report describes the earlier PR #290 checkpoint.
+
 Reviewed November 15, 2026 Pacific (November 16 UTC), against initial main `20f98c4c0a60a751be35d441405454f69ba779d8`. All 250 remote branch refs were inventoried; 161 had commits absent from main. The candidate incorporates 149 of those heads. This includes explicit retirement of incompatible or superseded implementations while preserving the canonical tree. It does **not** mean 149 features were newly implemented or certified live. Branch refs, source history, production records and assets were preserved.
 
 The latest concurrent route branch change, `ca229ff6`, was also reviewed and merged. Its new payment origin checks were repaired to reject an empty configured allowlist rather than admit requests without an Origin header.
