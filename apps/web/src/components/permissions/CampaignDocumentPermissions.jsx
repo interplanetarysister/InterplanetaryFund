@@ -1,3 +1,4 @@
+import {CAMPAIGN_DOCUMENTS_ACTIVE} from "@/lib/campaignDocumentAvailability.mjs";
 import {useEffect,useRef,useState} from "react";
 import {Link} from "react-router-dom";
 import {authClient} from "@/api/auth";
@@ -8,6 +9,14 @@ import {
 
 const PAGE_SIZE=40;
 export default function CampaignDocumentPermissions(){
+  if(!CAMPAIGN_DOCUMENTS_ACTIVE)
+    return <section className="rounded-xl border border-border p-5" aria-label="Campaign document permissions unavailable">
+      <h2 className="font-semibold">Campaign documents</h2>
+      <p className="mt-2 text-sm text-muted-foreground">Private document upload and agent permissions are being prepared. They will be available after the secure storage service is enabled.</p>
+    </section>;
+  return <EnabledCampaignDocumentPermissions/>;
+}
+function EnabledCampaignDocumentPermissions(){
   const [records,setRecords]=useState([]);
   const [hasMore,setHasMore]=useState(false);
   const [loading,setLoading]=useState(true);
