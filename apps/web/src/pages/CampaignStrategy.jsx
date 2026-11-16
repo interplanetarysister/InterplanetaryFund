@@ -18,7 +18,7 @@ const CHECKS = [
   ["has_goal", "A fundraising target", "Use a realistic amount supported by your budget"],
   ["has_cover_reference", "A campaign cover reference", "Choose an image you own or can use"],
 ];
-export default function CampaignStrategy() {
+export default function CampaignStrategy({ embedded = false }) {
   const [params]=useSearchParams();
   const requestedCampaign=params.get("campaign");
   const [state, setState] = useState({ status: "loading", items: [], error: "" });
@@ -56,9 +56,9 @@ export default function CampaignStrategy() {
     return () => { active = false };
   }, [retry,requestedCampaign]);
 
-  return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
+  return <section className={embedded ? "space-y-6" : "mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8"} aria-label="Campaign strategy and AI analysis">
     <header className="space-y-2">
-      <h1 className="text-3xl font-bold">Strategy workspace</h1>
+      <h2 className="text-2xl font-bold">AI Analysis · Campaign refinements</h2>
       <p className="text-sm text-muted-foreground">
         Free, owner-scoped campaign preparation checks using your existing records.
         No new AI inference, grant submissions or fundraising claims are generated here.
@@ -84,10 +84,10 @@ export default function CampaignStrategy() {
             <p className="mt-1 text-sm text-muted-foreground capitalize">Current status: {item.campaign_status || "unknown"}</p>
             <p className="mt-1 text-sm font-semibold">{passed} of {CHECKS.length} content checks met</p>
             <p className="mt-1 text-sm font-semibold">
-              Full-length story: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" / 3,500 characters" : "Unavailable"}
+              Story length: {item.editorial ? item.editorial.storyCharacters.toLocaleString()+" characters (advisory only)" : "Unavailable"}
             </p>
             {item.editorial && item.editorial.remainingCharacters>0 &&
-              <p className="mt-1 text-sm text-amber-700">Add {item.editorial.remainingCharacters.toLocaleString()} characters before publishing.</p>}
+              <p className="mt-1 text-sm text-amber-700">Optional: add {item.editorial.remainingCharacters.toLocaleString()} characters for additional detail; no minimum story length is required.</p>}
           </div>
           <ul className="space-y-3">{CHECKS.map(([key, label, help]) =>
             <li key={key} className="text-sm">
@@ -114,5 +114,5 @@ export default function CampaignStrategy() {
           </Link>
         </article>
       })}</div>)}
-  </main>;
+  </section>;
 }
