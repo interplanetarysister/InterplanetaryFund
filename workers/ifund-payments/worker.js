@@ -670,7 +670,7 @@ async function captureOrder(req,env) {
 export default {
   async fetch(request,env) {
     const url=new URL(request.url),origin=request.headers.get("origin")||"";
-    const permitted=String(env.IFUND_ALLOWED_ORIGINS||"").split(",").map(x=>x.trim());
+    const permitted=String(env.IFUND_ALLOWED_ORIGINS||"").split(",").map(x=>x.trim()).filter(Boolean);
     const cors=permitted.includes(origin)?{"access-control-allow-origin":origin,"vary":"Origin",
       "access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"Content-Type,Authorization"}:{};
     if(request.method==="OPTIONS")return new Response(null,{status:permitted.includes(origin)?204:403,headers:cors});
@@ -719,10 +719,12 @@ export default {
       catch(_){return asJson({ok:false,error:"subscription_start_unavailable"},503,cors)}
     }
     if(path==="/api/payments/subscriptions/confirm"&&request.method==="POST"){
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       try{const response=await confirmSubscription(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"subscription_confirmation_unavailable"},503,cors)}
     }
     if(path==="/api/payments/subscriptions/cancel"&&request.method==="POST"){
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       try{const response=await cancelSubscription(request,env);for(const [k,v] of Object.entries(cors))response.headers.set(k,v);return response}
       catch(_){return asJson({ok:false,error:"subscription_cancellation_unavailable"},503,cors)}
     }
@@ -734,6 +736,7 @@ export default {
       try {return await webhook(request,env)}catch(_) {return asError("webhook_retry_required",503)}
     }
     if(path==="/api/payments/capture-order"&&request.method==="POST") {
+      if(!permitted.includes(origin))return asJson({ok:false,error:"origin_not_allowed"},403,cors);
       // Webhook verification stays available while payments are paused, but
       // a paused payment switch must never allow another provider capture.
       if(env.IFUND_PAYMENTS_ENABLED!=="true"||env.IFUND_PAYPAL_MODE!=="live")

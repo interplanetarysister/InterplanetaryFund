@@ -23,9 +23,9 @@ function walkSql(dir, out = []) {
 
 const SQL_FILES = walkSql(join(repoRoot, "supabase"));
 
-// These functions intentionally mutate state: one atomically consumes the
-// tightly capped Studio AI quota; the other records immutable page-version
-// snapshots from a database trigger. Keep this allowlist narrow and explicit.
+// These reviewed functions may be volatile or mutate state. Keep this list
+// narrow and explicit: it never exempts a migration, schema, pinned search path
+// or PUBLIC-execute revocation. Source review is not production acceptance.
 const MUTATING_DEFINER_FUNCTIONS = new Set([
   // Owner JWT plus private Worker key; no direct table or financial authority.
   "ifund_workforce_runtime.begin_story",
@@ -113,18 +113,59 @@ const MUTATING_DEFINER_FUNCTIONS = new Set([
   "public.ifund_opportunity_watch_source_update",
   "public.ifund_set_story_voice_preferences",
   "public.ifund_add_support_reply",
+  // Confirmed active owner only; public links are not OAuth grants. Executable
+  // owner/stranger/anonymous cases live in connections-security.test.js.
+  "public.ifund_save_public_link",
+  "public.ifund_remove_public_link",
+  "public.ifund_set_share_choice",
+  "public.ifund_set_connection_assistance",
+  // Owner-derived conversation state. Writes attesting an agent require the
+  // private Worker credential; corrections/deletions cannot affect strangers.
+  // team-context-db.test.js executes those boundaries and replay denials.
+  "public.ifund_team_record_user",
+  "public.ifund_team_record_agent",
+  "public.ifund_team_erase",
+  "public.ifund_team_correct",
+  // Trigger-only functions: no browser EXECUTE grant. Quota, receipt, owner,
+  // revocation and orphan guards execute in campaign-documents-db.test.js.
+  "public.ifund_campaign_documents_guard",
+  "public.ifund_campaign_document_deletion_guard",
+  "public.ifund_campaign_document_metadata_delete_guard",
+  "public.ifund_campaign_documents_prevent_orphans",
+  // Review is a separate super-admin operation bound to an active session.
+  // Inventory and preflight are read-only PL/pgSQL routines whose default
+  // volatility also requires review here. No function erases an account or
+  // marks deletion complete; private-document-erasure.test.js covers gates.
+  "public.ifund_super_admin_review_private_document_cleanup",
+  "public.ifund_super_admin_private_document_inventory",
+  "public.ifund_admin_account_erasure_preflight",
+  // Deletion initiation is owner-derived and idempotent, including an
+  // authenticated anonymous guest; it grants no direct erasure authority.
+  // The queue checks the verified super-admin role before any cross-user read.
+  "public.ifund_request_account_deletion",
+  "public.ifund_super_admin_account_deletion_queue",
+  // Owner-derived, bounded content-block preferences; no financial effect.
+  // Blocking needs an active confirmed account and a published organizer;
+  // unblocking remains available without an active membership requirement.
+  "public.ifund_mobile_block_organizer",
+  "public.ifund_mobile_unblock_organizer",
 ]);
 
 /** Every create [or replace] function header, with its body terminator. */
-function functionHeaders() {
+function functionHeaders(
+  files = SQL_FILES,
+  readSql = (file) => readFileSync(file, "utf8"),
+) {
   const found = [];
-  for (const file of SQL_FILES) {
-    const text = readFileSync(file, "utf8");
+  for (const file of files) {
+    const text = readSql(file);
     const pattern =
       /create\s+(?:or\s+replace\s+)?function\s+([a-zA-Z0-9_.]+)\s*\([^)]*\)/gi;
     for (const match of text.matchAll(pattern)) {
       const after = text.slice(match.index + match[0].length);
-      const terminator = after.search(/\bas\s+\$\$/i);
+      // Migrations also use $fn$, $ifund$ and other named dollar quotes.
+      // Never let a body's SQL or comments masquerade as header attributes.
+      const terminator = after.search(/\bas\s+\$(?:[a-z_][a-z0-9_]*)?\$/i);
       const header =
         terminator === -1 ? after.slice(0, 800) : after.slice(0, terminator);
       found.push({
@@ -140,6 +181,26 @@ function functionHeaders() {
   }
   return found;
 }
+
+test("named dollar quotes cannot hide an unpinned volatile definer behind body text", () => {
+  for (const quote of ["$$", "$fn$", "$ifund$", "$team_correct$"]) {
+    const [fn] = functionHeaders(
+      [join(repoRoot, "fixture.sql")],
+      () => `
+      create function public.unreviewed() returns void
+      language plpgsql security definer as ${quote}
+      begin
+        -- stable; set search_path = ''; these are not header attributes.
+        null;
+      end ${quote};
+    `,
+    );
+    assert.equal(fn.definer, true);
+    assert.equal(fn.pinned, false);
+    assert.doesNotMatch(fn.header, /\bstable\b/i);
+    assert.equal(MUTATING_DEFINER_FUNCTIONS.has(fn.name), false);
+  }
+});
 
 test("the migration set defines functions at all", () => {
   const functions = functionHeaders();
@@ -162,11 +223,19 @@ test("every SECURITY DEFINER function pins its search_path", () => {
 });
 
 test("SECURITY DEFINER functions are read-only unless explicitly allowlisted", () => {
-  const offenders = functionHeaders().filter((fn) =>
-    fn.definer && !/language\s+sql|\bstable\b/i.test(fn.header) &&
-    !MUTATING_DEFINER_FUNCTIONS.has(fn.name),
-  ).map((fn) => fn.file + ": " + fn.name);
-  assert.deepEqual(offenders, [], "Mutating SECURITY DEFINER functions require explicit review");
+  const offenders = functionHeaders()
+    .filter(
+      (fn) =>
+        fn.definer &&
+        !/language\s+sql|\bstable\b/i.test(fn.header) &&
+        !MUTATING_DEFINER_FUNCTIONS.has(fn.name),
+    )
+    .map((fn) => fn.file + ": " + fn.name);
+  assert.deepEqual(
+    offenders,
+    [],
+    "Mutating SECURITY DEFINER functions require explicit review",
+  );
 });
 
 test("execute on a definer function is revoked from public before being granted", () => {
@@ -191,11 +260,17 @@ test("execute on a definer function is revoked from public before being granted"
     // Some established social RPCs are revoked through a bounded dynamic
     // list in one DO block. Accept it only when the exact signature occurs
     // in that list and the block executes revoke before grant.
-    const groupedRevoke = [...grants.matchAll(/revoke\s+all\s+on\s+function\s+([^;]+?)\s+from\s+[^;]+;/gi)]
-      .some(match => new RegExp("\\b" + bare + "\\s*\\(", "i").test(match[1]));
-    const dynamicRevoke = fn.source.includes("'" + bare + "(") &&
+    const groupedRevoke = [
+      ...grants.matchAll(
+        /revoke\s+all\s+on\s+function\s+([^;]+?)\s+from\s+[^;]+;/gi,
+      ),
+    ].some((match) => new RegExp("\\b" + bare + "\\s*\\(", "i").test(match[1]));
+    const dynamicRevoke =
+      fn.source.includes("'" + bare + "(") &&
       /foreach f in array array\[/i.test(fn.source) &&
-      /execute\s+'revoke all on function public\.'\s*\|\|\s*f\s*\|\|\s*' from public,anon,authenticated'/i.test(fn.source);
+      /execute\s+'revoke all on function public\.'\s*\|\|\s*f\s*\|\|\s*' from public,anon,authenticated'/i.test(
+        fn.source,
+      );
     assert.ok(
       explicitRevoke || groupedRevoke || schemaRevoke || dynamicRevoke,
       fn.name +

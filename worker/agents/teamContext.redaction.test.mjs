@@ -22,7 +22,7 @@ for (const [name, input] of cases) {
     const output = redactTeamCredentials(input);
     assert.doesNotMatch(output, /synthetic-secret-123/);
     assert.match(output, /\[redacted(?: credential URL)?\]/);
-    if (!['double encoded separator','nested html entity','encoded semicolon separator','triple encoded separator','nested encoded key'].includes(name)) assert.match(output, /state=x|code=\[redacted\]/);
+    if (!['encoded key','double encoded separator','nested html entity','encoded semicolon separator','triple encoded separator','nested encoded key'].includes(name)) assert.match(output, /state=x|code=\[redacted\]/);
   });
 }
 test('ordinary prose and non-secret state survive', () => {

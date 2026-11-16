@@ -1,0 +1,67 @@
+name: Consecutive failure circuit breaker
+# Metadata-only controller; never executes triggering branches or artifacts.
+on:
+  workflow_run:
+    workflows:
+      - "Build IFund Android app"
+      - "Archive public Base44 artwork to repository"
+      - "PayPal AI Demo - Source Rebuild"
+      - "Deploy branded frontend to Cloudflare Pages"
+      - "Frontend production build and tests"
+      - "IFund Actions failure-to-repair dispatch"
+      - "IFund Atlas source regression tests"
+      - "IFund continuous source repair QA"
+      - "IFund isolated private-document security tests"
+      - "IFund independent native candidates — QA only"
+      - "IFund Android Signed Store Candidate"
+      - "IFund New Android App Candidate"
+      - "IFund Mobile App Links Association Review"
+      - "IFund iOS Signed Store Candidate"
+      - "IFund New iOS App Simulator Candidate"
+      - "IFund Independent Mobile Dependency Lock"
+      - "IFund payment reconciliation tests"
+      - "Main release candidate checks"
+      - "Migration phase checks"
+      - "Original frontend Cloudflare preview"
+      - "Reporter blog migration checks"
+      - "IFund emergency Pages rollback (owner approval only)"
+      - "Update IFund web lockfile"
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Re-enable a workflow after repair
+        type: choice
+        options: [enable]
+        required: true
+      workflow_id:
+        description: Numeric repository workflow ID
+        type: string
+        required: true
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: workflow-failure-circuit-breaker
+  cancel-in-progress: false
+jobs:
+  monitor:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check failure streak or recover repaired workflow
+        uses: actions/github-script@v8
+        env:
+          RECOVERY_OPERATION: ${{ inputs.operation }}
+          RECOVERY_WORKFLOW_ID: ${{ inputs.workflow_id }}
+        with:
+          script: |
+            const { runController } = require('./.github/scripts/workflow-failure-circuit-breaker.cjs');
+            await runController({ github, context, core,
+              operation: process.env.RECOVERY_OPERATION,
+              targetWorkflowId: process.env.RECOVERY_WORKFLOW_ID });

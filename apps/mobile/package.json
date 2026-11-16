@@ -22,5 +22,10 @@
   "devDependencies": {
     "@capacitor/cli": "8.4.3",
     "@capacitor/assets": "4.0.0"
+  },
+  "overrides": {
+    "xcode": {
+      "uuid": "11.1.1"
+    }
   }
 }

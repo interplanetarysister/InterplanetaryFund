@@ -176,7 +176,9 @@ test("admin queue does not expose prior administrator requests after session cha
   const source=readFileSync(new URL("../apps/web/src/pages/AdminDeletionQueue.jsx",import.meta.url),"utf8");
   assert.match(source,/onAuthStateChange/);
   assert.match(source,/setRows\(\[\]\);setReviewed\(\{\}\)/);
-  assert.match(source,/after\?\.user\?\.id!==verifiedAdmin/);
+  assert.match(source,/!scope\.active\|\|afterError\|\|after\?\.user\?\.id!==scope\.ownerId/);
+  assert.match(source,/scope\.observe\(session\?\.user\?\.id\)/);
+  assert.match(source,/runAdminReview\(scope,client/);
   assert.match(source,/subscription\?\.subscription\?\.unsubscribe/);
 });
 

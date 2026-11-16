@@ -58,7 +58,7 @@ test("withdrawal retry reuses operation key until acknowledgement and refreshed 
   assert.match(page,/pendingRequestKeys\.current\.get\(requestIdentity\)/);
   assert.match(page,/pendingRequestKeys\.current\.set\(requestIdentity,requestKey\)/);
   assert.match(page,/p_request_key:requestKey/);
-  assert.match(page,/await refresh\(\);\s*pendingRequestKeys\.current\.delete\(requestIdentity\)/);
+  assert.match(page,/await refresh\(\);\s*assertOwnerCurrent\(\);\s*pendingRequestKeys\.current\.delete\(requestIdentity\)/);
   assert.doesNotMatch(page,/const requestKey="wd-"\+crypto\.randomUUID\(\)/);
 });
 
