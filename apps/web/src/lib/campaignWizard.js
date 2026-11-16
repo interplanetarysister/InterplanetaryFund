@@ -4,10 +4,11 @@ export const WIZARD_STEPS=Object.freeze(["Your details","Campaign basics","Your 
 const keyFor=(owner,campaign)=>PREFIX+":"+(owner?"owner:"+encodeURIComponent(owner):"guest")+":"+encodeURIComponent(campaign||"new");
 export function emptyWizard(){return campaignSetupPayload({},0);}
 export function restoreWizard(storage,owner,campaign=null){
-  const raw=storage.getItem(keyFor(owner,campaign));if(!raw)return emptyWizard();
+  let raw;try{raw=storage.getItem(keyFor(owner,campaign));}catch{return emptyWizard();}
+  if(!raw)return emptyWizard();
   let record;try{record=JSON.parse(raw);}catch{return emptyWizard();}
   if(record?.version!==1||record.owner_id!==(owner||null)||record.campaign_id!==(campaign||null)||!record.setup||typeof record.setup!=="object")return emptyWizard();
-  return campaignSetupPayload(record.setup,record.setup.draft_step);
+  try{return campaignSetupPayload(record.setup,record.setup.draft_step);}catch{return emptyWizard();}
 }
 export function rememberWizard(storage,owner,campaign,setup){
   try{
@@ -18,14 +19,20 @@ export function rememberWizard(storage,owner,campaign,setup){
   }catch{return false;}
 }
 export function forgetWizard(storage,owner,campaign=null){
-  const key=keyFor(owner,campaign),raw=storage.getItem(key);if(!raw)return true;
+  const key=keyFor(owner,campaign);
+  let raw;try{raw=storage.getItem(key);}catch{return false;}
+  if(!raw)return true;
   let record;try{record=JSON.parse(raw);}catch{return false;}
   if(record?.version!==1||record.owner_id!==(owner||null)||record.campaign_id!==(campaign||null))return false;
-  storage.removeItem(key);return true;
+  try{storage.removeItem(key);return storage.getItem(key)===null;}catch{return false;}
 }
 export function importGuestWizard(storage,owner){
-  if(!owner||storage.getItem(keyFor(owner,null)))return false;
-  const raw=storage.getItem(keyFor(null,null));if(!raw)return true;
+  if(!owner)return false;
+  let raw;try{
+    if(storage.getItem(keyFor(owner,null)))return false;
+    raw=storage.getItem(keyFor(null,null));
+  }catch{return false;}
+  if(!raw)return true;
   let record;try{record=JSON.parse(raw);}catch{return false;}
   if(record?.version!==1||record.owner_id!==null||record.campaign_id!==null)return false;
   if(!rememberWizard(storage,owner,null,record.setup))return false;
