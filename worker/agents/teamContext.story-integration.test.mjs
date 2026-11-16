@@ -12,7 +12,7 @@ test('STORY shares owner-scoped read adapter, not a second raw RPC path',()=>{
 test('context is feature-gated and missing backend data fails closed',()=>{
  assert.match(story,/if \(env\.IFUND_TEAM_CONTEXT_ENABLED === ['\"]enabled['\"]\)/);
  assert.match(story,/if \(team\.state !== ['\"]ready['\"]\)/);
- assert.match(adapter,/Authorization: ['\"]Bearer ['\"]\+jwt/);
+ assert.match(adapter,/Authorization:\s*['\"]Bearer ['\"]\+jwt/);
  assert.doesNotMatch(adapter,/p_owner_id\s*:/);
 });
 
