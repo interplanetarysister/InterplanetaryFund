@@ -53,15 +53,14 @@ const reversal={id:eventId,event_type:"PAYMENT.CAPTURE.REFUNDED",resource:{
   links:[{rel:"up",href:"https://api-m.paypal.com/v2/payments/captures/"+captureId}],
   amount:{currency_code:"USD",value:"1.00"}
 }};
-test("verified webhook reversal forwards required cents to atomic ledger",async()=>{
+test("signed refund is held until atomic provider-referenced refund ledger is independently accepted",async()=>{
   const h=await makeHarness(reversal);
   const response=await h.response();
-  assert.equal(response.status,200);
-  assert.equal(h.ledger.length,1);
-  assert.equal(h.ledger[0].op,"reverse");
-  assert.equal(h.ledger[0].data.refunded_cents,100);
-  assert.equal(h.ledger[0].data.paypal_capture_id,captureId);
+  assert.equal(response.status,503);
+  assert.equal((await response.json()).error,"capture_refund_atomic_ledger_unavailable");
+  assert.equal(h.ledger.length,0,"Unverified refunds may not mutate financial records");
 });
+
 test("invalid reversal amount fails closed without a ledger mutation",async()=>{
   const h=await makeHarness({...reversal,resource:{...reversal.resource,amount:{currency_code:"EUR",value:"1.00"}}});
   const response=await h.response();
