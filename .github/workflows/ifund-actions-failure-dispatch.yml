@@ -24,7 +24,7 @@ on:
       - "IFund emergency Pages rollback (owner approval only)"
       - "Update IFund web lockfile"
       - "IFund continuous source repair QA"
-      - "IFund native acceptance 20261115"
+      - "IFund independent native candidates — QA only"
     types: [completed]
 permissions:
   actions: read
