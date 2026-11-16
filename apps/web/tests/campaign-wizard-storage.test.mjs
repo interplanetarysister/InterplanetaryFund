@@ -36,3 +36,14 @@ test("A to B to A never hydrates A's draft into B",()=>{
  assert.equal(restoreWizard(s,B).draft_step,0);
  assert.equal(restoreWizard(s,A).draft_step,3);
 });
+
+test("silent setItem failure cannot acknowledge wizard save",()=>{
+ const s=memory();s.setItem=()=>{};
+ assert.equal(rememberWizard(s,A,null,emptyWizard()),false);
+ assert.equal(s.data.size,0);
+});
+test("storage read-back mismatch cannot acknowledge wizard save",()=>{
+ const s=memory();const original=s.getItem.bind(s);
+ s.getItem=(k)=>{const value=original(k);return value===null?null:value+"-corrupted";};
+ assert.equal(rememberWizard(s,A,null,emptyWizard()),false);
+});
