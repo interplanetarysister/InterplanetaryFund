@@ -100,7 +100,13 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     (async () => {
       try {
         const data = await loadOwnerCampaign(authClient(), draftId, ownerScope.current);
-        if (data.status !== "draft") throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
+        if (data.status !== "draft") {
+          // A completed publication must not trap the owner in a stale recovery
+          // redirect whenever they return to /create.
+          if(ownerId&&pendingCampaignSetup(sessionStorage,ownerId,draftId))
+            clearPendingCampaignSetup(sessionStorage,ownerId,draftId);
+          throw new Error("This campaign is no longer a draft. Open My campaigns to view its current status.");
+        }
         const setup=await loadCampaignSetup(authClient(),draftId,ownerScope.current);
         if (active && alive.current) {
           invalidateWriting();
@@ -489,9 +495,14 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       // the browser copy was removed unless cleanup actually succeeded.
       let browserCleanupFailed = false;
       try {
+        // Attempt every scoped cleanup independently. Short-circuiting here
+        // would leave private wizard/recovery data behind when an earlier
+        // browser delete failed.
         const cleared = forgetBrowserCampaign(sessionStorage, ownerId);
-        const wizardCleared=forgetWizard(sessionStorage,ownerId,null)&&forgetWizard(sessionStorage,ownerId,data.id)&&clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
-        browserCleanupFailed = !cleared||!wizardCleared;
+        const wizardNewCleared=forgetWizard(sessionStorage,ownerId,null);
+        const wizardCampaignCleared=forgetWizard(sessionStorage,ownerId,data.id);
+        const recoveryCleared=clearPendingCampaignSetup(sessionStorage,ownerId,data.id);
+        browserCleanupFailed = !cleared||!wizardNewCleared||!wizardCampaignCleared||!recoveryCleared;
         if (browserCleanupFailed) setAutosaveError("Campaign saved to your account, but an older browser draft could not be cleared. It may contain private information on this device. Review browser storage before using a shared device.");
         else setAutosaveError("");
       } catch {
