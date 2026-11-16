@@ -14,12 +14,16 @@ export function usRegionForPoint(latitude,longitude) {
   return US_REGIONS.find(r=>lat>=r.bounds.south&&lat<=r.bounds.north&&lng>=r.bounds.west&&lng<=r.bounds.east &&
     (r.id !== "mainland" || withinContiguousOutline(lat,lng)))||null;
 }
-export function projectUsPoint(latitude,longitude) {
-  const region=usRegionForPoint(latitude,longitude);
-  if(!region)return null;
+// Rendering an outline is not a campaign eligibility check. Boundary vertices
+// intentionally sit *on* the coastline and may fail the strict inside test.
+function projectInRegion(latitude, longitude, region) {
   const {bounds:b,view:v}=region;
   return {x:v.x+((Number(longitude)-b.west)/(b.east-b.west))*v.w,
     y:v.y+((b.north-Number(latitude))/(b.north-b.south))*v.h,region:region.id};
+}
+export function projectUsPoint(latitude,longitude) {
+  const region=usRegionForPoint(latitude,longitude);
+  return region ? projectInRegion(latitude,longitude,region) : null;
 }
 export const CONTIGUOUS_OUTLINE=Object.freeze([
   [48.5,-124.7],[46,-124],[43,-124.4],[42,-124.3],[40,-124.3],[38,-123],[36,-121],[34.5,-120.5],[32.5,-117.1],
@@ -31,7 +35,7 @@ export const CONTIGUOUS_OUTLINE=Object.freeze([
 ]);
 export function mainlandOutlinePath(){
   return CONTIGUOUS_OUTLINE.map(([lat,lon],i)=>{
-    const p=projectUsPoint(lat,lon);
+    const p=projectInRegion(lat,lon,US_REGIONS[0]);
     return (i===0?"M":"L")+p.x.toFixed(1)+" "+p.y.toFixed(1);
   }).join(" ")+" Z";
 }
