@@ -32,6 +32,8 @@ function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is
       const query={table,filters:[],payload:null,operation:"select"};
       const chain={
         select(){return chain;},eq(key,val){query.filters.push([key,val]);return chain;},
+        is(key,val){query.filters.push([key,val]);return chain;},
+        not(key,op,val){query.filters.push([key,op,val]);return chain;},
         order(){return chain;},limit(){return chain;},
         insert(payload){query.operation="insert";query.payload=payload;calls.push({action:"insert",payload});return chain;},
         update(payload){query.operation="update";query.payload=payload;return chain;},
@@ -47,7 +49,7 @@ function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is
             records.push(query.payload);
             return {data:{id:query.payload.id,owner_id:query.payload.owner_id,campaign_id:query.payload.campaign_id},error:null};
           }
-          if(query.operation==="update")return {data:{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,allow_agent_use:query.payload.allow_agent_use},error:null};
+          if(query.operation==="update")return {data:{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,allow_agent_use:query.payload.allow_agent_use,deletion_requested_at:query.payload.deletion_requested_at||null},error:null};
           if(query.operation==="delete")return {data:{id:FILE_ID},error:null};
           return {data:null,error:null};
         },
@@ -109,9 +111,11 @@ test("owner refuses a document row with foreign account",async()=>{
   const x=fakeClient();
   await assert.rejects(updateDocumentAgentAccess(x.client,CAMPAIGN,{id:FILE_ID,owner_id:"44444444-4444-4444-8444-444444444444",campaign_id:CAMPAIGN},{allowAgentUse:true,summary:"Verified spending document for review.",purpose:"budget"}),/own campaign/);
 });
-test("deleted object failure retains the document record",async()=>{
+test("failed private file cleanup retains pending metadata and revokes agent access",async()=>{
   const x=fakeClient({storageDeleteFailed:true});
-  await assert.rejects(removeCampaignDocument(x.client,CAMPAIGN,{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"}),/could not be removed/);
+  await assert.rejects(removeCampaignDocument(x.client,CAMPAIGN,{id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,media_type:"application/pdf",storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"}),/File cleanup did not finish/);
+  assert.ok(x.calls.some(c=>c.action==="table"&&c.table==="ifund_campaign_documents"));
+  assert.equal(x.calls.some(c=>c.action==="storage-remove"),true);
   assert.equal(x.calls.some(c=>c.action==="table"&&c.table==="ifund_campaign_documents"&&c.operation==="delete"),false);
 });
 test("source components expose creation and management upload options",()=>{
@@ -203,4 +207,25 @@ test("server verifies real Storage file size for free-tier quota",()=>{
   assert.match(migration,/actual_bytes<>new.file_size/);
   assert.match(migration,/209715200/);
   assert.match(migration,/owner_excerpt/);
+});
+
+test("removal marks document inaccessible to agents before deleting private bytes",async()=>{
+  const x=fakeClient();
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,media_type:"application/pdf",
+    storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"};
+  await removeCampaignDocument(x.client,CAMPAIGN,row);
+  const first=x.calls.findIndex(a=>a.action==="storage-remove");
+  assert.ok(first>0);
+  assert.equal(x.calls.some(a=>a.action==="table"&&a.table==="ifund_campaign_documents"),true);
+  // A prior pending delete can retry without resetting agent permissions.
+  const again=fakeClient();
+  await removeCampaignDocument(again.client,CAMPAIGN,{...row,deletion_requested_at:"2026-11-15T17:00:00Z"});
+  assert.equal(again.calls.some(a=>a.action==="storage-remove"),true);
+});
+test("a tombstoned document is not re-enabled for agent context",async()=>{
+  const x=fakeClient(),row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,
+    deletion_requested_at:"2026-11-15T17:00:00Z"};
+  await assert.rejects(updateDocumentAgentAccess(x.client,CAMPAIGN,row,{
+    allowAgentUse:true,summary:"A long verified-sounding but unverified example.",purpose:"budget"
+  }),/awaiting secure deletion/);
 });
