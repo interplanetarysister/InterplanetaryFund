@@ -5,7 +5,7 @@ import { reviewCampaignPublication, proposePunctuationRepair, proposeRedundancyR
 import { reviewCampaignWideEditorial, proposeCampaignWidePunctuation, proposeCampaignWideRedundancy } from "@/lib/campaignEditorialImprovements.mjs";
 
 /** Free, local prepublication editor with an optional owner-authorized team queue. */
-export default function PrepublicationGate({ form, campaignId, onApply, onApplyFields, disabled = false, canSend = true }) {
+export default function PrepublicationGate({ form, campaignId, onApply, onApplyFields, onFocusField, disabled = false, canSend = true }) {
   const audit = useMemo(() => reviewCampaignPublication(form), [form]);
   const punctuation = useMemo(() => proposePunctuationRepair(form?.story), [form?.story]);
   const duplication = useMemo(() => proposeRedundancyRepair(form?.story), [form?.story]);
@@ -23,7 +23,10 @@ export default function PrepublicationGate({ form, campaignId, onApply, onApplyF
 
   function focusImprovementField(item) {
     const field = item.field || (item.id === "title_repetition" ? "title" : item.id === "summary_repeated" ? "summary" : "story");
-    const target = field === "title" ? "campaign-title" : field === "summary" ? "campaign-summary" : "campaign-story";
+    const targets={title:"campaign-title",summary:"campaign-summary",story:"campaign-story",
+      goal_amount:"campaign-goal",category:"campaign-category",cover_image_url:"campaign-cover-url"};
+    const target=targets[field]||"campaign-story";
+    if(typeof onFocusField==="function"){onFocusField(target);setError("");return;}
     const inputElement = document.getElementById(target);
     if (!inputElement) { setError("The requested editor field is unavailable."); return; }
     inputElement.scrollIntoView({ behavior: "smooth", block: "center" });
