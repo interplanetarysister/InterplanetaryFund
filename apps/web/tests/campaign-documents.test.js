@@ -129,8 +129,8 @@ test("source components expose creation and management upload options",()=>{
   const create=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
   const management=readFileSync(new URL("../src/pages/MyCampaigns.jsx",import.meta.url),"utf8");
   const editor=readFileSync(new URL("../src/pages/EditCampaign.jsx",import.meta.url),"utf8");
-  const story=readFileSync(new URL("../../worker/agents/story.js",import.meta.url),"utf8");
-  const context=readFileSync(new URL("../../worker/agents/teamContext.js",import.meta.url),"utf8");
+  const story=readFileSync(new URL("../../../worker/agents/story.js",import.meta.url),"utf8");
+  const context=readFileSync(new URL("../../../worker/agents/teamContext.js",import.meta.url),"utf8");
   assert.match(create,/<CampaignDocuments/);
   assert.match(management,/<CampaignDocuments/);
   assert.match(editor,/<CampaignDocuments/);
@@ -197,8 +197,8 @@ test("owner excerpt may be updated or cleared along with agent permission",async
   assert.equal(updated.id,FILE_ID);
 });
 test("only user-reviewed excerpts are included in document-aware Story prompts",()=>{
-  const story=readFileSync(new URL("../../worker/agents/story.js",import.meta.url),"utf8");
-  const migration=readFileSync(new URL("../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
+  const story=readFileSync(new URL("../../../worker/agents/story.js",import.meta.url),"utf8");
+  const migration=readFileSync(new URL("../../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
   assert.match(story,/owner_selected_excerpt_unverified/);
   assert.match(migration,/'owner_excerpt',left\(d.owner_excerpt,1200\)/);
   assert.match(migration,/allow_agent_use=true/);
@@ -211,7 +211,7 @@ test("private references recheck grant before manual agent-draft insertion",()=>
   assert.match(source,/source|unverified/i);
 });
 test("server verifies real Storage file size for free-tier quota",()=>{
-  const migration=readFileSync(new URL("../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
+  const migration=readFileSync(new URL("../../../supabase/migrations/20261115095000_ifund_campaign_private_documents.sql",import.meta.url),"utf8");
   assert.match(migration,/metadata->>'size'/);
   assert.match(migration,/actual_bytes<>new.file_size/);
   assert.match(migration,/209715200/);
