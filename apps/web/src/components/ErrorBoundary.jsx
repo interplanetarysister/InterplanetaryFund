@@ -1,3 +1,4 @@
+import { isAssetLoadFailure } from "../lib/assetLoadRecovery.mjs";
 import React from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 
@@ -15,7 +16,15 @@ export default class ErrorBoundary extends React.Component {
     console.error("Route render error:", error, info);
   }
 
-  reset = () => this.setState({ error: null });
+  reset = () => {
+    if (isAssetLoadFailure(this.state.error)) {
+      // Failed lazy imports are cached by React.lazy. A boundary state reset
+      // cannot recover the stale chunk; refresh only after explicit user action.
+      window.location.reload();
+      return;
+    }
+    this.setState({ error: null });
+  };
 
   render() {
     if (this.state.error) {
@@ -26,14 +35,16 @@ export default class ErrorBoundary extends React.Component {
           </div>
           <h2 className="font-display text-xl text-stone-900 mb-1">This page hit a snag</h2>
           <p className="text-sm text-stone-500 mb-5">
-            This part of the application could not load. Try again or return home.
+            {isAssetLoadFailure(this.state.error)
+              ? "A page update could not load. Refresh to fetch the current version, or return home."
+              : "This part of the application could not load. Try again or return home."}
           </p>
           <div className="flex items-center justify-center gap-3">
             <button
               onClick={this.reset}
               className="inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 h-10 min-h-[44px] text-sm font-medium"
             >
-              <RefreshCw className="w-4 h-4" /> Try again
+              <RefreshCw className="w-4 h-4" /> {isAssetLoadFailure(this.state.error) ? "Refresh page" : "Try again"}
             </button>
             <a
               href="/"
