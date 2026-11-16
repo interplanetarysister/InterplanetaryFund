@@ -39,6 +39,13 @@ export function redactTeamCredentials(value) {
           if(next===normalized) break;
           normalized=next;
         }
+        // Encoded query keys can be prefixed by non-delimiter text after
+        // repeated decoding (e.g. state=x%252563ode=secret -> state=xcode=secret).
+        // Such ambiguity cannot be safely attributed to a harmless parameter.
+        if (/%[0-9a-f]{2}/i.test(url) &&
+            /(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)=/i.test(normalized) &&
+            !/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)=/i.test(normalized))
+          return '[redacted credential URL]';
         const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)';
         // Array-style and control-character suffixed credential keys must not
         // survive merely because they are not exact `code=` matches.
