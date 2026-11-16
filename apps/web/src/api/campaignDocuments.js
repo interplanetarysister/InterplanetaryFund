@@ -265,24 +265,30 @@ export async function findStaleCampaignDocumentUploads(client,campaignId,{now=Da
   if(!Number.isFinite(now))throw Error("Invalid recovery reference time.");
   const records=await listCampaignDocuments(client,campaignId);
   const storage=client.storage.from(DOCUMENT_BUCKET);
-  const {data,error}=await storage.list(userId+"/"+campaignId,{
-    limit:100,offset:0,sortBy:{column:"name",order:"asc"}
-  });
-  await unchanged(client,userId);
-  if(error||!Array.isArray(data)||data.length>=100)
-    throw Error("Private storage inventory is unavailable or too large for safe recovery.");
   const registered=new Set(records.map(row=>row.storage_path));
   const prefix=userId+"/"+campaignId+"/";
   const candidates=[];
-  for(const entry of data){
-    if(!entry?.id||typeof entry.name!=="string"||!STORAGE_FILE.test(entry.name))
-      continue;
-    const when=Date.parse(entry.created_at||"");
-    if(!Number.isFinite(when)||when>now-STALE_UPLOAD_AGE_MS)continue;
-    const path=prefix+entry.name;
-    if(!registered.has(path))candidates.push({path,name:entry.name,createdAt:entry.created_at});
+  // Maximum ten read-only pages per explicit owner scan. Objects are sorted
+  // by name, and cleanup itself independently rechecks metadata and age.
+  for(let offset=0;offset<1000;offset+=100){
+    const {data,error}=await storage.list(userId+"/"+campaignId,{
+      limit:100,offset,sortBy:{column:"name",order:"asc"}
+    });
+    await unchanged(client,userId);
+    if(error||!Array.isArray(data)||data.length>100)
+      throw Error("Private storage inventory is unavailable for safe recovery.");
+    for(const entry of data){
+      if(!entry?.id||typeof entry.name!=="string"||!STORAGE_FILE.test(entry.name))
+        continue;
+      const when=Date.parse(entry.created_at||"");
+      if(!Number.isFinite(when)||when>now-STALE_UPLOAD_AGE_MS)continue;
+      const path=prefix+entry.name;
+      if(!registered.has(path)&&candidates.length<25)
+        candidates.push({path,name:entry.name,createdAt:entry.created_at});
+    }
+    if(data.length<100)return candidates;
   }
-  return candidates.slice(0,25);
+  throw Error("Private storage inventory exceeds 1,000 items. Request reviewed cleanup.");
 }
 /**
  * Owner-initiated cleanup for a stale upload with NO associated metadata.
