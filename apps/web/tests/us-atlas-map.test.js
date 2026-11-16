@@ -61,3 +61,12 @@ test("cluster duplicate city-centre markers but exclude private or unapproved lo
  assert.deepEqual(grouped[0].campaigns.map(c=>c.id),["a","b"]);
  assert.equal(grouped[1].campaigns[0].id,"e");
 });
+
+test("accessible list remains usable independently of SVG marker controls",()=>{
+  const component=read("../src/components/atlas/USCampaignMap.jsx");
+  assert.match(component,/Accessible mapped location selection/);
+  assert.match(component,/Select a mapped location/);
+  assert.match(component,/aria-pressed=\{selectedKey===key\}/);
+  assert.match(component,/onClick=\{\(\)=>setSelectedKey\(key\)\}/);
+  assert.match(component,/min-h-11 rounded-lg border/);
+});
