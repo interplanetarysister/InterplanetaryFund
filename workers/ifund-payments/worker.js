@@ -489,6 +489,19 @@ async function subscriptionWebhook(payload,env) {
     return asError("subscription_refund_atomic_ledger_unavailable",503);
   }
   const providerReference=kind==="PAYMENT.SALE.COMPLETED"?payload.resource?.id||null:null;
+  if(kind==="PAYMENT.SALE.COMPLETED"){
+    // Do not promote a signed delivery ID or an unverified sale to an
+    // economic subscription receipt. Confirm the immutable provider sale
+    // resource, its subscription agreement and completed USD amount.
+    if(!ORDER_ID.test(providerReference||"")||providerReference===payload.id)
+      return asError("subscription_sale_identity_unverified",409);
+    const sale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(providerReference));
+    if(sale?.id!==providerReference||sale?.billing_agreement_id!==id
+      ||sale?.state!=="completed"||sale?.amount?.currency!=="USD"
+      ||!/^(?:0|[1-9]\\d*)(?:\\.\\d{1,2})?$/.test(String(sale?.amount?.total||""))
+      ||cents(sale.amount.total)<1)
+      return asError("subscription_sale_receipt_unverified",409);
+  }
   const reconciled=await reconcileSubscription(env,id,"",providerReference);
   await signLedger(env,"subscription_event",{
     paypal_event_id:payload.id,paypal_subscription_id:id,event_type:kind
