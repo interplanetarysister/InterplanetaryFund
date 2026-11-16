@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import StoryAgent from "./StoryAgent";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
@@ -16,8 +16,11 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
  * messages to Base44 or present a placeholder as an active AI conversation.
  */
 export default function AgentsTeam() {
-  const [selected, setSelected] = useState(null);
-  const [showWriting, setShowWriting] = useState(false);
+  const [params]=useSearchParams();
+  const candidate=params.get("campaign");
+  const campaignId=/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(candidate||"")?candidate:null;
+  const [selected, setSelected] = useState(campaignId?"story":null);
+  const [showWriting, setShowWriting] = useState(Boolean(campaignId));
   const [showService, setShowService] = useState(false);
   const [agentQuestion, setAgentQuestion] = useState("");
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
@@ -77,7 +80,7 @@ export default function AgentsTeam() {
       <h2 className="text-lg font-semibold">Available AI writing workspace</h2>
       <p className="mt-2 text-sm text-muted-foreground">The existing Story Agent can create private campaign writing suggestions. Standalone specialist chat is still undergoing individual verification.</p>
       <button type="button" className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
-      {showWriting && <div className="mt-4"><StoryAgent/></div>}
+      {showWriting && <div className="mt-4"><StoryAgent initialCampaignId={campaignId}/></div>}
     </section>
   </div>;
 }
