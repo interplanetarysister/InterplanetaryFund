@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
 import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
@@ -12,6 +12,8 @@ const TEMPLATES = {
   volunteer: "We're looking for volunteers who may be able to help with this campaign. Please check the campaign details and contact us through an approved channel.",
 };
 export default function CommunicationsWorkspace() {
+  const [params]=useSearchParams();
+  const requestedCampaign=params.get("campaign");
   const [state,setState]=useState({phase:"loading",campaigns:[],error:""});
   const [campaignId,setCampaignId]=useState("");
   const [type,setType]=useState("share");
@@ -34,6 +36,9 @@ export default function CommunicationsWorkspace() {
         const fresh=await client.auth.getUser();
         if(!active||ticket!==revision)return;
         if(fresh.error||fresh.data?.user?.id!==user.id)throw new Error("Your session changed.");
+        // Selection is accepted only from the authenticated owner's rows.
+        // Do not retain a URL-selected campaign across account changes.
+        if(requestedCampaign&&data.some(item=>item.id===requestedCampaign))setCampaignId(requestedCampaign);
         setState({phase:"ready",campaigns:data,error:""});
       }catch(e){
         if(active&&ticket===revision)setState({phase:"error",campaigns:[],error:e.message||"Unavailable"});
