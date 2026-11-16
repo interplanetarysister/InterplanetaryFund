@@ -582,7 +582,8 @@ async function webhook(req,env) {
     const claim=await signLedger(env,"get",{paypal_order_id:orderId});
     if(claim.intent.environment!=="live")return asError("unexpected_payment_environment",409);
     // Reject invalid capture references before any ledger mutation.
-    if(!ORDER_ID.test(payload.id||"")||!ORDER_ID.test(payload.resource?.id||""))
+    if(!PAYPAL_EVENT_ID.test(String(payload.id||""))||!ORDER_ID.test(payload.resource?.id||"")
+      ||payload.id===payload.resource.id)
       return asError("webhook_capture_reference_mismatch",409);
     // Check the signed notification's capture against PayPal's current order
     // BEFORE posting any financial ledger mutation.
