@@ -263,3 +263,12 @@ test("owner cleanup checks Storage object absence before metadata deletion",asyn
   const verify=x.calls.findIndex(event=>event.action==="storage-info");
   assert.ok(remove>=0&&verify>remove);
 });
+
+test("web production Storage SDK exposes structured missing-object codes",()=>{
+  const lock=JSON.parse(readFileSync(new URL("../package-lock.json",import.meta.url),"utf8"));
+  const version=lock.packages?.["node_modules/@supabase/storage-js"]?.version;
+  assert.ok(typeof version==="string","Locked browser Storage SDK is required");
+  const [major,minor]=version.split(".").map(Number);
+  assert.ok(major>2||(major===2&&minor>=112),
+    "StorageApiError.code was introduced in storage-js 2.112.0; private deletion needs NoSuchKey");
+});
