@@ -1,0 +1,64 @@
+name: IFund Actions failure-to-repair dispatch
+# Metadata-only failure dispatch for all canonical workflows; never checks out untrusted artifacts.
+# If GitHub runners fail before step 1, primary hourly iFund agents independently poll Actions failures.
+on:
+  workflow_run:
+    workflows:
+      - "Build IFund Android app"
+      - "Archive public Base44 artwork to repository"
+      - "PayPal AI Demo - Source Rebuild"
+      - "Deploy branded frontend to Cloudflare Pages"
+      - "Frontend production build and tests"
+      - "IFund isolated private-document security tests"
+      - "IFund Android Signed Store Candidate"
+      - "IFund New Android App Candidate"
+      - "IFund Mobile App Links Association Review"
+      - "IFund iOS Signed Store Candidate"
+      - "IFund New iOS App Simulator Candidate"
+      - "IFund Independent Mobile Dependency Lock"
+      - "IFund payment reconciliation tests"
+      - "Main release candidate checks"
+      - "Migration phase checks"
+      - "Original frontend Cloudflare preview"
+      - "Reporter blog migration checks"
+      - "IFund emergency Pages rollback (owner approval only)"
+      - "Update IFund web lockfile"
+      - "IFund continuous source repair QA"
+      - "IFund independent native candidates — QA only"
+    types: [completed]
+permissions:
+  actions: read
+  issues: write
+  contents: read
+concurrency:
+  group: ifund-failure-dispatch
+  cancel-in-progress: false
+jobs:
+  dispatch-failure:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Report GitHub Actions failure to iFund coordinator
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            if (!run || run.conclusion !== 'failure') return;
+            const owner = context.repo.owner, repo = context.repo.repo;
+            const marker = `<!-- ifund-actions-failure:${run.id}:${run.run_attempt || 1} -->`;
+            const clean = v => String(v ?? '').split(String.fromCharCode(10)).join(' ').slice(0,180);
+            const comments = await github.rest.issues.listComments({owner, repo, issue_number:203, per_page:100});
+            if ((comments.data || []).some(c => (c.body || '').includes(marker))) return;
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {owner, repo, run_id:run.id, per_page:100});
+            const failing = jobs.filter(j => j.conclusion === 'failure' || j.conclusion === 'timed_out');
+            const details = failing.slice(0,12).map(j => {
+              const steps = (j.steps || []).filter(s => s.conclusion === 'failure').map(s => clean(s.name)).slice(0,6);
+              return `- ${clean(j.name)}: ${j.html_url || run.html_url}${steps.length ? ' — failed steps: ' + steps.join(', ') : ' — no executable step detail; inspect runner provisioning'}`;
+            });
+            const body = [marker, '[IFUND-ACTIONS-FAILURE] GitHub Actions run failed. Repair owner: reproduce, correct code/workflow, run regression, report exact SHA and evidence, continue.',
+              `Workflow: ${clean(run.name)}`, `Branch: ${clean(run.head_branch)}`, `Commit: ${run.head_sha}`, `Run: ${run.html_url}`,
+              ...(details.length ? details : ['- Failed run with no failed job details; investigate runners/billing/permissions.']),
+              'Agent 1 frontend; Agent 2 backend/security; Agent 3 finance/provider; Agent 4 CI/independent QA; Agent 5 coordinator. Never bypass release safety gates to make checks pass.'
+            ].join('\n');
+            await github.rest.issues.createComment({owner, repo, issue_number:203, body});
