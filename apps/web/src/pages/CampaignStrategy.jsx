@@ -54,7 +54,7 @@ export default function CampaignStrategy() {
       setState({status:"ready",items:selected,error:requestedCampaign&&!selected.length?"The linked campaign was not available in your owned strategy records.":""});
     })().catch(e => {if(active)setState({status:"error",items:[],error:e.message||"Unavailable"});});
     return () => { active = false };
-  }, [retry]);
+  }, [retry,requestedCampaign]);
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-8">
     <header className="space-y-2">
