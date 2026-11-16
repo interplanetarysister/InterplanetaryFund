@@ -95,11 +95,10 @@ create policy ifund_campaign_documents_storage_read on storage.objects
       then public.ifund_owns_campaign_document_context(
         (storage.foldername(name))[1]::uuid,(storage.foldername(name))[2]::uuid)
       else false end
-    -- An uploaded but not registered object must not be readable as a
-    -- campaign reference. The owner may still delete a failed upload.
-    and exists (select 1 from public.ifund_campaign_documents d
-      where d.storage_path=storage.objects.name
-        and d.owner_id=(select auth.uid()))
+    -- An upload that succeeds before metadata registration must remain
+    -- readable/deletable by its authenticated owner for rollback. Ownership
+    -- comes from the exact UUID path and verified campaign membership, not
+    -- from public Storage access or from a client-provided owner field.
   );
 drop policy if exists ifund_campaign_documents_storage_delete on storage.objects;
 create policy ifund_campaign_documents_storage_delete on storage.objects
