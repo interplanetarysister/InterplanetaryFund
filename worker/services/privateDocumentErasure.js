@@ -88,6 +88,12 @@ async function deleteOne({fetcher,url,key,owner,row}){
    method:"GET",headers:serviceHeaders(key),signal:AbortSignal.timeout(20000)
  });
  if(info.status!==404)throw Error("Private Storage deletion could not be independently verified.");
+ let missing;
+ try{missing=await info.json();}catch{throw Error("Private Storage absence receipt is invalid.");}
+ // A 404 can also mean a missing bucket or an inaccessible object. Only
+ // an explicit NoSuchKey confirms that this particular file is absent.
+ if(missing?.code!=="NoSuchKey")
+   throw Error("Private Storage absence receipt is not a missing-file proof.");
  if(row.metadata_present){
    const endpoint=url+"/rest/v1/ifund_campaign_documents?id=eq."+row.document_id+"&owner_id=eq."+owner+
      "&deletion_requested_at=not.is.null";
