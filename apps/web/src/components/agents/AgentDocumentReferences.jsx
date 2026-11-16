@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from "react";
 import {authClient} from "@/api/auth";
 import {DOCUMENT_CATEGORIES,loadAgentDocumentBriefs} from "@/api/campaignDocuments";
+import {redactDocumentReferenceSecrets} from "@/lib/documentReferenceSafety.mjs";
 
 const EMPTY={loading:false,items:[],error:""};
 /** Owner-reviewed, unverified excerpts. Never publishes or sends. */
@@ -102,7 +103,7 @@ export default function AgentDocumentReferences({campaignId,onInsert,disabled=fa
         if(scope.current.generation===generation&&scope.current.owner===owner&&scope.current.campaignId===campaignId)setState(prev=>({...prev,error:"No approved document facts remain to insert."}));
         return;
       }
-      onInsert(facts);
+      onInsert(redactDocumentReferenceSecrets(facts));
     }catch(error){
       if(scope.current.generation===generation&&scope.current.owner===owner&&scope.current.campaignId===campaignId){
         setState(prev=>({...prev,error:"Unable to verify this reference. Try again before inserting."}));
