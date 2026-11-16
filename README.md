@@ -16,6 +16,8 @@ This repository is the **independent migration destination** from Base44.
 
 ## Migration Status
 
+- **Verified deployment status (time-stamped):** [Cloudflare / GitHub deployment register](docs/operations/DEPLOYMENT_STATUS_20261115.md). This distinguishes successful production releases from queued builds and unfinished preview/native candidates.
+
 - Authoritative migration and release coordination: **[issue #203](https://github.com/interplanetarysister/InterplanetaryFund/issues/203)**
 - Original Base44 source repository: read-only functional reference
 - Original Base44 app: legacy (not the canonical production URL)
