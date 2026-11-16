@@ -4,6 +4,7 @@ import StoryAgent from "./StoryAgent";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
 import TeamConversationHistory from "@/components/agents/TeamConversationHistory";
+import SpecialistServiceWorkspace from "@/components/agents/SpecialistServiceWorkspace";
 import { AGENT_IDENTITIES, AgentIdentityIcon } from "@/components/agents/AgentIdentityIcon";
 import { AGENT_WORKSPACES } from "@/lib/agentWorkspaces.mjs";
 import { TRAINING_ROLES, TRAINING_VERSION, proposedSpecialistHandoff } from "@/lib/agentTrainingDirectory.mjs";
@@ -17,6 +18,7 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
 export default function AgentsTeam() {
   const [selected, setSelected] = useState(null);
   const [showWriting, setShowWriting] = useState(false);
+  const [showService, setShowService] = useState(false);
   const [agentQuestion, setAgentQuestion] = useState("");
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
@@ -35,13 +37,13 @@ export default function AgentsTeam() {
         <p className="text-sm">Suggested specialist: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
         <p className="mt-1 text-xs text-muted-foreground">Your team can reuse your account's shared context. This recommendation does not itself start a specialist conversation.</p>
         {recommendation.requiresCoordination && <p className="mt-1 text-xs text-muted-foreground">Relevant specialists: {recommendation.topics.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>}
-        <button type="button" onClick={() => {setSelected(recommendation.target);setShowWriting(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">View {AGENT_IDENTITIES[recommendation.target]?.name}</button>
+        <button type="button" onClick={() => {setSelected(recommendation.target);setShowWriting(false);setShowService(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">View {AGENT_IDENTITIES[recommendation.target]?.name}</button>
       </div>}
       <p className="mt-2 text-xs text-muted-foreground">Shared specialty directory: {TRAINING_VERSION}. Services remain limited to their verified tool permissions.</p>
     </section>
     <div aria-label="IFund agents" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
-        onClick={() => { setSelected(id); setShowWriting(false); }}
+        onClick={() => { setSelected(id); setShowWriting(false); setShowService(false); }}
         className={"flex min-h-40 flex-col items-center justify-center rounded-2xl border bg-[#0B0F14] p-4 text-center transition hover:border-cyan-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 " + (selected === id ? "border-cyan-400/80" : "border-white/15")}>
         <AgentIdentityIcon identity={id} size={70}/>
         <span className="mt-3 font-semibold tracking-[0.16em] text-white">{agent.name}</span>
@@ -57,12 +59,17 @@ export default function AgentsTeam() {
       <p className="mt-1 text-sm text-muted-foreground">Can help with: {TRAINING_ROLES[selected]?.handles.join(", ")}. Consults: {TRAINING_ROLES[selected]?.consult.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>
       <p role="status" className="mt-4 text-sm text-muted-foreground">{workspace?.evidence} Selecting this role does not send a message or authorize financial or external actions.</p>
       {selected === "nexus" && <div className="mt-4"><NexusBrief /></div>}
+      {["polaris", "forge", "echo", "link"].includes(selected) && <div className="mt-4 space-y-4">
+        <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold" aria-expanded={showService}
+          onClick={() => setShowService(value => !value)}>{showService ? "Close saved specialist workspace" : "Open saved specialist workspace"}</button>
+        {showService && <SpecialistServiceWorkspace key={selected} identity={selected}/>}
+      </div>}
       {workspace && <div className="mt-4">
         {selected === "story" ?
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
           <Link className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold" to={workspace.path}>Open related tool: {workspace.tool}</Link>}
       </div>}
-      <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => setSelected(null)}>Return to team</button>
+      <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
     <EditorialAgentQueue />
     <TeamConversationHistory />
