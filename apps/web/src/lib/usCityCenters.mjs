@@ -26,6 +26,7 @@ export const US_CITY_CENTERS = Object.freeze([
   {id:"boston",label:"Boston area, Massachusetts",lat:42.4,lng:-71.1},
   {id:"anchorage",label:"Anchorage area, Alaska",lat:61.2,lng:-149.9},
   {id:"honolulu",label:"Honolulu area, Hawaii",lat:21.3,lng:-157.9},
+  {id:"san-juan",label:"San Juan area, Puerto Rico",lat:18.5,lng:-66.1},
 ]);
 export function selectUSCity(id) {
   return US_CITY_CENTERS.find(city=>city.id===id) || null;
