@@ -56,12 +56,17 @@ export default function AdminDeletionQueue(){
           signal:AbortSignal.timeout(90000)
         });
         const result=await reply.json().catch(()=>null);
-        if(!reply.ok||result?.verified!==true||!Number.isInteger(result.documents_removed)||
-           result.account_deleted!==false)
+        if(!reply.ok||typeof result?.verified!=="boolean"||
+           !Number.isInteger(result.documents_removed)||result.documents_removed<0||
+           result.account_deleted!==false||
+           (result.verified===false&&result.more_documents!==true))
           throw Error("Private document cleanup is not verified. Review the restricted service and retry.");
         const {data:after,error:changed}=await client.auth.getUser();
         if(changed||after?.user?.id!==identity.user.id)throw Error("Administrator session changed.");
-        setNotice(result.documents_removed+" private campaign documents removed. Financial and account erasure remains separately pending.");
+        setNotice(result.documents_removed+" private campaign documents removed. "+(result.verified
+          ? "Private document cleanup is verified complete."
+          : "More private documents remain; repeat the reviewed cleanup.")+
+          " Financial and account erasure remain separately pending.");
       }
       setRefresh(value=>value+1);
     }catch(cause){
