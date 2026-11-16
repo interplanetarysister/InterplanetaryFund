@@ -274,7 +274,7 @@ Deno.serve(async req=>{
         &&entry.paypal_subscription_id===row.paypal_subscription_id
         &&entry.provider_reference===providerReference && entry.entry_type==="refund"
         &&entry.amount_cents===-p.amount_cents && entry.currency==="USD"
-        &&entry.environment==="live" && entry.provider_occurred_at===occurred.toISOString();
+        &&entry.environment==="live" && Date.parse(entry.provider_occurred_at)===occurred.getTime();
       let existing=await findOne("ifund_subscription_ledger?select=*&operation_key=eq."+encodeURIComponent(operation));
       if(existing&&!ledgerMatches(existing))return fail("Subscription reversal ledger identity conflict",409);
       if(!existing){
@@ -342,7 +342,7 @@ Deno.serve(async req=>{
           &&entry.paypal_subscription_id===row.paypal_subscription_id
           &&entry.entry_type==="payment" && entry.amount_cents===row.amount_cents
           &&entry.currency==="USD" && entry.environment==="live"
-          &&entry.provider_occurred_at===paymentAt.toISOString() && entry.provider_reference===providerReference;
+          &&Date.parse(entry.provider_occurred_at)===paymentAt.getTime() && entry.provider_reference===providerReference;
         if(!existing){
           try{
             await db("ifund_subscription_ledger","POST",{
