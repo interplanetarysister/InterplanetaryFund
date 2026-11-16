@@ -716,12 +716,12 @@
     },
     {
       "route": "/preferences",
-      "role": "member",
-      "component": "ManagePermissions",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "role": "public",
+      "component": "Navigate",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx: public /preferences alias redirects with replace to /permissions?section=marketing; /permissions is explicitly wrapped in MemberAccess",
+      "behavior_evidence": "apps/web/tests/marketing-consent.test.js verifies the exact redirect and explicit opt-in controls; apps/web/tests/unified-permissions.test.js verifies consolidated permissions; no consent is changed by redirect",
+      "backend_evidence": "The alias issues no API call or write. Its /permissions destination retains MemberAccess verified email/lifecycle/legal gates; marketing consent RPCs retain server-side auth.uid() scope. Hosted/browser acceptance is not asserted.",
       "owner": "frontend"
     },
     {

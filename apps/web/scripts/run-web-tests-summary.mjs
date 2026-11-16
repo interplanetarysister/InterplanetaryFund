@@ -7,7 +7,7 @@ import path from "node:path";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const local = readdirSync(path.join(root, "tests"))
-  .filter(name => name.endsWith(".test.js"))
+  .filter(name => /\.test\.m?js$/.test(name))
   .sort().map(name => "tests/" + name);
 const files = [...local, "../../tests/paypal-sandbox-handler.test.js",
   "../../tests/paypal-sandbox-security.test.js"];
