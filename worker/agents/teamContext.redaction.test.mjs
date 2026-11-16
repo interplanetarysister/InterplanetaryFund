@@ -84,3 +84,16 @@ test('dotted callback credential keys are never persisted verbatim', () => {
   }
   assert.equal(redactTeamCredentials('The code.foo example is prose.'), 'The code.foo example is prose.');
 });
+
+test('OAuth ID and session token callback values are never retained', () => {
+  for (const key of ['id_token', '%69d_token', 'id%5Ftoken',
+    'id_token%5B%5D', 'session_token', 'jwt', 'token']) {
+    const actual=redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    assert.doesNotMatch(actual, /synthetic-secret-123/);
+    assert.match(actual, /\[redacted(?: credential URL)?\]/);
+  }
+  for (const prose of ['The token economy is growing.', 'The code is illustrative.',
+    'https://example.test/cb?state=safe&theme=dark']) {
+    assert.equal(redactTeamCredentials(prose),prose);
+  }
+});
