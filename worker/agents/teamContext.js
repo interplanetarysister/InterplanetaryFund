@@ -24,7 +24,12 @@ export function redactTeamCredentials(value) {
         for(let i=0;i<12;i++) {
           const next=normalized
             .replace(/&(?:amp|#0*38|#x0*26);/gi,'&')
-            .replace(/%[0-9a-f]{2}/gi,part=>decodeURIComponent(part));
+            .replace(/%[0-9a-f]{2}/gi,part=>{
+              const byte=parseInt(part.slice(1),16);
+              // decodeURIComponent throws on standalone non-UTF8 bytes.
+              // Decode only ASCII parameter syntax; fail closed on ambiguity.
+              return byte<128?String.fromCharCode(byte):part;
+            });
           if(next===normalized) break;
           normalized=next;
         }
