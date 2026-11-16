@@ -170,7 +170,7 @@ create trigger ifund_campaign_documents_guard_insert before insert on public.ifu
 -- A deletion request is irreversible through the browser. An owner may
 -- finish cleaning up Storage or an authorized erasure worker may do so.
 create or replace function public.ifund_campaign_document_deletion_guard()
-returns trigger language plpgsql security definer set search_path='' as $
+returns trigger language plpgsql security definer set search_path='' as $$
 begin
   if old.deletion_requested_at is not null then
     if new.deletion_requested_at is distinct from old.deletion_requested_at
@@ -182,7 +182,7 @@ begin
     end if;
   end if;
   return new;
-end $;
+end $$;
 revoke all on function public.ifund_campaign_document_deletion_guard() from public,anon,authenticated;
 drop trigger if exists ifund_campaign_document_deletion_guard on public.ifund_campaign_documents;
 create trigger ifund_campaign_document_deletion_guard before update on public.ifund_campaign_documents
