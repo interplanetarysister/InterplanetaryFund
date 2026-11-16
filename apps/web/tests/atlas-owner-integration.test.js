@@ -6,7 +6,10 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("Atlas selects owner-verified campaigns for authenticated members and never mixes accounts", () => {
   const atlas=read("../src/pages/Atlas.jsx");
-  assert.match(atlas,/listOwnerAtlasCampaigns\(authClient\(\)\)/);
+  assert.match(atlas,/listOwnerAtlasCampaigns\(client\)/);
+  assert.match(atlas,/const client = authClient\(\)/);
+  assert.match(atlas,/before = await client.auth.getUser\(\)/);
+  assert.match(atlas,/after = await client.auth.getUser\(\)/);
   assert.match(atlas,/ownerCampaigns\.ownerId === user\.id/);
   assert.match(atlas,/sessionStatus === "signed-in"/);
   assert.match(atlas,/setSelectedScope\("public"\)/);
