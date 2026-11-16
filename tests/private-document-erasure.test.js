@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
 import {cleanupPrivateCampaignDocuments,handlePrivateDocumentErasure} from "../worker/services/privateDocumentErasure.js";
 const REQUEST="11111111-1111-4111-8111-111111111111";
 const OWNER="22222222-2222-4222-8222-222222222222";
@@ -133,4 +134,21 @@ test("large owner document inventory returns an explicitly incomplete resumable 
   });
   assert.deepEqual(result,{verified:false,more_documents:true,documents_removed:10,account_deleted:false});
   assert.equal(remaining,5);
+});
+
+test("private cleanup reviewer notes are not granted to ordinary member reads",()=>{
+ const sql=readFileSync(new URL("../supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql",import.meta.url),"utf8");
+ assert.match(sql,/revoke select on public\.ifund_account_deletion_requests from authenticated/);
+ assert.match(sql,/grant select\(id,user_id,status,requested_at,updated_at,completed_at\)/);
+ assert.match(sql,/document_cleanup_reviewed_by=actor/);
+ assert.match(sql,/r\.document_cleanup_reviewed_by is not null/);
+ assert.doesNotMatch(sql,/grant select\([^\n]*document_cleanup_review_note/);
+});
+test("admin erasure never marks the wider account deletion completed",()=>{
+ const sql=readFileSync(new URL("../supabase/migrations/20261115194500_ifund_private_document_erasure_review.sql",import.meta.url),"utf8");
+ const worker=readFileSync(new URL("../worker/services/privateDocumentErasure.js",import.meta.url),"utf8");
+ assert.doesNotMatch(worker,/status\s*[:=]\s*["']completed["']/);
+ assert.doesNotMatch(sql,/status\s*=\s*'completed'/);
+ assert.match(worker,/account_deleted:false/);
+ assert.match(worker,/batchLimit=10/);
 });
