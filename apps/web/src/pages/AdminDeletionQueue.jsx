@@ -7,6 +7,7 @@ import { authClient } from "@/api/auth";
 // the server-side super-admin role; this view cannot mark deletion completed.
 export default function AdminDeletionQueue(){
   const [rows,setRows]=useState([]);
+  const [reviewed,setReviewed]=useState({});
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState("");
   const [refresh,setRefresh]=useState(0);
@@ -16,15 +17,30 @@ export default function AdminDeletionQueue(){
   const [notice,setNotice]=useState("");
   useEffect(()=>{
     let alive=true;
-    setLoading(true);setError("");setRows([]);
+    setLoading(true);setError("");setRows([]);setReviewed({});
     let client;
     try{client=authClient();}
     catch{setError("Unable to initialize the verified administrative session.");setLoading(false);return;}
-    client.rpc("ifund_super_admin_account_deletion_queue",{p_limit:100}).then(({data,error:issue})=>{
+    Promise.all([
+      client.rpc("ifund_super_admin_account_deletion_queue",{p_limit:100}),
+      client.rpc("ifund_super_admin_private_document_reviewed_queue",{}),
+    ]).then(([queue,approvals])=>{
       if(!alive)return;
-      if(issue||!Array.isArray(data))throw new Error(issue?.message||"Unable to verify account-deletion requests.");
-      setRows(data);setLoading(false);
-    }).catch(cause=>{if(alive){setRows([]);setError(cause.message||"Queue unavailable.");setLoading(false);}});
+      if(queue.error||!Array.isArray(queue.data)||
+         approvals.error||!Array.isArray(approvals.data))
+        throw new Error("The protected account-deletion review queue is unavailable.");
+      const ids=new Set(queue.data.map(item=>item.request_id));
+      const status={};
+      for(const item of approvals.data){
+        if(ids.has(item.request_id)&&typeof item.review_ready==="boolean")
+          status[item.request_id]=item.review_ready;
+      }
+      setReviewed(status);
+      setRows(queue.data);
+      setLoading(false);
+    }).catch(cause=>{
+      if(alive){setRows([]);setReviewed({});setError(cause.message||"Queue unavailable.");setLoading(false);}
+    });
     return()=>{alive=false;};
   },[refresh]);
 
@@ -96,9 +112,10 @@ export default function AdminDeletionQueue(){
         <h2 className="break-all text-sm font-semibold">Reference: {row.request_id}</h2>
         <p className="break-all text-xs">User reference: {row.requested_user_id||"Account identity already removed"}</p>
         <p className="text-sm">Current status: <strong>{row.request_status}</strong></p>
+        <p className="text-xs text-muted-foreground">Private-file cleanup authorization: {reviewed[row.request_id]===true?"Reviewed and authorized":"Not yet reviewed for document erasure"}</p>
         <p className="text-xs text-muted-foreground">Submitted: {row.submitted_at?new Date(row.submitted_at).toLocaleString():"Unknown"}</p>
         <p className="text-xs text-muted-foreground">Updated: {row.updated_at?new Date(row.updated_at).toLocaleString():"Unknown"}</p>
-        {row.request_status==="requested"&&<div className="rounded-xl border border-border p-3 space-y-2">
+        {["requested","reviewing"].includes(row.request_status)&&reviewed[row.request_id]!==true&&<div className="rounded-xl border border-border p-3 space-y-2">
           <label className="block text-sm font-semibold" htmlFor={"review-"+row.request_id}>Private-document cleanup review evidence</label>
           <textarea id={"review-"+row.request_id} value={selected===row.request_id?reviewNote:""}
             onFocus={()=>{if(selected!==row.request_id){setSelected(row.request_id);setReviewNote("");}}}
@@ -110,7 +127,7 @@ export default function AdminDeletionQueue(){
             Record reviewed file-cleanup authorization
           </button>
         </div>}
-        {row.request_status==="reviewing"&&<button type="button" disabled={Boolean(processing)}
+        {row.request_status==="reviewing"&&reviewed[row.request_id]===true&&<button type="button" disabled={Boolean(processing)}
           onClick={()=>act(row,false)}
           className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">
           Remove reviewed account's private campaign documents
@@ -120,7 +137,7 @@ export default function AdminDeletionQueue(){
     </section>}
     <p className="border-t border-border pt-5 text-xs text-muted-foreground">
       Do not label an account deletion completed until eligibility, erasure, legally required retention,
-      notifications and evidence have been independently verified. No workflow or button here performs deletion.
+      notifications and evidence have been independently verified. Private-file cleanup is a separate irreversible action; this screen never completes identity or financial-record deletion.
     </p>
   </main>;
 }
