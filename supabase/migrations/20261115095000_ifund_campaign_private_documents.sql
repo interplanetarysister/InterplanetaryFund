@@ -195,6 +195,9 @@ begin
   -- reviewed file-erasure workflow must remove documents before deleting the
   -- campaign or the owning Auth user.
   if exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
+    or exists(select 1 from storage.objects o
+      where o.bucket_id='ifund-campaign-documents'
+        and o.name like old.owner_id::text || '/' || old.id::text || '/%')
   then raise exception 'Remove private campaign documents before deleting this campaign' using errcode='23514'; end if;
   return old;
 end $$;
