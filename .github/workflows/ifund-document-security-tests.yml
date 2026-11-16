@@ -48,6 +48,10 @@ jobs:
             apps/web/tests/campaign-document-orphan-recovery.test.js \
             apps/web/tests/document-reference-safety.test.js \
             2>&1 | tee /tmp/ifund-private-document-web.log
+      - name: Verify campaign creator interruption recovery and agent handoff (no build)
+        run: |
+          set -euo pipefail
+          node --test apps/web/tests/campaign-creation-recovery.test.mjs 2>&1 | tee /tmp/ifund-campaign-creator-recovery.log
       - name: Preserve test logs even on failure
         if: always()
         uses: actions/upload-artifact@v4
@@ -56,5 +60,6 @@ jobs:
           path: |
             /tmp/ifund-private-document-root.log
             /tmp/ifund-private-document-web.log
+            /tmp/ifund-campaign-creator-recovery.log
           if-no-files-found: ignore
           retention-days: 7
