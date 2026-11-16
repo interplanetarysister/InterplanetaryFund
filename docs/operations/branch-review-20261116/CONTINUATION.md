@@ -1,5 +1,7 @@
 # Remaining branch source integration — November 16, 2026
 
+Consolidated source PR: [#292](https://github.com/interplanetarysister/InterplanetaryFund/pull/292).
+
 All 161 branches ahead of the original review baseline have been reconciled, plus the subsequently discovered `fix/live-route-chunk-recovery-20261115` branch. The latest reviewed route-completion head is recorded in `branches.json`. Every recorded head is an ancestor of this candidate. This includes deliberate retirement of incompatible historical implementations after porting useful behavior; ancestry alone is not evidence of feature implementation or production acceptance.
 
 The original 149-head integration was merged through PR #290. This continuation implements the capabilities identified as missing in that review:
@@ -27,6 +29,8 @@ The original 149-head integration was merged through PR #290. This continuation 
 | Shorts interaction fixtures | Desktop/mobile player consent, keyboard/swipe navigation, teardown, refresh and error states passed; provider frames synthetic |
 | Git whitespace check and branch ancestry reconciliation | Passed |
 
+The required formatting check for the four baseline-clean public read surfaces passed. The workflow's explicitly nonblocking whole-root formatting report still lists 20 unchanged historical files; they are not changed by this PR. `git diff --check` passed.
+
 The final artifact index SHA-256 and compact route evidence are in `continuation-browser.json`. Browser route smoke is anonymous and local; it does not establish signed-in, hosted Pages Functions, provider, native-device or production acceptance. SQL tests run against synthetic PGlite fixtures and do not apply production DDL. The original historical phase report remains below in README; the continuation supersedes its twelve-unmerged-head and missing-cover-port statements.
 
 ## Remaining release blockers
@@ -37,6 +41,6 @@ Read-only hosted checks confirmed that the private document relation, atomic sub
 
 The 18 hosted email-content policies inspected are **RESTRICTIVE**, correctly combined with owner policies. They are not an OR-based ownership bypass. No live policies were changed.
 
-GitHub check annotation for job `133259997614` states: “The job was not started because your account is locked due to a billing issue.” It executed zero steps. Local checks do not resolve hosted CI billing. No paid upgrade, protected-check bypass or account change was attempted.
+GitHub check annotations for jobs `133259997614` and this PR's `133266496824` state: “The job was not started because your account is locked due to a billing issue.” It executed zero steps. Local checks do not resolve hosted CI billing. No paid upgrade, protected-check bypass or account change was attempted.
 
 Immediately before publication, Cloudflare read-only inspection showed all Git deployment triggers still disabled: `deployments_enabled=false`, `production_deployments_enabled=false`, `preview_deployment_setting=none`. Another actor's production deployment was observed at `b19cc047-2d5c-4417-b232-d98eea76e79f`, revision `2de351258f7bf6d1e5a373e6153f749dd8de1bba`; it was not deployed or certified by this work. No actual charges, payouts, messages, OAuth grants, DNS/mail changes, destructive data operations or paid services were executed.
