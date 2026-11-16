@@ -1,0 +1,85 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {cleanupPrivateCampaignDocuments,handlePrivateDocumentErasure} from "../worker/services/privateDocumentErasure.js";
+const REQUEST="11111111-1111-4111-8111-111111111111";
+const OWNER="22222222-2222-4222-8222-222222222222";
+const CAMPAIGN="33333333-3333-4333-8333-333333333333";
+const DOCUMENT="44444444-4444-4444-8444-444444444444";
+const PATH=OWNER+"/"+CAMPAIGN+"/"+DOCUMENT+".pdf";
+const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ifund-example.supabase.co",SUPABASE_SECRET_KEY:"server-only-example-key-not-real"};
+const request=()=>new Request("https://ifund.example/api/services/admin/private-document-erasure",{
+ method:"POST",headers:{authorization:"Bearer admin.jwt","content-type":"application/json"},body:JSON.stringify({request_id:REQUEST})
+});
+function service({status="reviewing",owner=OWNER,failAt="",path=PATH,alreadyPending=false}={}){
+ const calls=[];let inventory=1;
+ const fetcher=async(url,options)=>{
+   const parsed=new URL(url);const method=options.method;
+   calls.push({url:parsed.pathname,method,body:options.body,headers:options.headers});
+   if(failAt && parsed.pathname.includes(failAt))return Response.json({error:"private upstream detail"},{status:500});
+   if(parsed.pathname.includes("/rpc/ifund_super_admin_account_deletion_queue"))
+     return Response.json([{request_id:REQUEST,request_status:status,requested_user_id:owner}]);
+   if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="GET"){
+     return Response.json(inventory===0?[]:[{id:DOCUMENT,storage_path:path,
+       deletion_requested_at:alreadyPending?"2026-11-15T10:00:00Z":null}]);
+   }
+   if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="PATCH")
+     return Response.json([{id:DOCUMENT,deletion_requested_at:"2026-11-15T10:00:00Z",allow_agent_use:false}]);
+   if(parsed.pathname==="/storage/v1/object/ifund-campaign-documents" && method==="DELETE")
+     return Response.json([{name:path}]);
+   if(parsed.pathname.includes("/storage/v1/object/info/ifund-campaign-documents/"))
+     return Response.json({error:"not found"},{status:404});
+   if(parsed.pathname==="/rest/v1/ifund_campaign_documents" && method==="DELETE"){
+     inventory=0;return Response.json([{id:DOCUMENT}]);
+   }
+   throw Error("Unexpected mock operation: "+parsed.pathname+" "+method);
+ };
+ return {fetcher,calls};
+}
+test("disabled route never accesses accounts",async()=>{
+ const res=await handlePrivateDocumentErasure(request(),{...ENV,IFUND_DOCUMENT_ERASURE_ENABLED:"disabled"},
+  {fetcher:()=>assert.fail("No provider call permitted")});
+ assert.equal(res.status,503);
+});
+test("reviewed deletion removes bytes before metadata, never financial records",async()=>{
+ const s=service();
+ const output=await cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"});
+ assert.deepEqual(output,{verified:true,documents_removed:1,account_deleted:false});
+ const deleteStorage=s.calls.findIndex(c=>c.url==="/storage/v1/object/ifund-campaign-documents"&&c.method==="DELETE");
+ const mark=s.calls.findIndex(c=>c.method==="PATCH");
+ const deleteMetadata=s.calls.findIndex(c=>c.url==="/rest/v1/ifund_campaign_documents"&&c.method==="DELETE");
+ assert.ok(mark>=0&&mark<deleteStorage&&deleteStorage<deleteMetadata);
+ assert.equal(s.calls.some(c=>c.url.includes("finance")||c.url.includes("ledger")),false);
+});
+test("unreviewed request cannot delete anything",async()=>{
+ const s=service({status:"requested"});
+ await assert.rejects(cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"}),/reviewed/);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"||c.method==="PATCH"),false);
+});
+test("foreign account object path blocked",async()=>{
+ const s=service({path:"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/"+CAMPAIGN+"/"+DOCUMENT+".pdf"});
+ await assert.rejects(cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"}),/does not belong/);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"),false);
+});
+test("failed Storage removal cannot erase metadata",async()=>{
+ const s=service({failAt:"/storage/v1/object/ifund-campaign-documents"});
+ await assert.rejects(cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"}),/refused/);
+ assert.equal(s.calls.some(c=>c.method==="DELETE"&&c.url==="/rest/v1/ifund_campaign_documents"),false);
+});
+test("pending deletion resumes without changing old consent",async()=>{
+ const s=service({alreadyPending:true});
+ const output=await cleanupPrivateCampaignDocuments({fetcher:s.fetcher,env:ENV,requestId:REQUEST,jwt:"admin.jwt"});
+ assert.equal(output.documents_removed,1);
+ assert.equal(s.calls.some(c=>c.method==="PATCH"),false);
+});
+test("sanitized endpoint response never exposes private user IDs",async()=>{
+ const s=service();
+ const res=await handlePrivateDocumentErasure(request(),ENV,{fetcher:s.fetcher});
+ assert.equal(res.status,200);
+ const body=await res.json();
+ assert.equal(body.documents_removed,1);
+ assert.equal(JSON.stringify(body).includes(OWNER),false);
+ const denial=service({status:"requires_legal_retention"});
+ const fail=await handlePrivateDocumentErasure(request(),ENV,{fetcher:denial.fetcher});
+ assert.equal(fail.status,503);
+ assert.equal((await fail.text()).includes(OWNER),false);
+});
