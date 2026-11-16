@@ -71,7 +71,7 @@ assert(read("apps/web/src/lib/nativeOAuth.js").includes("redirect.pathname !== M
   "Native social OAuth must require a verified mobile PKCE return route");
 assert(read("apps/web/src/components/auth/OAuthButtons.jsx").includes("VITE_NATIVE_APPLE_SIGNIN_READY"),
   "iOS social login must remain gated on approved Sign in with Apple");
-assert(read("apps/web/src/pages/Profile.jsx").includes("/support?request=delete-account"),
+assert(read("apps/web/src/pages/Profile.jsx").includes('to="/delete-account"'),
   "Members must be able to initiate a tracked deletion request inside the app");
 assert(read("apps/web/src/components/campaigns/CampaignShareButton.jsx").includes("shareWithDevice("),
   "Campaign share sheet is not integrated with native sharing");
