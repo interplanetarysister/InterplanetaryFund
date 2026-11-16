@@ -1,0 +1,1884 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-11-16T11:40:40.084596+00:00",
+  "source_main": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88",
+  "source_tree": "7dd457b2f0c9ccebd5f4742b6d7b033f1486e347",
+  "application_source_changed": false,
+  "local_history_reconciled": [
+    {
+      "branch": "repair/atomic-subscriptions-20261116",
+      "head": "283b136ec3c4320887e38fe8797fcb8c92f84af0",
+      "commits": [
+        {
+          "commit": "283b136ec3c4320887e38fe8797fcb8c92f84af0",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/baseline-20261116",
+      "head": "617871e3f6227acec5372adec0f07ac411b51c8e",
+      "commits": [
+        {
+          "commit": "617871e3f6227acec5372adec0f07ac411b51c8e",
+          "proof": "Every changed file has identical post-image in the source port already on main",
+          "port_commit": "1a7555aceac9c6e5bfa77f3608f2d98597aea0bf",
+          "files_checked": 9
+        }
+      ]
+    },
+    {
+      "branch": "repair/dashboard-20261116",
+      "head": "8b6c592ba1da9192413c67236c997d74e43d0f0b",
+      "commits": [
+        {
+          "commit": "e79afa05b418a3bd4c32fc5538002b43ad6aebc4",
+          "proof": "patch-equivalent change already present on origin/main"
+        },
+        {
+          "commit": "8b6c592ba1da9192413c67236c997d74e43d0f0b",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/parity-completion-20261116",
+      "head": "8dc0cc7e594bd1096218cf9fad794e1e01c1e013",
+      "commits": [
+        {
+          "commit": "8dc0cc7e594bd1096218cf9fad794e1e01c1e013",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/review-financial-20261116",
+      "head": "7a83359992dd902606e0130b0aac5b7b0f606048",
+      "commits": [
+        {
+          "commit": "c9e88548e72fef41e73599207e1d4d1675dcacab",
+          "proof": "patch-equivalent change already present on origin/main"
+        },
+        {
+          "commit": "7a83359992dd902606e0130b0aac5b7b0f606048",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/route-evidence-20261116",
+      "head": "d8750fb89f1ddcee9023c4a7e779fc18bf377b7d",
+      "commits": [
+        {
+          "commit": "d8750fb89f1ddcee9023c4a7e779fc18bf377b7d",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/routes-20261116",
+      "head": "bd3676be55a751845bcfa7c42201c8f36702e410",
+      "commits": [
+        {
+          "commit": "972af17c05ccd327e7d96978014e31178bddb993",
+          "proof": "Every changed file has identical post-image in the source port already on main",
+          "port_commit": "0cb3b2e8ec5e05311078a9d5ffc5ccc24c8bc1d7",
+          "files_checked": 24
+        },
+        {
+          "commit": "9dd6d8a01fd72963301cfb5a56b7afea47371c74",
+          "proof": "patch-equivalent change already present on origin/main"
+        },
+        {
+          "commit": "44416360fd7bb673af7c543488eb88950fca0ea9",
+          "proof": "patch-equivalent change already present on origin/main"
+        },
+        {
+          "commit": "bd3676be55a751845bcfa7c42201c8f36702e410",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/session-boundaries-20261116",
+      "head": "920ffa0679f4c27a21627a3eeb864866a75fa4bd",
+      "commits": [
+        {
+          "commit": "920ffa0679f4c27a21627a3eeb864866a75fa4bd",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/shorts-completion-20261116",
+      "head": "715e1b1531d248e015cea61b5a09fe4b2abf023d",
+      "commits": [
+        {
+          "commit": "715e1b1531d248e015cea61b5a09fe4b2abf023d",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/specialist-backend-20261116",
+      "head": "e5c767238adb4e79d113b7088fd1ec16d6efc714",
+      "commits": [
+        {
+          "commit": "e5c767238adb4e79d113b7088fd1ec16d6efc714",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/specialist-frontend-20261116",
+      "head": "b1da4ce69400136adc86071c03364be9fe57b40f",
+      "commits": [
+        {
+          "commit": "b1da4ce69400136adc86071c03364be9fe57b40f",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    },
+    {
+      "branch": "repair/wizard-completion-20261116",
+      "head": "3e56d06bdd51ce19b79ddc7117827338c7e20ff5",
+      "commits": [
+        {
+          "commit": "3e56d06bdd51ce19b79ddc7117827338c7e20ff5",
+          "proof": "patch-equivalent change already present on origin/main"
+        }
+      ]
+    }
+  ],
+  "targeted_regressions": {
+    "pass": 111,
+    "fail": 0
+  },
+  "remote_sync": {
+    "initial_server_branch_count_including_main": 221,
+    "non_main_fast_forwards_requested": 220,
+    "atomic_non_force_push_exit": 0,
+    "verified_server_branches_at_source_main": 206,
+    "no_explicit_branch_deletions": true,
+    "no_history_rewrites": true,
+    "repo_auto_delete_after_merge": true,
+    "auto_merged_pr_examples": [
+      224,
+      230
+    ],
+    "before": [
+      {
+        "branch": "agent-3/tls-hardening",
+        "head": "579155188fcf5f5310b9b4fbe0c3ce1d05e14edd"
+      },
+      {
+        "branch": "agent/backend-migration",
+        "head": "2dd544f43d803adfa8cdf73815871e474766722b"
+      },
+      {
+        "branch": "agent/frontend-parity",
+        "head": "6dac005b840e8a43c67fbb354ee2508f6b563539"
+      },
+      {
+        "branch": "agent/live-charge-verification-20261112",
+        "head": "ed469ed2cba930defbabb268e2fc021c84744347"
+      },
+      {
+        "branch": "agent1/admin-auth-hardcoded-pin-guard",
+        "head": "43a45427743ce760fc24523782f976913a7ffbf3"
+      },
+      {
+        "branch": "agent1/admin-pin-bootstrap-guard",
+        "head": "71de3569947a2f30ba52d2bd110570cf1f54d186"
+      },
+      {
+        "branch": "agent1/admin-pin-fail-closed-current-main",
+        "head": "2909ee3e41d30e0c4a3fd165d9f25ae0e66df9ee"
+      },
+      {
+        "branch": "agent1/admin-pin-init-security",
+        "head": "15cc4775045030fed05caef3f3ca2b36158dc2bf"
+      },
+      {
+        "branch": "agent1/admin-session-integration-auth-repair",
+        "head": "6d6d3a4ed29bc5a3c310799b1d316c4ac9ddf385"
+      },
+      {
+        "branch": "agent1/admin-setting-auth-current-main",
+        "head": "724cd38ff706625e24ba395f54b09ebfeb85a88d"
+      },
+      {
+        "branch": "agent1/admin-settings-security",
+        "head": "97eacac9accf0c720ae12bc6ae09147bdded390a"
+      },
+      {
+        "branch": "agent1/admin-settings-verification",
+        "head": "4581610329550225c3f00d4ef93e6b84f51df300"
+      },
+      {
+        "branch": "agent1/agent-automation-authorization",
+        "head": "27a2a877aba3bac834c72cb3bbfeffc695d94008"
+      },
+      {
+        "branch": "agent1/agent-automation-authorization-migration",
+        "head": "ae4fe1873c2da79cdd092d72133bdc3a67a48787"
+      },
+      {
+        "branch": "agent1/agent-automation-status-auth",
+        "head": "a7cb9956330761a85199aa2efb8060a5b6ee928d"
+      },
+      {
+        "branch": "agent1/apk-signing-security",
+        "head": "48bdc1a0bcbe244eaeeb7bcdbd85aae881f486ee"
+      },
+      {
+        "branch": "agent1/automation-concurrency-current-main",
+        "head": "03f987e945d415c51c0713664c3ee94b9462ae87"
+      },
+      {
+        "branch": "agent1/automation-concurrency-reconciled",
+        "head": "d4fa84be56257108955b21093ae7d17f21b98b3c"
+      },
+      {
+        "branch": "agent1/automation-concurrency-repair",
+        "head": "bf3f621a0aeba8a50e90734ef695d038678bf9db"
+      },
+      {
+        "branch": "agent1/campaign-regenerate-preview",
+        "head": "6bb8d6ce2fd17464fa9b92fa331bd7472836b247"
+      },
+      {
+        "branch": "agent1/ci-node24-and-apk-signing-current-main",
+        "head": "d84c5f8eeb78b501aef13f7afadc82d5028cea2b"
+      },
+      {
+        "branch": "agent1/consolidation-read-auth-current-main",
+        "head": "81b9e8052dd02776da8c02fa1afb3ef678ec49ee"
+      },
+      {
+        "branch": "agent1/consolidation-read-authorization",
+        "head": "bd4835f8f5fe9a1c94da47b519f271ee47243509"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-current-main",
+        "head": "a5e681b4f19f5bd34ea274862b283b72a4d34375"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-verifier-correction",
+        "head": "4b9951f7a30cf53d44b46760081885fb55e8a60c"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-verifier-v2",
+        "head": "5f1a4437ee71481c9ab4fd63da3e1d0ee08bf94d"
+      },
+      {
+        "branch": "agent1/convex-concurrency-first-pass",
+        "head": "551b4c91240ba54a1944b6e847e98b259e5caae6"
+      },
+      {
+        "branch": "agent1/feature-10-platform-foundation",
+        "head": "27923918ae2dfdd18b5bb56cda8ea821d59e60fa"
+      },
+      {
+        "branch": "agent1/fix-active-campaign-owner-identity-current-main",
+        "head": "4b19a569444aa8b6e050611ffb8f402027ab678e"
+      },
+      {
+        "branch": "agent1/fix-form-input-contrast",
+        "head": "167918bd79ee579b76e2fa3f5436a92f70ee0fcb"
+      },
+      {
+        "branch": "agent1/fix-three-types-current-main",
+        "head": "71f1d6337e96ce98bd626616af16a9d158fb1e62"
+      },
+      {
+        "branch": "agent1/fix-three-types-current-main-v2",
+        "head": "7584d0fac9f03437cecf039a350b17cdf831a485"
+      },
+      {
+        "branch": "agent1/fund-consolidation-integrity-guard",
+        "head": "9a69877d401988b6439434b6af680f69a44fd25e"
+      },
+      {
+        "branch": "agent1/fund-consolidation-summary-auth",
+        "head": "4d61218a02e4253604c1f337cc14f2a4a4ed82fd"
+      },
+      {
+        "branch": "agent1/fund-migration-boundary-guard-r1",
+        "head": "451404fb7b2b0b52c105aa2b3476ac650378072d"
+      },
+      {
+        "branch": "agent1/harden-admin-pin-verification",
+        "head": "093b29c29560772adc0a3f6593524ebd88e9f775"
+      },
+      {
+        "branch": "agent1/node24-actions",
+        "head": "24383f2fab9e18845d46e6fcc83d28f5c79f38ec"
+      },
+      {
+        "branch": "agent1/obo-integration-mandate",
+        "head": "8e91b39e38b26dc1455d69fb03d07fa03a515e58"
+      },
+      {
+        "branch": "agent1/p0-admin-auth-oracle-guard",
+        "head": "f9be2578e81ecccb6e2bfab0d085694b8277844a"
+      },
+      {
+        "branch": "agent1/p0-convex-durable-claim-current-main-r13",
+        "head": "14a679be581099ffd2bb0e5ab63908993c35096b"
+      },
+      {
+        "branch": "agent1/p0-convex-durable-claim-r12",
+        "head": "474e8956c0472c579e6290d8896fec32310b46ba"
+      },
+      {
+        "branch": "agent1/p0-convex-serialization-current-main",
+        "head": "d4fdd90729c0868f70222f939fae36d8f614986e"
+      },
+      {
+        "branch": "agent1/p0-convex-serialization-current-main-r11",
+        "head": "5c4127960c80fc1a8a62991cdca590095da93c38"
+      },
+      {
+        "branch": "agent1/p0-current-main-ci-reconciliation",
+        "head": "b40864c64595bbad3c213f95ff3a9eee2abff006"
+      },
+      {
+        "branch": "agent1/p0-getcampaign-least-privilege",
+        "head": "ede22efc4b40ee2ba8f6531cac99a43c1f938802"
+      },
+      {
+        "branch": "agent1/p0-platform-repair-internalize",
+        "head": "80ee6b34d5aa57a3466dde5b9ef74d9eda0ae532"
+      },
+      {
+        "branch": "agent1/p0-usercampaigns-rls-guard",
+        "head": "ba943c9c50e2198477ce758f2df892c58442c868"
+      },
+      {
+        "branch": "agent1/p0-withdrawal-auth-guard",
+        "head": "3e96374a3d6da1902dcc0f99c669e2cd90c32023"
+      },
+      {
+        "branch": "agent1/p0-withdrawal-auth-implementation",
+        "head": "c60358360950e14cd827c2cfc96925a587391b68"
+      },
+      {
+        "branch": "agent1/p1-agent-automation-telemetry-current-main",
+        "head": "a57c76d46625c67add8a5ac070cd1f4adeda5379"
+      },
+      {
+        "branch": "agent1/p1-agent-management-boundary",
+        "head": "cefe6fcb99f1d60bafcbea07c6b0b9501f959344"
+      },
+      {
+        "branch": "agent1/p1-agent-management-implementation",
+        "head": "ed5b7bc14d52d814bfbbb50d2ce145699c30330f"
+      },
+      {
+        "branch": "agent1/p1-agent-roster-boundary",
+        "head": "503138502b90cb384b4e0c7b715fdd7f7dddc2e0"
+      },
+      {
+        "branch": "agent1/p1-automation-telemetry-ui-current-main",
+        "head": "b4d8c4854d510d942bd8129dfc1c68e84e37856c"
+      },
+      {
+        "branch": "agent1/p1-consolidation-history-auth-correction",
+        "head": "91991c7d6ecdf12bf016f66d2e9a3d9d264561a7"
+      },
+      {
+        "branch": "agent1/p1-consolidation-history-auth-current-main",
+        "head": "997a0bf8d342bedf657d8847344b688737af550f"
+      },
+      {
+        "branch": "agent1/p1-consolidation-mutation-auth-guard",
+        "head": "ff477c63256cb0a7c64944db1ad399d725547242"
+      },
+      {
+        "branch": "agent1/p1-dependency-audit-guard",
+        "head": "fda4189e9fc884b7a0849fc9ba478cfa7bb1a087"
+      },
+      {
+        "branch": "agent1/p1-exact-head-ci-current-main-r11",
+        "head": "d76fefb3da446e238fd6ef3aafa4069a51570aba"
+      },
+      {
+        "branch": "agent1/p1-exact-head-ci-foundation",
+        "head": "09acdb1d13c61a14271e1a89c185c0a3f9eb41e1"
+      },
+      {
+        "branch": "agent1/p1-node24-supported-workflows",
+        "head": "2ec2695729f62b3137588321993aff42d02ae237"
+      },
+      {
+        "branch": "agent1/protect-agent-telemetry",
+        "head": "f0c5b0d68ea4a8a3d574994b04c38141a6adbdd8"
+      },
+      {
+        "branch": "agent1/public-active-campaign-owner-correction",
+        "head": "374c81446cf428172111cc94977494e405081b78"
+      },
+      {
+        "branch": "agent1/public-active-campaign-owner-least-privilege",
+        "head": "ad7d03ad254e8329476e991caba0e39d68c36519"
+      },
+      {
+        "branch": "agent1/public-campaign-least-privilege-current-main",
+        "head": "e37eb980d583f69770551d78d991a4199f221647"
+      },
+      {
+        "branch": "agent1/qa-readonly-reporting",
+        "head": "31ef1deed820e9b64b876905acb22b7fd4866431"
+      },
+      {
+        "branch": "agent1/reconcile-exact-head-node-runtime-20260924",
+        "head": "86eea6707e918903f8be96a4f17d469612da2900"
+      },
+      {
+        "branch": "agent1/remove-hardcoded-admin-pin-fallback",
+        "head": "7e50fcf8645c311989e98460bac2abfe6b8d7da0"
+      },
+      {
+        "branch": "agent1/remove-hardcoded-apk-signing-secret",
+        "head": "ab92bb19cc4d7354c6e38ed789212dabe68dd63e"
+      },
+      {
+        "branch": "agent1/remove-public-automation-status",
+        "head": "4780d0f7096c3975e8c5b1e67f255c25450c073c"
+      },
+      {
+        "branch": "agent1/remove-public-automation-status-current-main",
+        "head": "c9ac29bfea0306781555a7a7baf85f2f8f152ac3"
+      },
+      {
+        "branch": "agent1/remove-public-owner-id-current-main",
+        "head": "4b19a569444aa8b6e050611ffb8f402027ab678e"
+      },
+      {
+        "branch": "agent1/remove-self-mutating-patch-workflow",
+        "head": "2ab4d1af442e051f374b67469a97fd2b7a4831e7"
+      },
+      {
+        "branch": "agent1/restrict-automation-telemetry",
+        "head": "88e679b1d7e0bfcf385a53bbf9ab3a69b386ed8b"
+      },
+      {
+        "branch": "agent1/secure-agent-automation-toggle",
+        "head": "d05b9f14f74f96302738947f54170101f928bf6a"
+      },
+      {
+        "branch": "agent1/security-active-campaign-owner-name-r14",
+        "head": "374c81446cf428172111cc94977494e405081b78"
+      },
+      {
+        "branch": "agent1/security-bind-update-admin-pin-r1",
+        "head": "5991174933d765fee9a5b8138eaa38014900d7b5"
+      },
+      {
+        "branch": "agent1/security-connected-accounts-boundary",
+        "head": "0a04da858b093bb1724e18a3bcc3bfd08babb7ba"
+      },
+      {
+        "branch": "agent1/security-connected-accounts-implementation",
+        "head": "0df2996eb38e120f8da22286141a42367e22bcee"
+      },
+      {
+        "branch": "agent1/security-consolidation-history-owner",
+        "head": "71519107b019cb0741ea0e69a03128cf1a075fb5"
+      },
+      {
+        "branch": "agent1/security-payout-read-boundary-guard-r1",
+        "head": "ce0ad630ad961b47db0ee0154e000a1b77d43241"
+      },
+      {
+        "branch": "agent1/security-payout-read-correction-r1",
+        "head": "374c81446cf428172111cc94977494e405081b78"
+      },
+      {
+        "branch": "agent1/security-remove-admin-pin-fallback",
+        "head": "9935306e4078c726b40647a34b140429d5125631"
+      },
+      {
+        "branch": "archive/pre-migration-2026-10-24",
+        "head": "819bf185e97c344e6657c9c88b95016747e80b75"
+      },
+      {
+        "branch": "audit/agcharts-finance-center-20261112",
+        "head": "51fc480d68ce14ed54c15f40813e62879a7d975c"
+      },
+      {
+        "branch": "audit/donor-journey-20261101",
+        "head": "4c239cc8664a7c2a302efe5bde4d4119f175586f"
+      },
+      {
+        "branch": "backup/main-pre-source-promotion-20261113",
+        "head": "8c1e3d99ad16b552911f404b882a93a7687448e5"
+      },
+      {
+        "branch": "docs/canonical-repository-architecture",
+        "head": "ee1900068057a3336321e94fa6adf171f51cb5e3"
+      },
+      {
+        "branch": "docs/integration-merge-status-20261025",
+        "head": "31a3195e291e372a6e8ada46c782dcdaa5509190"
+      },
+      {
+        "branch": "docs/owner-actions-secrets",
+        "head": "210db0ca5da94526379dd8efddc69eb68a114239"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation-v2",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation-v3",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v10",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v11",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v12",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v13",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v14",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v15",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v16",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v17",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v2",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v3",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v4",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v5",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v6",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v7",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v8",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v9",
+        "head": "cb53046d88406e530fc1768dad071bdaf1c7d028"
+      },
+      {
+        "branch": "feat/unified-agent-runtime-memory",
+        "head": "4e30763101a8e59ba33701533bdd3aa60fc42ec7"
+      },
+      {
+        "branch": "feat/unified-agent-runtime-memory-v2",
+        "head": "7ff372979bdfe17566a640acabc2910d9bb55d2e"
+      },
+      {
+        "branch": "feature/atlas-donuts-live-20261111",
+        "head": "859d51cb39f9121a8497f7fae8f38e143e418b6b"
+      },
+      {
+        "branch": "feature/atlas-globe-release-20261112",
+        "head": "7969a65f9082af83931fd2c77db5276010b3e4c2"
+      },
+      {
+        "branch": "feature/ifund-studio-foundation-20261103",
+        "head": "1aa691a52a7fc73c4ed4698be38cd5585bb2841d"
+      },
+      {
+        "branch": "feature/institutions-research-20261111",
+        "head": "53cec910562f64e26a06383dce0b7c15e8da5233"
+      },
+      {
+        "branch": "feature/judge-payment-environment-chooser-20261110",
+        "head": "bc834cb9b2262671af88aae99bbcda353e75bf32"
+      },
+      {
+        "branch": "feature/live-atlas-aggrid-agent-preview-20261111",
+        "head": "edf38862e5baa8fceb8514046c386dd71fe0b7fd"
+      },
+      {
+        "branch": "feature/my-giving-sandbox-icons-20261110",
+        "head": "67383bfa2181c2240b8a50e0ae78aacde3019cbe"
+      },
+      {
+        "branch": "feature/paypal-sandbox-secure-bindings-20261110",
+        "head": "782fb7546b9e0662f11750fa10be1dbc65d2ffb2"
+      },
+      {
+        "branch": "feature/route-completion-20261113",
+        "head": "75b6ab0e8227c78712d1ba9e7e42f19892d70463"
+      },
+      {
+        "branch": "feature/verified-live-ledger-20261110",
+        "head": "4e6f8fccce9338bca8783c308cfea770d6d56e4c"
+      },
+      {
+        "branch": "fix/account-session-integrity-20261029",
+        "head": "f1f5ddb275e6f123553a90710447d5bde6b94a18"
+      },
+      {
+        "branch": "fix/campaign-builder-parity",
+        "head": "2ff0130de58a36a367d8bf9940044438e0c9ea17"
+      },
+      {
+        "branch": "fix/campaign-cover-uploader-20261112",
+        "head": "53200db9b3b84d3b24c0c034a3ec31cd30890d54"
+      },
+      {
+        "branch": "fix/convex-native-cdp-126",
+        "head": "ccaaebe6a774c18aa8690df21f1f700c7f7b7921"
+      },
+      {
+        "branch": "fix/live-route-chunk-recovery-20261115",
+        "head": "8d57b948ca3be93008a60a1dc46d0b6ec4aa83f0"
+      },
+      {
+        "branch": "fix/login-return-navigation-20261029",
+        "head": "8e9db86791836282dee4e4cc73db90eda0223f75"
+      },
+      {
+        "branch": "fix/outreach-agents-126",
+        "head": "7f6c2705588c930fb06d2f390e04913e8bba01e6"
+      },
+      {
+        "branch": "fix/paypal-donation-breakdown-20261112",
+        "head": "1cabcc9b3126106aa3f8b702141f741623f05a88"
+      },
+      {
+        "branch": "fix/paypal-merchant-receipts-20261110",
+        "head": "9e4976f95b0aaabcb2851bdc3b7f4e2df8ba1153"
+      },
+      {
+        "branch": "fix/public-column-projections-20261101",
+        "head": "80eeaeb5d0de01640545fcc05fd0962d8259ec65"
+      },
+      {
+        "branch": "fix/reporter-public-read-20261031",
+        "head": "99dd586e9e11340b4fdaca69abc6ff928a0efa0e"
+      },
+      {
+        "branch": "fix/signup-existing-account-20261111",
+        "head": "b3215f71971cfb9b51724895a4f702a0360878fc"
+      },
+      {
+        "branch": "fix/sitewide-paypal-support-20261108",
+        "head": "e4dd18e27d04f3871934af4e4f8bf0de94a25dc8"
+      },
+      {
+        "branch": "fix/studio-bodylimit-ci-20261105",
+        "head": "04cd67c534c647ca380a969a32ac76bcb1f7bb9f"
+      },
+      {
+        "branch": "fix/verified-funding-totals-20261029",
+        "head": "e8bd15abada6412306ef897efd20f5332df19b06"
+      },
+      {
+        "branch": "fix/workforce-preview-readiness-20261106",
+        "head": "8a89073ea064f008ca8da37a2248393bfb4a9ebf"
+      },
+      {
+        "branch": "fix/zero-base44-tool-credit-evidence",
+        "head": "58a2d93ce838f0d7c6f6b7b70b37d0cf24e25e1c"
+      },
+      {
+        "branch": "hackathon/admin-demo-toggle-20261111",
+        "head": "39bd71ecdc53d5f27cf75e938f32165d7ad307bb"
+      },
+      {
+        "branch": "ifund-live-frontend-manual-only-20261013",
+        "head": "0fe8e6a92288382e65dac271b2918ad9518f7dec"
+      },
+      {
+        "branch": "live-frontend-manual-workflows-20261013",
+        "head": "21c6a59ef5d860ad6fd1bb10f5dff9bce69ee206"
+      },
+      {
+        "branch": "main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/audit-draft-validation-no-build",
+        "head": "de7a4e9822b230c9024196bc01c911f21bcbdef3"
+      },
+      {
+        "branch": "migration/auth-password-recovery",
+        "head": "330700b68e99a8a6c8acee67277eddb8690f8205"
+      },
+      {
+        "branch": "migration/backend-consolidation-131",
+        "head": "744a7e1e6a2e1399957c9f28da5d5cd2e86f3601"
+      },
+      {
+        "branch": "migration/base44-decoupling-audit",
+        "head": "77d628a0d1691b0174d3868313ec6ebe597272cc"
+      },
+      {
+        "branch": "migration/base44-exit-supabase-cloudflare-wix",
+        "head": "0799dfd5fb25cf184062ada67c8163960733a3d2"
+      },
+      {
+        "branch": "migration/base44-frontend-parity-20261103",
+        "head": "bd895ac0f3b4e0b8c495cdfb9f2fa8bf23800b5e"
+      },
+      {
+        "branch": "migration/blog-replica-20261030",
+        "head": "3be8a6ae8a549323d201f6819e00b2bb19ca252d"
+      },
+      {
+        "branch": "migration/geocode-city",
+        "head": "8974814caf49ba6674f47577fad8519c7f690838"
+      },
+      {
+        "branch": "migration/nonbuild-inbox-20261030",
+        "head": "dcb5f02ea2e5c47621d167da497b4065b41622ab"
+      },
+      {
+        "branch": "migration/payments-platform-support",
+        "head": "1bf2499b6567faa24ee148b0b717bb8d1287bb7d"
+      },
+      {
+        "branch": "migration/paypal-business-all-flows-20261026",
+        "head": "0571e48ea2fb560c10888a091f48a4e80067f9b0"
+      },
+      {
+        "branch": "migration/phase1-scaffold-inventory",
+        "head": "ae8b49994167304740ed5ae75f265e4e99f8c0fb"
+      },
+      {
+        "branch": "migration/phase2-campaign-runtime-review",
+        "head": "337a7d460c44bec65b6e9a608cba99aa65bc03a8"
+      },
+      {
+        "branch": "migration/phase2-entity-schema",
+        "head": "d482e80db06e72cc1f26d81ebb05a7ba42ecc34b"
+      },
+      {
+        "branch": "migration/phase2-runtime-bootstrap-20261025",
+        "head": "3ee5fbf9ee5cc486847c8bc679b8e755dcd0438e"
+      },
+      {
+        "branch": "migration/phase3-auth-owner-link",
+        "head": "df1d7e35ac209f298c93f6dc0263f594921ccf64"
+      },
+      {
+        "branch": "migration/phase4-agent-workflow-reconnect-20261026",
+        "head": "5beb7f473fc9a96500db1c178108c969e009d335"
+      },
+      {
+        "branch": "migration/phase4-gated-api-clean",
+        "head": "c16811d9917d97ed16c50c16cddcfecbcae2ee2d"
+      },
+      {
+        "branch": "migration/phase4-worker-function-ports",
+        "head": "0b2d724144421b7fd73200993cc6521f466c4dea"
+      },
+      {
+        "branch": "migration/phase5-all-page-routes-20261026",
+        "head": "18b1689663c07125d25c2c092d9980d48455d9e4"
+      },
+      {
+        "branch": "migration/phase5-frontend-parity",
+        "head": "c3197b0635f6812f3232ce4f4bd2c50fa0b06b0e"
+      },
+      {
+        "branch": "migration/phase5-gated-ui-clean",
+        "head": "819b0daac7b8aaf78a9c419aa64a94118acc5b47"
+      },
+      {
+        "branch": "migration/phase5-original-shell-recovery-20261026",
+        "head": "348cfe081e4cc13bbbc23ebe30fdb498f59e03fc"
+      },
+      {
+        "branch": "migration/phase6-export-verify",
+        "head": "410e8165ddad418a9f9376d8f0f2b020e1af5b18"
+      },
+      {
+        "branch": "migration/phase6-recommendation-importer",
+        "head": "f1e5cdd74029307d486055c824809f9c7000ee4b"
+      },
+      {
+        "branch": "migration/phase7-offline-cutover-gate",
+        "head": "ffc117349756c95cbe661d9e05ccc6fdcf63d6ae"
+      },
+      {
+        "branch": "migration/provider-oauth-foundation-20261109",
+        "head": "e6bb0f127ad7c39b29b4e90a9410d9df9ae10ce7"
+      },
+      {
+        "branch": "migration/provider-oauth-preview-20261109",
+        "head": "83257660a2007659e76ba282e96a0a60e3d97e14"
+      },
+      {
+        "branch": "migration/public-site-port",
+        "head": "9b0a7ba96430b427f9ba1579bc86e0592725a7e0"
+      },
+      {
+        "branch": "migration/single-supabase-workflow-foundation-20261027",
+        "head": "9a73f06010be1772ec9f068dfd979fcaffc071ca"
+      },
+      {
+        "branch": "migration/supabase-cloudflare",
+        "head": "9e278edd9beaa99119696f0747f1532912eba3aa"
+      },
+      {
+        "branch": "migration/zip-source-intake-20261025",
+        "head": "8ce87f28550723f964fb133e4bb970883b4ae59f"
+      },
+      {
+        "branch": "ops/live-campaign-smoke-20260906",
+        "head": "744a7e1e6a2e1399957c9f28da5d5cd2e86f3601"
+      },
+      {
+        "branch": "ops/serialize-convex-deploys",
+        "head": "86f781a2645f5f243828b3b76de8904c0e373bf6"
+      },
+      {
+        "branch": "pause-actions-auto-legacy-20261013",
+        "head": "8dc5897a11ef2da5de56bcf7bf2620bace9146af"
+      },
+      {
+        "branch": "preview/integration-batch-20261103",
+        "head": "4f800c94bc943de392a78ad629b6fa60f7f832dd"
+      },
+      {
+        "branch": "preview/oauth-runtime-release",
+        "head": "77f1211d7c96a7dd696232ca315ac2e5ae28a572"
+      },
+      {
+        "branch": "preview/source-staged-20261113",
+        "head": "35cb868ab69f10989b3b005dd332e512ac79f80b"
+      },
+      {
+        "branch": "qa/ai-staleness-test-contract-20261105",
+        "head": "17a2a2b01b78a61c9260c2be6977f42a396a0b25"
+      },
+      {
+        "branch": "qa/section-regeneration-context-contract-20261108",
+        "head": "65aad4eb4275d8203fd0346a005c0f738ec3e4a2"
+      },
+      {
+        "branch": "release/agent-audit-complete-preview-20261112",
+        "head": "0f7dde4bf07a27353b99c944a181cc114b9232a4"
+      },
+      {
+        "branch": "release/agent-identity-preview-20261109",
+        "head": "fbe82c0311fb764e5e2ca22fd1657b4ec9df0c6b"
+      },
+      {
+        "branch": "release/agent-integrations-post-alias-20261112",
+        "head": "766ab96a663fa1804a1dca135fcac0068c24ac14"
+      },
+      {
+        "branch": "release/agents-finance-safety-integrated-20261112",
+        "head": "55ca9ebd8d3cd5af83e72d51bf253126805a8eb3"
+      },
+      {
+        "branch": "release/agents-nine-role-preview-20261112",
+        "head": "b81b98d427e60b67e0550c10b80c1588347c8528"
+      },
+      {
+        "branch": "release/campaign-engagement-preview-20261112",
+        "head": "cba4986b5fd7848f6f17a61f3f11f7abbc39c5c6"
+      },
+      {
+        "branch": "release/echo-free-workspace-preview-20261112",
+        "head": "d143d3b366a1b93b81783834f4b90ebb4b8e33e6"
+      },
+      {
+        "branch": "release/finance-verified-totals-preview-20261112",
+        "head": "a7d01a77730c9cf0e149cd131002e60009365c76"
+      },
+      {
+        "branch": "release/finance-verified-zero-preview-20261112",
+        "head": "2a7ab0349a2c07580406d41969948a83613fc6f7"
+      },
+      {
+        "branch": "release/growth-trends-preview-20261112",
+        "head": "0b1792f47935966e0ee7844b2dcc80fbe36294db"
+      },
+      {
+        "branch": "release/marketing-consent-audited-preview-20261112",
+        "head": "465a6ba3472610de6e6a7d02d19cb5c077c94dcd"
+      },
+      {
+        "branch": "release/marketing-consent-preview-20261112",
+        "head": "b9cf28720335909094bdac576fa0d74e6671b4c4"
+      },
+      {
+        "branch": "release/mobile-compliance-web-20261115",
+        "head": "33c3a073fbc596b63ed260341a0013a266c3d09d"
+      },
+      {
+        "branch": "release/nexus-echo-validated-20261112",
+        "head": "e1d1851949543ed5b482ae959c7f3dc0afed3607"
+      },
+      {
+        "branch": "release/nexus-triage-corrected-20261112",
+        "head": "d29e888d55c2420f80e16d54c5cdb917c97247f8"
+      },
+      {
+        "branch": "release/nexus-triage-preview-20261112",
+        "head": "57fa090f3266759ce01e632dfe2b33f85b66ac45"
+      },
+      {
+        "branch": "release/operational-dashboard-preview-20261112",
+        "head": "686da36c45f50229e1b24e36246c28326cf21ebb"
+      },
+      {
+        "branch": "release/orbit-verified-counts-preview-20261112",
+        "head": "d96487a0fb149ef0950b82bf8f9ac77142bb0c5b"
+      },
+      {
+        "branch": "release/outreach-owner-drafts-preview-20261112",
+        "head": "50c17ddc5aa6b2fd3744a1f0c8ed5ee7ba2ed054"
+      },
+      {
+        "branch": "release/pulse-fixed-test-20261112",
+        "head": "0e079f6f9db56ab52a7a6926e00c7b50dd90c13a"
+      },
+      {
+        "branch": "release/pulse-orbit-finance-preview-20261112",
+        "head": "d4e1974ac88627f9c07e9e405789e5530cacb6d9"
+      },
+      {
+        "branch": "release/pulse-private-match-preview-20261112",
+        "head": "50c17ddc5aa6b2fd3744a1f0c8ed5ee7ba2ed054"
+      },
+      {
+        "branch": "release/source-promotion-no-build-20261113",
+        "head": "3d2534786da9ff8bf39f4b7c8ac4ededb82e70be"
+      },
+      {
+        "branch": "release/story-free-audit-preview-20261112",
+        "head": "9d1a7b83bfd438c61704e6b605630b998da694e6"
+      },
+      {
+        "branch": "release/story-privacy-audit-20261112",
+        "head": "bb046a5b45904e77c0f5b8bc23ea9e67f8f97b54"
+      },
+      {
+        "branch": "release/story-privacy-fixed-20261112",
+        "head": "c1ef4ab5b294b6dd0e06bf7993ac553436d8d23a"
+      },
+      {
+        "branch": "release/strategy-readiness-preview-20261112",
+        "head": "d048b5dedbf8c12ba175f62aeb3fac4a6afcd1c8"
+      },
+      {
+        "branch": "release/strategy-readiness-regression-fix-20261112",
+        "head": "fe7cea973b9714b63b3798bd9b72971a6cd87ac1"
+      },
+      {
+        "branch": "release/support-confirmed-email-preview-20261112",
+        "head": "a9e7a950a78dd1193df42e0d9f1f3e28742376f2"
+      },
+      {
+        "branch": "release/support-conversations-preview-20261112",
+        "head": "02b8523c660bc2b7c714aa82c9c304f4a1edb8c4"
+      },
+      {
+        "branch": "release/support-ticket-preview-20261112",
+        "head": "eda6618f2193780a39c5262bfdc06e8f870a66a7"
+      },
+      {
+        "branch": "repair/pre-migration-campaign-ux-20261029",
+        "head": "470b4eb6a2e142831a7ac17b8c1a4631da676274"
+      },
+      {
+        "branch": "retire-obsolete-action-files-20261013",
+        "head": "819bf185e97c344e6657c9c88b95016747e80b75"
+      },
+      {
+        "branch": "solstice/admin-session-integration-auth",
+        "head": "ac77b1600787b188aa4f82942aa006fd46c28bb8"
+      },
+      {
+        "branch": "solstice/complete-admin-auth-surface",
+        "head": "a2b6dad86d9e1b7043abf9f3ba0d3f5595f45e54"
+      },
+      {
+        "branch": "solstice/p0-current-main-financial-security",
+        "head": "da7bb7903487333ccdddf990f899bb2fb0f4be2c"
+      },
+      {
+        "branch": "staging/consolidated-no-build-20261113",
+        "head": "8c1e3d99ad16b552911f404b882a93a7687448e5"
+      },
+      {
+        "branch": "test/demo-frontend-100-payment-cases-20261113",
+        "head": "78b5079eddfb28df1f3d5454c97023e97e29f5da"
+      },
+      {
+        "branch": "verify/opportunity-catalog-20261111",
+        "head": "26241653428b9dbe634cda933c647461515594e7"
+      }
+    ],
+    "verified_after": [
+      {
+        "branch": "agent-3/tls-hardening",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent/backend-migration",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent/frontend-parity",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent/live-charge-verification-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-auth-hardcoded-pin-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-pin-bootstrap-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-pin-fail-closed-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-pin-init-security",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-session-integration-auth-repair",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-setting-auth-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-settings-security",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/admin-settings-verification",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/agent-automation-authorization",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/agent-automation-authorization-migration",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/agent-automation-status-auth",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/apk-signing-security",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/automation-concurrency-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/automation-concurrency-reconciled",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/automation-concurrency-repair",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/campaign-regenerate-preview",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/ci-node24-and-apk-signing-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/consolidation-read-auth-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/consolidation-read-authorization",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-verifier-correction",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/consolidation-summary-auth-verifier-v2",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/convex-concurrency-first-pass",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/feature-10-platform-foundation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fix-active-campaign-owner-identity-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fix-form-input-contrast",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fix-three-types-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fix-three-types-current-main-v2",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fund-consolidation-integrity-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fund-consolidation-summary-auth",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/fund-migration-boundary-guard-r1",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/harden-admin-pin-verification",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/node24-actions",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/obo-integration-mandate",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-admin-auth-oracle-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-convex-durable-claim-current-main-r13",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-convex-durable-claim-r12",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-convex-serialization-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-convex-serialization-current-main-r11",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-current-main-ci-reconciliation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-getcampaign-least-privilege",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-platform-repair-internalize",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-usercampaigns-rls-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-withdrawal-auth-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p0-withdrawal-auth-implementation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-agent-automation-telemetry-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-agent-management-boundary",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-agent-management-implementation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-agent-roster-boundary",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-automation-telemetry-ui-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-consolidation-history-auth-correction",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-consolidation-history-auth-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-consolidation-mutation-auth-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-dependency-audit-guard",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-exact-head-ci-current-main-r11",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-exact-head-ci-foundation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/p1-node24-supported-workflows",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/protect-agent-telemetry",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/public-active-campaign-owner-correction",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/public-active-campaign-owner-least-privilege",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/public-campaign-least-privilege-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/qa-readonly-reporting",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/reconcile-exact-head-node-runtime-20260924",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-hardcoded-admin-pin-fallback",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-hardcoded-apk-signing-secret",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-public-automation-status",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-public-automation-status-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-public-owner-id-current-main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/remove-self-mutating-patch-workflow",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/restrict-automation-telemetry",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/secure-agent-automation-toggle",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-active-campaign-owner-name-r14",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-bind-update-admin-pin-r1",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-connected-accounts-boundary",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-connected-accounts-implementation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-consolidation-history-owner",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-payout-read-boundary-guard-r1",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-payout-read-correction-r1",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "agent1/security-remove-admin-pin-fallback",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "archive/pre-migration-2026-10-24",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "audit/agcharts-finance-center-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "audit/donor-journey-20261101",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "backup/main-pre-source-promotion-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "docs/canonical-repository-architecture",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "docs/integration-merge-status-20261025",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "docs/owner-actions-secrets",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation-v2",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-legacy-payment-foundation-v3",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v10",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v11",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v12",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v13",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v14",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v15",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v16",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v17",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v2",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v3",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v4",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v5",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v6",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v7",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v8",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/phase1-payment-foundation-v9",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/unified-agent-runtime-memory",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feat/unified-agent-runtime-memory-v2",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/atlas-donuts-live-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/atlas-globe-release-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/ifund-studio-foundation-20261103",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/institutions-research-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/judge-payment-environment-chooser-20261110",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/live-atlas-aggrid-agent-preview-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/my-giving-sandbox-icons-20261110",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/paypal-sandbox-secure-bindings-20261110",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/route-completion-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "feature/verified-live-ledger-20261110",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/account-session-integrity-20261029",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/campaign-builder-parity",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/campaign-cover-uploader-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/convex-native-cdp-126",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/live-route-chunk-recovery-20261115",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/login-return-navigation-20261029",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/outreach-agents-126",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/paypal-donation-breakdown-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/paypal-merchant-receipts-20261110",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/public-column-projections-20261101",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/reporter-public-read-20261031",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/signup-existing-account-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/sitewide-paypal-support-20261108",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/studio-bodylimit-ci-20261105",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/verified-funding-totals-20261029",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/workforce-preview-readiness-20261106",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "fix/zero-base44-tool-credit-evidence",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "hackathon/admin-demo-toggle-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "ifund-live-frontend-manual-only-20261013",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "live-frontend-manual-workflows-20261013",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "main",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/audit-draft-validation-no-build",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/auth-password-recovery",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/backend-consolidation-131",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/base44-decoupling-audit",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/base44-exit-supabase-cloudflare-wix",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/base44-frontend-parity-20261103",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/blog-replica-20261030",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/geocode-city",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/nonbuild-inbox-20261030",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/payments-platform-support",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase1-scaffold-inventory",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase2-campaign-runtime-review",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase2-entity-schema",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase2-runtime-bootstrap-20261025",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase3-auth-owner-link",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase4-gated-api-clean",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase5-gated-ui-clean",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/phase6-recommendation-importer",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "migration/supabase-cloudflare",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "ops/live-campaign-smoke-20260906",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "ops/serialize-convex-deploys",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "pause-actions-auto-legacy-20261013",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "preview/integration-batch-20261103",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "preview/oauth-runtime-release",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "preview/source-staged-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/agent-audit-complete-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/agent-identity-preview-20261109",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/agent-integrations-post-alias-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/agents-finance-safety-integrated-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/agents-nine-role-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/campaign-engagement-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/echo-free-workspace-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/finance-verified-totals-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/finance-verified-zero-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/growth-trends-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/marketing-consent-audited-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/marketing-consent-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/mobile-compliance-web-20261115",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/nexus-echo-validated-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/nexus-triage-corrected-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/nexus-triage-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/operational-dashboard-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/orbit-verified-counts-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/outreach-owner-drafts-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/pulse-fixed-test-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/pulse-orbit-finance-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/pulse-private-match-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/source-promotion-no-build-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/story-free-audit-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/story-privacy-audit-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/story-privacy-fixed-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/strategy-readiness-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/strategy-readiness-regression-fix-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/support-confirmed-email-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/support-conversations-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "release/support-ticket-preview-20261112",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "repair/pre-migration-campaign-ux-20261029",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "retire-obsolete-action-files-20261013",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "solstice/admin-session-integration-auth",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "solstice/complete-admin-auth-surface",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "solstice/p0-current-main-financial-security",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "staging/consolidated-no-build-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "test/demo-frontend-100-payment-cases-20261113",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      },
+      {
+        "branch": "verify/opportunity-catalog-20261111",
+        "head": "6e5387ec0fbae2ddba989838e000c19b6ba4fb88"
+      }
+    ]
+  },
+  "remaining_work": "After merging this ancestry/documentation PR, fast-forward surviving remote and local branches to the new main commit; preserve untracked worktree artifacts.",
+  "release_status": "No deployment or activation; production acceptance and hosted CI billing remain blocked as documented in CONTINUATION.md."
+}

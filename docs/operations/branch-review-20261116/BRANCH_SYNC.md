@@ -1,0 +1,13 @@
+# Branch synchronization — November 16, 2026
+
+This continuation reconciles local repair history and brings surviving branches up to the validated canonical `main`. It changes no application source, database contract, deployment configuration or feature flag.
+
+Twelve local repair branch heads held 17 original commits outside main's ancestry. Fifteen have patch-equivalent changes already on main. The other two were verified by comparing **every changed file's post-image** with its corresponding existing port commit (`617871e3` → `1a7555ac`, `972af17c` → `0cb3b2e8`). The original heads were merged with an explicit history-only reconciliation after those proofs; the complete tree stayed identical to validated main `6e5387ec`. This preserves original commits and the later canonical fixes. Targeted owner, wizard, specialist-session, administrative, withdrawal, receipt, streaming-body and credential-context tests passed **111/111**.
+
+The initial local remote-tracking inventory contained stale refs. Direct server enumeration found **221 live branches including main**, and all 220 non-main heads were ancestors of main. One atomic, non-force push fast-forwarded those heads to `6e5387ec`. Direct server verification subsequently found **206 surviving branches, all exactly at main**.
+
+As both PR bases and heads became current, GitHub marked historical PRs merged (verified examples: #224 and #230). The repository already has `delete_branch_on_merge=true`; their head branches were removed by that lifecycle. This work issued no branch deletion or force push and does not recreate remotely removed branches. Every initial server head remains reachable in canonical history. Obsolete local remote-tracking refs were pruned after saving their inventory.
+
+The machine-readable record `branch-sync-20261116.json` preserves the original server heads, exact local commit proofs and observed post-sync server state. After this ancestry/documentation change is merged, surviving branches will be fast-forwarded again to the resulting main commit. Checked-out worktrees use ordinary fast-forward merges, with untracked scratch files and dependency links preserved. This final ref synchronization does not alter the tested application tree.
+
+The prior runtime limitations remain: the route release gate has unresolved acceptance evidence, new hosted SQL/runtime dependencies remain unactivated and GitHub CI billing is locked. Automatic Pages production/preview deployment triggers were verified disabled before branch updates. No deployment, provider operation, charge, payout, SQL application, paid service or destructive data operation was performed.
