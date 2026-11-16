@@ -8,7 +8,8 @@ import {readFileSync} from "node:fs";
 const source=readFileSync(new URL("./worker.js",import.meta.url),"utf8");
 function body(name,next){
  const start=source.indexOf("async function "+name+"(");
- const end=source.indexOf("\nasync function "+next+"(",start+1);
+ let end=source.indexOf("\nasync function "+next+"(",start+1);
+ if(end<0)end=source.indexOf("\nfunction "+next+"(",start+1);
  assert.ok(start>=0&&end>start,"Expected current Worker source for "+name);
  return source.slice(start,end);
 }
