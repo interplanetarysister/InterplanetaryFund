@@ -1,4 +1,5 @@
 import { reviewCampaignPublication } from "./prepublicationReview.mjs";
+import { isBroadPublicLocationLabel } from "./atlasLocations.mjs";
 
 // Owner campaign lifecycle rules for the independent IFund frontend.
 //
@@ -96,7 +97,7 @@ export function validateCampaignForm(form, { publish = false } = {}) {
 
   if (value.map_opt_in === true) {
     const label = text(value.public_location_label);
-    if (label.length < 2 || label.length > 80) errors.push("For public Atlas placement, enter a broad city or region name (2–80 characters).");
+    if (!isBroadPublicLocationLabel(label)) errors.push("For public Atlas placement, use a broad city or region name (2–80 characters), never an address, unit, or ZIP code.");
     for (const [field, range] of [["map_latitude", 90], ["map_longitude", 180]]) {
       const input = text(value[field]);
       const n = Number(input);
