@@ -57,14 +57,15 @@ test("store workflow gates are manual and evidence-loaded without adding an app 
   }
 });
 
-test("profile deletion initiation is visible in My Profile and creates an authenticated support ticket", () => {
+test("profile deletion initiation uses the verified first-party deletion route", () => {
   const profile = read("../src/pages/Profile.jsx");
-  const ticket = read("../src/pages/SupportTickets.jsx");
-  assert.match(profile, /to="\/support\?request=delete-account"/);
-  assert.match(ticket, /requestingDeletion/);
-  assert.match(ticket, /ifund_create_support_ticket/);
-  assert.match(ticket, /does not immediately erase your account/i);
-  // Request initiation does NOT prove server-side deletion completion.
+  const deletion = read("../src/pages/DeleteAccount.jsx");
+  const request = read("../src/lib/accountDeletion.js");
+  assert.match(profile, /to="\/delete-account"/);
+  assert.match(deletion, /MobileStoreDeleteAccount/);
+  assert.match(request, /ifund_request_account_deletion/);
+  assert.doesNotMatch(deletion, /ifund_create_support_ticket/);
+  // A deletion request never implies completed identity or financial erasure.
 });
 
 test("native payment collection and paid enrollment remain disabled pending review", () => {
