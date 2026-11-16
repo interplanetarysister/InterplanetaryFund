@@ -146,6 +146,20 @@ export default function AdminDeletionQueue(){
         <p className="text-xs text-muted-foreground">Private-file cleanup authorization: {reviewed[row.request_id]===true?"Reviewed and authorized":"Not yet reviewed for document erasure"}</p>
         <p className="text-xs text-muted-foreground">Submitted: {row.submitted_at?new Date(row.submitted_at).toLocaleString():"Unknown"}</p>
         <p className="text-xs text-muted-foreground">Updated: {row.updated_at?new Date(row.updated_at).toLocaleString():"Unknown"}</p>
+        <button type="button" disabled={dependencyBusy===row.request_id} onClick={()=>inspectDependencies(row)} className="min-h-11 rounded-xl border border-border px-4 text-sm disabled:opacity-50">
+          {dependencyBusy===row.request_id?"Inspecting…":"Review dependent data"}
+        </button>
+        {dependencyIssue[row.request_id]&&<p role="alert" className="text-sm text-destructive">{dependencyIssue[row.request_id]}</p>}
+        {dependencySnapshot[row.request_id]&&<section aria-label="Partial account erasure dependency review" className="space-y-2 rounded-lg border border-border p-4 text-sm">
+          <p className="font-semibold">Read-only dependency snapshot (not clearance to erase)</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>Campaigns: {dependencySnapshot[row.request_id].campaigns}</li>
+            <li>Connected providers: {dependencySnapshot[row.request_id].connections}</li>
+            <li>Notifications: {dependencySnapshot[row.request_id].notifications}</li>
+            <li>Supabase Storage objects: {dependencySnapshot[row.request_id].storage_objects}</li>
+          </ul>
+          <p className="text-muted-foreground">Financial records, other schemas, R2 and external providers require independent review; this snapshot never authorizes erasure.</p>
+        </section>
         {["requested","reviewing"].includes(row.request_status)&&reviewed[row.request_id]!==true&&<div className="rounded-xl border border-border p-3 space-y-2">
           <label className="block text-sm font-semibold" htmlFor={"review-"+row.request_id}>Private-document cleanup review evidence</label>
           <textarea id={"review-"+row.request_id} value={selected===row.request_id?reviewNote:""}
