@@ -14,6 +14,10 @@ export function redactTeamCredentials(value) {
     // Preserve parameter separators and neighboring state values.
     .replace(/(https?:[/][/][^\s<>"']+|[/][A-Za-z0-9_./%-]+[?][^\s<>"']+)/gi,
       url => {
+        // Nested percent-encoded OAuth parameter keys can concatenate with a
+        // preceding non-secret state value after decoding. Reject before decoding.
+        if (/%25(?:25)*63ode(?:=|%3d|%253d)/i.test(url))
+          return '[redacted credential URL]';
         // Decode a bounded number of nested URL/HTML encodings before matching.
         // Unknown/deeper encodings fail closed rather than entering shared history.
         let normalized=url;
