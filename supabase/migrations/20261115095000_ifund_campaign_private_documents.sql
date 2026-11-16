@@ -190,11 +190,11 @@ create trigger ifund_campaign_document_deletion_guard before update on public.if
 create or replace function public.ifund_campaign_documents_prevent_orphans()
 returns trigger language plpgsql security definer set search_path='' as $$
 begin
-  -- Interactive owner deletion must clean attachments before deleting the campaign.
-  -- Privileged account erasure may proceed; its external Storage cleanup still
-  -- needs to be executed separately by the account-deletion service.
-  if auth.uid() is not null
-    and exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
+  -- This must also apply to privileged jobs and cascaded account deletion:
+  -- metadata may not disappear while its private Storage bytes remain. The
+  -- reviewed file-erasure workflow must remove documents before deleting the
+  -- campaign or the owning Auth user.
+  if exists(select 1 from public.ifund_campaign_documents d where d.campaign_id=old.id)
   then raise exception 'Remove private campaign documents before deleting this campaign' using errcode='23514'; end if;
   return old;
 end $$;
