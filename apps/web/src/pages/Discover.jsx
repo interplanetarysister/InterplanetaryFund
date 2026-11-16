@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import CampaignCard, { categoryLabels } from "@/components/campaigns/CampaignCard";
 import { listActiveCampaigns } from "@/api/publicData";
-import { Search, LifeBuoy, Globe2 } from "lucide-react";
+import { Search, LifeBuoy, Globe2, Clapperboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import RecommendedCampaigns from "@/components/discover/RecommendedCampaigns";
 import PullToRefresh from "@/components/mobile/PullToRefresh";
@@ -24,6 +24,7 @@ export default function Discover() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [error, setError] = useState(null);
   const [compareIds, setCompareIds] = useState([]);
+  const shortsLink = <Link to="/shorts" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/40 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Clapperboard className="h-4 w-4" aria-hidden="true" /> Orbit Shorts</Link>;
   const helpLink = (
     <Link to="/help" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-cyan-400/30 bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-500" aria-label="Open Help Center">
       <LifeBuoy className="h-4 w-4 shrink-0" aria-hidden="true" /> Help Center
@@ -45,10 +46,10 @@ export default function Discover() {
   }, [refreshKey]);
 
   if (error) {
-    return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
+    return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex flex-wrap justify-end gap-2">{shortsLink}{helpLink}</div><PageError message={error} onRetry={() => { setError(null); setCampaigns(null); setRefreshKey((k) => k + 1); }} /></div>;
   }
   if (!campaigns) {
-    return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex justify-end">{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
+    return <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10"><div className="mb-4 flex flex-wrap justify-end gap-2">{shortsLink}{helpLink}</div><CampaignGridSkeleton count={6} /></div>;
   }
 
   const filtered = (category === "all" ? campaigns : campaigns.filter((c) => c.category === category))
@@ -66,7 +67,7 @@ export default function Discover() {
             What if your support changed everything for someone today? These causes need help right now.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2"><Link to="/globe" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
+        <div className="flex flex-wrap items-center gap-2">{shortsLink}<Link to="/globe" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-cyan-400/50 px-4 text-sm font-semibold text-cyan-700 dark:text-cyan-300"><Globe2 className="h-4 w-4"/> Campaign Atlas</Link>{helpLink}<PageTips pageId="discover" /></div>
       </div>
 
       <RecommendedCampaigns allCampaigns={campaigns} />

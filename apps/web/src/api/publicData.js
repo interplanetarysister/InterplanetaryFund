@@ -131,3 +131,21 @@ export async function listPublicAtlasCampaigns({ limit = 500 } = {}) {
   if(error || !Array.isArray(data)) throw new Error("Public Atlas campaigns could not be loaded.");
   return data.map(row=>mapCampaign(row));
 }
+
+// Shorts discovery is public content, independent of financial ledger readiness.
+// Keep this explicit projection aligned with the existing public campaign grants.
+export async function listPublicVideoCampaigns({ limit = 150 } = {}) {
+  const maximum = Number.isSafeInteger(limit) ? Math.min(150, Math.max(1, limit)) : 150;
+  const { data, error } = await supabase()
+    .from("ifund_campaigns")
+    .select("id,title,summary,story,cover_image_url,status")
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(maximum);
+  if (error || !Array.isArray(data)) throw new Error("Public campaign videos could not be loaded.");
+  return data.map(row => ({
+    id: row.id, title: row.title, summary: row.summary, story: row.story,
+    cover_image_url: row.cover_image_url, status: row.status,
+  }));
+}
