@@ -55,6 +55,7 @@ const navSections = [
       { to: "/discover", label: "Discover", icon: Compass },
       { to: "/shorts", label: "Orbit Shorts", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
+      { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
   { to: "/institutions", label: "Opportunities", icon: Building2 },
     ],
   },
