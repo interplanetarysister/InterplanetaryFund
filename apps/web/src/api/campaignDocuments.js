@@ -243,14 +243,12 @@ export async function listOwnerDocumentPermissions(client,{offset=0,limit=40}={}
 export async function revokeAllOwnerDocumentAgentUse(client){
   const userId=await verifiedDocumentOwner(client);
   await unchanged(client,userId);
-  const {data,error}=await client.from("ifund_campaign_documents")
-    .update({allow_agent_use:false})
-    .eq("owner_id",userId)
-    .eq("allow_agent_use",true)
-    .is("deletion_requested_at",null)
-    .select("id,owner_id,allow_agent_use");
+  // A single SECURITY INVOKER RPC updates all eligible rows atomically.
+  // Unlike .update(...).select(), it never mistakes a capped REST response
+  // for the total number of private documents whose consent was revoked.
+  const {data,error}=await client.rpc("ifund_campaign_documents_revoke_all_agent_use");
   await unchanged(client,userId);
-  if(error||!Array.isArray(data)||data.some(row=>row.owner_id!==userId||row.allow_agent_use!==false))
+  if(error||!Number.isSafeInteger(data)||data<0)
     throw Error("Account-wide document agent access could not be revoked.");
-  return data.length;
+  return data;
 }
