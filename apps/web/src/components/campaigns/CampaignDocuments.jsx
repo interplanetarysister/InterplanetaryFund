@@ -12,6 +12,9 @@ export default function CampaignDocuments({campaignId,ownerId}) {
   const [accountLocked,setAccountLocked]=useState(false);
   const [retryCount,setRetryCount]=useState(0);
   const accountGeneration=useRef(0);
+  // Render-time scope guard: effects run after paint, so old owner/campaign rows
+  // must never be displayed during the first render after a prop transition.
+  const visibleScope=useRef({ownerId:null,campaignId:null});
   const fileInputRef=useRef(null);
   const uploadLock=useRef(false);
   const accountBlocked=useRef(false);
@@ -35,6 +38,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       accountGeneration.current+=1;
       accountBlocked.current=true;
       setAccountLocked(true);
+      visibleScope.current={ownerId:null,campaignId:null};
       setRecords([]);setFile(null);setSummary("");setOwnerExcerpt("");setTeamAccess(false);
       setEditing(null);setError("Your account changed. Reload before accessing private campaign documents.");
       setNotice("");setLoading(false);
@@ -48,6 +52,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     accountBlocked.current=true;
     setAccountLocked(true);
     const generation=accountGeneration.current;
+    visibleScope.current={ownerId:null,campaignId:null};
     setRecords([]);setError("");setNotice("");
     if(!campaignId||!ownerId){setLoading(false);return()=>{active=false;};}
     setLoading(true);
@@ -59,7 +64,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
       const rows=await listCampaignDocuments(client,campaignId);
       const {data:{user:confirmed},error:confirmationError}=await client.auth.getUser();
       if(confirmationError||confirmed?.id!==ownerId||confirmed?.is_anonymous===true)throw new Error("Account changed while loading documents.");
-      if(active&&generation===accountGeneration.current){accountBlocked.current=false;setAccountLocked(false);setRecords(rows);}
+      if(active&&generation===accountGeneration.current){accountBlocked.current=false;visibleScope.current={ownerId,campaignId};setAccountLocked(false);setRecords(rows);}
     })()
       .catch(e=>{if(active&&generation===accountGeneration.current)setError(e.message||"Document library unavailable.");})
       .finally(()=>{if(active&&generation===accountGeneration.current)setLoading(false);});
@@ -75,6 +80,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     const rows=await listCampaignDocuments(authClient(),campaignId);
     const {data:{user:confirmed},error:confirmationError}=await client.auth.getUser();
     if(confirmationError||confirmed?.id!==ownerId||confirmed?.is_anonymous===true||generation!==accountGeneration.current||accountBlocked.current)throw new Error("Account changed. Reload before accessing private documents.");
+    visibleScope.current={ownerId,campaignId};
     setRecords(rows);
   }
   async function saveFile(event){
@@ -145,6 +151,8 @@ export default function CampaignDocuments({campaignId,ownerId}) {
     finally{setBusy(false);}
   }
 
+  const scopeMatches=visibleScope.current.ownerId===ownerId&&visibleScope.current.campaignId===campaignId;
+  const visibleRecords=scopeMatches&&!accountLocked?records:[];
   return <section className="space-y-4 rounded-2xl border border-border bg-card p-5" aria-label="Private campaign documents">
     <div>
       <h2 className="text-xl font-semibold">Campaign documents</h2>
@@ -194,7 +202,7 @@ export default function CampaignDocuments({campaignId,ownerId}) {
               className="mt-1" />
             <span>Allow my iFund agent team to use this document's description and supported text excerpts when preparing campaign materials. This does not publish the file or approve outreach.</span>
           </label>
-          <button type="submit" disabled={!file||busy||loading||accountLocked||records.length>=15||(teamAccess&&summary.trim().length<20)}
+          <button type="submit" disabled={!file||busy||loading||accountLocked||visibleRecords.length>=15||(teamAccess&&summary.trim().length<20)}
             className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:opacity-50">
             {busy?"Saving…":"Upload private document"}
           </button>
@@ -203,9 +211,9 @@ export default function CampaignDocuments({campaignId,ownerId}) {
         {accountLocked&&<div role="status" className="space-y-2 text-sm text-muted-foreground"><p>Private documents are hidden until this account is verified.</p><button type="button" disabled={loading||busy} onClick={()=>setRetryCount(n=>n+1)} className="min-h-11 rounded-lg border border-border px-3 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">Retry account verification</button></div>}
         {error&&<p className="text-sm text-destructive" role="alert">{error}</p>}
         {notice&&<p className="text-sm" role="status">{notice}</p>}
-        {!loading&&!accountLocked&&records.length===0&&<p className="text-sm text-muted-foreground">No documents uploaded for this campaign.</p>}
-        {!accountLocked&&records.length>0&&<ul className="space-y-3">
-          {records.map(row=><li key={row.id} className="rounded-xl border border-border p-3">
+        {!loading&&!accountLocked&&visibleRecords.length===0&&<p className="text-sm text-muted-foreground">No documents uploaded for this campaign.</p>}
+        {!accountLocked&&visibleRecords.length>0&&<ul className="space-y-3">
+          {visibleRecords.map(row=><li key={row.id} className="rounded-xl border border-border p-3">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <p className="break-all text-sm font-semibold">{row.file_name}</p>
