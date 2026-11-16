@@ -162,3 +162,15 @@ test('malformed supplied capture identity cannot fall back to an existing receip
     assert.equal(writes(h).length, 0);
   }
 });
+
+
+test('PostgreSQL timestamp serialization preserves capture and refund replay identity', async () => {
+  for (const provider_occurred_at of ['2026-11-15T12:00:00+00:00', '2026-11-15T04:00:00-08:00']) {
+    const capture = harness({ reads: [[intent], [ledger('payment', { provider_occurred_at })]] });
+    assert.equal((await capture.run('subscription_reconcile', payment)).status, 200);
+    assert.equal(writes(capture).filter(call => call.method === 'POST').length, 0);
+    const reversal = harness({ reads: [[intent], [ledger('refund', { provider_occurred_at })]] });
+    assert.equal((await reversal.run('subscription_reversal', refund)).status, 200);
+    assert.equal(writes(reversal).filter(call => call.method === 'POST').length, 0);
+  }
+});
