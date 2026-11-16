@@ -67,7 +67,7 @@ export function documentPath(ownerId,campaignId,id,type) {
 export async function listCampaignDocuments(client,campaignId) {
   const userId=await owner(client,campaignId);
   const {data,error}=await client.from("ifund_campaign_documents")
-    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,created_at")
+    .select("id,owner_id,campaign_id,storage_path,file_name,media_type,file_size,purpose,agent_summary,owner_excerpt,allow_agent_use,deletion_requested_at,created_at")
     .eq("owner_id",userId).eq("campaign_id",campaignId)
     .order("created_at",{ascending:false}).limit(50);
   await unchanged(client,userId);
@@ -129,6 +129,7 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
   const userId=await owner(client,campaignId);
   if(!row||row.owner_id!==userId||row.campaign_id!==campaignId)
     throw Error("Only your own campaign documents can be changed.");
+  if(row.deletion_requested_at)throw Error("This document is awaiting secure deletion.");
   if(!Object.hasOwn(DOCUMENT_CATEGORIES,purpose)||typeof summary!=="string"||summary.length>3000||
     typeof ownerExcerpt!=="string"||ownerExcerpt.length>4000||
     (allowAgentUse&&summary.trim().length<20))throw Error("Review the summary before allowing agent access.");
@@ -138,6 +139,7 @@ export async function updateDocumentAgentAccess(client,campaignId,row,{allowAgen
   const {data,error}=await client.from("ifund_campaign_documents")
     .update({allow_agent_use:allowAgentUse===true,agent_summary:summary.trim(),owner_excerpt:ownerExcerpt.trim(),purpose})
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
+    .is("deletion_requested_at",null)
     .select("id,owner_id,campaign_id,allow_agent_use").single();
   await unchanged(client,userId);
   if(error||data?.id!==row.id||data?.owner_id!==userId)throw Error("Document permissions were not saved.");
@@ -161,16 +163,30 @@ export async function removeCampaignDocument(client,campaignId,row){
     !UUID.test(row.id||"")||!DOCUMENT_FORMATS[row.media_type]||
     row.storage_path!==documentPath(userId,campaignId,row.id,row.media_type))
     throw Error("Document ownership could not be verified.");
-  // A session switch between owner verification and deletion must fail closed.
   await unchanged(client,userId);
+  // Stage 1: revoke agent use and persist deletion intent before any
+  // irreversible Storage operation. Safe to retry after a network failure.
+  if(!row.deletion_requested_at){
+    const {data:marked,error:markError}=await client.from("ifund_campaign_documents")
+      .update({allow_agent_use:false,deletion_requested_at:new Date().toISOString()})
+      .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
+      .is("deletion_requested_at",null)
+      .select("id,deletion_requested_at").single();
+    await unchanged(client,userId);
+    if(markError||marked?.id!==row.id||!marked.deletion_requested_at)
+      throw Error("Private document deletion could not be scheduled safely.");
+  }
+  // Stage 2: remove bytes. A failed removal leaves a pending entry that is
+  // invisible to all agent brief RPCs, and can be retried by the same owner.
   const {error:storageError}=await client.storage.from(DOCUMENT_BUCKET).remove([row.storage_path]);
-  if(storageError)throw Error("The private file could not be removed.");
   await unchanged(client,userId);
+  if(storageError)throw Error("File cleanup did not finish. Retry removal of the pending document.");
   const {data,error}=await client.from("ifund_campaign_documents").delete()
     .eq("id",row.id).eq("owner_id",userId).eq("campaign_id",campaignId)
+    .not("deletion_requested_at","is",null)
     .select("id").single();
   await unchanged(client,userId);
-  if(error||data?.id!==row.id)throw Error("The file was removed, but its record needs cleanup.");
+  if(error||data?.id!==row.id)throw Error("Private file deletion completed but its pending database entry needs cleanup. Retry removal.");
   return true;
 }
 
