@@ -100,3 +100,30 @@ test("metadata size must match finalized private Storage object",async()=>{
     assert.equal(count.rows[0].n,0);
   }finally{await db.close();}
 });
+
+test("owner deletion intent immediately revokes agent excerpts and is irreversible",async()=>{
+ const db=await fixture();
+ try {
+  await as(db,owner);
+  await insert(db);
+  await db.query("update public.ifund_campaign_documents set allow_agent_use=true where id=$1",[id]);
+  assert.equal((await db.query("select jsonb_array_length(public.ifund_campaign_agent_document_briefs($1)) n",[campaign])).rows[0].n,1);
+  const marked=await db.query("update public.ifund_campaign_documents set allow_agent_use=false,deletion_requested_at=now() where id=$1 returning deletion_requested_at",[id]);
+  assert.ok(marked.rows[0].deletion_requested_at);
+  assert.equal((await db.query("select jsonb_array_length(public.ifund_campaign_agent_document_briefs($1)) n",[campaign])).rows[0].n,0);
+  await assert.rejects(db.query("update public.ifund_campaign_documents set deletion_requested_at=null,allow_agent_use=true where id=$1",[id]),/Document deletion already requested|check constraint/);
+  await as(db,other);
+  assert.equal((await db.query("select count(*)::int n from public.ifund_campaign_documents")).rows[0].n,0);
+ } finally {await db.close();}
+});
+test("owner may finish metadata erasure only after moving document into pending deletion",async()=>{
+ const db=await fixture();
+ try {
+  await as(db,owner);await insert(db);
+  await db.query("update public.ifund_campaign_documents set allow_agent_use=false,deletion_requested_at=now() where id=$1",[id]);
+  await db.query("delete from storage.objects where name=$1",[path]);
+  const removed=await db.query("delete from public.ifund_campaign_documents where id=$1 returning id",[id]);
+  assert.equal(removed.rows[0].id,id);
+  assert.equal((await db.query("select count(*)::int n from public.ifund_campaign_documents")).rows[0].n,0);
+ } finally {await db.close();}
+});
