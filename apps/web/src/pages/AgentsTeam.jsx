@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { parseAgentFeatureSelection, agentToolHref } from "@/lib/agentFeatureRoutes.mjs";
 import StoryAgent from "./StoryAgent";
 import NexusBrief from "@/components/agents/NexusBrief";
 import EditorialAgentQueue from "@/components/agents/EditorialAgentQueue";
@@ -16,10 +17,14 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
  * messages to Base44 or present a placeholder as an active AI conversation.
  */
 export default function AgentsTeam() {
-  const [selected, setSelected] = useState(null);
-  const [showWriting, setShowWriting] = useState(false);
+  const [params,setParams]=useSearchParams();
+  const selection=parseAgentFeatureSelection(params.toString());
+  const selected=selection.identity;
+  function setSelected(identity){const next=new URLSearchParams();if(identity)next.set("agent",identity);if(selection.campaignId)next.set("campaign",selection.campaignId);setParams(next,{replace:true});}
+  const [showWriting, setShowWriting] = useState(selection.identity === "story");
   const [showService, setShowService] = useState(false);
   const [agentQuestion, setAgentQuestion] = useState("");
+  useEffect(()=>{setShowWriting(selected === "story");setShowService(false);},[selected,selection.campaignId]);
   const recommendation = agentQuestion.trim() ? proposedSpecialistHandoff(agentQuestion) : null;
   const workspace = AGENT_WORKSPACES.find(agent => agent.identity === selected);
   return <div className="mx-auto max-w-5xl space-y-6 px-4 pb-24 pt-6 sm:px-7">
@@ -50,6 +55,7 @@ export default function AgentsTeam() {
         <span className="mt-1 text-xs text-slate-400">{agent.role}</span>
       </button>; })}
     </div>
+    {selection.invalidCampaign&&<p role="alert">The campaign link is invalid. Choose a saved campaign in the workspace.</p>}
     {selected && <section aria-live="polite" className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
         <AgentIdentityIcon identity={selected} size={54}/>
@@ -62,12 +68,12 @@ export default function AgentsTeam() {
       {["polaris", "forge", "echo", "link"].includes(selected) && <div className="mt-4 space-y-4">
         <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold" aria-expanded={showService}
           onClick={() => setShowService(value => !value)}>{showService ? "Close saved specialist workspace" : "Open saved specialist workspace"}</button>
-        {showService && <SpecialistServiceWorkspace key={selected} identity={selected}/>}
+        {showService && <SpecialistServiceWorkspace key={selected+":"+(selection.campaignId||"account")} identity={selected} initialCampaignId={selection.campaignId}/>}
       </div>}
       {workspace && <div className="mt-4">
         {selected === "story" ?
           <button type="button" className="min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" onClick={() => setShowWriting(true)}>Open Story writing assistant</button> :
-          <Link className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold" to={workspace.path}>Open related tool: {workspace.tool}</Link>}
+          <Link className="inline-flex min-h-11 items-center rounded-xl border border-border px-4 font-semibold" to={agentToolHref(selected,selection.campaignId)}>Open related tool: {workspace.tool}</Link>}
       </div>}
       <button type="button" className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold" onClick={() => {setSelected(null);setShowService(false);}}>Return to team</button>
     </section>}
@@ -77,7 +83,7 @@ export default function AgentsTeam() {
       <h2 className="text-lg font-semibold">Available AI writing workspace</h2>
       <p className="mt-2 text-sm text-muted-foreground">The existing Story Agent can create private campaign writing suggestions. Standalone specialist chat is still undergoing individual verification.</p>
       <button type="button" className="mt-3 min-h-11 rounded-xl bg-primary px-4 font-semibold text-primary-foreground" aria-expanded={showWriting} onClick={() => setShowWriting(v => !v)}>{showWriting ? "Close writing workspace" : "Open writing workspace"}</button>
-      {showWriting && <div className="mt-4"><StoryAgent/></div>}
+      {showWriting && <div className="mt-4"><StoryAgent key={selection.campaignId||"account"} initialCampaignId={selection.campaignId}/></div>}
     </section>
   </div>;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowUpRight, BriefcaseBusiness, Globe2, HeartHandshake, Search, ShieldCheck, Sparkles } from "lucide-react";
+import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { listActiveCampaigns } from "@/api/publicData";
 import { authClient } from "@/api/auth";
 import { matchOpportunity } from "@/lib/opportunityMatch";
@@ -85,6 +86,8 @@ function OpportunityCard({opportunity,campaign,watched,onWatch,watchBusy,watchSt
 }
 
 export default function Institutions() {
+  const [params]=useSearchParams();
+  const requestedCampaign=params.get("campaign");
   const {id}=useParams();
   const [sources,setSources]=useState([]);
   const [opportunities,setOpportunities]=useState([]);
@@ -117,6 +120,7 @@ export default function Institutions() {
     return ()=>{active=false};
   },[reload]);
   useEffect(()=>{
+    setSelectedCampaign("");setOwnerCampaigns([]);
     let active=true;
     let revision=0;
     let observedIdentity=null;
@@ -131,14 +135,16 @@ export default function Institutions() {
           if(userError||!user){setOwnerCampaigns([]);return;}
           observedIdentity=user.id;
           const {data,error}=await client.from("ifund_campaigns")
-            .select("id,title,summary,story,category,status")
+            .select("id,owner_id,title,summary,story,category,status")
             .eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
           if(!active||ownRevision!==revision)return;
           if(error||!Array.isArray(data))throw new Error("Owner campaign query unavailable");
           const checked=await client.auth.getUser();
           if(!active||ownRevision!==revision)return;
           if(checked.error||checked.data?.user?.id!==user.id)throw new Error("Identity changed");
+          if(data.some(item=>item.owner_id!==user.id))throw Error("Owner campaign response mismatch");
           setOwnerCampaigns(data.map(item=>({...item,isOwned:true})));
+          setSelectedCampaign(campaignFromOwnedList(requestedCampaign,data,user.id));
           setOwnerLoadWarning("");
         }catch{
           if(active&&ownRevision===revision){
@@ -161,7 +167,7 @@ export default function Institutions() {
       loadPrivate();
     }catch{setOwnerCampaigns([]);}
     return ()=>{active=false;++revision;subscription?.unsubscribe();};
-  },[reload]);
+  },[reload,requestedCampaign]);
   useEffect(()=>{
     let active=true;
     setWatchStatus("loading");setWatched([]);

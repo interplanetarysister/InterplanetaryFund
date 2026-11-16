@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { campaignFromOwnedList } from "@/lib/agentFeatureRoutes.mjs";
 import { authClient } from "@/api/auth";
 import EchoSavedTemplates from "@/components/agents/EchoSavedTemplates";
 import EchoApprovedMessaging from "@/components/agents/EchoApprovedMessaging";
@@ -12,12 +13,15 @@ const TEMPLATES = {
   volunteer: "We're looking for volunteers who may be able to help with this campaign. Please check the campaign details and contact us through an approved channel.",
 };
 export default function CommunicationsWorkspace() {
+  const [params]=useSearchParams();
+  const requestedCampaign=params.get("campaign");
   const [state,setState]=useState({phase:"loading",campaigns:[],error:""});
   const [campaignId,setCampaignId]=useState("");
   const [type,setType]=useState("share");
   const [message,setMessage]=useState("");
   const [status,setStatus]=useState("");
   useEffect(()=>{
+    setCampaignId("");setMessage("");setStatus("");setState({phase:"loading",campaigns:[],error:""});
     let active=true, revision=0, observedId=null;
     const client=authClient();
     async function load(){
@@ -28,12 +32,16 @@ export default function CommunicationsWorkspace() {
         if(authError||!user)throw new Error("Verified account required.");
         observedId=user.id;
         const {data,error}=await client.from("ifund_campaigns")
-          .select("id,title,summary,status").eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
+          .select("id,owner_id,title,summary,status").eq("owner_id",user.id).order("updated_at",{ascending:false}).limit(50);
         if(!active||ticket!==revision)return;
         if(error||!Array.isArray(data))throw new Error("Your campaigns could not be loaded.");
         const fresh=await client.auth.getUser();
         if(!active||ticket!==revision)return;
         if(fresh.error||fresh.data?.user?.id!==user.id)throw new Error("Your session changed.");
+        if(data.some(row=>row.owner_id!==user.id))throw Error("Your campaigns could not be verified.");
+        const requested=campaignFromOwnedList(requestedCampaign,data,user.id);
+        setCampaignId(requested);
+        if(requestedCampaign&&!requested)setStatus("The requested campaign is unavailable for this account. Select one of your own campaigns.");
         setState({phase:"ready",campaigns:data,error:""});
       }catch(e){
         if(active&&ticket===revision)setState({phase:"error",campaigns:[],error:e.message||"Unavailable"});
@@ -52,7 +60,7 @@ export default function CommunicationsWorkspace() {
     });
     load();
     return ()=>{active=false;++revision;subscriber?.subscription?.unsubscribe()};
-  },[]);
+  },[requestedCampaign]);
   function prepare(){
     const item=state.campaigns.find(c=>c.id===campaignId);
     if(!item){setStatus("Select one of your campaigns.");return}
