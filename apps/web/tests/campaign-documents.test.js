@@ -12,7 +12,8 @@ const CAMPAIGN="22222222-2222-4222-8222-222222222222";
 const FILE_ID="33333333-3333-4333-8333-333333333333";
 const PDF=new File([new TextEncoder().encode("%PDF-1.7\nExample campaign budget")],"budget.pdf",{type:"application/pdf"});
 function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is_anonymous:false},
- uploadFailed=false,insertFailed=false,storageDeleteFailed=false}={}){
+ uploadFailed=false,insertFailed=false,storageDeleteFailed=false,
+ storageInfoCode="NoSuchKey",storageStillPresent=false}={}){
   const calls=[],records=[];
   const storage={
     upload:async(path,_file,options)=>{
@@ -22,6 +23,12 @@ function fakeClient({user={id:OWNER,email_confirmed_at:"2026-11-15T12:00:00Z",is
     remove:async paths=>{
       calls.push({action:"storage-remove",paths});
       return storageDeleteFailed?{error:{message:"blocked"}}:{error:null};
+    },
+    info:async path=>{
+      calls.push({action:"storage-info",path});
+      return storageStillPresent
+        ?{data:{name:path},error:null}
+        :{data:null,error:{code:storageInfoCode}};
     }
   };
   const client={
@@ -230,4 +237,29 @@ test("a tombstoned document is not re-enabled for agent context",async()=>{
   await assert.rejects(updateDocumentAgentAccess(x.client,CAMPAIGN,row,{
     allowAgentUse:true,summary:"A long verified-sounding but unverified example.",purpose:"budget"
   }),/awaiting secure deletion/);
+});
+
+test("metadata is never deleted when Storage still reports the private file exists",async()=>{
+  const x=fakeClient({storageStillPresent:true});
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,
+    media_type:"application/pdf",storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"};
+  await assert.rejects(removeCampaignDocument(x.client,CAMPAIGN,row),/absence could not be verified/);
+  assert.equal(x.calls.some(event=>event.action==="storage-info"),true);
+  assert.equal(x.calls.some(event=>event.action==="table"&&event.operation==="delete"),false);
+});
+test("generic Storage errors or missing buckets never count as verified deletion",async()=>{
+  const x=fakeClient({storageInfoCode:"NoSuchBucket"});
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,
+    media_type:"application/pdf",storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"};
+  await assert.rejects(removeCampaignDocument(x.client,CAMPAIGN,row),/absence could not be verified/);
+  assert.equal(x.calls.some(event=>event.action==="storage-info"),true);
+});
+test("owner cleanup checks Storage object absence before metadata deletion",async()=>{
+  const x=fakeClient();
+  const row={id:FILE_ID,owner_id:OWNER,campaign_id:CAMPAIGN,
+    media_type:"application/pdf",storage_path:OWNER+"/"+CAMPAIGN+"/"+FILE_ID+".pdf"};
+  assert.equal(await removeCampaignDocument(x.client,CAMPAIGN,row),true);
+  const remove=x.calls.findIndex(event=>event.action==="storage-remove");
+  const verify=x.calls.findIndex(event=>event.action==="storage-info");
+  assert.ok(remove>=0&&verify>remove);
 });
