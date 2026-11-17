@@ -31,10 +31,13 @@ export function rememberPendingCampaignSetup(storage,owner,campaignId,setup){
       if(!prior||prior.campaignId!==campaignId)return false;
     }
     const normalized=campaignSetupPayload(setup,setup?.draft_step);
-    storage.setItem(indexKey(owner),JSON.stringify({
+    const expected=JSON.stringify({
       version:1,owner_id:owner,campaign_id:campaignId,setup:normalized
-    }));
-    return Boolean(pendingCampaignSetup(storage,owner,campaignId));
+    });
+    storage.setItem(indexKey(owner),expected);
+    // A storage adapter can silently ignore writes. A pre-existing record
+    // for this campaign is not evidence that the latest setup was saved.
+    return storage.getItem(indexKey(owner))===expected;
   }catch{return false;}
 }
 export function pendingCampaignSetup(storage,owner,campaignId=null){
