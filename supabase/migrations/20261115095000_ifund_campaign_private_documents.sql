@@ -300,3 +300,4 @@ drop trigger if exists ifund_campaign_documents_no_orphans on public.ifund_campa
 create trigger ifund_campaign_documents_no_orphans before delete on public.ifund_campaigns
   for each row execute function public.ifund_campaign_documents_prevent_orphans();
 
+commit;
