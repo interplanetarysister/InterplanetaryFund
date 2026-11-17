@@ -329,3 +329,115 @@ test("incident and builder approval or deployment remains a protected owner acti
     );
   assert.equal(calls, 0);
 });
+
+
+test("campaign support requires a backend-verified campaign owned by the acting IFund member", async () => {
+  const campaignId = "44444444-4444-4444-8444-444444444444";
+  let invoked = 0;
+  const send = binding({
+    name: "sendCommunication",
+    roles: ["chief_of_staff"],
+    effect: "write",
+    verifyReceipt: async () => true,
+    invoke: async () => { invoked++; return { sent: true }; },
+  });
+  const input = { campaign_id: campaignId, message: "A truthful campaign update" };
+  const unverified = createToolRegistry({
+    bindings: [send],
+    authorize: async () => scope("chief_of_staff"),
+  });
+  await assert.rejects(
+    unverified.invoke("chief_of_staff", "sendCommunication", input, {}),
+    /verified IFund campaign/,
+  );
+  assert.equal(invoked, 0);
+
+  const verified = createToolRegistry({
+    bindings: [send],
+    authorize: async () => scope("chief_of_staff"),
+    verifyCampaignAssociation: async ({ campaign_id, owner_id }) =>
+      campaign_id === campaignId && owner_id === uid,
+  });
+  assert.deepEqual(
+    await verified.invoke("chief_of_staff", "sendCommunication", input, {}),
+    { sent: true },
+  );
+  assert.equal(invoked, 1);
+});
+
+test("campaign delegation cannot run without an eligible IFund campaign; onboarding invitations remain allowed", async () => {
+  const routed = binding({
+    name: "routeAgentTask",
+    roles: ["chief_of_staff"],
+    effect: "write",
+    verifyReceipt: async () => true,
+    invoke: async ({ input }) => ({ dispatched: true, objective: input.objective }),
+  });
+  let verifiedCalls = 0;
+  const registry = createToolRegistry({
+    bindings: [routed],
+    authorize: async () => scope("chief_of_staff"),
+    verifyCampaignAssociation: async ({ campaign_id, owner_id }) => {
+      verifiedCalls++;
+      return campaign_id === "55555555-5555-4555-8555-555555555555" && owner_id === uid;
+    },
+  });
+  await assert.rejects(
+    registry.invoke("chief_of_staff", "routeAgentTask", {
+      mode: "dispatch",
+      objective: "Promote an unrelated external campaign and solicit donations",
+      target_agent: "outreach_agent",
+    }, {}),
+    /verified IFund campaign/,
+  );
+  assert.equal(verifiedCalls, 0);
+
+  const result = await registry.invoke("chief_of_staff", "routeAgentTask", {
+    mode: "dispatch",
+    objective: "Invite the external campaign owner to register and bring the campaign to IFund",
+    target_agent: "outreach_agent",
+  }, {});
+  assert.equal(result.dispatched, true);
+  assert.equal(verifiedCalls, 0);
+});
+
+test("general IFund growth and donor discovery for eligible campaigns do not restrict audience accounts", async () => {
+  const growth = binding({
+    name: "getAgentAccountContext",
+    invoke: async () => ({ audience_research: true }),
+  });
+  let checks = 0;
+  const registry = createToolRegistry({
+    bindings: [growth],
+    authorize: async () => scope("story_agent"),
+    verifyCampaignAssociation: async () => { checks++; return false; },
+  });
+  assert.deepEqual(
+    await registry.invoke("story_agent", "getAgentAccountContext", {
+      audience: "non-IFund communities and prospective members",
+      objective: "Discover potential supporters for Interplanetary Fund",
+    }, {}),
+    { audience_research: true },
+  );
+  assert.equal(checks, 0);
+});
+
+test("the shared runtime skill policy explicitly preserves external audience reach and blocks external campaign servicing", () => {
+  for (const role of [
+    "chief_of_staff",
+    "growth_agent",
+    "outreach_agent",
+    "communications_agent",
+    "story_agent",
+    "strategy_agent",
+    "finance_agent",
+    "connection_discovery_agent",
+    "managed_connection_agent",
+  ]) {
+    const instructions = serviceSkill(role).instructions;
+    assert.match(instructions, /potential donors, supporters, partners, communities/);
+    assert.match(instructions, /platform marketing, new-user acquisition/);
+    assert.match(instructions, /do NOT manage, refine, write promotional fundraising copy for/);
+    assert.match(instructions, /backend verification/);
+  }
+});
