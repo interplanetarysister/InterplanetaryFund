@@ -209,6 +209,7 @@ test("exact current approval is checked before sending and trusted receipt verif
   let calls = 0;
   const input = {
       preview_id: "22222222-2222-4222-8222-222222222222",
+      campaign_id: "44444444-4444-4444-8444-444444444444",
       approval_ref: "33333333-3333-4333-8333-333333333333",
     },
     hash = await toolInputHash(input);
@@ -252,6 +253,8 @@ test("exact current approval is checked before sending and trusted receipt verif
       approval_tool: "sendCommunication",
       approved_input_hash: hash,
     }),
+    verifyCampaignAssociation: async ({ campaign_id, owner_id }) =>
+      campaign_id === "44444444-4444-4444-8444-444444444444" && owner_id === uid,
   });
   assert.deepEqual(
     await valid.invoke("communications_agent", "sendCommunication", input, {}),
