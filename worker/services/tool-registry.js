@@ -96,11 +96,27 @@ function eligibleScope(role, scope) {
         scope.plan_level >= policy.min_plan_level)
   );
 }
+function campaignScopedRequest(name, input) {
+  if (typeof input.campaign_id === "string" && input.campaign_id.trim()) return true;
+  if (name === "sendCommunication") return true;
+  if (name === "manageAgentContentDraft") {
+    const target = [input.content_type, input.target_type, input.kind, input.content_kind]
+      .filter((x) => typeof x === "string").join(" ").toLowerCase();
+    return /campaign|fundrais|donor|external.?post|campaign.?update/.test(target);
+  }
+  if (name === "routeAgentTask" && input.mode === "dispatch") {
+    const objective = typeof input.objective === "string" ? input.objective.toLowerCase() : "";
+    const onboardingOnly = /(?:invite|onboard|register|bring|import|link).{0,80}(?:owner|organizer|campaign|ifund)|(?:owner|organizer|campaign).{0,80}(?:invite|onboard|register|bring|import|link).{0,80}ifund|platform marketing|new[- ]user acquisition|promote ifund/i.test(objective);
+    return !onboardingOnly && /campaign|fundrais|donor|supporter|solicit|publish|promot|outreach|marketing/.test(objective);
+  }
+  return false;
+}
 // Bindings are trusted code/configuration. Every invocation still requires a
 // fresh backend owner, consent, capability and provider authorization check.
 export function createToolRegistry({
   bindings,
   authorize,
+  verifyCampaignAssociation,
   clock = () => Date.now(),
 }) {
   if (typeof authorize !== "function")
@@ -248,6 +264,22 @@ export function createToolRegistry({
           normalized.target_agent === role)
       )
         throw Error("Choose an allowed specialist.");
+      if (campaignScopedRequest(name, normalized)) {
+        const campaignId = normalized.campaign_id;
+        if (
+          typeof campaignId !== "string" ||
+          !campaignId.trim() ||
+          typeof verifyCampaignAssociation !== "function" ||
+          (await verifyCampaignAssociation({
+            campaign_id: campaignId,
+            owner_id: scope.owner_id,
+            role,
+            requestContext,
+            scope,
+          })) !== true
+        )
+          throw Error("A verified IFund campaign linked to this account is required for campaign support.");
+      }
       if (!available(b)) throw Error("This tool needs fresh verification.");
       const result = await b.invoke({ input: normalized, scope });
       if (
