@@ -109,8 +109,8 @@ function campaignScopedRequest(name, input) {
     const onboardingOnly = /(?:invite|onboard).{0,100}(?:owner|organizer).{0,100}(?:register|join|bring|import|link).{0,100}ifund|(?:register|import|link).{0,100}(?:campaign|owner|organizer).{0,100}ifund/i.test(objective);
     const platformGrowth = /(?:ifund|platform).{0,100}(?:platform marketing|market|growth|new[- ]user|acquisition|awareness|signup|registration|recruit)|(?:platform marketing|new[- ]user acquisition|acquire new users).{0,100}(?:ifund|platform)/i.test(objective);
     const fundraising = /fundrais|donat|donor|supporter|solicit/.test(objective);
-    const campaignWork = /campaign/.test(objective) && /manage|refine|write|story|strategy|publish|promot|outreach|market/.test(objective);
-    return !onboardingOnly && !platformGrowth && (fundraising || campaignWork);
+    const campaignWork = /campaign/.test(objective) && /manage|refine|write|story|strategy|publish|promot|outreach|market|support/.test(objective);
+    return !onboardingOnly && (fundraising || (campaignWork && !platformGrowth));
   }
   return false;
 }
