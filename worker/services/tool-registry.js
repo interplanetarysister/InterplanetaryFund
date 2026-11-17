@@ -102,12 +102,15 @@ function campaignScopedRequest(name, input) {
   if (name === "manageAgentContentDraft") {
     const target = [input.content_type, input.target_type, input.kind, input.content_kind]
       .filter((x) => typeof x === "string").join(" ").toLowerCase();
-    return /campaign|fundrais|donor|external.?post|campaign.?update/.test(target);
+    return /campaign|fundrais|donor|supporter|campaign.?update/.test(target);
   }
   if (name === "routeAgentTask" && input.mode === "dispatch") {
     const objective = typeof input.objective === "string" ? input.objective.toLowerCase() : "";
-    const onboardingOnly = /(?:invite|onboard|register|bring|import|link).{0,80}(?:owner|organizer|campaign|ifund)|(?:owner|organizer|campaign).{0,80}(?:invite|onboard|register|bring|import|link).{0,80}ifund|platform marketing|new[- ]user acquisition|promote ifund/i.test(objective);
-    return !onboardingOnly && /campaign|fundrais|donor|supporter|solicit|publish|promot|outreach|marketing/.test(objective);
+    const onboardingOnly = /(?:invite|onboard).{0,100}(?:owner|organizer).{0,100}(?:register|join|bring|import|link).{0,100}ifund|(?:register|import|link).{0,100}(?:campaign|owner|organizer).{0,100}ifund/i.test(objective);
+    const platformGrowth = /(?:ifund|platform).{0,100}(?:platform marketing|market|growth|new[- ]user|acquisition|awareness|signup|registration|recruit)|(?:platform marketing|new[- ]user acquisition|acquire new users).{0,100}(?:ifund|platform)/i.test(objective);
+    const fundraising = /fundrais|donat|donor|supporter|solicit/.test(objective);
+    const campaignWork = /campaign/.test(objective) && /manage|refine|write|story|strategy|publish|promot|outreach|market/.test(objective);
+    return !onboardingOnly && !platformGrowth && (fundraising || campaignWork);
   }
   return false;
 }
