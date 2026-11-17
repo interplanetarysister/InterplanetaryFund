@@ -44,6 +44,17 @@ test("same owner may revise the saved campaign's pending setup",()=>{
  assert.equal(rememberPendingCampaignSetup(s,owner,campaign,{...setup(),draft_step:3}),true);
  assert.equal(pendingCampaignSetup(s,owner,campaign).setup.draft_step,3);
 });
+test("silent or stale storage writes never acknowledge updated pending setup",()=>{
+ const s=storage();
+ assert.equal(rememberPendingCampaignSetup(s,owner,campaign,setup()),true);
+ const initial=pendingCampaignSetup(s,owner,campaign).setup;
+ const revised={...setup(),draft_step:4};
+ s.setItem=()=>{};
+ assert.equal(rememberPendingCampaignSetup(s,owner,campaign,revised),false);
+ assert.deepEqual(pendingCampaignSetup(s,owner,campaign).setup,initial);
+ const empty=storage();empty.setItem=()=>{};
+ assert.equal(rememberPendingCampaignSetup(empty,owner,campaign,setup()),false);
+});
 test("cleanup requires owner and campaign match, and only removes the verified record",()=>{
  const s=storage();
  rememberPendingCampaignSetup(s,owner,campaign,setup());
