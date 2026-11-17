@@ -487,8 +487,21 @@ async function verifiedSubscriptionSale(env,saleId,subscriptionId,merchantId,all
 }
 async function subscriptionWebhook(payload,env) {
   const kind=String(payload.event_type||"");
-  const id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
+  // Refund webhooks identify the refund, not the subscription. Resolve the
+  // billing agreement exclusively from the provider-verified parent sale.
+  let id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
     String(payload.resource?.id||"");
+  if(kind==="PAYMENT.SALE.REFUNDED"){
+    const refundId=payload.resource?.id, parentSaleId=payload.resource?.sale_id;
+    if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(parentSaleId||"")||
+       refundId===parentSaleId||refundId===payload.id)
+      return asError("subscription_refund_identity_unverified",409);
+    const parentSale=await paypal(env,"/v1/payments/sale/"+encodeURIComponent(parentSaleId));
+    id=String(parentSale?.billing_agreement_id||"");
+    if(parentSale?.id!==parentSaleId||!SUBSCRIPTION_ID.test(id)||
+       (payload.resource?.billing_agreement_id&&payload.resource.billing_agreement_id!==id))
+      return asError("subscription_refund_parent_unverified",409);
+  }
   if(!SUBSCRIPTION_ID.test(id))return asError("subscription_reference_unverified",409);
   if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
   if(kind==="PAYMENT.SALE.REVERSED")return asError("subscription_reversal_event_unverified",409);
