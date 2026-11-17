@@ -125,6 +125,12 @@ declare
   v_total bigint;
   v_count bigint;
 begin
+  -- Guard relocation *out* of this bucket as well as relocation within it.
+  -- Otherwise changing bucket_id to a public bucket bypasses the early return.
+  if tg_op='UPDATE' and old.bucket_id='ifund-campaign-documents' and
+     (new.name is distinct from old.name or new.bucket_id is distinct from old.bucket_id) then
+    raise exception 'Private document object relocation is forbidden' using errcode='23514';
+  end if;
   if new.bucket_id is distinct from 'ifund-campaign-documents' then return new; end if;
   if tg_op='UPDATE' and (new.name is distinct from old.name or new.bucket_id is distinct from old.bucket_id) then
     raise exception 'Private document object relocation is forbidden' using errcode='23514';
@@ -223,10 +229,10 @@ begin
       or actual_bytes<>new.file_size then
       raise exception 'Verified private upload size is required' using errcode='23514';
     end if;
-    if coalesce((select sum(d.file_size) from public.ifund_campaign_documents d
-      where d.owner_id=new.owner_id),0)+actual_bytes>209715200 then
-      raise exception 'Private document allowance reached (200 MB per account)' using errcode='23514';
-    end if;
+    -- The Storage ingress trigger already counts every owner object, including
+    -- this newly uploaded file and unregistered orphans. Adding metadata sizes
+    -- here would double-count registered objects and incorrectly cap usage.
+    -- Do not repeat the 200 MiB calculation against this second ledger.
     if (select count(*) from public.ifund_campaign_documents d
       where d.owner_id=new.owner_id and d.campaign_id=new.campaign_id)>=15 then
       raise exception 'Campaign document limit reached' using errcode='23514';
