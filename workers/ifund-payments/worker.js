@@ -492,6 +492,12 @@ async function subscriptionWebhook(payload,env) {
   let id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
     String(payload.resource?.id||"");
 
+  // Reject invalid delivery IDs and unavailable atomic ledger before any provider lookup.
+  if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
+  if(kind==="PAYMENT.SALE.REVERSED")return asError("subscription_reversal_event_unverified",409);
+  const atomic=await subscriptionAtomicReadiness(env);
+  if(!atomic.ready)return asError("subscription_atomic_ledger_unavailable",503);
+
   if(kind==="PAYMENT.SALE.REFUNDED"){
     const refundId=payload.resource?.id, parentSaleId=payload.resource?.sale_id;
     if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(parentSaleId||"")||
@@ -504,10 +510,6 @@ async function subscriptionWebhook(payload,env) {
       return asError("subscription_refund_parent_unverified",409);
   }
   if(!SUBSCRIPTION_ID.test(id))return asError("subscription_reference_unverified",409);
-  if(!PAYPAL_EVENT_ID.test(String(payload.id||"")))return asError("invalid_paypal_event",400);
-  if(kind==="PAYMENT.SALE.REVERSED")return asError("subscription_reversal_event_unverified",409);
-  const atomic=await subscriptionAtomicReadiness(env);
-  if(!atomic.ready)return asError("subscription_atomic_ledger_unavailable",503);
   if(kind==="PAYMENT.SALE.COMPLETED"||kind==="PAYMENT.SALE.REFUNDED"){
     const resource=payload.resource,resourceId=resource?.id;
     if(!ORDER_ID.test(resourceId||"")||resourceId===payload.id)
