@@ -402,6 +402,14 @@ test("campaign delegation cannot run without an eligible IFund campaign; onboard
   }, {});
   assert.equal(result.dispatched, true);
   assert.equal(verifiedCalls, 0);
+
+  const growthResult = await registry.invoke("chief_of_staff", "routeAgentTask", {
+    mode: "dispatch",
+    objective: "Run platform marketing campaign to acquire new IFund users",
+    target_agent: "growth_agent",
+  }, {});
+  assert.equal(growthResult.dispatched, true);
+  assert.equal(verifiedCalls, 0);
 });
 
 test("general IFund growth and donor discovery for eligible campaigns do not restrict audience accounts", async () => {
