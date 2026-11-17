@@ -124,6 +124,7 @@ declare
   v_size bigint;
   v_total bigint;
   v_count bigint;
+  v_exclude_id uuid;
 begin
   -- Guard relocation *out* of this bucket as well as relocation within it.
   -- Otherwise changing bucket_id to a public bucket bypasses the early return.
@@ -153,13 +154,16 @@ begin
   if v_size not between 1 and 8388608 then
     raise exception 'Private document exceeds 8 MB limit' using errcode='23514';
   end if;
+  -- OLD is unassigned during INSERT. Never dereference OLD.id in a SQL
+  -- predicate even when an OR branch appears to short-circuit it.
+  if tg_op='UPDATE' then v_exclude_id:=old.id; end if;
   select coalesce(sum(case when coalesce(o.metadata->>'size','') ~ '^[0-9]{1,10}$'
     then (o.metadata->>'size')::bigint else 8388608 end),0),
     count(*) filter (where split_part(o.name,'/',2)=v_campaign::text)
     into v_total,v_count
     from storage.objects o where o.bucket_id='ifund-campaign-documents'
       and split_part(o.name,'/',1)=v_owner::text
-      and (tg_op='INSERT' or o.id<>old.id);
+      and (v_exclude_id is null or o.id<>v_exclude_id);
   if v_total+v_size>209715200 or v_count>=15 then
     raise exception 'Private Storage allowance reached' using errcode='23514';
   end if;
