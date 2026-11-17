@@ -491,6 +491,7 @@ async function subscriptionWebhook(payload,env) {
   // billing agreement exclusively from the provider-verified parent sale.
   let id=kind.startsWith("PAYMENT.SALE.")?String(payload.resource?.billing_agreement_id||""):
     String(payload.resource?.id||"");
+
   if(kind==="PAYMENT.SALE.REFUNDED"){
     const refundId=payload.resource?.id, parentSaleId=payload.resource?.sale_id;
     if(!ORDER_ID.test(refundId||"")||!ORDER_ID.test(parentSaleId||"")||
