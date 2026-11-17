@@ -27,7 +27,12 @@ test("storage errors fail closed and do not claim successful save",()=>{
   const s=memory({throwOn:op});
   if(op==="get")assert.equal(rememberWizard(s,A,null,emptyWizard()),false);
   if(op==="set")assert.equal(rememberWizard(s,A,null,emptyWizard()),false);
-  if(op==="remove"){s.data.set("unrelated","value");assert.equal(forgetWizard(s,A),true);}
+  if(op==="remove"){
+   const seeded=memory();assert.equal(rememberWizard(seeded,A,null,emptyWizard()),true);
+   for(const [key,value] of seeded.data)s.data.set(key,value);
+   assert.equal(forgetWizard(s,A),false);
+   assert.equal(s.data.size,1,"failed removal must preserve the owner draft");
+  }
  }
 });
 test("A to B to A never hydrates A's draft into B",()=>{
@@ -46,4 +51,11 @@ test("storage read-back mismatch cannot acknowledge wizard save",()=>{
  const s=memory();const original=s.getItem.bind(s);
  s.getItem=(k)=>{const value=original(k);return value===null?null:value+"-corrupted";};
  assert.equal(rememberWizard(s,A,null,emptyWizard()),false);
+});
+
+test("silent removeItem failure cannot acknowledge wizard deletion",()=>{
+ const s=memory({ignoreRemove:true});
+ assert.equal(rememberWizard(s,A,null,emptyWizard()),true);
+ assert.equal(forgetWizard(s,A),false);
+ assert.equal(s.data.size,1,"unremoved owner draft must remain intact");
 });
