@@ -180,6 +180,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId || ""));
       sessionStorage.getItem("ifund-guest-campaign-v1:guest");
       sessionStorage.getItem("ifund-guest-campaign-v1");
+      // Probe the wizard namespace as well; a blocked wizard read must not
+      // be interpreted as an absent draft and then overwritten by autosave.
+      sessionStorage.getItem("ifund-campaign-wizard-v1:owner:" + encodeURIComponent(ownerId || "") + ":" + encodeURIComponent(draftId || "new"));
+      sessionStorage.getItem("ifund-campaign-wizard-v1:guest:new");
       return true;
     } catch { return false; }
   });
@@ -188,6 +192,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
       sessionStorage.getItem("ifund-guest-campaign-v1:owner:" + encodeURIComponent(ownerId || ""));
       sessionStorage.getItem("ifund-guest-campaign-v1:guest");
       sessionStorage.getItem("ifund-guest-campaign-v1");
+      // Probe the wizard namespace as well; a blocked wizard read must not
+      // be interpreted as an absent draft and then overwritten by autosave.
+      sessionStorage.getItem("ifund-campaign-wizard-v1:owner:" + encodeURIComponent(ownerId || "") + ":" + encodeURIComponent(draftId || "new"));
+      sessionStorage.getItem("ifund-campaign-wizard-v1:guest:new");
       // Reload so draft hydration reruns before autosave can resume.
       window.location.reload();
     } catch {
