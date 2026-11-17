@@ -55,7 +55,7 @@ test("active Story prompt receives the policy and preserves IFund-native campaig
 
 test("every registered specialist receives the same policy at runtime", () => {
   for (const role of [
-    "chief_of_staff", "communications_agent", "connection_discovery_agent",
+    "admin_builder_agent", "chief_of_staff", "communications_agent", "connection_discovery_agent",
     "finance_agent", "growth_agent", "managed_connection_agent",
     "outreach_agent", "story_agent", "strategy_agent",
   ]) {
