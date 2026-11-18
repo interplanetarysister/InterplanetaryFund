@@ -32,6 +32,7 @@ test("runtime agent instructions are bound to current IFund policies, not legacy
     assert.equal(position.policy_sha256, digest, "stale policy hash for " + position.id);
     assert.equal(entry.policy_sha256, digest, "manifest policy hash mismatch for " + position.id);
     assert.doesNotMatch(position.instructions, /base44/i, "legacy backend instructions remain for " + position.id);
+    for (const tool of position.tools || []) assert.doesNotMatch(tool.description || "", /base44/i, "legacy tool description remains for " + position.id);
     assert.equal(serviceSkill(position.id).instructions, position.instructions);
   }
 });
