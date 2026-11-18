@@ -52,6 +52,8 @@ test("creator must affirm full control and all AI features; sensitive scopes rem
   assert.match(api, /payout_changes/);
   assert.match(consent, /full operational control/);
   assert.match(consent, /every AI feature and AI agent/);
+  assert.match(consent, /unlimited permission in scope/);
+  assert.match(consent, /subscription and usage entitlements/);
   assert.match(consent, /Separate high-impact permissions/);
 });
 
