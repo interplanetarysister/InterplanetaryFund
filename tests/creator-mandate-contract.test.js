@@ -11,6 +11,9 @@ const review = await readFile(new URL("../apps/web/src/pages/CreatorReview.jsx",
 const admin = await readFile(new URL("../apps/web/src/pages/ManagedCreatorMandates.jsx", import.meta.url), "utf8");
 const policy = await readFile(new URL("../worker/agents/campaignPolicy.js", import.meta.url), "utf8");
 const aiGate = await readFile(new URL("../supabase/migrations/20261118180000_ifund_creator_mandate_story_ai_gate.sql", import.meta.url), "utf8");
+const representation = await readFile(new URL("../supabase/migrations/20261118190000_ifund_managed_campaign_representation.sql", import.meta.url), "utf8");
+const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
+const campaignDetail = await readFile(new URL("../apps/web/src/pages/CampaignDetail.jsx", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -134,4 +137,28 @@ test("managed mandate identifiers are validated and carried through Story input 
     details: "Prepare a truthful private fundraiser story from verified facts.",
     managed_mandate_id: "not-a-uuid",
   }), /valid managed creator authorization/);
+});
+
+
+test("managed campaign linkage preserves admin ownership and creator attribution without enabling publication", () => {
+  assert.match(representation, /create table if not exists public\.ifund_managed_campaign_profiles/);
+  assert.match(representation, /enable row level security/);
+  assert.match(representation, /grant select \(campaign_id,creator_name,beneficiary_name,fundraiser_label,management_disclosure,created_at\)/);
+  assert.match(representation, /status='draft'/);
+  assert.match(representation, /owner_id=v_actor/);
+  assert.match(representation, /creator_review_state <> 'approved'/);
+  assert.match(representation, /campaign content does not match the creator-approved draft/i);
+  assert.match(representation, /ifund_creator_mandate_events/);
+  assert.match(representation, /'campaign_linked'/);
+  assert.match(representation, /ifund_block_managed_campaign_publication/);
+  assert.match(representation, /Managed fundraiser publication is disabled/);
+  assert.doesNotMatch(representation, /grant insert[^;]*authenticated/i);
+  assert.match(api, /action === "link_campaign"/);
+  assert.match(api, /ifund_creator_mandate_link_campaign/);
+  assert.match(admin, /saveOwnerCampaign/);
+  assert.match(admin, /creator_review_state==="approved"/);
+  assert.match(admin, /canonical campaign draft is owned by the assigned IFund admin/);
+  assert.match(review, /Fundraising goal/);
+  assert.match(publicData, /ifund_managed_campaign_profiles/);
+  assert.match(campaignDetail, /Creator and beneficiary/);
 });
