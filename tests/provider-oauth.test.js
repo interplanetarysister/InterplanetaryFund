@@ -21,7 +21,7 @@ test('inactive members cannot initiate a provider connection', async () => {
 });
 
 const uid = 'a09c3b82-1758-454d-912c-e69ea4136daa';
-const base = 'https://preview.example';
+const base = 'https://interplanetaryfund.com';
 const key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 const opaqueSecretKey = ['sb', 'secret'].join('_') + '_test_key_for_oauth_vault_123456';
 const env = {
@@ -30,7 +30,7 @@ const env = {
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
   SUPABASE_SECRET_KEY: opaqueSecretKey,
   OAUTH_ENCRYPTION_KEY: key,
-  OAUTH_FRONTEND_ORIGINS: base,
+  OAUTH_FRONTEND_ORIGINS: 'https://interplanetaryfund.com,https://www.interplanetaryfund.com',
   GOOGLE_OAUTH_CLIENT_ID: 'google-client-id',
   GOOGLE_OAUTH_CLIENT_SECRET: 'google-client-secret',
   META_OAUTH_CLIENT_ID: '1427538482140267',
@@ -155,6 +155,7 @@ test('provider status exposes readiness booleans only and respects provider appr
   });
   const fetcher = async (url) => {
     if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_admin')) return Response.json(true);
     throw Error('unexpected fetch');
   };
   const r = await routeOAuthRequest(request, env, fetcher);
@@ -772,8 +773,11 @@ test('enabled Connections reports provider availability before credentials are i
   const request = new Request(base + '/api/oauth/status', {
     headers: { authorization: 'Bearer verified.test.jwt', origin: base },
   });
-  const result = await routeOAuthRequest(request, { ...remaining, OAUTH_ENCRYPTION_KEY: '' }, async () =>
-    Response.json({ id: uid }));
+  const result = await routeOAuthRequest(request, { ...remaining, OAUTH_ENCRYPTION_KEY: '' }, async (url) => {
+    if (String(url).endsWith('/auth/v1/user')) return Response.json({ id: uid });
+    if (String(url).endsWith('/rpc/ifund_current_user_is_verified_admin')) return Response.json(true);
+    throw Error('unexpected fetch');
+  });
   assert.equal(result.status, 200);
   const data = await result.json();
   assert.equal(data.enabled, true);
