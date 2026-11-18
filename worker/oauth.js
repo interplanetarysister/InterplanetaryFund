@@ -700,7 +700,11 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
   if (url.pathname === '/api/oauth/status') {
     if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
-    const origin = oauthCorsOrigin(request, env);
+    const sameOriginDiagnostic = request.method === 'GET' &&
+      !request.headers.get('origin') &&
+      request.headers.get('Sec-Fetch-Site') === 'same-origin' &&
+      url.protocol === 'https:';
+    const origin = oauthCorsOrigin(request, env) || (sameOriginDiagnostic ? url.origin : '');
     if (!origin) return response(403, { error: 'Origin not allowed.' });
     const runtime = oauthRuntimeRequirements(env);
     const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
