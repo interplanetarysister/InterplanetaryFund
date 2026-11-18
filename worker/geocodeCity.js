@@ -37,7 +37,7 @@ async function consumeQuota(env, key, bucket, limit, seconds, fetcher) {
   return allowed;
 }
 
-/** City-centre lookup only. Default disabled; no Base44 or campaign writes. */
+/** City-centre lookup only. Default disabled; no legacy platform or campaign writes. */
 export async function routeGeocodeCity(request, env = {}, fetcher = fetch, cache = globalThis.caches?.default) {
   if (new URL(request.url).pathname !== '/api/geocode/city') return response(404, { error: 'Not found.' });
   if (request.method !== 'POST') return response(405, { error: 'Method not allowed.' });
