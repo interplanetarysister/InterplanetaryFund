@@ -7,7 +7,7 @@ const member=readFileSync(new URL("../src/pages/Connections.jsx",import.meta.url
 test("admin integrations route exists, is server-role guarded, and cannot leak secrets",()=>{
  assert.match(app,/path="\/admin\/integrations" element=\{<MemberAccess><AdminAccess><AdminConnections \/><\/AdminAccess><\/MemberAccess>\}/);
  assert.match(admin,/\/api\/oauth\/status/);
- assert.match(admin,/These binding names belong in the Cloudflare Worker environment/);
+ assert.match(admin,/These binding names belong in the Cloudflare Pages Function runtime/);
  assert.match(admin,/never exposes credentials/);
  assert.match(app,/path="\/admin\/integrations" element=\{<MemberAccess><AdminAccess>/);
  assert.match(member,/adminStatus==="admin" && <details/);
