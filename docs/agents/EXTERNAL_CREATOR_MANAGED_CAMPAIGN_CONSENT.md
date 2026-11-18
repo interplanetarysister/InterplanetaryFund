@@ -50,3 +50,19 @@ This branch implements the private mandate database, random hashed expiring invi
 The feature branch now contains migration `20261118170000_ifund_managed_external_donation_destinations_20261118.sql`. It creates a private, service-role-only destination record with the exact HTTPS donation URL, named provider, declared destination owner/relationship, creator approval timestamp and URL hash, independent provider-ownership verification evidence, and a separate compliance-check record. The state cannot become `ready` unless all three approvals exist and the destination is linked to the canonical campaign. The audit event vocabulary has corresponding destination-request, creator-approval, provider-verification, compliance-check, rejection and revocation events.
 
 This is intentionally only a schema foundation. It has **not** been applied to production, and the Edge Function, creator review UI, public campaign projection, and publication trigger do not yet read or enforce this record. The current publication trigger remains blocking. No direct-provider donation button is enabled. Before the destination can be used, implement the admin request flow, creator's token-authenticated approval of the exact URL (including a stored URL hash to invalidate approval after edits), independent provider-account ownership verification, compliance review, public disclosure projection, and a publication gate that checks the mandate's separate `publish` scope plus all destination checks. Keep IFund-native checkout and payment-ledger rejection in place for every managed beneficiary campaign.
+
+
+## Direct-to-provider destination workflow implementation (branch only)
+
+The branch now contains the end-to-end application flow for requesting and approving an external donation destination, while preserving the existing managed-campaign publication block:
+
+- The assigned super-admin can submit a provider label, exact HTTPS donation URL, destination account owner and relationship. Creation requires an active assigned mandate, a linked canonical IFund campaign, creator approval of the campaign draft, and the separately selected `publish` scope.
+- The creator receives a high-entropy, one-time token link. The token is stored only as a SHA-256 hash. The creator review page shows the exact URL and destination owner and requires an explicit approval action.
+- The approval endpoint rechecks mandate status, expiry and publish scope. It stores a SHA-256 hash of the exact approved URL, consumes the token, and advances the destination to provider verification.
+- The assigned super-admin records evidence of provider-account ownership verification, then separately records compliance review evidence. A destination can reach `ready` only after both checks and creator approval.
+- The database trigger locks the mandate row while destination records change, rechecks active/expiry/publish authorization, prevents mutation of the creator-approved URL, and allows safe revocation after mandate expiry/revocation.
+- Draft resubmission, creator change requests, creator revocation and admin revocation invalidate outstanding destinations. The public campaign still cannot publish and no external donation CTA is enabled by this workflow.
+- Provider verification and compliance are manual evidence attestations by the assigned admin in this branch; this does not claim an automated provider API verification or independent third-party compliance decision.
+- Admin and creator UI, API client, Edge Function actions and contract tests are wired together in source.
+
+The migration and Edge Function changes are **not deployed**. The branch's Edge Function currently running in production remains the earlier version. The new migration must be validated against the project schema before applying. The public publication gate remains intentionally blocking, so a `ready` destination is not yet a public donation route.
