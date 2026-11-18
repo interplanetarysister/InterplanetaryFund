@@ -281,3 +281,15 @@ test("communications drafting and saving require donor_messaging scope at the da
   assert.match(communications, /requireCampaignScopeAccess\(api, input\.campaign_id, "donor_messaging"\)/);
   assert.match(communications, /await requireCampaignScopeAccess\(api, input\.campaign_id, "donor_messaging"\);/);
 });
+
+
+test("managed campaign drafting exposes five title choices, two descriptions, and independent regeneration", () => {
+  assert.match(admin, /slice\(0, 5\)/);
+  assert.match(admin, /slice\(0, 2\)/);
+  assert.match(admin, /Regenerate five titles/);
+  assert.match(admin, /Regenerate two descriptions/);
+  assert.match(admin, /Regenerate story/);
+  assert.match(admin, /maxLength=\{1200\}/);
+  assert.match(admin, /setTitleOptions\(\[\]\)/);
+  assert.match(admin, /setSummaryOptions\(\[\]\)/);
+});
