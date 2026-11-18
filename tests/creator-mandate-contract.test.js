@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { storyInput } from "../worker/agents/story.js";
 import { campaignPreviewInput } from "../worker/services/campaign-preview.js";
-import { requireCampaignAIAccess } from "../worker/agents/memberApi.js";
+import { requireCampaignAIAccess, requireCampaignScopeAccess } from "../worker/agents/memberApi.js";
 
 const migration = await readFile(new URL("../supabase/migrations/20261118090000_ifund_external_creator_managed_mandates.sql", import.meta.url), "utf8");
 const api = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
@@ -19,6 +19,8 @@ const campaignAgentGate = await readFile(new URL("../supabase/migrations/2026111
 const strategy = await readFile(new URL("../worker/agents/strategy.js", import.meta.url), "utf8");
 const communications = await readFile(new URL("../worker/agents/communications.js", import.meta.url), "utf8");
 const memberApi = await readFile(new URL("../worker/agents/memberApi.js", import.meta.url), "utf8");
+const scopeGate = await readFile(new URL("../supabase/migrations/20261118194500_ifund_campaign_mandate_scope_access.sql", import.meta.url), "utf8");
+const managedConnections = await readFile(new URL("../worker/agents/managedConnections.js", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -189,5 +191,29 @@ test("campaign-scoped Story, Strategy, Growth and Communications AI are checked 
   await assert.rejects(
     requireCampaignAIAccess({ rpc: async () => false }, campaignId),
     /not authorized for AI assistance/,
+  );
+});
+
+
+test("creator account-connection permission is enforced separately from broad AI consent", async () => {
+  assert.match(scopeGate, /ifund_campaign_mandate_scope_access/);
+  assert.match(scopeGate, /m\.scopes->>p_scope='true'/);
+  assert.match(scopeGate, /account_connections/);
+  assert.match(managedConnections, /requireCampaignScopeAccess/);
+  assert.match(managedConnections, /"account_connections"/);
+  const campaignId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  let scopeArgs;
+  await requireCampaignScopeAccess({
+    rpc: async (name, args) => {
+      scopeArgs = { name, args };
+      return true;
+    },
+  }, campaignId, "account_connections");
+  assert.equal(scopeArgs.name, "ifund_campaign_mandate_scope_access");
+  assert.equal(scopeArgs.args.p_campaign_id, campaignId);
+  assert.equal(scopeArgs.args.p_scope, "account_connections");
+  await assert.rejects(
+    requireCampaignScopeAccess({ rpc: async () => false }, campaignId, "account_connections"),
+    /does not include this campaign permission/,
   );
 });
