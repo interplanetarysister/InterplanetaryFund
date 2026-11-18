@@ -601,6 +601,11 @@ export async function storyRoute(request, env, fetcher = fetch) {
     }
     const input = storyInput(raw);
     const verifyManagedMandate = async () => {
+      if (input.campaign_id) {
+        const campaignAllowed = await rpc("ifund_campaign_agent_ai_access", { p_campaign_id: input.campaign_id });
+        if (campaignAllowed !== true)
+          fail(403, "This campaign is not authorized for AI assistance under the current creator mandate.");
+      }
       if (!input.managed_mandate_id) return true;
       const authorized = await rpc("ifund_creator_mandate_ai_authorized", {
         p_mandate_id: input.managed_mandate_id,
