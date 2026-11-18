@@ -53,7 +53,7 @@ export default function ManagedCreatorMandates() {
     try {
       const result = await adminCreatorMandateRequest("verify_identity", { mandate_id: selected.id, identity_evidence_note: evidence });
       setReviewUrl(result.review_token ? "Identity verified. A new review link will be generated when the draft is ready." : "");
-      setEvidence(""); setNotice("Identity verification recorded. Private Story AI drafting is available for this mandate while it remains active. Other specialist agents and high-impact actions are not yet connected.");
+      setEvidence(""); setNotice("Identity verification recorded. Private Story AI drafting is available for this mandate while it remains active. Story, Strategy, Growth and Communications AI endpoints now enforce the linked mandate. This page launches Story drafting; Connections, external delivery, publishing, and financial actions remain disabled.");
       await refresh();
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
