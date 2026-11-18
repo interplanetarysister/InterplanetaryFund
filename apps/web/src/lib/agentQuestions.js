@@ -19,7 +19,7 @@ export async function askIFundAgent(client,{question,agent="auto",ownerId,fetche
     method:"POST",
     headers:{"Content-Type":"application/json",
       Authorization:"Bearer "+session.data.session.access_token},
-    body:JSON.stringify({question:question.trim(),agent}),signal,
+    body:JSON.stringify({request_id:crypto.randomUUID(),question:question.trim(),agent}),signal,
   });
   const result=await response.json().catch(()=>null);
   const again=await client.auth.getUser();
@@ -34,5 +34,5 @@ export async function askIFundAgent(client,{question,agent="auto",ownerId,fetche
      !["nexus","story","orbit","polaris","forge","echo","pulse","link","discover"].includes(result.agent))
     throw Error("The agent response could not be verified.");
   return {agent:result.agent,answer:result.answer.trim(),
-    coordination_needed:result.coordination_needed===true};
+    coordination_needed:result.coordination_needed===true,context_saved:result.context_saved===true};
 }
