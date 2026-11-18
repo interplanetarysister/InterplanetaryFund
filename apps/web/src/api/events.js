@@ -18,7 +18,7 @@ export const PUBLIC_EVENT_COLUMNS = [
   "published_at","created_at","updated_at",
 ].join(",");
 export const ITEM_COLUMNS = [
-  "id","event_id","owner_id","item_type","title","description","estimated_value_cents",
+  "id","event_id","item_type","title","description","estimated_value_cents",
   "starting_bid_cents","checkout_provider","checkout_url","status","created_at","updated_at",
 ].join(",");
 export const ACTIVITY_COLUMNS = [
@@ -252,7 +252,7 @@ export async function saveOwnerEventItem(client, eventId, input, { id = null } =
     const { data, error } = await client.from("ifund_event_items")
       .insert({ ...payload, event_id: eventId, owner_id: owner })
       .select(ITEM_COLUMNS).single();
-    if (error || !data || data.owner_id !== owner || data.event_id !== eventId)
+    if (error || !data || data.event_id !== eventId)
       throw new Error("The event item could not be saved.");
     await sessionUnchanged(client, owner);
     return data;
