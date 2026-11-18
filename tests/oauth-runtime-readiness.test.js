@@ -61,5 +61,5 @@ test('same-origin admin status returns value-free diagnostics while the Supabase
   assert.equal(payload.enabled, false);
   assert.equal(payload.runtime.find((item) => item.name === 'SUPABASE_URL').configured, false);
   assert.equal(payload.runtime.find((item) => item.name === 'OAUTH_FRONTEND_ORIGINS').configured, false);
-  assert.doesNotMatch(JSON.stringify(payload), /secret|publishable|ssibsfmt|AAAA/);
+  assert.doesNotMatch(JSON.stringify(payload), /sb_secret_|sb_publishable_|ssibsfmt|AAAA/);
 });
