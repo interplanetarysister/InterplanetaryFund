@@ -74,6 +74,8 @@ test("creator tokens are random, hashed, expiring and single-use for consent", (
   assert.match(api, /request_too_large/);
   assert.match(api, /invalid_json/);
   assert.match(api, /consent_token_hash: null/);
+  assert.match(api, /if \(!declined\) return json\(409/);
+  assert.match(api, /eq\("consent_token_hash", await hash\(publicToken\)\)/);
 });
 
 test("creator must affirm full control and all AI features; sensitive scopes remain separate", () => {
