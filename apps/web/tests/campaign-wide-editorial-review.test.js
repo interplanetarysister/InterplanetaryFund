@@ -14,13 +14,13 @@ const base={
  category:"community",goal_amount:"1000",cover_image_url:"https://example.org/cover.jpg",
 };
 
-test("minimum 3,500 full-story characters block new publishing without blocking drafts",()=>{
+test("minimum 3,500 characters is advisory, not a publication requirement",()=>{
  const short={...base,story:"Useful details.".repeat(200)};
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
- assert.equal(publishReadiness(short).ready,false);
+ assert.equal(publishReadiness(short).ready,true);
  const long={...short,story:"Useful details.".repeat(250)};
  assert.equal(reviewCampaignPublication(long).storyCharacters, 3750);
- assert.equal(publishReadiness(long).ready,false, "A single repeated sentence does not satisfy the required structure");
+ assert.equal(publishReadiness(long).ready,true, "Repeated story text is an advisory finding");
  const sentence="We will responsibly document the use of funds and keep our community informed "+ "x".repeat(550)+".";
  const structured=[sentence+" "+sentence+" "+sentence,sentence+" "+sentence+" "+sentence].join("\n\n");
  assert.ok(structured.length>=3500);
@@ -85,7 +85,7 @@ test("owner-only discussion RPC rejects anonymous and cross-owner posting and av
  assert.match(board,/not proof of live agent discussion/);
 });
 
-test("server gate trims whitespace consistently before counting publication length",()=>{
+test("historical whitespace-alignment migration remains present for audit",()=>{
  const sql=source("../../../supabase/migrations/20261113_ifund_prepublication_whitespace_alignment.sql");
  assert.match(sql,/regexp_replace/);
  assert.match(sql,/\[\[:space:\]\]/);
