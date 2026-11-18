@@ -1,17 +1,18 @@
-// The four stable bottom destinations are shared by the responsive web app
-// and installed mobile PWA. Restricted destinations show login or plan access.
-export const AUTH_TABS = Object.freeze(['/agents','/profile','/social','/community']);
-export const PUBLIC_TABS = Object.freeze(['/agents','/profile','/social','/community']);
+// The five main mobile destinations prioritize discovering and creating campaigns.
+// The full drawer retains AI, forums, finances and account-specific destinations.
+export const AUTH_TABS = Object.freeze(['/','/discover','/create','/social','/profile']);
+export const PUBLIC_TABS = AUTH_TABS;
 const PREFIXES=Object.freeze({
-  '/agents':['/agents','/mission'],
-  '/profile':['/profile','/u','/my-blog','/devices','/giving','/following','/subscriptions','/plans','/withdrawals','/ledger'],
-  '/social':['/social'],
-  '/community':['/community','/blogs'],
+  '/':['/','/dashboard'],
+  '/discover':['/discover','/campaign','/globe','/shorts','/institutions'],
+  '/create':['/create','/campaigns','/fundraising-partners'],
+  '/social':['/social','/community','/blogs','/news'],
+  '/profile':['/profile','/u','/my-blog','/devices','/giving','/following','/subscriptions','/plans','/withdrawals','/ledger','/agents','/mission'],
 });
 export function owningNavigationTab(pathname,isAuthenticated=false) {
   const tabs=isAuthenticated?AUTH_TABS:PUBLIC_TABS;
   for(const tab of tabs) {
-    if((PREFIXES[tab]||[tab]).some(prefix=>pathname===prefix||pathname.startsWith(prefix+'/')))
+    if((PREFIXES[tab]||[tab]).some(prefix=>pathname===prefix||(prefix!=="/"&&pathname.startsWith(prefix+'/'))))
       return tab;
   }
   return null;
