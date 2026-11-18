@@ -6,20 +6,20 @@ alter table public.ifund_event_items
 alter table public.ifund_event_items
   add constraint ifund_event_items_checkout_host check (
     checkout_url is null or (
-      checkout_url ~* '^https://([a-z0-9-]+\\.)*(eventbrite\\.com|paypal\\.com|paypal\\.me|32auctions\\.com|auctria\\.com|givesmart\\.com|givebutter\\.com|zeffy\\.com|betterunite\\.com|onecause\\.com)(/|[?#]|$)'
+      checkout_url ~* '^https://([a-z0-9-]+\.)*(eventbrite\.com|paypal\.com|paypal\.me|32auctions\.com|auctria\.com|givesmart\.com|givebutter\.com|zeffy\.com|betterunite\.com|onecause\.com)(/|[?#]|$)'
       and checkout_url !~ '[[:space:]]'
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
       and (
-        (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\\.)*eventbrite\\.com(/|[?#]|$)') or
-        (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\\.)*(paypal\\.com|paypal\\.me)(/|[?#]|$)') or
-        (checkout_provider='32auctions' and checkout_url ~* '^https://([a-z0-9-]+\\.)*32auctions\\.com(/|[?#]|$)') or
-        (checkout_provider='auctria' and checkout_url ~* '^https://([a-z0-9-]+\\.)*auctria\\.com(/|[?#]|$)') or
-        (checkout_provider='givesmart' and checkout_url ~* '^https://([a-z0-9-]+\\.)*givesmart\\.com(/|[?#]|$)') or
-        (checkout_provider='givebutter' and checkout_url ~* '^https://([a-z0-9-]+\\.)*givebutter\\.com(/|[?#]|$)') or
-        (checkout_provider='zeffy' and checkout_url ~* '^https://([a-z0-9-]+\\.)*zeffy\\.com(/|[?#]|$)') or
-        (checkout_provider='betterunite' and checkout_url ~* '^https://([a-z0-9-]+\\.)*betterunite\\.com(/|[?#]|$)') or
-        (checkout_provider='onecause' and checkout_url ~* '^https://([a-z0-9-]+\\.)*onecause\\.com(/|[?#]|$)')
+        (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\.)*eventbrite\.com(/|[?#]|$)') or
+        (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\.)*(paypal\.com|paypal\.me)(/|[?#]|$)') or
+        (checkout_provider='32auctions' and checkout_url ~* '^https://([a-z0-9-]+\.)*32auctions\.com(/|[?#]|$)') or
+        (checkout_provider='auctria' and checkout_url ~* '^https://([a-z0-9-]+\.)*auctria\.com(/|[?#]|$)') or
+        (checkout_provider='givesmart' and checkout_url ~* '^https://([a-z0-9-]+\.)*givesmart\.com(/|[?#]|$)') or
+        (checkout_provider='givebutter' and checkout_url ~* '^https://([a-z0-9-]+\.)*givebutter\.com(/|[?#]|$)') or
+        (checkout_provider='zeffy' and checkout_url ~* '^https://([a-z0-9-]+\.)*zeffy\.com(/|[?#]|$)') or
+        (checkout_provider='betterunite' and checkout_url ~* '^https://([a-z0-9-]+\.)*betterunite\.com(/|[?#]|$)') or
+        (checkout_provider='onecause' and checkout_url ~* '^https://([a-z0-9-]+\.)*onecause\.com(/|[?#]|$)')
       )
     )
   );
