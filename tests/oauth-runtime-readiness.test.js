@@ -16,6 +16,8 @@ test('OAuth runtime diagnostics identify every required binding without returnin
   const checks = oauthRuntimeRequirements(validEnv);
   assert.equal(checks.length, 6);
   assert.ok(checks.every((item) => item.configured === true));
+  const wrongProject = oauthRuntimeRequirements({ ...validEnv, SUPABASE_URL: 'https://another-project.supabase.co' });
+  assert.equal(wrongProject.find((item) => item.name === 'SUPABASE_URL').configured, false);
   assert.deepEqual(checks.map((item) => item.name), [
     'OAUTH_API_ENABLED',
     'OAUTH_FRONTEND_ORIGINS',
