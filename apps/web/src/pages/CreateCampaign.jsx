@@ -56,6 +56,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   const campaignId = useRef(draftId || null);
   const saveLock = useRef(false);
   const wizardSaveStep=useRef(null);
+  const aiReturnStep=useRef(1);
   const headingRef=useRef(null);
   const pendingFocusRef=useRef(null);
   const storyEditStarted=useRef(false);
@@ -553,7 +554,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     <nav aria-label="Three-step campaign creation progress" className="space-y-3">
       <ol className="grid grid-cols-3 gap-2">{WIZARD_STEPS.slice(1).map((label,index)=><li key={label} aria-current={step===index+1?"step":undefined}><button type="button" disabled={disabled||index+1>step} onClick={()=>advanceWizard(index+1)} className={"min-h-12 w-full rounded-xl border p-2 text-xs sm:p-3 sm:text-sm "+(step===index+1?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol>
       <p className="text-xs text-muted-foreground">Three essential steps. Save privately at any point; publishing requires a verified account.</p>
-      <button type="button" disabled={disabled} onClick={()=>advanceWizard(step===0?1:0)} className="min-h-11 text-sm font-medium text-primary underline underline-offset-4 disabled:opacity-50">{step===0?"Return to campaign basics":"Optional AI preparation and writing preferences"}</button>
+      <button type="button" disabled={disabled} onClick={()=>{if(step===0)advanceWizard(aiReturnStep.current);else{aiReturnStep.current=step;advanceWizard(0);}}} className="min-h-11 text-sm font-medium text-primary underline underline-offset-4 disabled:opacity-50">{step===0?"Return to campaign editor":"Optional AI preparation and writing preferences"}</button>
     </nav>
     <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
