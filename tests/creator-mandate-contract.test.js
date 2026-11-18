@@ -21,6 +21,9 @@ const communications = await readFile(new URL("../worker/agents/communications.j
 const memberApi = await readFile(new URL("../worker/agents/memberApi.js", import.meta.url), "utf8");
 const scopeGate = await readFile(new URL("../supabase/migrations/20261118194500_ifund_campaign_mandate_scope_access.sql", import.meta.url), "utf8");
 const managedConnections = await readFile(new URL("../worker/agents/managedConnections.js", import.meta.url), "utf8");
+const revisionGate = await readFile(new URL("../supabase/migrations/20261118163500_ifund_managed_campaign_revision_gate.sql", import.meta.url), "utf8");
+const auditGuard = await readFile(new URL("../supabase/migrations/20261118164000_ifund_managed_campaign_audit_guard_hardening.sql", import.meta.url), "utf8");
+const mandateApi = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -216,4 +219,21 @@ test("creator account-connection permission is enforced separately from broad AI
     requireCampaignScopeAccess({ rpc: async () => false }, campaignId, "account_connections"),
     /does not include this campaign permission/,
   );
+});
+
+
+test("managed campaign revisions require fresh creator approval and create an audit event", () => {
+  assert.match(revisionGate, /ifund_creator_mandate_sync_campaign_draft/);
+  assert.match(revisionGate, /creator_review_state <> 'approved'/);
+  assert.match(revisionGate, /Managed campaign content must exactly match the creator-approved revision/);
+  assert.match(auditGuard, /ifund_current_user_is_verified_super_admin/);
+  assert.match(auditGuard, /ifund_current_account_is_active/);
+  assert.match(auditGuard, /ifund_current_user_has_current_terms/);
+  assert.match(auditGuard, /v_mandate\.assigned_admin_id is distinct from auth\.uid\(\)/);
+  assert.match(auditGuard, /v_mandate\.creator_review_state <> 'approved'/);
+  assert.match(auditGuard, /'draft_synced'/);
+  assert.doesNotMatch(auditGuard, /set_config\(/);
+  assert.match(mandateApi, /action === "sync_campaign"/);
+  assert.match(mandateApi, /ifund_creator_mandate_sync_campaign_draft/);
+  assert.match(admin, /Apply approved revision to IFund draft/);
 });
