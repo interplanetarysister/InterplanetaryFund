@@ -21,8 +21,11 @@ function scopedRecord(storage, ownerId) {
       if (parsed?.version === 2 && parsed.owner_id === ownerId &&
           parsed.form && typeof parsed.form === "object" && !Array.isArray(parsed.form)) {
         storage.setItem(key, legacy);
+        // Never delete the original until the exact copy can be read back.
+        // Silent storage write failures must leave the only recoverable record.
+        if (storage.getItem(key) !== legacy) return null;
         storage.removeItem(KEY);
-        raw = legacy;
+        raw = storage.getItem(key);
       }
     }
   }
@@ -36,7 +39,9 @@ function scopedRecord(storage, ownerId) {
       try { parsed = JSON.parse(legacyGuest); } catch { /* keep corrupt text */ }
       if (parsed?.version === 2 && parsed.owner_id === null) {
         storage.setItem(ownerKey(null), legacyGuest);
-        storage.removeItem(KEY);
+        // An ignored write must not consume a legacy guest's private draft.
+        if (storage.getItem(ownerKey(null)) === legacyGuest)
+          storage.removeItem(KEY);
       }
     }
   }
