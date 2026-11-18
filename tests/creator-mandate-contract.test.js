@@ -317,10 +317,10 @@ test("managed beneficiary campaigns are rejected by the server before IFund paym
 
 
 test("managed external donation destinations are private, creator-approved, provider-verified and compliance-gated", () => {
-  assert.match(externalDestination, /create table if not exists public\\.ifund_managed_external_destinations/);
+  assert.match(externalDestination, /create table if not exists public\.ifund_managed_external_destinations/);
   assert.match(externalDestination, /enable row level security/);
-  assert.match(externalDestination, /revoke all on table public\\.ifund_managed_external_destinations from public,anon,authenticated/);
-  assert.match(externalDestination, /grant select,insert,update on table public\\.ifund_managed_external_destinations to service_role/);
+  assert.match(externalDestination, /revoke all on table public\.ifund_managed_external_destinations from public,anon,authenticated/);
+  assert.match(externalDestination, /grant select,insert,update on table public\.ifund_managed_external_destinations to service_role/);
   assert.match(externalDestination, /creator_approved_url_sha256/);
   assert.match(externalDestination, /provider_owner_verified_at/);
   assert.match(externalDestination, /provider_verification_evidence/);
