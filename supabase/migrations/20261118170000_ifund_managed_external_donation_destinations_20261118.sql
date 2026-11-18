@@ -122,6 +122,15 @@ begin
       raise exception 'creator-approved destination details are immutable; request a new approval';
     end if;
 
+    if old.creator_approved_at is not null and (
+      new.creator_approved_at is distinct from old.creator_approved_at
+      or new.creator_approved_url_sha256 is distinct from old.creator_approved_url_sha256
+      or new.creator_approved_by_token is distinct from old.creator_approved_by_token
+      or new.creator_approval_token_hash is distinct from old.creator_approval_token_hash
+    ) then
+      raise exception 'creator approval evidence is immutable';
+    end if;
+
     if old.provider_owner_verified_at is not null and (
       new.provider_owner_verified_at is distinct from old.provider_owner_verified_at
       or new.provider_owner_verified_by is distinct from old.provider_owner_verified_by
