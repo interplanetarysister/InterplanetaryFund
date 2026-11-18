@@ -102,6 +102,19 @@ Deno.serve(async (req) => {
       return json(200, { mandate: consentPacket(row) }, origin);
     }
 
+    if (action === "decline" && req.method === "POST") {
+      if (!/^[a-f0-9]{64}$/.test(publicToken)) return json(404, { error: "invitation_not_found" }, origin);
+      const { data: row, error } = await publicDb.from("ifund_creator_mandates").select("id")
+        .eq("consent_token_hash", await hash(publicToken)).eq("status", "invited").gt("expires_at", new Date().toISOString()).maybeSingle();
+      if (error || !row) return json(404, { error: "invitation_expired_or_unavailable" }, origin);
+      const { error: updateError } = await publicDb.from("ifund_creator_mandates").update({
+        status: "declined", consent_token_hash: null, updated_at: new Date().toISOString(),
+      }).eq("id", row.id).eq("status", "invited");
+      if (updateError) throw updateError;
+      await event(publicDb, row.id, "creator", null, "declined");
+      return json(200, { declined: true }, origin);
+    }
+
     if (action === "accept" && req.method === "POST") {
       if (!/^[a-f0-9]{64}$/.test(publicToken)) return json(404, { error: "invitation_not_found" }, origin);
       const { data: row, error } = await publicDb.from("ifund_creator_mandates").select("*")
