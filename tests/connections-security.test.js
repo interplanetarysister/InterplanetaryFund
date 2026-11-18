@@ -5,6 +5,8 @@ import { PGlite } from "@electric-sql/pglite";
 import { connectionCatalog, connectionMethods, connectionProvider } from "../worker/connections/catalog.js";
 import { oauthProviders } from "../worker/oauth.js";
 import { sandboxConfigured } from "../worker/paypalSandboxSecurity.js";
+import { appendTeamContext, readTeamContext, readCampaignDocumentContext } from "../worker/agents/teamContext.js";
+import { cleanupPrivateCampaignDocuments } from "../worker/services/privateDocumentErasure.js";
 import providerCatalog from "../worker/connections/provider-catalog.js";
 import positionContracts from "../worker/services/position-contracts.js";
 import skillManifest from "../worker/services/skills/manifest.js";
@@ -103,6 +105,29 @@ test("runtime JavaScript catalogs exactly match their retained canonical JSON so
 });
 
 
+
+
+test("team context and privileged document cleanup refuse non-canonical Supabase projects", async () => {
+ const wrong = {
+  SUPABASE_URL: "https://another-project.supabase.co",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_key",
+  SUPABASE_SECRET_KEY: ["sb","secret"].join("_") + "_test_key_with_sufficient_length",
+  IFUND_TEAM_CONTEXT_ENABLED: "enabled",
+  IFUND_CAMPAIGN_DOCUMENTS_ENABLED: "enabled",
+ };
+ const fetcher = () => assert.fail("A non-canonical project must not receive requests.");
+ await assert.rejects(appendTeamContext({
+  env: wrong, jwt: "test.member.token", eventKey: owner, agentId: "story",
+  content: "hello", speaker: "user", fetcher,
+ }), /canonical IFund project/i);
+ await assert.rejects(readTeamContext({ env: wrong, jwt: "test.member.token", fetcher }), /canonical IFund project/i);
+ await assert.rejects(readCampaignDocumentContext({
+  env: wrong, jwt: "test.member.token", campaignId: ownedCampaign, fetcher,
+ }), /canonical IFund project/i);
+ await assert.rejects(cleanupPrivateCampaignDocuments({
+  env: wrong, requestId: owner, jwt: "test.admin.token", fetcher,
+ }), /not configured/i);
+});
 
 test("PayPal sandbox runtime is pinned to the canonical Supabase project", () => {
  const valid = {
