@@ -1,3 +1,4 @@
+import { handleAlternatePayments } from "./alternateCheckout.mjs";
 // iFund Cloudflare payment API — verified PayPal Orders v2; no browser card data.
 // Live activation requires IFUND_PAYMENTS_ENABLED=true after independent checkout
 // and webhook/ledger verification. Existing secrets remain in Cloudflare Secrets Store.
@@ -724,6 +725,13 @@ export default {
       "access-control-allow-methods":"GET,POST,OPTIONS","access-control-allow-headers":"Content-Type,Authorization"}:{};
     if(request.method==="OPTIONS")return new Response(null,{status:permitted.includes(origin)?204:403,headers:cors});
     const path=url.pathname;
+    // Independent wallet/crypto endpoints have their own opt-in, ledger and signature gates.
+    // Do not couple their readiness to the PayPal enable switch.
+    if(path.startsWith("/api/payments/alternatives/")) {
+      const response=await handleAlternatePayments(request,env);
+      for(const [k,v] of Object.entries(cors))response.headers.set(k,v);
+      return response;
+    }
     if(path==="/api/payments/health")return asJson({ok:true,service:"ifund-payments",enabled:env.IFUND_PAYMENTS_ENABLED==="true",
       mode:env.IFUND_PAYPAL_MODE||"unset",version:"verified-ledger-v1"},200,cors);
     if(path==="/api/payments/payouts/readiness"&&request.method==="GET"){
