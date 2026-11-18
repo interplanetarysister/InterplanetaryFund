@@ -202,6 +202,8 @@ export async function saveOwnerEvent(client, input, { id = null } = {}) {
       .select("id,owner_id,status").eq("id", payload.campaign_id).eq("owner_id", owner).maybeSingle();
     if (error || !campaign || campaign.owner_id !== owner)
       throw new Error("Choose a campaign that belongs to your account.");
+    if (payload.status === "published" && campaign.status !== "active")
+      throw new Error("Publish your linked IFund campaign before publishing its public event.");
   }
   if (id === null) {
     const { data, error } = await client.from("ifund_events")
