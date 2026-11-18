@@ -211,7 +211,7 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <input type="checkbox" disabled={checkoutLocked} className="mt-1 h-4 w-4 accent-cyan-600" checked={support} onChange={e=>setSupport(e.target.checked)}/>
           <span className="font-semibold">Add 10% optional support for Interplanetary Fund <span className="mt-1 block text-xs font-normal text-slate-600">Entirely optional, separate from the campaign donation; unchecked by default.</span></span>
         </label>
-        {valid&&<section aria-label="Your PayPal payment summary" aria-live="polite" className="overflow-hidden rounded-2xl border border-[#c9d9f1] bg-[#f6f9ff] text-sm text-[#183153] shadow-sm">
+        {valid&&<section aria-label="Your donation payment summary" aria-live="polite" className="overflow-hidden rounded-2xl border border-[#c9d9f1] bg-[#f6f9ff] text-sm text-[#183153] shadow-sm">
           <div className="flex items-center justify-between border-b border-[#dce6f5] bg-white px-4 py-3">
             <h3 className="font-bold text-[#003087]">Your payment summary</h3>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#127549]"><CircleCheck className="h-3.5 w-3.5" /> Reviewed before payment</span>
@@ -219,10 +219,10 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
           <dl className="space-y-2 px-4 py-4">
             <div className="flex justify-between gap-4"><dt>Campaign donation</dt><dd className="font-semibold tabular-nums">{"$"+(gift/100).toFixed(2)}</dd></div>
             <div className="flex justify-between gap-4"><dt>Optional IFund platform support</dt><dd className="font-semibold tabular-nums">{"$"+(tip/100).toFixed(2)}</dd></div>
-            <div className="flex justify-between gap-4"><dt>PayPal processing surcharge</dt><dd className="font-semibold tabular-nums">$0.00</dd></div>
-            <div className="flex justify-between gap-4 border-t border-[#c9d9f1] pt-3 text-base font-extrabold text-[#003087]"><dt>Total you approve in PayPal</dt><dd className="tabular-nums">{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</dd></div>
+            <div className="flex justify-between gap-4"><dt>Additional payment surcharge</dt><dd className="font-semibold tabular-nums">$0.00</dd></div>
+            <div className="flex justify-between gap-4 border-t border-[#c9d9f1] pt-3 text-base font-extrabold text-[#003087]"><dt>Total to approve at checkout</dt><dd className="tabular-nums">{"$"+((quote?.totalCents ?? gift+tip)/100).toFixed(2)} USD</dd></div>
           </dl>
-          <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. PayPal will display the same donation and optional support items for your approval.</p>
+          <p className="border-t border-[#dce6f5] bg-white px-4 py-3 text-xs leading-relaxed text-slate-600">IFund covers payment processing costs. The existing 7% IFund platform fee is deducted from the organizer's eligible withdrawal, not charged again to you. Your selected checkout provider will show the total for approval.</p>
         </section>}
         {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
           <>
