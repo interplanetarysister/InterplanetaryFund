@@ -19,8 +19,6 @@ const paymentLedger = await readFile(new URL("../supabase/functions/ifund-paymen
 
 const aiGate = await readFile(new URL("../supabase/migrations/20261118161819_ifund_creator_mandate_story_ai_gate_20261118.sql", import.meta.url), "utf8");
 const representation = await readFile(new URL("../supabase/migrations/20261118162242_ifund_managed_campaign_representation_20261118.sql", import.meta.url), "utf8");
-const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
-const campaignDetail = await readFile(new URL("../apps/web/src/pages/CampaignDetail.jsx", import.meta.url), "utf8");
 const campaignAgentGate = await readFile(new URL("../supabase/migrations/20261118162436_ifund_campaign_agent_ai_mandate_gate_20261118.sql", import.meta.url), "utf8");
 const strategy = await readFile(new URL("../worker/agents/strategy.js", import.meta.url), "utf8");
 const communications = await readFile(new URL("../worker/agents/communications.js", import.meta.url), "utf8");
@@ -37,6 +35,7 @@ const communicationsScopeDraft = await readFile(new URL("../supabase/migrations/
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
+const externalDestination = await readFile(new URL("../supabase/migrations/20261118170000_ifund_managed_external_donation_destinations_20261118.sql", import.meta.url), "utf8");
 
 test("creator mandate storage is private and service-role only", () => {
   assert.match(migration, /enable row level security/i);
@@ -314,4 +313,20 @@ test("managed beneficiary campaigns are rejected by the server before IFund paym
   assert.notEqual(intentInsert, -1);
   assert.ok(gate < intentInsert, "managed beneficiary gate must precede payment-intent creation");
   assert.match(paymentLedger, /ifund_managed_campaign_profiles\?select=campaign_id&campaign_id=eq\./);
+});
+
+
+test("managed external donation destinations are private, creator-approved, provider-verified and compliance-gated", () => {
+  assert.match(externalDestination, /create table if not exists public\\.ifund_managed_external_destinations/);
+  assert.match(externalDestination, /enable row level security/);
+  assert.match(externalDestination, /revoke all on table public\\.ifund_managed_external_destinations from public,anon,authenticated/);
+  assert.match(externalDestination, /grant select,insert,update on table public\\.ifund_managed_external_destinations to service_role/);
+  assert.match(externalDestination, /creator_approved_url_sha256/);
+  assert.match(externalDestination, /provider_owner_verified_at/);
+  assert.match(externalDestination, /provider_verification_evidence/);
+  assert.match(externalDestination, /compliance_checked_at/);
+  assert.match(externalDestination, /status <> 'ready'/);
+  assert.match(externalDestination, /pending_creator_approval/);
+  assert.match(externalDestination, /external_destination_creator_approved/);
+  assert.match(externalDestination, /No browser-role access/);
 });
