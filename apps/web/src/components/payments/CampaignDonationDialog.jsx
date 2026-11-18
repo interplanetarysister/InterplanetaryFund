@@ -4,6 +4,7 @@ import { CreditCard, Loader2, ShieldCheck, LockKeyhole, CircleCheck, HandHeart }
 import { paymentQuoteCents } from "@/lib/paymentQuote";
 import { parseDonationCents } from "@/lib/donationAmount.mjs";
 import GooglePayDonationButton from "./GooglePayDonationButton";
+import AlternativeDonationOptions from "./AlternativeDonationOptions";
 import { authClient } from "@/api/auth";
 import { Link } from "react-router-dom";
 import { isNativeBundle } from "@/lib/nativeApi";
@@ -228,6 +229,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
               <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
                 enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
+              <AlternativeDonationOptions campaignId={campaign?.id} giftCents={gift}
+                supportCents={tip} enabled={open && !checkoutLocked && valid && campaign?.status==="active" && !campaign?.preview_only}/>
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">Enter card details here when available; a PayPal account is not required for eligible hosted card payments. iFund never sees your card number.</p>
