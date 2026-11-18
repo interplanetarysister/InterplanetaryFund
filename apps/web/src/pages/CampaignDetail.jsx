@@ -19,7 +19,7 @@ import { CampaignFundingDonut, CampaignAgentFocus } from "@/components/analytics
 
 const isVideo = (url = "") => /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(url);
 
-// Public-site port of the Base44 CampaignDetail page. Owner and admin tools
+// Independent public-site implementation of campaign details. Owner and admin tools
 // (editing, distribution, outreach agents, AI coach, translations, supporter
 // list, donation dialog) need a signed-in member and are not part of this
 // slice. Following and sharing are available. Campaign checkout is live when
