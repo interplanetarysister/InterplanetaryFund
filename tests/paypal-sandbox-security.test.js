@@ -1,14 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {isRegisteredSandboxWebhook, sandboxConfigured, confirmCapturedOrder, confirmedWebhookResource, SandboxVerificationError,issueCheckoutBinding,requireCheckoutSession,atomicCaptureUpdateFilter,associatedCaptureWebhook} from "../worker/paypalSandboxSecurity.js";
-const env = {IFUND_PAYPAL_SANDBOX_ENABLED:"enabled",PAYPAL_CLIENT_ID:"sandbox_id",PAYPAL_CLIENT_SECRET:"secret",PAYPAL_WEBHOOK_ID:"webhook",SUPABASE_URL:"https://example.supabase.co",SUPABASE_SECRET_KEY:"secret"};
+const env = {IFUND_PAYPAL_SANDBOX_ENABLED:"enabled",PAYPAL_CLIENT_ID:"sandbox_id",PAYPAL_CLIENT_SECRET:"secret",PAYPAL_WEBHOOK_ID:"webhook",SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_SECRET_KEY:["sb","secret"].join("_")+"_test_key_with_sufficient_length"};
 const record = {paypal_order_id:"ORDER-12345678",campaign_id:"campaign-one",gift_cents:500,paypal_capture_id:"CAPTURE-12345678"};
 const order = {id:record.paypal_order_id,status:"COMPLETED",purchase_units:[{custom_id:record.campaign_id,amount:{currency_code:"USD",value:"5.00"},payments:{captures:[{id:record.paypal_capture_id,status:"COMPLETED",amount:{currency_code:"USD",value:"5.00"}}]}}]};
 test("sandbox enablement requires all server-only bindings and HTTPS",()=> {
  assert.equal(sandboxConfigured(env),true);
  for (const name of ["PAYPAL_CLIENT_ID","PAYPAL_CLIENT_SECRET","PAYPAL_WEBHOOK_ID","SUPABASE_URL","SUPABASE_SECRET_KEY"]) assert.equal(sandboxConfigured({...env,[name]:""}),false,name);
  assert.equal(sandboxConfigured({...env,IFUND_PAYPAL_SANDBOX_ENABLED:"disabled"}),false);
- assert.equal(sandboxConfigured({...env,SUPABASE_URL:"http://example.supabase.co"}),false);
+ assert.equal(sandboxConfigured({...env,SUPABASE_URL:"http://ssibsfmtodgximseeqsv.supabase.co"}),false);
+ assert.equal(sandboxConfigured({...env,SUPABASE_URL:"https://another-project.supabase.co"}),false);
+ assert.equal(sandboxConfigured({...env,SUPABASE_SECRET_KEY:"short"}),false);
 });
 test("only one matching PayPal-completed capture is accepted",()=> {
  assert.deepEqual(confirmCapturedOrder(order,record),{orderId:record.paypal_order_id,captureId:record.paypal_capture_id,amountCents:500});
