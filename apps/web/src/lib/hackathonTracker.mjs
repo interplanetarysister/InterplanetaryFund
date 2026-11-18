@@ -63,7 +63,7 @@ export function makeReport(records, generatedAt = new Date().toISOString()) {
     "Generated: " + generatedAt,
     "Result: " + (reviewed ? "ALL CHECKS REPORTED COMPLETE — still requires independent provider/deployment review" : "NOT READY — outstanding demo checks"),
     "Manual status: " + counts.completed + "/" + rows.length + " completed; " + counts.pending + " pending; " + counts.blocked + " blocked; " + counts.unknown + " unknown.",
-    "Scope: existing Cloudflare Pages/Workers + Supabase + PayPal SANDBOX; no live payment activation or Base44 cutover.",
+    "Scope: existing Cloudflare Pages/Workers + Supabase + PayPal SANDBOX; no live payment activation or legacy platform cutover.",
     "Note: these are organizer-entered records, not automatically provider-verified results.",
     "", "## Checks",
   ];
