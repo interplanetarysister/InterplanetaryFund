@@ -186,8 +186,8 @@ export default function MobileStoreEvents({embedded=false}) {
         </header>
         {!isOwn&&<section className="space-y-3 rounded-2xl border border-white/15 p-5">
           <h2 className="text-lg font-bold">Your event activity</h2>
-          {hasRsvp?<p className="flex items-center gap-2 text-sm text-emerald-200"><CheckCircle2 size={17}/>RSVP saved to your account</p>:<button type="button" onClick={()=>saveActivity(event.id,"rsvp")} disabled={Boolean(busy)||!verified} className="min-h-11 rounded-xl bg-emerald-200 px-4 text-sm font-bold text-slate-950 disabled:opacity-50">{verified?"Save RSVP to my account":"Sign in to RSVP"}</button>}
-          {event.checkout_url&&<button type="button" onClick={()=>saveActivity(event.id,"external_purchase_reported")} disabled={Boolean(busy)||!verified} className="block min-h-11 rounded-xl border border-emerald-300/40 px-4 text-sm font-semibold disabled:opacity-50">{verified?"I purchased outside IFund":"Sign in to record a purchase"}</button>}
+          {hasRsvp?<p className="flex items-center gap-2 text-sm text-emerald-200"><CheckCircle2 size={17}/>RSVP saved to your account</p>:<button type="button" onClick={()=>saveActivity(event.id,"rsvp")} disabled={Boolean(busy)} className="min-h-11 rounded-xl bg-emerald-200 px-4 text-sm font-bold text-slate-950 disabled:opacity-50">{verified?"Save RSVP to my account":"Sign in to RSVP"}</button>}
+          {event.checkout_url&&<button type="button" onClick={()=>saveActivity(event.id,"external_purchase_reported")} disabled={Boolean(busy)} className="block min-h-11 rounded-xl border border-emerald-300/40 px-4 text-sm font-semibold disabled:opacity-50">{verified?"I purchased outside IFund":"Sign in to record a purchase"}</button>}
           <p className="text-xs leading-5 text-slate-400">A purchase note is self-reported. It is not a verified payment, IFund donation, tax receipt or organizer confirmation.</p>
         </section>}
         {items.filter(item=>item.status==="available").length>0&&<section className="space-y-3">
