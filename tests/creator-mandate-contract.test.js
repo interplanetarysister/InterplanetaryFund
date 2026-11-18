@@ -303,6 +303,7 @@ test("managed beneficiary campaigns fail closed on IFund-native donation checkou
   assert.match(campaignDetail, /campaign\.managed_campaign !== true/);
   assert.match(fundingCard, /managedCampaign = campaign\?\.managed_campaign === true/);
   assert.match(fundingCard, /\|\| managedCampaign \|\|/);
+  assert.match(fundingCard, /managedCampaign && campaignActive && campaign\\.external_donation_url/);
   assert.match(fundingCard, /administrator's payout account/);
 });
 
