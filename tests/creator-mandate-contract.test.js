@@ -325,6 +325,9 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /provider_owner_verified_at/);
   assert.match(externalDestination, /provider_verification_evidence/);
   assert.match(externalDestination, /compliance_checked_at/);
+  assert.match(externalDestination, /compliance_evidence/);
+  assert.match(externalDestination, /one_open_mandate_idx/);
+  assert.match(externalDestination, /one_open_campaign_idx/);
   assert.match(externalDestination, /status <> 'ready'/);
   assert.match(externalDestination, /pending_creator_approval/);
   assert.match(externalDestination, /external_destination_creator_approved/);
