@@ -283,8 +283,22 @@ select d.campaign_id, d.provider_label, d.donation_url
 from public.ifund_managed_external_destinations d
 join public.ifund_creator_mandates m on m.id = d.mandate_id
 where d.status = 'ready'
+  and d.creator_approved_at is not null
+  and d.creator_approved_by_token is true
+  and d.creator_approved_url_sha256 is not null
+  and d.provider_owner_verified_at is not null
+  and d.provider_owner_verified_by is not null
+  and length(coalesce(d.provider_verification_evidence,'')) >= 30
+  and d.compliance_checked_at is not null
+  and d.compliance_checked_by is not null
+  and length(coalesce(d.compliance_evidence,'')) >= 30
   and m.status = 'active'
   and m.expires_at > statement_timestamp()
+  and m.identity_verified_at is not null
+  and m.identity_verified_by is not null
+  and m.full_control_acknowledged is true
+  and m.ai_all_features_acknowledged is true
+  and m.creator_authority_confirmed is true
   and m.creator_review_state = 'approved'
   and m.creator_approved_at is not null
   and coalesce((m.scopes ->> 'publish')::boolean, false) is true
