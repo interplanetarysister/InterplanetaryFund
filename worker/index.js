@@ -13,7 +13,7 @@ import { communicationsRoute } from './agents/communications.js';
 import { handleManagedConnections } from './agents/managedConnections.js';
 import { routeStudioRequest, routePublicStudioPage, routeStudioGenerateRequest, routeStudioStatusRequest, routeStudioVersionRequest, routePublicHelpIndex } from './studioRoutes.js';
 
-/** Independent migration API. No Base44 proxy or payment functionality. */
+/** Independent IFund API. No legacy-platform proxy or payment functionality. */
 export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
