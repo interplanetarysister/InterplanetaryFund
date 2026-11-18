@@ -51,12 +51,17 @@ export default function AgentsTeam() {
     setMembership({status:"loading",active:false});
     if(!user?.id){setMembership({status:"signed-out",active:false});return()=>{active=false};}
     const owner=user.id;
-    authClient().rpc("ifund_story_subscription").then(async({data,error})=>{
-      const {data:identity}=await authClient().auth.getUser();
-      if(!active||identity?.user?.id!==owner)return;
-      setMembership({status:error?"unavailable":"ready",
-        active:!error&&data?.active===true&&Number.isInteger(data?.level)&&data.level>=1});
-    }).catch(()=>{if(active)setMembership({status:"unavailable",active:false});});
+    try {
+      const client=authClient();
+      client.rpc("ifund_story_subscription").then(async({data,error})=>{
+        const {data:identity}=await client.auth.getUser();
+        if(!active||identity?.user?.id!==owner)return;
+        setMembership({status:error?"unavailable":"ready",
+          active:!error&&data?.active===true&&Number.isInteger(data?.level)&&data.level>=1});
+      }).catch(()=>{if(active)setMembership({status:"unavailable",active:false});});
+    } catch {
+      if(active)setMembership({status:"unavailable",active:false});
+    }
     return()=>{active=false;};
   },[user?.id]);
   useEffect(()=>{
