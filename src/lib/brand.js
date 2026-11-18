@@ -1,4 +1,4 @@
-// Transplanted, independent brand vocabulary; no Base44-hosted logo or endpoints.
+// Independent brand vocabulary; no externally hosted logos or endpoints.
 export const BRAND_NAME = "Interplanetary Fund";
 export const SLOGAN = "What if?";
 export const TAGLINE = "The Universal Fundraising Operating System";
