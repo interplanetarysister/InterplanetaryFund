@@ -117,7 +117,7 @@ export default function Subscriptions(){
   return <main className="mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6 lg:py-12">
     <header className="space-y-3">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Membership and billing</p>
-      <h1 className="font-display text-3xl font-bold sm:text-4xl">Find the right iFund plan</h1>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">Plans & subscriptions</h1>
       <p className="max-w-3xl text-muted-foreground">Start free. Upgrade only for verified capabilities you need. Account connections and manual sharing do not require a paid membership.</p>
       <div className="flex flex-wrap gap-4 text-sm"><Link to="/connections" className="text-primary underline">Connect your accounts</Link><Link to="/agents" className="text-primary underline">Explore your agent team</Link><Link to="/fundraising-tips" className="text-primary underline">Fundraising tips</Link></div>
     </header>
@@ -178,12 +178,12 @@ export default function Subscriptions(){
             className="mt-4 min-h-11 w-full rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
               native?"Unavailable in mobile app":!providerReady?"Not accepting enrollment":
-              activeMembership?"Manage existing membership":statusLoad!=="ready"?"Verify your account first":"Subscribe securely"}
+              activeMembership?"Manage existing membership":statusLoad!=="ready"?"Verify your account first":"Subscribe with PayPal"}
           </button>
         </article>;
       })}
     </section>
     {!visiblePlans.length&&<p className="rounded-xl border border-border p-4 text-sm" role="status">The {billingInterval} catalog is temporarily unavailable. No payment can be started without provider verification.</p>}
-    <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>Paid access requires PayPal provider confirmation and a matching subscription-ledger record. Connecting an account never grants automatic posting permission. No donations or campaign payments are changed here.</p>
+    <p className="flex items-start gap-2 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0"/>Paid access requires a provider-confirmed payment and a matching subscription-ledger record. Connecting an account never grants automatic posting permission. No donations or campaign payments are changed here.</p>
   </main>;
 }
