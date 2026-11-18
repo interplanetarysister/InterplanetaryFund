@@ -87,6 +87,7 @@ async function attachVerifiedFunding(rows) {
     const profile = profiles.get(row.id);
     return {
       ...mapCampaign(row),
+      managed_campaign: Boolean(profile),
       ...(profile ? {
         creator_name: profile.creator_name,
         beneficiary_name: profile.beneficiary_name,
