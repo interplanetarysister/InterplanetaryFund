@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Bot, Radio, User, Users } from "lucide-react";
+import { House, Compass, PlusCircle, Radio, User } from "lucide-react";
 import { owningNavigationTab } from "@/lib/navigation";
 import { hapticTap } from "@/lib/haptics";
 
