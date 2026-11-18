@@ -94,6 +94,7 @@ export function replyEventKey(requestId) {
 }
 export async function appendTeamContext({env,jwt,eventKey,agentId,content,campaignId=null,speaker,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled"};
+  requireCanonicalSupabase(env);
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   if(typeof content!=="string") throw Object.assign(new Error("Invalid team conversation event."),{status:400});
   const args=validateTeamContextEvent({eventKey,agentId,content:redactTeamCredentials(content),campaignId,speaker});
@@ -122,6 +123,7 @@ export async function appendTeamContext({env,jwt,eventKey,agentId,content,campai
  */
 export async function readTeamContext({env,jwt,campaignId=null,limit=12,before=null,beforeId=null,fetcher=fetch}) {
   if(env.IFUND_TEAM_CONTEXT_ENABLED!=="enabled") return {state:"disabled",events:[]};
+  requireCanonicalSupabase(env);
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   if(campaignId!==null&&!UUID.test(campaignId)) throw Object.assign(new Error("Invalid campaign reference."),{status:400});
   if(!Number.isInteger(limit)||limit<1||limit>60) throw Object.assign(new Error("Invalid history page size."),{status:400});
@@ -164,6 +166,7 @@ export async function readCampaignDocumentContext({
 }) {
   if(env.IFUND_CAMPAIGN_DOCUMENTS_ENABLED!=="enabled")
     return {state:"disabled",briefs:[]};
+  requireCanonicalSupabase(env);
   if(!/^[-\w.]+$/.test(jwt||"")) throw Error("Verified member token required.");
   if(!UUID.test(campaignId||"")) throw Object.assign(
     new Error("A saved campaign is required for private documents."),{status:400});
