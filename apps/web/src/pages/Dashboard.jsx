@@ -57,6 +57,35 @@ export default function Dashboard() {
       <Link to="/giving" className="mt-4 mr-5 inline-block text-primary underline">My Giving</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
+    <section aria-labelledby="fundraising-events-title" className="rounded-2xl border border-border bg-card p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 id="fundraising-events-title" className="text-xl font-semibold">Fundraising events</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Discover community gatherings that turn shared experiences into support for a cause. Event organizers can use iFund campaigns to explain the fundraiser and share its details.</p>
+        </div>
+        <Link to="/discover" className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold">Explore fundraisers</Link>
+      </div>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <article className="rounded-xl border border-border bg-background p-4">
+          <h3 className="font-semibold">Benefit dinners & gatherings</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Community dinners, charity galas and ticketed benefit nights.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-background p-4">
+          <h3 className="font-semibold">Art auctions & experiences</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Fundraising auctions, donated artwork and special experiences.</p>
+        </article>
+        <article className="rounded-xl border border-border bg-background p-4">
+          <h3 className="font-semibold">Community benefit events</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Local meetups, performances and events supporting a campaign.</p>
+        </article>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm">
+        <Link to="/create" className="font-semibold text-primary underline underline-offset-4">Start an event fundraiser</Link>
+        <Link to="/finances#giving-receipts" className="text-primary underline underline-offset-4">View your giving & receipts</Link>
+        <Link to="/connections" className="text-primary underline underline-offset-4">Manage connected accounts</Link>
+      </div>
+      <p className="mt-4 text-xs text-muted-foreground">Event ticketing, auction bidding and in-person purchases are not yet enabled as native iFund checkout. Use the campaign page for fundraiser information; only verified transactions appear in your account receipts.</p>
+    </section>
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}
