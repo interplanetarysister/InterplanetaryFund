@@ -54,7 +54,7 @@ export default function AdminConnections() {
          setProviders(payload.providers||{});
          setRuntime(payload.runtime);
          setStatus(ready?"ready":"attention");
-         setDetail(ready?"":"Complete the missing Cloudflare Worker bindings before enabling member authorization.");
+         setDetail(ready?"":"Complete the missing Cloudflare Pages Function bindings before enabling member authorization.");
        }
      } catch(e){
        if(active){setStatus("attention");setDetail(e.message||"Readiness check unavailable.");}
@@ -73,7 +73,7 @@ export default function AdminConnections() {
   </header>
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Gateway status">
     <h2 className="font-semibold">Member OAuth gateway</h2>
-    <p role="status" className="text-sm">{status==="loading"?"Checking current configuration…":status==="ready"?"Provider authorization gateway and encrypted storage are configured.":"Configuration requires administrator attention."}</p>
+    <p role="status" className="text-sm">{status==="loading"?"Checking current configuration…":status==="ready"?"OAuth runtime and encrypted storage are configured; provider credentials and member consent are checked separately.":"Configuration requires administrator attention."}</p>
     {detail && <p role="alert" className="text-sm text-muted-foreground">{detail}</p>}
     <p className="text-xs text-muted-foreground">Configured OAuth providers: {configuredProviders.length} of {PROVIDER_APPROVALS.length}. Provider credentials do not prove member consent or live posting privileges.</p>
     <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold" onClick={()=>{setStatus("loading");setReload(x=>x+1)}}>Check again</button>
