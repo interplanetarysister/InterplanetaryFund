@@ -548,7 +548,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     {guestImportMessage && <section className="space-y-2 rounded-xl border border-border p-3" aria-live="polite">
       <p className="text-sm break-words">{guestImportMessage}</p>
       {guestCopyRetained && <button type="button" disabled={disabled || !ownerId} onClick={retryGuestCopyCleanup} className="min-h-11 rounded-lg border border-border px-4 text-sm font-semibold disabled:opacity-50">Retry guest-copy cleanup</button>}
-    </section>
+    </section>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
     <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
