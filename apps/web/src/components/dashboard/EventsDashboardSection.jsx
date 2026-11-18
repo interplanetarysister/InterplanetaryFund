@@ -66,7 +66,7 @@ export default function EventsDashboardSection() {
       </Link>)}</div>:<p className="text-sm text-muted-foreground">No upcoming events are published yet. Create one for a fundraiser you support or organize.</p>}
       <p className="text-xs text-muted-foreground">Organize and manage {data.owned.length} event{data.owned.length===1?"":"s"} · RSVP and external purchase activity stays linked to your account.</p>
     </>:<p className="text-sm text-muted-foreground">Event services are being connected. Event ticketing and auction checkout remain with the organizer's chosen provider.</p>}
-    <div className="flex flex-wrap gap-4 text-sm"><Link to="/events" className="font-semibold text-primary underline underline-offset-4">Browse events</Link><Link to="/events?create=1" className="font-semibold text-primary underline underline-offset-4">Create an event fundraiser</Link></div>
+    <div className="flex flex-wrap gap-4 text-sm"><Link to="/events" className="font-semibold text-primary underline underline-offset-4">Browse events</Link><Link to="/events" className="font-semibold text-primary underline underline-offset-4">Create an event fundraiser</Link></div>
     <p className="text-xs text-muted-foreground">External ticket and auction payments go directly to organizers through their checkout providers. Purchases reported in IFund are not IFund receipts, donations or verified financial transactions.</p>
   </section>;
 }
