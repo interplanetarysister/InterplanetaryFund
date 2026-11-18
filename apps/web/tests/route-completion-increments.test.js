@@ -57,7 +57,6 @@ test("planet reporting is restricted to administrators and counts verified publi
   assert.ok(entry?.includes("<MemberAccess><AdminAccess><AdminSustainability"),
     "environment reporting must use verified administrator access");
   const source = page("AdminSustainability");
-  assert.match(source, /listActiveCampaigns\(\{ limit: 500 \}\)/);
   assert.match(source, /row\.category === "environment"/);
   assert.match(source, /moneyCents\(c\.raised_amount\)/);
   assert.match(source, /Number\.isSafeInteger\(totalCents\)/, "aggregate only safe integer cents");
@@ -253,8 +252,8 @@ test("planetary impact is guest-accessible while admin sustainability remains pr
   assert.match(about, /to="\/planetary-impact"/);
   const impact = page("AdminSustainability");
   const publicData = readFileSync(new URL("../src/api/publicData.js", import.meta.url), "utf8");
-  assert.match(impact, /listActiveCampaigns\\(\\{ limit: 500, category: "environment" \\}\\)/);
-  assert.match(publicData, /if \\(category === "environment"\\) query = query\\.eq\\("category", "environment"\\)/,
+  assert.ok(impact.includes('listActiveCampaigns({ limit: 500, category: "environment" })'));
+  assert.ok(publicData.includes('if (category === "environment") query = query.eq("category", "environment");'),
     "category must be filtered by Supabase before applying the 500-record limit");
   assert.match(impact, /Counts are limited to this result window/,
     "do not claim a complete environmental campaign census from a bounded query");
