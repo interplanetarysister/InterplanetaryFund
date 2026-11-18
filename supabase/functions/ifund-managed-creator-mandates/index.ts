@@ -87,11 +87,14 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...corsHeaders, ...(allowedOrigins.has(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) } });
   if (origin && !allowedOrigins.has(origin)) return json(403, { error: "origin_not_allowed" });
   if (!["GET","POST"].includes(req.method)) return json(405, { error: "method_not_allowed" }, origin);
-  if (Number(req.headers.get("content-length") || 0) > 100_000) return json(413, { error: "request_too_large" }, origin);
   const url = new URL(req.url);
   const action = url.searchParams.get("action") || "";
   try {
-    const body = req.method === "POST" ? await req.json() : {};
+    const rawBody = req.method === "POST" ? await req.text() : "";
+    if (new TextEncoder().encode(rawBody).byteLength > 100_000) return json(413, { error: "request_too_large" }, origin);
+    let body = {};
+    if (rawBody) { try { body = JSON.parse(rawBody); } catch { return json(400, { error: "invalid_json" }, origin); } }
+    if (!body || typeof body !== "object" || Array.isArray(body)) return json(400, { error: "invalid_request_body" }, origin);
     const publicToken = clean(url.searchParams.get("token") || body.token, 128);
     const serviceUrl = Deno.env.get("SUPABASE_URL");
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_SECRET_KEY");
@@ -222,7 +225,7 @@ Deno.serve(async (req) => {
       const { data: row, error } = await db.from("ifund_creator_mandates").update({
         status: "active", identity_verified_at: new Date().toISOString(), identity_verified_by: user.id,
         identity_evidence_note: evidence, review_token_hash: await hash(reviewToken), updated_at: new Date().toISOString(),
-      }).eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "consented_pending_verification")
+      }).eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "consented_pending_verification").gt("expires_at", new Date().toISOString())
         .select("id,expires_at").maybeSingle();
       if (error || !row) throw error || new Error("Consented mandate not found or not assigned to this admin.");
       await event(db, row.id, "admin", user.id, "identity_verified", { evidence_note_recorded: true });
@@ -238,7 +241,7 @@ Deno.serve(async (req) => {
       const { data: row, error } = await db.from("ifund_creator_mandates").update({
         draft_payload: draft, creator_review_state: "pending", creator_feedback: null, creator_approved_at: null,
         review_token_hash: await hash(reviewToken), updated_at: new Date().toISOString(),
-      }).eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "active").gt("expires_at", new Date().toISOString())
+      }).eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "active").not("identity_verified_at", "is", null).gt("expires_at", new Date().toISOString())
         .select("id,expires_at").maybeSingle();
       if (error || !row) throw error || new Error("Active, verified mandate assigned to this admin is required.");
       await event(db, row.id, "admin", user.id, "draft_submitted", { draft_sha256: await hash(serialized) });
