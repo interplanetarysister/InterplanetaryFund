@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
           !clean(draft.summary, 600) ||
           !clean(draft.story, 15_000) ||
           !allowedCategories.has(clean(draft.category, 40)) ||
-          !/^\\d{1,9}(?:\\.\\d{1,2})?$/.test(goalText) ||
+          !/^\d{1,9}(?:\.\d{1,2})?$/.test(goalText) ||
           !Number.isFinite(Number(goalText)) || Number(goalText) <= 0) {
         return json(422, { error: "draft_requires_valid_title_summary_story_category_and_goal" }, origin);
       }
