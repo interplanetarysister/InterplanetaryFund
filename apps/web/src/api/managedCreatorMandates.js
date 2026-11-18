@@ -9,7 +9,7 @@ function functionUrl() {
   return new URL("/functions/v1/ifund-managed-creator-mandates", parsed.origin).toString();
 }
 
-async function parseResponse(response) {
+function publishableKey() {\n  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;\n  if (!key) throw new Error("IFund API access is not configured.");\n  return key;\n}\n\nasync function parseResponse(response) {
   let data;
   try { data = await response.json(); } catch { throw new Error("The authorization service returned an invalid response."); }
   if (!response.ok) throw new Error(data?.error || "The authorization request could not be completed.");
@@ -23,7 +23,7 @@ export async function publicCreatorMandateRequest(action, token, body = {}) {
   url.searchParams.set("token", token);
   const response = await fetch(url, {
     method: body && Object.keys(body).length ? "POST" : "GET",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", apikey: publishableKey() },
     ...(body && Object.keys(body).length ? { body: JSON.stringify({ ...body, token }) } : {}),
     cache: "no-store",
   });
@@ -39,7 +39,7 @@ export async function adminCreatorMandateRequest(action, body = {}) {
   url.searchParams.set("action", action);
   const response = await fetch(url, {
     method: action === "list" ? "GET" : "POST",
-    headers: { authorization: `Bearer ${accessToken}`, "content-type": "application/json" },
+    headers: { authorization: `Bearer ${accessToken}`, apikey: publishableKey(), "content-type": "application/json" },
     ...(action === "list" ? {} : { body: JSON.stringify(body) }),
     cache: "no-store",
   });
