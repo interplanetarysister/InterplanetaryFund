@@ -266,7 +266,12 @@ test("rewrites retain the whole native section, while free outlines are never ca
   );
   assert.equal(unavailable.status, 409);
   assert.equal((await unavailable.json()).code, "section_unavailable");
-  assert.equal(basic.calls.length, 1);
+  assert.equal(basic.calls.length, 2);
+  assert.deepEqual(basic.calls.map((call) => call.path), [
+    "/api/agents/story/subscription",
+    "/api/agents/story/authorize",
+  ]);
+  assert.equal(basic.calls.some((call) => call.path === "/api/agents/story/drafts"), false);
 });
 test("a confirmed stored receipt and complete output are required before success", async () => {
   for (const native of [
