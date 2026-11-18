@@ -253,6 +253,25 @@ export default function Connections() {
       <Link to="/profile" className={BUTTON}>Back to profile</Link>
     </header>
 
+    <section aria-labelledby="connections-quickstart" className="space-y-4 rounded-3xl border border-border bg-card p-5 sm:p-6">
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">Get connected</p>
+        <h2 id="connections-quickstart" className="mt-2 text-xl font-semibold">Three steps to share with confidence</h2>
+        <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Start with one account. Choose a secure provider sign-in when available, or save its public profile link. Then decide exactly how iFund may help you share.</p>
+      </div>
+      <ol className="grid gap-3 sm:grid-cols-3">
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">01 · Select</p><h3 className="mt-2 font-semibold">Choose an account</h3><p className="mt-1 text-sm text-muted-foreground">Pick the platform you already use. Provider login is available only when securely verified.</p></li>
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">02 · Authorize</p><h3 className="mt-2 font-semibold">Connect or save a link</h3><p className="mt-1 text-sm text-muted-foreground">A public profile link is not permission to post. OAuth authorization is separate.</p></li>
+        <li className="rounded-xl border border-border p-4"><p className="text-xs font-semibold text-primary">03 · Choose control</p><h3 className="mt-2 font-semibold">Manual or draft assistance</h3><p className="mt-1 text-sm text-muted-foreground">You decide what gets shared. Automatic publishing needs additional destination-specific verification.</p></li>
+      </ol>
+      <div className="flex flex-wrap gap-3">
+        <a href="#connection-details" className={PRIMARY}>Set up {selected.name}</a>
+        <Link to="/agents" className={BUTTON}>Ask the LINK agent</Link>
+        <Link to="/subscriptions" className={BUTTON}>Compare free and paid services</Link>
+      </div>
+      <p className="text-xs text-muted-foreground">Free: save public links and select manual/draft/review preferences. Paid memberships do not independently unlock external platform publishing permissions.</p>
+    </section>
+
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Connection overview">
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Actively connected</p><p className="mt-1 text-3xl font-bold tabular-nums">{connected.length}</p></div>
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Available to add</p><p className="mt-1 text-3xl font-bold tabular-nums">{readyToAdd}</p></div>
@@ -318,6 +337,7 @@ export default function Connections() {
         <ol className="mt-3 space-y-2 text-sm">{instructions.map((step,i)=><li className="flex gap-3" key={i}><span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">{i+1}</span><span>{step}</span></li>)}</ol>
       </div>
       <div className="flex flex-wrap gap-3">
+        {!canStart && selectedOAuth && !isLinked && <p role="status" className="w-full text-sm text-muted-foreground">Secure linking is not yet configured for this provider. You can still follow verified public-link instructions when supported.</p>}
         {canStart && <button type="button" className={PRIMARY} disabled={Boolean(busy)||loading} onClick={()=>manage("start")}>
           <ShieldCheck size={17}/>{busy==="start"?"Opening sign-in…":isLinked?"Reconnect securely":"Connect securely"}
         </button>}
