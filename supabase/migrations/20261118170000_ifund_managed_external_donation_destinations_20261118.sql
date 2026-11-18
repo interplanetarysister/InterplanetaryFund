@@ -90,7 +90,7 @@ as $function$
 declare
   v_mandate record;
 begin
-  select status, expires_at, scopes
+  select status, expires_at, scopes, campaign_id, creator_review_state, creator_approved_at, identity_verified_at
     into v_mandate
     from public.ifund_creator_mandates
     where id = new.mandate_id
@@ -110,6 +110,10 @@ begin
        and (v_mandate.status <> 'active'
             or v_mandate.expires_at <= now()
             or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+            or v_mandate.campaign_id is distinct from new.campaign_id
+            or v_mandate.creator_review_state <> 'approved'
+            or v_mandate.creator_approved_at is null
+            or v_mandate.identity_verified_at is null
             or new.creator_approved_by_token is not true
             or new.creator_approval_token_hash is not null) then
       raise exception 'active mandate and separate creator publication scope are required';
@@ -118,7 +122,11 @@ begin
     if new.status in ('pending_provider_verification','pending_compliance','ready')
        and (v_mandate.status <> 'active'
             or v_mandate.expires_at <= now()
-            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true) then
+            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+            or v_mandate.campaign_id is distinct from new.campaign_id
+            or v_mandate.creator_review_state <> 'approved'
+            or v_mandate.creator_approved_at is null
+            or v_mandate.identity_verified_at is null) then
       raise exception 'active mandate and separate creator publication scope are required';
     end if;
   end if;
