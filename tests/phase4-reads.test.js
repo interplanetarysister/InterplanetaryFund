@@ -4,7 +4,7 @@ import { routeReadRequest } from '../worker/reads.js';
 
 const env = {
   MIGRATION_API_PREVIEW: 'enabled',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'publishable-test-only',
 };
 const id = 'b7486a53-40a8-4a71-8377-141332ab4341';
