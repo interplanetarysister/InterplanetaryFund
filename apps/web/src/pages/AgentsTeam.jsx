@@ -84,13 +84,15 @@ export default function AgentsTeam() {
     const controller=new AbortController();
     const generation=++requestRef.current.generation;
     requestRef.current.controller=controller;
+    const submittedQuestion=agentQuestion.trim();
+    const submittedAgent=agentMode;
     setQuestionBusy(true);setQuestionError("");setAgentReply(null);
     try{
       const result=await askIFundAgent(authClient(),{
-        question:agentQuestion,agent:agentMode,ownerId:owner,signal:controller.signal,
+        question:submittedQuestion,agent:submittedAgent,ownerId:owner,signal:controller.signal,
       });
       if(generation!==requestRef.current.generation || controller.signal.aborted) return;
-      setSelected(result.agent);setAgentReply({question:agentQuestion.trim(),...result});
+      setSelected(result.agent);setAgentReply({question:submittedQuestion,...result});
       setShowWriting(false);setShowService(false);
     }catch(cause){
       if(generation!==requestRef.current.generation || controller.signal.aborted) return;
