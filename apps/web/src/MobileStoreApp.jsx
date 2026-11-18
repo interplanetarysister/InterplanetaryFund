@@ -17,6 +17,7 @@ import MobileStoreHome from "@/mobile/MobileStoreHome";
 import MobileStoreHelp from "@/mobile/MobileStoreHelp";
 import MobileMyCampaigns from "@/mobile/MobileMyCampaigns";
 import MobileStoreAtlas from "@/mobile/MobileStoreAtlas";
+import MobileStoreEvents from "@/mobile/MobileStoreEvents";
 
 const tabs = [
   ["/", "Home", Home],
@@ -48,6 +49,8 @@ function Frame() {
         <Route path="/campaign/:id" element={<MobileStoreCampaign/>}/>
         <Route path="/plan" element={<MobileReadiness/>}/>
         <Route path="/atlas" element={<MobileStoreAtlas/>}/>
+        <Route path="/events" element={<MobileStoreEvents/>}/>
+        <Route path="/events/:id" element={<MobileStoreEvents/>}/>
         <Route path="/account" element={<MobileStoreAccount/>}/>
         <Route path="/dashboard" element={<Navigate to="/account" replace/>}/>
         <Route path="/onboarding" element={<MemberOnboarding/>}/>
