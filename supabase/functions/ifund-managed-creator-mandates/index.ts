@@ -184,6 +184,12 @@ Deno.serve(async (req) => {
       const { error: updateError } = await publicDb.from("ifund_creator_mandates").update(update).eq("id", row.id).eq("status", "active");
       if (updateError) throw updateError;
       const eventType = decision === "approved" ? "creator_approved" : decision === "changes_requested" ? "creator_requested_changes" : "revoked";
+      if (decision !== "approved") {
+        const { error: destinationError } = await publicDb.from("ifund_managed_external_destinations").update({
+          status: "revoked", creator_approval_token_hash: null, updated_at: new Date().toISOString(),
+        }).eq("mandate_id", row.id).not("status", "in", "(rejected,revoked)");
+        if (destinationError) throw destinationError;
+      }
       await event(publicDb, row.id, "creator", null, eventType, decision === "changes_requested" ? { feedback } : {});
       return json(200, { recorded: true, decision }, origin);
     }
@@ -427,6 +433,10 @@ Deno.serve(async (req) => {
       }).eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "active").not("identity_verified_at", "is", null).gt("expires_at", new Date().toISOString())
         .select("id,expires_at").maybeSingle();
       if (error || !row) throw error || new Error("Active, verified mandate assigned to this admin is required.");
+      const { error: destinationError } = await db.from("ifund_managed_external_destinations").update({
+        status: "revoked", creator_approval_token_hash: null, updated_at: new Date().toISOString(),
+      }).eq("mandate_id", row.id).not("status", "in", "(rejected,revoked)");
+      if (destinationError) throw destinationError;
       await event(db, row.id, "admin", user.id, "draft_submitted", { draft_sha256: await hash(serialized) });
       return json(200, { saved: true, review_url: `https://interplanetaryfund.com/creator-review?token=${reviewToken}`, expires_at: row.expires_at, message: "Share this secure review link with the creator. It permits review, requested changes, approval, and revocation only." }, origin);
     }
