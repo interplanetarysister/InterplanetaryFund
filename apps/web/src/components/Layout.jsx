@@ -253,6 +253,7 @@ export default function Layout() {
 
   return (
     <div className="ifund-shell h-dvh w-full min-w-0 overflow-hidden bg-background text-foreground flex flex-col md:flex-row">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-background focus:px-5 focus:py-3 focus:font-semibold focus:text-foreground focus:shadow-xl focus:outline focus:outline-2 focus:outline-primary">Skip to main content</a>
       <aside className="ifund-sidebar ifund-desktop-sidebar hidden md:flex relative self-stretch shrink-0 w-max flex-col py-6 z-40">
         <div className="px-3 mb-5">
           <div className="flex items-center justify-between gap-2">
@@ -303,7 +304,7 @@ export default function Layout() {
 
       <MobileBottomNav user={user} onNavigate={() => setOpen(false)} />
 
-      <main data-page-scroll className="ifund-experience ifund-stage flex-1 min-h-0 w-full min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 overflow-x-hidden overflow-y-auto overscroll-y-contain bg-background text-foreground">
+      <main id="main-content" tabIndex={-1} data-page-scroll className="ifund-experience ifund-stage flex-1 min-h-0 w-full min-w-0 pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-0 overflow-x-hidden overflow-y-auto overscroll-y-contain bg-background text-foreground">
         <div className="ifund-workspace-bar hidden md:flex sticky top-0 z-20 items-center justify-between gap-3 px-4 py-3 sm:px-7">
           <div className="flex items-center gap-3 min-w-0">
             <span className="ifund-page-icon" aria-hidden="true"><PageIcon className="w-5 h-5" strokeWidth={1.85} /></span>
@@ -327,10 +328,10 @@ export default function Layout() {
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname}
-            initial={prefersReducedMotion ? false : { opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={prefersReducedMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" }}
-            transition={{ duration: prefersReducedMotion ? 0 : 0.25, ease: "easeOut" }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={prefersReducedMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.16, ease: "easeOut" }}
             className="w-full min-w-0 max-w-full overflow-x-hidden"
           >
             <ErrorBoundary key={pathname}>
