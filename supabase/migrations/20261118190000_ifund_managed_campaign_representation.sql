@@ -178,4 +178,32 @@ $function$;
 revoke all on function public.ifund_creator_mandate_campaign_ai_authorized(uuid,uuid) from public,anon,authenticated;
 grant execute on function public.ifund_creator_mandate_campaign_ai_authorized(uuid,uuid) to authenticated;
 
+
+create or replace function public.ifund_block_managed_campaign_publication()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+set row_security = 'off'
+as $function$
+begin
+  if new.status='active' and (tg_op='INSERT' or old.status is distinct from 'active')
+     and exists (
+       select 1 from public.ifund_managed_campaign_profiles p
+       where p.campaign_id=new.id
+     ) then
+    raise exception 'Managed fundraiser publication is disabled until beneficiary payout and creator publication authorization are independently verified'
+      using errcode='42501';
+  end if;
+  return new;
+end
+$function$;
+
+drop trigger if exists ifund_managed_campaign_publication_gate on public.ifund_campaigns;
+create trigger ifund_managed_campaign_publication_gate
+before insert or update of status on public.ifund_campaigns
+for each row execute function public.ifund_block_managed_campaign_publication();
+
+revoke all on function public.ifund_block_managed_campaign_publication() from public,anon,authenticated;
+
 commit;
