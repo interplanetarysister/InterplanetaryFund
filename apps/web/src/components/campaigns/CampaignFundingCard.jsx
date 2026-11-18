@@ -34,7 +34,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
         )}
       </div>
       {platformOnlyMode && campaignActive && <PrelaunchNotice compact payment className="mb-4" />}
-      {managedCampaign && campaignActive && !platformOnlyMode && campaign.external_donation_url ? (
+      {managedCampaign && campaignActive && campaign.external_donation_url ? (
         <a
           href={campaign.external_donation_url}
           target="_blank"
