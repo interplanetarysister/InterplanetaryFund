@@ -85,8 +85,8 @@ export default function CampaignDetail() {
 
   const displayed = campaign;
   // Managed external-beneficiary campaigns must never use the IFund owner's
-  // native payout destination. Their direct-provider checkout is a separate,
-  // creator-approved feature and remains unavailable until implemented.
+  // native payout destination. Only a currently verified direct-provider URL
+  // returned by the public projection can be shown as a separate donation link.
   const campaignCanDonate = !platformOnlyMode && campaign.status === "active" &&
     !campaign.preview_only && campaign.managed_campaign !== true;
   const textDirection = "auto";
