@@ -55,7 +55,7 @@ export default function CreatorAuthorization() {
     {mandate&& !result&&<>
       <section className="space-y-2 rounded-2xl border border-border bg-card p-5">
         <h2 className="text-lg font-semibold">Fundraiser covered by this authorization</h2>
-        <p><strong>Creator:</strong> {mandate.creatorName}</p><p><strong>Fundraiser:</strong> {mandate.fundraiserLabel}</p><p><strong>Beneficiary:</strong> {mandate.beneficiaryName}</p><p><strong>Source:</strong> <a className="break-all underline" href={mandate.fundraiserUrl} target="_blank" rel="noreferrer">{mandate.fundraiserUrl}</a></p>
+        <p><strong>Creator:</strong> {mandate.creatorName}</p><p><strong>Invited email:</strong> {mandate.creatorEmail}</p><p><strong>Fundraiser:</strong> {mandate.fundraiserLabel}</p><p><strong>Beneficiary:</strong> {mandate.beneficiaryName}</p><p><strong>Source:</strong> <a className="break-all underline" href={mandate.fundraiserUrl} target="_blank" rel="noreferrer">{mandate.fundraiserUrl}</a></p>
         <p><strong>Assigned IFund admin account ID:</strong> <span className="break-all">{mandate.assignedAdminId}</span></p>
         <p><strong>Authorization expires:</strong> {new Date(mandate.expiresAt).toLocaleString()}</p><p><strong>Authorization version:</strong> {mandate.authorizationVersion}</p>
       </section>
