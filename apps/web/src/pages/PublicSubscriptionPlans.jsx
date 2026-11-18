@@ -22,7 +22,7 @@ export default function PublicSubscriptionPlans() {
   const [retry, setRetry] = useState(0);
   // Cloudflare Pages previews deliberately have no live-payment Worker binding.
   // Never call the production payment service or present enrollment there.
-  const isPreview = typeof window !== "undefined" && /\\.pages\\.dev$/i.test(window.location.hostname);
+  const isPreview = typeof window !== "undefined" && /\.pages\.dev$/i.test(window.location.hostname);
   useEffect(() => {
     if (isPreview) { setState({ phase: "preview", plans: [], error: "" }); return; }
     const controller = new AbortController();
