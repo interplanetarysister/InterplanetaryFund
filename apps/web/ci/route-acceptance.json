@@ -465,6 +465,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/fundraising-tips",
+      "role": "public",
+      "component": "FundraisingTips",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+editorial"
+    },
+    {
       "route": "/giving",
       "role": "public",
       "component": "Navigate",
@@ -573,6 +583,16 @@
       "behavior_evidence": "",
       "backend_evidence": "",
       "owner": "frontend"
+    },
+    {
+      "route": "/live",
+      "role": "public",
+      "component": "IFundLive",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+editorial"
     },
     {
       "route": "/login",
@@ -785,6 +805,16 @@
       "owner": "frontend"
     },
     {
+      "route": "/shorts",
+      "role": "public",
+      "component": "OrbitShorts",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/OrbitShorts.jsx; apps/web/src/lib/videoLinks.js; apps/web/src/lib/shortsFeed.js",
+      "behavior_evidence": "apps/web/tests/orbit-shorts.test.js; apps/web/tests/orbit-shorts-render.test.js; apps/web/tests/video-links.test.js; synthetic desktop/phone interaction evidence in branch review continuation",
+      "backend_evidence": "Uses only existing public campaign projections and moderated public social RPC; private records are never queried.",
+      "owner": "frontend"
+    },
+    {
       "route": "/social",
       "role": "public",
       "component": "SocialRoute",
@@ -862,16 +892,6 @@
       "source_evidence": "",
       "behavior_evidence": "",
       "backend_evidence": "",
-      "owner": "frontend"
-    },
-    {
-      "route": "/shorts",
-      "role": "public",
-      "component": "OrbitShorts",
-      "source_status": "source_ready",
-      "source_evidence": "apps/web/src/pages/OrbitShorts.jsx; apps/web/src/lib/videoLinks.js; apps/web/src/lib/shortsFeed.js",
-      "behavior_evidence": "apps/web/tests/orbit-shorts.test.js; apps/web/tests/orbit-shorts-render.test.js; apps/web/tests/video-links.test.js; synthetic desktop/phone interaction evidence in branch review continuation",
-      "backend_evidence": "Uses only existing public campaign projections and moderated public social RPC; private records are never queried.",
       "owner": "frontend"
     }
   ]
