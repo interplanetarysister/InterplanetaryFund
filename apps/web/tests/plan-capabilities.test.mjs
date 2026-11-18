@@ -29,7 +29,7 @@ test("subscription UI does not advertise unverified plans as purchase-ready",()=
   assert.match(member,/canEnroll\(plan/);
   assert.match(member,/Plans & subscriptions/);
   assert.match(member,/Subscribe with PayPal/);
-  assert.match(publicPage,/plan.available===true&&plan.verified===true/);
+  assert.match(publicPage,/plan\.available\s*===\s*true\s*&&\s*plan\.verified\s*===\s*true/);
   assert.match(payments,/body.tier!=="basic"\|\|body.interval!=="monthly"/);
   assert.match(payments,/subscriptionReadiness\(env\)/);
 });
