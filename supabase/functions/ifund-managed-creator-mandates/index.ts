@@ -180,6 +180,40 @@ Deno.serve(async (req) => {
       return json(200, { recorded: true, decision }, origin);
     }
 
+    if (action === "external_destination_approve" && req.method === "GET") {
+      if (!/^[a-f0-9]{64}$/.test(publicToken)) return json(404, { error: "destination_review_unavailable" }, origin);
+      const { data: destination, error } = await publicDb.from("ifund_managed_external_destinations")
+        .select("id,provider_label,donation_url,destination_owner_name,destination_owner_relationship,status,created_at")
+        .eq("creator_approval_token_hash", await hash(publicToken))
+        .eq("status", "pending_creator_approval").maybeSingle();
+      if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
+      return json(200, { destination }, origin);
+    }
+
+    if (action === "external_destination_approve" && req.method === "POST") {
+      if (!/^[a-f0-9]{64}$/.test(publicToken) || body.approve !== true)
+        return json(422, { error: "explicit_destination_approval_required" }, origin);
+      const tokenHash = await hash(publicToken);
+      const { data: destination, error } = await publicDb.from("ifund_managed_external_destinations")
+        .select("id,mandate_id,donation_url,status")
+        .eq("creator_approval_token_hash", tokenHash).eq("status", "pending_creator_approval").maybeSingle();
+      if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
+      const { data: updated, error: updateError } = await publicDb.from("ifund_managed_external_destinations").update({
+        creator_approved_at: new Date().toISOString(),
+        creator_approved_url_sha256: await hash(destination.donation_url),
+        creator_approved_by_token: true,
+        creator_approval_token_hash: null,
+        status: "pending_provider_verification",
+        updated_at: new Date().toISOString(),
+      }).eq("id", destination.id).eq("creator_approval_token_hash", tokenHash)
+        .eq("status", "pending_creator_approval").select("id").maybeSingle();
+      if (updateError || !updated) throw updateError || new Error("Destination approval was already used.");
+      await event(publicDb, destination.mandate_id, "creator", null, "external_destination_creator_approved", {
+        destination_id: destination.id, donation_url_sha256: await hash(destination.donation_url),
+      });
+      return json(200, { approved: true, status: "pending_provider_verification" }, origin);
+    }
+
     if (!["POST","GET"].includes(req.method)) return json(405, { error: "method_not_allowed" }, origin);
     const { user, userClient, db } = await adminContext(req, {
       SUPABASE_URL: Deno.env.get("SUPABASE_URL") || "",
@@ -188,6 +222,95 @@ Deno.serve(async (req) => {
       SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
       SUPABASE_SECRET_KEY: Deno.env.get("SUPABASE_SECRET_KEY") || "",
     });
+    if (action === "create_external_destination" && req.method === "POST") {
+      const mandateId = clean(body.mandate_id, 64);
+      const providerLabel = clean(body.provider_label, 100);
+      const donationUrl = clean(body.donation_url, 2048);
+      const ownerName = clean(body.destination_owner_name, 180);
+      const ownerRelationship = clean(body.destination_owner_relationship, 500);
+      if (!/^[0-9a-f-]{36}$/i.test(mandateId) || providerLabel.length < 2 || !safeUrl(donationUrl) ||
+          ownerName.length < 2 || ownerRelationship.length < 2)
+        return json(422, { error: "valid_provider_destination_and_owner_details_required" }, origin);
+      const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
+        .select("id,assigned_admin_id,status,expires_at,scopes,campaign_id,creator_review_state")
+        .eq("id", mandateId).eq("assigned_admin_id", user.id).eq("status", "active")
+        .gt("expires_at", new Date().toISOString()).maybeSingle();
+      if (mandateError || !mandate) return json(404, { error: "active_assigned_mandate_required" }, origin);
+      if (mandate.scopes?.publish !== true || !mandate.campaign_id || mandate.creator_review_state !== "approved")
+        return json(403, { error: "creator_publish_scope_approval_and_linked_campaign_required" }, origin);
+      const approvalToken = token();
+      const { data: destination, error } = await db.from("ifund_managed_external_destinations").insert({
+        mandate_id: mandate.id, campaign_id: mandate.campaign_id, provider_label: providerLabel,
+        donation_url: donationUrl, destination_owner_name: ownerName,
+        destination_owner_relationship: ownerRelationship,
+        creator_approval_token_hash: await hash(approvalToken),
+        status: "pending_creator_approval", created_by_admin: user.id,
+      }).select("id,status").single();
+      if (error) throw error;
+      await event(db, mandate.id, "admin", user.id, "external_destination_requested", {
+        destination_id: destination.id, donation_url_sha256: await hash(donationUrl), provider_label: providerLabel,
+      });
+      return json(201, { destination_id: destination.id, status: destination.status,
+        creator_approval_url: `https://interplanetaryfund.com/creator-review?external_destination_token=${approvalToken}`,
+        delivery_note: "Send this one-time link only to the creator through the verified contact channel. The link does not verify provider ownership." }, origin);
+    }
+    if (action === "list_external_destinations" && req.method === "GET") {
+      const mandateId = clean(url.searchParams.get("mandate_id"), 64);
+      if (!/^[0-9a-f-]{36}$/i.test(mandateId)) return json(422, { error: "valid_mandate_required" }, origin);
+      const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
+        .select("id").eq("id", mandateId).eq("assigned_admin_id", user.id).maybeSingle();
+      if (mandateError || !mandate) return json(404, { error: "assigned_mandate_not_found" }, origin);
+      const { data, error } = await db.from("ifund_managed_external_destinations")
+        .select("id,mandate_id,campaign_id,provider_label,donation_url,destination_owner_name,destination_owner_relationship,status,creator_approved_at,provider_owner_verified_at,compliance_checked_at,created_at,updated_at")
+        .eq("mandate_id", mandateId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return json(200, { destinations: data || [] }, origin);
+    }
+    if (action === "verify_external_destination" && req.method === "POST") {
+      const destinationId = clean(body.destination_id, 64);
+      const evidence = clean(body.provider_verification_evidence, 2000);
+      if (!/^[0-9a-f-]{36}$/i.test(destinationId) || evidence.length < 30)
+        return json(422, { error: "provider_verification_evidence_required" }, origin);
+      const { data: destination, error: lookupError } = await db.from("ifund_managed_external_destinations")
+        .select("id,mandate_id,status").eq("id", destinationId).eq("status", "pending_provider_verification").maybeSingle();
+      if (lookupError || !destination) return json(404, { error: "destination_not_ready_for_provider_verification" }, origin);
+      const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
+        .select("id").eq("id", destination.mandate_id).eq("assigned_admin_id", user.id).maybeSingle();
+      if (mandateError || !mandate) return json(404, { error: "assigned_mandate_not_found" }, origin);
+      const { error } = await db.from("ifund_managed_external_destinations").update({
+        provider_owner_verified_at: new Date().toISOString(), provider_owner_verified_by: user.id,
+        provider_verification_evidence: evidence, status: "pending_compliance", updated_at: new Date().toISOString(),
+      }).eq("id", destination.id).eq("status", "pending_provider_verification");
+      if (error) throw error;
+      await event(db, destination.mandate_id, "admin", user.id, "external_destination_verified", { destination_id: destination.id });
+      return json(200, { verified: true, status: "pending_compliance" }, origin);
+    }
+    if (action === "check_external_destination_compliance" && req.method === "POST") {
+      const destinationId = clean(body.destination_id, 64);
+      const evidence = clean(body.compliance_evidence, 2000);
+      if (!/^[0-9a-f-]{36}$/i.test(destinationId) || evidence.length < 30)
+        return json(422, { error: "compliance_evidence_required" }, origin);
+      const { data: destination, error: lookupError } = await db.from("ifund_managed_external_destinations")
+        .select("id,mandate_id,campaign_id,donation_url,creator_approved_url_sha256,status")
+        .eq("id", destinationId).eq("status", "pending_compliance").maybeSingle();
+      if (lookupError || !destination) return json(404, { error: "destination_not_ready_for_compliance" }, origin);
+      if (destination.creator_approved_url_sha256 !== await hash(destination.donation_url))
+        return json(409, { error: "creator_approved_url_changed" }, origin);
+      const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
+        .select("id,scopes,campaign_id,creator_review_state").eq("id", destination.mandate_id)
+        .eq("assigned_admin_id", user.id).eq("status", "active").gt("expires_at", new Date().toISOString()).maybeSingle();
+      if (mandateError || !mandate || mandate.scopes?.publish !== true ||
+          mandate.campaign_id !== destination.campaign_id || mandate.creator_review_state !== "approved")
+        return json(403, { error: "active_creator_publish_approval_required" }, origin);
+      const { error } = await db.from("ifund_managed_external_destinations").update({
+        compliance_checked_at: new Date().toISOString(), compliance_checked_by: user.id,
+        compliance_evidence: evidence, status: "ready", updated_at: new Date().toISOString(),
+      }).eq("id", destination.id).eq("status", "pending_compliance");
+      if (error) throw error;
+      await event(db, destination.mandate_id, "admin", user.id, "external_destination_compliance_checked", { destination_id: destination.id });
+      return json(200, { checked: true, status: "ready", publication_enabled: false }, origin);
+    }
+
     if (action === "list" && req.method === "GET") {
       const { data, error } = await db.from("ifund_creator_mandates").select("id,creator_name,creator_email,fundraiser_url,fundraiser_label,beneficiary_name,status,scopes,expires_at,identity_verified_at,identity_evidence_note,creator_review_state,creator_feedback,creator_approved_at,campaign_id,draft_payload,created_at,updated_at")
         .or(`assigned_admin_id.eq.${user.id},created_by_admin.eq.${user.id}`).order("created_at", { ascending: false }).limit(100);
