@@ -71,7 +71,7 @@ export default function PublicSubscriptionPlans() {
         <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 font-semibold" to={"/register?returnTo="+encodeURIComponent("/dashboard")}>Get started free</Link>
       </article>
       {selected.map(plan=>{
-        const info=PLAN_DISPLAY[plan.tier];const ready=plan.available===true&&plan.verified===true;
+        const info=PLAN_DISPLAY[plan.tier];const available=plan.available === true && plan.verified === true;
         return <article key={plan.tier+":"+plan.interval} className="flex flex-col rounded-2xl border border-border bg-card p-6">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{info.eyebrow}</p>
           <h3 className="mt-2 text-xl font-bold">{info.name}</h3>
@@ -79,8 +79,8 @@ export default function PublicSubscriptionPlans() {
           <p className="mt-4 text-3xl font-bold">{displayPrice(plan)}<span className="text-sm font-normal text-muted-foreground"> / {interval==="annual"?"year":"month"}</span></p>
           <ul className="mt-5 flex-1 list-disc space-y-2 pl-5 text-sm">{info.features.map(x=><li key={x}>{x}</li>)}</ul>
           <p className="mt-4 text-xs text-muted-foreground">{info.note}</p>
-          {ready&&!native?<Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground" to={"/login?returnTo="+encodeURIComponent("/subscriptions")}>Sign in to subscribe</Link>:
-            <span aria-disabled="true" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 text-sm text-muted-foreground">{native?"Purchases unavailable in app":"Enrollment pending verification"}</span>}
+          {available && !native?<Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground" to={"/login?returnTo="+encodeURIComponent("/subscriptions")}>Sign in to subscribe</Link>:
+            <span aria-disabled="true" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 text-sm text-muted-foreground">{native?"Purchases unavailable in app":"Enrollment unavailable — provider verification pending"}</span>}
         </article>;
       })}
     </section>
