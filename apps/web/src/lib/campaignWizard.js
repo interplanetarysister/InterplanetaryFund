@@ -1,8 +1,9 @@
 import {campaignSetupPayload} from "../api/campaignSetup.js";
 const PREFIX="ifund-campaign-wizard-v1";
-export const WIZARD_STEPS=Object.freeze(["Your details","Campaign basics","Your story","Review and launch"]);
+export const WIZARD_STEPS=Object.freeze(["Optional AI preparation","Campaign basics","Your story","Review and launch"]);
 const keyFor=(owner,campaign)=>PREFIX+":"+(owner?"owner:"+encodeURIComponent(owner):"guest")+":"+encodeURIComponent(campaign||"new");
-export function emptyWizard(){return campaignSetupPayload({},0);}
+// Start new campaigns at the first of three essential pages; stage 0 remains accessible for optional AI preparation and legacy drafts.
+export function emptyWizard(){return campaignSetupPayload({},1);}
 export function restoreWizard(storage,owner,campaign=null){
   let raw;try{raw=storage.getItem(keyFor(owner,campaign));}catch{return emptyWizard();}
   if(!raw)return emptyWizard();
