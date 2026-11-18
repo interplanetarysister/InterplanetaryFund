@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
-  EVENT_TYPES, ITEM_TYPES, normalizeEventInput, normalizeEventItemInput,
+  EVENT_TYPES, ITEM_TYPES, localDateTimeToIso, normalizeEventInput, normalizeEventItemInput,
   validateExternalCheckout,
 } from "../src/api/events.js";
 
@@ -50,6 +50,15 @@ test("event normalizer restricts categories and produces the expected owner even
   assert.ok(row.published_at);
   assert.throws(() => normalizeEventInput({title:"Dinner",event_type:"not-real",starts_at:validDate}), /event type/i);
   assert.throws(() => normalizeEventInput({title:"ok title",event_type:"gala",starts_at:validDate,ends_at:validDate}), /after its start/i);
+});
+
+
+test("event local date and time values use the selected IANA time zone including daylight-saving rules", () => {
+  assert.equal(localDateTimeToIso("2026-01-15T12:00", "America/Los_Angeles"), "2026-01-15T20:00:00.000Z");
+  assert.equal(localDateTimeToIso("2026-07-15T12:00", "America/Los_Angeles"), "2026-07-15T19:00:00.000Z");
+  assert.throws(() => localDateTimeToIso("2026-03-08T02:30", "America/Los_Angeles"), /daylight-saving/i);
+  assert.throws(() => localDateTimeToIso("2026-04-31T12:00", "America/Los_Angeles"), /valid local event date/i);
+  assert.throws(() => localDateTimeToIso("2026-04-15T12:00", "Not/A_Zone"), /valid event time zone/i);
 });
 
 test("event item normalizer validates ticket and auction item fields in integer cents", () => {
