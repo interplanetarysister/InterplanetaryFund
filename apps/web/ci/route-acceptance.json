@@ -418,20 +418,20 @@
       "route": "/events",
       "role": "public",
       "component": "Events",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx",
+      "behavior_evidence": "apps/web/tests/events.test.js; Cloudflare Pages preview 56e74628-0d39-4793-aec5-ef52f7783871 completed 866/866 web tests and Vite build on commit 62ecb20037d141d3470e44fbfe461b28e7d72914. Browser sign-in and live account interaction were not exercised.",
+      "backend_evidence": "Production Supabase project ssibsfmtodgximseeqsv applied migration 20261118190000_ifund_fundraising_events_and_external_activity; ifund_events, ifund_event_items and ifund_event_registrations verified with RLS enabled, public-field grants and member-private activity policies. External checkout is outbound only; no event payments enter IFund donations or ledger.",
       "owner": "frontend"
     },
     {
       "route": "/events/:id",
       "role": "public",
       "component": "Events",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx",
+      "behavior_evidence": "apps/web/tests/events.test.js; Cloudflare Pages preview 56e74628-0d39-4793-aec5-ef52f7783871 completed 866/866 web tests and Vite build on commit 62ecb20037d141d3470e44fbfe461b28e7d72914. Browser sign-in and live account interaction were not exercised.",
+      "backend_evidence": "Production Supabase project ssibsfmtodgximseeqsv applied migration 20261118190000_ifund_fundraising_events_and_external_activity; ifund_events, ifund_event_items and ifund_event_registrations verified with RLS enabled, public-field grants and member-private activity policies. External checkout is outbound only; no event payments enter IFund donations or ledger.",
       "owner": "frontend"
     },
     {
