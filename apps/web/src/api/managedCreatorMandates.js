@@ -3,7 +3,7 @@ import { authClient } from "./auth.js";
 function functionUrl() {
   const base = import.meta.env.VITE_SUPABASE_URL;
   const parsed = new URL(base);
-  if (!parsed.hostname.endsWith(".supabase.co") || parsed.protocol !== "https:") {
+  if (parsed.hostname !== "ssibsfmtodgximseeqsv.supabase.co" || parsed.protocol !== "https:") {
     throw new Error("Managed creator authorization is not configured for IFund.");
   }
   return new URL("/functions/v1/ifund-managed-creator-mandates", parsed.origin).toString();
