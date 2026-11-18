@@ -40,6 +40,7 @@ create table if not exists public.ifund_events (
       and checkout_url !~ '[[:space:]]'
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
+      and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
       and (
         (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\.)*eventbrite\.com(/|[?#]|$)') or
         (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\.)*(paypal\.com|paypal\.me)(/|[?#]|$)') or
@@ -90,6 +91,7 @@ create table if not exists public.ifund_event_items (
       and checkout_url !~ '[[:space:]]'
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
+      and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
     )
   )
 );
