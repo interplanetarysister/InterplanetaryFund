@@ -166,6 +166,7 @@ export default function Subscriptions(){
         const descriptor=PLAN_DISPLAY[plan.tier];
         const enabled=canEnroll(plan,{native,statusLoad,hasSubscription:activeMembership});
         const providerReady=plan.available===true&&plan.verified===true;
+        const available=providerReady;
         return <article key={plan.tier+":"+plan.interval} className="flex flex-col rounded-2xl border border-border bg-card p-6">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{descriptor.eyebrow}</span>
           <h3 className="mt-3 text-xl font-bold">{descriptor.name}</h3>
@@ -174,7 +175,7 @@ export default function Subscriptions(){
           <ul className="mt-5 flex-1 space-y-3 text-sm">{descriptor.features.map(feature=><li key={feature} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-primary"/>{feature}</li>)}</ul>
           <p className="mt-4 text-xs text-muted-foreground">{descriptor.note}</p>
           <p className="mt-3 text-xs font-medium">{providerReady?"Provider verification recorded":"Provider verification pending"}</p>
-          <button type="button" disabled={!enabled||busy!==""} onClick={()=>subscribe(plan)}
+          <button type="button" disabled={native||!available||!enabled||busy!==""} onClick={()=>subscribe(plan)}
             className="mt-4 min-h-11 w-full rounded-xl bg-primary px-4 font-semibold text-primary-foreground disabled:bg-muted disabled:text-muted-foreground">
             {busy===plan.tier+":"+plan.interval?<span className="inline-flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin"/>Opening PayPal…</span>:
               native?"Unavailable in mobile app":!providerReady?"Not accepting enrollment":
