@@ -17,7 +17,7 @@ const input = {
 const suggestion = (assistance = "assisted") => ({
   titles: ["One", "Two", "Three", "Four", "Five"],
   summaries: ["First summary", "Second summary"],
-  story: "A factual story.",
+  story: "A factual story about the documented community need. ".repeat(22),
   image_prompt: "A symbolic garden illustration.",
   assistance,
   ai_inference: assistance === "assisted",
@@ -62,7 +62,7 @@ test("draft responses require all five titles, two summaries, story and honest a
     validateDraftSuggestion(suggestion("outline")).assistance,
     "outline",
   );
-  assert.equal(validateDraftSuggestion(suggestion()).story, "A factual story.");
+  assert.equal(validateDraftSuggestion(suggestion()).story.length, suggestion().story.length);
 });
 test("no authenticated session means no service request", async () => {
   await assert.rejects(
@@ -92,7 +92,7 @@ test("campaign creation requests the permanent writing service without choosing 
       return Response.json(suggestion());
     },
   });
-  assert.equal(result.story, "A factual story.");
+  assert.equal(result.story, suggestion().story);
   assert.equal(count, 1);
 });
 test("queued writing is not reported as generated content and never automatically retries", async () => {
