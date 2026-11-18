@@ -55,11 +55,11 @@ test("shareable event page is public but never embeds unverified playback",()=>{
   const view=read("src/pages/LiveEventDetail.jsx");
   const feed=read("src/pages/IFundLive.jsx");
   const api=read("src/api/liveEvents.js");
-  assert.match(app,/path="\\/live\\/:id" element={<LiveEventDetail \\/>}/);
-  assert.match(view,/getPublicLiveEvent/);
-  assert.match(view,/not yet supported/);
-  assert.match(feed,/to={`\\/live\\/\\$\{encodeURIComponent\(event.id\)\}`}/);
-  assert.match(api,/eq\("public_visible", true\)\.maybeSingle\(\)/);
+  assert.ok(app.includes('path="/live/:id" element={<LiveEventDetail />}'));
+  assert.ok(view.includes("getPublicLiveEvent"));
+  assert.ok(view.includes("not yet supported"));
+  assert.ok(feed.includes("encodeURIComponent(event.id)"));
+  assert.ok(api.includes('.eq("public_visible", true).maybeSingle()'));
   const manifest=JSON.parse(read("ci/route-acceptance.json"));
   assert.equal(manifest.routes.find(r=>r.route==="/live/:id")?.source_status,"not_verified");
 });
