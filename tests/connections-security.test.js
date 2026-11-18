@@ -149,6 +149,20 @@ test("runtime JavaScript catalogs exactly match their retained canonical JSON so
 
 
 
+
+test("browser Supabase clients reject insecure and non-canonical project URLs", () => {
+ const authSource = readFileSync(new URL("../apps/web/src/api/auth.js", import.meta.url), "utf8");
+ const publicSource = readFileSync(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
+ for (const source of [authSource, publicSource]) {
+  assert.match(source, /CANONICAL_SUPABASE_URL/);
+  assert.match(source, /parsed\.origin === CANONICAL_SUPABASE_URL/);
+  assert.match(source, /parsed\.pathname === "\/"/);
+  assert.match(source, /parsed\.username/);
+  assert.match(source, /parsed\.password/);
+  assert.doesNotMatch(source, /hostname === .*supabase\.co/);
+ }
+});
+
 test("team context and privileged document cleanup refuse non-canonical Supabase projects", async () => {
  const wrong = {
   SUPABASE_URL: "https://another-project.supabase.co",
