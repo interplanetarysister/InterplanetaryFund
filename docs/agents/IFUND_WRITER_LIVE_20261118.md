@@ -65,7 +65,7 @@ Do not claim writer reboot, autonomous research, daily publishing or livestream 
 
 ## iFund Live event scheduling implementation — November 18 continuation
 Source commit series on `feature/ifund-writer-live-20261118` adds:
-- `supabase/migrations/20261118170000_ifund_live_events_foundation.sql`: owner-bound event metadata, public event visibility, guarded status transitions, campaign owner association, confirmed-email creator check, deny-by-default RLS, no member deletion, no privileged service-role keys.
+- `supabase/migrations/20261118171000_ifund_live_events_foundation.sql`: owner-bound event metadata, public event visibility, guarded status transitions, campaign owner association, confirmed-email creator check, deny-by-default RLS, no member deletion, no privileged service-role keys.
 - `apps/web/src/api/liveEvents.js`: verified owner and session guard, event validation, create-private-first flow, status compare-and-swap, public discovery fail-closed when the table is unavailable.
 - `apps/web/src/pages/ManageLiveEvents.jsx`: new member-only `/live/manage` event drafts, upcoming announcements, edits, cancellations and recording-consent acknowledgement.
 - `apps/web/src/pages/IFundLive.jsx`: public list of upcoming events and verified live metadata, while explicitly withholding playback and active-stream claims until provider integration.
