@@ -29,7 +29,7 @@ test("event validation refuses missing time, malformed campaign and misleading t
   assert.equal(validateLiveEvent({...event,recording_consent:"yes"}).recording_consent,false);
 });
 test("database is fail-closed for owner creation and verified broadcasts",()=>{
-  const sql=read("../../supabase/migrations/20261118170000_ifund_live_events_foundation.sql");
+  const sql=read("../../supabase/migrations/20261118171000_ifund_live_events_foundation.sql");
   assert.match(sql,/enable row level security/i);
   assert.match(sql,/revoke all on public\.ifund_live_events from public, anon, authenticated/i);
   assert.match(sql,/ifund_live_verified_creator\(\)/);
