@@ -5,7 +5,7 @@ import { authClient } from "@/api/auth";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
 import {
   cancelEventActivity, getEvent, listEventItems, listMyEventActivity,
-  listOwnerEventActivity, listOwnerEvents, listPublicEvents,
+  listOwnerEvents, listPublicEvents,
   recordEventActivity, saveOwnerEvent, saveOwnerEventItem, updateOwnerEventStatus,
 } from "@/api/events";
 
@@ -116,7 +116,7 @@ export default function Events() {
   const [campaigns,setCampaigns]=useState([]);
   const [event,setEvent]=useState(null);
   const [items,setItems]=useState([]);
-  const [attendees,setAttendees]=useState([]);
+
   const [form,setForm]=useState(blankEvent);
   const [itemForm,setItemForm]=useState(blankItem);
   const [amount,setAmount]=useState("");
@@ -152,7 +152,7 @@ export default function Events() {
   useEffect(()=>{reload();},[reload]);
 
   const loadDetail=useCallback(async()=>{
-    if(!eventId){setEvent(null);setItems([]);setAttendees([]);return;}
+    if(!eventId){setEvent(null);setItems([]);return;}
     setLoading(true);setError("");setNotice("");
     try{
       const row=await getEvent(client,eventId);
@@ -167,9 +167,7 @@ export default function Events() {
       if(current?.id&&current.email_confirmed_at&&!current.is_anonymous){
         const myRows=await listMyEventActivity(client).catch(()=>[]);
         setActivity(myRows);
-        if(isOwnEvent)setAttendees(await listOwnerEventActivity(client,eventId).catch(()=>[]));
-        else setAttendees([]);
-      } else setAttendees([]);
+      }
       if(isOwnEvent){
         setForm({
           title:row.title,description:row.description||"",event_type:row.event_type,
@@ -272,7 +270,6 @@ export default function Events() {
     const isOwner=Boolean(user?.id&&ownedEvents.some(row=>row.id===event.id));
     const myEventActivity=activity.filter(row=>row.event_id===eventId&&row.status==="active");
     const hasRsvp=myEventActivity.some(row=>row.activity_type==="rsvp");
-    const eventActivityCount=attendees.filter(row=>row.status==="active"&&row.activity_type==="rsvp").length;
     return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
       <Link to="/events" className="inline-flex min-h-10 items-center gap-2 text-sm text-primary underline"><ArrowLeft size={16}/>All events</Link>
       {loading?<p role="status">Loading event…</p>:error&&!event?<p role="alert" className="rounded-xl border border-destructive/40 p-4">{error}</p>:event&&<>
@@ -301,7 +298,7 @@ export default function Events() {
               {event.status==="published"&&<button onClick={()=>changeEventStatus("cancelled")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Cancel event</button>}
               {event.status==="published"&&<button onClick={()=>changeEventStatus("completed")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Mark completed</button>}
             </div>
-            <div className="mt-4 rounded-xl bg-muted/40 p-3 text-sm"><strong>{eventActivityCount}</strong> active RSVP{eventActivityCount===1?"":"s"} recorded in IFund. Reported external purchases are kept separate.</div>
+            <p className="mt-4 rounded-xl bg-muted/40 p-3 text-xs text-muted-foreground">Attendee RSVPs and self-reported purchase details remain private in each member account. IFund does not expose member payment reports to event organizers.</p>
           </div>
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-semibold">Tickets, auction items & experiences</h2><button type="button" onClick={()=>{setItemForm(blankItem());setEditingItemId(null);setShowItemForm(!showItemForm);}} className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-3 text-sm"><Plus size={16}/>Add item</button></div>
