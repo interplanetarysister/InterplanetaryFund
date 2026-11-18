@@ -12,6 +12,11 @@ export const EVENT_COLUMNS = [
   "ends_at","timezone","venue_name","location_label","checkout_provider",
   "checkout_url","status","visibility","published_at","created_at","updated_at",
 ].join(",");
+export const PUBLIC_EVENT_COLUMNS = [
+  "id","campaign_id","event_type","title","description","starts_at","ends_at","timezone",
+  "venue_name","location_label","checkout_provider","checkout_url","status","visibility",
+  "published_at","created_at","updated_at",
+].join(",");
 export const ITEM_COLUMNS = [
   "id","event_id","owner_id","item_type","title","description","estimated_value_cents",
   "starting_bid_cents","checkout_provider","checkout_url","status","created_at","updated_at",
@@ -162,7 +167,7 @@ function assertActivity(row, owner, eventId) {
 export async function listPublicEvents(client, { limit = 60 } = {}) {
   const maximum = Math.min(100, Math.max(1, Number(limit) || 60));
   const { data, error } = await client.from("ifund_events")
-    .select(EVENT_COLUMNS)
+    .select(PUBLIC_EVENT_COLUMNS)
     .eq("status", "published")
     .eq("visibility", "public")
     .gte("starts_at", new Date().toISOString())
@@ -176,7 +181,7 @@ export async function listPublicEvents(client, { limit = 60 } = {}) {
 export async function getEvent(client, id) {
   if (!UUID.test(id || "")) return null;
   const { data, error } = await client.from("ifund_events")
-    .select(EVENT_COLUMNS).eq("id", id).maybeSingle();
+    .select(PUBLIC_EVENT_COLUMNS).eq("id", id).maybeSingle();
   if (error) throw new Error("This event could not be loaded.");
   return data || null; // RLS decides whether it is public or owner-visible.
 }
