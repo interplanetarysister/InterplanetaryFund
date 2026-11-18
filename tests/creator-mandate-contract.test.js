@@ -15,6 +15,7 @@ const skillIndex = await readFile(new URL("../worker/services/skills/index.js", 
 const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
 const campaignDetail = await readFile(new URL("../apps/web/src/pages/CampaignDetail.jsx", import.meta.url), "utf8");
 const fundingCard = await readFile(new URL("../apps/web/src/components/campaigns/CampaignFundingCard.jsx", import.meta.url), "utf8");
+const paymentLedger = await readFile(new URL("../supabase/functions/ifund-payment-ledger/index.ts", import.meta.url), "utf8");
 
 const aiGate = await readFile(new URL("../supabase/migrations/20261118161819_ifund_creator_mandate_story_ai_gate_20261118.sql", import.meta.url), "utf8");
 const representation = await readFile(new URL("../supabase/migrations/20261118162242_ifund_managed_campaign_representation_20261118.sql", import.meta.url), "utf8");
@@ -304,4 +305,13 @@ test("managed beneficiary campaigns fail closed on IFund-native donation checkou
   assert.match(fundingCard, /managedCampaign = campaign\?\.managed_campaign === true/);
   assert.match(fundingCard, /\|\| managedCampaign \|\|/);
   assert.match(fundingCard, /administrator's payout account/);
+});
+
+test("managed beneficiary campaigns are rejected by the server before IFund payment intent creation", () => {
+  const gate = paymentLedger.indexOf("Managed beneficiary campaigns require direct-provider checkout");
+  const intentInsert = paymentLedger.indexOf('db("ifund_payment_intents","POST"', paymentLedger.indexOf('if(body.op==="begin")'));
+  assert.notEqual(gate, -1);
+  assert.notEqual(intentInsert, -1);
+  assert.ok(gate < intentInsert, "managed beneficiary gate must precede payment-intent creation");
+  assert.match(paymentLedger, /ifund_managed_campaign_profiles\?select=campaign_id&campaign_id=eq\./);
 });
