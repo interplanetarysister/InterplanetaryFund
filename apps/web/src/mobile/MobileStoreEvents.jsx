@@ -69,6 +69,7 @@ export default function MobileStoreEvents({embedded=false}) {
   const verified=Boolean(user?.id&&user.email_confirmed_at&&!user.is_anonymous);
   const load=useCallback(async()=>{
     setLoading(true);setError("");
+    if(eventId){setEvent(null);setItems([]);}
     try {
       if(eventId) {
         const row=await getEvent(client,eventId);
@@ -92,7 +93,7 @@ export default function MobileStoreEvents({embedded=false}) {
     } catch(cause) {
       setError(cause?.message||"Fundraising events could not be loaded.");
     } finally {setLoading(false);}
-  },[client,eventId,verified]);
+  },[client,eventId,verified,user?.id]);
   useEffect(()=>{load();},[load,reload]);
 
   const filtered=useMemo(()=>{
@@ -199,7 +200,7 @@ export default function MobileStoreEvents({embedded=false}) {
             {item.starting_bid_cents!==null&&<p className="text-xs text-slate-300">Starting bid: {money(item.starting_bid_cents)}</p>}
             <div className="flex flex-wrap gap-2">
               <ExternalOrganizerLink url={item.checkout_url||event.checkout_url} label="Open organizer's item page"/>
-              {item.checkout_url&&verified&&!isOwn&&<button type="button" onClick={()=>saveActivity(event.id,"external_purchase_reported",item.id)} disabled={Boolean(busy)} className="min-h-11 rounded-xl border border-white/30 px-3 text-xs">I purchased this item</button>}
+              {(item.checkout_url||event.checkout_url)&&verified&&!isOwn&&<button type="button" onClick={()=>saveActivity(event.id,"external_purchase_reported",item.id)} disabled={Boolean(busy)} className="min-h-11 rounded-xl border border-white/30 px-3 text-xs">I purchased this item</button>}
             </div>
           </article>)}
         </section>}
