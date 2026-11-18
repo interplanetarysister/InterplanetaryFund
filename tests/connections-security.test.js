@@ -3,6 +3,10 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { connectionCatalog, connectionProvider } from "../worker/connections/catalog.js";
+import providerCatalog from "../worker/connections/provider-catalog.js";
+import positionContracts from "../worker/services/position-contracts.js";
+import skillManifest from "../worker/services/skills/manifest.js";
+import { serviceSkill } from "../worker/services/skills/index.js";
 
 const migration=readFileSync(new URL("../supabase/migrations/20261113080000_ifund_member_connections_hub.sql",import.meta.url),"utf8");
 const owner="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -81,6 +85,18 @@ test("public page links and sharing choices are private and never count as OAuth
  await who(null,"anon");
  await assert.rejects(query("select * from public.ifund_my_connection_assistance()"),/permission denied/);
  await assert.rejects(query("select * from public.ifund_my_public_links()"),/permission denied/);
+});
+
+
+test("runtime JavaScript catalogs exactly match their retained canonical JSON sources", () => {
+ const readJson = (path) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
+ assert.deepEqual(providerCatalog, readJson("../worker/connections/provider-catalog.json"));
+ assert.deepEqual(positionContracts, readJson("../worker/services/position-contracts.json"));
+ assert.deepEqual(skillManifest, readJson("../worker/services/skills/manifest.json"));
+ const skill = serviceSkill("chief_of_staff");
+ assert.equal(skill.id, "chief_of_staff");
+ assert.ok(skill.instructions.length > 1000);
+ assert.equal(skill.source_sha256, "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313");
 });
 
 test("provider catalog loads through the Worker JavaScript module and exposes only safe summary fields", () => {
