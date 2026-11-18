@@ -108,7 +108,7 @@ async function attachVerifiedFunding(rows) {
       raised_amount: progress.amount,
       donor_count: progress.donors,
     };
-  });
+  }).filter((campaign) => !campaign.managed_campaign || Boolean(campaign.external_donation_url));
 }
 
 export async function listActiveCampaigns({ limit = 100 } = {}) {
