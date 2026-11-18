@@ -33,7 +33,7 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
           <span className="flex items-center gap-1.5"><CalendarDays className="w-4 h-4" />Ends {format(new Date(campaign.end_date), "MMM d")}</span>
         )}
       </div>
-      {platformOnlyMode && campaignActive && <PrelaunchNotice compact payment className="mb-4" />}
+      {platformOnlyMode && campaignActive && !managedCampaign && <PrelaunchNotice compact payment className="mb-4" />}
       {managedCampaign && campaignActive && campaign.external_donation_url ? (
         <a
           href={campaign.external_donation_url}
