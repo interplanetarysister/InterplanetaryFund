@@ -61,3 +61,18 @@ The former repo used "live" primarily for production campaign donations and acco
 
 ## Explicit release acceptance
 Do not claim writer reboot, autonomous research, daily publishing or livestream operations fully live until all of: independently fetched and dated sources before each generation; provider-backed inference; server-side editorial review and publishing authorization; durable idempotent scheduler; verified media assets and licenses; authenticated preview + mobile route tests; signed streaming provider lifecycle (for Live) and approved usage budget; and documented production release evidence.
+
+
+## iFund Live event scheduling implementation — November 18 continuation
+Source commit series on `feature/ifund-writer-live-20261118` adds:
+- `supabase/migrations/20261118170000_ifund_live_events_foundation.sql`: owner-bound event metadata, public event visibility, guarded status transitions, campaign owner association, confirmed-email creator check, deny-by-default RLS, no member deletion, no privileged service-role keys.
+- `apps/web/src/api/liveEvents.js`: verified owner and session guard, event validation, create-private-first flow, status compare-and-swap, public discovery fail-closed when the table is unavailable.
+- `apps/web/src/pages/ManageLiveEvents.jsx`: new member-only `/live/manage` event drafts, upcoming announcements, edits, cancellations and recording-consent acknowledgement.
+- `apps/web/src/pages/IFundLive.jsx`: public list of upcoming events and verified live metadata, while explicitly withholding playback and active-stream claims until provider integration.
+- `apps/web/tests/ifund-live-events.test.mjs`: owner/visibility/validation SQL source contract checks; NOT yet executed with Node/Postgres browser.
+- `apps/web/ci/route-acceptance.json`: `/live/manage` source status remains `not_verified`.
+- Verified GitHub source cross-check confirms the member-only route, guarded event API and SQL RLS snippets. This is not an RLS runtime test.
+
+**Release blockers:** SQL migration has **not** been applied. Site has no new event table in production, so public listing fails closed. No streamed video provider, signed webhooks, stream-key secret store, recording upload, host moderation, transcripts or playback. Real live state must be advanced only after verified provider webhook evidence through a privileged backend. Do not turn on broadcast provider (Cloudflare Stream is billed by delivered minutes, including WebRTC since October 15, 2026) without budget approval, rate/usage controls and acceptance.
+
+**Next verification:** run the checked-in Node tests; on an isolated Supabase/PGlite database run anonymous vs confirmed/unconfirmed creator, cross-owner, other-campaign, insert-as-live, scheduled visibility, replay and concurrent edit tests; check privileges, anon reading, owner session changes and responsive /live/manage user journeys at 320px/390px. Only after passing these tests apply a reviewed migration and preview the app under the existing full-site gate. The source-only checks are not enough to remove release hold.
