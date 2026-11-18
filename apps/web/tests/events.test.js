@@ -104,6 +104,9 @@ test("event page and dashboard connect owner creation, member account activity a
   assert.doesNotMatch(migration, /ifund_ledger_entries\s*\(/i);
   assert.ok(integrityMigration.includes("alter table public.ifund_events"));
   assert.ok(integrityMigration.includes("alter table public.ifund_event_items"));
+  assert.match(integrityMigration, /create policy ifund_events_owner_or_public_read/);
+  assert.match(integrityMigration, /create policy ifund_event_items_owner_or_public_read/);
+  assert.match(integrityMigration, /drop policy if exists ifund_events_public_read/);
   assert.match(integrityMigration, /checkout_provider='eventbrite' and checkout_url ~\*/i);
   assert.match(integrityMigration, /checkout_provider='paypal' and checkout_url ~\*/i);
   assert.match(integrityMigration, /ifund_guard_event_registration_cancellation/);
