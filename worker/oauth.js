@@ -1,4 +1,4 @@
-import { authenticatedUser, response } from './reads.js';
+import { authenticatedStudioUser, authenticatedUser, response } from './reads.js';
 
 const PROVIDERS = Object.freeze({
   google: {
@@ -717,12 +717,19 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     // verified active member before returning the full provider readiness view.
     if (!canValidateMember) {
       return response(503, {
-        enabled: false, storage_ready: storageReady, providers, runtime,
+        enabled: false, storage_ready: storageReady, providers: {}, runtime,
         error: 'Supabase member authentication is not configured.',
       });
     }
-    const account = await activeOAuthAccount(request, env, fetcher);
-    if (!account) return response(401, { error: 'Sign in to view provider availability.' });
+    let administrator;
+    try {
+      administrator = await authenticatedStudioUser(request, env, fetcher);
+    } catch {
+      return response(503, { error: 'Administrator verification unavailable.' });
+    }
+    if (administrator?.role !== 'super_admin') {
+      return response(403, { error: 'Verified administrator access required.' });
+    }
     return response(200, {
       enabled: env.OAUTH_API_ENABLED === 'true',
       storage_ready: storageReady,
