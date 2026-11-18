@@ -2,7 +2,7 @@
 //
 // Every call validates a confirmed, non-anonymous email identity, verifies the account lifecycle, scopes
 // reads and writes to owner_id = the verified auth.uid(), and confirms the
-// returned row before reporting success. No service-role key, no Base44 client,
+// returned row before reporting success. No service-role key, no legacy platform client,
 // no payment or ledger writes. Supabase row level security stays authoritative.
 //
 // Relative imports (not the "@/" alias) so these functions can be unit tested
