@@ -5,6 +5,7 @@ import {
   EVENT_TYPES, ITEM_TYPES, normalizeEventInput, normalizeEventItemInput,
   validateExternalCheckout,
 } from "../src/api/events.js";
+import { AUTH_TABS, PUBLIC_TABS, owningNavigationTab } from "../src/lib/navigation.js";
 
 const validDate = new Date(Date.now() + 86400000).toISOString();
 
@@ -65,7 +66,14 @@ test("event item normalizer validates ticket and auction item fields in integer 
   assert.throws(() => normalizeEventItemInput({item_type:"not-a-type",title:"Ticket"}), /item type/i);
 });
 
-test("event page and dashboard connect owner creation, member account activity and truthful payment disclosure", async () => {
+
+test("fundraising events are a first-class public and member mobile navigation tab", () => {
+  assert.ok(AUTH_TABS.includes("/events"));
+  assert.ok(PUBLIC_TABS.includes("/events"));
+  assert.equal(owningNavigationTab("/events", true), "/events");
+  assert.equal(owningNavigationTab("/events/123", false), "/events");
+});
+\ntest("event page and dashboard connect owner creation, member account activity and truthful payment disclosure", async () => {
   const [page,dashboard,widget,api,migration] = await Promise.all([
     readFile(new URL("../src/pages/Events.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/pages/Dashboard.jsx", import.meta.url), "utf8"),
