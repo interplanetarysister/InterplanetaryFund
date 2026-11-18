@@ -7,6 +7,7 @@ import {
   revision,
   memberApi,
   requireCampaignAIAccess,
+  requireCampaignScopeAccess,
 } from "./memberApi.js";
 import { specialistReferences, withSpecialistReferences, recordSpecialistReply } from "./specialistContext.js";
 import { IFUND_CAMPAIGN_ELIGIBILITY_POLICY } from "./campaignPolicy.js";
@@ -290,6 +291,7 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
       );
     }
     const input = communicationsInput(raw);
+    await requireCampaignScopeAccess(api, input.campaign_id, "donor_messaging");
     await requireCampaignAIAccess(api, input.campaign_id);
     if (typeof env.AI?.run !== "function" || env.IFUND_COMMUNICATIONS_AI_ENABLED !== "enabled")
       fail(
@@ -345,6 +347,7 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
     if (!UUID.test(claim.lease || "")) fail(503, "The message reservation could not be verified.");
     let output;
     try {
+      await requireCampaignScopeAccess(api, input.campaign_id, "donor_messaging");
       await requireCampaignAIAccess(api, input.campaign_id);
       output = communicationsOutput(
         await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
@@ -366,7 +369,10 @@ export async function communicationsRoute(request, env, fetcher = fetch) {
         "new_request_required",
       );
     }
-    try { await requireCampaignAIAccess(api, input.campaign_id); }
+    try {
+      await requireCampaignScopeAccess(api, input.campaign_id, "donor_messaging");
+      await requireCampaignAIAccess(api, input.campaign_id);
+    }
     catch (error) {
       await rpc("ifund_communications_finish", { p_request_id: request_id, p_lease: claim.lease, p_result: null, p_comm_type: input.comm_type }).catch(() => {});
       throw error;
