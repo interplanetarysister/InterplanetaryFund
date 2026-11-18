@@ -20,9 +20,9 @@ Base44 members authorize through the app-user connector flow for registered prov
 
 ## Canonical Worker runtime setup
 
-Use the canonical migration API Worker, `interplanetary-fund-api-migration`, for this route. The existing `ifund-oauth` Worker is a separate legacy D1 portal and must not be overwritten or treated as the member OAuth token vault.
+The production site routes `/api/oauth/*` through `apps/web/functions/api/oauth/[[path]].js`, a Cloudflare Pages Function that imports the shared `worker/oauth.js` handler. Configure the runtime bindings in the Cloudflare Pages project `interplanetaryfund-migration` for both production and any preview environment where the OAuth gateway is intentionally enabled. Do not assume that bindings on the separate `interplanetary-fund-api-migration` Worker are inherited by Pages Functions. The existing `ifund-oauth` Worker is a separate legacy D1 portal and must not be overwritten or treated as the member OAuth token vault.
 
-Bind the following on the canonical Worker only:
+Bind the following on the Cloudflare Pages Function runtime:
 
 | Binding | Type | Required value |
 | --- | --- | --- |
@@ -35,6 +35,6 @@ Bind the following on the canonical Worker only:
 
 Provider client IDs and client secrets are separate Worker bindings. Configure only providers with current app registration and approved scopes. Do not infer provider approval from a client ID/secret being present.
 
-The admin status endpoint returns binding names and configured booleans only; it never returns binding values. It permits same-origin status diagnostics while the frontend-origin allowlist is still missing, but authorization start/callback/refresh routes remain fail-closed. A provider is not connected until a real member completes consent and provider identity/permission verification. Publishing rights remain a separate gate.
+The admin status endpoint returns binding names and configured booleans only; it never returns binding values. It permits a same-origin, value-free diagnostic response while Supabase Auth is unavailable; once Auth is configured, only a verified super administrator can view provider readiness. A provider is not connected until a real member completes consent and provider identity/permission verification. Publishing rights remain a separate gate.
 
-Before enabling `OAUTH_API_ENABLED`, verify the active Supabase project, apply and verify the OAuth vault migrations, bind the server-only key, test a real member OAuth round trip for each enabled provider, and confirm the canonical Worker route is attached to the approved Pages origin. Never repoint or replace the legacy D1 OAuth portal as a shortcut.
+Before enabling `OAUTH_API_ENABLED`, verify the active Supabase project, apply and verify the OAuth vault migrations, bind the server-only key, test a real member OAuth round trip for each enabled provider, and confirm the Pages Function route is deployed on each approved Pages origin. Keep the allowlist limited to active custom domains actually used for member authorization. Never repoint or replace the legacy D1 OAuth portal as a shortcut.
