@@ -25,6 +25,7 @@ const revisionGate = await readFile(new URL("../supabase/migrations/202611181630
 const auditGuard = await readFile(new URL("../supabase/migrations/20261118163055_ifund_managed_campaign_audit_guard_hardening_20261118.sql", import.meta.url), "utf8");
 const mandateApi = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
 const scopeAtomicity = await readFile(new URL("../supabase/migrations/20261118163545_ifund_managed_campaign_scope_atomicity_20261118.sql", import.meta.url), "utf8");
+const scopeNullGuard = await readFile(new URL("../supabase/migrations/20261118163813_ifund_campaign_scope_null_guard_20261118.sql", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -250,4 +251,10 @@ test("donor messaging and account connection actions enforce separate scopes ato
   assert.match(scopeAtomicity, /'donor_messaging'/);
   assert.match(scopeAtomicity, /'account_connections'/);
   assert.match(scopeAtomicity, /ifund_campaign_mandate_scope_access/);
+});
+
+
+test("managed campaign scope gate rejects missing scope names", () => {
+  assert.match(scopeNullGuard, /p_scope is null/);
+  assert.match(scopeNullGuard, /p_scope not in/);
 });
