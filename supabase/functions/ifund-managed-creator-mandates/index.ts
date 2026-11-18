@@ -232,6 +232,18 @@ Deno.serve(async (req) => {
         throw new Error("The managed campaign link could not be confirmed.");
       return json(200, data, origin);
     }
+    if (action === "sync_campaign" && req.method === "POST") {
+      const mandateId = clean(body.mandate_id, 64);
+      if (!/^[0-9a-f-]{36}$/i.test(mandateId))
+        return json(422, { error: "valid_mandate_required" }, origin);
+      const { data, error } = await userClient.rpc("ifund_creator_mandate_sync_campaign_draft", {
+        p_mandate_id: mandateId,
+      });
+      if (error) throw error;
+      if (!data || data.synced !== true || !data.campaign_id)
+        throw new Error("The creator-approved campaign revision could not be confirmed.");
+      return json(200, data, origin);
+    }
     if (action === "verify_identity" && req.method === "POST") {
       const mandateId = clean(body.mandate_id, 64);
       const evidence = clean(body.identity_evidence_note, 2000);
