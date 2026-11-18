@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { isNativeBundle } from "@/lib/nativeApi";
+import { PLAN_DISPLAY, PLAN_ORDER, displayPrice, validProviderPlan } from "@/lib/planCapabilities.mjs";
 
 const PLAN_NAMES = {
   basic: "Basic AI Assistant",
@@ -20,6 +21,7 @@ function price(plan) {
 export default function PublicSubscriptionPlans() {
   const [state, setState] = useState({ phase: "loading", plans: [], error: "" });
   const [retry, setRetry] = useState(0);
+  const [interval, setInterval] = useState("monthly");
   useEffect(() => {
     const controller = new AbortController();
     setState({ phase: "loading", plans: [], error: "" });
@@ -37,34 +39,52 @@ export default function PublicSubscriptionPlans() {
   }, [retry]);
   const returnTo = encodeURIComponent("/subscriptions");
   const native = isNativeBundle();
-  return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
-    <header className="space-y-2">
-      <h1 className="text-3xl font-bold">iFund plans</h1>
-      <p className="text-muted-foreground">Browse plans without signing in. Paid access is activated only after a verified PayPal subscription payment.</p>
+  const selected=PLAN_ORDER.map(tier=>state.plans.find(p=>p.tier===tier&&p.interval===interval)).filter(validProviderPlan);
+  return <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6 lg:py-12">
+    <header className="space-y-3">
+      <p className="text-xs font-semibold uppercase tracking-wider text-primary">Membership</p>
+      <h1 className="font-display text-3xl font-bold sm:text-4xl">Choose what works for you</h1>
+      <p className="max-w-3xl text-muted-foreground">Start free with your campaigns and account links. Compare paid tools and see which plans have verified PayPal enrollment.</p>
+      <div className="flex flex-wrap gap-4 text-sm"><Link to="/connections" className="text-primary underline">Connect an account</Link><Link to="/agents" className="text-primary underline">Meet your agents</Link></div>
     </header>
-    {native && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-      Plans can be reviewed here; new paid subscriptions are unavailable inside the mobile app until store billing requirements are verified.
-    </p>}
-    {state.phase === "loading" && <p role="status">Loading provider-backed plan availability…</p>}
-    {state.phase === "error" && <section role="alert" className="rounded-xl border border-amber-500/40 p-5">
-      <p>{state.error}</p>
-      <button type="button" className="mt-3 rounded-lg border px-4 py-2" onClick={() => setRetry(n => n + 1)}>Retry</button>
-    </section>}
-    {state.phase === "ready" && (state.plans.length === 0
-      ? <p className="rounded-xl border border-border p-5">No plans are available to display at this time.</p>
-      : <section aria-label="Subscription plan catalog" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {state.plans.map((plan, index) => {
-          const available = plan.available === true && plan.verified === true;
-          return <article key={String(plan.tier) + ":" + String(plan.interval) + ":" + index} className="space-y-3 rounded-xl border border-border bg-card p-5">
-            <h2 className="text-xl font-semibold">{PLAN_NAMES[plan.tier] || "iFund plan"}</h2>
-            <p className="text-sm capitalize text-muted-foreground">{plan.interval === "annual" ? "Annual" : plan.interval === "monthly" ? "Monthly" : "Billing interval unavailable"}</p>
-            <p className="text-2xl font-bold">{price(plan)}</p>
-            <p className="text-sm">{available ? "PayPal billing verified for enrollment" : "Enrollment unavailable — provider verification pending"}</p>
-            {available && !native ? <Link className="inline-flex min-h-11 items-center rounded-lg bg-cyan-600 px-4 py-2 font-semibold text-white" to={"/login?returnTo=" + returnTo}>Sign in to subscribe</Link>
-              : <span aria-disabled="true" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 py-2 text-sm text-muted-foreground">Not accepting enrollment</span>}
-          </article>;
-        })}
-      </section>)}
-    <p className="text-sm text-muted-foreground">New to iFund? <Link className="underline" to={"/register?returnTo=" + returnTo}>Create an account</Link>. Existing members can <Link className="underline" to="/subscriptions">manage their subscriptions</Link>.</p>
+    {native&&<p role="status" className="rounded-xl border border-border p-4 text-sm">You can compare plans here, but new subscriptions are unavailable inside the mobile app pending store-billing review.</p>}
+    {state.phase==="loading"&&<p role="status">Checking current plan availability…</p>}
+    {state.phase==="error"&&<div role="alert" className="rounded-xl border border-destructive/30 p-4">
+      <p>{state.error}</p><button type="button" className="mt-3 min-h-11 rounded-lg border border-border px-4" onClick={()=>setRetry(n=>n+1)}>Retry plans</button>
+    </div>}
+    <section className="flex flex-wrap items-center justify-between gap-4" aria-label="Plan comparison controls">
+      <h2 className="text-xl font-semibold">Free and paid capabilities</h2>
+      <div role="group" aria-label="Billing period" className="inline-flex rounded-xl border border-border bg-card p-1">
+        {["monthly","annual"].map(value=><button key={value} aria-pressed={interval===value}
+          onClick={()=>setInterval(value)} type="button" className={"min-h-11 rounded-lg px-4 text-sm font-semibold "+(interval===value?"bg-primary text-primary-foreground":"text-muted-foreground")}>
+          {value==="monthly"?"Monthly":"Annual"}</button>)}
+      </div>
+    </section>
+    <section aria-label="Subscription plan catalog" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <article className="flex flex-col rounded-2xl border border-primary/30 bg-card p-6">
+        <p className="text-xs font-semibold uppercase tracking-wide text-primary">Always free</p>
+        <h3 className="mt-2 text-xl font-bold">{PLAN_DISPLAY.free.name}</h3>
+        <p className="mt-2 text-sm text-muted-foreground">{PLAN_DISPLAY.free.description}</p>
+        <p className="mt-4 text-3xl font-bold">$0<span className="text-sm font-normal text-muted-foreground"> / month</span></p>
+        <ul className="mt-5 flex-1 list-disc space-y-2 pl-5 text-sm">{PLAN_DISPLAY.free.features.map(x=><li key={x}>{x}</li>)}</ul>
+        <p className="mt-4 text-xs text-muted-foreground">{PLAN_DISPLAY.free.note}</p>
+        <Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 font-semibold" to={"/register?returnTo="+encodeURIComponent("/dashboard")}>Get started free</Link>
+      </article>
+      {selected.map(plan=>{
+        const info=PLAN_DISPLAY[plan.tier];const ready=plan.available===true&&plan.verified===true;
+        return <article key={plan.tier+":"+plan.interval} className="flex flex-col rounded-2xl border border-border bg-card p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{info.eyebrow}</p>
+          <h3 className="mt-2 text-xl font-bold">{info.name}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{info.description}</p>
+          <p className="mt-4 text-3xl font-bold">{displayPrice(plan)}<span className="text-sm font-normal text-muted-foreground"> / {interval==="annual"?"year":"month"}</span></p>
+          <ul className="mt-5 flex-1 list-disc space-y-2 pl-5 text-sm">{info.features.map(x=><li key={x}>{x}</li>)}</ul>
+          <p className="mt-4 text-xs text-muted-foreground">{info.note}</p>
+          {ready&&!native?<Link className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground" to={"/login?returnTo="+encodeURIComponent("/subscriptions")}>Sign in to subscribe</Link>:
+            <span aria-disabled="true" className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl border border-border px-4 text-sm text-muted-foreground">{native?"Purchases unavailable in app":"Enrollment pending verification"}</span>}
+        </article>;
+      })}
+    </section>
+    {state.phase==="ready"&&!selected.length&&<p className="rounded-xl border border-border p-4 text-sm">Provider-backed paid plans are not currently available to display for this billing period.</p>}
+    <footer className="text-sm text-muted-foreground">Already a member? <Link className="text-primary underline" to="/subscriptions">Manage billing</Link>. A saved account link does not authorize automated publishing. Paid service permissions depend on verified account access and provider status.</footer>
   </main>;
 }
