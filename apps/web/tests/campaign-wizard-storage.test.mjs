@@ -80,3 +80,20 @@ test("silent removeItem failure cannot acknowledge wizard deletion",()=>{
  assert.equal(forgetWizard(s,A),false);
  assert.equal(s.data.size,1,"unremoved owner draft must remain intact");
 });
+
+test("guest cleanup refuses owner draft replaced during import",()=>{
+ const s=memory();
+ assert.equal(rememberWizard(s,null,null,{...emptyWizard(),draft_step:3}),true);
+ const originalGet=s.getItem.bind(s);
+ let guestReads=0;
+ s.getItem=(key)=>{
+   if(key.includes(":guest:")&&++guestReads===2){
+     const ownerKey=[...s.data.keys()].find(k=>k.includes(":owner:"));
+     s.data.set(ownerKey,JSON.stringify({version:1,owner_id:A,campaign_id:null,setup:{...emptyWizard(),draft_step:2}}));
+   }
+   return originalGet(key);
+ };
+ assert.equal(importGuestWizard(s,A),false);
+ assert.equal(restoreWizard(s,null).draft_step,3,"guest recovery copy survives owner race");
+ assert.equal(restoreWizard(s,A).draft_step,2,"new owner draft survives");
+});
