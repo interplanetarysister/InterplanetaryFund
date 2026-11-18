@@ -7,7 +7,7 @@ const OWNER="22222222-2222-4222-8222-222222222222";
 const CAMPAIGN="33333333-3333-4333-8333-333333333333";
 const DOCUMENT="44444444-4444-4444-8444-444444444444";
 const PATH=OWNER+"/"+CAMPAIGN+"/"+DOCUMENT+".pdf";
-const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ifund-example.supabase.co",SUPABASE_SECRET_KEY:"server-only-example-key-not-real"};
+const ENV={IFUND_DOCUMENT_ERASURE_ENABLED:"enabled",SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_SECRET_KEY:"server-only-example-key-not-real"};
 const request=()=>new Request("https://ifund.example/api/services/admin/private-document-erasure",{
  method:"POST",headers:{authorization:"Bearer admin.jwt","content-type":"application/json"},body:JSON.stringify({request_id:REQUEST})
 });
