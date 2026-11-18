@@ -29,14 +29,16 @@ export function memberConnectionLink(id) {
 export function connectionMethods(id, registration = null, capabilities = []) {
   const p = connectionProvider(id);
   if (!p) throw Error("Choose a known provider.");
+  const oauthRouteAvailable = registeredOAuthProviders.has(OAUTH_PROVIDER_ALIASES[id] || id);
   const current =
     registration?.provider === id &&
     registration.status === "verified" &&
     Number.isFinite(Date.parse(registration.valid_until)) &&
-    Date.parse(registration.valid_until) > Date.now();
+    Date.parse(registration.valid_until) > Date.now() &&
+    (registration.transport !== "oauth" || oauthRouteAvailable);
   const method = current
     ? registration.transport
-    : registeredOAuthProviders.has(OAUTH_PROVIDER_ALIASES[id] || id)
+    : oauthRouteAvailable
       ? "oauth"
       : p.legacy_auth_hint === "link"
         ? "public_page"
