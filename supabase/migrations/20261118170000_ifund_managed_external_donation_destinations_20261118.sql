@@ -143,6 +143,97 @@ create trigger ifund_managed_external_destination_guard
 
 revoke all on function public.ifund_guard_managed_external_destination() from public, anon, authenticated;
 
+create or replace function public.ifund_block_managed_campaign_publication()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+set row_security = 'off'
+as $function$
+declare
+  v_mandate public.ifund_creator_mandates%rowtype;
+  v_destination public.ifund_managed_external_destinations%rowtype;
+  v_goal numeric;
+begin
+  if new.status = 'active' and exists (
+    select 1 from public.ifund_managed_campaign_profiles p where p.campaign_id = new.id
+  ) then
+    select m.* into v_mandate
+      from public.ifund_managed_campaign_profiles p
+      join public.ifund_creator_mandates m on m.id = p.mandate_id
+      where p.campaign_id = new.id
+        and m.campaign_id = new.id
+        and m.assigned_admin_id = new.owner_id
+      for update of m;
+
+    if not found
+       or v_mandate.status <> 'active'
+       or v_mandate.expires_at <= statement_timestamp()
+       or v_mandate.identity_verified_at is null
+       or v_mandate.identity_verified_by is null
+       or v_mandate.full_control_acknowledged is not true
+       or v_mandate.ai_all_features_acknowledged is not true
+       or v_mandate.creator_authority_confirmed is not true
+       or v_mandate.creator_review_state <> 'approved'
+       or v_mandate.creator_approved_at is null
+       or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+       or jsonb_typeof(v_mandate.draft_payload) <> 'object'
+       or coalesce(v_mandate.draft_payload ->> 'title','') <> new.title
+       or coalesce(v_mandate.draft_payload ->> 'summary','') <> new.summary
+       or coalesce(v_mandate.draft_payload ->> 'story','') <> new.story
+       or coalesce(v_mandate.draft_payload ->> 'category','') <> new.category
+       or not pg_catalog.pg_input_is_valid(v_mandate.draft_payload ->> 'goal_amount','numeric') then
+      raise exception 'Managed fundraiser requires active creator publication authorization and the exact approved campaign draft'
+        using errcode = '42501';
+    end if;
+
+    v_goal := (v_mandate.draft_payload ->> 'goal_amount')::numeric;
+    if v_goal <= 0 or new.goal_amount <> v_goal then
+      raise exception 'Managed fundraiser goal must match the creator-approved draft'
+        using errcode = '40001';
+    end if;
+
+    select d.* into v_destination
+      from public.ifund_managed_external_destinations d
+      where d.mandate_id = v_mandate.id
+        and d.campaign_id = new.id
+        and d.status = 'ready'
+        and d.creator_approved_at is not null
+        and d.creator_approved_by_token is true
+        and d.creator_approved_url_sha256 is not null
+        and d.provider_owner_verified_at is not null
+        and d.provider_owner_verified_by is not null
+        and length(coalesce(d.provider_verification_evidence,'')) >= 30
+        and d.compliance_checked_at is not null
+        and d.compliance_checked_by is not null
+        and length(coalesce(d.compliance_evidence,'')) >= 30
+      for update;
+
+    if not found then
+      raise exception 'Managed fundraiser requires a creator-approved direct-provider destination with provider ownership and compliance evidence'
+        using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end
+$function$;
+
+revoke all on function public.ifund_block_managed_campaign_publication() from public, anon, authenticated;
+
+create or replace view public.ifund_public_managed_external_destinations
+with (security_barrier = true)
+as
+select d.campaign_id, d.provider_label, d.donation_url
+from public.ifund_managed_external_destinations d
+where d.status = 'ready'
+  and exists (
+    select 1 from public.ifund_campaigns c
+    where c.id = d.campaign_id and c.status = 'active'
+  );
+
+revoke all on public.ifund_public_managed_external_destinations from public, anon, authenticated;
+grant select on public.ifund_public_managed_external_destinations to anon, authenticated;
+
 comment on table public.ifund_managed_external_destinations is
   'Private direct-to-provider donation destination records. No browser-role access. Ready means creator approval, provider ownership verification and compliance evidence are recorded; a separate publication gate is still required.';
 
