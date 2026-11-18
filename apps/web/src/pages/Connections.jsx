@@ -200,6 +200,20 @@ export default function Connections() {
     } catch(cause) { setError(cause.message || "Could not save the link. Try again."); }
     finally { busyLock.current=false; setBusy(""); }
   }
+  async function copyManualCampaignLink() {
+    const campaign=campaigns.find(row=>row.id===pairedCampaign && row.status==="active");
+    if(!campaign || !user?.id) {
+      setError("Choose a published campaign you own before copying a public link."); return;
+    }
+    try {
+      const {data,error:issue}=await authClient().auth.getUser();
+      if(issue || data?.user?.id!==user.id) throw Error("Your account changed. Reload connections.");
+      if(typeof navigator==="undefined" || !navigator.clipboard?.writeText)
+        throw Error("Copy is unavailable in this browser. Use your campaign's Share action.");
+      await navigator.clipboard.writeText("https://interplanetaryfund.com/campaign/"+encodeURIComponent(campaign.id));
+      setError("");setNotice("Verified public campaign link copied. Paste it into your own post on "+selected.name+".");
+    }catch(cause){setError(cause?.message||"Unable to copy the public campaign link.");}
+  }
   async function removeLink() {
     if (!savedId || busyLock.current) return;
     busyLock.current=true;setBusy("remove-link");setError("");setNotice("");
@@ -363,6 +377,24 @@ export default function Connections() {
             <dd className="mt-1 text-muted-foreground">Not available until this destination's publishing scope, owner consent and delivery receipts are verified</dd></div>
         </dl>
         <p className="text-xs text-muted-foreground">A verified sign-in, public URL and membership subscription are separate permissions. None of them alone authorizes publishing or outreach.</p>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border border-border p-4" aria-label="Manual fundraising sharing">
+        <h3 className="font-semibold">Share a campaign yourself</h3>
+        <p className="text-sm text-muted-foreground">This free option copies an existing published campaign link. You write or approve the message and post it from your own account. iFund does not post anything for you.</p>
+        <label className="block space-y-2 text-sm font-medium">Published campaign
+          <select className={INPUT} value={campaigns.some(c=>c.id===pairedCampaign&&c.status==="active")?pairedCampaign:""}
+            onChange={event=>setPairedCampaign(event.target.value)}>
+            <option value="">Choose a published campaign</option>
+            {campaigns.filter(c=>c.status==="active").map(c=><option key={c.id} value={c.id}>{c.title||"Untitled campaign"}</option>)}
+          </select>
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <button type="button" disabled={Boolean(busy)||!campaigns.some(c=>c.id===pairedCampaign&&c.status==="active")}
+            onClick={copyManualCampaignLink} className={BUTTON}>Copy campaign link</button>
+          {selected.site&&<a href={selected.site} target="_blank" rel="noopener noreferrer" className={BUTTON}>Open {selected.name} to post</a>}
+          <Link to="/communications" className={BUTTON}>Prepare a message</Link>
+        </div>
       </section>
 
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
