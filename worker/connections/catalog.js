@@ -36,11 +36,10 @@ export function connectionMethods(id, registration = null, capabilities = []) {
     Date.parse(registration.valid_until) > Date.now();
   const method = current
     ? registration.transport
-    : p.legacy_auth_hint === "link"
-      ? "public_page"
-      : p.legacy_auth_hint === "oauth" &&
-          registeredOAuthProviders.has(OAUTH_PROVIDER_ALIASES[id] || id)
-        ? "oauth"
+    : registeredOAuthProviders.has(OAUTH_PROVIDER_ALIASES[id] || id)
+      ? "oauth"
+      : p.legacy_auth_hint === "link"
+        ? "public_page"
         : "protected_provider_step";
   return {
     provider: id,
