@@ -10,11 +10,15 @@ const allowedOrigins = new Set([
   "https://interplanetaryfund.com",
   "https://www.interplanetaryfund.com",
   "https://preview.interplanetaryfund.com",
+  "https://interplanetaryfund-migration.pages.dev",
+  "https://preview.interplanetaryfund-migration.pages.dev",
+  "https://feature-connections-icon-hub.interplanetaryfund-migration.pages.dev",
+  "capacitor://localhost",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ]);
-const VERSION = "ifund-external-creator-full-control-v1";
-const AUTHORIZATION_TEXT = `You authorize the named IFund admin account assigned to this mandate to receive full operational control of the specific fundraiser identified in this authorization for the mandate term. You also grant every AI feature and AI agent available to that assigned admin account broad, unrestricted permission to access and use the information supplied for this fundraiser and to perform all available campaign-related AI work on your behalf, including research, planning, drafting, editing, design, media generation, optimization, scheduling, coordination, analytics, and management. This delegation is limited to the identified fundraiser and does not grant access to unrelated personal data, unrelated campaigns, credentials, or accounts, and does not bypass provider/API capabilities, platform rules, applicable law, security controls, or safety restrictions. Publishing, external posting/outreach, donor messaging, account connections, financial/payout actions, and payout-destination changes each require separate affirmative authorization. Your authorization expires on the stated date and may be revoked through the creator review link or by contacting IFund. IFund will not create an IFund login for you or impersonate you. The campaign will identify you as the creator/beneficiary and disclose IFund's management. No campaign will be published or donations solicited until identity/authority checks, final creator content approval, payout verification, legal/platform checks, and any separately required permissions are complete.`;
+const VERSION = "ifund-external-creator-full-control-v2";
+const AUTHORIZATION_TEXT = `You authorize the named IFund admin account assigned to this mandate to receive full operational control of the specific fundraiser identified in this authorization for the mandate term. You also grant every AI feature and AI agent available to that assigned admin account unlimited permission in scope to access and use the information supplied for this fundraiser and to perform all available campaign-related AI work on your behalf, including research, planning, drafting, editing, design, media generation, optimization, scheduling, coordination, analytics, and management, without a feature-specific or task-count restriction imposed by this mandate. This unlimited permission is limited to the identified fundraiser; it does not grant access to unrelated personal data, unrelated campaigns, credentials, or accounts. Actual usage remains subject to the assigned admin account subscription and usage entitlements, provider/API capability and capacity, platform rules, applicable law, security controls, and safety restrictions; it does not promise unlimited compute, free usage, or the ability to bypass those controls. Publishing, external posting/outreach, donor messaging, account connections, financial/payout actions, and payout-destination changes each require separate affirmative authorization. Your authorization expires on the stated date and may be revoked through the creator review link or by contacting IFund. IFund will not create an IFund login for you or impersonate you. The campaign will identify you as the creator/beneficiary and disclose IFund's management. No campaign will be published or donations solicited until identity/authority checks, final creator content approval, payout verification, legal/platform checks, and any separately required permissions are complete.`;
 const json = (status, body, origin) => new Response(JSON.stringify(body), {
   status,
   headers: { ...corsHeaders, ...(origin && allowedOrigins.has(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) },
@@ -173,7 +177,13 @@ Deno.serve(async (req) => {
     }
 
     if (!["POST","GET"].includes(req.method)) return json(405, { error: "method_not_allowed" }, origin);
-    const { user, db } = await adminContext(req, Deno.env.toObject());
+    const { user, db } = await adminContext(req, {
+      SUPABASE_URL: Deno.env.get("SUPABASE_URL") || "",
+      SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY") || "",
+      SUPABASE_PUBLISHABLE_KEY: Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "",
+      SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+      SUPABASE_SECRET_KEY: Deno.env.get("SUPABASE_SECRET_KEY") || "",
+    });
     if (action === "list" && req.method === "GET") {
       const { data, error } = await db.from("ifund_creator_mandates").select("id,creator_name,creator_email,fundraiser_url,fundraiser_label,beneficiary_name,status,scopes,expires_at,identity_verified_at,identity_evidence_note,creator_review_state,creator_feedback,creator_approved_at,campaign_id,created_at,updated_at")
         .or(`assigned_admin_id.eq.${user.id},created_by_admin.eq.${user.id}`).order("created_at", { ascending: false }).limit(100);
