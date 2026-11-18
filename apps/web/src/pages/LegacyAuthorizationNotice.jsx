@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import BrandLogo from "@/components/brand/BrandLogo";
 
 /**
- * The old Base44 MCP-app consent URL is not an authorization protocol on
+ * The retired MCP-app consent URL is not an authorization protocol on
  * the independent Cloudflare/Supabase application. It has no validated
  * server-initiated authorization transaction and MUST NOT accept an opaque
  * client_id, scope or redirect_uri from browser query parameters.
