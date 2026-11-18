@@ -72,7 +72,7 @@ export function validateExternalCheckout(url, provider) {
 }
 
 export function localDateTimeToIso(value, timezone = "UTC") {
-  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})(?::(\\d{2}))?$/.exec(String(value || ""));
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(String(value || ""));
   if (!match) throw new Error("Enter a valid local event date and time.");
   const [, yearText, monthText, dayText, hourText, minuteText, secondText = "00"] = match;
   const [year, month, day, hour, minute, second] =
