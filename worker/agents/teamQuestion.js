@@ -87,6 +87,17 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     await api.aiPermission("campaign");
     const raw=await readJsonBody(request,8000);
     const input=validateTeamQuestion(raw);
+    const hashData=JSON.stringify({question:input.question,agent:input.selected});
+    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(hashData));
+    const sha=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+    const quota=await api.rpc("ifund_reserve_agent_question",{
+      p_request_id:input.requestId,p_input_sha256:sha,p_agent_id:input.selected,
+    });
+    if(quota?.state==="daily_limit") fail(429,"Daily AI question allowance reached. Your free iFund tools remain available.");
+    if(quota?.state==="already_reserved") fail(409,"This question was already submitted. Start a new request to ask again.");
+    if(quota?.allowed!==true || quota?.state!=="reserved" ||
+       !Number.isInteger(quota.remaining)||quota.remaining<0)
+      fail(503,"Your AI question allowance could not be verified.");
     let history=[];
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
       const context=await readTeamContext({env,jwt:api.jwt,campaignId:null,limit:8,fetcher});
@@ -105,6 +116,7 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     return noStore(200,{...answer,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
+      questions_remaining_today:quota.remaining,
       provider_verified:true});
   } catch(error) {
     if (error instanceof BodyError)
