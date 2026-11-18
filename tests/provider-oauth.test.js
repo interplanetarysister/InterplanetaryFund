@@ -26,7 +26,7 @@ const key = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
 const opaqueSecretKey = ['sb', 'secret'].join('_') + '_test_key_for_oauth_vault_123456';
 const env = {
   OAUTH_API_ENABLED: 'true',
-  SUPABASE_URL: 'https://example.supabase.co',
+  SUPABASE_URL: 'https://ssibsfmtodgximseeqsv.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_only',
   SUPABASE_SECRET_KEY: opaqueSecretKey,
   OAUTH_ENCRYPTION_KEY: key,
