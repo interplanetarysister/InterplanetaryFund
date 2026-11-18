@@ -36,6 +36,7 @@ const story = await readFile(new URL("../worker/agents/story.js", import.meta.ur
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
 const externalDestination = await readFile(new URL("../supabase/migrations/20261118170000_ifund_managed_external_donation_destinations_20261118.sql", import.meta.url), "utf8");
+const storyCreationSessions = await readFile(new URL("../supabase/migrations/20261118172000_ifund_story_campaign_creation_sessions_20261118.sql", import.meta.url), "utf8");
 
 test("creator mandate storage is private and service-role only", () => {
   assert.match(migration, /enable row level security/i);
@@ -129,6 +130,7 @@ test("managed Story AI calls are bound to a live, verified mandate at execution 
   assert.match(story, /await verifyManagedMandate\(\)/);
   assert.match(preview, /managed_mandate_id/);
   assert.match(draftClient, /managed_mandate_id/);
+  assert.match(draftClient, /managedMandateId \? \{ managed_mandate_id: managedMandateId \}/);
   assert.match(admin, /managed_mandate_id: selected\.id/);
   assert.match(admin, /Story, Strategy, Growth and Communications AI endpoints now enforce the linked mandate/);
 });
@@ -369,4 +371,31 @@ test("external donation destination approval is token-bound, expiring, and inval
   assert.match(admin, /verify_external_destination/);
   assert.match(admin, /check_external_destination_compliance/);
   assert.ok(admin.includes("selected.scopes?.publish === true"));
+});
+
+test("pre-save Story AI requires a backend-verified campaign, mandate, or native creation session", () => {
+  const request = {
+    request_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    details: "Prepare a truthful campaign story from organizer-supplied facts.",
+  };
+  const session = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+  assert.throws(() => storyInput(request), /IFund campaign creator/);
+  assert.throws(() => campaignPreviewInput(request), /IFund campaign creator/);
+  assert.equal(storyInput({ ...request, campaign_creation_session_id: session }).campaign_creation_session_id, session);
+  assert.equal(campaignPreviewInput({ ...request, campaign_creation_session_id: session }).campaign_creation_session_id, session);
+  assert.throws(() => storyInput({ ...request, campaign_creation_session_id: "invalid" }), /campaign creator/);
+  assert.throws(() => storyInput({ ...request, managed_mandate_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", campaign_creation_session_id: session }), /one authorized writing context/);
+  assert.match(story, /ifund_story_campaign_creation_session_authorized/);
+  assert.match(story, /ifund_creator_mandate_ai_authorized/);
+  assert.match(story, /ifund_campaign_agent_ai_access/);
+  assert.match(story, /api\/agents\/story\/authorize/);
+  assert.match(preview, /api\/agents\/story\/authorize/);
+  assert.match(preview, /campaign_creation_session_id/);
+  assert.match(draftClient, /ifund_story_campaign_creation_session_begin/);
+  assert.match(storyCreationSessions, /enable row level security/);
+  assert.match(storyCreationSessions, /owner_id uuid not null/);
+  assert.match(storyCreationSessions, /request_id uuid not null/);
+  assert.match(storyCreationSessions, /expires_at > statement_timestamp/);
+  assert.match(storyCreationSessions, /email_confirmed_at is not null/);
+  assert.match(storyCreationSessions, /grant execute on function public\.ifund_story_campaign_creation_session_authorized\(uuid, uuid\) to authenticated/);
 });
