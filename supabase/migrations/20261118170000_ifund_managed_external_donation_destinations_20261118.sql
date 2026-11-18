@@ -100,9 +100,46 @@ begin
     raise exception 'managed creator mandate not found';
   end if;
 
-  if tg_op = 'UPDATE' and old.creator_approved_at is not null
-     and new.donation_url is distinct from old.donation_url then
-    raise exception 'creator-approved donation URL is immutable; request a new approval';
+  if tg_op = 'UPDATE' then
+    if old.creator_approved_at is not null and (
+      new.donation_url is distinct from old.donation_url
+      or new.provider_label is distinct from old.provider_label
+      or new.destination_owner_name is distinct from old.destination_owner_name
+      or new.destination_owner_relationship is distinct from old.destination_owner_relationship
+      or new.mandate_id is distinct from old.mandate_id
+      or new.campaign_id is distinct from old.campaign_id
+    ) then
+      raise exception 'creator-approved destination details are immutable; request a new approval';
+    end if;
+
+    if old.provider_owner_verified_at is not null and (
+      new.provider_owner_verified_at is distinct from old.provider_owner_verified_at
+      or new.provider_owner_verified_by is distinct from old.provider_owner_verified_by
+      or new.provider_verification_evidence is distinct from old.provider_verification_evidence
+    ) then
+      raise exception 'provider verification evidence is immutable';
+    end if;
+
+    if old.compliance_checked_at is not null and (
+      new.compliance_checked_at is distinct from old.compliance_checked_at
+      or new.compliance_checked_by is distinct from old.compliance_checked_by
+      or new.compliance_evidence is distinct from old.compliance_evidence
+    ) then
+      raise exception 'compliance review evidence is immutable';
+    end if;
+
+    if old.status = 'ready' and new.status not in ('ready','revoked','rejected') then
+      raise exception 'ready destination cannot return to an earlier review state';
+    end if;
+    if old.status = 'pending_compliance' and new.status not in ('pending_compliance','ready','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
+    if old.status = 'pending_provider_verification' and new.status not in ('pending_provider_verification','pending_compliance','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
+    if old.status = 'pending_creator_approval' and new.status not in ('pending_creator_approval','pending_provider_verification','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
   end if;
 
   if new.status not in ('revoked','rejected') then
