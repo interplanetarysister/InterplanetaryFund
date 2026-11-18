@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { onRequest } from "../functions/api/oauth/[[path]].js";
 
 test("member OAuth gateway is fail-closed without server readiness", async()=>{
- const response=await onRequest({request:new Request("https://preview.example/api/oauth/status"),env:{}});
+ const response=await onRequest({request:new Request("https://preview.example/api/oauth/status",{headers:{"Sec-Fetch-Site":"same-origin"}}),env:{}});
  assert.equal(response.status,503);
  assert.equal(response.headers.get("cache-control"),"no-store");
  assert.equal(response.headers.get("x-content-type-options"),"nosniff");
