@@ -321,7 +321,7 @@ test("managed beneficiary campaigns fail closed on IFund-native donation checkou
   assert.match(campaignDetail, /platformOnlyMode && campaign\.managed_campaign !== true/);
   assert.match(campaignDetail, /campaign\.external_donation_url \?/);
   assert.match(fundingCard, /IFund does not collect or route donations/);
-  assert.match(fundingCard, /external-provider gifts may not appear here/);
+  assert.match(fundingCard, /gifts processed directly by the external provider may not appear here/);
   assert.match(fundingCard, /External-provider gifts are processed outside IFund/);
 });
 
