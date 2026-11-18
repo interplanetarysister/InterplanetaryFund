@@ -20,7 +20,11 @@ function price(plan) {
 export default function PublicSubscriptionPlans() {
   const [state, setState] = useState({ phase: "loading", plans: [], error: "" });
   const [retry, setRetry] = useState(0);
+  // Cloudflare Pages previews deliberately have no live-payment Worker binding.
+  // Never call the production payment service or present enrollment there.
+  const isPreview = typeof window !== "undefined" && /\\.pages\\.dev$/i.test(window.location.hostname);
   useEffect(() => {
+    if (isPreview) { setState({ phase: "preview", plans: [], error: "" }); return; }
     const controller = new AbortController();
     let timedOut = false;
     const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, 12000);
@@ -37,7 +41,7 @@ export default function PublicSubscriptionPlans() {
         else if (!controller.signal.aborted) setState({ phase: "error", plans: [], error: error.message });
       }).finally(() => clearTimeout(timeout));
     return () => { clearTimeout(timeout); controller.abort(); };
-  }, [retry]);
+  }, [retry, isPreview]);
   const returnTo = encodeURIComponent("/subscriptions");
   const native = isNativeBundle();
   return <main className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8">
@@ -48,6 +52,11 @@ export default function PublicSubscriptionPlans() {
     {native && <p role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
       Plans can be reviewed here; new paid subscriptions are unavailable inside the mobile app until store billing requirements are verified.
     </p>}
+    {state.phase === "preview" && <section role="status" className="space-y-3 rounded-2xl border border-border bg-card p-5">
+      <h2 className="text-lg font-semibold">Subscription enrollment is disabled in this preview</h2>
+      <p className="text-sm text-muted-foreground">This development preview intentionally has no connection to live subscription checkout. Plans and prices are not displayed until the independent production billing service confirms them. You can still explore iFund and review our Help Center.</p>
+      <div className="flex flex-wrap gap-3"><Link to="/help" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-semibold">View help</Link><Link to="/register" className="inline-flex min-h-11 items-center rounded-lg border border-border px-4 font-semibold">Create a free account</Link></div>
+    </section>}
     {state.phase === "loading" && <section role="status" aria-live="polite" aria-label="Checking current subscription plans" className="space-y-4 rounded-2xl border border-border bg-card p-5"><p className="font-medium">Checking verified plans…</p><div aria-hidden="true" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{[1,2,3].map(i=><div key={i} className="h-32 rounded-xl bg-muted/70" />)}</div><p className="text-sm text-muted-foreground">Prices and enrollment options appear only after provider verification.</p></section>}
     {state.phase === "error" && <section role="alert" className="space-y-3 rounded-2xl border border-amber-500/40 bg-card p-5">
       <h2 className="text-lg font-semibold">Subscriptions are temporarily unavailable</h2>
