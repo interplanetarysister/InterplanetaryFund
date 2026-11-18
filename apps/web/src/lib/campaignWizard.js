@@ -14,22 +14,42 @@ export function rememberWizard(storage,owner,campaign,setup){
     const key=keyFor(owner,campaign),raw=storage.getItem(key);
     if(raw){let previous;try{previous=JSON.parse(raw);}catch{return false;}
       if(![1,2].includes(previous?.version)||previous.owner_id!==(owner||null)||previous.campaign_id!==(campaign||null))return false;}
-    storage.setItem(key,JSON.stringify({version:2,owner_id:owner||null,campaign_id:campaign||null,setup:campaignSetupPayload(setup,setup.draft_step)}));return true;
+    const expected=JSON.stringify({version:2,owner_id:owner||null,campaign_id:campaign||null,setup:campaignSetupPayload(setup,setup.draft_step)});
+    storage.setItem(key,expected);
+    // A successful setItem call is not proof that browser storage persisted.
+    return storage.getItem(key)===expected;
   }catch{return false;}
 }
 export function forgetWizard(storage,owner,campaign=null){
-  const key=keyFor(owner,campaign),raw=storage.getItem(key);if(!raw)return true;
-  let record;try{record=JSON.parse(raw);}catch{return false;}
-  if(![1,2].includes(record?.version)||record.owner_id!==(owner||null)||record.campaign_id!==(campaign||null))return false;
-  storage.removeItem(key);return true;
+  try {
+    const key=keyFor(owner,campaign),raw=storage.getItem(key);if(!raw)return true;
+    let record;try{record=JSON.parse(raw);}catch{return false;}
+    if(![1,2].includes(record?.version)||record.owner_id!==(owner||null)||record.campaign_id!==(campaign||null))return false;
+    storage.removeItem(key);
+    return storage.getItem(key)===null;
+  }catch{return false;}
 }
 export function importGuestWizard(storage,owner){
-  if(!owner||storage.getItem(keyFor(owner,null)))return false;
-  const raw=storage.getItem(keyFor(null,null));if(!raw)return true;
-  let record;try{record=JSON.parse(raw);}catch{return false;}
-  if(![1,2].includes(record?.version)||record.owner_id!==null||record.campaign_id!==null)return false;
-  if(!rememberWizard(storage,owner,null,record.setup))return false;
-  try{storage.removeItem(keyFor(null,null));}catch{return false;}return true;
+  if(!owner)return false;
+  try {
+    const destination=keyFor(owner,null),source=keyFor(null,null),raw=storage.getItem(source);
+    if(!raw)return !storage.getItem(destination);
+    let record;try{record=JSON.parse(raw);}catch{return false;}
+    if(![1,2].includes(record?.version)||record.owner_id!==null||record.campaign_id!==null)return false;
+    const existing=storage.getItem(destination);
+    if(existing) {
+      // An earlier explicit import may have copied the setup but failed to
+      // remove the guest source. Retry only for an identical owner copy.
+      let parsed;try{parsed=JSON.parse(existing);}catch{return false;}
+      if(![1,2].includes(parsed?.version)||parsed.owner_id!==owner||parsed.campaign_id!==null)return false;
+      const expected=campaignSetupPayload(record.setup,record.setup.draft_step);
+      if(JSON.stringify(parsed.setup)!==JSON.stringify(expected))return false;
+    }else if(!rememberWizard(storage,owner,null,record.setup))return false;
+    // Do not remove an overwritten guest record or claim unverified cleanup.
+    if(storage.getItem(source)!==raw)return false;
+    storage.removeItem(source);
+    return storage.getItem(source)===null && Boolean(storage.getItem(destination));
+  }catch{return false;}
 }
 export function withStoryVersion(setup,story,now=()=>new Date().toISOString()){
   if(typeof story!=="string"||!story.trim()||setup.story_versions?.at(-1)?.text===story)return setup;
