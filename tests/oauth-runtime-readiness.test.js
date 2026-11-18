@@ -85,6 +85,19 @@ test('same-origin admin status returns value-free diagnostics while the Supabase
   assert.doesNotMatch(JSON.stringify(payload), /sb_secret_|sb_publishable_|ssibsfmt|AAAA/);
 });
 
+test('OAuth disconnect refuses a mismatched Supabase project before making upstream requests', async () => {
+  const request = new Request('https://interplanetaryfund.com/api/oauth/google/disconnect', {
+    method: 'POST',
+    headers: { origin: 'https://interplanetaryfund.com', authorization: 'Bearer test-member-token' },
+  });
+  const result = await routeOAuthRequest(request, {
+    ...validEnv,
+    SUPABASE_URL: 'https://another-project.supabase.co',
+  }, () => assert.fail('A mismatched project must not receive auth or disconnect RPC requests.'));
+  assert.equal(result.status, 503);
+  assert.deepEqual(await result.json(), { error: 'Connection management is unavailable.' });
+});
+
 test('OAuth status denies active non-admin members', async () => {
   const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
     headers: {
