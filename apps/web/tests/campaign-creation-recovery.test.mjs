@@ -108,6 +108,17 @@ test("saved campaign details stay recoverable when setup loading fails",()=>{
  assert.match(source,/Setup service is unavailable; recovered changes are kept in this tab/);
 });
 
+test("creator exposes a manual, owner-scoped retry for retained guest copies",()=>{
+ const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
+ assert.match(source,/guestCopyRetained/);
+ assert.match(source,/function retryGuestCopyCleanup\(\)/);
+ assert.match(source,/importGuestCampaign\(sessionStorage,ownerId\)/);
+ assert.match(source,/onClick=\{retryGuestCopyCleanup\}/);
+ assert.match(source,/Retry guest-copy cleanup/);
+ assert.match(source,/owner draft or guest draft has changed/i);
+ assert.match(source,/outcome\.status==="imported"/);
+});
+
 test("saved draft links stay private and editorial field review can navigate across stages",()=>{
  const source=readFileSync(new URL("../src/pages/CreateCampaign.jsx",import.meta.url),"utf8");
  const gate=readFileSync(new URL("../src/components/campaigns/PrepublicationGate.jsx",import.meta.url),"utf8");
