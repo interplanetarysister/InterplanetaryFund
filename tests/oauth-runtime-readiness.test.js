@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { oauthCorsOrigin, oauthRuntimeRequirements, routeOAuthRequest } from '../worker/oauth.js';
+import { migrationReady, routeReadRequest, studioReady } from '../worker/reads.js';
 
 const validEnv = {
   OAUTH_API_ENABLED: 'true',
@@ -83,6 +84,25 @@ test('same-origin admin status returns value-free diagnostics while the Supabase
   assert.equal(payload.runtime.find((item) => item.name === 'SUPABASE_URL').configured, false);
   assert.equal(payload.runtime.find((item) => item.name === 'OAUTH_FRONTEND_ORIGINS').configured, false);
   assert.doesNotMatch(JSON.stringify(payload), /sb_secret_|sb_publishable_|ssibsfmt|AAAA/);
+});
+
+
+test('read and Studio runtimes refuse to target a non-canonical Supabase project', async () => {
+  const wrongProject = {
+    MIGRATION_API_PREVIEW: 'enabled',
+    IFUND_STUDIO_ENABLED: 'enabled',
+    SUPABASE_URL: 'https://another-project.supabase.co',
+    SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test_key',
+  };
+  assert.equal(migrationReady(wrongProject), false);
+  assert.equal(studioReady(wrongProject), false);
+  const result = await routeReadRequest(
+    new Request('https://interplanetaryfund.com/api/campaigns'),
+    wrongProject,
+    () => assert.fail('A non-canonical Supabase project must not receive read requests.'),
+  );
+  assert.equal(result.status, 503);
+  assert.deepEqual(await result.json(), { error: 'Independent migration API not enabled.' });
 });
 
 test('OAuth disconnect refuses a mismatched Supabase project before making upstream requests', async () => {
