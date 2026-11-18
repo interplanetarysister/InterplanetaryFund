@@ -56,7 +56,7 @@ export default function EventsDashboardSection({ guest = false } = {}) {
     </div>
     {data.available?<>
       {!guest&&<div className="grid gap-2 sm:grid-cols-3">
-        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Upcoming published events</p><p className="mt-1 text-xl font-semibold">{data.events.length}</p></div>
+        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Upcoming events shown</p><p className="mt-1 text-xl font-semibold">{data.events.length}</p></div>
         <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Your event RSVPs</p><p className="mt-1 text-xl font-semibold">{data.rsvps}</p></div>
         <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Purchases you reported</p><p className="mt-1 text-xl font-semibold">{data.reported}</p><p className="text-[11px] text-muted-foreground">Self-reported, not verified payments</p></div>
       </div>}
