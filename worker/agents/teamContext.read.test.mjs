@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readTeamContext} from './teamContext.js';
-const env={IFUND_TEAM_CONTEXT_ENABLED:'enabled',SUPABASE_URL:'https://example.supabase.co',SUPABASE_PUBLISHABLE_KEY:'public-test-key'};
+const env={IFUND_TEAM_CONTEXT_ENABLED:'enabled',SUPABASE_URL:'https://ssibsfmtodgximseeqsv.supabase.co',SUPABASE_PUBLISHABLE_KEY:'public-test-key'};
 const jwt='verified.member.jwt';
 const ownerEvent={id:'11111111-1111-4111-8111-111111111111',event_key:'22222222-2222-4222-8222-222222222222',agent_id:'discover',speaker:'user',source_kind:'user_statement',recorded_at:'2026-11-15T10:00:00Z',campaign_id:null,content:'Synthetic private request'};
 test('disabled flag fails closed without calling network',async()=>{
