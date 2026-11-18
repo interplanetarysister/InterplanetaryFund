@@ -108,7 +108,7 @@ export default function HackathonDemo() {
     <section className="rounded-2xl border-2 border-cyan-400/60 bg-gradient-to-br from-cyan-950/40 to-violet-950/40 p-5 sm:p-7" aria-label="Live AI campaign Studio hero">
       <p className="text-xs font-bold uppercase tracking-[.2em] text-cyan-300">Start here · Actual Workers AI generation</p>
       <h2 className="mt-2 text-2xl font-bold">Watch a real AI build a campaign story</h2>
-      <p className="mt-2 text-sm text-slate-200">The separate judge sandbox offers real five-title and two-description generation, a long story, and per-section rewriting. Sign in with a demo account; this is not a prewritten sample or a Base44-builder turn.</p>
+      <p className="mt-2 text-sm text-slate-200">The separate judge sandbox offers real five-title and two-description generation, a long story, and per-section rewriting. Sign in with a demo account; this is not a prewritten sample or an external builder dispatch.</p>
       <a href="https://ifund-hackathon-demo.interplanetary-fund.workers.dev/create" target="_blank" rel="noopener noreferrer"
         className="mt-4 inline-flex min-h-12 items-center rounded-xl bg-cyan-300 px-5 font-bold text-slate-950">Open functioning AI Campaign Studio</a>
       <a href="#agent-preview" className="ml-3 mt-4 inline-flex min-h-12 items-center rounded-xl border border-violet-400 px-4 font-semibold text-violet-100">Preview AI agent conversations</a>
@@ -249,10 +249,9 @@ export default function HackathonDemo() {
         </Link>)}
       </div>
       <div className="rounded-xl border border-cyan-400/40 bg-slate-950/70 p-4">
-        <h3 className="font-semibold">Original Base44 iFund integration</h3>
-        <p className="mt-2 text-sm text-slate-300">The original Base44 application now has a matching six-stage hackathon companion with AG Grid Community and links to its real campaign creator, AI agents, social connection controls, interactive campaign globe and protected ledger. The companion and this demo share example content, not donation ledgers or authentication sessions.</p>
-        <a href="https://interplanetaryfund.base44.app/hackathon" target="_blank" rel="noopener noreferrer"
-          className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 text-sm font-semibold text-cyan-200">Explore Base44 iFund companion</a>
+        <h3 className="font-semibold">Production IFund application</h3>
+        <p className="mt-2 text-sm text-slate-300">The production Interplanetary Fund application has its own campaign creator, campaign discovery, social community and account connections. This judge walkthrough uses separate sample data and does not share donation ledgers or authentication sessions with production.</p>
+        <Link to="/" className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-cyan-300/50 px-4 text-sm font-semibold text-cyan-200">Explore production IFund</Link>
       </div>
       <div className="rounded-xl border border-slate-700 bg-slate-950/70 p-4">
         <h3 className="font-semibold">Hackathon sponsor tools</h3>
