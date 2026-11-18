@@ -6,7 +6,7 @@ const dialog = readFileSync(new URL("../src/components/payments/CampaignDonation
 const footer = readFileSync(new URL("../src/components/payments/PlatformSupportHostedButton.jsx",import.meta.url),"utf8");
 
 test("mobile payment sheet keeps verified checkout actions at the bottom",()=>{
-  const amount=dialog.indexOf("Choose your donation");
+  const amount=dialog.indexOf("Choose a one-time donation amount");
   const fields=dialog.indexOf('aria-label="Credit or debit card checkout"');
   const actions=dialog.indexOf('aria-label="Payment actions"');
   const paypal=dialog.indexOf('aria-label="Eligible PayPal payment buttons"');
@@ -15,6 +15,8 @@ test("mobile payment sheet keeps verified checkout actions at the bottom",()=>{
   assert.match(dialog,/env\(safe-area-inset-bottom\)/);
   assert.match(dialog,/aria-pressed=\{Number\(amount\)===value\}/);
   assert.ok(dialog.includes("Total you approve in PayPal"));
+  assert.ok(dialog.indexOf("<GooglePayDonationButton ")<fields,"eligible one-tap wallet precedes manual card fields");
+  assert.ok(dialog.includes("PayPal wallet (optional)"));
 });
 
 test("payment buttons remain provider controlled with verified capture",()=>{
