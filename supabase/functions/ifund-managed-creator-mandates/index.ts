@@ -17,11 +17,14 @@ const allowedOrigins = new Set([
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ]);
+const isAllowedOrigin = (origin) =>
+  allowedOrigins.has(origin) ||
+  /^https:\/\/[a-f0-9]{8}\.interplanetaryfund-migration\.pages\.dev$/.test(origin);
 const VERSION = "ifund-external-creator-full-control-v2";
 const AUTHORIZATION_TEXT = `You authorize the named IFund admin account assigned to this mandate to receive full operational control of the specific fundraiser identified in this authorization for the mandate term. You also grant every AI feature and AI agent available to that assigned admin account unlimited permission in scope to access and use the information supplied for this fundraiser and to perform all available campaign-related AI work on your behalf, including research, planning, drafting, editing, design, media generation, optimization, scheduling, coordination, analytics, and management, without a feature-specific or task-count restriction imposed by this mandate. This unlimited permission is limited to the identified fundraiser; it does not grant access to unrelated personal data, unrelated campaigns, credentials, or accounts. Actual usage remains subject to the assigned admin account subscription and usage entitlements, provider/API capability and capacity, platform rules, applicable law, security controls, and safety restrictions; it does not promise unlimited compute, free usage, or the ability to bypass those controls. Publishing, external posting/outreach, donor messaging, account connections, financial/payout actions, and payout-destination changes each require separate affirmative authorization. Your authorization expires on the stated date and may be revoked through the creator review link or by contacting IFund. IFund will not create an IFund login for you or impersonate you. The campaign will identify you as the creator/beneficiary and disclose IFund's management. No campaign will be published or donations solicited until identity/authority checks, final creator content approval, payout verification, legal/platform checks, and any separately required permissions are complete.`;
 const json = (status, body, origin) => new Response(JSON.stringify(body), {
   status,
-  headers: { ...corsHeaders, ...(origin && allowedOrigins.has(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) },
+  headers: { ...corsHeaders, ...(origin && isAllowedOrigin(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) },
 });
 const clean = (value, max = 500) => typeof value === "string" ? value.trim().replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, max) : "";
 const token = () => {
@@ -101,8 +104,8 @@ const consentPacket = (row) => ({
 });
 Deno.serve(async (req) => {
   const origin = req.headers.get("origin") || "";
-  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...corsHeaders, ...(allowedOrigins.has(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) } });
-  if (origin && !allowedOrigins.has(origin)) return json(403, { error: "origin_not_allowed" });
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: { ...corsHeaders, ...(isAllowedOrigin(origin) ? { "access-control-allow-origin": origin, vary: "Origin" } : {}) } });
+  if (origin && !isAllowedOrigin(origin)) return json(403, { error: "origin_not_allowed" });
   if (!["GET","POST"].includes(req.method)) return json(405, { error: "method_not_allowed" }, origin);
   const url = new URL(req.url);
   const action = url.searchParams.get("action") || "";
