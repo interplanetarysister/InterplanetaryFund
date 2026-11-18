@@ -5,7 +5,7 @@ import { storyInput, storyMessages } from "../worker/agents/story.js";
 import { campaignPreview, campaignPreviewInput } from "../worker/services/campaign-preview.js";
 
 const id = "33333333-3333-4333-8333-333333333333";
-const base = { request_id: id, details: "A community garden needs accessible equipment." };
+const base = { request_id: id, details: "A community garden needs accessible equipment.", campaign_creation_session_id: "44444444-4444-4444-8444-444444444444" };
 test("optional preferences preserve the old input and replay-hash shape", () => {
   assert.equal("writing_preferences" in storyInput(base), false);
   assert.equal("writing_preferences" in campaignPreviewInput(base), false);
@@ -30,8 +30,11 @@ test("long preferences and section context reach native Story without truncating
     body: JSON.stringify({ ...base, details, section, writing_preferences }),
   });
   const response = await campaignPreview(request, { IFUND_STORY_AGENT: { fetch: async forwarded => {
+    const path = new URL(forwarded.url).pathname;
     if (forwarded.method === "GET") return Response.json({ active: true, level: 1 });
-    calls.push(await forwarded.json());
+    const body = await forwarded.json();
+    if (path.endsWith("/authorize")) return Response.json({ authorized: true });
+    calls.push(body);
     return Response.json({ draft: { id, payload: { section: "A reviewed rewritten section." } } }, { status: 201 });
   } } });
   assert.equal(response.status, 200);
