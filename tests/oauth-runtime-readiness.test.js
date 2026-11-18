@@ -18,6 +18,11 @@ test('OAuth runtime diagnostics identify every required binding without returnin
   assert.ok(checks.every((item) => item.configured === true));
   const wrongProject = oauthRuntimeRequirements({ ...validEnv, SUPABASE_URL: 'https://another-project.supabase.co' });
   assert.equal(wrongProject.find((item) => item.name === 'SUPABASE_URL').configured, false);
+
+  const request = new Request('https://interplanetaryfund.com/api/oauth/status', { headers: { 'sec-fetch-site': 'same-origin' } });
+  const response = await routeOAuthRequest(request, { ...validEnv, SUPABASE_URL: 'https://another-project.supabase.co' }, () => assert.fail('A mismatched project must not receive auth or admin RPC requests.'));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).enabled, false);
   assert.deepEqual(checks.map((item) => item.name), [
     'OAUTH_API_ENABLED',
     'OAUTH_FRONTEND_ORIGINS',
