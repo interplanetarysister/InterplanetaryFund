@@ -233,3 +233,29 @@ test("member analytics tabs support roving focus and directional keyboard naviga
   assert.match(analytics, /id="analytics-panel" role="tabpanel"/);
   assert.match(analytics, /event\.preventDefault\(\)/);
 });
+
+test("planetary impact is guest-accessible while admin sustainability remains protected", () => {
+  const publicEntry = route("/planetary-impact");
+  const adminEntry = route("/admin/sustainability");
+  assert.ok(publicEntry?.includes("<AdminSustainability />"), "the public page must render environmental reporting");
+  assert.doesNotMatch(publicEntry || "", /MemberAccess|AdminAccess|SuperAdminAccess/,
+    "visitors may explore planetary impact without an account");
+  assert.ok(adminEntry?.includes("<MemberAccess><AdminAccess>"),
+    "the legacy admin route must not lose its authorization guard");
+
+  const layout = readFileSync(new URL("../src/components/Layout.jsx", import.meta.url), "utf8");
+  const guestNav = layout.split("const publicNavItems = [")[1]?.split("];")[0];
+  const explore = layout.split('label: "Explore"')[1]?.split('label: "Campaigns & Giving"')[0];
+  assert.match(guestNav || "", /to: "\/planetary-impact", label: "Planetary Impact"/);
+  assert.match(explore || "", /to: "\/planetary-impact", label: "Planetary Impact"/);
+
+  const about = page("About");
+  assert.match(about, /to="\/planetary-impact"/);
+  const impact = page("AdminSustainability");
+  assert.match(impact, /Cloudflare Pages and Workers/);
+  assert.match(impact, /100% renewable-energy matching/);
+  assert.match(impact, /31,000 metric tons CO₂e/);
+  assert.match(impact, /company-wide disclosures, not independently measured carbon savings/);
+  assert.match(impact, /https:\/\/www\.cloudflare\.com\/impact\//);
+  assert.doesNotMatch(impact, /iFund is carbon neutral|iFund has saved [0-9]+ tons/i);
+});
