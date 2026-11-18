@@ -7,8 +7,8 @@ begin;
 
 create table if not exists public.ifund_managed_external_destinations (
   id uuid primary key default gen_random_uuid(),
-  mandate_id uuid not null unique references public.ifund_creator_mandates(id) on delete restrict,
-  campaign_id uuid unique references public.ifund_campaigns(id) on delete restrict,
+  mandate_id uuid not null references public.ifund_creator_mandates(id) on delete restrict,
+  campaign_id uuid references public.ifund_campaigns(id) on delete restrict,
   provider_label text not null check (length(btrim(provider_label)) between 2 and 100),
   donation_url text not null check (
     length(donation_url) between 12 and 2048
@@ -27,6 +27,7 @@ create table if not exists public.ifund_managed_external_destinations (
   provider_verification_evidence text,
   compliance_checked_at timestamptz,
   compliance_checked_by uuid references auth.users(id) on delete restrict,
+  compliance_evidence text,
   status text not null default 'pending_creator_approval'
     check (status in ('pending_creator_approval','pending_provider_verification','pending_compliance','ready','rejected','revoked')),
   created_by_admin uuid not null references auth.users(id) on delete restrict,
@@ -42,18 +43,25 @@ create table if not exists public.ifund_managed_external_destinations (
         and length(coalesce(provider_verification_evidence,'')) >= 30)
   ),
   constraint ifund_managed_external_destination_compliance_check check (
-    (compliance_checked_at is null and compliance_checked_by is null)
-    or (compliance_checked_at is not null and compliance_checked_by is not null)
+    (compliance_checked_at is null and compliance_checked_by is null and compliance_evidence is null)
+    or (compliance_checked_at is not null and compliance_checked_by is not null
+        and length(coalesce(compliance_evidence,'')) >= 30)
   ),
   constraint ifund_managed_external_destination_ready_check check (
     status <> 'ready'
     or (creator_approved_at is not null and provider_owner_verified_at is not null
-        and compliance_checked_at is not null and campaign_id is not null)
+        and compliance_checked_at is not null and length(coalesce(compliance_evidence,'')) >= 30 and campaign_id is not null)
   )
 );
 
 create index if not exists ifund_managed_external_destinations_status_idx
   on public.ifund_managed_external_destinations(status,updated_at desc);
+create unique index if not exists ifund_managed_external_destinations_one_open_mandate_idx
+  on public.ifund_managed_external_destinations(mandate_id)
+  where status not in ('rejected','revoked');
+create unique index if not exists ifund_managed_external_destinations_one_open_campaign_idx
+  on public.ifund_managed_external_destinations(campaign_id)
+  where campaign_id is not null and status not in ('rejected','revoked');
 
 alter table public.ifund_managed_external_destinations enable row level security;
 revoke all on table public.ifund_managed_external_destinations from public,anon,authenticated;
