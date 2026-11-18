@@ -1,4 +1,4 @@
-import catalog from "./provider-catalog.json" with { type: "json" };
+import catalog from "./provider-catalog.js";
 const byId = new Map(catalog.providers.map((p) => [p.id, Object.freeze(p)]));
 export const CONNECTION_POLICY_VERSION = "ifund-help-2026-11-v1";
 export const CONNECTION_OPERATIONS = Object.freeze([

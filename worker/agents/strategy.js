@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { memberApi } from "./memberApi.js";
+import { memberApi, requireCampaignAIAccess } from "./memberApi.js";
 import { specialistReferences, withSpecialistReferences, recordSpecialistReply } from "./specialistContext.js";
 import { IFUND_CAMPAIGN_ELIGIBILITY_POLICY } from "./campaignPolicy.js";
 // Structured planning never grants the model an owner action tool.
@@ -397,6 +397,7 @@ export async function strategyRoute(request, env, fetcher = fetch, agent = {}) {
       if (error?.status) throw error;
       fail(400, error?.message || "Your campaign context could not be verified.");
     }
+    for (const campaignId of input.campaign_ids || []) await requireCampaignAIAccess(api, campaignId);
     if (typeof env.AI?.run !== "function" || env[flag + "_AI_ENABLED"] !== "enabled")
       fail(503, "New plans are not available yet. Your saved brief is safe.");
     await api.aiPermission("campaign");
@@ -461,6 +462,7 @@ export async function strategyRoute(request, env, fetcher = fetch, agent = {}) {
     if (!UUID.test(claim.lease || "")) fail(503, "The planning reservation could not be verified.");
     let plan;
     try {
+      for (const campaignId of input.campaign_ids || []) await requireCampaignAIAccess(api, campaignId);
       const output = await env.AI.run(MODEL, {
         messages,
         max_tokens: 3000,
@@ -482,6 +484,12 @@ export async function strategyRoute(request, env, fetcher = fetch, agent = {}) {
         "This plan could not be completed. Start a new request to try again.",
         "new_request_required",
       );
+    }
+    try {
+      for (const campaignId of input.campaign_ids || []) await requireCampaignAIAccess(api, campaignId);
+    } catch (error) {
+      await rpc("ifund_strategy_finish", { p_request_id: input.request_id, p_lease: claim.lease, p_result: null }).catch(() => {});
+      throw error;
     }
     const result = await rpc("ifund_strategy_finish", {
       p_request_id: input.request_id,

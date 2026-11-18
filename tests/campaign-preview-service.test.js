@@ -9,6 +9,7 @@ import { serviceGateway } from "../worker/services/gateway.js";
 
 const ID = "33333333-3333-4333-8333-333333333333";
 const RECEIPT = "44444444-4444-4444-8444-444444444444";
+const SESSION = "55555555-5555-4555-8555-555555555555";
 const input = {
   details: "McEve Community Center needs equipment for an accessible garden.",
   answers: {
@@ -18,6 +19,7 @@ const input = {
   },
   goal: 1250,
   request_id: ID,
+  campaign_creation_session_id: SESSION,
 };
 const copy = {
   titles: ["One", "Two", "Three", "Four", "Five"],
@@ -62,6 +64,12 @@ function binding({
             });
           if (path.endsWith("/subscription"))
             return Response.json(access, { status: accessStatus });
+          if (path === "/api/agents/story/authorize") {
+            assert.equal(body.request_id, ID);
+            if (body.campaign_id) assert.equal(body.campaign_id, RECEIPT);
+            else assert.equal(body.campaign_creation_session_id, SESSION);
+            return Response.json({ authorized: true });
+          }
           assert.equal(path, "/api/agents/story/drafts");
           return Response.json(native, { status: nativeStatus });
         },
@@ -142,7 +150,7 @@ test("the preserved free outline uses only supplied facts and never calls the mo
   assert.ok(body.story.includes("iPhone accessibility equipment"));
   assert.deepEqual(
     f.calls.map((call) => call.path),
-    ["/api/agents/story/subscription"],
+    ["/api/agents/story/subscription", "/api/agents/story/authorize"],
   );
 });
 test("outlines fit campaign bounds for every existing category without inventing results", () => {
@@ -185,8 +193,9 @@ test("eligible requests use the existing guarded Story execution with the same r
   assert.equal(result.assistance, "assisted");
   assert.equal(result.ai_inference, true);
   assert.equal(result.story, copy.story);
-  assert.equal(f.calls[1].body.request_id, ID);
-  assert.equal(f.calls[1].body.campaign_id, null);
+  assert.equal(f.calls[2].body.request_id, ID);
+  assert.equal(f.calls[2].body.campaign_id, null);
+  assert.equal(f.calls[2].body.campaign_creation_session_id, SESSION);
   for (const value of [
     input.details,
     input.answers.beneficiary,
@@ -214,7 +223,7 @@ test("quota and provider failures do not silently replace the requested service 
     });
     const result = await campaignPreview(request(), f.env);
     assert.equal(result.status, status);
-    assert.equal(f.calls.length, 2);
+    assert.equal(f.calls.length, 3);
     const body = await result.json();
     assert.equal(body.titles, undefined);
     assert.equal(body.code, "new_request_required");
@@ -249,7 +258,7 @@ test("rewrites retain the whole native section, while free outlines are never ca
     f.env,
   );
   assert.equal((await result.json()).section, section);
-  assert.equal(f.calls[1].body.section, "Original section");
+  assert.equal(f.calls[2].body.section, "Original section");
   const basic = binding({ access: { active: false, level: 0 } });
   const unavailable = await campaignPreview(
     request({ ...input, section: "Original section" }),
@@ -257,7 +266,12 @@ test("rewrites retain the whole native section, while free outlines are never ca
   );
   assert.equal(unavailable.status, 409);
   assert.equal((await unavailable.json()).code, "section_unavailable");
-  assert.equal(basic.calls.length, 1);
+  assert.equal(basic.calls.length, 2);
+  assert.deepEqual(basic.calls.map((call) => call.path), [
+    "/api/agents/story/subscription",
+    "/api/agents/story/authorize",
+  ]);
+  assert.equal(basic.calls.some((call) => call.path === "/api/agents/story/drafts"), false);
 });
 test("a confirmed stored receipt and complete output are required before success", async () => {
   for (const native of [
@@ -293,10 +307,22 @@ test("malformed inputs and non-JSON service replies fail closed", async () => {
 
 test("saved campaign reference is forwarded to owner-verified Story and invalid IDs are rejected",async()=>{
  const f=binding();
- const response=await campaignPreview(request({...input,campaign_id:RECEIPT}),f.env);
+ const response=await campaignPreview(request({...input,campaign_id:RECEIPT,campaign_creation_session_id:undefined}),f.env);
  assert.equal(response.status,200);
  const routed=f.calls.find(call=>call.path==="/api/agents/story/drafts");
  assert.equal(routed.body.campaign_id,RECEIPT);
  const invalid=await campaignPreview(request({...input,campaign_id:"another-user"}),f.env);
  assert.equal(invalid.status,400);
+});
+
+test("campaign writing requires a verified owner campaign, mandate or creation session before free outlines", async () => {
+  const missing = { ...input, campaign_creation_session_id: undefined };
+  const f = binding({ access: { active: false, level: 0 } });
+  const result = await campaignPreview(request(missing), f.env);
+  assert.equal(result.status, 403);
+  assert.equal(f.calls.length, 0);
+  assert.throws(
+    () => campaignPreviewInput({ ...input, campaign_creation_session_id: "not-a-uuid" }),
+    /IFund campaign creator/,
+  );
 });

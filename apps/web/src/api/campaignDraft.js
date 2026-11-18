@@ -80,6 +80,24 @@ export async function requestCampaignDraft(
   if (authError || !auth?.session?.access_token)
     throw new Error("Please sign in to prepare campaign suggestions.");
   const id = requestId || crypto.randomUUID();
+  const campaignId = input.campaign_id || null;
+  const managedMandateId = input.managed_mandate_id || null;
+  let creationSessionId = input.campaign_creation_session_id || null;
+  if ((campaignId && (managedMandateId || creationSessionId)) ||
+      (managedMandateId && creationSessionId)) {
+    throw new Error("Choose one authorized writing context.");
+  }
+  if (!campaignId && !managedMandateId && !creationSessionId) {
+    const { data: sessionId, error: sessionError } = await client.rpc(
+      "ifund_story_campaign_creation_session_begin",
+      { p_request_id: id },
+    );
+    if (sessionError || typeof sessionId !== "string" ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+      throw new Error("Start a new campaign in IFund before requesting private writing assistance.");
+    }
+    creationSessionId = sessionId;
+  }
   const response = await fetcher("/api/services/story_agent/campaign-preview", {
     method: "POST",
     headers: {
@@ -91,7 +109,10 @@ export async function requestCampaignDraft(
       request_id: id,
       ...(input.section ? { section: input.section } : {}),
       ...(input.writing_preferences ? { writing_preferences: input.writing_preferences } : {}),
-      ...(input.campaign_id ? { campaign_id: input.campaign_id } : {}),
+      ...(campaignId ? { campaign_id: campaignId } : {}),
+      ...(managedMandateId ? { managed_mandate_id: managedMandateId } : {}),
+      ...(creationSessionId ? { campaign_creation_session_id: creationSessionId } : {}),
+      ...(input.managed_mandate_id ? { managed_mandate_id: input.managed_mandate_id } : {}),
     }),
     signal: AbortSignal.timeout(90000),
   });

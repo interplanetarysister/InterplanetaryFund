@@ -96,3 +96,27 @@ export async function memberApi(request, env, fetcher = fetch) {
   };
 }
 import { readJsonBody } from "../bodyLimit.js";
+
+export async function requireCampaignAIAccess(api, campaignId) {
+  if (!UUID.test(campaignId || ""))
+    fail(400, "Choose a valid campaign for AI assistance.");
+  const allowed = await api.rpc("ifund_campaign_agent_ai_access", {
+    p_campaign_id: campaignId,
+  });
+  if (allowed !== true)
+    fail(403, "This campaign is not authorized for AI assistance under the current creator mandate.");
+  return true;
+}
+
+export async function requireCampaignScopeAccess(api, campaignId, scope) {
+  if (!UUID.test(campaignId || "") ||
+      !["publish", "external_outreach", "donor_messaging", "account_connections", "financial_actions", "payout_changes"].includes(scope))
+    fail(400, "Choose a valid campaign and permission scope.");
+  const allowed = await api.rpc("ifund_campaign_mandate_scope_access", {
+    p_campaign_id: campaignId,
+    p_scope: scope,
+  });
+  if (allowed !== true)
+    fail(403, "The creator mandate does not include this campaign permission, or it has expired or been revoked.");
+  return true;
+}

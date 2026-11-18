@@ -452,3 +452,105 @@ test("the shared runtime skill policy explicitly preserves external audience rea
     assert.match(instructions, /backend verification/);
   }
 });
+
+
+test("mixed onboarding and fundraising delegation cannot bypass campaign verification", async () => {
+  const routed = binding({
+    name: "routeAgentTask",
+    roles: ["chief_of_staff"],
+    effect: "write",
+    verifyReceipt: async () => true,
+    invoke: async () => ({ dispatched: true }),
+  });
+  const registry = createToolRegistry({
+    bindings: [routed],
+    authorize: async () => scope("chief_of_staff"),
+  });
+  for (const objective of [
+    "Invite the external campaign owner to register and bring the campaign to IFund, then solicit donations for their external campaign",
+    "Run IFund platform growth marketing and promote this unlinked external campaign",
+  ]) {
+    await assert.rejects(
+      registry.invoke("chief_of_staff", "routeAgentTask", {
+        mode: "dispatch", target_agent: "outreach_agent", objective,
+      }, {}),
+      /verified IFund campaign/,
+    );
+  }
+});
+
+
+test("verified IFund platform communications work without a campaign but retain exact approval", async () => {
+  let sent = 0;
+  const input = { preview_id: "22222222-2222-4222-8222-222222222222", message: "IFund member onboarding announcement" };
+  const hash = await toolInputHash(input);
+  const send = binding({
+    name: "sendCommunication",
+    roles: ["communications_agent"],
+    effect: "write",
+    verifyReceipt: async () => true,
+    invoke: async () => { sent++; return { sent: true }; },
+  });
+  const authorizedScope = {
+    ...scope("communications_agent"),
+    owner_approval_verified: true,
+    approval_tool: "sendCommunication",
+    approved_input_hash: hash,
+  };
+  const unverified = createToolRegistry({
+    bindings: [send],
+    authorize: async () => authorizedScope,
+  });
+  await assert.rejects(
+    unverified.invoke("communications_agent", "sendCommunication", input, {}),
+    /verified IFund campaign/,
+  );
+  assert.equal(sent, 0);
+  const approved = createToolRegistry({
+    bindings: [send],
+    authorize: async () => ({ ...authorizedScope, platform_communication_verified: true }),
+  });
+  assert.deepEqual(
+    await approved.invoke("communications_agent", "sendCommunication", input, {}),
+    { sent: true },
+  );
+  assert.equal(sent, 1);
+
+  const noExactApproval = createToolRegistry({
+    bindings: [send],
+    authorize: async () => ({
+      ...authorizedScope,
+      approved_input_hash: "different",
+      platform_communication_verified: true,
+    }),
+  });
+  await assert.rejects(
+    noExactApproval.invoke("communications_agent", "sendCommunication", input, {}),
+    /owner approval/,
+  );
+  assert.equal(sent, 1);
+
+  await assert.rejects(
+    approved.invoke("communications_agent", "sendCommunication", {
+      ...input,
+      platform_communication_verified: true,
+    }, {}),
+    /Unsupported tool options/,
+  );
+  assert.equal(sent, 1);
+
+  const campaignInput = { ...input, campaign_id: "44444444-4444-4444-8444-444444444444" };
+  const campaignSend = createToolRegistry({
+    bindings: [send],
+    authorize: async () => ({
+      ...authorizedScope,
+      approved_input_hash: await toolInputHash(campaignInput),
+      platform_communication_verified: true,
+    }),
+  });
+  await assert.rejects(
+    campaignSend.invoke("communications_agent", "sendCommunication", campaignInput, {}),
+    /verified IFund campaign/,
+  );
+  assert.equal(sent, 1);
+});

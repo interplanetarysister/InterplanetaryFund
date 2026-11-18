@@ -34,7 +34,7 @@ export function campaignPreviewInput(raw) {
     Array.isArray(raw) ||
     Object.keys(raw).some(
       (key) =>
-        !["details", "answers", "goal", "request_id", "section", "campaign_id", "writing_preferences"].includes(key),
+        !["details", "answers", "goal", "request_id", "section", "campaign_id", "writing_preferences", "managed_mandate_id", "campaign_creation_session_id"].includes(key),
     )
   )
     fail(400, "Check your campaign details.");
@@ -42,6 +42,15 @@ export function campaignPreviewInput(raw) {
     fail(400, "A writing request reference is required.");
   if (raw.campaign_id != null && !UUID.test(raw.campaign_id))
     fail(400, "Choose a saved campaign you own.");
+  if (raw.managed_mandate_id != null && !UUID.test(raw.managed_mandate_id))
+    fail(400, "Choose a valid managed creator authorization.");
+  if (raw.campaign_creation_session_id != null && !UUID.test(raw.campaign_creation_session_id))
+    fail(400, "Start from the IFund campaign creator to request new-campaign writing.");
+  if ((raw.campaign_id && (raw.managed_mandate_id || raw.campaign_creation_session_id)) ||
+      (raw.managed_mandate_id && raw.campaign_creation_session_id))
+    fail(400, "Choose one authorized writing context.");
+  if (!raw.campaign_id && !raw.managed_mandate_id && !raw.campaign_creation_session_id)
+    fail(403, "Use an owned IFund campaign, an active creator authorization, or the IFund campaign creator.");
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
@@ -92,6 +101,8 @@ export function campaignPreviewInput(raw) {
     goal: raw.goal ?? null,
     request_id: raw.request_id,
     campaign_id: raw.campaign_id || null,
+    ...(raw.managed_mandate_id ? { managed_mandate_id: raw.managed_mandate_id } : {}),
+    ...(raw.campaign_creation_session_id ? { campaign_creation_session_id: raw.campaign_creation_session_id } : {}),
     section: raw.section?.trim() || null,
     ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
@@ -189,7 +200,41 @@ export async function campaignPreview(request, env) {
         503,
         "Your writing access could not be verified. Your text is safe.",
       );
+    // Authorize the writing context before either a free outline or paid/limited inference.
+    // The Story worker rechecks the exact owner, mandate, or short-lived creation session.
+    url.pathname = "/api/agents/story/authorize";
+    const authorizationResponse = await env.IFUND_STORY_AGENT.fetch(
+      new Request(url, {
+        method: "POST",
+        headers: { authorization: bearer, "content-type": "application/json" },
+        body: JSON.stringify({
+          details: nativeDetails(input),
+          request_id: input.request_id,
+          campaign_id: input.campaign_id,
+          ...(input.managed_mandate_id ? { managed_mandate_id: input.managed_mandate_id } : {}),
+          ...(input.campaign_creation_session_id ? { campaign_creation_session_id: input.campaign_creation_session_id } : {}),
+          ...(input.section ? { section: input.section } : {}),
+        }),
+      }),
+    );
+    if (!authorizationResponse.ok) {
+      const status = [400, 401, 403].includes(authorizationResponse.status) ? authorizationResponse.status : 503;
+      return json(status, {
+        error: status === 403
+          ? "Writing assistance requires an owned IFund campaign, an active creator authorization, or a current campaign-creation session."
+          : status === 401
+            ? "Sign in again to prepare campaign suggestions."
+            : status === 400
+              ? "Check your campaign details."
+              : "Writing authorization is temporarily unavailable. Your text is safe.",
+      });
+    }
+    const authorization = await serviceJson(authorizationResponse);
+    if (authorization?.authorized !== true)
+      fail(503, "Writing authorization could not be confirmed. Your text is safe.");
     if (!access.active) {
+      if (input.managed_mandate_id)
+        return json(403, { error: "The assigned IFund admin account does not currently have an active AI writing entitlement. No managed AI work was performed." });
       if (input.section)
         return json(409, {
           code: "section_unavailable",
@@ -209,6 +254,8 @@ export async function campaignPreview(request, env) {
           section: input.section,
           ...(input.writing_preferences ? { writing_preferences: input.writing_preferences } : {}),
           request_id: input.request_id,
+          ...(input.managed_mandate_id ? { managed_mandate_id: input.managed_mandate_id } : {}),
+          ...(input.campaign_creation_session_id ? { campaign_creation_session_id: input.campaign_creation_session_id } : {}),
         }),
       }),
     );

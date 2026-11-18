@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { useSuperAdminAccess } from "@/hooks/useSuperAdminAccess";
-import { Plug, Leaf, ShieldCheck, Wallet, BookOpen, Server, Sparkles, LayoutDashboard, ArrowRight } from "lucide-react";
+import { Plug, Leaf, ShieldCheck, Wallet, BookOpen, Server, Sparkles, LayoutDashboard, ArrowRight, Handshake } from "lucide-react";
 
 // /admin is a functional navigation hub, not an elevated data endpoint.
 // Actual route guards and backend RLS remain authoritative for every tool.
@@ -18,6 +18,7 @@ const restricted = [
   { to: "/admin/deletions", title: "Deletion requests", detail: "Review confirmed account erasure requests and legal retention", icon: ShieldCheck },
   { to: "/admin/studio", title: "Website studio", detail: "Manage authorized site content", icon: Sparkles },
   { to: "/admin/help", title: "Help Center editor", detail: "Manage published help guidance", icon: BookOpen },
+  { to: "/admin/managed-fundraisers", title: "Managed fundraisers", detail: "Creator mandates, full-control AI delegation and private review", icon: Handshake },
 ];
 export default function AdminHub() {
   const { user } = useAuthSession();

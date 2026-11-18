@@ -1,5 +1,5 @@
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { memberApi, reply, UUID } from "./memberApi.js";
+import { memberApi, reply, UUID, requireCampaignScopeAccess } from "./memberApi.js";
 import {
   connectionCatalog,
   connectionProvider,
@@ -119,11 +119,15 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
       return reply(200, connectionMethods(provider));
     }
     const raw = await readJsonBody(request, 16000);
-    if (route === "grant-help")
+    if (route === "grant-help") {
+      const input = permissionInput(raw);
+      if (input.p_campaign_id)
+        await requireCampaignScopeAccess(api, input.p_campaign_id, "account_connections");
       return reply(
         200,
-        await api.rpc("ifund_connections_grant_help", permissionInput(raw)),
+        await api.rpc("ifund_connections_grant_help", input),
       );
+    }
     if (route === "change-selected")
       return reply(
         200,
@@ -138,6 +142,8 @@ export async function handleManagedConnections(request, env, fetcher = fetch) {
     } catch {
       invalid();
     }
+    if (input.campaign_id)
+      await requireCampaignScopeAccess(api, input.campaign_id, "account_connections");
     return reply(
       200,
       await api.rpc("ifund_connections_request_action", {

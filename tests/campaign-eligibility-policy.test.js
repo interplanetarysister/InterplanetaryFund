@@ -20,6 +20,10 @@ const containsPolicy = (messages) => {
   assert.ok(messages[0].content.includes("neutral invitations"));
   assert.ok(messages[0].content.includes("must NOT receive campaign-support services"));
   assert.ok(messages[0].content.includes("IFund-native campaign creation exception"));
+  assert.ok(messages[0].content.includes("EXTERNAL CREATOR PERMISSION OFFER"));
+  assert.ok(messages[0].content.includes("Ask which option they prefer"));
+  assert.ok(messages[0].content.includes("informal"));
+  assert.ok(messages[0].content.includes("revocation path"));
 };
 
 test("the shared policy explicitly separates eligible campaigns from unrestricted external audiences", () => {
@@ -28,6 +32,15 @@ test("the shared policy explicitly separates eligible campaigns from unrestricte
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /new-user acquisition/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /neutral invitations/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /must NOT receive campaign-support services/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /without requiring them to create an IFund login/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /separate, explicit, recorded authorization/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /informal/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /payout destination checks/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /full operational control/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /every IFund AI feature\/agent/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /unrestricted permission/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /unrelated personal data/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /payout-destination changes/);
 });
 
 test("active Strategy and Growth prompts receive the universal policy", () => {
@@ -62,5 +75,22 @@ test("every registered specialist receives the same policy at runtime", () => {
     const instructions = serviceSkill(role).instructions;
     assert.ok(instructions.includes("UNIVERSAL IFUND CAMPAIGN ELIGIBILITY AND GROWTH POLICY"));
     assert.ok(instructions.includes("Those outside audience members do not need IFund accounts."));
+    assert.ok(instructions.includes("EXTERNAL CREATOR PERMISSION OFFER"));
+    assert.ok(instructions.includes("without requiring them to create an IFund login"));
+  }
+});
+
+
+test("all IFund specialists may discuss internal platform context without a campaign ID", () => {
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /INTERNAL IFUND NETWORK COMMUNICATIONS/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /do not prohibit ordinary IFund-context conversations/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /not permission to access private member data/);
+  for (const role of [
+    "admin_builder_agent", "chief_of_staff", "communications_agent",
+    "connection_discovery_agent", "finance_agent", "growth_agent",
+    "managed_connection_agent", "outreach_agent", "story_agent",
+    "strategy_agent",
+  ]) {
+    assert.match(serviceSkill(role).instructions, /INTERNAL IFUND NETWORK COMMUNICATIONS/);
   }
 });

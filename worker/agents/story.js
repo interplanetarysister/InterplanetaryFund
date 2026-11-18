@@ -25,13 +25,22 @@ const fail = (status, message) => {
 export function storyInput(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     fail(400, "Describe the campaign you want help with.");
-  const allowed = ["details", "campaign_id", "section", "request_id", "writing_preferences"];
+  const allowed = ["details", "campaign_id", "section", "request_id", "writing_preferences", "managed_mandate_id", "campaign_creation_session_id"];
   if (Object.keys(raw).some((k) => !allowed.includes(k)))
     fail(400, "Unsupported drafting option.");
   if (!UUID.test(raw.request_id || ""))
     fail(400, "A request reference is required.");
   if (raw.campaign_id != null && !UUID.test(raw.campaign_id))
     fail(400, "Choose one of your campaigns.");
+  if (raw.managed_mandate_id != null && !UUID.test(raw.managed_mandate_id))
+    fail(400, "Choose a valid managed creator authorization.");
+  if (raw.campaign_creation_session_id != null && !UUID.test(raw.campaign_creation_session_id))
+    fail(400, "Start from the IFund campaign creator to request new-campaign writing.");
+  if ((raw.campaign_id && (raw.managed_mandate_id || raw.campaign_creation_session_id)) ||
+      (raw.managed_mandate_id && raw.campaign_creation_session_id))
+    fail(400, "Choose one authorized writing context.");
+  if (!raw.campaign_id && !raw.managed_mandate_id && !raw.campaign_creation_session_id)
+    fail(403, "Use an owned IFund campaign, an active creator authorization, or the IFund campaign creator.");
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
@@ -51,6 +60,8 @@ export function storyInput(raw) {
     campaign_id: raw.campaign_id || null,
     section: raw.section?.trim() || null,
     request_id: raw.request_id,
+    ...(raw.managed_mandate_id ? { managed_mandate_id: raw.managed_mandate_id } : {}),
+    ...(raw.campaign_creation_session_id ? { campaign_creation_session_id: raw.campaign_creation_session_id } : {}),
     ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
 }
@@ -286,7 +297,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
     });
   if (
     (env.IFUND_STORY_ENABLED !== "enabled" &&
-      !["/clear-preferences", "/cancel-queued", "/queued-requests"].some(
+      !["/authorize", "/clear-preferences", "/cancel-queued", "/queued-requests"].some(
         (suffix) => path.endsWith(suffix),
       )) ||
     env.SUPABASE_URL !== ORIGIN ||
@@ -296,6 +307,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
   if (
     ![
       "/api/agents/story/drafts",
+      "/api/agents/story/authorize",
       "/api/agents/story/cancel",
       "/api/agents/story/subscription",
       "/api/agents/story/context",
@@ -313,6 +325,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
     !["GET", "POST"].includes(request.method) ||
     ([
       "/cancel",
+      "/authorize",
       "/select",
       "/revise",
       "/clear-preferences",
@@ -390,6 +403,32 @@ export async function storyRoute(request, env, fetcher = fetch) {
         fetcher,
       );
     };
+    const verifyStoryScope = async (input) => {
+      if (input.campaign_id) {
+        const campaignAllowed = await rpc("ifund_campaign_agent_ai_access", { p_campaign_id: input.campaign_id });
+        if (campaignAllowed !== true)
+          fail(403, "This campaign is not authorized for AI assistance under the current creator mandate.");
+        return true;
+      }
+      if (input.managed_mandate_id) {
+        const authorized = await rpc("ifund_creator_mandate_ai_authorized", {
+          p_mandate_id: input.managed_mandate_id,
+        });
+        if (authorized !== true)
+          fail(403, "This creator authorization is expired, revoked, or no longer assigned to this admin account.");
+        return true;
+      }
+      if (input.campaign_creation_session_id) {
+        const authorized = await rpc("ifund_story_campaign_creation_session_authorized", {
+          p_session_id: input.campaign_creation_session_id,
+          p_request_id: input.request_id,
+        });
+        if (authorized !== true)
+          fail(403, "Start a new campaign in IFund before requesting private writing assistance.");
+        return true;
+      }
+      fail(403, "A verified IFund campaign or authorized campaign-creation context is required.");
+    };
     const scopedQueue = (rows) =>
       rows.map((row) => ({
         ...row,
@@ -439,6 +478,11 @@ export async function storyRoute(request, env, fetcher = fetch) {
       });
     }
     const raw = await readJsonBody(request, 64000);
+    if (path === "/api/agents/story/authorize") {
+      const input = storyInput(raw);
+      await verifyStoryScope(input);
+      return json(200, { authorized: true });
+    }
     if (path.endsWith("/cancel-queued")) {
       if (
         !raw ||
@@ -597,6 +641,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
       );
     }
     const input = storyInput(raw);
+    await verifyStoryScope(input);
     const workforce = env.IFUND_WORKFORCE_ENABLED === "enabled";
     if ((!workforce && !env.AI) || env.IFUND_STORY_AI_ENABLED !== "enabled")
       fail(
@@ -714,6 +759,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
         })) !== true
       )
         fail(503, "Writing suggestions are temporarily unavailable.");
+      await verifyStoryScope(input);
       const result = await invokeImplementation(
         workforce ? claim.implementation : legacyStoryImplementation,
         env,
@@ -730,6 +776,15 @@ export async function storyRoute(request, env, fetcher = fetch) {
         () => {},
       );
       throw error;
+    }
+    // Recheck after inference so a mandate revoked while the provider was working
+    // cannot result in a persisted managed draft.
+    if (input.managed_mandate_id) {
+      try { await verifyManagedMandate(); }
+      catch (error) {
+        await finish(null, "failed").catch(() => {});
+        throw error;
+      }
     }
     // A stored receipt is required before reporting success, even after inference.
     const draft = await finish(suggestion, "succeeded");

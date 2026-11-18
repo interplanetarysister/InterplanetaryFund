@@ -106,6 +106,12 @@ Deno.serve(async req=>{
       const donorId=await resolveVerifiedDonor(p.donor_access_token);
       const campaign=await findOne("ifund_campaigns?select=id,status&id=eq."+p.campaign_id);
       if(!campaign||campaign.status!=="active") return fail("Campaign is not accepting donations",409);
+      // Managed external-beneficiary campaigns must never create IFund payment
+      // intents: the assigned admin's payout account is not the beneficiary.
+      // Donations for those campaigns require a separately verified direct-
+      // provider destination and must not enter IFund custody or settlement.
+      const managedProfile=await findOne("ifund_managed_campaign_profiles?select=campaign_id&campaign_id=eq."+p.campaign_id);
+      if(managedProfile) return fail("Managed beneficiary campaigns require direct-provider checkout",409);
       let existing=await findOne("ifund_payment_intents?select=*&request_key=eq."+encodeURIComponent(p.request_key));
       if(!existing){
         try{

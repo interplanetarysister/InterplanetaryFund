@@ -1,0 +1,323 @@
+-- Secure creator-approved external donation destination workflow.
+-- This migration creates private workflow records only. It does not publish campaigns.
+begin;
+
+create table if not exists public.ifund_managed_external_destinations (
+  id uuid primary key default gen_random_uuid(),
+  mandate_id uuid not null references public.ifund_creator_mandates(id) on delete restrict,
+  campaign_id uuid references public.ifund_campaigns(id) on delete restrict,
+  provider_label text not null check (length(btrim(provider_label)) between 2 and 100),
+  donation_url text not null check (
+    length(donation_url) between 12 and 2048
+    and donation_url ~ '^https://[^[:space:]]+$'
+    and donation_url !~* '^https://(localhost|127[.]|10[.]|192[.]168[.]|172[.](1[6-9]|2[0-9]|3[01])[.])'
+  ),
+  destination_owner_name text not null check (length(btrim(destination_owner_name)) between 2 and 180),
+  destination_owner_relationship text not null check (length(btrim(destination_owner_relationship)) between 2 and 500),
+  creator_approved_at timestamptz,
+  creator_approved_url_sha256 text check (
+    creator_approved_url_sha256 is null or creator_approved_url_sha256 ~ '^[a-f0-9]{64}$'
+  ),
+  creator_approved_by_token boolean not null default false,
+  creator_approval_token_hash text check (
+    creator_approval_token_hash is null or creator_approval_token_hash ~ '^[a-f0-9]{64}$'
+  ),
+  provider_owner_verified_at timestamptz,
+  provider_owner_verified_by uuid references auth.users(id) on delete restrict,
+  provider_verification_evidence text,
+  compliance_checked_at timestamptz,
+  compliance_checked_by uuid references auth.users(id) on delete restrict,
+  compliance_evidence text,
+  status text not null default 'pending_creator_approval'
+    check (status in ('pending_creator_approval','pending_provider_verification','pending_compliance','ready','rejected','revoked')),
+  created_by_admin uuid not null references auth.users(id) on delete restrict,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint ifund_managed_external_destination_creator_approval_check check (
+    (creator_approved_at is null and creator_approved_url_sha256 is null and creator_approved_by_token is false)
+    or (creator_approved_at is not null and creator_approved_url_sha256 is not null
+        and creator_approved_by_token is true and creator_approval_token_hash is null)
+  ),
+  constraint ifund_managed_external_destination_provider_verification_check check (
+    (provider_owner_verified_at is null and provider_owner_verified_by is null and provider_verification_evidence is null)
+    or (provider_owner_verified_at is not null and provider_owner_verified_by is not null
+        and length(coalesce(provider_verification_evidence,'')) >= 30)
+  ),
+  constraint ifund_managed_external_destination_compliance_check check (
+    (compliance_checked_at is null and compliance_checked_by is null and compliance_evidence is null)
+    or (compliance_checked_at is not null and compliance_checked_by is not null
+        and length(coalesce(compliance_evidence,'')) >= 30)
+  ),
+  constraint ifund_managed_external_destination_creator_state_check check (
+    status not in ('pending_provider_verification','pending_compliance','ready')
+    or (creator_approved_at is not null and creator_approved_url_sha256 is not null
+        and creator_approved_by_token is true and creator_approval_token_hash is null)
+  ),
+  constraint ifund_managed_external_destination_provider_state_check check (
+    status not in ('pending_compliance','ready')
+    or (provider_owner_verified_at is not null and provider_owner_verified_by is not null
+        and length(coalesce(provider_verification_evidence,'')) >= 30)
+  ),
+  constraint ifund_managed_external_destination_ready_check check (
+    status <> 'ready'
+    or (creator_approved_at is not null and provider_owner_verified_at is not null
+        and compliance_checked_at is not null and length(coalesce(compliance_evidence,'')) >= 30
+        and campaign_id is not null)
+  )
+);
+
+create index if not exists ifund_managed_external_destinations_status_idx
+  on public.ifund_managed_external_destinations(status, updated_at desc);
+create unique index if not exists ifund_managed_external_destinations_one_open_mandate_idx
+  on public.ifund_managed_external_destinations(mandate_id)
+  where status not in ('rejected','revoked');
+create unique index if not exists ifund_managed_external_destinations_one_open_campaign_idx
+  on public.ifund_managed_external_destinations(campaign_id)
+  where campaign_id is not null and status not in ('rejected','revoked');
+
+alter table public.ifund_managed_external_destinations enable row level security;
+revoke all on table public.ifund_managed_external_destinations from public, anon, authenticated;
+grant select, insert, update on table public.ifund_managed_external_destinations to service_role;
+
+alter table public.ifund_creator_mandate_events
+  drop constraint if exists ifund_creator_mandate_events_event_type_check;
+alter table public.ifund_creator_mandate_events
+  add constraint ifund_creator_mandate_events_event_type_check
+  check (event_type in (
+    'invited','consented','declined','identity_verified','draft_submitted',
+    'creator_requested_changes','creator_approved','campaign_linked',
+    'external_destination_requested','external_destination_creator_approved',
+    'external_destination_verified','external_destination_compliance_checked',
+    'external_destination_rejected','revoked','expired'
+  ));
+
+create or replace function public.ifund_guard_managed_external_destination()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $function$
+declare
+  v_mandate record;
+begin
+  select status, expires_at, scopes, campaign_id, creator_review_state, creator_approved_at, identity_verified_at
+    into v_mandate
+    from public.ifund_creator_mandates
+    where id = new.mandate_id
+    for update;
+
+  if not found then
+    raise exception 'managed creator mandate not found';
+  end if;
+
+  if tg_op = 'UPDATE' then
+    if old.creator_approved_at is not null and (
+      new.donation_url is distinct from old.donation_url
+      or new.provider_label is distinct from old.provider_label
+      or new.destination_owner_name is distinct from old.destination_owner_name
+      or new.destination_owner_relationship is distinct from old.destination_owner_relationship
+      or new.mandate_id is distinct from old.mandate_id
+      or new.campaign_id is distinct from old.campaign_id
+    ) then
+      raise exception 'creator-approved destination details are immutable; request a new approval';
+    end if;
+
+    if old.creator_approved_at is not null and (
+      new.creator_approved_at is distinct from old.creator_approved_at
+      or new.creator_approved_url_sha256 is distinct from old.creator_approved_url_sha256
+      or new.creator_approved_by_token is distinct from old.creator_approved_by_token
+      or new.creator_approval_token_hash is distinct from old.creator_approval_token_hash
+    ) then
+      raise exception 'creator approval evidence is immutable';
+    end if;
+
+    if old.provider_owner_verified_at is not null and (
+      new.provider_owner_verified_at is distinct from old.provider_owner_verified_at
+      or new.provider_owner_verified_by is distinct from old.provider_owner_verified_by
+      or new.provider_verification_evidence is distinct from old.provider_verification_evidence
+    ) then
+      raise exception 'provider verification evidence is immutable';
+    end if;
+
+    if old.compliance_checked_at is not null and (
+      new.compliance_checked_at is distinct from old.compliance_checked_at
+      or new.compliance_checked_by is distinct from old.compliance_checked_by
+      or new.compliance_evidence is distinct from old.compliance_evidence
+    ) then
+      raise exception 'compliance review evidence is immutable';
+    end if;
+
+    if old.status = 'ready' and new.status not in ('ready','revoked','rejected') then
+      raise exception 'ready destination cannot return to an earlier review state';
+    end if;
+    if old.status = 'pending_compliance' and new.status not in ('pending_compliance','ready','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
+    if old.status = 'pending_provider_verification' and new.status not in ('pending_provider_verification','pending_compliance','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
+    if old.status = 'pending_creator_approval' and new.status not in ('pending_creator_approval','pending_provider_verification','revoked','rejected') then
+      raise exception 'invalid external destination status transition';
+    end if;
+  end if;
+
+  if new.status not in ('revoked','rejected') then
+    if new.creator_approved_at is not null
+       and (v_mandate.status <> 'active'
+            or v_mandate.expires_at <= now()
+            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+            or v_mandate.campaign_id is distinct from new.campaign_id
+            or v_mandate.creator_review_state <> 'approved'
+            or v_mandate.creator_approved_at is null
+            or v_mandate.identity_verified_at is null
+            or new.creator_approved_by_token is not true
+            or new.creator_approval_token_hash is not null) then
+      raise exception 'active mandate and separate creator publication scope are required';
+    end if;
+
+    if new.status in ('pending_provider_verification','pending_compliance','ready')
+       and (v_mandate.status <> 'active'
+            or v_mandate.expires_at <= now()
+            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+            or v_mandate.campaign_id is distinct from new.campaign_id
+            or v_mandate.creator_review_state <> 'approved'
+            or v_mandate.creator_approved_at is null
+            or v_mandate.identity_verified_at is null) then
+      raise exception 'active mandate and separate creator publication scope are required';
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists ifund_managed_external_destination_guard
+  on public.ifund_managed_external_destinations;
+create trigger ifund_managed_external_destination_guard
+  before insert or update on public.ifund_managed_external_destinations
+  for each row execute function public.ifund_guard_managed_external_destination();
+
+revoke all on function public.ifund_guard_managed_external_destination() from public, anon, authenticated;
+
+create or replace function public.ifund_block_managed_campaign_publication()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+set row_security = 'off'
+as $function$
+declare
+  v_mandate public.ifund_creator_mandates%rowtype;
+  v_destination public.ifund_managed_external_destinations%rowtype;
+  v_goal numeric;
+begin
+  if new.status = 'active' and exists (
+    select 1 from public.ifund_managed_campaign_profiles p where p.campaign_id = new.id
+  ) then
+    select m.* into v_mandate
+      from public.ifund_managed_campaign_profiles p
+      join public.ifund_creator_mandates m on m.id = p.mandate_id
+      where p.campaign_id = new.id
+        and m.campaign_id = new.id
+        and m.assigned_admin_id = new.owner_id
+      for update of m;
+
+    if not found
+       or v_mandate.status <> 'active'
+       or v_mandate.expires_at <= statement_timestamp()
+       or v_mandate.identity_verified_at is null
+       or v_mandate.identity_verified_by is null
+       or v_mandate.full_control_acknowledged is not true
+       or v_mandate.ai_all_features_acknowledged is not true
+       or v_mandate.creator_authority_confirmed is not true
+       or v_mandate.creator_review_state <> 'approved'
+       or v_mandate.creator_approved_at is null
+       or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+       or jsonb_typeof(v_mandate.draft_payload) <> 'object'
+       or coalesce(v_mandate.draft_payload ->> 'title','') <> new.title
+       or coalesce(v_mandate.draft_payload ->> 'summary','') <> new.summary
+       or coalesce(v_mandate.draft_payload ->> 'story','') <> new.story
+       or coalesce(v_mandate.draft_payload ->> 'category','') <> new.category
+       or not pg_catalog.pg_input_is_valid(v_mandate.draft_payload ->> 'goal_amount','numeric') then
+      raise exception 'Managed fundraiser requires active creator publication authorization and the exact approved campaign draft'
+        using errcode = '42501';
+    end if;
+
+    v_goal := (v_mandate.draft_payload ->> 'goal_amount')::numeric;
+    if v_goal <= 0 or new.goal_amount <> v_goal then
+      raise exception 'Managed fundraiser goal must match the creator-approved draft'
+        using errcode = '40001';
+    end if;
+
+    select d.* into v_destination
+      from public.ifund_managed_external_destinations d
+      where d.mandate_id = v_mandate.id
+        and d.campaign_id = new.id
+        and d.status = 'ready'
+        and d.creator_approved_at is not null
+        and d.creator_approved_by_token is true
+        and d.creator_approved_url_sha256 is not null
+        and d.provider_owner_verified_at is not null
+        and d.provider_owner_verified_by is not null
+        and length(coalesce(d.provider_verification_evidence,'')) >= 30
+        and d.compliance_checked_at is not null
+        and d.compliance_checked_by is not null
+        and length(coalesce(d.compliance_evidence,'')) >= 30
+      for update;
+
+    if not found then
+      raise exception 'Managed fundraiser requires a creator-approved direct-provider destination with provider ownership and compliance evidence'
+        using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end
+$function$;
+
+revoke all on function public.ifund_block_managed_campaign_publication() from public, anon, authenticated;
+
+create or replace view public.ifund_public_managed_external_destinations
+with (security_barrier = true)
+as
+select d.campaign_id, d.provider_label, d.donation_url
+from public.ifund_managed_external_destinations d
+join public.ifund_creator_mandates m
+  on m.id = d.mandate_id
+ and m.campaign_id = d.campaign_id
+join public.ifund_managed_campaign_profiles p
+  on p.campaign_id = d.campaign_id
+ and p.mandate_id = m.id
+where d.status = 'ready'
+  and d.creator_approved_at is not null
+  and d.creator_approved_by_token is true
+  and d.creator_approved_url_sha256 is not null
+  and d.provider_owner_verified_at is not null
+  and d.provider_owner_verified_by is not null
+  and length(coalesce(d.provider_verification_evidence,'')) >= 30
+  and d.compliance_checked_at is not null
+  and d.compliance_checked_by is not null
+  and length(coalesce(d.compliance_evidence,'')) >= 30
+  and m.status = 'active'
+  and m.expires_at > statement_timestamp()
+  and m.identity_verified_at is not null
+  and m.identity_verified_by is not null
+  and m.full_control_acknowledged is true
+  and m.ai_all_features_acknowledged is true
+  and m.creator_authority_confirmed is true
+  and m.creator_review_state = 'approved'
+  and m.creator_approved_at is not null
+  and coalesce((m.scopes ->> 'publish')::boolean, false) is true
+  and exists (
+    select 1 from public.ifund_campaigns c
+    where c.id = d.campaign_id
+      and c.status = 'active'
+      and c.owner_id = m.assigned_admin_id
+  );
+
+revoke all on public.ifund_public_managed_external_destinations from public, anon, authenticated;
+grant select on public.ifund_public_managed_external_destinations to anon, authenticated;
+
+comment on table public.ifund_managed_external_destinations is
+  'Private direct-to-provider donation destination records. No browser-role access. Ready means creator approval, provider ownership verification and compliance evidence are recorded; a separate publication gate is still required.';
+
+commit;
