@@ -93,6 +93,8 @@ test("event page and dashboard connect owner creation, member account activity a
   assert.match(page, /Sign in to record/);
   assert.match(page, /not an IFund receipt or verified payment/);
   assert.match(dashboard, /EventsDashboardSection/);
+  assert.match(dashboard, /EventsDashboardSection guest/);
+  assert.match(widget, /guest = false/);
   assert.match(widget, /Art auctions & experiences/);
   assert.match(widget, /Your event RSVPs/);
   assert.match(widget, /Self-reported, not verified payments/);
