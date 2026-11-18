@@ -36,6 +36,17 @@ function clientFixture(){
   }};
   return {client,calls,setUser:value=>{user=value;},getState:()=>state,setState:value=>{state=value;}};
 }
+test("new creators see three essential pages; legacy AI preparation drafts still restore",()=>{
+  assert.equal(emptyWizard().draft_step,1);
+  const s=storage();
+  const legacy={...emptyWizard(),draft_step:0};
+  assert.equal(rememberWizard(s,owner,campaign,legacy),true);
+  assert.equal(restoreWizard(s,owner,campaign).draft_step,0);
+  assert.match(source,/WIZARD_STEPS\.slice\(1\)/);
+  assert.match(source,/Optional AI preparation and writing preferences/);
+  assert.match(source,/No minimum character count/);
+});
+
 test("each wizard stage and private context survives reload without crossing account or campaign scope",()=>{
   const s=storage();let wizard=emptyWizard();
   for(let stage=0;stage<4;stage++){
