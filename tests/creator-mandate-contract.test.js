@@ -12,6 +12,10 @@ const review = await readFile(new URL("../apps/web/src/pages/CreatorReview.jsx",
 const admin = await readFile(new URL("../apps/web/src/pages/ManagedCreatorMandates.jsx", import.meta.url), "utf8");
 const policy = await readFile(new URL("../worker/agents/campaignPolicy.js", import.meta.url), "utf8");
 const skillIndex = await readFile(new URL("../worker/services/skills/index.js", import.meta.url), "utf8");
+const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
+const campaignDetail = await readFile(new URL("../apps/web/src/pages/CampaignDetail.jsx", import.meta.url), "utf8");
+const fundingCard = await readFile(new URL("../apps/web/src/components/campaigns/CampaignFundingCard.jsx", import.meta.url), "utf8");
+
 const aiGate = await readFile(new URL("../supabase/migrations/20261118161819_ifund_creator_mandate_story_ai_gate_20261118.sql", import.meta.url), "utf8");
 const representation = await readFile(new URL("../supabase/migrations/20261118162242_ifund_managed_campaign_representation_20261118.sql", import.meta.url), "utf8");
 const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
@@ -292,4 +296,12 @@ test("managed campaign drafting exposes five title choices, two descriptions, an
   assert.match(admin, /maxLength=\{1200\}/);
   assert.match(admin, /setTitleOptions\(\[\]\)/);
   assert.match(admin, /setSummaryOptions\(\[\]\)/);
+});
+
+test("managed beneficiary campaigns fail closed on IFund-native donation checkout", () => {
+  assert.match(publicData, /managed_campaign:\s*Boolean\(profile\)/);
+  assert.match(campaignDetail, /!campaign\.managed_campaign !== true|campaign\.managed_campaign !== true/);
+  assert.match(fundingCard, /managedCampaign = campaign\?\.managed_campaign === true/);
+  assert.match(fundingCard, /\|\| managedCampaign \|\|/);
+  assert.match(fundingCard, /administrator's payout account/);
 });
