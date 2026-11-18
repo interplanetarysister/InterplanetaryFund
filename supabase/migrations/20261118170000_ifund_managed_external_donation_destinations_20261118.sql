@@ -48,6 +48,16 @@ create table if not exists public.ifund_managed_external_destinations (
     or (compliance_checked_at is not null and compliance_checked_by is not null
         and length(coalesce(compliance_evidence,'')) >= 30)
   ),
+  constraint ifund_managed_external_destination_creator_state_check check (
+    status not in ('pending_provider_verification','pending_compliance','ready')
+    or (creator_approved_at is not null and creator_approved_url_sha256 is not null
+        and creator_approved_by_token is true and creator_approval_token_hash is null)
+  ),
+  constraint ifund_managed_external_destination_provider_state_check check (
+    status not in ('pending_compliance','ready')
+    or (provider_owner_verified_at is not null and provider_owner_verified_by is not null
+        and length(coalesce(provider_verification_evidence,'')) >= 30)
+  ),
   constraint ifund_managed_external_destination_ready_check check (
     status <> 'ready'
     or (creator_approved_at is not null and provider_owner_verified_at is not null
