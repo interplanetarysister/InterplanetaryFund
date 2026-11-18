@@ -52,8 +52,8 @@ export default function About() {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
-          <Link to="/discover"><Button variant="outline" className="rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-          <Link to="/create"><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+          <Button asChild variant="outline" className="rounded-xl"><Link to="/discover"><Compass className="w-4 h-4 mr-2" /> Explore causes</Link></Button>
+          <Button asChild className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Link to="/create"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign <ArrowRight className="w-4 h-4 ml-2" /></Link></Button>
         </div>
       </section>
       <LegalFooter />
