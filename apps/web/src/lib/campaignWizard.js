@@ -31,15 +31,27 @@ export function forgetWizard(storage,owner,campaign=null){
 }
 export function importGuestWizard(storage,owner){
   if(!owner)return false;
-  let raw;try{
-    if(storage.getItem(keyFor(owner,null)))return false;
-    raw=storage.getItem(keyFor(null,null));
-  }catch{return false;}
-  if(!raw)return true;
+  const ownerKey=keyFor(owner,null),guestKey=keyFor(null,null);
+  let raw,existing;
+  try{existing=storage.getItem(ownerKey);raw=storage.getItem(guestKey);}catch{return false;}
+  if(!raw)return existing===null;
   let record;try{record=JSON.parse(raw);}catch{return false;}
-  if(record?.version!==1||record.owner_id!==null||record.campaign_id!==null)return false;
-  if(!rememberWizard(storage,owner,null,record.setup))return false;
-  try{storage.removeItem(keyFor(null,null));return storage.getItem(keyFor(null,null))===null;}catch{return false;}
+  if(record?.version!==1||record.owner_id!==null||record.campaign_id!==null||!record.setup||typeof record.setup!=="object")return false;
+  if(existing!==null){
+    // A previous import may have saved the owner copy before guest cleanup failed.
+    // Retry cleanup only for the exact matching draft; never overwrite an owner draft.
+    let saved;try{saved=JSON.parse(existing);}catch{return false;}
+    if(saved?.version!==1||saved.owner_id!==owner||saved.campaign_id!==null||!saved.setup||typeof saved.setup!=="object")return false;
+    try{
+      if(JSON.stringify(campaignSetupPayload(saved.setup,saved.setup.draft_step))!==JSON.stringify(campaignSetupPayload(record.setup,record.setup.draft_step)))return false;
+    }catch{return false;}
+  }else if(!rememberWizard(storage,owner,null,record.setup))return false;
+  try{
+    // A storage race or silent write must not authorize removal of a different draft.
+    if(storage.getItem(guestKey)!==raw)return false;
+    storage.removeItem(guestKey);
+    return storage.getItem(guestKey)===null;
+  }catch{return false;}
 }
 export function withStoryVersion(setup,story,now=()=>new Date().toISOString()){
   if(typeof story!=="string"||!story.trim()||setup.story_versions?.at(-1)?.text===story)return setup;
