@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
+import {readFileSync,readdirSync} from "node:fs";
 import providers from "../worker/connections/provider-catalog.generated.js";
 import positions from "../worker/services/position-contracts.generated.js";
 import manifest from "../worker/services/skills/manifest.generated.js";
@@ -20,11 +20,24 @@ test("generated Wrangler-compatible modules retain the complete authoritative JS
   assert.equal(manifest.agents.length,10);
 });
 
-test("Cloudflare Pages Functions no longer import JSON using Wrangler-3-incompatible attributes",()=>{
+test("Cloudflare Pages and Worker modules never use unsupported JSON import attributes",()=>{
+  const roots=["../worker/","../apps/web/functions/"];
+  let inspected=0;
+  const inspect=directory=>{
+    for(const entry of readdirSync(directory,{withFileTypes:true})){
+      const path=new URL(entry.name+(entry.isDirectory()?"/":""),directory);
+      if(entry.isDirectory()){inspect(path);continue;}
+      if(!/\\.(?:js|mjs|ts|tsx)$/.test(entry.name))continue;
+      inspected++;
+      const code=readFileSync(path,"utf8");
+      assert.doesNotMatch(code,/\\bimport\\s+(?:[^;\\n]|\\n)*?\\swith\\s*\\{\\s*type\\s*:\\s*["']json["']\\s*\\}/,
+        "Wrangler 3 cannot parse JSON import attributes in "+path.pathname);
+    }
+  };
+  for(const root of roots)inspect(new URL(root,import.meta.url));
+  assert.ok(inspected>=20,"Expected to check Worker and Pages Functions source files");
   for(const source of ["../worker/connections/catalog.js","../worker/services/skills/index.js"]){
-    const code=readFileSync(new URL(source,import.meta.url),"utf8");
-    assert.doesNotMatch(code,/\bwith\s*\{\s*type:\s*["']json["']\s*\}/);
-    assert.match(code,/\.generated\.js/);
+    assert.match(readFileSync(new URL(source,import.meta.url),"utf8"),/\\.generated\\.js/);
   }
 });
 
