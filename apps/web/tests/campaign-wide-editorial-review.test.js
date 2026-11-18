@@ -18,6 +18,8 @@ test("editorial story length is advisory, not a publication requirement",()=>{
  const short={...base,story:"Useful details.".repeat(200)};
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
  assert.equal(publishReadiness(short).ready,true);
+ assert.equal(publishReadiness({...base,story:"A short factual story."}).ready,true);
+ assert.doesNotMatch(source("../src/components/campaigns/PrepublicationGate.jsx"), /Story length is mandatory|Add .*characters before publishing|Full-length minimum met/);
  const long={...short,story:"Useful details.".repeat(250)};
  assert.equal(reviewCampaignPublication(long).storyCharacters, 3750);
  assert.equal(publishReadiness(long).ready,true, "Repeated story text is an advisory finding");
