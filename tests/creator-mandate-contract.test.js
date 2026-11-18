@@ -365,6 +365,8 @@ test("external donation destination approval is token-bound, expiring, and inval
   assert.match(mandateApi, /creator_approval_token_hash/);
   assert.match(mandateApi, /creator_approved_url_sha256/);
   assert.match(mandateApi, /creator_authorization_expired_or_revoked/);
+  assert.match(mandateApi, /if \(!verifiedDestination\) return json\(409/);
+  assert.match(mandateApi, /if \(!readyDestination\) return json\(409/);
   assert.match(mandateApi, /status: "revoked", creator_approval_token_hash: null/);
   assert.match(mandateApi, /privateHost/);
   assert.match(review, /external_destination_token/);
