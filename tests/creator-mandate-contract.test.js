@@ -82,9 +82,9 @@ test("creator review supports change requests, exact draft approval and revocati
 test("managed service does not create creator accounts, change campaign ownership or publish automatically", () => {
   assert.doesNotMatch(api, /auth\.admin\.createUser|signUp\(/);
   assert.doesNotMatch(api, /from\(["']ifund_campaigns["']\)\.(insert|update)/);
-  assert.match(admin, /does not create or publish/);
-  assert.match(policy, /does NOT yet create a canonical public IFund campaign/);
-  assert.match(policy, /private Story AI draft preparation and creator review only/);
+  assert.match(admin, /canonical campaign draft is owned by the assigned IFund admin/);
+  assert.match(policy, /creation\/linkage of an unpublished canonical IFund campaign draft/);
+  assert.match(policy, /private Story AI draft preparation and creator review/);
   assert.match(policy, /does not enable other specialist agent operations/);
   assert.match(policy, /assigned to the acting admin account/);
   assert.match(review, /Publishing still requires separate authorization/);
