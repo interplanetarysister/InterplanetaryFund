@@ -253,6 +253,8 @@ function validFrontendOrigins(value) {
  * Safe, value-free diagnostics for the admin readiness screen. Never return
  * binding values, provider secrets, token material, or database credentials.
  */
+const CANONICAL_SUPABASE_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
+
 export function oauthRuntimeRequirements(env = {}) {
   const secretKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
   let encryptionKeyReady = false;
@@ -264,7 +266,10 @@ export function oauthRuntimeRequirements(env = {}) {
   return [
     { name: 'OAUTH_API_ENABLED', configured: env.OAUTH_API_ENABLED === 'true' },
     { name: 'OAUTH_FRONTEND_ORIGINS', configured: validFrontendOrigins(env.OAUTH_FRONTEND_ORIGINS) },
-    { name: 'SUPABASE_URL', configured: /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL || '') },
+    // Keep the service-role key and encrypted token vault pinned to the same
+    // canonical project used by the browser auth client. A different valid
+    // Supabase URL is a misconfiguration, not a healthy runtime.
+    { name: 'SUPABASE_URL', configured: env.SUPABASE_URL === CANONICAL_SUPABASE_URL },
     { name: 'SUPABASE_PUBLISHABLE_KEY', configured: typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.trim().length > 0 },
     { name: 'SUPABASE_SECRET_KEY', configured: typeof secretKey === 'string' && secretKey.length > 20 },
     { name: 'OAUTH_ENCRYPTION_KEY', configured: encryptionKeyReady },
