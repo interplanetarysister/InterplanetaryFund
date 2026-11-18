@@ -63,3 +63,52 @@ test('same-origin admin status returns value-free diagnostics while the Supabase
   assert.equal(payload.runtime.find((item) => item.name === 'OAUTH_FRONTEND_ORIGINS').configured, false);
   assert.doesNotMatch(JSON.stringify(payload), /sb_secret_|sb_publishable_|ssibsfmt|AAAA/);
 });
+
+test('OAuth status denies active non-admin members', async () => {
+  const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
+    headers: {
+      origin: 'https://interplanetaryfund.com',
+      authorization: 'Bearer test-member-token',
+    },
+  });
+  const fetcher = async (url) => {
+    if (url.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: '11111111-1111-4111-8111-111111111111' }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    if (url.endsWith('/rpc/ifund_current_user_is_verified_super_admin')) {
+      return new Response('false', { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    assert.fail('Unexpected upstream request: ' + url);
+  };
+  const result = await routeOAuthRequest(request, validEnv, fetcher);
+  assert.equal(result.status, 403);
+  assert.deepEqual(await result.json(), { error: 'Verified administrator access required.' });
+});
+
+test('OAuth status returns readiness details to a verified super administrator', async () => {
+  const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
+    headers: {
+      origin: 'https://interplanetaryfund.com',
+      authorization: 'Bearer test-admin-token',
+    },
+  });
+  const fetcher = async (url) => {
+    if (url.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({ id: '11111111-1111-4111-8111-111111111111' }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+      });
+    }
+    if (url.endsWith('/rpc/ifund_current_user_is_verified_super_admin')) {
+      return new Response('true', { status: 200, headers: { 'content-type': 'application/json' } });
+    }
+    assert.fail('Unexpected upstream request: ' + url);
+  };
+  const result = await routeOAuthRequest(request, validEnv, fetcher);
+  assert.equal(result.status, 200);
+  const payload = await result.json();
+  assert.equal(payload.enabled, true);
+  assert.equal(payload.runtime.length, 6);
+  assert.equal(payload.storage_ready, true);
+});
