@@ -84,10 +84,13 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
   if (env.IFUND_TEAM_QUESTIONS_ENABLED !== "enabled" ||
       typeof env.AI?.run !== "function")
     return noStore(503,{error:"Direct agent questions are not enabled on this deployment yet."});
+  let api = null;
+  let quotaReservation = null;
+  let quotaCompleted = false;
   try {
     // Verify Supabase identity and active account with existing member-backed
     // auth. No browser-supplied team ID, agent privilege or user ID is trusted.
-    const api=await memberApi(request,env,fetcher);
+    api=await memberApi(request,env,fetcher);
     const active = await api.rpc("ifund_current_account_is_active");
     if (active !== true) fail(403,"An active account is required to ask the team.");
     await api.aiPermission("campaign");
@@ -101,8 +104,14 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     });
     if(quota?.state==="daily_limit") fail(429,"Daily AI question allowance reached. Your free iFund tools remain available.");
     if(quota?.state==="already_reserved") fail(409,"This question was already submitted. Start a new request to ask again.");
-    if(quota?.allowed!==true || quota?.state!=="reserved" ||
-       !Number.isInteger(quota.remaining)||quota.remaining<0)
+    if(quota?.allowed!==true || quota?.state!=="reserved")
+      fail(503,"Your AI question allowance could not be verified.");
+    quotaReservation = {
+      p_request_id: input.requestId,
+      p_input_sha256: sha,
+      p_agent_id: input.selected,
+    };
+    if(!Number.isInteger(quota.remaining)||quota.remaining<0)
       fail(503,"Your AI question allowance could not be verified.");
     let history=[];
     if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
@@ -119,12 +128,19 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
         agentId:input.selected,content:answer.answer,speaker:"agent",fetcher});
     }
+    const completed = await api.rpc("ifund_complete_agent_question", quotaReservation);
+    if (completed !== true)
+      fail(503,"Your answer was prepared, but the daily allowance could not be finalized.");
+    quotaCompleted = true;
     return noStore(200,{...answer,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       questions_remaining_today:quota.remaining,
       provider_verified:true});
   } catch(error) {
+    if (api && quotaReservation && !quotaCompleted) {
+      try { await api.rpc("ifund_release_agent_question", quotaReservation); } catch { /* Expiring reservation is the fallback. */ }
+    }
     if (error instanceof BodyError)
       return noStore(error.status || 400,{error:"The question could not be read."});
     const status=Number.isInteger(error?.status) && error.status>=400 && error.status<=503
