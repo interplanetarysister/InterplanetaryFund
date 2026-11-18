@@ -74,7 +74,7 @@ export async function authenticatedAdminUser(request, env, fetcher = fetch) {
 /** Independent gate for the Website Studio; does not enable migration API routes. */
 export function studioReady(env) {
   return env?.IFUND_STUDIO_ENABLED === 'enabled' &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
+    env?.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
     typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
     env.SUPABASE_PUBLISHABLE_KEY.length > 0;
 }
