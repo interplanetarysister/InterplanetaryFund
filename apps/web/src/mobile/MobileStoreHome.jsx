@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { Compass, Leaf, Share2, ShieldCheck } from "lucide-react";
+import { Compass, Leaf, Share2, ShieldCheck, CalendarDays } from "lucide-react";
 const cards = [
   { to: "/discover", title:"Find a cause", text:"Browse currently published campaigns on the shared live IFund platform.", icon:Compass },
   { to: "/plan", title:"Plan your story", text:"Use a private, on-device campaign checklist. Your answers are not transmitted.", icon:Leaf },
   { to: "/account", title:"Your IFund account", text:"Use your existing sign-in, review your campaigns and manage account controls.", icon:ShieldCheck },
+  { to: "/events", title:"Fundraising events", text:"Find benefit dinners, art auctions and community events, then save your RSVP to your account.", icon:CalendarDays },
 ];
 export default function MobileStoreHome() {
   return <div className="space-y-8">
