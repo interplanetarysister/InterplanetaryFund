@@ -11,6 +11,7 @@ const consent = await readFile(new URL("../apps/web/src/pages/CreatorAuthorizati
 const review = await readFile(new URL("../apps/web/src/pages/CreatorReview.jsx", import.meta.url), "utf8");
 const admin = await readFile(new URL("../apps/web/src/pages/ManagedCreatorMandates.jsx", import.meta.url), "utf8");
 const policy = await readFile(new URL("../worker/agents/campaignPolicy.js", import.meta.url), "utf8");
+const skillIndex = await readFile(new URL("../worker/services/skills/index.js", import.meta.url), "utf8");
 const aiGate = await readFile(new URL("../supabase/migrations/20261118161819_ifund_creator_mandate_story_ai_gate_20261118.sql", import.meta.url), "utf8");
 const representation = await readFile(new URL("../supabase/migrations/20261118162242_ifund_managed_campaign_representation_20261118.sql", import.meta.url), "utf8");
 const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
@@ -102,6 +103,8 @@ test("managed service does not create creator accounts, change campaign ownershi
   assert.match(admin, /canonical campaign draft is owned by the assigned IFund admin/);
   assert.match(policy, /creation\/linkage of an unpublished canonical IFund campaign draft/);
   assert.match(policy, /private Story AI draft preparation and creator review/);
+  assert.match(skillIndex, /narrow no-login managed-creator mandate flow/);
+  assert.match(skillIndex, /No other campaign agent may service that outside campaign before the exact creator-approved draft is linked/);
   assert.match(policy, /does not enable Connections\/account access/);
   assert.match(policy, /assigned to the acting admin account/);
   assert.match(review, /Publishing still requires separate authorization/);
