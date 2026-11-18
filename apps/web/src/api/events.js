@@ -71,6 +71,45 @@ export function validateExternalCheckout(url, provider) {
   }
 }
 
+export function localDateTimeToIso(value, timezone = "UTC") {
+  const match = /^(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2})(?::(\\d{2}))?$/.exec(String(value || ""));
+  if (!match) throw new Error("Enter a valid local event date and time.");
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText = "00"] = match;
+  const [year, month, day, hour, minute, second] =
+    [yearText, monthText, dayText, hourText, minuteText, secondText].map(Number);
+  const target = Date.UTC(year, month - 1, day, hour, minute, second);
+  const check = new Date(target);
+  if (check.getUTCFullYear() !== year || check.getUTCMonth() !== month - 1 ||
+      check.getUTCDate() !== day || hour > 23 || minute > 59 || second > 59) {
+    throw new Error("Enter a valid local event date and time.");
+  }
+  let formatter;
+  try {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone || "UTC", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    });
+  } catch {
+    throw new Error("Choose a valid event time zone.");
+  }
+  let candidate = target;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const parts = Object.fromEntries(formatter.formatToParts(new Date(candidate))
+      .filter(part => part.type !== "literal").map(part => [part.type, Number(part.value)]));
+    const represented = Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second);
+    const adjustment = target - represented;
+    if (adjustment === 0) break;
+    candidate += adjustment;
+  }
+  const finalParts = Object.fromEntries(formatter.formatToParts(new Date(candidate))
+    .filter(part => part.type !== "literal").map(part => [part.type, Number(part.value)]));
+  if (finalParts.year !== year || finalParts.month !== month || finalParts.day !== day ||
+      finalParts.hour !== hour || finalParts.minute !== minute || finalParts.second !== second) {
+    throw new Error("That local time does not exist in the selected time zone because of a daylight-saving change.");
+  }
+  return new Date(candidate).toISOString();
+}
+
 function requiredText(value, min, max, message) {
   const text = typeof value === "string" ? value.trim() : "";
   if (text.length < min || text.length > max) throw new Error(message);
@@ -96,6 +135,8 @@ export function normalizeEventInput(input = {}) {
   if (campaignId !== null && !UUID.test(campaignId)) throw new Error("Choose a valid IFund campaign.");
   const timezone = typeof input.timezone === "string" && input.timezone.trim()
     ? input.timezone.trim().slice(0,80) : "UTC";
+  try { new Intl.DateTimeFormat("en-US", { timeZone: timezone }); }
+  catch { throw new Error("Choose a valid event time zone."); }
   return {
     campaign_id: campaignId,
     event_type: eventType,
