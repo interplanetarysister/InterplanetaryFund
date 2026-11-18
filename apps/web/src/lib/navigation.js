@@ -12,7 +12,7 @@ const PREFIXES=Object.freeze({
 export function owningNavigationTab(pathname,isAuthenticated=false) {
   const tabs=isAuthenticated?AUTH_TABS:PUBLIC_TABS;
   for(const tab of tabs) {
-    if((PREFIXES[tab]||[tab]).some(prefix=>pathname===prefix||pathname.startsWith(prefix+'/')))
+    if((PREFIXES[tab]||[tab]).some(prefix=>pathname===prefix||(prefix!=="/"&&pathname.startsWith(prefix+'/'))))
       return tab;
   }
   return null;
