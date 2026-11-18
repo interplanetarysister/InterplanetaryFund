@@ -197,7 +197,7 @@ Deno.serve(async (req) => {
     if (action === "external_destination_approve" && req.method === "GET") {
       if (!/^[a-f0-9]{64}$/.test(publicToken)) return json(404, { error: "destination_review_unavailable" }, origin);
       const { data: destination, error } = await publicDb.from("ifund_managed_external_destinations")
-        .select("id,provider_label,donation_url,destination_owner_name,destination_owner_relationship,status,created_at")
+        .select("id,mandate_id,provider_label,donation_url,destination_owner_name,destination_owner_relationship,status,created_at")
         .eq("creator_approval_token_hash", await hash(publicToken))
         .eq("status", "pending_creator_approval").maybeSingle();
       if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
@@ -206,7 +206,8 @@ Deno.serve(async (req) => {
       if (mandateError || !mandate || mandate.status !== "active" ||
           new Date(mandate.expires_at).getTime() <= Date.now() || mandate.scopes?.publish !== true)
         return json(410, { error: "creator_authorization_expired_or_revoked" }, origin);
-      return json(200, { destination }, origin);
+      const { mandate_id: _mandateId, ...publicDestination } = destination;
+      return json(200, { destination: publicDestination }, origin);
     }
 
     if (action === "external_destination_approve" && req.method === "POST") {
