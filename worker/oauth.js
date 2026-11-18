@@ -1,4 +1,4 @@
-import { authenticatedStudioUser, authenticatedUser, response } from './reads.js';
+import { authenticatedAdminUser, authenticatedUser, response } from './reads.js';
 
 const PROVIDERS = Object.freeze({
   google: {
@@ -723,11 +723,11 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     }
     let administrator;
     try {
-      administrator = await authenticatedStudioUser(request, env, fetcher);
+      administrator = await authenticatedAdminUser(request, env, fetcher);
     } catch {
       return response(503, { error: 'Administrator verification unavailable.' });
     }
-    if (administrator?.role !== 'super_admin') {
+    if (administrator?.role !== 'admin') {
       return response(403, { error: 'Verified administrator access required.' });
     }
     return response(200, {
