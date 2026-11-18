@@ -98,7 +98,7 @@ function eligibleScope(role, scope) {
 }
 function campaignScopedRequest(name, input) {
   if (typeof input.campaign_id === "string" && input.campaign_id.trim()) return true;
-  if (name === "sendCommunication") return true;
+  // The backend must explicitly certify a platform-only message before the\n  // campaign gate is skipped; caller-supplied labels are not authorization.\n  if (name === "sendCommunication") return true;
   if (name === "manageAgentContentDraft") {
     const target = [input.content_type, input.target_type, input.kind, input.content_kind]
       .filter((x) => typeof x === "string").join(" ").toLowerCase();
@@ -271,7 +271,7 @@ export function createToolRegistry({
           normalized.target_agent === role)
       )
         throw Error("Choose an allowed specialist.");
-      if (campaignScopedRequest(name, normalized)) {
+      const verifiedPlatformCommunication =\n        name === "sendCommunication" &&\n        !normalized.campaign_id &&\n        scope.platform_communication_verified === true;\n      if (!verifiedPlatformCommunication && campaignScopedRequest(name, normalized)) {
         const campaignId = normalized.campaign_id;
         if (
           typeof campaignId !== "string" ||
