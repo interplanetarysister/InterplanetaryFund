@@ -53,6 +53,16 @@ export async function listPublicLiveEvents(client) {
   if (!Array.isArray(data)) throw Error("The event schedule response was invalid.");
   return { available: true, events: data.filter(isLiveEventPublic) };
 }
+export async function getPublicLiveEvent(client, id) {
+  if (!UUID.test(id || "")) return null;
+  const { data, error } = await client.from("ifund_live_events")
+    .select(COLUMNS).eq("id", id).eq("public_visible", true).maybeSingle();
+  if (error) {
+    if (UNAVAILABLE.has(error.code)) return null;
+    throw Error("This live event could not be loaded.");
+  }
+  return isLiveEventPublic(data) ? data : null;
+}
 export async function listOwnerLiveEvents(client) {
   const owner = await verifiedLiveOwner(client);
   const { data, error } = await client.from("ifund_live_events").select(COLUMNS)
