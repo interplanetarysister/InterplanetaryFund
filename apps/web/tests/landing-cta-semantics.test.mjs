@@ -15,6 +15,14 @@ for(const source of sources){
   });
 }
 
+test("public landing pages expose exactly one main content landmark",()=>{
+  for(const source of sources){
+    const code=readFileSync(new URL(source,import.meta.url),"utf8");
+    assert.equal((code.match(/<main\b/g)||[]).length,1,source+" must have a main landmark");
+    assert.equal((code.match(/<\/main>/g)||[]).length,1,source+" must close the main landmark");
+  }
+});
+
 test("public CTAs still navigate directly to campaigns and discovery",()=>{
   const home=readFileSync(new URL(sources[0],import.meta.url),"utf8");
   for(const path of ["/create","/discover","/dashboard"])
