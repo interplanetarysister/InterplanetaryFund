@@ -364,5 +364,5 @@ test("external donation destination approval is token-bound, expiring, and inval
   assert.match(admin, /create_external_destination/);
   assert.match(admin, /verify_external_destination/);
   assert.match(admin, /check_external_destination_compliance/);
-  assert.match(admin, /publish !== true/);
+  assert.ok(admin.includes("selected.scopes?.publish === true"));
 });
