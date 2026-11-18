@@ -6,7 +6,7 @@ import { listMyCampaigns } from "@/api/ownerCampaigns";
 import {
   cancelEventActivity, getEvent, listEventItems, listMyEventActivity,
   listOwnerEvents, listPublicEvents,
-  recordEventActivity, saveOwnerEvent, saveOwnerEventItem, updateOwnerEventStatus,
+  recordEventActivity, saveOwnerEvent, saveOwnerEventItem, updateOwnerEventStatus, localDateTimeToIso,
 } from "@/api/events";
 
 const EVENT_LABELS = {
@@ -57,10 +57,16 @@ function dateTime(value,timezone) {
   try{return new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZone:timezone||undefined}).format(date)+(timezone?" · "+timezone:"");}
   catch{return date.toLocaleString();}
 }
-function localDateTime(value) {
+function localDateTime(value,timezone="UTC") {
   if(!value)return "";
   const date=new Date(value); if(!Number.isFinite(date.getTime()))return "";
-  return new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,16);
+  try {
+    const parts=Object.fromEntries(new Intl.DateTimeFormat("en-US",{
+      timeZone:timezone||"UTC",year:"numeric",month:"2-digit",day:"2-digit",
+      hour:"2-digit",minute:"2-digit",hourCycle:"h23",
+    }).formatToParts(date).filter(part=>part.type!=="literal").map(part=>[part.type,part.value]));
+    return parts.year+"-"+parts.month+"-"+parts.day+"T"+parts.hour+":"+parts.minute;
+  } catch { return ""; }
 }
 function dollars(cents) {
   if(cents===null||cents===undefined)return "Not provided";
@@ -171,7 +177,7 @@ export default function Events() {
       if(isOwnEvent){
         setForm({
           title:row.title,description:row.description||"",event_type:row.event_type,
-          starts_at:localDateTime(row.starts_at),ends_at:localDateTime(row.ends_at),
+          starts_at:localDateTime(row.starts_at,row.timezone),ends_at:localDateTime(row.ends_at,row.timezone),
           timezone:row.timezone||"UTC",venue_name:row.venue_name||"",
           location_label:row.location_label||"",checkout_provider:row.checkout_provider||"",
           checkout_url:row.checkout_url||"",campaign_id:row.campaign_id||"",
@@ -197,8 +203,8 @@ export default function Events() {
     setSaving(true);setError("");setNotice("");
     try {
       const payload={...form,status,campaign_id:form.campaign_id||null};
-      if(payload.starts_at)payload.starts_at=new Date(payload.starts_at).toISOString();
-      if(payload.ends_at)payload.ends_at=new Date(payload.ends_at).toISOString();
+      if(payload.starts_at)payload.starts_at=localDateTimeToIso(payload.starts_at,payload.timezone);
+      if(payload.ends_at)payload.ends_at=localDateTimeToIso(payload.ends_at,payload.timezone);
       const saved=await saveOwnerEvent(client,payload,{id:editingEventId});
       setEvent(saved);
       setNotice(status==="published"?"Your event is published.":"Your event draft was saved.");
@@ -292,7 +298,7 @@ export default function Events() {
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="text-xl font-semibold">Manage this event</h2>
             <p className="mt-2 text-sm text-muted-foreground">Edit the event information and manage its supporting items. External checkout remains with the listed provider.</p>
-            <button type="button" onClick={()=>{setForm({...form,starts_at:localDateTime(event.starts_at),ends_at:localDateTime(event.ends_at)});setEditingEventId(event.id);setShowCreator(true);}} className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">Edit event details</button>
+            <button type="button" onClick={()=>{setForm({...form,starts_at:localDateTime(event.starts_at,event.timezone),ends_at:localDateTime(event.ends_at,event.timezone)});setEditingEventId(event.id);setShowCreator(true);}} className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">Edit event details</button>
             <div className="mt-3 flex flex-wrap gap-2">
               {event.status==="draft"&&<button onClick={()=>changeEventStatus("cancelled")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Cancel draft</button>}
               {event.status==="published"&&<button onClick={()=>changeEventStatus("cancelled")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Cancel event</button>}
