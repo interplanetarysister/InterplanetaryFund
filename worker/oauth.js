@@ -233,6 +233,11 @@ function validFrontendOrigins(value) {
   if (typeof value !== 'string' || !value.trim()) return false;
   const origins = value.split(',').map((origin) => origin.trim()).filter(Boolean);
   if (!origins.length) return false;
+  const configured = new Set(origins);
+  // Both active public Pages hostnames serve the member app; neither redirects
+  // to the other, so both must be allowed before the gateway can be ready.
+  if (!configured.has('https://interplanetaryfund.com') ||
+      !configured.has('https://www.interplanetaryfund.com')) return false;
   return origins.every((origin) => {
     try {
       const parsed = new URL(origin);
