@@ -118,6 +118,9 @@ test("connection methods advertise OAuth only when the provider has a registered
   assert.equal(supported.has(id), false, id);
  }
  assert.equal(connectionMethods("gofundme").method, "public_page");
+ const future = new Date(Date.now() + 3600000).toISOString();
+ assert.equal(connectionMethods("gmail", { provider: "gmail", status: "verified", valid_until: future, transport: "oauth" }).status, "setup_required");
+ assert.equal(connectionMethods("facebook", { provider: "facebook", status: "verified", valid_until: future, transport: "oauth" }).status, "registration_verified");
  assert.ok(CONNECTION_PLATFORMS.every(platform => connectionProvider(platform.id)), "every member-facing platform must exist in the backend catalog");
 });
 
