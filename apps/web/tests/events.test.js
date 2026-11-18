@@ -89,6 +89,8 @@ test("event page and dashboard connect owner creation, member account activity a
   assert.match(page, /Manage this event/);
   assert.match(page, /Already purchased externally/);
   assert.match(page, /RSVP to event/);
+  assert.match(page, /Sign in to RSVP/);
+  assert.match(page, /Sign in to record/);
   assert.match(page, /not an IFund receipt or verified payment/);
   assert.match(dashboard, /EventsDashboardSection/);
   assert.match(widget, /Art auctions & experiences/);
