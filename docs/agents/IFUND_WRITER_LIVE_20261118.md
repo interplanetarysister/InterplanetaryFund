@@ -45,3 +45,19 @@ The former repo used "live" primarily for production campaign donations and acco
 - No verified provider-backed streaming session, moderation backend, video generation workflow, captioning or licensing pipeline.
 - Source-level route resolution does **not** prove live browser/server correctness.
 - No build, GitHub Actions, production deployment, provider configuration, DNS or financial switch was changed by this branch.
+
+
+## Verified data checkpoint — November 18, 2026
+- Connected Supabase production project `ssibsfmtodgximseeqsv` contained one active official blog with a confirmed owner.
+- The latest official Reporter issue located was dated 2026-10-25 Pacific, published 2026-10-26 UTC. This does not establish that its scheduled workflow remains active.
+- Two **unpublished official blog drafts** were saved directly through an owner-matched, duplicate-checked database insertion:
+  - `325b81f7-cfd9-49a2-a27a-81d3d6a808ba` — Six small changes that can make your fundraiser easier to support (article).
+  - `d4ebcd52-9b9c-4c1f-abd4-1ba7789923a7` — A clearer path from your fundraising story to the people who care (newsletter).
+- Both database rows have `status='draft'`, `featured=false`, and `published_at=null`; no external distribution or publication was initiated.
+- Platform social copy and 15–30 second original-video scripts remain versioned source drafts at `content/editorial/drafts/2026-11-18-ifund-writer-restart.md`. No actual image, video, provider post or livestream was created.
+- Attempting to start a daily editorial automation returned a five-active-task account limit. Existing engineering automations were not replaced, so editorial scheduling **remains inactive**.
+- Source-only static route changes are not a passing browser/build or live-service test. Keep the independent route acceptance gate closed.
+- Future live broadcasts must be budgeted before enabling metered video infrastructure; free-website hosting quotas do not imply free video encoding and delivery.
+
+## Explicit release acceptance
+Do not claim writer reboot, autonomous research, daily publishing or livestream operations fully live until all of: independently fetched and dated sources before each generation; provider-backed inference; server-side editorial review and publishing authorization; durable idempotent scheduler; verified media assets and licenses; authenticated preview + mobile route tests; signed streaming provider lifecycle (for Live) and approved usage budget; and documented production release evidence.
