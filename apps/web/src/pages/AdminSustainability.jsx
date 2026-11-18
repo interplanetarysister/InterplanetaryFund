@@ -21,7 +21,7 @@ export default function AdminSustainability() {
   useEffect(() => {
     let active = true;
     setState({ phase: "loading", campaigns: [], error: "" });
-    listActiveCampaigns({ limit: 500 })
+    listActiveCampaigns({ limit: 500, category: "environment" })
       .then(rows => {
         if (!active) return;
         if (!Array.isArray(rows)) throw Error("Public campaign data could not be verified.");
@@ -77,7 +77,7 @@ export default function AdminSustainability() {
     {state.phase === "ready" && <>
       <dl className="grid gap-4 sm:grid-cols-3">
         {[
-          ["Published environmental campaigns", stats.total.toLocaleString()],
+          ["Environmental campaigns in recent results", stats.total.toLocaleString()],
           ["Campaigns opting into the public Atlas", stats.publiclyMapped.toLocaleString()],
           ["Publicly reported fundraising", stats.verifiedRaisedCents === null ? "Unavailable" : currency.format(stats.verifiedRaisedCents / 100)],
         ].map(([label,value]) => <div key={label} className="rounded-2xl border border-border bg-card p-5">
@@ -98,7 +98,7 @@ export default function AdminSustainability() {
               <span className="text-sm font-medium">{moneyCents(c.raised_amount) !== null ? currency.format(moneyCents(c.raised_amount) / 100) : "Funding unavailable"}</span>
             </li>)}</ul>}
       </section>
-      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published campaigns in the canonical public API. The public campaign API does not independently establish provider verification, refunds, payment environment or attribution. Treat displayed fundraising as reported campaign data, not confirmed gifts. Environmental outcomes require separately validated measurements.</p>
+      <p className="text-xs text-muted-foreground">Showing up to 500 most recently published environmental campaigns in the canonical public API. Counts are limited to this result window, not all historical environmental campaigns. The public campaign API does not independently establish provider verification, refunds, payment environment or attribution. Treat displayed fundraising as reported campaign data, not confirmed gifts. Environmental outcomes require separately validated measurements.</p>
     </>}
   </main>;
 }
