@@ -41,6 +41,45 @@ test("successful saving erases the browser handoff without changing a saved reco
   forgetBrowserCampaign(storage, A);
   assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
 });
+test("silent scoped deletion cannot masquerade as a successful privacy cleanup", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Private work still present" };
+  assert.equal(rememberBrowserCampaign(storage, A, form), true);
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const retained = storage.getItem(key);
+  const silent = { ...storage, removeItem() {} };
+  assert.equal(forgetBrowserCampaign(silent, A), false);
+  assert.equal(storage.getItem(key), retained);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.equal(forgetBrowserCampaign(storage, A), true, "explicit retry can complete cleanup");
+  assert.equal(storage.getItem(key), null);
+});
+
+test("legacy owner cleanup must verify removal instead of reporting success", () => {
+  const storage = store();
+  const legacyKey = "ifund-guest-campaign-v1";
+  const form = { ...emptyCampaignForm(), title: "Legacy private owner text" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem(legacyKey, raw);
+  const silent = { ...storage, removeItem() {} };
+  assert.equal(forgetBrowserCampaign(silent, A), false);
+  assert.equal(storage.getItem(legacyKey), raw);
+  assert.equal(forgetBrowserCampaign(storage, A), true);
+  assert.equal(storage.getItem(legacyKey), null);
+});
+
+test("cross-account and corrupted browser drafts are never removed", () => {
+  const storage = store();
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const foreign = JSON.stringify({ version: 2, owner_id: B, form: emptyCampaignForm() });
+  storage.setItem(key, foreign);
+  assert.equal(forgetBrowserCampaign(storage, A), false);
+  assert.equal(storage.getItem(key), foreign);
+  storage.setItem(key, "{recoverable");
+  assert.equal(forgetBrowserCampaign(storage, A), false);
+  assert.equal(storage.getItem(key), "{recoverable");
+});
+
 test("legacy unscoped text is preserved without exposing it to another identity", () => {
   const storage = store(),
     legacy = JSON.stringify({ title: "Unattributed old draft" });
