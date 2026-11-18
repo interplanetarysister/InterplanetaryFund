@@ -74,3 +74,18 @@ test("every registered specialist receives the same policy at runtime", () => {
     assert.ok(instructions.includes("without requiring them to create an IFund login"));
   }
 });
+
+
+test("all IFund specialists may discuss internal platform context without a campaign ID", () => {
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /INTERNAL IFUND NETWORK COMMUNICATIONS/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /do not prohibit ordinary IFund-context conversations/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /not permission to access private member data/);
+  for (const role of [
+    "admin_builder_agent", "chief_of_staff", "communications_agent",
+    "connection_discovery_agent", "finance_agent", "growth_agent",
+    "managed_connection_agent", "outreach_agent", "story_agent",
+    "strategy_agent",
+  ]) {
+    assert.match(serviceSkill(role).instructions, /INTERNAL IFUND NETWORK COMMUNICATIONS/);
+  }
+});
