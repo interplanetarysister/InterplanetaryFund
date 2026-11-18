@@ -158,16 +158,19 @@ export default function Events() {
       const row=await getEvent(client,eventId);
       if(!row)throw new Error("This event is not available.");
       setEvent(row);
-      const [eventItems,auth]=await Promise.all([listEventItems(client,eventId),client.auth.getUser()]);
-      setItems(eventItems);
+      const [eventItems,auth,ownRows]=await Promise.all([
+        listEventItems(client,eventId),client.auth.getUser(),listOwnerEvents(client).catch(()=>[]),
+      ]);
+      setItems(eventItems);setOwnedEvents(ownRows);
       const current=auth.data?.user||null;setUser(current);
+      const isOwnEvent=ownRows.some(row=>row.id===eventId);
       if(current?.id&&current.email_confirmed_at&&!current.is_anonymous){
         const myRows=await listMyEventActivity(client).catch(()=>[]);
         setActivity(myRows);
-        if(row.owner_id===current.id)setAttendees(await listOwnerEventActivity(client,eventId).catch(()=>[]));
+        if(isOwnEvent)setAttendees(await listOwnerEventActivity(client,eventId).catch(()=>[]));
         else setAttendees([]);
       } else setAttendees([]);
-      if(row.owner_id===current?.id){
+      if(isOwnEvent){
         setForm({
           title:row.title,description:row.description||"",event_type:row.event_type,
           starts_at:localDateTime(row.starts_at),ends_at:localDateTime(row.ends_at),
@@ -266,7 +269,7 @@ export default function Events() {
   }
 
   if(eventId){
-    const isOwner=Boolean(user?.id&&event?.owner_id===user.id);
+    const isOwner=Boolean(user?.id&&ownedEvents.some(row=>row.id===event.id));
     const myEventActivity=activity.filter(row=>row.event_id===eventId&&row.status==="active");
     const hasRsvp=myEventActivity.some(row=>row.activity_type==="rsvp");
     const eventActivityCount=attendees.filter(row=>row.status==="active"&&row.activity_type==="rsvp").length;
