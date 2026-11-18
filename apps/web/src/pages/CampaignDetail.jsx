@@ -98,7 +98,7 @@ export default function CampaignDetail() {
 
   return (
     <PullToRefresh onRefresh={load} className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
-      {platformOnlyMode && <PrelaunchNotice className="mb-6" />}
+      {platformOnlyMode && campaign.managed_campaign !== true && <PrelaunchNotice className="mb-6" />}
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main column */}
         <div className="lg:col-span-2 space-y-6">
@@ -118,7 +118,7 @@ export default function CampaignDetail() {
               <h1 dir={textDirection} className="font-display text-3xl sm:text-4xl font-black text-slate-950 leading-tight drop-shadow-[0_1px_0_rgba(255,255,255,.75)]">{displayed.title}</h1>
             </div>
             {displayed.summary && <p dir={textDirection} className="text-slate-800 mt-2 text-lg font-medium leading-relaxed whitespace-pre-wrap">{displayed.summary}</p>}
-            {campaign.creator_name && <section className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700"><h2 className="font-semibold text-slate-900">Creator and beneficiary</h2><p className="mt-2"><strong>Fundraiser creator:</strong> {campaign.creator_name}</p><p><strong>Beneficiary:</strong> {campaign.beneficiary_name}</p><p className="mt-2 text-xs leading-5 text-slate-600">{campaign.management_disclosure || "Managed by Interplanetary Fund with the creator’s authorization."}</p><p className="mt-2 text-xs font-medium text-amber-800">IFund checkout is disabled for this managed fundraiser. Donations must go directly to a creator-approved provider destination; that destination is not yet enabled here.</p></section>}
+            {campaign.creator_name && <section className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700"><h2 className="font-semibold text-slate-900">Creator and beneficiary</h2><p className="mt-2"><strong>Fundraiser creator:</strong> {campaign.creator_name}</p><p><strong>Beneficiary:</strong> {campaign.beneficiary_name}</p><p className="mt-2 text-xs leading-5 text-slate-600">{campaign.management_disclosure || "Managed by Interplanetary Fund with the creator’s authorization."}</p><p className="mt-2 text-xs font-medium text-amber-800">IFund checkout is disabled for this managed fundraiser. {campaign.external_donation_url ? "Use the direct-provider donation link below; the gift is processed by that provider, not IFund." : "Donations must go directly to a creator-approved provider destination; that destination is not yet enabled here."}</p></section>}
           </div>
           {/* Phones: funding progress sits directly under the title. */}
           <div id="campaign-funding-mobile" tabIndex={-1} className="scroll-mt-24 lg:hidden">
