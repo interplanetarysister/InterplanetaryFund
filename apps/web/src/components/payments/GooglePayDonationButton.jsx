@@ -121,7 +121,8 @@ export default function GooglePayDonationButton({
     };
   }, [campaignId, amountCents, enabled]);
 
-  return <div className={ready ? "space-y-2" : "hidden"}>
+  return <div className={ready ? "space-y-2 rounded-xl border border-cyan-200 bg-cyan-50/50 px-3 py-3" : "hidden"} aria-label="One-tap Google Pay checkout">
+    <p className="text-sm font-semibold text-slate-900">Fastest option: Google Pay</p>
     <div ref={host} aria-label="Secure Google Pay donation button"
       className="[&_button]:!w-full [&_button]:!min-h-11" />
     {error && <p role="alert" className="text-xs text-red-700">{error}</p>}
