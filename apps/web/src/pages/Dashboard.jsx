@@ -41,6 +41,7 @@ export default function Dashboard() {
     <p className="max-w-2xl text-muted-foreground">Explore campaigns as a visitor. To create, save, or publish your own content, sign up with an email address. Two-factor authentication is only required when you request your first withdrawal.</p>
     {typeof sessionStorage !== "undefined" && hasGuestNotice(sessionStorage, TERMS_VERSION) && <p className="rounded-xl border border-cyan-500/30 p-4 text-sm">Guest browsing is active on this device. Create a verified email account before writing or publishing campaign content.</p>}
     <div className="flex flex-wrap gap-4"><Link className="min-h-12 rounded-xl bg-cyan-600 px-5 py-3 font-semibold text-white" to="/register?returnTo=%2Fcreate">Create a campaign with email</Link><Link to="/discover" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Explore campaigns</Link><Link to="/register" className="min-h-12 rounded-xl border px-5 py-3 font-semibold">Sign up with email</Link></div>
+    <EventsDashboardSection guest />
     <p className="text-sm"><Link to="/withdrawals" className="underline">Withdrawal identity verification</Link> is only needed before a payout can be requested.</p>
   </main>;
   if (state === "error") return <main role="alert" className="mx-auto max-w-5xl p-8">Account services are unavailable. <Link className="underline" to="/login">Return to sign in</Link>.</main>;
