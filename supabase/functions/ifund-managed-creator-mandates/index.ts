@@ -35,11 +35,17 @@ const hash = async (value) => {
 const safeUrl = (value) => {
   try {
     const u = new URL(value);
-    const host = u.hostname.toLowerCase().replace(/^\\[|\\]$/g, "");
-    const privateHost = host === "localhost" || host.endsWith(".localhost") || host === "::1" ||
-      host === "0.0.0.0" || /^127\\./.test(host) || /^10\\./.test(host) ||
-      /^192\\.168\\./.test(host) || /^169\\.254\\./.test(host) ||
-      /^172\\.(1[6-9]|2[0-9]|3[01])\\./.test(host);
+    const host = u.hostname.toLowerCase().replaceAll("[", "").replaceAll("]", "").replace(/\\.$/, "");
+    const octets = host.split(".").map((part) => /^\\d+$/.test(part) ? Number(part) : NaN);
+    const ipv4 = octets.length === 4 && octets.every((part) => Number.isInteger(part) && part >= 0 && part <= 255);
+    const privateIpv4 = ipv4 && (
+      octets[0] === 0 || octets[0] === 10 || octets[0] === 127 ||
+      (octets[0] === 169 && octets[1] === 254) ||
+      (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
+      (octets[0] === 192 && octets[1] === 168)
+    );
+    const privateHost = host === "localhost" || host.endsWith(".localhost") ||
+      host.endsWith(".local") || host === "0.0.0.0" || host.includes(":") || privateIpv4;
     return u.protocol === "https:" && !u.username && !u.password && !privateHost;
   } catch { return false; }
 };
