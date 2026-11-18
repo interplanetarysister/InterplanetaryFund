@@ -18,7 +18,8 @@ test("Google Pay is shown only for PayPal-eligible merchants and devices", () =>
   assert.match(button, /\.isReadyToPay\(/);
   assert.match(button, /eligible\?\.result/);
   assert.match(button, /environment: "PRODUCTION"/);
-  assert.match(button, /className=\{ready \? "space-y-2" : "hidden"\}/);
+  assert.match(button, /className=\{ready \? "space-y-2 rounded-xl/);
+  assert.match(button, /: "hidden"\}/);
 });
 
 test("wallet has exact amount and uses existing verified ledger capture", () => {
