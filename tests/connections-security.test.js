@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
+import { connectionCatalog, connectionProvider } from "../worker/connections/catalog.js";
 
 const migration=readFileSync(new URL("../supabase/migrations/20261113080000_ifund_member_connections_hub.sql",import.meta.url),"utf8");
 const owner="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -80,4 +81,21 @@ test("public page links and sharing choices are private and never count as OAuth
  await who(null,"anon");
  await assert.rejects(query("select * from public.ifund_my_connection_assistance()"),/permission denied/);
  await assert.rejects(query("select * from public.ifund_my_public_links()"),/permission denied/);
+});
+
+test("provider catalog loads through the Worker JavaScript module and exposes only safe summary fields", () => {
+ const providers = connectionCatalog();
+ assert.ok(providers.length >= 40);
+ assert.equal(new Set(providers.map((provider) => provider.id)).size, providers.length);
+ assert.deepEqual(providers.find((provider) => provider.id === "gofundme"), {
+  id: "gofundme",
+  name: "GoFundMe",
+  kind: "crowdfunding",
+  logo: "/platform-logos/gofundme.svg",
+ });
+ assert.equal(connectionProvider("gofundme").legacy_auth_hint, "link");
+ assert.equal(connectionProvider("not-a-provider"), null);
+ assert.ok(providers.every((provider) =>
+  Object.keys(provider).every((key) => ["id", "name", "kind", "logo"].includes(key))
+ ));
 });
