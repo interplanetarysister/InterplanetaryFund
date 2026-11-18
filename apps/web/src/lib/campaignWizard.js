@@ -49,6 +49,12 @@ export function importGuestWizard(storage,owner){
   try{
     // A storage race or silent write must not authorize removal of a different draft.
     if(storage.getItem(guestKey)!==raw)return false;
+    // Do not discard the guest recovery copy if the account draft changed after validation.
+    const currentOwner=storage.getItem(ownerKey);
+    if(currentOwner===null)return false;
+    let ownerRecord;try{ownerRecord=JSON.parse(currentOwner);}catch{return false;}
+    if(ownerRecord?.version!==1||ownerRecord.owner_id!==owner||ownerRecord.campaign_id!==null||!ownerRecord.setup||typeof ownerRecord.setup!=="object")return false;
+    if(JSON.stringify(campaignSetupPayload(ownerRecord.setup,ownerRecord.setup.draft_step))!==JSON.stringify(campaignSetupPayload(record.setup,record.setup.draft_step)))return false;
     storage.removeItem(guestKey);
     return storage.getItem(guestKey)===null;
   }catch{return false;}
