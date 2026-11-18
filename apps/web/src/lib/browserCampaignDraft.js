@@ -79,20 +79,39 @@ export function hasUnclaimedGuestCampaign(storage) {
 }
 
 export function importGuestCampaign(storage, ownerId) {
-  // Never overwrite a pre-existing owner slot, including malformed records.
+  // Require an explicit import action. Never overwrite a separate owner's
+  // record or trust storage operations that return without throwing.
   if (ownerId == null) return { status: "invalid_owner" };
   const destination = ownerKey(ownerId);
-  let guest;
+  let guest, existing;
   try {
-    if (storage.getItem(destination)) return { status: "owner_exists" };
+    existing = storage.getItem(destination);
     guest = guestRecordForImport(storage);
   } catch { return { status: "storage_error" }; }
+  if (existing && (!guest || guest.invalid)) return { status: "owner_exists" };
   if (!guest || guest.invalid) return { status: guest?.invalid ? "invalid_guest" : "missing_guest" };
+  const expected = JSON.stringify({ ...guest.record, owner_id: ownerId });
+  // A previous import may have copied the owner record but failed to remove
+  // the original. A new EXPLICIT import can finish cleanup only while the
+  // destination still matches the exact copy; never overwrite edited content.
+  if (existing && existing !== expected) return { status: "owner_exists" };
+  if (!existing) {
+    try {
+      storage.setItem(destination, expected);
+      if (storage.getItem(destination) !== expected)
+        return { status: "write_failed" };
+    } catch { return { status: "write_failed" }; }
+  }
   try {
-    storage.setItem(destination, JSON.stringify({ ...guest.record, owner_id: ownerId }));
-  } catch { return { status: "write_failed" }; }
-  try {
+    // Do not consume a guest draft replaced by a different session after
+    // discovery. Preserve both copies and surface an actionable warning.
+    if (storage.getItem(guest.source) !== guest.raw)
+      return { status: "imported_guest_retained" };
     storage.removeItem(guest.source);
+    if (storage.getItem(guest.source) !== null)
+      return { status: "imported_guest_retained" };
+    if (storage.getItem(destination) !== expected)
+      return { status: "imported_guest_retained" };
   } catch {
     return { status: "imported_guest_retained" };
   }
