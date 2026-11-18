@@ -26,6 +26,24 @@ create index if not exists ifund_live_events_public_schedule_idx
   on public.ifund_live_events (scheduled_at desc)
   where public_visible and status in ('scheduled','live','ended');
 create index if not exists ifund_live_events_owner_idx on public.ifund_live_events (owner_id, created_at desc);
+-- An RLS policy cannot read auth.users directly as an ordinary authenticated
+-- role. Restrict this current-caller-only helper to authenticated execution.
+create or replace function public.ifund_live_verified_creator()
+returns boolean
+language sql stable security definer set search_path = ''
+as $fn$
+  select auth.uid() is not null
+    and coalesce((auth.jwt()->>'is_anonymous')::boolean,false) = false
+    and exists (
+      select 1 from auth.users u
+      where u.id=auth.uid() and u.email_confirmed_at is not null
+        and u.deleted_at is null
+    )
+    and coalesce(public.ifund_current_account_is_active(),false);
+$fn$;
+revoke all on function public.ifund_live_verified_creator() from public, anon;
+grant execute on function public.ifund_live_verified_creator() to authenticated;
+
 alter table public.ifund_live_events enable row level security;
 
 revoke all on public.ifund_live_events from public, anon, authenticated;
@@ -46,9 +64,7 @@ create policy ifund_live_events_create on public.ifund_live_events
   for insert to authenticated
   with check (
     owner_id = (select auth.uid())
-    and (select public.ifund_current_account_is_active())
-    and coalesce(((select auth.jwt())->>'is_anonymous')::boolean,false) = false
-    and (select u.email_confirmed_at from auth.users u where u.id=(select auth.uid())) is not null
+    and (select public.ifund_live_verified_creator())
     and status='draft' and public_visible=false
     and provider_status='unconfigured' and verified_live_at is null and ended_at is null
     and (campaign_id is null or exists (
@@ -61,14 +77,13 @@ create policy ifund_live_events_edit on public.ifund_live_events
   for update to authenticated
   using (
     owner_id=(select auth.uid())
-    and (select public.ifund_current_account_is_active())
+    and (select public.ifund_live_verified_creator())
     and status in ('draft','scheduled','cancelled')
     and provider_status='unconfigured' and verified_live_at is null
   )
   with check (
     owner_id=(select auth.uid())
-    and (select public.ifund_current_account_is_active())
-    and coalesce(((select auth.jwt())->>'is_anonymous')::boolean,false) = false
+    and (select public.ifund_live_verified_creator())
     and status in ('draft','scheduled','cancelled')
     and provider_status='unconfigured' and verified_live_at is null and ended_at is null
     and (campaign_id is null or exists (
