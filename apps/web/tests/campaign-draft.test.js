@@ -63,6 +63,12 @@ test("draft responses require all five titles, two summaries, story and honest a
     "outline",
   );
   assert.equal(validateDraftSuggestion(suggestion()).story.length, suggestion().story.length);
+  assert.throws(() => validateDraftSuggestion({ ...suggestion(), story: "x".repeat(999) }), /incomplete/);
+  assert.equal(validateDraftSuggestion({ ...suggestion(), story: "x".repeat(1000) }).story.length, 1000);
+  assert.equal(validateDraftSuggestion({ ...suggestion(), story: "x".repeat(2500) }).story.length, 2500);
+  assert.throws(() => validateDraftSuggestion({ ...suggestion(), story: "x".repeat(2501) }), /incomplete/);
+  // A free factual outline and manually edited stories are not bound by the AI-only length rule.
+  assert.equal(validateDraftSuggestion(suggestion("outline")).story.length, suggestion("outline").story.length);
 });
 test("no authenticated session means no service request", async () => {
   await assert.rejects(
