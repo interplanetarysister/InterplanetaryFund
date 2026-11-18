@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { oauthRuntimeRequirements } from '../worker/oauth.js';
+import { oauthRuntimeRequirements, routeOAuthRequest } from '../worker/oauth.js';
 
 const validEnv = {
   OAUTH_API_ENABLED: 'true',
@@ -45,4 +45,21 @@ test('OAuth runtime diagnostics accept the legacy service-role binding during co
   legacy.SUPABASE_SERVICE_ROLE_KEY = 'legacy-service-role-jwt-long-enough';
   const checks = oauthRuntimeRequirements(legacy);
   assert.equal(checks.find((item) => item.name === 'SUPABASE_SECRET_KEY').configured, true);
+});
+
+test('same-origin admin status returns value-free diagnostics while the Supabase URL is missing', async () => {
+  const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
+    headers: { 'sec-fetch-site': 'same-origin' },
+  });
+  const result = await routeOAuthRequest(request, {
+    OAUTH_API_ENABLED: 'false',
+    OAUTH_FRONTEND_ORIGINS: '',
+    OAUTH_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+  }, () => assert.fail('No upstream request is allowed before Supabase URL is configured.'));
+  assert.equal(result.status, 503);
+  const payload = await result.json();
+  assert.equal(payload.enabled, false);
+  assert.equal(payload.runtime.find((item) => item.name === 'SUPABASE_URL').configured, false);
+  assert.equal(payload.runtime.find((item) => item.name === 'OAUTH_FRONTEND_ORIGINS').configured, false);
+  assert.doesNotMatch(JSON.stringify(payload), /secret|publishable|ssibsfmt|AAAA/);
 });
