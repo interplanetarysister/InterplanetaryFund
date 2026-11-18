@@ -61,9 +61,9 @@ export default function Dashboard() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="fundraising-events-title" className="text-xl font-semibold">Fundraising events</h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Discover community gatherings that turn shared experiences into support for a cause. Event organizers can use iFund campaigns to explain the fundraiser and share its details.</p>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Explore event formats that campaigns can promote, from benefit dinners to art auctions and community gatherings. This dashboard section is a discovery starting point; live event listings and native ticket or auction checkout are not enabled yet.</p>
         </div>
-        <Link to="/discover" className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold">Explore fundraisers</Link>
+        <Link to="/discover" className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 py-2 text-sm font-semibold">Explore campaigns</Link>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <article className="rounded-xl border border-border bg-background p-4">
@@ -80,7 +80,7 @@ export default function Dashboard() {
         </article>
       </div>
       <div className="mt-5 flex flex-wrap gap-x-5 gap-y-3 text-sm">
-        <Link to="/create" className="font-semibold text-primary underline underline-offset-4">Start an event fundraiser</Link>
+        <Link to="/create" className="font-semibold text-primary underline underline-offset-4">Create a campaign for your event</Link>
         <Link to="/finances#giving-receipts" className="text-primary underline underline-offset-4">View your giving & receipts</Link>
         <Link to="/connections" className="text-primary underline underline-offset-4">Manage connected accounts</Link>
       </div>
