@@ -51,6 +51,25 @@ export async function authenticatedUser(request, env, fetcher = fetch) {
 }
 
 
+
+/** Resolve verified administrator access for admin-only operational endpoints. */
+export async function authenticatedAdminUser(request, env, fetcher = fetch) {
+  const account = await authenticatedUser(request, env, fetcher);
+  if (!account) return null;
+  const verified = await fetcher(
+    env.SUPABASE_URL + '/rest/v1/rpc/ifund_current_user_is_verified_admin',
+    {
+      method: 'POST',
+      headers: { ...providerHeaders(env, account.jwt), 'Content-Type': 'application/json' },
+      body: '{}',
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10000),
+    },
+  );
+  if (!verified.ok) throw new Error('Verified administrator check unavailable.');
+  return { ...account, role: (await verified.json()) === true ? 'admin' : null };
+}
+
 /** Independent gate for the Website Studio; does not enable migration API routes. */
 export function studioReady(env) {
   return env?.IFUND_STUDIO_ENABLED === 'enabled' &&
