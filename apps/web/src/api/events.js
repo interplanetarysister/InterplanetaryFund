@@ -47,6 +47,7 @@ const PROVIDER_HOSTS = Object.freeze({
 
 function normalizedProviderUrl(value, provider, optional = false) {
   const raw = typeof value === "string" ? value.trim() : "";
+  if (raw.length > 2048) throw new Error("The organizer checkout link is too long.");
   if (!raw && optional) return { checkout_url: null, checkout_provider: null };
   if (!raw || !Object.hasOwn(PROVIDER_HOSTS, provider)) {
     throw new Error("Choose a supported event checkout provider and its event or payment link.");
@@ -97,6 +98,8 @@ export function normalizeEventInput(input = {}) {
   if (campaignId !== null && !UUID.test(campaignId)) throw new Error("Choose a valid IFund campaign.");
   const timezone = typeof input.timezone === "string" && input.timezone.trim()
     ? input.timezone.trim().slice(0,80) : "UTC";
+  try { new Intl.DateTimeFormat("en-US", { timeZone: timezone }); }
+  catch { throw new Error("Enter a valid time zone, such as America/Los_Angeles."); }
   return {
     campaign_id: campaignId,
     event_type: eventType,
