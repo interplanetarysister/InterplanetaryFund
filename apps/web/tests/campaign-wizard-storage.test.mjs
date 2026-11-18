@@ -14,7 +14,7 @@ function memory({ignoreRemove=false,throwOn=null}={}){
 test("guest import succeeds only when guest draft actually disappears",()=>{
  const s=memory();assert.equal(rememberWizard(s,null,null,emptyWizard()),true);
  assert.equal(importGuestWizard(s,A),true);assert.equal(s.data.size,1);
- assert.equal(restoreWizard(s,A).draft_step,0);
+ assert.equal(restoreWizard(s,A).draft_step,1,"guest draft preserves the current first essential page");
 });
 test("silent remove failure cannot falsely acknowledge guest import",()=>{
  const s=memory({ignoreRemove:true});rememberWizard(s,null,null,emptyWizard());
@@ -38,7 +38,7 @@ test("storage errors fail closed and do not claim successful save",()=>{
 test("A to B to A never hydrates A's draft into B",()=>{
  const s=memory();const a={...emptyWizard(),draft_step:3};
  assert.equal(rememberWizard(s,A,null,a),true);
- assert.equal(restoreWizard(s,B).draft_step,0);
+ assert.equal(restoreWizard(s,B).draft_step,1,"another owner receives the current empty wizard step");
  assert.equal(restoreWizard(s,A).draft_step,3);
 });
 
