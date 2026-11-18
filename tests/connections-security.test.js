@@ -4,6 +4,7 @@ import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import { connectionCatalog, connectionMethods, connectionProvider } from "../worker/connections/catalog.js";
 import { oauthProviders } from "../worker/oauth.js";
+import { sandboxConfigured } from "../worker/paypalSandboxSecurity.js";
 import providerCatalog from "../worker/connections/provider-catalog.js";
 import positionContracts from "../worker/services/position-contracts.js";
 import skillManifest from "../worker/services/skills/manifest.js";
@@ -101,6 +102,21 @@ test("runtime JavaScript catalogs exactly match their retained canonical JSON so
  assert.equal(skill.source_sha256, "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313");
 });
 
+
+
+test("PayPal sandbox runtime is pinned to the canonical Supabase project", () => {
+ const valid = {
+  IFUND_PAYPAL_SANDBOX_ENABLED: "enabled",
+  PAYPAL_CLIENT_ID: "sandbox_id",
+  PAYPAL_CLIENT_SECRET: "sandbox_secret",
+  PAYPAL_WEBHOOK_ID: "webhook",
+  SUPABASE_URL: "https://ssibsfmtodgximseeqsv.supabase.co",
+  SUPABASE_SECRET_KEY: ["sb","secret"].join("_") + "_test_key_with_sufficient_length",
+ };
+ assert.equal(sandboxConfigured(valid), true);
+ assert.equal(sandboxConfigured({ ...valid, SUPABASE_URL: "https://another-project.supabase.co" }), false);
+ assert.equal(sandboxConfigured({ ...valid, SUPABASE_SECRET_KEY: "short" }), false);
+});
 
 test("connection methods advertise OAuth only when the provider has a registered runtime route", () => {
  const supported = new Set(oauthProviders);
