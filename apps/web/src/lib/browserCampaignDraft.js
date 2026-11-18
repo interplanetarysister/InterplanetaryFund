@@ -226,20 +226,32 @@ function rememberBrowserCampaignUnsafe(storage, ownerId, form, brief, { allowBla
 function forgetBrowserCampaignUnsafe(storage, ownerId) {
   const key = ownerKey(ownerId);
   const raw = storage.getItem(key);
+  // Refuse to delete anything on an account mismatch or malformed scoped
+  // record. The original bytes may be needed to recover a private draft.
   if (raw) {
     let record;
     try { record = JSON.parse(raw); } catch { return false; }
     if (record?.version !== 2 || record.owner_id !== ownerId) return false;
-    storage.removeItem(key);
   }
-  // Only clear the old single-slot record if it belongs to this owner.
   const legacy = storage.getItem(KEY);
+  let matchingLegacy = false;
   if (legacy) {
     let record;
     try { record = JSON.parse(legacy); } catch { return false; }
-    if (record?.version === 2 && record.owner_id === ownerId) storage.removeItem(KEY);
+    matchingLegacy = record?.version === 2 && record.owner_id === ownerId;
   }
-  return true;
+  let cleaned = true;
+  // Some storage shims silently ignore removal. Check both slots after each
+  // operation and do not acknowledge cleanup until all matching data is gone.
+  if (raw) {
+    storage.removeItem(key);
+    if (storage.getItem(key) !== null) cleaned = false;
+  }
+  if (matchingLegacy) {
+    storage.removeItem(KEY);
+    if (storage.getItem(KEY) !== null) cleaned = false;
+  }
+  return cleaned;
 }
 
 // Browser storage may throw SecurityError or QuotaExceededError at any step.
