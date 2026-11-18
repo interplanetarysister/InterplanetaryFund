@@ -38,7 +38,7 @@ begin
      or v_mandate.creator_review_state <> 'approved'
      or v_mandate.creator_approved_at is null
      or v_mandate.assigned_admin_id <> new.owner_id
-     or v_mandate.campaign_id <> new.id then
+     or v_mandate.campaign_id is distinct from new.id then
     raise exception 'Managed campaign content can only be changed from a current creator-approved revision'
       using errcode='42501';
   end if;
