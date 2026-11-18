@@ -8,6 +8,10 @@ const consent = await readFile(new URL("../apps/web/src/pages/CreatorAuthorizati
 const review = await readFile(new URL("../apps/web/src/pages/CreatorReview.jsx", import.meta.url), "utf8");
 const admin = await readFile(new URL("../apps/web/src/pages/ManagedCreatorMandates.jsx", import.meta.url), "utf8");
 const policy = await readFile(new URL("../worker/agents/campaignPolicy.js", import.meta.url), "utf8");
+const aiGate = await readFile(new URL("../supabase/migrations/20261118180000_ifund_creator_mandate_story_ai_gate.sql", import.meta.url), "utf8");
+const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
+const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
+const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
 
 test("creator mandate storage is private and service-role only", () => {
   assert.match(migration, /enable row level security/i);
@@ -82,4 +86,23 @@ test("managed service does not create creator accounts, change campaign ownershi
   assert.match(policy, /does not enable other specialist agent operations/);
   assert.match(policy, /assigned to the acting admin account/);
   assert.match(review, /Publishing still requires separate authorization/);
+});
+
+
+test("managed Story AI calls are bound to a live, verified mandate at execution and persistence", () => {
+  assert.match(aiGate, /ifund_current_user_is_verified_super_admin/);
+  assert.match(aiGate, /ifund_current_account_is_active/);
+  assert.match(aiGate, /ifund_current_user_has_current_terms/);
+  assert.match(aiGate, /assigned_admin_id = auth\.uid\(\)/);
+  assert.match(aiGate, /status = 'active'/);
+  assert.match(aiGate, /expires_at > statement_timestamp\(\)/);
+  assert.match(aiGate, /identity_verified_at is not null/);
+  assert.match(aiGate, /ai_all_features_acknowledged is true/);
+  assert.match(aiGate, /grant execute on function public\.ifund_creator_mandate_ai_authorized\(uuid\) to authenticated/);
+  assert.match(story, /ifund_creator_mandate_ai_authorized/);
+  assert.match(story, /await verifyManagedMandate\(\)/);
+  assert.match(preview, /managed_mandate_id/);
+  assert.match(draftClient, /managed_mandate_id/);
+  assert.match(admin, /managed_mandate_id: selected\.id/);
+  assert.match(admin, /Other specialist agents and high-impact actions are not yet connected/);
 });
