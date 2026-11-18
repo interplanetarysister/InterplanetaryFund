@@ -43,6 +43,11 @@ begin
       using errcode = '42501';
   end if;
 
+  -- Keep the short-lived authorization store bounded without a separate
+  -- scheduled job. Expired sessions can no longer authorize any Story request.
+  delete from public.ifund_story_campaign_creation_sessions
+  where expires_at <= statement_timestamp();
+
   insert into public.ifund_story_campaign_creation_sessions (
     owner_id, request_id, expires_at
   ) values (
