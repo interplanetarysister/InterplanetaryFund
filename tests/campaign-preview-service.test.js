@@ -185,6 +185,7 @@ test("eligible requests use the existing guarded Story execution with the same r
   assert.equal(result.assistance, "assisted");
   assert.equal(result.ai_inference, true);
   assert.equal(result.story, copy.story);
+  assert.ok(result.story.length >= 1000 && result.story.length <= 2500);
   assert.equal(f.calls[1].body.request_id, ID);
   assert.equal(f.calls[1].body.campaign_id, null);
   for (const value of [
