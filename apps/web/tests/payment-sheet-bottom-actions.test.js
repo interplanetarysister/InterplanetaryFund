@@ -14,7 +14,10 @@ test("mobile payment sheet keeps verified checkout actions at the bottom",()=>{
   assert.match(dialog,/sticky bottom-0/);
   assert.match(dialog,/env\(safe-area-inset-bottom\)/);
   assert.match(dialog,/aria-pressed=\{Number\(amount\)===value\}/);
-  assert.ok(dialog.includes("Total you approve in PayPal"));
+  assert.ok(dialog.includes("<dt>Total you approve</dt>"));
+  assert.ok(dialog.includes('aria-label="Donation payment summary"'));
+  assert.doesNotMatch(dialog,/Total you approve in PayPal/);
+  assert.ok(dialog.includes("The amount shown above is the total you will authorize through your selected payment method."));
   assert.ok(dialog.indexOf("<GooglePayDonationButton ")<fields,"eligible one-tap wallet precedes manual card fields");
   assert.ok(dialog.includes("PayPal wallet (optional)"));
 });
