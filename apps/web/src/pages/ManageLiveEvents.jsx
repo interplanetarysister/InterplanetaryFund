@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { authClient } from "@/api/auth";
 import { useAuthSession } from "@/hooks/useAuthSession";
@@ -25,19 +25,33 @@ export default function ManageLiveEvents() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  // Invalidate responses created under the previous authenticated identity.
+  const requestGeneration = useRef(0);
+  const activeAccount = useRef(user?.id || null);
+  activeAccount.current = user?.id || null;
 
   const refresh = useCallback(async () => {
+    const generation = ++requestGeneration.current;
+    const currentAccount = activeAccount.current;
     setStatus("loading"); setError("");
     try {
       const client = authClient();
       const owner = await verifiedLiveOwner(client);
       const [rows, choices] = await Promise.all([listOwnerLiveEvents(client), listLiveCampaignChoices(client, owner)]);
       const { data } = await client.auth.getUser();
-      if (data?.user?.id !== owner) throw Error("Your account changed. Reload your events.");
+      if (data?.user?.id !== owner || currentAccount !== owner)
+        throw Error("Your account changed. Reload your events.");
+      if (generation !== requestGeneration.current || activeAccount.current !== owner) return;
       setEvents(rows); setCampaigns(choices); setStatus("ready");
-    } catch (cause) { setStatus("error"); setError(cause?.message || "Events are unavailable."); }
+    } catch (cause) {
+      if (generation !== requestGeneration.current || activeAccount.current !== currentAccount) return;
+      setStatus("error"); setError(cause?.message || "Events are unavailable.");
+    }
   }, []);
-  useEffect(() => { refresh(); }, [refresh, user?.id]);
+  useEffect(() => {
+    refresh();
+    return () => { requestGeneration.current++; };
+  }, [refresh, user?.id]);
   useEffect(() => {
     setSelected(null); setForm(empty); setEvents([]); setCampaigns([]); setNotice(""); setError("");
   }, [user?.id]);
@@ -46,6 +60,8 @@ export default function ManageLiveEvents() {
   function newEvent() { setSelected(null); setForm(empty); setError(""); setNotice(""); }
   async function save(next) {
     if (busy) return;
+    const generation = requestGeneration.current;
+    const currentAccount = activeAccount.current;
     setBusy(true); setNotice(""); setError("");
     try {
       const client = authClient();
@@ -54,12 +70,15 @@ export default function ManageLiveEvents() {
       const saved = selected
         ? await updateLiveDraft(client, selected, payload, next)
         : await createLiveDraft(client, payload);
+      if (generation !== requestGeneration.current || activeAccount.current !== currentAccount) return;
       setSelected(saved); setForm(fromEvent(saved));
       setNotice(next === "scheduled" ? "Your event is listed as upcoming. Broadcasting is not enabled." :
         next === "cancelled" ? "This event was cancelled." : "Private event draft saved.");
       await refresh();
-    } catch (cause) { setError(cause?.message || "The event could not be saved."); }
-    finally { setBusy(false); }
+    } catch (cause) {
+      if (generation === requestGeneration.current && activeAccount.current === currentAccount)
+        setError(cause?.message || "The event could not be saved.");
+    } finally { setBusy(false); }
   }
 
   return <main className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6">
