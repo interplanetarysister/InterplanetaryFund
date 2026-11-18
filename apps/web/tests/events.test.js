@@ -76,7 +76,8 @@ test("fundraising events are a first-class public and member mobile navigation t
   assert.equal(owningNavigationTab("/events", true), "/events");
   assert.equal(owningNavigationTab("/events/123", false), "/events");
 });
-\ntest("event page and dashboard connect owner creation, member account activity and truthful payment disclosure", async () => {
+
+test("event page and dashboard connect owner creation, member account activity and truthful payment disclosure", async () => {
   const [page,dashboard,widget,api,migration] = await Promise.all([
     readFile(new URL("../src/pages/Events.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/pages/Dashboard.jsx", import.meta.url), "utf8"),
@@ -125,7 +126,7 @@ test("event schema enforces verified identity, legal acceptance, private activit
   assert.match(migration, /ifund_private\.verified_email_creator\(\)/);
   assert.match(migration, /ifund_current_user_has_current_terms\(\)/);
   assert.match(migration, /ifund_event_registrations_member_private_read/);
-  assert.match(migration, /ifund_events\.status<>'published' or c\.status='active'/);
+  assert.match(migration, /ifund_events\.status\s*<>\s*'published'\s+or\s+c\.status\s*=\s*'active'/);
   assert.match(migration, /checkout_provider='32auctions'/);
   assert.match(migration, /char_length\(checkout_url\) <= 2048/);
   assert.doesNotMatch(migration, /event_owner_id/);
