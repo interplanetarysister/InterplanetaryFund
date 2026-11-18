@@ -14,7 +14,7 @@ const base={
  category:"community",goal_amount:"1000",cover_image_url:"https://example.org/cover.jpg",
 };
 
-test("minimum 3,500 characters is advisory, not a publication requirement",()=>{
+test("editorial story length is advisory, not a publication requirement",()=>{
  const short={...base,story:"Useful details.".repeat(200)};
  assert.ok(reviewCampaignPublication(short).storyCharacters<3500);
  assert.equal(publishReadiness(short).ready,true);
