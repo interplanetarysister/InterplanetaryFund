@@ -47,6 +47,7 @@ export default function Home() {
     <div className="ifund-public min-h-dvh bg-background pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <MobileBottomNav user={isAuthenticated ? user : null} />
       <QuickActions user={isAuthenticated ? user : null} />
+      <main id="main-content">
       {platformOnlyMode && (
         <div className="max-w-5xl mx-auto px-4 sm:px-8 pt-4">
           <PrelaunchNotice />
@@ -125,6 +126,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </main>
       <LegalFooter />
     </div>
   );
