@@ -273,6 +273,7 @@ export default function Events() {
   }
 
   if(eventId){
+    const memberCanJoin=Boolean(user?.email_confirmed_at&&!user?.is_anonymous);
     const isOwner=Boolean(user?.id&&ownedEvents.some(row=>row.id===event.id));
     const myEventActivity=activity.filter(row=>row.event_id===eventId&&row.status==="active");
     const hasRsvp=myEventActivity.some(row=>row.activity_type==="rsvp");
@@ -330,8 +331,8 @@ export default function Events() {
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="text-xl font-semibold">Attend this fundraiser</h2>
             <p className="mt-2 text-sm text-muted-foreground">Save your RSVP to your iFund account. This is an attendance record, not a ticket or a payment.</p>
-            {hasRsvp?<p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 size={17}/>Your RSVP is saved</p>:<button onClick={()=>joinEvent("rsvp")} disabled={Boolean(busy)} className="mt-4 min-h-11 rounded-xl bg-cyan-700 px-4 text-sm font-semibold text-white">{busy==="rsvp"?"Saving…":"RSVP to event"}</button>}
-            <div className="mt-5 border-t border-border pt-4">
+            {!memberCanJoin?<Link to={"/login?returnTo="+encodeURIComponent("/events/"+event.id)} className="mt-4 inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Sign in to RSVP</Link>:hasRsvp?<p className="mt-4 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 size={17}/>Your RSVP is saved</p>:<button onClick={()=>joinEvent("rsvp")} disabled={Boolean(busy)} className="mt-4 min-h-11 rounded-xl bg-cyan-700 px-4 text-sm font-semibold text-white">{busy==="rsvp"?"Saving…":"RSVP to event"}</button>}
+            {memberCanJoin&&<div className="mt-5 border-t border-border pt-4">
               <h3 className="font-semibold">Already purchased externally?</h3>
               <p className="mt-1 text-sm text-muted-foreground">Record your purchase in your activity so you can keep your event information together. IFund does not verify this provider payment.</p>
               <div className="mt-3 space-y-3">
@@ -339,7 +340,7 @@ export default function Events() {
                 <MoneyInput value={amount} onChange={setAmount} label="Amount paid (optional; self-reported)"/>
                 <button onClick={()=>joinEvent("external_purchase_reported",reportedItemId||null)} disabled={Boolean(busy)||(!event.checkout_url&&!items.some(i=>i.id===reportedItemId&&i.checkout_url))} className="min-h-11 rounded-xl border border-border px-4 text-sm font-semibold disabled:opacity-50">{busy.startsWith("external_purchase_reported")?"Saving…":"Add purchase to my event activity"}</button>
               </div>
-            </div>
+            </div>}
           </div>
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="text-xl font-semibold">Event items</h2>
@@ -347,7 +348,7 @@ export default function Events() {
               <p className="text-xs text-muted-foreground">{ITEM_LABELS[item.item_type]||"Event item"}</p><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
               {item.estimated_value_cents!==null&&<p className="mt-1 text-xs">Estimated value: {dollars(item.estimated_value_cents)}</p>}
               {item.starting_bid_cents!==null&&<p className="text-xs">Starting bid: {dollars(item.starting_bid_cents)}</p>}
-              <div className="mt-3 flex flex-wrap gap-2"><ProviderCheckout url={item.checkout_url||event.checkout_url} provider={item.checkout_provider||event.checkout_provider} label="Purchase / view on provider"/><button onClick={()=>joinEvent("external_purchase_reported",item.id)} disabled={Boolean(busy)||!item.checkout_url&&!event.checkout_url} className="min-h-10 rounded-xl border px-3 text-xs">I purchased this</button></div>
+              <div className="mt-3 flex flex-wrap gap-2"><ProviderCheckout url={item.checkout_url||event.checkout_url} provider={item.checkout_provider||event.checkout_provider} label="Purchase / view on provider"/>{memberCanJoin?<button onClick={()=>joinEvent("external_purchase_reported",item.id)} disabled={Boolean(busy)||!item.checkout_url&&!event.checkout_url} className="min-h-10 rounded-xl border px-3 text-xs">I purchased this</button>:<Link to={"/login?returnTo="+encodeURIComponent("/events/"+event.id)} className="inline-flex min-h-10 items-center rounded-xl border px-3 text-xs">Sign in to record</Link>}</div>
             </article>)}</div>}
           </div>
         </section>}
