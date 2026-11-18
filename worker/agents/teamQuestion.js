@@ -3,7 +3,8 @@
 // grants tool execution, external outreach, money movement or publication.
 import { memberApi, reply, fail } from "./memberApi.js";
 import { readJsonBody, BodyError } from "../bodyLimit.js";
-import { redactTeamCredentials, readTeamContext } from "./teamContext.js";
+import { redactTeamCredentials, readTeamContext, appendTeamContext, replyEventKey } from "./teamContext.js";
+import { UUID } from "./memberApi.js";
 import { recommendAgent, TRAINING_ROLES } from "../../apps/web/src/lib/agentTrainingDirectory.mjs";
 
 const MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
@@ -19,15 +20,15 @@ const noStore = (status, body) => reply(status, body);
 
 export function validateTeamQuestion(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw) ||
-      Object.keys(raw).some(key => !["question", "agent"].includes(key)) ||
-      !validQuestion(raw.question) ||
+      Object.keys(raw).some(key => !["question", "agent", "request_id"].includes(key)) ||
+      !validQuestion(raw.question) || !UUID.test(raw.request_id || "") ||
       (raw.agent !== undefined && raw.agent !== "auto" &&
         !Object.hasOwn(SPECIALISTS, raw.agent)))
     fail(400, "Ask a question between 8 and 2,000 characters and choose a valid team member.");
   const question = raw.question.trim();
   const recommendation = recommendAgent(question);
   const selected = raw.agent && raw.agent !== "auto" ? raw.agent : recommendation.target;
-  return {question,selected,recommendation,manual:raw.agent !== undefined && raw.agent !== "auto"};
+  return {question,selected,recommendation,requestId:raw.request_id,manual:raw.agent !== undefined && raw.agent !== "auto"};
 }
 
 export function teamQuestionMessages({question, selected, recommendation, history = []}) {
@@ -81,6 +82,8 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
     // Verify Supabase identity and active account with existing member-backed
     // auth. No browser-supplied team ID, agent privilege or user ID is trusted.
     const api=await memberApi(request,env,fetcher);
+    const active = await api.rpc("ifund_current_account_is_active");
+    if (active !== true) fail(403,"An active account is required to ask the team.");
     await api.aiPermission("campaign");
     const raw=await readJsonBody(request,8000);
     const input=validateTeamQuestion(raw);
@@ -89,10 +92,17 @@ export async function routeTeamQuestion(request, env, fetcher=fetch) {
       const context=await readTeamContext({env,jwt:api.jwt,campaignId:null,limit:8,fetcher});
       if(context.state!=="ready") fail(503,"Your private agent history could not be verified.");
       history=Array.isArray(context.events)?context.events:[];
+      await appendTeamContext({env,jwt:api.jwt,eventKey:input.requestId,
+        agentId:input.selected,content:input.question,speaker:"user",fetcher});
     }
     const messages=teamQuestionMessages({...input,history});
     const result=await env.AI.run(MODEL,{messages,max_tokens:850,temperature:0.35});
-    return noStore(200,{...validateTeamAnswer(result,input.selected),
+    const answer=validateTeamAnswer(result,input.selected);
+    if (env.IFUND_TEAM_CONTEXT_ENABLED === "enabled") {
+      await appendTeamContext({env,jwt:api.jwt,eventKey:replyEventKey(input.requestId),
+        agentId:input.selected,content:answer.answer,speaker:"agent",fetcher});
+    }
+    return noStore(200,{...answer,context_saved:env.IFUND_TEAM_CONTEXT_ENABLED === "enabled",
       suggested_agent:input.recommendation.target,
       coordination_needed:input.recommendation.requiresCoordination,
       provider_verified:true});
