@@ -281,7 +281,12 @@ with (security_barrier = true)
 as
 select d.campaign_id, d.provider_label, d.donation_url
 from public.ifund_managed_external_destinations d
-join public.ifund_creator_mandates m on m.id = d.mandate_id
+join public.ifund_creator_mandates m
+  on m.id = d.mandate_id
+ and m.campaign_id = d.campaign_id
+join public.ifund_managed_campaign_profiles p
+  on p.campaign_id = d.campaign_id
+ and p.mandate_id = m.id
 where d.status = 'ready'
   and d.creator_approved_at is not null
   and d.creator_approved_by_token is true
@@ -304,7 +309,9 @@ where d.status = 'ready'
   and coalesce((m.scopes ->> 'publish')::boolean, false) is true
   and exists (
     select 1 from public.ifund_campaigns c
-    where c.id = d.campaign_id and c.status = 'active'
+    where c.id = d.campaign_id
+      and c.status = 'active'
+      and c.owner_id = m.assigned_admin_id
   );
 
 revoke all on public.ifund_public_managed_external_destinations from public, anon, authenticated;
