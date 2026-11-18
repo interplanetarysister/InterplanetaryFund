@@ -44,9 +44,9 @@ export async function adminCreatorMandateRequest(action, body = {}) {
   const url = new URL(functionUrl());
   url.searchParams.set("action", action);
   const response = await fetch(url, {
-    method: action === "list" ? "GET" : "POST",
+    method: ["list","list_external_destinations"].includes(action) ? "GET" : "POST",
     headers: { authorization: `Bearer ${accessToken}`, apikey: publishableKey(), "content-type": "application/json" },
-    ...(action === "list" ? {} : { body: JSON.stringify(body) }),
+    ...(["list","list_external_destinations"].includes(action) ? {} : { body: JSON.stringify(body) }),
     cache: "no-store",
   });
   const result = await parseResponse(response);
