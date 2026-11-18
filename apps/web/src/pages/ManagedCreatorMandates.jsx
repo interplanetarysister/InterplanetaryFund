@@ -190,7 +190,7 @@ export default function ManagedCreatorMandates() {
         : { destination_id: destination.id, provider_verification_evidence: destinationEvidence };
       const result = await adminCreatorMandateRequest(action, body);
       setNotice(compliance
-        ? "Compliance review recorded. The destination is marked ready for a future reviewed publication gate; publication is still disabled."
+        ? "Compliance review recorded. The destination is ready; the campaign can publish only if the backend gate confirms every current creator, campaign, provider and compliance requirement."
         : "Provider ownership verification recorded. Complete the separate compliance review next.");
       setDestinationEvidence("");
       await loadDestinations();
