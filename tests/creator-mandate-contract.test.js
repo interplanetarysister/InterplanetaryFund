@@ -58,6 +58,12 @@ test("mandates bind a named admin account, expiry, creator consent, AI scope and
   }
 });
 
+test("managed creator API CORS allows only canonical hosts and this project's deployment previews", () => {
+  assert.match(api, /const isAllowedOrigin =/);
+  assert.ok(api.includes(String.raw`/^https:\/\/[a-f0-9]{8}\.interplanetaryfund-migration\.pages\.dev$/`));
+  assert.match(api, /if \(origin && !isAllowedOrigin\(origin\)\)/);
+});
+
 test("admin endpoints require a confirmed user and backend-verified super-admin role", () => {
   assert.match(api, /auth\.getUser/);
   assert.match(api, /ifund_current_user_is_verified_super_admin/);
