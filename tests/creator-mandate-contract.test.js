@@ -340,7 +340,7 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /creator-approved direct-provider destination/);
   assert.match(publicData, /ifund_public_managed_external_destinations/);
   assert.match(publicData, /external_donation_url/);
-  assert.match(fundingCard, /campaign\\.external_donation_url/);
+  assert.match(fundingCard, /campaign\.external_donation_url/);
   assert.match(fundingCard, /Donate directly via/);
   assert.match(fundingCard, /noopener noreferrer/);
   assert.match(paymentLedger, /Managed beneficiary campaigns require direct-provider checkout/);
@@ -360,5 +360,4 @@ test("external donation destination approval is token-bound, expiring, and inval
   assert.match(admin, /verify_external_destination/);
   assert.match(admin, /check_external_destination_compliance/);
   assert.match(admin, /publish !== true/);
-});
 });
