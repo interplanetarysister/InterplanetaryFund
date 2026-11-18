@@ -309,13 +309,15 @@ Deno.serve(async (req) => {
       if (!/^[0-9a-f-]{36}$/i.test(destinationId) || evidence.length < 30)
         return json(422, { error: "provider_verification_evidence_required" }, origin);
       const { data: destination, error: lookupError } = await db.from("ifund_managed_external_destinations")
-        .select("id,mandate_id,campaign_id,status").eq("id", destinationId).eq("status", "pending_provider_verification").maybeSingle();
+        .select("id,mandate_id,campaign_id,donation_url,creator_approved_url_sha256,status").eq("id", destinationId).eq("status", "pending_provider_verification").maybeSingle();
       if (lookupError || !destination) return json(404, { error: "destination_not_ready_for_provider_verification" }, origin);
+      if (destination.creator_approved_url_sha256 !== await hash(destination.donation_url))
+        return json(409, { error: "creator_approved_url_changed" }, origin);
       const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
         .select("id").eq("id", destination.mandate_id).eq("assigned_admin_id", user.id).maybeSingle();
       if (mandateError || !mandate) return json(404, { error: "assigned_mandate_not_found" }, origin);
       const { data: activeMandate, error: activeError } = await db.from("ifund_creator_mandates")
-        .select("status,expires_at,scopes").eq("id", destination.mandate_id).maybeSingle();
+        .select("status,expires_at,scopes,campaign_id,creator_review_state,creator_approved_at,identity_verified_at").eq("id", destination.mandate_id).maybeSingle();
       if (activeError || !activeMandate || activeMandate.status !== "active" ||
           new Date(activeMandate.expires_at).getTime() <= Date.now() || activeMandate.scopes?.publish !== true ||
           activeMandate.campaign_id !== destination.campaign_id || activeMandate.creator_review_state !== "approved" ||
@@ -341,10 +343,11 @@ Deno.serve(async (req) => {
       if (destination.creator_approved_url_sha256 !== await hash(destination.donation_url))
         return json(409, { error: "creator_approved_url_changed" }, origin);
       const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
-        .select("id,scopes,campaign_id,creator_review_state").eq("id", destination.mandate_id)
+        .select("id,scopes,campaign_id,creator_review_state,creator_approved_at,identity_verified_at").eq("id", destination.mandate_id)
         .eq("assigned_admin_id", user.id).eq("status", "active").gt("expires_at", new Date().toISOString()).maybeSingle();
       if (mandateError || !mandate || mandate.scopes?.publish !== true ||
-          mandate.campaign_id !== destination.campaign_id || mandate.creator_review_state !== "approved")
+          mandate.campaign_id !== destination.campaign_id || mandate.creator_review_state !== "approved" ||
+          !mandate.creator_approved_at || !mandate.identity_verified_at)
         return json(403, { error: "active_creator_publish_approval_required" }, origin);
       const { error } = await db.from("ifund_managed_external_destinations").update({
         compliance_checked_at: new Date().toISOString(), compliance_checked_by: user.id,
