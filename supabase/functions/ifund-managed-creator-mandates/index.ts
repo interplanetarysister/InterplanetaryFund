@@ -61,6 +61,7 @@ const adminContext = async (req, env) => {
   if (verifyError || verified !== true) throw Object.assign(new Error("Verified IFund super-administrator access required."), { status: 403 });
   return {
     user: userData.user,
+    userClient,
     db: createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } }),
   };
 };
@@ -180,7 +181,7 @@ Deno.serve(async (req) => {
     }
 
     if (!["POST","GET"].includes(req.method)) return json(405, { error: "method_not_allowed" }, origin);
-    const { user, db } = await adminContext(req, {
+    const { user, userClient, db } = await adminContext(req, {
       SUPABASE_URL: Deno.env.get("SUPABASE_URL") || "",
       SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY") || "",
       SUPABASE_PUBLISHABLE_KEY: Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || "",
@@ -217,6 +218,20 @@ Deno.serve(async (req) => {
       await event(db, row.id, "admin", user.id, "invited", { assigned_admin_id: user.id, authorization_version: VERSION });
       return json(201, { mandate_id: row.id, consent_url: `https://interplanetaryfund.com/creator-authorization?token=${inviteToken}`, expires_at: row.expires_at, assigned_admin_id: user.id, delivery_note: "Send this one-time link only to the creator's invited email address. The link is not proof of identity by itself; identity and authority must still be verified by IFund." }, origin);
     }
+    if (action === "link_campaign" && req.method === "POST") {
+      const mandateId = clean(body.mandate_id, 64);
+      const campaignId = clean(body.campaign_id, 64);
+      if (!/^[0-9a-f-]{36}$/i.test(mandateId) || !/^[0-9a-f-]{36}$/i.test(campaignId))
+        return json(422, { error: "valid_mandate_and_campaign_required" }, origin);
+      const { data, error } = await userClient.rpc("ifund_creator_mandate_link_campaign", {
+        p_mandate_id: mandateId,
+        p_campaign_id: campaignId,
+      });
+      if (error) throw error;
+      if (!data || data.linked !== true || data.campaign_id !== campaignId)
+        throw new Error("The managed campaign link could not be confirmed.");
+      return json(200, data, origin);
+    }
     if (action === "verify_identity" && req.method === "POST") {
       const mandateId = clean(body.mandate_id, 64);
       const evidence = clean(body.identity_evidence_note, 2000);
@@ -236,7 +251,17 @@ Deno.serve(async (req) => {
       const draft = body.draft;
       if (!/^[0-9a-f-]{36}$/i.test(mandateId) || !draft || typeof draft !== "object" || Array.isArray(draft)) return json(422, { error: "valid_draft_required" }, origin);
       const serialized = JSON.stringify(draft);
-      if (serialized.length > 80_000 || !clean(draft.title, 180) || !clean(draft.story, 30_000)) return json(422, { error: "draft_content_invalid_or_too_large" }, origin);
+      const goalText = String(draft.goal_amount ?? "");
+      const allowedCategories = new Set(["medical","emergency","education","community","animals","business","memorial","disaster_relief","creative","environment","other"]);
+      if (serialized.length > 80_000 ||
+          !clean(draft.title, 150) ||
+          !clean(draft.summary, 600) ||
+          !clean(draft.story, 15_000) ||
+          !allowedCategories.has(clean(draft.category, 40)) ||
+          !/^\\d{1,9}(?:\\.\\d{1,2})?$/.test(goalText) ||
+          !Number.isFinite(Number(goalText)) || Number(goalText) <= 0) {
+        return json(422, { error: "draft_requires_valid_title_summary_story_category_and_goal" }, origin);
+      }
       const reviewToken = token();
       const { data: row, error } = await db.from("ifund_creator_mandates").update({
         draft_payload: draft, creator_review_state: "pending", creator_feedback: null, creator_approved_at: null,
