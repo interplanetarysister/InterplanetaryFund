@@ -66,12 +66,13 @@ test("event item normalizer validates ticket and auction item fields in integer 
 });
 
 test("event page and dashboard connect owner creation, member account activity and truthful payment disclosure", async () => {
-  const [page,dashboard,widget,api,migration] = await Promise.all([
+  const [page,dashboard,widget,api,migration,integrityMigration] = await Promise.all([
     readFile(new URL("../src/pages/Events.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/pages/Dashboard.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/dashboard/EventsDashboardSection.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/api/events.js", import.meta.url), "utf8"),
     readFile(new URL("../../../supabase/migrations/20261118190000_ifund_fundraising_events_and_external_activity.sql", import.meta.url), "utf8"),
+    readFile(new URL("../../../supabase/migrations/20261118193000_ifund_event_activity_integrity.sql", import.meta.url), "utf8"),
   ]);
   assert.match(page, /Create a fundraising event/);
   assert.match(page, /Manage this event/);
@@ -90,4 +91,10 @@ test("event page and dashboard connect owner creation, member account activity a
   assert.match(migration, /not provider-verified transactions/);
   assert.doesNotMatch(migration, /ifund_donations\s*\(/i);
   assert.doesNotMatch(migration, /ifund_ledger_entries\s*\(/i);
+  assert.match(integrityMigration, /checkout_provider='eventbrite' and checkout_url ~\*/i);
+  assert.match(integrityMigration, /checkout_provider='paypal' and checkout_url ~\*/i);
+  assert.match(integrityMigration, /ifund_guard_event_registration_cancellation/);
+  assert.match(integrityMigration, /old\.status <> 'active'/);
+  assert.match(integrityMigration, /new\.status <> 'cancelled'/);
+  assert.match(integrityMigration, /to_jsonb\(new\)[\s\S]*to_jsonb\(old\)/);
 });
