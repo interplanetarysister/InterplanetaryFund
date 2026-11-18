@@ -25,13 +25,15 @@ const fail = (status, message) => {
 export function storyInput(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw))
     fail(400, "Describe the campaign you want help with.");
-  const allowed = ["details", "campaign_id", "section", "request_id", "writing_preferences"];
+  const allowed = ["details", "campaign_id", "section", "request_id", "writing_preferences", "managed_mandate_id"];
   if (Object.keys(raw).some((k) => !allowed.includes(k)))
     fail(400, "Unsupported drafting option.");
   if (!UUID.test(raw.request_id || ""))
     fail(400, "A request reference is required.");
   if (raw.campaign_id != null && !UUID.test(raw.campaign_id))
     fail(400, "Choose one of your campaigns.");
+  if (raw.managed_mandate_id != null && !UUID.test(raw.managed_mandate_id))
+    fail(400, "Choose a valid managed creator authorization.");
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
@@ -51,6 +53,7 @@ export function storyInput(raw) {
     campaign_id: raw.campaign_id || null,
     section: raw.section?.trim() || null,
     request_id: raw.request_id,
+    ...(raw.managed_mandate_id ? { managed_mandate_id: raw.managed_mandate_id } : {}),
     ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
 }
@@ -597,6 +600,16 @@ export async function storyRoute(request, env, fetcher = fetch) {
       );
     }
     const input = storyInput(raw);
+    const verifyManagedMandate = async () => {
+      if (!input.managed_mandate_id) return true;
+      const authorized = await rpc("ifund_creator_mandate_ai_authorized", {
+        p_mandate_id: input.managed_mandate_id,
+      });
+      if (authorized !== true)
+        fail(403, "This creator authorization is expired, revoked, or no longer assigned to this admin account.");
+      return true;
+    };
+    await verifyManagedMandate();
     const workforce = env.IFUND_WORKFORCE_ENABLED === "enabled";
     if ((!workforce && !env.AI) || env.IFUND_STORY_AI_ENABLED !== "enabled")
       fail(
@@ -714,6 +727,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
         })) !== true
       )
         fail(503, "Writing suggestions are temporarily unavailable.");
+      await verifyManagedMandate();
       const result = await invokeImplementation(
         workforce ? claim.implementation : legacyStoryImplementation,
         env,
@@ -730,6 +744,15 @@ export async function storyRoute(request, env, fetcher = fetch) {
         () => {},
       );
       throw error;
+    }
+    // Recheck after inference so a mandate revoked while the provider was working
+    // cannot result in a persisted managed draft.
+    if (input.managed_mandate_id) {
+      try { await verifyManagedMandate(); }
+      catch (error) {
+        await finish(null, "failed").catch(() => {});
+        throw error;
+      }
     }
     // A stored receipt is required before reporting success, even after inference.
     const draft = await finish(suggestion, "succeeded");
