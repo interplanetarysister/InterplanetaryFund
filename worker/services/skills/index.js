@@ -5,7 +5,8 @@ const assets = new Map(manifest.agents.map((a) => [a.agent, a]));
 export function serviceSkill(id) {
   const p = positions.get(id),
     a = assets.get(id);
-  if (!p || !a || a.source_sha256 !== p.contract_sha256)
+  if (!p || !a || a.source_sha256 !== p.contract_sha256 ||
+      !/^[a-f0-9]{64}$/.test(p.policy_sha256 || "") || a.policy_sha256 !== p.policy_sha256)
     throw Error("The service policy could not be verified.");
   return {
     id: p.id,
