@@ -595,6 +595,16 @@
       "owner": "frontend+editorial"
     },
     {
+      "route": "/live/manage",
+      "role": "member",
+      "component": "ManageLiveEvents",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database+qa"
+    },
+    {
       "route": "/login",
       "role": "public",
       "component": "AuthPage",
