@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { storyInput } from "../worker/agents/story.js";
 import { campaignPreviewInput } from "../worker/services/campaign-preview.js";
+import { requireCampaignAIAccess } from "../worker/agents/memberApi.js";
 
 const migration = await readFile(new URL("../supabase/migrations/20261118090000_ifund_external_creator_managed_mandates.sql", import.meta.url), "utf8");
 const api = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
@@ -14,6 +15,10 @@ const aiGate = await readFile(new URL("../supabase/migrations/20261118180000_ifu
 const representation = await readFile(new URL("../supabase/migrations/20261118190000_ifund_managed_campaign_representation.sql", import.meta.url), "utf8");
 const publicData = await readFile(new URL("../apps/web/src/api/publicData.js", import.meta.url), "utf8");
 const campaignDetail = await readFile(new URL("../apps/web/src/pages/CampaignDetail.jsx", import.meta.url), "utf8");
+const campaignAgentGate = await readFile(new URL("../supabase/migrations/20261118193000_ifund_campaign_agent_ai_mandate_gate.sql", import.meta.url), "utf8");
+const strategy = await readFile(new URL("../worker/agents/strategy.js", import.meta.url), "utf8");
+const communications = await readFile(new URL("../worker/agents/communications.js", import.meta.url), "utf8");
+const memberApi = await readFile(new URL("../worker/agents/memberApi.js", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -161,4 +166,28 @@ test("managed campaign linkage preserves admin ownership and creator attribution
   assert.match(review, /Fundraising goal/);
   assert.match(publicData, /ifund_managed_campaign_profiles/);
   assert.match(campaignDetail, /Creator and beneficiary/);
+});
+
+
+test("campaign-scoped Story, Strategy, Growth and Communications AI are checked against the linked mandate", async () => {
+  assert.match(campaignAgentGate, /ifund_campaign_agent_ai_access/);
+  assert.match(campaignAgentGate, /ifund_creator_mandate_ai_authorized/);
+  assert.match(campaignAgentGate, /m\.assigned_admin_id=auth\.uid\(\)/);
+  assert.match(memberApi, /ifund_campaign_agent_ai_access/);
+  assert.match(strategy, /requireCampaignAIAccess/);
+  assert.match(communications, /requireCampaignAIAccess/);
+  assert.match(story, /ifund_campaign_agent_ai_access/);
+  const campaignId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+  let called = false;
+  await requireCampaignAIAccess({
+    rpc: async (name, args) => {
+      called = name === "ifund_campaign_agent_ai_access" && args.p_campaign_id === campaignId;
+      return true;
+    },
+  }, campaignId);
+  assert.equal(called, true);
+  await assert.rejects(
+    requireCampaignAIAccess({ rpc: async () => false }, campaignId),
+    /not authorized for AI assistance/,
+  );
 });
