@@ -389,6 +389,60 @@
       "legacy_auth_hint": "oauth",
       "capability_status": "unverified",
       "financial_authority": false
+    },
+    {
+      "id": "fundly",
+      "name": "Fundly",
+      "kind": "crowdfunding",
+      "logo": null,
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "givebutter",
+      "name": "Givebutter",
+      "kind": "crowdfunding",
+      "logo": null,
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "donorbox",
+      "name": "Donorbox",
+      "kind": "crowdfunding",
+      "logo": null,
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "kind": "social",
+      "logo": null,
+      "legacy_auth_hint": "link",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "kind": "social",
+      "logo": null,
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
+    },
+    {
+      "id": "google",
+      "name": "Google Account",
+      "kind": "app",
+      "logo": null,
+      "legacy_auth_hint": "oauth",
+      "capability_status": "unverified",
+      "financial_authority": false
     }
   ]
 }
