@@ -3,7 +3,9 @@ import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const COLUMNS = "id,owner_id,campaign_id,title,description,scheduled_at,status,public_visible,recording_consent,provider_status,verified_live_at,ended_at,created_at,updated_at";
+const OWNER_COLUMNS = "id,owner_id,campaign_id,title,description,scheduled_at,status,public_visible,recording_consent,provider_status,verified_live_at,ended_at,created_at,updated_at";
+// Public queries never request identity, recording-consent, or internal audit fields.
+const PUBLIC_COLUMNS = "id,campaign_id,title,description,scheduled_at,status,public_visible,provider_status,verified_live_at,ended_at";
 const UNAVAILABLE = new Set(["42P01", "PGRST205", "PGRST116"]);
 
 export function validateLiveEvent(input, { publishing = false } = {}) {
@@ -43,7 +45,7 @@ async function checkOwner(client, owner) {
 }
 export async function listPublicLiveEvents(client) {
   const { data, error } = await client.from("ifund_live_events")
-    .select(COLUMNS).eq("public_visible", true)
+    .select(PUBLIC_COLUMNS).eq("public_visible", true)
     .in("status", ["scheduled", "live", "ended"])
     .order("scheduled_at", { ascending: true }).limit(60);
   if (error) {
@@ -56,7 +58,7 @@ export async function listPublicLiveEvents(client) {
 export async function getPublicLiveEvent(client, id) {
   if (!UUID.test(id || "")) return null;
   const { data, error } = await client.from("ifund_live_events")
-    .select(COLUMNS).eq("id", id).eq("public_visible", true).maybeSingle();
+    .select(PUBLIC_COLUMNS).eq("id", id).eq("public_visible", true).maybeSingle();
   if (error) {
     if (UNAVAILABLE.has(error.code)) return null;
     throw Error("This live event could not be loaded.");
@@ -65,7 +67,7 @@ export async function getPublicLiveEvent(client, id) {
 }
 export async function listOwnerLiveEvents(client) {
   const owner = await verifiedLiveOwner(client);
-  const { data, error } = await client.from("ifund_live_events").select(COLUMNS)
+  const { data, error } = await client.from("ifund_live_events").select(OWNER_COLUMNS)
     .eq("owner_id", owner).order("created_at", { ascending: false }).limit(100);
   if (error) {
     if (UNAVAILABLE.has(error.code)) throw Error("Live scheduling has not yet been enabled.");
@@ -93,7 +95,7 @@ export async function createLiveDraft(client, input) {
   await checkOwner(client, owner);
   const { data, error } = await client.from("ifund_live_events")
     .insert({ ...value, owner_id: owner, status: "draft", public_visible: false })
-    .select(COLUMNS).single();
+    .select(OWNER_COLUMNS).single();
   if (error || data?.owner_id !== owner || data?.status !== "draft" || data?.public_visible !== false)
     throw Error("Your event draft was not saved.");
   await checkOwner(client, owner);
@@ -115,7 +117,7 @@ export async function updateLiveDraft(client, event, input, nextStatus = "draft"
     .update({ ...value, status: nextStatus, public_visible: nextStatus === "scheduled", updated_at: new Date().toISOString() })
     .eq("id", event.id).eq("owner_id", owner).eq("status", event.status)
     .eq("updated_at", event.updated_at)
-    .select(COLUMNS).maybeSingle();
+    .select(OWNER_COLUMNS).maybeSingle();
   if (error || !data || data.owner_id !== owner || data.status !== nextStatus)
     throw Error("The event changed in another session or could not be saved. Reload and retry.");
   await checkOwner(client, owner);
