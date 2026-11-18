@@ -1,4 +1,4 @@
-// Independent read-only help guides. Do not treat unported Base44 workflows as live.
+// Independent read-only help guides. Do not treat unimplemented legacy workflows as live.
 // The topic taxonomy and stable slug convention follow interplanetary-fund2/main.
 export const PUBLIC_HELP_ARTICLES = Object.freeze([
   {
