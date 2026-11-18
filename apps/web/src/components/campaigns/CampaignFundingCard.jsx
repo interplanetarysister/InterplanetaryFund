@@ -24,8 +24,9 @@ export default function CampaignFundingCard({ campaign, onDonate, className = ""
       <p className="font-display text-3xl text-stone-900">${totals.raised.toLocaleString()}</p>
       <p className="text-sm text-stone-500 mb-3">raised of ${totals.goal.toLocaleString()} goal</p>
       <Progress value={totals.percentage} className="h-2 mb-4" />
+      {managedCampaign && <p className="mb-4 text-xs text-stone-500">These totals include only verified IFund records; gifts processed directly by the external provider may not appear here.</p>}
       </>) : (
-        <p className="text-sm text-stone-500 mb-4">Verified funding totals appear here as live PayPal donations are recorded.</p>
+        <p className="text-sm text-stone-500 mb-4">{managedCampaign ? "External-provider gifts are processed outside IFund; provider donation totals are not reported here." : "Verified funding totals appear here as live PayPal donations are recorded."}</p>
       )}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-stone-500 mb-4">
         {campaign.donor_count !== null && campaign.donor_count !== undefined && campaign.donor_count !== "" && Number.isInteger(Number(campaign.donor_count)) && Number(campaign.donor_count) >= 0 && <span className="flex items-center gap-1.5"><Users className="w-4 h-4" />{campaign.donor_count} donors</span>}
