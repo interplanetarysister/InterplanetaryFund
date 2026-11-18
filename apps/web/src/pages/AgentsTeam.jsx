@@ -14,7 +14,7 @@ const TEAM = AGENT_WORKSPACES.filter(agent => !agent.consolidatedInto).map(agent
 /**
  * The independent application has an authorized Story service, but does not
  * yet have a verified seven-specialist conversational endpoint. Never send
- * messages to Base44 or present a placeholder as an active AI conversation.
+ * messages to an unavailable legacy service or present a placeholder as an active AI conversation.
  */
 export default function AgentsTeam() {
   const [params,setParams]=useSearchParams();
