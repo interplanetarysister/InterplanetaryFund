@@ -6,7 +6,7 @@ const origin="https://unit-test.interplanetaryfund-migration.pages.dev";
 const fakeConfig={
   IFUND_PAYPAL_SANDBOX_ENABLED:"enabled",PAYPAL_CLIENT_ID:"test-only-id",
   PAYPAL_CLIENT_SECRET:"test-only-not-a-real-secret",PAYPAL_WEBHOOK_ID:"test-only-webhook",
-  SUPABASE_URL:"https://example.supabase.co",SUPABASE_SECRET_KEY:"test-only-key"
+  SUPABASE_URL:"https://ssibsfmtodgximseeqsv.supabase.co",SUPABASE_SECRET_KEY:["sb","secret"].join("_")+"_test_key_with_sufficient_length"
 };
 function call(path,method="POST",env={},body,extraHeaders={}){
   const request=new Request(origin+"/api/paypal/sandbox/"+path,{
