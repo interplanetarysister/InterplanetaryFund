@@ -27,6 +27,7 @@ const mandateApi = await readFile(new URL("../supabase/functions/ifund-managed-c
 const scopeAtomicity = await readFile(new URL("../supabase/migrations/20261118163545_ifund_managed_campaign_scope_atomicity_20261118.sql", import.meta.url), "utf8");
 const scopeNullGuard = await readFile(new URL("../supabase/migrations/20261118163813_ifund_campaign_scope_null_guard_20261118.sql", import.meta.url), "utf8");
 const initialMetadataGuard = await readFile(new URL("../supabase/migrations/20261118163901_ifund_managed_campaign_initial_metadata_guard_20261118.sql", import.meta.url), "utf8");
+const communicationsScopeDraft = await readFile(new URL("../supabase/migrations/20261118164729_ifund_communications_mandate_draft_scope_20261118.sql", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -266,4 +267,14 @@ test("managed campaign linkage rejects unapproved imagery and location metadata"
   assert.match(initialMetadataGuard, /map_opt_in is true/);
   assert.match(initialMetadataGuard, /public_location_label/);
   assert.match(initialMetadataGuard, /Managed campaign must start without unapproved imagery or public location data/);
+});
+
+
+test("communications drafting and saving require donor_messaging scope at the database boundary", () => {
+  assert.match(communicationsScopeDraft, /ifund_communications_runtime\.begin_request/);
+  assert.match(communicationsScopeDraft, /ifund_communications_runtime\.finish_request/);
+  assert.match(communicationsScopeDraft, /ifund_communications_runtime\.save_owner/);
+  assert.equal((communicationsScopeDraft.match(/ifund_campaign_mandate_scope_access\(/g) || []).length, 3);
+  assert.match(communications, /requireCampaignScopeAccess\(api, input\.campaign_id, "donor_messaging"\)/);
+  assert.match(communications, /await requireCampaignScopeAccess\(api, input\.campaign_id, "donor_messaging"\);/);
 });
