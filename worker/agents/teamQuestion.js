@@ -73,6 +73,12 @@ export function validateTeamAnswer(raw,selected) {
 
 export async function routeTeamQuestion(request, env, fetcher=fetch) {
   const path = new URL(request.url).pathname;
+  if (path === "/api/agents/team/status") {
+    if (request.method !== "GET") return noStore(405,{error:"Method not allowed."});
+    return noStore(200,{configured:env.IFUND_TEAM_QUESTIONS_ENABLED === "enabled" &&
+      typeof env.AI?.run === "function",requires_membership:true,
+      external_publishing:false,provider_actions:false});
+  }
   if (path !== "/api/agents/team/question") return noStore(404,{error:"Not found."});
   if (request.method !== "POST") return noStore(405,{error:"Method not allowed."});
   if (env.IFUND_TEAM_QUESTIONS_ENABLED !== "enabled" ||
