@@ -340,6 +340,7 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /creator-approved direct-provider destination/);
   assert.match(publicData, /ifund_public_managed_external_destinations/);
   assert.match(publicData, /external_donation_url/);
+  assert.match(publicData, /!campaign\\.managed_campaign \\|\\| Boolean\\(campaign\\.external_donation_url\\)/);
   assert.match(fundingCard, /campaign\.external_donation_url/);
   assert.match(fundingCard, /Donate directly via/);
   assert.match(fundingCard, /noopener noreferrer/);
