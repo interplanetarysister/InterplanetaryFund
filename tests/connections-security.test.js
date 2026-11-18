@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { PGlite } from "@electric-sql/pglite";
-import { connectionCatalog, connectionProvider } from "../worker/connections/catalog.js";
+import { connectionCatalog, connectionMethods, connectionProvider } from "../worker/connections/catalog.js";
+import { oauthProviders } from "../worker/oauth.js";
 import providerCatalog from "../worker/connections/provider-catalog.js";
 import positionContracts from "../worker/services/position-contracts.js";
 import skillManifest from "../worker/services/skills/manifest.js";
@@ -97,6 +98,19 @@ test("runtime JavaScript catalogs exactly match their retained canonical JSON so
  assert.equal(skill.id, "chief_of_staff");
  assert.ok(skill.instructions.length > 1000);
  assert.equal(skill.source_sha256, "eccac6ca3b31066d0c5817550834bd6a092348bb170e87d66459c993d1fda313");
+});
+
+
+test("connection methods advertise OAuth only when the provider has a registered runtime route", () => {
+ const supported = new Set(oauthProviders);
+ assert.equal(connectionMethods("eventbrite").method, "oauth");
+ assert.equal(connectionMethods("facebook").method, "oauth");
+ assert.equal(connectionMethods("google").method, "oauth");
+ for (const id of ["gmail","googledrive","googlecalendar","notion","outlook","microsoft_teams","one_drive","dropbox","gitlab","gumroad","wordpress_com"]) {
+  assert.equal(connectionMethods(id).method, "protected_provider_step", id);
+  assert.equal(supported.has(id), false, id);
+ }
+ assert.equal(connectionMethods("gofundme").method, "public_page");
 });
 
 test("provider catalog loads through the Worker JavaScript module and exposes only safe summary fields", () => {
