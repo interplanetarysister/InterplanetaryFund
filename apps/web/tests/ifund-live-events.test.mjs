@@ -48,3 +48,18 @@ test("management route is member guarded and source manifest is pending",()=>{
   assert.equal(row?.role,"member");
   assert.equal(row?.source_status,"not_verified");
 });
+
+
+test("shareable event page is public but never embeds unverified playback",()=>{
+  const app=read("src/App.jsx");
+  const view=read("src/pages/LiveEventDetail.jsx");
+  const feed=read("src/pages/IFundLive.jsx");
+  const api=read("src/api/liveEvents.js");
+  assert.match(app,/path="\\/live\\/:id" element={<LiveEventDetail \\/>}/);
+  assert.match(view,/getPublicLiveEvent/);
+  assert.match(view,/not yet supported/);
+  assert.match(feed,/to={`\\/live\\/\\$\{encodeURIComponent\(event.id\)\}`}/);
+  assert.match(api,/eq\("public_visible", true\)\.maybeSingle\(\)/);
+  const manifest=JSON.parse(read("ci/route-acceptance.json"));
+  assert.equal(manifest.routes.find(r=>r.route==="/live/:id")?.source_status,"not_verified");
+});
