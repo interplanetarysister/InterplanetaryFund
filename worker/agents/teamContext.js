@@ -2,6 +2,11 @@
 // All writes use the *verified current user JWT*; agent replies additionally need
 // the existing privileged Worker credential. Enabled only after DB acceptance.
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const CANONICAL_SUPABASE_URL="https://ssibsfmtodgximseeqsv.supabase.co";
+function requireCanonicalSupabase(env){
+  if(env?.SUPABASE_URL!==CANONICAL_SUPABASE_URL||!env?.SUPABASE_PUBLISHABLE_KEY)
+    throw Error("The team context service is not configured for the canonical IFund project.");
+}
 export const TEAM_CONTEXT_AGENTS=Object.freeze(["story","nexus","orbit","echo","pulse","polaris","forge","link","discover"]);
 // Best-effort safety net for secrets mistakenly included in a conversation.
 // These patterns do not replace authenticated ownership, careful data handling,
