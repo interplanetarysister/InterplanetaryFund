@@ -128,6 +128,31 @@ async function webhook(request,env) {
   let event;try{event=JSON.parse(raw)}catch{return fail("invalid_webhook",400)}
   if(event.livemode!==true||!/^evt_[A-Za-z0-9]{12,}$/.test(event.id||""))
     return fail("webhook_environment_mismatch",409);
+  // A refund's immutable provider resource ID, not a webhook delivery ID,
+  // is the economic identity. The ledger enforces parent capture, uniqueness,
+  // cumulative refunded amount <= captured amount and status ordering.
+  if(["refund.created","refund.updated"].includes(event.type)){
+    const resource=event.data?.object;
+    if(!/^re_[A-Za-z0-9]{12,}$/.test(resource?.id||""))
+      return fail("refund_identity_invalid",409);
+    const refund=await stripe(env,"/refunds/"+encodeURIComponent(resource.id));
+    if(refund.id!==resource.id||refund.livemode!==true)
+      return fail("refund_provider_mismatch",409);
+    // Pending refunds cannot lower the usable balance.
+    if(refund.status!=="succeeded")return json({ok:true,pending:true});
+    if(!/^ch_[A-Za-z0-9]{12,}$/.test(refund.charge||"")||
+       !PI_RE.test(refund.payment_intent||"")||
+       refund.currency!=="usd"||!Number.isSafeInteger(refund.amount)||
+       refund.amount<=0)
+      return fail("refund_parent_or_amount_unverified",409);
+    await ledger(env,"refund",{
+      provider:"stripe",environment:"live",refund_id:refund.id,
+      parent_charge_id:refund.charge,payment_intent_id:refund.payment_intent,
+      refunded_cents:refund.amount,currency:"USD",status:"succeeded",
+      event_id:event.id
+    });
+    return json({ok:true,refund_recorded:true});
+  }
   const events=["checkout.session.completed","checkout.session.async_payment_succeeded"];
   if(!events.includes(event.type))return json({ok:true,ignored:true});
   const signedSession=event.data?.object;
