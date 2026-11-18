@@ -83,7 +83,7 @@ test("event page and dashboard connect owner creation, member account activity a
     readFile(new URL("../src/pages/Dashboard.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/components/dashboard/EventsDashboardSection.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/api/events.js", import.meta.url), "utf8"),
-    readFile(new URL("../../../supabase/migrations/20261118190000_ifund_fundraising_events_and_external_activity.sql", import.meta.url), "utf8"),
+    readFile(new URL("../../../supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql", import.meta.url), "utf8"),
   ]);
   assert.match(page, /Create a fundraising event/);
   assert.match(page, /Manage this event/);
@@ -122,7 +122,7 @@ test("iPhone events view is linked to the account without adding in-app checkout
 });
 
 test("event schema enforces verified identity, legal acceptance, private activity and payment separation", async () => {
-  const migration = await readFile(new URL("../../../supabase/migrations/20261118190000_ifund_fundraising_events_and_external_activity.sql", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../../../supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql", import.meta.url), "utf8");
   assert.match(migration, /ifund_private\.verified_email_creator\(\)/);
   assert.match(migration, /ifund_current_user_has_current_terms\(\)/);
   assert.match(migration, /ifund_event_registrations_member_private_read/);
