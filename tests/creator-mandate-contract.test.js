@@ -24,6 +24,7 @@ const managedConnections = await readFile(new URL("../worker/agents/managedConne
 const revisionGate = await readFile(new URL("../supabase/migrations/20261118163027_ifund_managed_campaign_revision_gate_20261118.sql", import.meta.url), "utf8");
 const auditGuard = await readFile(new URL("../supabase/migrations/20261118163055_ifund_managed_campaign_audit_guard_hardening_20261118.sql", import.meta.url), "utf8");
 const mandateApi = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
+const scopeAtomicity = await readFile(new URL("../supabase/migrations/20261118165000_ifund_managed_campaign_scope_atomicity.sql", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -236,4 +237,17 @@ test("managed campaign revisions require fresh creator approval and create an au
   assert.match(mandateApi, /action === "sync_campaign"/);
   assert.match(mandateApi, /ifund_creator_mandate_sync_campaign_draft/);
   assert.match(admin, /Apply approved revision to IFund draft/);
+});
+
+
+test("donor messaging and account connection actions enforce separate scopes atomically", () => {
+  assert.match(scopeAtomicity, /language plpgsql\s+volatile/);
+  assert.match(scopeAtomicity, /for share of m/);
+  assert.match(scopeAtomicity, /ifund_communications_runtime\.prepare_send/);
+  assert.match(scopeAtomicity, /ifund_communications_runtime\.send/);
+  assert.match(scopeAtomicity, /ifund_connections_runtime\.grant_help/);
+  assert.match(scopeAtomicity, /ifund_connections_runtime\.request_action/);
+  assert.match(scopeAtomicity, /'donor_messaging'/);
+  assert.match(scopeAtomicity, /'account_connections'/);
+  assert.match(scopeAtomicity, /ifund_campaign_mandate_scope_access/);
 });
