@@ -107,7 +107,7 @@ async function readOnly(env, relative, jwt, fetcher) {
 }
 
 /**
- * Ported read subset from Base44 getCommunityFeed, getCampaignDraft and
+ * Independent read subset for community feed, campaign drafts and
  * campaign discovery. The preview flag defaults disabled. No financial writes.
  */
 export async function routeReadRequest(request, env, fetcher = fetch) {
