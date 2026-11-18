@@ -5,6 +5,7 @@
 import { isVerifiedEmailUser } from "../lib/verifiedEmailUser.js";
 import { payoutIdentity } from "../lib/guestAccess.js";
 import { verifyAccountLifecycle } from "../lib/accountLifecycle.js";
+import { TERMS_VERSION } from "../lib/legalPolicy.js";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const EVENT_COLUMNS = [
@@ -148,6 +149,16 @@ async function verifiedMember(client) {
   if (!lifecycle.ok) throw new Error(lifecycle.message || "Account access could not be verified.");
   return user.id;
 }
+async function requireCurrentTerms(client, owner) {
+  const { data, error } = await client.from("ifund_legal_acceptances")
+    .select("owner_id,terms_version,explicit_consent,accepted_at")
+    .eq("owner_id", owner).eq("terms_version", TERMS_VERSION).maybeSingle();
+  if (error || data?.owner_id !== owner || data?.terms_version !== TERMS_VERSION ||
+      data?.explicit_consent !== true || !data?.accepted_at) {
+    throw new Error("Review and accept the current member agreement before managing events or event activity.");
+  }
+}
+
 async function sessionUnchanged(client, owner) {
   const { data, error } = await client.auth.getUser();
   if (error || data?.user?.id !== owner) throw new Error("Your account changed. Reload before continuing.");
@@ -202,6 +213,7 @@ export async function listOwnerEvents(client, { limit = 100 } = {}) {
 export async function saveOwnerEvent(client, input, { id = null } = {}) {
   if (id !== null && !UUID.test(id || "")) throw new Error("Invalid event reference.");
   const owner = await verifiedMember(client);
+  await requireCurrentTerms(client, owner);
   const payload = normalizeEventInput(input);
   if (payload.campaign_id) {
     const { data: campaign, error } = await client.from("ifund_campaigns")
@@ -244,6 +256,7 @@ export async function saveOwnerEventItem(client, eventId, input, { id = null } =
   if (!UUID.test(eventId || "") || (id !== null && !UUID.test(id || "")))
     throw new Error("Invalid event or item reference.");
   const owner = await verifiedMember(client);
+  await requireCurrentTerms(client, owner);
   const { data: parent, error: parentError } = await client.from("ifund_events")
     .select("id,owner_id").eq("id", eventId).eq("owner_id", owner).maybeSingle();
   if (parentError || !parent || parent.owner_id !== owner)
@@ -301,6 +314,7 @@ export async function recordEventActivity(client, {
       (typeof externalReference !== "string" || externalReference.trim().length > 200))
     throw new Error("The external reference is too long.");
   const owner = await verifiedMember(client);
+  await requireCurrentTerms(client, owner);
   const { data: event, error: eventError } = await client.from("ifund_events")
     .select("id,status,visibility,checkout_url")
     .eq("id", eventId).eq("status", "published").eq("visibility", "public").maybeSingle();
@@ -352,6 +366,7 @@ export async function recordEventActivity(client, {
 export async function cancelEventActivity(client, activityId) {
   if (!UUID.test(activityId || "")) throw new Error("Invalid event activity reference.");
   const owner = await verifiedMember(client);
+  await requireCurrentTerms(client, owner);
   const { data, error } = await client.from("ifund_event_registrations")
     .update({ status: "cancelled" })
     .eq("id", activityId).eq("user_id", owner).eq("status", "active")
@@ -366,6 +381,7 @@ export async function updateOwnerEventStatus(client, eventId, status) {
   if (!UUID.test(eventId || "") || !["cancelled","completed"].includes(status))
     throw new Error("Invalid event status change.");
   const owner = await verifiedMember(client);
+  await requireCurrentTerms(client, owner);
   const { data, error } = await client.from("ifund_events")
     .update({ status, updated_at: new Date().toISOString() })
     .eq("id", eventId).eq("owner_id", owner)
