@@ -225,7 +225,13 @@ with (security_barrier = true)
 as
 select d.campaign_id, d.provider_label, d.donation_url
 from public.ifund_managed_external_destinations d
+join public.ifund_creator_mandates m on m.id = d.mandate_id
 where d.status = 'ready'
+  and m.status = 'active'
+  and m.expires_at > statement_timestamp()
+  and m.creator_review_state = 'approved'
+  and m.creator_approved_at is not null
+  and coalesce((m.scopes ->> 'publish')::boolean, false) is true
   and exists (
     select 1 from public.ifund_campaigns c
     where c.id = d.campaign_id and c.status = 'active'
