@@ -136,8 +136,8 @@ create index if not exists ifund_event_items_event_status_idx
   on public.ifund_event_items(event_id, status, created_at desc);
 create index if not exists ifund_event_registrations_member_idx
   on public.ifund_event_registrations(user_id, created_at desc, id);
-create index if not exists ifund_event_registrations_organizer_idx
-  on public.ifund_event_registrations(event_owner_id, event_id, created_at desc);
+create index if not exists ifund_event_registrations_event_idx
+  on public.ifund_event_registrations(event_id, created_at desc);
 
 alter table public.ifund_events enable row level security;
 alter table public.ifund_event_items enable row level security;
