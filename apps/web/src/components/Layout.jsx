@@ -4,7 +4,7 @@ import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sp
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import OfflineBanner from "@/components/mobile/OfflineBanner";
 import LegalFooter from "@/components/LegalFooter";
 import PlatformSupportHostedButton from "@/components/payments/PlatformSupportHostedButton";
@@ -134,6 +134,7 @@ const publicNavItems = [
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
   const drawerCloseRef = useRef(null);
   const [darkTheme, setDarkTheme] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
   const toggleTheme = () => {
@@ -326,10 +327,10 @@ export default function Layout() {
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={pathname}
-            initial={{ opacity: 0, x: "100%" }}
+            initial={prefersReducedMotion ? false : { opacity: 0, x: "100%" }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            exit={prefersReducedMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: "100%" }}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.25, ease: "easeOut" }}
             className="w-full min-w-0 max-w-full overflow-x-hidden"
           >
             <ErrorBoundary key={pathname}>
