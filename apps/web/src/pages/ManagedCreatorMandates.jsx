@@ -50,7 +50,7 @@ export default function ManagedCreatorMandates() {
     try {
       const result = await adminCreatorMandateRequest("verify_identity", { mandate_id: selected.id, identity_evidence_note: evidence });
       setReviewUrl(result.review_token ? "Identity verified. A new review link will be generated when the draft is ready." : "");
-      setEvidence(""); setNotice("Identity verification recorded. The mandate is now active for campaign-specific AI work within its approved scope.");
+      setEvidence(""); setNotice("Identity verification recorded. Private Story AI drafting is available for this mandate while it remains active. Other specialist agents and high-impact actions are not yet connected.");
       await refresh();
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
@@ -65,6 +65,7 @@ export default function ManagedCreatorMandates() {
         beneficiary: selected.beneficiary_name,
         need: selected.fundraiser_label,
         cause: "community fundraising",
+        managed_mandate_id: selected.id,
       });
       setDraft({ title: suggestion.titles[0], summary: suggestion.summaries[0], story: suggestion.story });
       setNotice("AI prepared a private draft from the facts supplied. Review and edit it before saving for creator approval.");
