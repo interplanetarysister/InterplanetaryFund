@@ -5,21 +5,21 @@ import assert from 'node:assert/strict';
 import { redactTeamCredentials, appendTeamContext, readCampaignDocumentContext } from './teamContext.js';
 
 const cases = [
-  ['standard', 'https://example.test/callback?state=x&code=synthetic-secret-123'],
-  ['html entity', 'https://example.test/callback?state=x&amp;code=synthetic-secret-123'],
-  ['numeric entity', 'https://example.test/callback?state=x&#38;code=synthetic-secret-123'],
-  ['encoded separator', 'https://example.test/callback?state=x%26code=synthetic-secret-123'],
-  ['encoded key', 'https://example.test/callback?%63ode=synthetic-secret-123'],
-  ['encoded equals', 'https://example.test/callback?code%3Dsynthetic-secret-123'],
-  ['double encoded separator', 'https://example.test/callback?state=x%2526code=synthetic-secret-123'],
-  ['nested html entity', 'https://example.test/callback?state=x&amp;amp;code=synthetic-secret-123'],
-  ['encoded semicolon separator', 'https://example.test/callback?state=x%3Bcode=synthetic-secret-123'],
-  ['triple encoded separator', 'https://example.test/callback?state=x%252526code=synthetic-secret-123'],
-  ['nested encoded key', 'https://example.test/callback?state=x%252563ode=synthetic-secret-123'],
-  ['array-style code key', 'https://example.test/callback?state=ok&code%5B%5D=synthetic-secret-123'],
-  ['control-suffixed code key', 'https://example.test/callback?state=ok&code%00=synthetic-secret-123'],
-  ['nested oauth array key', 'https://example.test/callback?state=ok&oauth%5Fcode%5B0%5D=synthetic-secret-123'],
-  ['newline-suffixed authorization key', 'https://example.test/callback?state=ok&authorization_code%0a=synthetic-secret-123'],
+  ['standard', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x&code=synthetic-secret-123'],
+  ['html entity', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x&amp;code=synthetic-secret-123'],
+  ['numeric entity', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x&#38;code=synthetic-secret-123'],
+  ['encoded separator', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x%26code=synthetic-secret-123'],
+  ['encoded key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?%63ode=synthetic-secret-123'],
+  ['encoded equals', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?code%3Dsynthetic-secret-123'],
+  ['double encoded separator', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x%2526code=synthetic-secret-123'],
+  ['nested html entity', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x&amp;amp;code=synthetic-secret-123'],
+  ['encoded semicolon separator', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x%3Bcode=synthetic-secret-123'],
+  ['triple encoded separator', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x%252526code=synthetic-secret-123'],
+  ['nested encoded key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=x%252563ode=synthetic-secret-123'],
+  ['array-style code key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=ok&code%5B%5D=synthetic-secret-123'],
+  ['control-suffixed code key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=ok&code%00=synthetic-secret-123'],
+  ['nested oauth array key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=ok&oauth%5Fcode%5B0%5D=synthetic-secret-123'],
+  ['newline-suffixed authorization key', 'https://ssibsfmtodgximseeqsv.supabase.co/callback?state=ok&authorization_code%0a=synthetic-secret-123'],
 ];
 for (const [name, input] of cases) {
   test('callback secret redacted: ' + name, () => {
@@ -78,7 +78,7 @@ test('structured non-string JSON credential values fail closed without over-reda
 // Dotted OAuth parameter aliases must fail closed, including percent-encoded dots.
 test('dotted callback credential keys are never persisted verbatim', () => {
   for (const key of ['code.foo','code%2Efoo','oauth_code.extra','authorization_code%2Edeep']) {
-    const output = redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    const output = redactTeamCredentials('https://ssibsfmtodgximseeqsv.supabase.co/cb?state=safe&'+key+'=synthetic-secret-123');
     assert.doesNotMatch(output, /synthetic-secret-123/);
     assert.match(output, /\[redacted credential URL\]/);
   }
@@ -88,12 +88,12 @@ test('dotted callback credential keys are never persisted verbatim', () => {
 test('OAuth ID and session token callback values are never retained', () => {
   for (const key of ['id_token', '%69d_token', 'id%5Ftoken',
     'id_token%5B%5D', 'session_token', 'jwt', 'token']) {
-    const actual=redactTeamCredentials('https://example.test/cb?state=safe&'+key+'=synthetic-secret-123');
+    const actual=redactTeamCredentials('https://ssibsfmtodgximseeqsv.supabase.co/cb?state=safe&'+key+'=synthetic-secret-123');
     assert.doesNotMatch(actual, /synthetic-secret-123/);
     assert.match(actual, /\[redacted(?: credential URL)?\]/);
   }
   for (const prose of ['The token economy is growing.', 'The code is illustrative.',
-    'https://example.test/cb?state=safe&theme=dark']) {
+    'https://ssibsfmtodgximseeqsv.supabase.co/cb?state=safe&theme=dark']) {
     assert.equal(redactTeamCredentials(prose),prose);
   }
 });
@@ -111,7 +111,7 @@ test('private document brief purpose is redacted while ordinary purpose survives
   ]) {
     const result=await readCampaignDocumentContext({
       env:{IFUND_CAMPAIGN_DOCUMENTS_ENABLED:'enabled',
-        SUPABASE_URL:'https://example.test',SUPABASE_PUBLISHABLE_KEY:'synthetic'},
+        SUPABASE_URL:'https://ssibsfmtodgximseeqsv.supabase.co',SUPABASE_PUBLISHABLE_KEY:'synthetic'},
       jwt:'synthetic.jwt.token',
       campaignId:'22222222-2222-4222-8222-222222222222',
       fetcher:async()=>({ok:true,json:async()=>[doc(purpose)]})
