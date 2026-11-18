@@ -20,6 +20,10 @@ const containsPolicy = (messages) => {
   assert.ok(messages[0].content.includes("neutral invitations"));
   assert.ok(messages[0].content.includes("must NOT receive campaign-support services"));
   assert.ok(messages[0].content.includes("IFund-native campaign creation exception"));
+  assert.ok(messages[0].content.includes("EXTERNAL CREATOR PERMISSION OFFER"));
+  assert.ok(messages[0].content.includes("Ask which option they prefer"));
+  assert.ok(messages[0].content.includes("informal"));
+  assert.ok(messages[0].content.includes("revocation path"));
 };
 
 test("the shared policy explicitly separates eligible campaigns from unrestricted external audiences", () => {
@@ -28,6 +32,10 @@ test("the shared policy explicitly separates eligible campaigns from unrestricte
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /new-user acquisition/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /neutral invitations/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /must NOT receive campaign-support services/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /without requiring them to create an IFund login/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /separate, explicit, recorded authorization/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /informal/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /payout destination checks/);
 });
 
 test("active Strategy and Growth prompts receive the universal policy", () => {
@@ -62,5 +70,7 @@ test("every registered specialist receives the same policy at runtime", () => {
     const instructions = serviceSkill(role).instructions;
     assert.ok(instructions.includes("UNIVERSAL IFUND CAMPAIGN ELIGIBILITY AND GROWTH POLICY"));
     assert.ok(instructions.includes("Those outside audience members do not need IFund accounts."));
+    assert.ok(instructions.includes("EXTERNAL CREATOR PERMISSION OFFER"));
+    assert.ok(instructions.includes("without requiring them to create an IFund login"));
   }
 });
