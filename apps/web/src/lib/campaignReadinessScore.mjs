@@ -36,7 +36,7 @@ export function calculateCampaignReadiness(form = {}, { sharingPlan = false } = 
       (structure.valid?12:structure.paragraphs>=2?6:2)+
       (story.length>=3500?8:story.length>=900?5:story.length>=300?2:0)+
       (/[.!?…]\s*$/u.test(story)?5:0),25),
-      "Write 2–3 paragraphs with 3–5 sentences each; include the real situation, needs and next steps.", "campaign-story"),
+      "Optional improvement: explain the real situation, the needs and next steps in readable paragraphs. Length and structure do not determine publication eligibility.", "campaign-story"),
     item("purpose","Purpose and plan",(hasGoal?6:0)+(why?3:0)+(budget?3:0)+(updates?3:0),
       "Set a realistic goal and explain fund use, beneficiaries and expected updates; check claims yourself.", "campaign-goal"),
     item("category","Category",form.category&&form.category!=="other"&&form.category!=="community"?5:form.category?3:0,
