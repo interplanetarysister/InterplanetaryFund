@@ -66,7 +66,8 @@ function binding({
             return Response.json(access, { status: accessStatus });
           if (path === "/api/agents/story/authorize") {
             assert.equal(body.request_id, ID);
-            assert.equal(body.campaign_creation_session_id, SESSION);
+            if (body.campaign_id) assert.equal(body.campaign_id, RECEIPT);
+            else assert.equal(body.campaign_creation_session_id, SESSION);
             return Response.json({ authorized: true });
           }
           assert.equal(path, "/api/agents/story/drafts");
@@ -314,6 +315,9 @@ test("campaign writing requires a verified owner campaign, mandate or creation s
   const f = binding({ access: { active: false, level: 0 } });
   const result = await campaignPreview(request(missing), f.env);
   assert.equal(result.status, 403);
-  assert.equal(f.calls.length, 1);
-  assert.equal(campaignPreviewInput({ ...input, campaign_creation_session_id: "not-a-uuid" }).campaign_creation_session_id, undefined);
+  assert.equal(f.calls.length, 0);
+  assert.throws(
+    () => campaignPreviewInput({ ...input, campaign_creation_session_id: "not-a-uuid" }),
+    /IFund campaign creator/,
+  );
 });
