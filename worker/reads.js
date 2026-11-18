@@ -15,11 +15,12 @@ export function accountGuardResponse(account) {
 }
 
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CANONICAL_SUPABASE_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
 
 /** Require independent migration-preview enablement and public Supabase configuration. */
 export function migrationReady(env) {
   return env?.MIGRATION_API_PREVIEW === 'enabled' &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
+    env?.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
     typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
     env.SUPABASE_PUBLISHABLE_KEY.length > 0;
 }
