@@ -73,6 +73,21 @@ export default function Connections() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [busy, setBusy] = useState("");
   const busyLock = useRef(false);
+  const ownerScope = useRef({owner:null,generation:0});
+  const [loadedOwner,setLoadedOwner] = useState(null);
+  const currentOwner = user?.id || null;
+  if (ownerScope.current.owner !== currentOwner) {
+    ownerScope.current = {owner:currentOwner,generation:ownerScope.current.generation+1};
+    busyLock.current=false;
+  }
+  const ownerVerified = Boolean(currentOwner && loadedOwner===currentOwner);
+  const validScope = (scope) => ownerScope.current.owner===scope.owner && ownerScope.current.generation===scope.generation;
+  const verifiedSession = async (scope) => {
+    const client=authClient();
+    const {data,error}=await client.auth.getUser();
+    if(error || !validScope(scope) || data?.user?.id!==scope.owner) throw new Error("Account changed. Refresh connections and try again.");
+    return client;
+  };
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
@@ -82,6 +97,10 @@ export default function Connections() {
 
   useEffect(() => {
     let active = true;
+    const scope={...ownerScope.current};
+    setLoadedOwner(null);
+    setRecords([]);setLinks([]);setChoices([]);setCampaigns([]);setProviderReady({});setHelpConsent(null);
+    setBusy("");setNotice("");setError("");setConfirmDisconnect(false);
     setLoading(Boolean(user?.id));
     setRecordError("");
     setDiagnosticError("");
@@ -107,7 +126,9 @@ export default function Connections() {
         })(),
         client.rpc("ifund_my_connection_assistance")
       ]);
-      if (!active) return;
+      if (!active || !validScope(scope)) return;
+      try { await verifiedSession(scope); } catch { setLoading(false);setRecordError("Account verification changed. Refresh connections.");return; }
+      if (!active || !validScope(scope)) return;
       const extract = (index) => jobs[index].status==="fulfilled" && !jobs[index].value?.error && Array.isArray(jobs[index].value.data) ? jobs[index].value.data : [];
       const accountRows=extract(0);
       setRecords(accountRows);
@@ -122,19 +143,24 @@ export default function Connections() {
       if (jobs[1].status!=="fulfilled" || jobs[1].value?.error) setRecordError("Your saved public pages could not be loaded. Choose Refresh to try again.");
       if (jobs[2].status!=="fulfilled" || jobs[2].value?.error) setRecordError("Your sharing choices could not be loaded. Choose Refresh to try again.");
       setDiagnosticError(jobs.map((entry,i)=>entry.status==="rejected" ? "Load "+i+": "+String(entry.reason) : entry.value?.error ? "Load "+i+": "+entry.value.error.message : "").filter(Boolean).join("; "));
+      setLoadedOwner(scope.owner);
       setLoading(false);
     }
-    load().catch(()=>{ if (active) { setLoading(false); setRecordError("Connections could not be loaded right now. Choose Refresh to try again."); } });
+    load().catch(()=>{ if (active && validScope(scope)) { setLoading(false); setRecordError("Connections could not be loaded right now. Choose Refresh to try again."); } });
     return () => { active=false; };
   }, [user?.id,refreshKey]);
 
   const selectedOAuth = OAUTH_PLATFORM_IDS[selected.id] || null;
-  const connected = useMemo(() => records.filter(row=>row.status==="connected" && Boolean(row.verified_at)),[records]);
-  const saved = links.find(row=>row.provider===selected.id);
-  const account = selectedOAuth ? records.find(row=>matchesStoredConnection(row,selectedOAuth) && row.status!=="disconnected") : null;
-  const canStart = Boolean(selectedOAuth && providerReady[selectedOAuth]===true && user?.id);
+  const connected = useMemo(() => ownerVerified ? records.filter(row=>row.status==="connected" && Boolean(row.verified_at)) : [],[records,ownerVerified]);
+  const visibleLinks=ownerVerified?links:[];
+  const visibleChoices=ownerVerified?choices:[];
+  const visibleCampaigns=ownerVerified?campaigns:[];
+  const visibleReady=ownerVerified?providerReady:{};
+  const saved = visibleLinks.find(row=>row.provider===selected.id);
+  const account = selectedOAuth && ownerVerified ? records.find(row=>matchesStoredConnection(row,selectedOAuth) && row.status!=="disconnected") : null;
+  const canStart = Boolean(selectedOAuth && visibleReady[selectedOAuth]===true && ownerVerified);
   const isLinked = Boolean(account?.status==="connected" && account.verified_at);
-  const selectedChoice = choices.find(row=>row.provider===selected.id)?.choice || "manual";
+  const selectedChoice = visibleChoices.find(row=>row.provider===selected.id)?.choice || "manual";
   const savedId = saved?.provider || "";
 
   useEffect(() => {
@@ -144,30 +170,33 @@ export default function Connections() {
     setConfirmDisconnect(false);
     setError("");
     setNotice("");
-  }, [selected.id,saved?.page_url,saved?.label,saved?.campaign_id]);
+  }, [currentOwner,selected.id,saved?.page_url,saved?.label,saved?.campaign_id]);
 
   const tiles=useMemo(()=>CONNECTION_PLATFORMS.filter(p=>
     (category==="all" || p.kind===category) &&
     (!search || (p.name+" "+p.kind).toLowerCase().includes(search.trim().toLowerCase()))
   ),[category,search]);
   const readyToAdd=CONNECTION_PLATFORMS.filter(p=>
-    p.kind!=="app" || (OAUTH_PLATFORM_IDS[p.id] && providerReady[OAUTH_PLATFORM_IDS[p.id]]===true)
+    p.kind!=="app" || (OAUTH_PLATFORM_IDS[p.id] && visibleReady[OAUTH_PLATFORM_IDS[p.id]]===true)
   ).length;
 
   function choosePlatform(platform) {
     setParams({connect:platform.id});
   }
   async function manage(operation) {
-    if (!selectedOAuth || !user?.id || busyLock.current || (operation!=="disconnect" && !canStart)) return;
+    if (!selectedOAuth || !ownerVerified || busyLock.current || (operation!=="disconnect" && !canStart)) return;
+    const scope={...ownerScope.current};
     busyLock.current=true; setBusy(operation); setError(""); setNotice("");
     let redirect=false;
     try {
+      await verifiedSession(scope);
       const { data, error: issue } = await authClient().auth.getSession();
       if (issue || !data?.session?.access_token) throw new Error("Sign in again, then return here to connect.");
       const response = await fetch("/api/oauth/"+selectedOAuth+"/"+operation,{
         method:"POST", headers:{Authorization:"Bearer "+data.session.access_token}
       });
       const payload = await response.json().catch(()=>({}));
+      await verifiedSession(scope);
       if (!response.ok) throw new Error("Please try connecting again from your iFund account.");
       if (operation==="start") {
         if (!hostIsTrusted(selectedOAuth,payload.authorization_url)) throw new Error("The sign-in page could not be verified. Try connecting again.");
@@ -179,56 +208,71 @@ export default function Connections() {
       setConfirmDisconnect(false);
       setNotice(operation==="disconnect" ? selected.name+" was disconnected from iFund." : selected.name+" connection updated.");
       setRefreshKey(i=>i+1);
-    } catch (cause) { setError(cause.message || "Choose Connect to try again."); }
-    finally { if (!redirect) { busyLock.current=false; setBusy(""); } }
+    } catch (cause) { if(validScope(scope))setError(cause.message || "Choose Connect to try again."); }
+    finally { if (validScope(scope) && !redirect) { busyLock.current=false; setBusy(""); } }
   }
   async function saveLink(event) {
     event.preventDefault();
-    if (!user?.id || busyLock.current) return;
+    if (!ownerVerified || busyLock.current) return;
     const validated=validatePublicConnectionLink(selected.id,linkInput);
     if (!validated.ok) { setError(validated.message); return; }
+    const scope={...ownerScope.current};
     busyLock.current=true; setBusy("save-link"); setError(""); setNotice("");
     try {
+      await verifiedSession(scope);
       const { data, error: issue }=await authClient().rpc("ifund_save_public_link",{
         p_provider:selected.id,p_url:validated.url,p_label:linkLabel.trim(),p_campaign_id:pairedCampaign||null
       });
       if (issue || data!==true) throw new Error("Please check your page address and try saving again.");
+      await verifiedSession(scope);
+      await verifiedSession(scope);
       setNotice("Your "+selected.name+" public page is saved privately.");
       setRefreshKey(i=>i+1);
-    } catch(cause) { setError(cause.message || "Could not save the link. Try again."); }
-    finally { busyLock.current=false; setBusy(""); }
+    } catch(cause) { if(validScope(scope))setError(cause.message || "Could not save the link. Try again."); }
+    finally { if(validScope(scope)){busyLock.current=false;setBusy("");} }
   }
   async function removeLink() {
-    if (!savedId || busyLock.current) return;
+    if (!ownerVerified || !savedId || busyLock.current) return;
+    const scope={...ownerScope.current};
     busyLock.current=true;setBusy("remove-link");setError("");setNotice("");
     try {
+      await verifiedSession(scope);
       const {error:issue}=await authClient().rpc("ifund_remove_public_link",{p_provider:selected.id});
       if(issue) throw new Error("Please retry removing this page.");
+      await verifiedSession(scope);
       setNotice("Saved page removed.");setRefreshKey(i=>i+1);
-    } catch(cause) { setError(cause.message); }
+    } catch(cause) { if(validScope(scope))setError(cause.message); }
     finally { busyLock.current=false;setBusy("");}
   }
   async function saveChoice(value) {
-    if (!user?.id || busyLock.current) return;
+    if (!ownerVerified || busyLock.current) return;
+    const scope={...ownerScope.current};
     busyLock.current=true;setBusy("share-choice");setError("");setNotice("");
     try {
+      await verifiedSession(scope);
       const { data, error:issue }=await authClient().rpc("ifund_set_share_choice",{p_provider:selected.id,p_choice:value});
       if(issue || data!==true) throw new Error("Please try saving that preference again.");
+      await verifiedSession(scope);
+      await verifiedSession(scope);
       setChoices(prev=>[...prev.filter(p=>p.provider!==selected.id),{provider:selected.id,choice:value}]);
       setNotice("Your sharing preference was saved.");
-    } catch(cause) { setError(cause.message); }
-    finally {busyLock.current=false;setBusy("");}
+    } catch(cause) { if(validScope(scope))setError(cause.message); }
+    finally {if(validScope(scope)){busyLock.current=false;setBusy("");}}
   }
   async function chooseHelp(granted) {
-    if(!user?.id || busyLock.current) return;
+    if(!ownerVerified || busyLock.current) return;
+    const scope={...ownerScope.current};
     busyLock.current=true; setBusy("help"); setError(""); setNotice("");
     try {
+      await verifiedSession(scope);
       const {data,error:issue}=await authClient().rpc("ifund_set_connection_assistance",{p_enabled:granted});
       if(issue || data!==true) throw new Error("Please try saving your iFund help preference again.");
+      await verifiedSession(scope);
+      await verifiedSession(scope);
       setHelpConsent({enabled:granted,decided_at:new Date().toISOString()});
       setNotice(granted?"iFund guidance and draft help is enabled.":"iFund guidance and draft help is turned off.");
-    } catch(cause) {setError(cause.message);}
-    finally {busyLock.current=false;setBusy("");}
+    } catch(cause) {if(validScope(scope))setError(cause.message);}
+    finally {if(validScope(scope)){busyLock.current=false;setBusy("");}}
   }
   const sourcePlatform=selected.id==="facebook"?"Facebook Page":selected.name;
   const canSaveLink=selected.kind!=="app";
@@ -240,7 +284,7 @@ export default function Connections() {
 
   const activity = [
     ...knownConnections.map(({provider,row})=>({id:"verified-"+row.id,created_at:row.verified_at,text:provider.name+" was securely connected."})),
-    ...links.map(row=>({id:"public-"+row.provider,created_at:row.updated_at,text:(selectedConnectionPlatform(row.provider)?.name||"A platform")+" public page was saved or updated."}))
+    ...visibleLinks.map(row=>({id:"public-"+row.provider,created_at:row.updated_at,text:(selectedConnectionPlatform(row.provider)?.name||"A platform")+" public page was saved or updated."}))
   ].filter(item=>item.created_at).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
 
   return <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-6 sm:py-10">
@@ -256,7 +300,7 @@ export default function Connections() {
     <section className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Connection overview">
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Actively connected</p><p className="mt-1 text-3xl font-bold tabular-nums">{connected.length}</p></div>
       <div className="rounded-2xl border border-border bg-card p-4"><p className="text-xs text-muted-foreground">Available to add</p><p className="mt-1 text-3xl font-bold tabular-nums">{readyToAdd}</p></div>
-      <div className="col-span-2 rounded-2xl border border-border bg-card p-4 sm:col-span-1"><p className="text-xs text-muted-foreground">Saved public pages</p><p className="mt-1 text-3xl font-bold tabular-nums">{links.length}</p></div>
+      <div className="col-span-2 rounded-2xl border border-border bg-card p-4 sm:col-span-1"><p className="text-xs text-muted-foreground">Saved public pages</p><p className="mt-1 text-3xl font-bold tabular-nums">{visibleLinks.length}</p></div>
     </section>
 
     {knownConnections.length>0 && <section className="space-y-2" aria-label="Active connected platforms">
@@ -288,8 +332,8 @@ export default function Connections() {
       <div className="grid grid-cols-3 gap-3 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-8" aria-label="Platform icons">
         {tiles.map(platform=>{
           const active=selected.id===platform.id;
-          const savedLink=links.some(link=>link.provider===platform.id);
-          const verified=records.some(row=>row.status==="connected" && row.verified_at &&
+          const savedLink=visibleLinks.some(link=>link.provider===platform.id);
+          const verified=ownerVerified&&records.some(row=>row.status==="connected" && row.verified_at &&
             matchesStoredConnection(row,OAUTH_PLATFORM_IDS[platform.id]));
           return <button type="button" key={platform.id} aria-pressed={active} aria-controls="connection-details"
             onClick={()=>choosePlatform(platform)} title={"View "+platform.name+" connection steps"}
@@ -331,7 +375,7 @@ export default function Connections() {
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.
       </div>}
-      {account && <div className="space-y-3 rounded-xl border border-border p-4">
+      {ownerVerified && account && <div className="space-y-3 rounded-xl border border-border p-4">
         {confirmDisconnect ? <>
           <p className="text-sm">Disconnect {selected.name} from iFund? Your existing posts on {selected.name} will remain there.</p>
           <div className="flex flex-wrap gap-3">
@@ -357,11 +401,11 @@ export default function Connections() {
         <label className="block space-y-1 text-sm font-medium">Pair with an iFund campaign (optional)
           <select value={pairedCampaign} className={INPUT} onChange={event=>setPairedCampaign(event.target.value)}>
             <option value="">Keep this page separate</option>
-            {campaigns.map(item=><option key={item.id} value={item.id}>{item.title||"Untitled campaign"}</option>)}
+            {visibleCampaigns.map(item=><option key={item.id} value={item.id}>{item.title||"Untitled campaign"}</option>)}
           </select>
         </label>
         <div className="flex flex-wrap items-center gap-3">
-          {user?<button disabled={Boolean(busy)||loading} className={PRIMARY} type="submit">
+          {ownerVerified?<button disabled={Boolean(busy)||loading} className={PRIMARY} type="submit">
             <Link2 size={16}/>{busy==="save-link"?"Saving…":saved?"Update saved link":"Save public link"}
           </button>:<Link to="/login?returnTo=%2Fconnections" className={PRIMARY}>Sign in to save</Link>}
           {saved && validatePublicConnectionLink(selected.id,saved.page_url).ok && <a className={BUTTON} href={saved.page_url} target="_blank" rel="noopener noreferrer">Open saved page</a>}
@@ -373,7 +417,7 @@ export default function Connections() {
         <h3 className="font-semibold">How do you want help sharing?</h3>
         <p className="text-xs text-muted-foreground">Choose the type of suggestions you prefer. This setting does not post to outside accounts or grant anyone permission to post for you.</p>
         <label className="block space-y-2 text-sm font-medium">My sharing preference
-          <select className={INPUT} value={selectedChoice} disabled={!user||Boolean(busy)} onChange={event=>saveChoice(event.target.value)}>
+          <select className={INPUT} value={selectedChoice} disabled={!ownerVerified||Boolean(busy)||loading} onChange={event=>saveChoice(event.target.value)}>
             {SHARING_CHOICES.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
@@ -390,7 +434,7 @@ export default function Connections() {
         <summary className="cursor-pointer font-semibold">Administrator diagnostics</summary>
         <div className="mt-3 space-y-2 break-words">
           <p>Provider ID: {selectedOAuth || selected.id}</p>
-          <p>OAuth API ready: {selectedOAuth?String(providerReady[selectedOAuth]===true):"not applicable"}</p>
+          <p>OAuth API ready: {selectedOAuth?String(visibleReady[selectedOAuth]===true):"not applicable"}</p>
           <p>Provider grant: {account?.status || "no stored record"}</p>
           <p>LINK publishing readiness: {connectionCapabilityReadiness({record:account,authorizationEnabled:canStart}).reason}</p>
           {diagnosticError && <p>Read errors: {diagnosticError}</p>}
@@ -406,15 +450,15 @@ export default function Connections() {
         You can change this choice at any time. This never signs in to your outside accounts, sends messages, or publishes posts for you.
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-sm font-semibold">{helpConsent?.enabled===true?"Help is on":"Help is off"}</span>
-        <button type="button" disabled={Boolean(busy)||loading} className={BUTTON}
+        <span className="text-sm font-semibold">{ownerVerified&&helpConsent?.enabled===true?"Help is on":"Help is off"}</span>
+        <button type="button" disabled={!ownerVerified||Boolean(busy)||loading} className={BUTTON}
           onClick={()=>chooseHelp(helpConsent?.enabled!==true)}>
           {busy==="help"?"Saving…":helpConsent?.enabled===true?"Turn off help":"Turn on help"}
         </button>
         <Link className="inline-flex min-h-11 items-center text-sm text-primary underline" to="/agents">Open the iFund team</Link>
       </div>
     </section>
-    <CampaignShareConnections campaigns={campaigns}/>
+    <CampaignShareConnections campaigns={visibleCampaigns}/>
     <section className="space-y-3 rounded-2xl border border-border bg-card p-5" aria-label="Your connection activity">
       <h2 className="text-xl font-semibold">Recent connection activity</h2>
       {activity.length===0 ? <p className="text-sm text-muted-foreground">Your connected accounts and saved pages will appear here after you add them.</p> :
