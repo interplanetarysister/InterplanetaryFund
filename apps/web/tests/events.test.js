@@ -13,6 +13,8 @@ test("event checkout URL allowlist accepts selected official provider hosts", ()
   assert.equal(validateExternalCheckout("https://www.eventbrite.com/e/community-dinner-123", "eventbrite").valid, true);
   assert.equal(validateExternalCheckout("https://www.paypal.com/paypalme/communityfund", "paypal").valid, true);
   assert.equal(validateExternalCheckout("https://example.32auctions.com/item/lot-1", "32auctions").valid, true);
+  assert.equal(validateExternalCheckout("https://eventbrite.com/", "eventbrite").valid, false);
+  assert.equal(validateExternalCheckout("https://eventbrite.com/e/123", "paypal").valid, false);
 });
 
 test("event checkout validation rejects lookalike, unsafe, credentialed and mismatched provider URLs", () => {
@@ -51,6 +53,7 @@ test("event normalizer restricts categories and produces the expected owner even
   assert.ok(row.published_at);
   assert.throws(() => normalizeEventInput({title:"Dinner",event_type:"not-real",starts_at:validDate}), /event type/i);
   assert.throws(() => normalizeEventInput({title:"ok title",event_type:"gala",starts_at:validDate,ends_at:validDate}), /after its start/i);
+  assert.throws(() => normalizeEventInput({title:"Valid title",event_type:"gala",starts_at:validDate,timezone:"Invalid/TimeZone"}), /valid time zone/i);
 });
 
 test("event item normalizer validates ticket and auction item fields in integer cents", () => {
@@ -98,4 +101,34 @@ test("fundraising events are a first-class public and member mobile navigation t
   assert.match(migration, /not provider-verified transactions/);
   assert.doesNotMatch(migration, /ifund_donations\s*\(/i);
   assert.doesNotMatch(migration, /ifund_ledger_entries\s*\(/i);
+});
+
+test("iPhone events view is linked to the account without adding in-app checkout", async () => {
+  const [mobileApp,account,mobileEvents] = await Promise.all([
+    readFile(new URL("../src/MobileStoreApp.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/mobile/MobileStoreAccount.jsx", import.meta.url), "utf8"),
+    readFile(new URL("../src/mobile/MobileStoreEvents.jsx", import.meta.url), "utf8"),
+  ]);
+  assert.match(mobileApp, /path="\/events"/);
+  assert.match(mobileApp, /path="\/events\/:id"/);
+  assert.match(account, /<MobileStoreEvents embedded \/>/);
+  assert.match(mobileEvents, /listMyEventActivity/);
+  assert.match(mobileEvents, /recordEventActivity/);
+  assert.match(mobileEvents, /cancelEventActivity/);
+  assert.match(mobileEvents, /not a verified payment or receipt/);
+  assert.match(mobileApp, /No purchases, monetary gifts, fundraising checkout or paid subscriptions/);
+  assert.doesNotMatch(mobileEvents, /paypal.*capture|createOrder|captureOrder/i);
+});
+
+test("event schema enforces verified identity, legal acceptance, private activity and payment separation", async () => {
+  const migration = await readFile(new URL("../../../supabase/migrations/20261118190000_ifund_fundraising_events_and_external_activity.sql", import.meta.url), "utf8");
+  assert.match(migration, /ifund_private\.verified_email_creator\(\)/);
+  assert.match(migration, /ifund_current_user_has_current_terms\(\)/);
+  assert.match(migration, /ifund_event_registrations_member_private_read/);
+  assert.match(migration, /ifund_events\.status<>'published' or c\.status='active'/);
+  assert.match(migration, /checkout_provider='32auctions'/);
+  assert.match(migration, /char_length\(checkout_url\) <= 2048/);
+  assert.doesNotMatch(migration, /event_owner_id/);
+  assert.doesNotMatch(migration, /insert into public\.ifund_donations/i);
+  assert.doesNotMatch(migration, /insert into public\.ifund_ledger_entries/i);
 });
