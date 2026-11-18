@@ -92,6 +92,7 @@ export async function requestCampaignDraft(
       ...(input.section ? { section: input.section } : {}),
       ...(input.writing_preferences ? { writing_preferences: input.writing_preferences } : {}),
       ...(input.campaign_id ? { campaign_id: input.campaign_id } : {}),
+      ...(input.managed_mandate_id ? { managed_mandate_id: input.managed_mandate_id } : {}),
     }),
     signal: AbortSignal.timeout(90000),
   });
