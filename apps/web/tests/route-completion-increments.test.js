@@ -252,6 +252,12 @@ test("planetary impact is guest-accessible while admin sustainability remains pr
   const about = page("About");
   assert.match(about, /to="\/planetary-impact"/);
   const impact = page("AdminSustainability");
+  const publicData = readFileSync(new URL("../src/api/publicData.js", import.meta.url), "utf8");
+  assert.match(impact, /listActiveCampaigns\\(\\{ limit: 500, category: "environment" \\}\\)/);
+  assert.match(publicData, /if \\(category === "environment"\\) query = query\\.eq\\("category", "environment"\\)/,
+    "category must be filtered by Supabase before applying the 500-record limit");
+  assert.match(impact, /Counts are limited to this result window/,
+    "do not claim a complete environmental campaign census from a bounded query");
   assert.match(impact, /Cloudflare Pages and Workers/);
   assert.match(impact, /100% renewable-energy matching/);
   assert.match(impact, /31,000 metric tons CO₂e/);
