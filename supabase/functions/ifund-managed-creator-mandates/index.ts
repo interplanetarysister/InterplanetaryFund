@@ -225,13 +225,15 @@ Deno.serve(async (req) => {
         return json(422, { error: "explicit_destination_approval_required" }, origin);
       const tokenHash = await hash(publicToken);
       const { data: destination, error } = await publicDb.from("ifund_managed_external_destinations")
-        .select("id,mandate_id,donation_url,status")
+        .select("id,mandate_id,campaign_id,donation_url,status")
         .eq("creator_approval_token_hash", tokenHash).eq("status", "pending_creator_approval").maybeSingle();
       if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
       const { data: mandate, error: mandateError } = await publicDb.from("ifund_creator_mandates")
         .select("status,expires_at,scopes,campaign_id,creator_review_state,creator_approved_at,identity_verified_at").eq("id", destination.mandate_id).maybeSingle();
       if (mandateError || !mandate || mandate.status !== "active" ||
-          new Date(mandate.expires_at).getTime() <= Date.now() || mandate.scopes?.publish !== true)
+          new Date(mandate.expires_at).getTime() <= Date.now() || mandate.scopes?.publish !== true ||
+          mandate.campaign_id !== destination.campaign_id || mandate.creator_review_state !== "approved" ||
+          !mandate.creator_approved_at || !mandate.identity_verified_at)
         return json(410, { error: "creator_authorization_expired_or_revoked" }, origin);
       const { data: updated, error: updateError } = await publicDb.from("ifund_managed_external_destinations").update({
         creator_approved_at: new Date().toISOString(),
