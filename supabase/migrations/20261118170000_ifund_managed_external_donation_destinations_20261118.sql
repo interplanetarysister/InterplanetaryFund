@@ -81,6 +81,58 @@ alter table public.ifund_creator_mandate_events
     'external_destination_rejected','revoked','expired'
   ));
 
+create or replace function public.ifund_guard_managed_external_destination()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, public
+as $function$
+declare
+  v_mandate record;
+begin
+  select status, expires_at, scopes
+    into v_mandate
+    from public.ifund_creator_mandates
+    where id = new.mandate_id
+    for update;
+
+  if not found then
+    raise exception 'managed creator mandate not found';
+  end if;
+
+  if tg_op = 'UPDATE' and old.creator_approved_at is not null
+     and new.donation_url is distinct from old.donation_url then
+    raise exception 'creator-approved donation URL is immutable; request a new approval';
+  end if;
+
+  if new.creator_approved_at is not null
+     and (v_mandate.status <> 'active'
+          or v_mandate.expires_at <= now()
+          or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+          or new.creator_approved_by_token is not true
+          or new.creator_approval_token_hash is not null) then
+    raise exception 'active mandate and separate creator publication scope are required';
+  end if;
+
+  if new.status in ('pending_provider_verification','pending_compliance','ready')
+     and (v_mandate.status <> 'active'
+          or v_mandate.expires_at <= now()
+          or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true) then
+    raise exception 'active mandate and separate creator publication scope are required';
+  end if;
+
+  return new;
+end;
+$function$;
+
+drop trigger if exists ifund_managed_external_destination_guard
+  on public.ifund_managed_external_destinations;
+create trigger ifund_managed_external_destination_guard
+  before insert or update on public.ifund_managed_external_destinations
+  for each row execute function public.ifund_guard_managed_external_destination();
+
+revoke all on function public.ifund_guard_managed_external_destination() from public, anon, authenticated;
+
 comment on table public.ifund_managed_external_destinations is
   'Private direct-to-provider donation destination records. No browser-role access. Ready means creator approval, provider ownership verification and compliance evidence are recorded; a separate publication gate is still required.';
 
