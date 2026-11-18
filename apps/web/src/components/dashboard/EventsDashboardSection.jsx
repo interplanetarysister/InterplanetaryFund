@@ -17,23 +17,24 @@ function eventDate(row) {
 }
 
 export default function EventsDashboardSection() {
-  const [data,setData]=useState({loading:true,available:false,events:[],owned:[],rsvps:0,reported:0});
+  const [data,setData]=useState({loading:true,available:false,events:[],ownedCount:null,rsvps:null,reported:null});
   useEffect(()=>{
     let active=true;
     (async()=>{
       try{
         const client=authClient();
-        const [events,owned,activity]=await Promise.all([
+        const [events,ownedResult,activityResult]=await Promise.all([
           listPublicEvents(client,{limit:4}),
-          listOwnerEvents(client).catch(()=>[]),
-          listMyEventActivity(client).catch(()=>[]),
+          listOwnerEvents(client).then(value=>({ok:true,value})).catch(()=>({ok:false,value:null})),
+          listMyEventActivity(client).then(value=>({ok:true,value})).catch(()=>({ok:false,value:null})),
         ]);
         if(!active)return;
-        const activeRows=activity.filter(row=>row.status==="active");
+        const activeRows=activityResult.ok?activityResult.value.filter(row=>row.status==="active"):null;
         setData({
-          loading:false,available:true,events:events.slice(0,3),owned,
-          rsvps:activeRows.filter(row=>row.activity_type==="rsvp").length,
-          reported:activeRows.filter(row=>row.activity_type==="external_purchase_reported").length,
+          loading:false,available:true,events:events.slice(0,3),
+          ownedCount:ownedResult.ok?ownedResult.value.length:null,
+          rsvps:activeRows?activeRows.filter(row=>row.activity_type==="rsvp").length:null,
+          reported:activeRows?activeRows.filter(row=>row.activity_type==="external_purchase_reported").length:null,
         });
       }catch{
         if(active)setData(current=>({...current,loading:false,available:false}));
@@ -56,15 +57,15 @@ export default function EventsDashboardSection() {
     </div>
     {data.available?<>
       <div className="grid gap-2 sm:grid-cols-3">
-        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Upcoming published events</p><p className="mt-1 text-xl font-semibold">{data.events.length}</p></div>
-        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Your event RSVPs</p><p className="mt-1 text-xl font-semibold">{data.rsvps}</p></div>
-        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Purchases you reported</p><p className="mt-1 text-xl font-semibold">{data.reported}</p><p className="text-[11px] text-muted-foreground">Self-reported, not verified payments</p></div>
+        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Upcoming events shown</p><p className="mt-1 text-xl font-semibold">{data.events.length}</p></div>
+        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Your event RSVPs</p><p className="mt-1 text-xl font-semibold">{data.rsvps===null?"Unavailable":data.rsvps}</p></div>
+        <div className="rounded-xl bg-muted/40 p-3"><p className="text-xs text-muted-foreground">Purchases you reported</p><p className="mt-1 text-xl font-semibold">{data.reported===null?"Unavailable":data.reported}</p><p className="text-[11px] text-muted-foreground">Self-reported, not verified payments</p></div>
       </div>
       {data.events.length>0?<div className="space-y-2"><h3 className="text-sm font-semibold">Coming up</h3>{data.events.map(row=><Link key={row.id} to={"/events/"+row.id} className="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-3 hover:bg-muted/30">
         <div className="min-w-0"><p className="truncate text-sm font-semibold">{row.title}</p><p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><Clock3 size={13}/>{eventDate(row)}</p>{row.location_label&&<p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin size={13}/>{row.location_label}</p>}</div>
         <span className="text-xs font-semibold text-primary">View event</span>
       </Link>)}</div>:<p className="text-sm text-muted-foreground">No upcoming events are published yet. Create one for a fundraiser you support or organize.</p>}
-      <p className="text-xs text-muted-foreground">Organize and manage {data.owned.length} event{data.owned.length===1?"":"s"} · RSVP and external purchase activity stays linked to your account.</p>
+      <p className="text-xs text-muted-foreground">Organize and manage {data.ownedCount===null?"events unavailable":data.ownedCount+" event"+(data.ownedCount===1?"":"s")} · RSVP and external purchase activity stays linked to your account.</p>
     </>:<p className="text-sm text-muted-foreground">Event services are being connected. Event ticketing and auction checkout remain with the organizer's chosen provider.</p>}
     <div className="flex flex-wrap gap-4 text-sm"><Link to="/events" className="font-semibold text-primary underline underline-offset-4">Browse events</Link><Link to="/events?create=1" className="font-semibold text-primary underline underline-offset-4">Create an event fundraiser</Link></div>
     <p className="text-xs text-muted-foreground">External ticket and auction payments go directly to organizers through their checkout providers. Purchases reported in IFund are not IFund receipts, donations or verified financial transactions.</p>
