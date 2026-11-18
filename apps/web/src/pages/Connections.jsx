@@ -156,6 +156,8 @@ export default function Connections() {
 
   function choosePlatform(platform) {
     setParams({connect:platform.id});
+    if (typeof window !== "undefined" && typeof document !== "undefined")
+      window.requestAnimationFrame(() => document.getElementById("connection-details")?.scrollIntoView({behavior:"smooth",block:"start"}));
   }
   async function manage(operation) {
     if (!selectedOAuth || !user?.id || busyLock.current || (operation!=="disconnect" && !canStart)) return;
@@ -348,6 +350,21 @@ export default function Connections() {
           <RefreshCw size={16}/>{busy==="refresh"?"Checking…":"Check connection"}
         </button>}
       </div>
+      <section className="space-y-3 rounded-2xl border border-border p-4" aria-label="Connection and publishing readiness">
+        <h3 className="font-semibold">What can iFund do with this account?</h3>
+        <dl className="grid gap-3 text-sm sm:grid-cols-2">
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Public profile link</dt>
+            <dd className="mt-1 text-muted-foreground">{saved?"Saved privately in iFund":"Not saved yet — optional for public profiles"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Secure account sign-in</dt>
+            <dd className="mt-1 text-muted-foreground">{isLinked?"Verified account connection":"Not connected or awaiting provider authorization"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Draft assistance</dt>
+            <dd className="mt-1 text-muted-foreground">{helpConsent?.enabled===true&&["draft","review"].includes(selectedChoice)?"Assistance preferences saved; generated drafts still need verified AI service":"Enable guidance and choose draft/review below"}</dd></div>
+          <div className="rounded-xl bg-muted/30 p-3"><dt className="font-medium">Automated external posting</dt>
+            <dd className="mt-1 text-muted-foreground">Not available until this destination's publishing scope, owner consent and delivery receipts are verified</dd></div>
+        </dl>
+        <p className="text-xs text-muted-foreground">A verified sign-in, public URL and membership subscription are separate permissions. None of them alone authorizes publishing or outreach.</p>
+      </section>
+
       {isLinked && <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-4 text-sm">
         Your {selected.name} account is securely connected. Review each share before posting outside iFund.
       </div>}
