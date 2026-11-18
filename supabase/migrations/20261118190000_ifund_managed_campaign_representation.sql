@@ -187,7 +187,7 @@ set search_path = ''
 set row_security = 'off'
 as $function$
 begin
-  if new.status='active' and (tg_op='INSERT' or old.status is distinct from 'active')
+  if new.status='active'
      and exists (
        select 1 from public.ifund_managed_campaign_profiles p
        where p.campaign_id=new.id
