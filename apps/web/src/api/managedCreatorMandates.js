@@ -43,6 +43,9 @@ export async function adminCreatorMandateRequest(action, body = {}) {
   if (error || !accessToken) throw new Error("Sign in with the assigned IFund super-admin account.");
   const url = new URL(functionUrl());
   url.searchParams.set("action", action);
+  if (["list","list_external_destinations"].includes(action)) {
+    for (const [key, value] of Object.entries(body || {})) if (value !== undefined && value !== null) url.searchParams.set(key, String(value));
+  }
   const response = await fetch(url, {
     method: ["list","list_external_destinations"].includes(action) ? "GET" : "POST",
     headers: { authorization: `Bearer ${accessToken}`, apikey: publishableKey(), "content-type": "application/json" },
