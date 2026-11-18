@@ -369,3 +369,17 @@ export async function cancelEventActivity(client, activityId) {
   await sessionUnchanged(client, owner);
   return data;
 }
+
+export async function updateOwnerEventStatus(client, eventId, status) {
+  if (!UUID.test(eventId || "") || !["cancelled","completed"].includes(status))
+    throw new Error("Invalid event status change.");
+  const owner = await verifiedMember(client);
+  const { data, error } = await client.from("ifund_events")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", eventId).eq("owner_id", owner)
+    .select(EVENT_COLUMNS).maybeSingle();
+  if (error || !data || data.owner_id !== owner || data.status !== status)
+    throw new Error("The event status could not be updated.");
+  await sessionUnchanged(client, owner);
+  return data;
+}
