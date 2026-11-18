@@ -595,6 +595,16 @@
       "owner": "frontend+editorial"
     },
     {
+      "route": "/live/:id",
+      "role": "public",
+      "component": "LiveEventDetail",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database+qa"
+    },
+    {
       "route": "/live/manage",
       "role": "member",
       "component": "ManageLiveEvents",
