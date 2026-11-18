@@ -364,6 +364,9 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /m\.full_control_acknowledged is true/);
   assert.match(externalDestination, /m\.ai_all_features_acknowledged is true/);
   assert.match(externalDestination, /m\.creator_authority_confirmed is true/);
+  assert.match(externalDestination, /join public\.ifund_managed_campaign_profiles p/);
+  assert.match(externalDestination, /p\.mandate_id = m\.id/);
+  assert.match(externalDestination, /c\.owner_id = m\.assigned_admin_id/);
   assert.match(externalDestination, /d\.provider_owner_verified_by is not null/);
   assert.match(externalDestination, /d\.compliance_checked_by is not null/);
   assert.match(externalDestination, /creator-approved direct-provider destination/);
