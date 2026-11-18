@@ -80,12 +80,12 @@ export default function AdminConnections() {
   </section>
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
     <h2 className="font-semibold">Secure runtime requirements</h2>
-    <p className="text-sm text-muted-foreground">These binding names belong in the Cloudflare Worker environment, not in the browser or Git repository. Values are never displayed here.</p>
+    <p className="text-sm text-muted-foreground">These binding names belong in the Cloudflare Pages Function runtime (and the canonical Worker only if it is separately routed), never in the browser or Git repository. Values are never displayed here.</p>
     <ul className="space-y-2">{REQUIRED_BINDINGS.map(([name,description])=><li className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-border p-3 text-sm" key={name}>
        <div><code className="font-semibold">{name}</code><p className="mt-1 text-muted-foreground">{description}</p></div>
        <span className="shrink-0 text-xs font-medium text-muted-foreground">{runtime.length===0?"Not verified":runtimeByName[name]===true?"Configured":"Missing"}</span>
     </li>)}</ul>
-    <p className="text-sm">Deploy the canonical <code>worker/oauth.js</code> route through the existing migration Worker and an authorized same-origin <code>/api/oauth/*</code> gateway. Preserve the Cloudflare Pages and financial release gates.</p>
+    <p className="text-sm">The Pages Function at <code>/api/oauth/*</code> must route to the shared <code>worker/oauth.js</code> handler. Configure its runtime bindings in the Pages project and preserve the Cloudflare Pages and financial release gates.</p>
   </section>
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
     <h2 className="font-semibold">Provider registration and consent checks</h2>
