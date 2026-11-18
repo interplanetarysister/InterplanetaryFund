@@ -80,6 +80,9 @@ const OperationsHub = lazy(() => import("./pages/OperationsHub"));
 const AnalyticsCenter = lazy(() => import("./pages/AnalyticsCenter"));
 const AdminSustainability = lazy(() => import("./pages/AdminSustainability"));
 const AdminAudit = lazy(() => import("./pages/AdminAudit"));
+const ManagedCreatorMandates = lazy(() => import("./pages/ManagedCreatorMandates"));
+const CreatorAuthorization = lazy(() => import("./pages/CreatorAuthorization"));
+const CreatorReview = lazy(() => import("./pages/CreatorReview"));
 const AdminHelpEditor = lazy(() => import("./pages/AdminHelpEditor"));
 const AdminConnections = lazy(() => import("./pages/AdminConnections"));
 const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
@@ -117,6 +120,8 @@ function AppRoutes() {
     <Route path="/founding-members" element={<FoundingMembers />} />
     <Route path="/download" element={<DownloadApp />} />
     <Route path="/p/:slug" element={<StudioPublishedPage />} />
+    <Route path="/creator-authorization" element={<CreatorAuthorization />} />
+    <Route path="/creator-review" element={<CreatorReview />} />
     <Route path="/embed/campaign/:id" element={<EmbedCampaign />} />
     <Route path="/oauth/consent" element={<LegacyAuthorizationNotice />} />
     <Route element={<Layout />}>
@@ -153,6 +158,7 @@ function AppRoutes() {
       <Route path="/admin/studio" element={<MemberAccess><SuperAdminAccess><AdminStudio /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/sustainability" element={<MemberAccess><AdminAccess><AdminSustainability /></AdminAccess></MemberAccess>} />
       <Route path="/admin/audit" element={<MemberAccess><SuperAdminAccess><AdminAudit /></SuperAdminAccess></MemberAccess>} />
+      <Route path="/admin/managed-fundraisers" element={<MemberAccess><SuperAdminAccess><ManagedCreatorMandates /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/deletions" element={<MemberAccess><SuperAdminAccess><AdminDeletionQueue /></SuperAdminAccess></MemberAccess>} />
       <Route path="/admin/integrations" element={<MemberAccess><AdminAccess><AdminConnections /></AdminAccess></MemberAccess>} />
       <Route path="/admin/help" element={<MemberAccess><SuperAdminAccess><AdminHelpEditor /></SuperAdminAccess></MemberAccess>} />
