@@ -1,4 +1,4 @@
-// Independent member catalog, curated from the Base44 reference. UI-only catalog:
+// Independent member catalog, retained as a UI-only reference.
 // no imported credentials, connection claims, provider authorizations, or fees.
 export const CONNECTION_PLATFORMS = Object.freeze([
   {
