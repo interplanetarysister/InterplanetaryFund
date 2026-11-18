@@ -89,7 +89,17 @@ const AIImageStudio = lazy(() => import("./pages/AIImageStudio"));
 const STANDALONE_COMING_SOON = [];
 const LAYOUT_COMING_SOON = [];
 
-const Loading = () => <div className="fixed inset-0 flex items-center justify-center bg-background"><BrandLogo size="lg" showName={false} className="animate-pulse" /></div>;
+const Loading = () => <main role="status" aria-live="polite" aria-label="Loading iFund page" className="min-h-dvh bg-background text-foreground">
+  <div className="mx-auto flex min-h-[50vh] max-w-4xl flex-col items-center justify-center gap-6 px-5 py-12">
+    <BrandLogo size="lg" showName={false} />
+    <div className="w-full max-w-md space-y-3" aria-hidden="true">
+      <div className="h-5 w-2/3 rounded-full bg-muted" />
+      <div className="h-3 w-full rounded-full bg-muted/70" />
+      <div className="h-3 w-4/5 rounded-full bg-muted/70" />
+    </div>
+    <p className="text-sm font-medium text-muted-foreground">Loading your iFund experience…</p>
+  </div>
+</main>;
 
 function AppRoutes() {
   const location = useLocation();
