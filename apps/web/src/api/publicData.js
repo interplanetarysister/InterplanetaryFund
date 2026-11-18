@@ -3,7 +3,7 @@
 // No legacy platform SDK, preview RPC or fallback cross-project connection.
 import { createClient } from "@supabase/supabase-js";
 
-const PROJECT_REF = "ssibsfmtodgximseeqsv";
+const CANONICAL_SUPABASE_URL = "https://ssibsfmtodgximseeqsv.supabase.co";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_url,status,created_at,map_opt_in,public_location_label,map_latitude,map_longitude";
@@ -11,8 +11,9 @@ const PUBLIC_COLUMNS = "id,title,summary,story,category,goal_amount,cover_image_
 let client = null;
 export function isPublicDataConfigured() {
   try {
-    return Boolean(SUPABASE_ANON_KEY) &&
-      new URL(SUPABASE_URL).hostname === PROJECT_REF + ".supabase.co";
+    const parsed = new URL(SUPABASE_URL);
+    return Boolean(SUPABASE_ANON_KEY) && parsed.origin === CANONICAL_SUPABASE_URL &&
+      parsed.pathname === "/" && !parsed.search && !parsed.hash && !parsed.username && !parsed.password;
   } catch {
     return false;
   }
