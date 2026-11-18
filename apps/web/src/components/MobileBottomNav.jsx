@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Bot, Radio, User, Users } from "lucide-react";
+import { Bot, CalendarDays, Radio, User, Users } from "lucide-react";
 import { owningNavigationTab } from "@/lib/navigation";
 import { hapticTap } from "@/lib/haptics";
 
@@ -10,13 +10,14 @@ export const IFUND_BOTTOM_TABS=[
   {to:"/profile",label:"Profile",icon:User},
   {to:"/social",label:"IFund Social",icon:Radio},
   {to:"/community",label:"Forums",icon:Users},
+  {to:"/events",label:"Events",icon:CalendarDays},
 ];
 export default function MobileBottomNav({user,onNavigate}){
  const {pathname}=useLocation();
  const active=owningNavigationTab(pathname,!!user);
  return <nav aria-label="Bottom navigation" className="ifund-mobile-nav md:hidden fixed inset-x-0 bottom-0 z-40 border-t flex pb-safe">
   {IFUND_BOTTOM_TABS.map(({to,label,icon:Icon})=>{
-   const destination=user||["/social","/community"].includes(to)
+   const destination=user||["/events","/social","/community"].includes(to)
     ?to:`/register?returnTo=${encodeURIComponent(to)}`;
    const selected=active===to;
    return <NavLink key={to} to={destination} end onClick={()=>{hapticTap();onNavigate?.();}}
