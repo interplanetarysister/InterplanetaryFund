@@ -53,7 +53,8 @@ export function validateDraftSuggestion(data, section = false) {
     !strings(data.summaries, 2, 600) ||
     typeof data.story !== "string" ||
     !data.story.trim() ||
-    data.story.length > 15000 ||
+    (data.assistance === "assisted" && (data.story.trim().length < 1000 || data.story.length > 2500)) ||
+    (data.assistance === "outline" && data.story.length > 15000) ||
     !["outline", "assisted"].includes(data.assistance) ||
     data.ai_inference !== (data.assistance === "assisted") ||
     typeof data.image_prompt !== "string" ||
