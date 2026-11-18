@@ -323,11 +323,13 @@ Deno.serve(async (req) => {
           activeMandate.campaign_id !== destination.campaign_id || activeMandate.creator_review_state !== "approved" ||
           !activeMandate.creator_approved_at || !activeMandate.identity_verified_at)
         return json(403, { error: "active_creator_publish_authorization_required" }, origin);
-      const { error } = await db.from("ifund_managed_external_destinations").update({
+      const { data: verifiedDestination, error } = await db.from("ifund_managed_external_destinations").update({
         provider_owner_verified_at: new Date().toISOString(), provider_owner_verified_by: user.id,
         provider_verification_evidence: evidence, status: "pending_compliance", updated_at: new Date().toISOString(),
-      }).eq("id", destination.id).eq("status", "pending_provider_verification");
+      }).eq("id", destination.id).eq("status", "pending_provider_verification")
+        .select("id").maybeSingle();
       if (error) throw error;
+      if (!verifiedDestination) return json(409, { error: "destination_state_changed_retry" }, origin);
       await event(db, destination.mandate_id, "admin", user.id, "external_destination_verified", { destination_id: destination.id });
       return json(200, { verified: true, status: "pending_compliance" }, origin);
     }
@@ -349,11 +351,13 @@ Deno.serve(async (req) => {
           mandate.campaign_id !== destination.campaign_id || mandate.creator_review_state !== "approved" ||
           !mandate.creator_approved_at || !mandate.identity_verified_at)
         return json(403, { error: "active_creator_publish_approval_required" }, origin);
-      const { error } = await db.from("ifund_managed_external_destinations").update({
+      const { data: readyDestination, error } = await db.from("ifund_managed_external_destinations").update({
         compliance_checked_at: new Date().toISOString(), compliance_checked_by: user.id,
         compliance_evidence: evidence, status: "ready", updated_at: new Date().toISOString(),
-      }).eq("id", destination.id).eq("status", "pending_compliance");
+      }).eq("id", destination.id).eq("status", "pending_compliance")
+        .select("id").maybeSingle();
       if (error) throw error;
+      if (!readyDestination) return json(409, { error: "destination_state_changed_retry" }, origin);
       await event(db, destination.mandate_id, "admin", user.id, "external_destination_compliance_checked", { destination_id: destination.id });
       return json(200, { checked: true, status: "ready", publication_enabled: false }, origin);
     }
