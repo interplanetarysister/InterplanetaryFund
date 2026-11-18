@@ -24,11 +24,10 @@ test("a complete campaign passes both draft and publish validation", () => {
   assert.equal(publishReadiness(complete()).ready, true);
 });
 
-test("a 3,499-character full story is blocked, 3,500 is eligible", () => {
-  const story = "A".repeat(3499);
-  assert.ok(validateCampaignForm({...complete(),story},{publish:true}).some(x=>x.includes("3,500")));
-  assert.equal(publishReadiness({...complete(),story}).ready,false);
-  assert.equal(publishReadiness({...complete(),story:story+"."}).ready,false, "Length alone is insufficient without paragraph and sentence structure");
+test("short original stories are publishable with no mandatory length or paragraph structure", () => {
+  const story = "I need help purchasing a wheelchair. Donations will help cover verified equipment costs.";
+  assert.deepEqual(validateCampaignForm({...complete(),story},{publish:true}), []);
+  assert.equal(publishReadiness({...complete(),story}).ready,true);
   assert.deepEqual(validateCampaignForm({...complete(),story},{publish:false}),[]);
 });
 
