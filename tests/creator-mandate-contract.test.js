@@ -300,7 +300,7 @@ test("managed campaign drafting exposes five title choices, two descriptions, an
 
 test("managed beneficiary campaigns fail closed on IFund-native donation checkout", () => {
   assert.match(publicData, /managed_campaign:\s*Boolean\(profile\)/);
-  assert.match(campaignDetail, /!campaign\.managed_campaign !== true|campaign\.managed_campaign !== true/);
+  assert.match(campaignDetail, /campaign\.managed_campaign !== true/);
   assert.match(fundingCard, /managedCampaign = campaign\?\.managed_campaign === true/);
   assert.match(fundingCard, /\|\| managedCampaign \|\|/);
   assert.match(fundingCard, /administrator's payout account/);
