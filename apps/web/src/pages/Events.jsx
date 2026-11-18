@@ -121,6 +121,7 @@ export default function Events() {
   const [itemForm,setItemForm]=useState(blankItem);
   const [amount,setAmount]=useState("");
   const [reportedItemId,setReportedItemId]=useState("");
+  const [editingEventId,setEditingEventId]=useState(null);
   const [editingItemId,setEditingItemId]=useState(null);
   const [showCreator,setShowCreator]=useState(false);
   const [showItemForm,setShowItemForm]=useState(false);
@@ -197,9 +198,10 @@ export default function Events() {
       const payload={...form,status,campaign_id:form.campaign_id||null};
       if(payload.starts_at)payload.starts_at=new Date(payload.starts_at).toISOString();
       if(payload.ends_at)payload.ends_at=new Date(payload.ends_at).toISOString();
-      const saved=await saveOwnerEvent(client,payload,{id:editingItemId});
+      const saved=await saveOwnerEvent(client,payload,{id:editingEventId});
+      setEvent(saved);
       setNotice(status==="published"?"Your event is published.":"Your event draft was saved.");
-      setEditingItemId(saved.id);
+      setEditingEventId(saved.id);
       setShowCreator(false);
       await reload();
       navigate("/events/"+saved.id,{replace:true});
@@ -290,7 +292,7 @@ export default function Events() {
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="text-xl font-semibold">Manage this event</h2>
             <p className="mt-2 text-sm text-muted-foreground">Edit the event information and manage its supporting items. External checkout remains with the listed provider.</p>
-            <button type="button" onClick={()=>{setForm({...form,starts_at:localDateTime(event.starts_at),ends_at:localDateTime(event.ends_at)});setEditingItemId(event.id);setShowCreator(true);}} className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">Edit event details</button>
+            <button type="button" onClick={()=>{setForm({...form,starts_at:localDateTime(event.starts_at),ends_at:localDateTime(event.ends_at)});setEditingEventId(event.id);setShowCreator(true);}} className="mt-4 min-h-11 rounded-xl border border-border px-4 text-sm font-semibold">Edit event details</button>
             <div className="mt-3 flex flex-wrap gap-2">
               {event.status==="draft"&&<button onClick={()=>changeEventStatus("cancelled")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Cancel draft</button>}
               {event.status==="published"&&<button onClick={()=>changeEventStatus("cancelled")} disabled={busy==="event-status"} className="min-h-10 rounded-xl border px-3 text-sm">Cancel event</button>}
@@ -359,7 +361,7 @@ export default function Events() {
   return <main className="mx-auto max-w-6xl space-y-7 px-4 py-8 sm:px-8">
     <header className="flex flex-wrap items-start justify-between gap-4">
       <div><p className="text-sm font-semibold uppercase tracking-wide text-cyan-700 dark:text-cyan-300">Community fundraising</p><h1 className="mt-1 font-display text-3xl font-bold sm:text-4xl">Fundraising events</h1><p className="mt-2 max-w-2xl text-sm text-muted-foreground">Benefit dinners, charity galas, art auctions, ticketed gatherings and community experiences — connected to your IFund account.</p></div>
-      {user?.email_confirmed_at&&!user?.is_anonymous?<button onClick={()=>{setForm(blankEvent());setEditingItemId(null);setShowCreator(v=>!v);}} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-700 px-4 text-sm font-semibold text-white"><Plus size={17}/>Create event</button>:<Link to="/login?returnTo=%2Fevents" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Sign in to create an event</Link>}
+      {user?.email_confirmed_at&&!user?.is_anonymous?<button onClick={()=>{setForm(blankEvent());setEditingEventId(null);setShowCreator(v=>!v);}} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-cyan-700 px-4 text-sm font-semibold text-white"><Plus size={17}/>Create event</button>:<Link to="/login?returnTo=%2Fevents" className="inline-flex min-h-11 items-center rounded-xl border px-4 text-sm font-semibold">Sign in to create an event</Link>}
     </header>
 
     {showCreator&&<section className="rounded-2xl border border-border bg-card p-5"><EventForm form={form} setForm={setForm} campaigns={campaigns} saving={saving} onSave={submitEvent} onClose={()=>setShowCreator(false)}/></section>}
