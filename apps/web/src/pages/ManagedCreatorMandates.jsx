@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { adminCreatorMandateRequest } from "@/api/managedCreatorMandates";
 import { authClient } from "@/api/auth";
 import { requestCampaignDraft } from "@/api/campaignDraft";
+import { saveOwnerCampaign } from "@/api/ownerCampaigns";
 import { Clipboard, RefreshCw, ShieldCheck, UserRoundCheck, FileText, Ban } from "lucide-react";
 
 const emptyInvite = { creator_name: "", creator_email: "", fundraiser_url: "", fundraiser_label: "", beneficiary_name: "", expires_in_days: 30 };
-const emptyDraft = { title: "", summary: "", story: "" };
+const emptyDraft = { title: "", summary: "", story: "", category: "community", goal_amount: "" };
 
 export default function ManagedCreatorMandates() {
   const [mandates, setMandates] = useState([]);
@@ -17,6 +18,7 @@ export default function ManagedCreatorMandates() {
   const [selectedId, setSelectedId] = useState("");
   const [consentUrl, setConsentUrl] = useState("");
   const [reviewUrl, setReviewUrl] = useState("");
+  const [pendingCampaignId, setPendingCampaignId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -67,7 +69,7 @@ export default function ManagedCreatorMandates() {
         cause: "community fundraising",
         managed_mandate_id: selected.id,
       });
-      setDraft({ title: suggestion.titles[0], summary: suggestion.summaries[0], story: suggestion.story });
+      setDraft(current => ({ ...current, title: suggestion.titles[0], summary: suggestion.summaries[0], story: suggestion.story }));
       setNotice("AI prepared a private draft from the facts supplied. Review and edit it before saving for creator approval.");
     } catch (e) { setError(e.message); }
     finally { setGenerating(false); }
@@ -86,6 +88,41 @@ export default function ManagedCreatorMandates() {
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
+  async function createManagedCampaign() {
+    if (!selected || selected.status !== "active" || selected.creator_review_state !== "approved") return;
+    setBusy(true); setError(""); setNotice("");
+    try {
+      let campaignId = selected.campaign_id || pendingCampaignId;
+      if (!campaignId) {
+        const created = await saveOwnerCampaign(authClient(), {
+          title: selected.draft_payload.title,
+          summary: selected.draft_payload.summary,
+          story: selected.draft_payload.story,
+          category: selected.draft_payload.category,
+          goal_amount: String(selected.draft_payload.goal_amount),
+          cover_image_url: "",
+          map_opt_in: false,
+          public_location_label: "",
+          map_latitude: "",
+          map_longitude: "",
+        }, { status: "draft" });
+        campaignId = created.id;
+        setPendingCampaignId(campaignId);
+      }
+      await adminCreatorMandateRequest("link_campaign", {
+        mandate_id: selected.id,
+        campaign_id: campaignId,
+      });
+      setPendingCampaignId("");
+      setNotice("The creator-approved draft is now linked to a canonical IFund campaign owned by the assigned admin account. It remains unpublished; beneficiary payout and separate publication checks are still required.");
+      await refresh();
+    } catch (e) {
+      setError(pendingCampaignId
+        ? e.message + " The IFund draft was created but its mandate link is still pending; retry the link."
+        : e.message);
+    } finally { setBusy(false); }
+  }
+
   async function revoke() {
     if (!selected || !window.confirm("Revoke this creator mandate and invalidate its outstanding links?")) return;
     setBusy(true); setError(""); setNotice("");
@@ -134,9 +171,11 @@ export default function ManagedCreatorMandates() {
         <div><p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Selected mandate</p><h2 className="text-xl font-semibold">{selected.fundraiser_label}</h2><p className="text-sm text-muted-foreground">{selected.creator_name} · {selected.creator_email}</p><a className="text-sm underline" href={selected.fundraiser_url} target="_blank" rel="noreferrer">Open original fundraiser</a></div>
         <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full border border-border px-2 py-1">AI permission consent: {selected.status==="active"?"recorded":"pending"}</span><span className="rounded-full border border-border px-2 py-1">Identity: {selected.identity_verified_at?"verified":"not verified"}</span><span className="rounded-full border border-border px-2 py-1">Creator approval: {selected.creator_review_state}</span></div>
         {selected.creator_feedback && <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-3 text-sm"><strong>Creator feedback:</strong><p className="mt-1 whitespace-pre-wrap">{selected.creator_feedback}</p></div>}
-        {selected.draft_payload && <div className="rounded-xl border border-border p-3 text-sm"><p><strong>Saved private draft:</strong> {selected.draft_payload.title}</p><button type="button" onClick={()=>setDraft({title:selected.draft_payload.title||"",summary:selected.draft_payload.summary||"",story:selected.draft_payload.story||""})} className="mt-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold">Load saved draft for revision</button></div>}
+        {selected.draft_payload && <div className="rounded-xl border border-border p-3 text-sm"><p><strong>Saved private draft:</strong> {selected.draft_payload.title}</p><p className="mt-1 text-xs text-muted-foreground">Category: {selected.draft_payload.category} · Goal: ${Number(selected.draft_payload.goal_amount).toLocaleString("en-US")} USD</p><button type="button" onClick={()=>setDraft({title:selected.draft_payload.title||"",summary:selected.draft_payload.summary||"",story:selected.draft_payload.story||"",category:selected.draft_payload.category||"community",goal_amount:String(selected.draft_payload.goal_amount||"")})} className="mt-2 rounded-lg border border-border px-3 py-2 text-xs font-semibold">Load saved draft for revision</button></div>}
+        {selected.campaign_id && <p className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-3 text-sm">Canonical IFund campaign draft linked: <span className="break-all font-mono">{selected.campaign_id}</span>. Publishing remains blocked until the beneficiary payout and separate creator publication checks are implemented.</p>}
+        {selected.status==="active" && selected.creator_review_state==="approved" && !selected.campaign_id && <div className="border-t border-border pt-4"><button type="button" disabled={busy} onClick={createManagedCampaign} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">{pendingCampaignId?"Retry campaign link":"Create IFund campaign draft"}</button><p className="mt-2 text-xs text-muted-foreground">Creates a canonical IFund draft under the assigned admin account and records the real creator/beneficiary separately. It does not publish or enable donations.</p></div>}
         {selected.status==="consented_pending_verification" && <div className="space-y-2 border-t border-border pt-4"><h3 className="flex items-center gap-2 font-semibold"><UserRoundCheck size={17}/>Verify creator identity and authority</h3><p className="text-sm text-muted-foreground">Record the real verification evidence you checked (for example, authenticated control of the source fundraiser and matching beneficiary authority). Do not treat the invitation link or a public profile alone as proof.</p><textarea value={evidence} onChange={e=>setEvidence(e.target.value)} minLength={30} maxLength={2000} rows={3} placeholder="Describe the identity and authority checks completed…" className="w-full rounded-lg border border-border bg-background p-3 text-sm"/><button disabled={busy||evidence.trim().length<30} onClick={verifyIdentity} className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"><ShieldCheck size={16}/>Record verified identity</button></div>}
-        {selected.status==="active" && <form onSubmit={saveDraft} className="space-y-3 border-t border-border pt-4"><h3 className="flex items-center gap-2 font-semibold"><FileText size={17}/>Prepare a private draft for creator review</h3><label className="grid gap-1 text-sm">Creator-supplied facts and instructions<textarea required minLength={12} rows={4} value={creatorFacts} onChange={e=>setCreatorFacts(e.target.value)} placeholder="Use only facts and details the creator supplied or that have been verified…" className="w-full rounded-lg border border-border bg-background p-3"/></label><button type="button" disabled={busy||generating||creatorFacts.trim().length<12} onClick={generateWithAI} className="rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50">{generating?"Generating…":"Generate with IFund AI"}</button><label className="grid gap-1 text-sm">Campaign title<input required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})} className="rounded-lg border border-border bg-background px-3 py-2"/></label><label className="grid gap-1 text-sm">Short description<textarea required rows={2} value={draft.summary} onChange={e=>setDraft({...draft,summary:e.target.value})} className="rounded-lg border border-border bg-background p-3"/></label><label className="grid gap-1 text-sm">Campaign story<textarea required rows={8} value={draft.story} onChange={e=>setDraft({...draft,story:e.target.value})} className="rounded-lg border border-border bg-background p-3"/></label><button disabled={busy} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Save draft and create review link</button><p className="text-xs text-muted-foreground">This stores a private review draft only. It does not create or publish a public campaign.</p></form>}
+        {selected.status==="active" && <form onSubmit={saveDraft} className="space-y-3 border-t border-border pt-4"><h3 className="flex items-center gap-2 font-semibold"><FileText size={17}/>Prepare a private draft for creator review</h3><label className="grid gap-1 text-sm">Creator-supplied facts and instructions<textarea required minLength={12} rows={4} value={creatorFacts} onChange={e=>setCreatorFacts(e.target.value)} placeholder="Use only facts and details the creator supplied or that have been verified…" className="w-full rounded-lg border border-border bg-background p-3"/></label><button type="button" disabled={busy||generating||creatorFacts.trim().length<12} onClick={generateWithAI} className="rounded-lg border border-primary px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50">{generating?"Generating…":"Generate with IFund AI"}</button><label className="grid gap-1 text-sm">Campaign title<input required maxLength={150} value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})} className="rounded-lg border border-border bg-background px-3 py-2"/></label><label className="grid gap-1 text-sm">Short description<textarea required maxLength={600} rows={2} value={draft.summary} onChange={e=>setDraft({...draft,summary:e.target.value})} className="rounded-lg border border-border bg-background p-3"/></label><label className="grid gap-1 text-sm">Campaign category<select required value={draft.category} onChange={e=>setDraft({...draft,category:e.target.value})} className="rounded-lg border border-border bg-background px-3 py-2"><option value="medical">Medical</option><option value="emergency">Emergency</option><option value="education">Education</option><option value="community">Community</option><option value="animals">Animals</option><option value="business">Business</option><option value="memorial">Memorial</option><option value="disaster_relief">Disaster relief</option><option value="creative">Creative</option><option value="environment">Environment</option><option value="other">Other</option></select></label><label className="grid gap-1 text-sm">Fundraising goal (USD)<input required type="number" min="0.01" step="0.01" value={draft.goal_amount} onChange={e=>setDraft({...draft,goal_amount:e.target.value})} className="rounded-lg border border-border bg-background px-3 py-2"/></label><label className="grid gap-1 text-sm">Campaign story<textarea required maxLength={15000} rows={8} value={draft.story} onChange={e=>setDraft({...draft,story:e.target.value})} className="rounded-lg border border-border bg-background p-3"/></label><button disabled={busy} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Save draft and create review link</button><p className="text-xs text-muted-foreground">This stores a private review draft only. It does not create or publish a public campaign.</p></form>}
         {selected.status!=="revoked" && selected.status!=="declined" && <div className="border-t border-border pt-4"><button disabled={busy} onClick={revoke} className="inline-flex items-center gap-2 rounded-lg border border-red-500/50 px-3 py-2 text-sm text-red-600 disabled:opacity-50"><Ban size={15}/>Revoke mandate</button></div>}
       </section>}
       <p className="text-xs leading-5 text-muted-foreground">Production safety: the assigned admin account is the management principal. All-agent managed-mandate execution is not yet integrated; the currently connected AI action is private Story draft generation. This workflow does not create a creator account, alter campaign owner_id, bypass RLS, connect external accounts, move money, or publish. High-impact permissions remain individually recorded; final creator approval is required before any publication workflow may be enabled.</p>
