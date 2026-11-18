@@ -335,6 +335,15 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /for update/);
   assert.match(externalDestination, /donation URL is immutable/);
   assert.match(externalDestination, /active mandate and separate creator publication scope are required/);
+  assert.match(externalDestination, /ifund_block_managed_campaign_publication/);
+  assert.match(externalDestination, /ifund_public_managed_external_destinations/);
+  assert.match(externalDestination, /creator-approved direct-provider destination/);
+  assert.match(publicData, /ifund_public_managed_external_destinations/);
+  assert.match(publicData, /external_donation_url/);
+  assert.match(fundingCard, /campaign\\.external_donation_url/);
+  assert.match(fundingCard, /Donate directly via/);
+  assert.match(fundingCard, /noopener noreferrer/);
+  assert.match(paymentLedger, /Managed beneficiary campaigns require direct-provider checkout/);
   assert.match(externalDestination, /No browser-role access/);
 });
 
