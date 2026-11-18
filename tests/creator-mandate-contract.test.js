@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { storyInput } from "../worker/agents/story.js";
+import { campaignPreviewInput } from "../worker/services/campaign-preview.js";
 
 const migration = await readFile(new URL("../supabase/migrations/20261118090000_ifund_external_creator_managed_mandates.sql", import.meta.url), "utf8");
 const api = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
@@ -105,4 +107,31 @@ test("managed Story AI calls are bound to a live, verified mandate at execution 
   assert.match(draftClient, /managed_mandate_id/);
   assert.match(admin, /managed_mandate_id: selected\.id/);
   assert.match(admin, /Other specialist agents and high-impact actions are not yet connected/);
+});
+
+
+test("managed mandate identifiers are validated and carried through Story input contracts", () => {
+  const mandate = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+  const storyRequest = storyInput({
+    request_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    details: "Prepare a truthful private fundraiser story from verified facts.",
+    managed_mandate_id: mandate,
+  });
+  assert.equal(storyRequest.managed_mandate_id, mandate);
+  assert.throws(() => storyInput({
+    request_id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+    details: "Prepare a truthful private fundraiser story from verified facts.",
+    managed_mandate_id: "not-a-uuid",
+  }), /valid managed creator authorization/);
+  const previewRequest = campaignPreviewInput({
+    request_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    details: "Prepare a truthful private fundraiser story from verified facts.",
+    managed_mandate_id: mandate,
+  });
+  assert.equal(previewRequest.managed_mandate_id, mandate);
+  assert.throws(() => campaignPreviewInput({
+    request_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+    details: "Prepare a truthful private fundraiser story from verified facts.",
+    managed_mandate_id: "not-a-uuid",
+  }), /valid managed creator authorization/);
 });
