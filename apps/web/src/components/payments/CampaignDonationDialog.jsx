@@ -226,11 +226,8 @@ export default function CampaignDonationDialog({ campaign, open, onOpenChange, o
         {!valid?<p className="text-xs text-red-700">Enter a valid USD amount ($1–$1,000,000) with no more than two decimal places.</p>:
           <>
             {status==="loading"&&<p role="status" className="flex items-center gap-2 text-xs"><Loader2 className="h-4 w-4 animate-spin"/> Loading secure checkout…</p>}
-              <div className="rounded-xl border border-cyan-200 bg-cyan-50/50 px-3 py-3" aria-label="One-tap wallet payment">
-                <p className="mb-2 text-sm font-semibold text-slate-900">Fastest option: Google Pay</p>
-                <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
-                  enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
-              </div>
+              <GooglePayDonationButton campaignId={campaign?.id} amountCents={quote?.totalCents}
+                enabled={status==="ready"&&!checkoutLocked} begin={begin} capture={capture}/>
             <section aria-busy={status==="capturing"} className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3" aria-label="Credit or debit card checkout" style={{display:eligible===false?"none":"block"}}>
               <h3 className="flex gap-2 items-center text-sm font-semibold text-slate-900"><CreditCard className="h-4 w-4"/> Credit or debit card</h3>
               <p className="text-xs text-slate-500">Enter card details here when available; a PayPal account is not required for eligible hosted card payments. iFund never sees your card number.</p>
