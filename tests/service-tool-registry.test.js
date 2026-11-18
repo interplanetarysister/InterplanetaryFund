@@ -530,6 +530,15 @@ test("verified IFund platform communications work without a campaign but retain 
   );
   assert.equal(sent, 1);
 
+  await assert.rejects(
+    approved.invoke("communications_agent", "sendCommunication", {
+      ...input,
+      platform_communication_verified: true,
+    }, {}),
+    /Unsupported tool options/,
+  );
+  assert.equal(sent, 1);
+
   const campaignInput = { ...input, campaign_id: "44444444-4444-4444-8444-444444444444" };
   const campaignSend = createToolRegistry({
     bindings: [send],
