@@ -10,7 +10,7 @@ alter table public.ifund_event_items
       and checkout_url !~ '[[:space:]]'
       and checkout_url !~* '^https://[^/]*@'
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
-      and checkout_url !~* '^https://[^/]+/?([?#].*)?      and (
+      and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
         (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\.)*eventbrite\.com(/|[?#]|$)') or
         (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\.)*(paypal\.com|paypal\.me)(/|[?#]|$)') or
         (checkout_provider='32auctions' and checkout_url ~* '^https://([a-z0-9-]+\.)*32auctions\.com(/|[?#]|$)') or
