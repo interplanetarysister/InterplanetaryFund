@@ -333,7 +333,9 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /external_destination_creator_approved/);
   assert.match(externalDestination, /ifund_guard_managed_external_destination/);
   assert.match(externalDestination, /for update/);
-  assert.match(externalDestination, /donation URL is immutable/);
+  assert.match(externalDestination, /creator-approved destination details are immutable/);
+  assert.match(externalDestination, /provider verification evidence is immutable/);
+  assert.match(externalDestination, /compliance review evidence is immutable/);
   assert.match(externalDestination, /active mandate and separate creator publication scope are required/);
   assert.match(externalDestination, /ifund_block_managed_campaign_publication/);
   assert.match(externalDestination, /ifund_public_managed_external_destinations/);
