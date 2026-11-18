@@ -698,10 +698,10 @@
       "route": "/planetary-impact",
       "role": "public",
       "component": "AdminSustainability",
-      "source_status": "not_verified",
-      "source_evidence": "apps/web/src/pages/AdminSustainability.jsx; apps/web/src/App.jsx",
-      "behavior_evidence": "",
-      "backend_evidence": "Public campaign API; no privileged data; runtime verification pending",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/src/pages/AdminSustainability.jsx; apps/web/src/components/Layout.jsx; apps/web/src/pages/About.jsx; apps/web/src/api/publicData.js",
+      "behavior_evidence": "2026-11-17 connector-assisted executed source contract: five positive assertions and four mutation-negative checks passed (public route, admin guard, guest navigation, server-side environmental filter, sustainability disclaimer); apps/web/tests/route-completion-increments.test.js includes committed regression assertions. Full Node/browser acceptance not yet run.",
+      "backend_evidence": "Public path uses listActiveCampaigns with canonical public Supabase anon client and provider-verified funding RPC; category filter is applied before 500-row limit. No administrator functions are imported or invoked. Supabase live anon/RLS runtime verification remains pending.",
       "owner": "frontend"
     },
     {
