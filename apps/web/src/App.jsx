@@ -17,6 +17,8 @@ const HackathonTracker = lazy(() => import("./pages/HackathonTracker"));
 const About = lazy(() => import("./pages/About"));
 const Discover = lazy(() => import("./pages/Discover"));
 const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
+const IFundLive = lazy(() => import("./pages/IFundLive"));
+const FundraisingTips = lazy(() => import("./pages/FundraisingTips"));
 const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
 const CampaignDetail = lazy(() => import("./pages/CampaignDetail"));
@@ -122,6 +124,8 @@ function AppRoutes() {
     <Route element={<Layout />}>
       <Route path="/discover" element={<Discover />} />
       <Route path="/shorts" element={<OrbitShorts />} />
+      <Route path="/live" element={<IFundLive />} />
+      <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/globe" element={<Atlas />} />
       <Route path="/institutions" element={<Institutions />} />
       <Route path="/institutions/:id" element={<Institutions />} />
