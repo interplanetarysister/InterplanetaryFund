@@ -1,5 +1,5 @@
-import contracts from "../position-contracts.json" with { type: "json" };
-import manifest from "./manifest.json" with { type: "json" };
+import contracts from "../position-contracts.generated.js";
+import manifest from "./manifest.generated.js";
 const positions = new Map(contracts.positions.map((p) => [p.id, p]));
 const assets = new Map(manifest.agents.map((a) => [a.agent, a]));
 export function serviceSkill(id) {
