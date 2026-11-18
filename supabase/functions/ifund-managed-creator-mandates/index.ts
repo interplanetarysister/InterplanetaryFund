@@ -84,7 +84,7 @@ const adminContext = async (req, env) => {
 const consentPacket = (row) => ({
   id: row.id,
   creatorName: row.creator_name,
-  creatorEmail: row.creator_email.replace(/^(.).+(@.+)$/, "$1••••$2"),
+  creatorEmail: row.creator_email.replace(/^([^@])[^@]*(@.+)$/, "$1••••$2"),
   fundraiserUrl: row.fundraiser_url,
   fundraiserLabel: row.fundraiser_label,
   beneficiaryName: row.beneficiary_name,
