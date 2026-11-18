@@ -284,6 +284,7 @@ export default function Layout() {
           {!isRoot && <span className="font-display ifund-mobile-title text-lg truncate">{pageTitle(pathname)}</span>}
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <Link to={helpPathForLocation(pathname)} className="ifund-header-action inline-flex min-h-[44px] min-w-[44px] items-center justify-center" aria-label={"Contextual help for " + title} title="Help for this page"><LifeBuoy className="h-5 w-5" /></Link>
           <button type="button" onClick={toggleTheme} className="ifund-header-action min-w-[44px] min-h-[44px] flex items-center justify-center" aria-label={darkTheme ? "Switch to light theme" : "Switch to dark theme"}>{darkTheme ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}</button>
         </div>
       </header>
