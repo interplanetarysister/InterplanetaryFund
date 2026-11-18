@@ -36,6 +36,11 @@ test("the shared policy explicitly separates eligible campaigns from unrestricte
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /separate, explicit, recorded authorization/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /informal/);
   assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /payout destination checks/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /full operational control/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /every IFund AI feature\/agent/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /unrestricted permission/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /unrelated personal data/);
+  assert.match(IFUND_CAMPAIGN_ELIGIBILITY_POLICY, /payout-destination changes/);
 });
 
 test("active Strategy and Growth prompts receive the universal policy", () => {
