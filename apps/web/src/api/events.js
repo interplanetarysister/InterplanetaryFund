@@ -86,7 +86,7 @@ export function localDateTimeToIso(value, timezone = "UTC") {
   let formatter;
   try {
     formatter = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone || "UTC", year: "numeric", month: "2-digit", day: "2-digit",
+      timeZone: typeof timezone === "string" && timezone.trim() ? timezone.trim() : "UTC", year: "numeric", month: "2-digit", day: "2-digit",
       hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
     });
   } catch {
