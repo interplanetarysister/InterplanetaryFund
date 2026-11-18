@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { oauthRuntimeRequirements, routeOAuthRequest } from '../worker/oauth.js';
 
 const validEnv = {
@@ -111,4 +112,11 @@ test('OAuth status returns readiness details to a verified administrator', async
   assert.equal(payload.enabled, true);
   assert.equal(payload.runtime.length, 6);
   assert.equal(payload.storage_ready, true);
+});
+
+test('admin readiness copy identifies the Pages Function and separates provider credentials from runtime readiness', async () => {
+  const page = await readFile(new URL('../apps/web/src/pages/AdminConnections.jsx', import.meta.url), 'utf8');
+  assert.match(page, /Cloudflare Pages Function bindings/);
+  assert.match(page, /provider credentials and member consent are checked separately/);
+  assert.doesNotMatch(page, /missing Cloudflare Worker bindings/);
 });
