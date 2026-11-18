@@ -81,12 +81,18 @@ async function attachVerifiedFunding(rows) {
   });
 }
 
-export async function listActiveCampaigns({ limit = 100 } = {}) {
+export async function listActiveCampaigns({ limit = 100, category = null } = {}) {
   const max = Math.min(500, Math.max(1, Number(limit) || 100));
-  const { data, error } = await supabase()
+  // Apply the environmental scope before limiting results. Filtering a
+  // general-purpose top-500 response on the client silently loses older
+  // eligible campaigns when other categories are more recently active.
+  let query = supabase()
     .from("ifund_campaigns")
     .select(PUBLIC_COLUMNS)
-    .eq("status", "active")
+    .eq("status", "active");
+  if (category === "environment") query = query.eq("category", "environment");
+  else if (category !== null && category !== undefined) throw new Error("Unsupported public campaign category filter.");
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
     .limit(max);
