@@ -125,6 +125,17 @@ function stepController({saved=true,blocked=false}={}){
   const advance=new Function(...Object.keys(names),source.slice(start,end)+";return advanceWizard;")(...Object.values(names));
   return {advance,getWizard:()=>wizard,notices,savedTargets,names};
 }
+test("verified owners can save untitled drafts locally without creating an incomplete server campaign",()=>{
+  assert.match(source,/status === "draft" && !form\.title\.trim\(\) && !campaignId\.current/);
+  assert.match(source,/rememberBrowserCampaign\(sessionStorage,ownerId,form/);
+  assert.match(source,/rememberWizard\(sessionStorage,ownerId,null/);
+  assert.match(source,/No account draft was created/);
+  assert.match(source,/Add a title to save it to your account/);
+  const owners=storage();
+  assert.equal(rememberWizard(owners,owner,null,emptyWizard()),true);
+  assert.equal(restoreWizard(owners,other).draft_step,1);
+});
+
 test("actual wizard controller advances only after the campaign and setup save is confirmed",async()=>{
   const good=stepController();await good.advance(2);assert.equal(good.getWizard().draft_step,2);assert.deepEqual(good.savedTargets,[2]);
   const failed=stepController({saved:false});await failed.advance(2);assert.equal(failed.getWizard().draft_step,1);
