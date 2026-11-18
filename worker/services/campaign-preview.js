@@ -34,7 +34,7 @@ export function campaignPreviewInput(raw) {
     Array.isArray(raw) ||
     Object.keys(raw).some(
       (key) =>
-        !["details", "answers", "goal", "request_id", "section", "campaign_id", "writing_preferences"].includes(key),
+        !["details", "answers", "goal", "request_id", "section", "campaign_id", "writing_preferences", "managed_mandate_id"].includes(key),
     )
   )
     fail(400, "Check your campaign details.");
@@ -42,6 +42,8 @@ export function campaignPreviewInput(raw) {
     fail(400, "A writing request reference is required.");
   if (raw.campaign_id != null && !UUID.test(raw.campaign_id))
     fail(400, "Choose a saved campaign you own.");
+  if (raw.managed_mandate_id != null && !UUID.test(raw.managed_mandate_id))
+    fail(400, "Choose a valid managed creator authorization.");
   if (
     typeof raw.details !== "string" ||
     raw.details.trim().length < 12 ||
@@ -92,6 +94,7 @@ export function campaignPreviewInput(raw) {
     goal: raw.goal ?? null,
     request_id: raw.request_id,
     campaign_id: raw.campaign_id || null,
+    ...(raw.managed_mandate_id ? { managed_mandate_id: raw.managed_mandate_id } : {}),
     section: raw.section?.trim() || null,
     ...(writingPreferences ? { writing_preferences: writingPreferences } : {}),
   };
@@ -190,6 +193,8 @@ export async function campaignPreview(request, env) {
         "Your writing access could not be verified. Your text is safe.",
       );
     if (!access.active) {
+      if (input.managed_mandate_id)
+        return json(403, { error: "The assigned IFund admin account does not currently have an active AI writing entitlement. No managed AI work was performed." });
       if (input.section)
         return json(409, {
           code: "section_unavailable",
@@ -209,6 +214,7 @@ export async function campaignPreview(request, env) {
           section: input.section,
           ...(input.writing_preferences ? { writing_preferences: input.writing_preferences } : {}),
           request_id: input.request_id,
+          ...(input.managed_mandate_id ? { managed_mandate_id: input.managed_mandate_id } : {}),
         }),
       }),
     );
