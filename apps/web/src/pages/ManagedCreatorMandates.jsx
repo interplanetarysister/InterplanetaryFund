@@ -30,7 +30,7 @@ export default function ManagedCreatorMandates() {
   const [destinationApprovalUrl, setDestinationApprovalUrl] = useState("");
 
   const selected = useMemo(() => mandates.find((item) => item.id === selectedId) || null, [mandates, selectedId]);
-  useEffect(() => { setPendingCampaignId(""); setTitleOptions([]); setSummaryOptions([]); setDraft(emptyDraft); setCreatorFacts(""); }, [selectedId]);
+  useEffect(() => { setPendingCampaignId(""); setTitleOptions([]); setSummaryOptions([]); setDraft(emptyDraft); setCreatorFacts(""); setDestinations([]); setDestinationEvidence(""); setDestinationApprovalUrl(""); }, [selectedId]);
   async function refresh() {
     setBusy(true); setError("");
     try {
