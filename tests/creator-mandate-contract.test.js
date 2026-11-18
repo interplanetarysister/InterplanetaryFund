@@ -7,6 +7,7 @@ const api = await readFile(new URL("../supabase/functions/ifund-managed-creator-
 const consent = await readFile(new URL("../apps/web/src/pages/CreatorAuthorization.jsx", import.meta.url), "utf8");
 const review = await readFile(new URL("../apps/web/src/pages/CreatorReview.jsx", import.meta.url), "utf8");
 const admin = await readFile(new URL("../apps/web/src/pages/ManagedCreatorMandates.jsx", import.meta.url), "utf8");
+const policy = await readFile(new URL("../worker/agents/campaignPolicy.js", import.meta.url), "utf8");
 
 test("creator mandate storage is private and service-role only", () => {
   assert.match(migration, /enable row level security/i);
