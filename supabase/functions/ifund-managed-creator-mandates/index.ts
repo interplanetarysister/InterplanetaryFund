@@ -35,8 +35,10 @@ const hash = async (value) => {
 const safeUrl = (value) => {
   try {
     const u = new URL(value);
-    const host = u.hostname.toLowerCase().replaceAll("[", "").replaceAll("]", "").replace(/\\.$/, "");
-    const octets = host.split(".").map((part) => /^\\d+$/.test(part) ? Number(part) : NaN);
+    let host = u.hostname.toLowerCase().replaceAll("[", "").replaceAll("]", "");
+    if (host.endsWith(".")) host = host.slice(0, -1);
+    const parts = host.split(".");
+    const octets = parts.map((part) => part.length > 0 && [...part].every((char) => char >= "0" && char <= "9") ? Number(part) : NaN);
     const ipv4 = octets.length === 4 && octets.every((part) => Number.isInteger(part) && part >= 0 && part <= 255);
     const privateIpv4 = ipv4 && (
       octets[0] === 0 || octets[0] === 10 || octets[0] === 127 ||
