@@ -20,7 +20,7 @@ alter table public.ifund_managed_campaign_profiles enable row level security;
 revoke all on table public.ifund_managed_campaign_profiles from public, anon, authenticated;
 grant select (campaign_id,creator_name,beneficiary_name,fundraiser_label,management_disclosure,created_at)
   on public.ifund_managed_campaign_profiles to anon, authenticated;
-create policy if not exists ifund_managed_campaign_profiles_active_public_read
+create policy ifund_managed_campaign_profiles_active_public_read
   on public.ifund_managed_campaign_profiles
   for select to anon, authenticated
   using (
