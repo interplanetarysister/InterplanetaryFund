@@ -27,17 +27,17 @@ test("Cloudflare Pages and Worker modules never use unsupported JSON import attr
     for(const entry of readdirSync(directory,{withFileTypes:true})){
       const path=new URL(entry.name+(entry.isDirectory()?"/":""),directory);
       if(entry.isDirectory()){inspect(path);continue;}
-      if(!/\\.(?:js|mjs|ts|tsx)$/.test(entry.name))continue;
+      if(!/\.(?:js|mjs|ts|tsx)$/.test(entry.name))continue;
       inspected++;
       const code=readFileSync(path,"utf8");
-      assert.doesNotMatch(code,/\\bimport\\s+(?:[^;\\n]|\\n)*?\\swith\\s*\\{\\s*type\\s*:\\s*["']json["']\\s*\\}/,
+      assert.doesNotMatch(code,/\bimport\s+(?:[^;\n]|\n)*?\swith\s*\{\s*type\s*:\s*["']json["']\s*\}/,
         "Wrangler 3 cannot parse JSON import attributes in "+path.pathname);
     }
   };
   for(const root of roots)inspect(new URL(root,import.meta.url));
   assert.ok(inspected>=20,"Expected to check Worker and Pages Functions source files");
   for(const source of ["../worker/connections/catalog.js","../worker/services/skills/index.js"]){
-    assert.match(readFileSync(new URL(source,import.meta.url),"utf8"),/\\.generated\\.js/);
+    assert.match(readFileSync(new URL(source,import.meta.url),"utf8"),/\.generated\.js/);
   }
 });
 
