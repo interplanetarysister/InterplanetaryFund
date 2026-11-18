@@ -1,4 +1,4 @@
--- Owner-managed public fundraising events and account-linked attendance.
+-- Owner-managed fundraising events and account-linked attendance.
 -- External checkout stays with the organizer's provider. Reported external purchases
 -- are member statements, never IFund donations, receipts, campaign totals or ledger entries.
 
@@ -73,7 +73,6 @@ create table if not exists public.ifund_event_items (
   updated_at timestamptz not null default now(),
   constraint ifund_event_items_event_owner_fk
     foreign key (event_id, owner_id) references public.ifund_events(id, owner_id) on delete cascade,
-  constraint ifund_event_items_id_event_owner_unique unique (id, event_id, owner_id),
   constraint ifund_event_items_id_event_unique unique (id, event_id),
   constraint ifund_event_items_checkout_pair check (
     (checkout_url is null and checkout_provider is null) or
@@ -93,15 +92,15 @@ create table if not exists public.ifund_event_items (
       and checkout_url !~* '^https://[^/]*:([0-9]+)'
       and checkout_url !~* '^https://[^/]+/?([?#].*)?$'
       and (
-        (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\\.)*eventbrite\\.com(/|[?#]|$)') or
-        (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\\.)*(paypal\\.com|paypal\\.me)(/|[?#]|$)') or
-        (checkout_provider='32auctions' and checkout_url ~* '^https://([a-z0-9-]+\\.)*32auctions\\.com(/|[?#]|$)') or
-        (checkout_provider='auctria' and checkout_url ~* '^https://([a-z0-9-]+\\.)*auctria\\.com(/|[?#]|$)') or
-        (checkout_provider='givesmart' and checkout_url ~* '^https://([a-z0-9-]+\\.)*givesmart\\.com(/|[?#]|$)') or
-        (checkout_provider='givebutter' and checkout_url ~* '^https://([a-z0-9-]+\\.)*givebutter\\.com(/|[?#]|$)') or
-        (checkout_provider='zeffy' and checkout_url ~* '^https://([a-z0-9-]+\\.)*zeffy\\.com(/|[?#]|$)') or
-        (checkout_provider='betterunite' and checkout_url ~* '^https://([a-z0-9-]+\\.)*betterunite\\.com(/|[?#]|$)') or
-        (checkout_provider='onecause' and checkout_url ~* '^https://([a-z0-9-]+\\.)*onecause\\.com(/|[?#]|$)')
+        (checkout_provider='eventbrite' and checkout_url ~* '^https://([a-z0-9-]+\.)*eventbrite\.com(/|[?#]|$)') or
+        (checkout_provider='paypal' and checkout_url ~* '^https://([a-z0-9-]+\.)*(paypal\.com|paypal\.me)(/|[?#]|$)') or
+        (checkout_provider='32auctions' and checkout_url ~* '^https://([a-z0-9-]+\.)*32auctions\.com(/|[?#]|$)') or
+        (checkout_provider='auctria' and checkout_url ~* '^https://([a-z0-9-]+\.)*auctria\.com(/|[?#]|$)') or
+        (checkout_provider='givesmart' and checkout_url ~* '^https://([a-z0-9-]+\.)*givesmart\.com(/|[?#]|$)') or
+        (checkout_provider='givebutter' and checkout_url ~* '^https://([a-z0-9-]+\.)*givebutter\.com(/|[?#]|$)') or
+        (checkout_provider='zeffy' and checkout_url ~* '^https://([a-z0-9-]+\.)*zeffy\.com(/|[?#]|$)') or
+        (checkout_provider='betterunite' and checkout_url ~* '^https://([a-z0-9-]+\.)*betterunite\.com(/|[?#]|$)') or
+        (checkout_provider='onecause' and checkout_url ~* '^https://([a-z0-9-]+\.)*onecause\.com(/|[?#]|$)')
       )
     )
   )
@@ -158,6 +157,7 @@ alter table public.ifund_event_registrations enable row level security;
 
 revoke all on public.ifund_events, public.ifund_event_items, public.ifund_event_registrations
   from public, anon, authenticated;
+
 grant select (
   id,campaign_id,event_type,title,description,starts_at,ends_at,timezone,
   venue_name,location_label,checkout_provider,checkout_url,status,visibility,
@@ -169,6 +169,7 @@ grant select (
 ) on public.ifund_event_items to anon;
 grant select on public.ifund_events, public.ifund_event_items to authenticated;
 grant insert, update on public.ifund_events, public.ifund_event_items to authenticated;
+
 grant select (
   id,event_id,item_id,user_id,activity_type,status,quantity,reported_amount_cents,
   reported_currency,external_reference,reported_at,created_at,updated_at
@@ -202,11 +203,13 @@ create policy ifund_events_owner_insert
     and (select ifund_private.verified_email_creator())
     and (select public.ifund_current_account_is_active())
     and (select public.ifund_current_user_has_current_terms())
-    and (campaign_id is null or exists (
-      select 1 from public.ifund_campaigns c
-      where c.id=campaign_id and c.owner_id=(select auth.uid())
-        and (ifund_events.status<>'published' or c.status='active')
-    ))
+    and (
+      campaign_id is null or exists (
+        select 1 from public.ifund_campaigns c
+        where c.id=campaign_id and c.owner_id=(select auth.uid())
+          and (public.ifund_events.status <> 'published' or c.status='active')
+      )
+    )
   );
 
 create policy ifund_events_owner_update
@@ -217,16 +220,14 @@ create policy ifund_events_owner_update
     and (select ifund_private.verified_email_creator())
     and (select public.ifund_current_account_is_active())
     and (select public.ifund_current_user_has_current_terms())
-    and (campaign_id is null or exists (
-      select 1 from public.ifund_campaigns c
-      where c.id=campaign_id and c.owner_id=(select auth.uid())
-        and (ifund_events.status<>'published' or c.status='active')
-    ))
+    and (
+      campaign_id is null or exists (
+        select 1 from public.ifund_campaigns c
+        where c.id=campaign_id and c.owner_id=(select auth.uid())
+          and (public.ifund_events.status <> 'published' or c.status='active')
+      )
+    )
   );
-
-create policy ifund_events_owner_delete
-  on public.ifund_events for delete to authenticated
-  using (owner_id=(select auth.uid()));
 
 create policy ifund_event_items_public_read
   on public.ifund_event_items for select to anon, authenticated
@@ -273,10 +274,6 @@ create policy ifund_event_items_owner_update
     )
   );
 
-create policy ifund_event_items_owner_delete
-  on public.ifund_event_items for delete to authenticated
-  using (owner_id=(select auth.uid()));
-
 create policy ifund_event_registrations_member_private_read
   on public.ifund_event_registrations for select to authenticated
   using (user_id=(select auth.uid()));
@@ -285,7 +282,10 @@ create policy ifund_event_registrations_verified_member_insert
   on public.ifund_event_registrations for insert to authenticated
   with check (
     user_id=(select auth.uid())
-    and not exists (select 1 from public.ifund_events e where e.id=event_id and e.owner_id=(select auth.uid()))
+    and not exists (
+      select 1 from public.ifund_events own_event
+      where own_event.id=event_id and own_event.owner_id=(select auth.uid())
+    )
     and (select ifund_private.verified_email_creator())
     and (select public.ifund_current_account_is_active())
     and (select public.ifund_current_user_has_current_terms())
@@ -293,15 +293,21 @@ create policy ifund_event_registrations_verified_member_insert
       select 1 from public.ifund_events e
       where e.id=event_id
         and e.status='published' and e.visibility='public'
-        and (activity_type='rsvp' or e.checkout_url is not null or exists (
-          select 1 from public.ifund_event_items i
-          where i.id=item_id and i.event_id=e.id and i.status='available'
-            and i.checkout_url is not null
-        ))
-        and (item_id is null or exists (
-          select 1 from public.ifund_event_items i
-          where i.id=item_id and i.event_id=e.id and i.status='available'
-        ))
+        and (
+          activity_type='rsvp'
+          or e.checkout_url is not null
+          or exists (
+            select 1 from public.ifund_event_items i
+            where i.id=item_id and i.event_id=e.id
+              and i.status='available' and i.checkout_url is not null
+          )
+        )
+        and (
+          item_id is null or exists (
+            select 1 from public.ifund_event_items i
+            where i.id=item_id and i.event_id=e.id and i.status='available'
+          )
+        )
     )
   );
 
