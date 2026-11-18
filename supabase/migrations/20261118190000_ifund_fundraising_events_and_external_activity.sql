@@ -148,7 +148,7 @@ alter table public.ifund_event_registrations enable row level security;
 revoke all on public.ifund_events, public.ifund_event_items, public.ifund_event_registrations
   from public, anon, authenticated;
 grant select on public.ifund_events, public.ifund_event_items to anon, authenticated;
-grant insert, update, delete on public.ifund_events, public.ifund_event_items to authenticated;
+grant insert, update on public.ifund_events, public.ifund_event_items to authenticated;
 grant select, insert on public.ifund_event_registrations to authenticated;
 grant update(status) on public.ifund_event_registrations to authenticated;
 
@@ -172,6 +172,8 @@ create policy ifund_events_owner_insert
   on public.ifund_events for insert to authenticated
   with check (
     owner_id=(select auth.uid())
+    and (select (auth.jwt()->>'is_anonymous') = 'false')
+    and exists (select 1 from public.ifund_profiles p where p.id=(select auth.uid()) and p.account_status='active' and p.account_deletion_pending=false and p.lifecycle_provenance in ('verified_source_owner_mapping','supabase_auth_signup'))
     and (campaign_id is null or exists (
       select 1 from public.ifund_campaigns c
       where c.id=campaign_id and c.owner_id=(select auth.uid())
@@ -183,6 +185,8 @@ create policy ifund_events_owner_update
   using (owner_id=(select auth.uid()))
   with check (
     owner_id=(select auth.uid())
+    and (select (auth.jwt()->>'is_anonymous') = 'false')
+    and exists (select 1 from public.ifund_profiles p where p.id=(select auth.uid()) and p.account_status='active' and p.account_deletion_pending=false and p.lifecycle_provenance in ('verified_source_owner_mapping','supabase_auth_signup'))
     and (campaign_id is null or exists (
       select 1 from public.ifund_campaigns c
       where c.id=campaign_id and c.owner_id=(select auth.uid())
@@ -211,6 +215,8 @@ create policy ifund_event_items_owner_insert
   on public.ifund_event_items for insert to authenticated
   with check (
     owner_id=(select auth.uid())
+    and (select (auth.jwt()->>'is_anonymous') = 'false')
+    and exists (select 1 from public.ifund_profiles p where p.id=(select auth.uid()) and p.account_status='active' and p.account_deletion_pending=false and p.lifecycle_provenance in ('verified_source_owner_mapping','supabase_auth_signup'))
     and exists (
       select 1 from public.ifund_events e
       where e.id=event_id and e.owner_id=(select auth.uid())
@@ -222,6 +228,8 @@ create policy ifund_event_items_owner_update
   using (owner_id=(select auth.uid()))
   with check (
     owner_id=(select auth.uid())
+    and (select (auth.jwt()->>'is_anonymous') = 'false')
+    and exists (select 1 from public.ifund_profiles p where p.id=(select auth.uid()) and p.account_status='active' and p.account_deletion_pending=false and p.lifecycle_provenance in ('verified_source_owner_mapping','supabase_auth_signup'))
     and exists (
       select 1 from public.ifund_events e
       where e.id=event_id and e.owner_id=(select auth.uid())
@@ -241,7 +249,7 @@ create policy ifund_event_registrations_verified_member_insert
   with check (
     user_id=(select auth.uid())
     and event_owner_id<>(select auth.uid())
-    and (select (auth.jwt()->>'is_anonymous') is distinct from 'true')
+    and (select (auth.jwt()->>'is_anonymous') = 'false')
     and exists (
       select 1 from public.ifund_profiles p
       where p.id=(select auth.uid())
@@ -253,6 +261,15 @@ create policy ifund_event_registrations_verified_member_insert
       select 1 from public.ifund_events e
       where e.id=event_id and e.owner_id=event_owner_id
         and e.status='published' and e.visibility='public'
+        and (activity_type='rsvp' or e.checkout_url is not null or exists (
+          select 1 from public.ifund_event_items i
+          where i.id=item_id and i.event_id=e.id and i.status='available'
+            and i.checkout_url is not null
+        ))
+        and (item_id is null or exists (
+          select 1 from public.ifund_event_items i
+          where i.id=item_id and i.event_id=e.id and i.status='available'
+        ))
     )
   );
 
