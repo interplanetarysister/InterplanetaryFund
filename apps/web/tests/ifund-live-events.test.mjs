@@ -15,7 +15,8 @@ test("public listing never equates unverified live with verified broadcast",()=>
   assert.equal(isLiveEventPublic({...base,status:"live",provider_status:"verified",verified_live_at:null}),false);
   assert.equal(isLiveEventPublic({...base,status:"live",provider_status:"verified",verified_live_at:new Date().toISOString()}),true);
   assert.equal(isLiveEventPublic({...base,status:"ended",verified_live_at:null}),false);
-  assert.equal(isLiveEventPublic({...base,status:"ended",verified_live_at:new Date().toISOString()}),true);
+  assert.equal(isLiveEventPublic({...base,status:"ended",provider_status:"unconfigured",verified_live_at:new Date().toISOString()}),false);
+  assert.equal(isLiveEventPublic({...base,status:"ended",provider_status:"ended",verified_live_at:new Date().toISOString()}),true);
   assert.equal(isLiveEventPublic({...base,status:"live",provider_status:"verified",verified_live_at:new Date().toISOString(),public_visible:false}),false);
 });
 test("event validation refuses missing time, malformed campaign and misleading title",()=>{
