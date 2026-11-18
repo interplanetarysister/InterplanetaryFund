@@ -38,10 +38,10 @@
       "route": "/activate",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -88,10 +88,10 @@
       "route": "/admin/finance",
       "role": "admin",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -178,10 +178,10 @@
       "route": "/atlas",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -208,10 +208,10 @@
       "route": "/blog",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -298,10 +298,10 @@
       "route": "/connect",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -468,10 +468,10 @@
       "route": "/giving",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -568,10 +568,10 @@
       "route": "/ledger",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
@@ -608,10 +608,10 @@
       "route": "/my-profile",
       "role": "public",
       "component": "Navigate",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/App.jsx; apps/web/tests/redirect-route-contract.test.mjs (2026-11-18 source check)",
+      "behavior_evidence": "Passed 3 local redirect contract checks: exact target, replace-only navigation, no redirect chain/loop; source-level auth guard verification. Browser navigation pending.",
+      "backend_evidence": "Redirect has no independent backend operation; access-controlled destinations retain their existing MemberAccess/AdminAccess guards. Runtime acceptance pending.",
       "owner": "frontend"
     },
     {
