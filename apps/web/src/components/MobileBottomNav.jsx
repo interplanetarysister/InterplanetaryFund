@@ -24,8 +24,8 @@ export default function MobileBottomNav({user,onNavigate}){
    return <NavLink key={to} to={destination} end onClick={()=>{hapticTap();onNavigate?.();}}
      aria-current={selected?"page":undefined}
      className={selected?
-       "flex flex-1 min-w-0 flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-xs font-medium text-cyan-400":
-       "flex flex-1 min-w-0 flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-xs font-medium text-slate-400"}>
+       "flex flex-1 min-w-0 flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-[11px] sm:text-xs font-semibold text-cyan-400":
+       "flex flex-1 min-w-0 flex-col items-center justify-center gap-0.5 py-2 min-h-[48px] text-[11px] sm:text-xs font-medium text-slate-400"}>
     <Icon className="w-5 h-5 shrink-0" strokeWidth={1.75}/>
     <span className="max-w-full truncate px-0.5 text-center">{label}</span>
    </NavLink>;
