@@ -3,7 +3,8 @@
 export class SandboxVerificationError extends Error {
   constructor(message) { super(message); this.name = "SandboxVerificationError"; }
 }
-const required = ["PAYPAL_CLIENT_ID","PAYPAL_CLIENT_SECRET","PAYPAL_WEBHOOK_ID","SUPABASE_URL","SUPABASE_SECRET_KEY"];
+const required = ["PAYPAL_CLIENT_ID","PAYPAL_CLIENT_SECRET","PAYPAL_WEBHOOK_ID"];
+const CANONICAL_SUPABASE_URL = "https://ssibsfmtodgximseeqsv.supabase.co";
 const validId = value => typeof value === "string" && /^[A-Za-z0-9-]{8,128}$/.test(value);
 const expectedAmount = cents => {
   if (!Number.isSafeInteger(cents) || cents < 100 || cents > 10000) throw new SandboxVerificationError("Invalid sandbox amount");
@@ -12,7 +13,9 @@ const expectedAmount = cents => {
 export function sandboxConfigured(env) {
   return env?.IFUND_PAYPAL_SANDBOX_ENABLED === "enabled" &&
     required.every(name => typeof env[name] === "string" && env[name].trim().length > 0) &&
-    (() => { try { const u = new URL(env.SUPABASE_URL); return u.protocol === "https:" && !u.username && !u.password; } catch { return false; } })();
+    env.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
+    typeof env.SUPABASE_SECRET_KEY === "string" &&
+    env.SUPABASE_SECRET_KEY.trim().length > 20;
 }
 // The provider must confirm the registered webhook, its exact sandbox endpoint,
 // and the event subscription. A configured ID alone is not readiness evidence.
