@@ -258,6 +258,37 @@ test("valid matching-owner legacy draft migrates intact before autosave", () => 
   assert.equal(restoreBrowserCampaign(storage, A).title, "Legacy owner text");
 });
 
+test("silent owner-legacy migration cannot erase the only original draft", () => {
+  const storage = store();
+  const legacyKey = "ifund-guest-campaign-v1";
+  const ownerKey = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const form = { ...emptyCampaignForm(), title: "Must survive ignored migration" };
+  const raw = JSON.stringify({ version: 2, owner_id: A, form });
+  storage.setItem(legacyKey, raw);
+  const silent = { ...storage, setItem() {} };
+  assert.deepEqual(restoreBrowserCampaign(silent, A), emptyCampaignForm());
+  assert.equal(storage.getItem(legacyKey), raw);
+  assert.equal(storage.getItem(ownerKey), null);
+  assert.deepEqual(restoreBrowserCampaign(storage, A), form);
+  assert.equal(storage.getItem(ownerKey), raw);
+});
+
+test("silent legacy guest migration keeps the guest source for explicit owner consent", () => {
+  const storage = store();
+  const legacyKey = "ifund-guest-campaign-v1";
+  const guestKey = "ifund-guest-campaign-v1:guest";
+  const form = { ...emptyCampaignForm(), title: "Guest author draft" };
+  const raw = JSON.stringify({ version: 2, owner_id: null, form });
+  storage.setItem(legacyKey, raw);
+  const silent = { ...storage, setItem() {} };
+  assert.deepEqual(restoreBrowserCampaign(silent, A), emptyCampaignForm());
+  assert.equal(storage.getItem(legacyKey), raw);
+  assert.equal(storage.getItem(guestKey), null);
+  assert.equal(hasUnclaimedGuestCampaign(storage), true);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" });
+  assert.equal(restoreBrowserCampaign(storage, A).title, form.title);
+});
+
 test("failed legacy migration retains original source when destination write throws", () => {
   const storage = store();
   const form = { ...emptyCampaignForm(), title: "Preserve on quota" };
