@@ -292,6 +292,61 @@ test("legacy guest cleanup failure preserves original and reports retained copy"
   assert.equal(restoreBrowserCampaign(storage, A).title, "Retain on cleanup failure");
 });
 
+test("silent destination writes never claim a guest draft was imported", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Unclaimed guest text" };
+  assert.equal(rememberBrowserCampaign(storage, null, form), true);
+  const guestKey = "ifund-guest-campaign-v1:guest";
+  const raw = storage.getItem(guestKey);
+  const silent = { ...storage, setItem() {} };
+  assert.deepEqual(importGuestCampaign(silent, A), { status: "write_failed" });
+  assert.equal(storage.getItem(guestKey), raw, "the original guest draft is retained");
+  assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
+});
+
+test("silent removals flag retained guest text, then explicit retry can finish cleanup", () => {
+  const storage = store();
+  const guestKey = "ifund-guest-campaign-v1:guest";
+  const form = { ...emptyCampaignForm(), title: "Shared device private text" };
+  assert.equal(rememberBrowserCampaign(storage, null, form), true);
+  const raw = storage.getItem(guestKey);
+  const silent = { ...storage, removeItem() {} };
+  assert.deepEqual(importGuestCampaign(silent, A), { status: "imported_guest_retained" });
+  assert.equal(storage.getItem(guestKey), raw);
+  assert.equal(restoreBrowserCampaign(storage, A).title, form.title);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "imported" }, "explicit retry cleans up the unchanged duplicate");
+  assert.equal(storage.getItem(guestKey), null);
+  assert.equal(hasUnclaimedGuestCampaign(storage), false);
+});
+
+test("import cleanup retry never overwrites a modified owner record", () => {
+  const storage = store(), guestKey = "ifund-guest-campaign-v1:guest";
+  const form = { ...emptyCampaignForm(), title: "Original guest story" };
+  rememberBrowserCampaign(storage, null, form);
+  const silent = { ...storage, removeItem() {} };
+  assert.deepEqual(importGuestCampaign(silent, A), { status: "imported_guest_retained" });
+  const edited = { ...form, title: "Revised by verified owner" };
+  assert.equal(rememberBrowserCampaign(storage, A, edited), true);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "owner_exists" });
+  assert.equal(restoreBrowserCampaign(storage, A).title, edited.title);
+  assert.ok(storage.getItem(guestKey), "guest text is retained rather than presumed redundant");
+  assert.deepEqual(importGuestCampaign(storage, B), { status: "imported" }, "different owner still requires an explicit import");
+  assert.equal(restoreBrowserCampaign(storage, A).title, edited.title);
+});
+
+test("silent guest cleanup followed by a foreign new guest never destroys their later draft", () => {
+  const storage = store();
+  const original = { ...emptyCampaignForm(), title: "Original guest" };
+  rememberBrowserCampaign(storage, null, original);
+  const silent = { ...storage, removeItem() {} };
+  assert.deepEqual(importGuestCampaign(silent, A), { status: "imported_guest_retained" });
+  const second = { ...emptyCampaignForm(), title: "Other guest" };
+  rememberBrowserCampaign(storage, null, second);
+  assert.deepEqual(importGuestCampaign(storage, A), { status: "owner_exists" });
+  assert.equal(restoreBrowserCampaign(storage, A).title, original.title);
+  assert.equal(restoreBrowserCampaign(storage, null).title, second.title);
+});
+
 test("failed legacy guest storage read blocks consent detection instead of treating as absent", () => {
   const storage = { getItem() { throw new Error("storage blocked"); } };
   assert.throws(() => hasUnclaimedGuestCampaign(storage), /storage blocked/);
