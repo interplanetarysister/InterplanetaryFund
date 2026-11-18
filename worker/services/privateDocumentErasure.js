@@ -3,6 +3,7 @@
 // The endpoint must remain disabled until isolated testing and independent
 // approval of the account-deletion queue workflow.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CANONICAL_SUPABASE_URL="https://ssibsfmtodgximseeqsv.supabase.co";
 const PATH=/^([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.(pdf|docx|xlsx|txt|md|csv)$/i;
 const json=(code,value)=>Response.json(value,{status:code,headers:{"cache-control":"no-store"}});
 const isValidBody=(data)=>data&&typeof data==="object"&&!Array.isArray(data)&&
@@ -12,7 +13,7 @@ const staffToken=(request)=>/^Bearer [\w.~-]+$/.test(request.headers.get("author
 function config(env){
  const url=String(env.SUPABASE_URL||"").replace(/\/$/,"");
  const key=env.SUPABASE_SECRET_KEY;
- if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)||typeof key!=="string"||key.length<20)
+ if(url!==CANONICAL_SUPABASE_URL||typeof key!=="string"||key.trim().length<=20)
    throw Error("Private document cleanup is not configured.");
  return {url,key};
 }
