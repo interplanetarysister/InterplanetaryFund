@@ -46,10 +46,10 @@ export function redactTeamCredentials(value) {
             /(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)=/i.test(normalized) &&
             !/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)=/i.test(normalized))
           return '[redacted credential URL]';
-        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)';
+        const codeKey='(?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|access[_-]?token|refresh[_-]?token|client[_-]?secret|api[_-]?key|authorization|jwt|token)';
         // Array-style and control-character suffixed credential keys must not
         // survive merely because they are not exact `code=` matches.
-        if (/[?#&;](?:code|auth[_-]?code|oauth[_-]?code|authorization[_-]?code|id[_-]?token|session[_-]?token|jwt|token)(?:\[[^\]&#;]*\]|\.[^=&#;\s]*|[\x00-\x1f])=/i.test(normalized))
+        if (new RegExp('[?#&;]'+codeKey+'(?:\\[[^\\]&#;]*\\]|\\.[^=&#;\\s]*|[\\x00-\\x1f])=', 'i').test(normalized))
           return '[redacted credential URL]';
         const codeParam=new RegExp('([?#&;]'+codeKey+'=)([^&#;\\s]+)','gi');
         const cleaned=normalized.replace(codeParam,(_part,prefix)=>prefix+'[redacted]');
