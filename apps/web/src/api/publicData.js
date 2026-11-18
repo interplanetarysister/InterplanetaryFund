@@ -74,10 +74,28 @@ async function attachVerifiedFunding(rows) {
       throw new Error("Invalid verified campaign funding totals.");
     totals.set(entry.campaign_id, { amount, donors });
   }
+  const { data: managedProfiles, error: profileError } = await supabase()
+    .from("ifund_managed_campaign_profiles")
+    .select("campaign_id,creator_name,beneficiary_name,fundraiser_label,management_disclosure")
+    .in("campaign_id", ids);
+  if (profileError || !Array.isArray(managedProfiles))
+    throw new Error("Managed fundraiser attribution could not be verified.");
+  const profiles = new Map(managedProfiles.map(profile => [profile.campaign_id, profile]));
   return rows.map(row => {
     const progress = totals.get(row.id);
     if (!progress) throw new Error("Verified campaign totals were incomplete.");
-    return { ...mapCampaign(row), raised_amount: progress.amount, donor_count: progress.donors };
+    const profile = profiles.get(row.id);
+    return {
+      ...mapCampaign(row),
+      ...(profile ? {
+        creator_name: profile.creator_name,
+        beneficiary_name: profile.beneficiary_name,
+        fundraiser_label: profile.fundraiser_label,
+        management_disclosure: profile.management_disclosure,
+      } : {}),
+      raised_amount: progress.amount,
+      donor_count: progress.donors,
+    };
   });
 }
 
