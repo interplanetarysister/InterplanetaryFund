@@ -83,7 +83,7 @@ test("event page and dashboard connect owner creation, member account activity a
     readFile(new URL("../src/components/dashboard/EventsDashboardSection.jsx", import.meta.url), "utf8"),
     readFile(new URL("../src/api/events.js", import.meta.url), "utf8"),
     readFile(new URL("../../../supabase/migrations/20261118190000_ifund_fundraising_events_and_external_activity.sql", import.meta.url), "utf8"),
-    readFile(new URL("../../../supabase/migrations/20261118193000_ifund_event_activity_integrity.sql", import.meta.url), "utf8"),
+    readFile(new URL("../../../supabase/migrations/20261118200500_ifund_event_activity_integrity.sql", import.meta.url), "utf8"),
   ]);
   assert.match(page, /Create a fundraising event/);
   assert.match(page, /Manage this event/);
