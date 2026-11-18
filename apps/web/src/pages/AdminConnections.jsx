@@ -31,6 +31,7 @@ const PROVIDER_APPROVALS = [
 export default function AdminConnections() {
  const [status,setStatus] = useState("loading");
  const [providers,setProviders] = useState({});
+ const [runtime,setRuntime] = useState([]);
  const [detail,setDetail] = useState("");
  const [reload,setReload] = useState(0);
  useEffect(()=>{
@@ -40,19 +41,29 @@ export default function AdminConnections() {
        const { data,error }=await authClient().auth.getSession();
        if(error || !data?.session?.access_token) throw new Error("Authenticated session required.");
        const result=await fetch("/api/oauth/status",{
-         headers:{Authorization:"Bearer "+data.session.access_token}
+         headers:{Authorization:"Bearer "+data.session.access_token},
+         cache:"no-store"
        });
-       if(!result.ok) throw new Error("Member OAuth gateway did not pass the provider-readiness check (HTTP "+result.status+").");
-       const payload=await result.json();
-       if(payload.enabled!==true || payload.storage_ready!==true) throw new Error("Member authorization has not passed all storage readiness checks.");
-       if(active){setProviders(payload.providers||{});setStatus("ready");setDetail("");}
+       const payload=await result.json().catch(()=>null);
+       if(!payload || !Array.isArray(payload.runtime)) {
+         throw new Error("Readiness diagnostics unavailable. Confirm the same-origin OAuth route and its approved frontend origin.");
+       }
+       const ready=payload.enabled===true && payload.storage_ready===true &&
+         payload.runtime.every(item=>item.configured===true);
+       if(active){
+         setProviders(payload.providers||{});
+         setRuntime(payload.runtime);
+         setStatus(ready?"ready":"attention");
+         setDetail(ready?"":"Complete the missing Cloudflare Worker bindings before enabling member authorization.");
+       }
      } catch(e){
        if(active){setStatus("attention");setDetail(e.message||"Readiness check unavailable.");}
      }
    })();
    return ()=>{active=false};
  },[reload]);
- const connected=Object.keys(providers).filter(name=>providers[name]===true);
+ const configuredProviders=Object.keys(providers).filter(name=>providers[name]===true);
+ const runtimeByName=Object.fromEntries(runtime.map(item=>[item.name,item.configured]));
  return <main className="mx-auto max-w-4xl space-y-6 px-4 py-8 sm:px-6">
   <header className="space-y-2">
     <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">Administrator tools</p>
@@ -64,21 +75,22 @@ export default function AdminConnections() {
     <h2 className="font-semibold">Member OAuth gateway</h2>
     <p role="status" className="text-sm">{status==="loading"?"Checking current configuration…":status==="ready"?"Provider authorization gateway and encrypted storage are configured.":"Configuration requires administrator attention."}</p>
     {detail && <p role="alert" className="text-sm text-muted-foreground">{detail}</p>}
-    <p className="text-xs text-muted-foreground">Configured OAuth providers: {status==="ready"?connected.length:"Unavailable"} of {PROVIDER_APPROVALS.length}. A provider appearing configured does not prove member consent or live posting privileges.</p>
+    <p className="text-xs text-muted-foreground">Configured OAuth providers: {configuredProviders.length} of {PROVIDER_APPROVALS.length}. Provider credentials do not prove member consent or live posting privileges.</p>
     <button type="button" className="min-h-11 rounded-xl border border-border px-4 font-semibold" onClick={()=>{setStatus("loading");setReload(x=>x+1)}}>Check again</button>
   </section>
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
     <h2 className="font-semibold">Secure runtime requirements</h2>
     <p className="text-sm text-muted-foreground">These binding names belong in the Cloudflare Worker environment, not in the browser or Git repository. Values are never displayed here.</p>
-    <ul className="space-y-2">{REQUIRED_BINDINGS.map(([name,description])=><li className="rounded-xl border border-border p-3 text-sm" key={name}>
-       <code className="font-semibold">{name}</code><p className="mt-1 text-muted-foreground">{description}</p>
+    <ul className="space-y-2">{REQUIRED_BINDINGS.map(([name,description])=><li className="flex flex-wrap items-start justify-between gap-2 rounded-xl border border-border p-3 text-sm" key={name}>
+       <div><code className="font-semibold">{name}</code><p className="mt-1 text-muted-foreground">{description}</p></div>
+       <span className="shrink-0 text-xs font-medium text-muted-foreground">{runtime.length===0?"Not verified":runtimeByName[name]===true?"Configured":"Missing"}</span>
     </li>)}</ul>
     <p className="text-sm">Deploy the canonical <code>worker/oauth.js</code> route through the existing migration Worker and an authorized same-origin <code>/api/oauth/*</code> gateway. Preserve the Cloudflare Pages and financial release gates.</p>
   </section>
   <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
     <h2 className="font-semibold">Provider registration and consent checks</h2>
     <ul className="space-y-2">{PROVIDER_APPROVALS.map(([id,label])=><li key={id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3 text-sm">
-       <span>{label}</span><span className="text-muted-foreground">{status!=="ready"?"Unverified":providers[id]===true?"Configured · member test required":"Setup and approval required"}</span>
+       <span>{label}</span><span className="text-muted-foreground">{providers[id]===true?"Credentials configured · member test required":runtime.length===0?"Not verified":"Setup and approval required"}</span>
     </li>)}</ul>
     <p className="text-xs text-muted-foreground">Each provider must complete a real member sign-in and verification before it can be labeled connected. Publishing requires its own independently verified permissions and explicit user approval.</p>
   </section>
