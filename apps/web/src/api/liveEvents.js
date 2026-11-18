@@ -25,7 +25,7 @@ export function isLiveEventPublic(event) {
   return Boolean(event && event.public_visible === true &&
     (event.status === "scheduled" ||
       (event.status === "live" && event.provider_status === "verified" && event.verified_live_at) ||
-      (event.status === "ended" && event.verified_live_at)));
+      (event.status === "ended" && ["verified", "ended"].includes(event.provider_status) && event.verified_live_at)));
 }
 
 export async function verifiedLiveOwner(client) {
