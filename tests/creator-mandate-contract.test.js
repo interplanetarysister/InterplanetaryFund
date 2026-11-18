@@ -331,5 +331,25 @@ test("managed external donation destinations are private, creator-approved, prov
   assert.match(externalDestination, /status <> 'ready'/);
   assert.match(externalDestination, /pending_creator_approval/);
   assert.match(externalDestination, /external_destination_creator_approved/);
+  assert.match(externalDestination, /ifund_guard_managed_external_destination/);
+  assert.match(externalDestination, /for update/);
+  assert.match(externalDestination, /donation URL is immutable/);
+  assert.match(externalDestination, /active mandate and separate creator publication scope are required/);
   assert.match(externalDestination, /No browser-role access/);
+});
+
+test("external donation destination approval is token-bound, expiring, and invalidated on mandate or draft changes", () => {
+  assert.match(mandateApi, /external_destination_approve/);
+  assert.match(mandateApi, /creator_approval_token_hash/);
+  assert.match(mandateApi, /creator_approved_url_sha256/);
+  assert.match(mandateApi, /creator_authorization_expired_or_revoked/);
+  assert.match(mandateApi, /status: "revoked", creator_approval_token_hash: null/);
+  assert.match(mandateApi, /privateHost/);
+  assert.match(review, /external_destination_token/);
+  assert.match(review, /approveExternalDestination/);
+  assert.match(admin, /create_external_destination/);
+  assert.match(admin, /verify_external_destination/);
+  assert.match(admin, /check_external_destination_compliance/);
+  assert.match(admin, /publish !== true/);
+});
 });
