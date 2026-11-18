@@ -1,4 +1,8 @@
 import catalog from "./provider-catalog.js";
+import { oauthProviders } from "../oauth.js";
+
+const registeredOAuthProviders = new Set(oauthProviders);
+const OAUTH_PROVIDER_ALIASES = Object.freeze({ facebook: "facebook_pages" });
 const byId = new Map(catalog.providers.map((p) => [p.id, Object.freeze(p)]));
 export const CONNECTION_POLICY_VERSION = "ifund-help-2026-11-v1";
 export const CONNECTION_OPERATIONS = Object.freeze([
@@ -34,7 +38,8 @@ export function connectionMethods(id, registration = null, capabilities = []) {
     ? registration.transport
     : p.legacy_auth_hint === "link"
       ? "public_page"
-      : p.legacy_auth_hint === "oauth"
+      : p.legacy_auth_hint === "oauth" &&
+          registeredOAuthProviders.has(OAUTH_PROVIDER_ALIASES[id] || id)
         ? "oauth"
         : "protected_provider_step";
   return {
