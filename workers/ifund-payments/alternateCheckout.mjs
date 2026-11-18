@@ -55,6 +55,11 @@ async function start(request,env) {
     return fail("alternate_checkout_unavailable");
   if(!UUID_RE.test(p.campaign_id||"")||!NONCE_RE.test(p.request_key||"")||!money(p.gift_cents,p.optional_support_cents))
     return fail("invalid_checkout_request",400);
+  // Reject missing live provider credentials BEFORE creating a ledger reserve.
+  // Otherwise an unavailable processor could leave confusing pending intents.
+  if(!/^sk_live_[A-Za-z0-9]{16,}$/.test(await secret(env.IFUND_STRIPE_SECRET_KEY)) ||
+     !/^whsec_[A-Za-z0-9]{16,}$/.test(await secret(env.IFUND_STRIPE_WEBHOOK_SECRET)))
+    return fail("alternate_provider_credentials_unavailable");
   const gift=p.gift_cents,tip=p.optional_support_cents,total=gift+tip;
   // Reserve first; no Stripe session is created without a durable canonical intent.
   const reservation=await ledger(env,"reserve",{
@@ -151,8 +156,8 @@ async function webhook(request,env) {
 export async function handleAlternatePayments(request,env) {
   const path=new URL(request.url).pathname;
   if(path==="/api/payments/alternatives/config"&&request.method==="GET"){
-    const hasKey=Boolean(await secret(env.IFUND_STRIPE_SECRET_KEY));
-    const hasWebhook=Boolean(await secret(env.IFUND_STRIPE_WEBHOOK_SECRET));
+    const hasKey=/^sk_live_[A-Za-z0-9]{16,}$/.test(await secret(env.IFUND_STRIPE_SECRET_KEY));
+    const hasWebhook=/^whsec_[A-Za-z0-9]{16,}$/.test(await secret(env.IFUND_STRIPE_WEBHOOK_SECRET));
     const ready=hasKey&&hasWebhook&&configured(env,"wallet");
     return json({ok:true,provider:"stripe",environment:"live",wallet_enabled:ready,
       crypto_enabled:ready&&configured(env,"crypto"),status:ready?"provider_configured":"unavailable"});
