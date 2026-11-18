@@ -20,7 +20,7 @@ test("public listing never equates unverified live with verified broadcast",()=>
 });
 test("event validation refuses missing time, malformed campaign and misleading title",()=>{
   assert.deepEqual(validateLiveEvent(event,{publishing:true}).title,event.title);
-  assert.throws(()=>validateLiveEvent({...event,title:"Too short"}),/title between/);
+  assert.throws(()=>validateLiveEvent({...event,title:"Tiny"}),/title between/);
   assert.throws(()=>validateLiveEvent({...event,scheduled_at:""},{publishing:true}),/future/);
   assert.throws(()=>validateLiveEvent({...event,scheduled_at:new Date(Date.now()-10000).toISOString()},{publishing:true}),/future/);
   assert.throws(()=>validateLiveEvent({...event,campaign_id:"not-a-uuid"}),/valid owned campaign/);
@@ -28,7 +28,7 @@ test("event validation refuses missing time, malformed campaign and misleading t
   assert.equal(validateLiveEvent({...event,recording_consent:"yes"}).recording_consent,false);
 });
 test("database is fail-closed for owner creation and verified broadcasts",()=>{
-  const sql=read("../../../supabase/migrations/20261118170000_ifund_live_events_foundation.sql");
+  const sql=read("../../supabase/migrations/20261118170000_ifund_live_events_foundation.sql");
   assert.match(sql,/enable row level security/i);
   assert.match(sql,/revoke all on public\.ifund_live_events from public, anon, authenticated/i);
   assert.match(sql,/ifund_live_verified_creator\(\)/);
