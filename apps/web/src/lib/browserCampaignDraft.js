@@ -216,11 +216,14 @@ function rememberBrowserCampaignUnsafe(storage, ownerId, form, brief, { allowBla
     if (parsed?.version !== 2 || parsed.owner_id !== ownerId ||
         !parsed.form || typeof parsed.form !== "object" || Array.isArray(parsed.form)) return false;
   }
-  storage.setItem(key, JSON.stringify({
+  const serialized = JSON.stringify({
     version: 2, owner_id: ownerId,
     form: campaignForm(form), writing_brief: writingBrief(brief),
-  }));
-  return true;
+  });
+  storage.setItem(key, serialized);
+  // Browser adapters may silently ignore writes (privacy modes or shims).
+  // Never announce a saved draft without verifying the exact stored record.
+  return storage.getItem(key) === serialized;
 }
 
 function forgetBrowserCampaignUnsafe(storage, ownerId) {
