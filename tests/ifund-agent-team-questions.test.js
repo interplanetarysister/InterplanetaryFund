@@ -25,6 +25,10 @@ function mockBackend({quota=true,active=true,permission=true}={}){
     if(url.includes("/ifund_ai_permission_preferences?"))return Response.json([{allow_ai_campaign_drafts:permission}]);
     if(url.endsWith("/rpc/ifund_reserve_agent_question"))
       return Response.json(quota?{allowed:true,state:"reserved",remaining:19}:{allowed:false,state:"daily_limit",limit:20});
+    if(url.endsWith("/rpc/ifund_complete_agent_question"))
+      return Response.json(true);
+    if(url.endsWith("/rpc/ifund_release_agent_question"))
+      return Response.json(true);
     throw Error("Unexpected upstream call: "+url);
   };
   return {fetcher,calls};
@@ -56,6 +60,7 @@ test("member permission and quota lead to real model response, without tool acti
   assert.equal(result.questions_remaining_today,19);
   assert.equal(result.context_saved,false);
   assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_reserve_agent_question")));
+  assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")));
 });
 test("disabled provider, missing authorization and exhausted quotas fail closed",async()=>{
   assert.equal((await routeTeamQuestion(request("Explain my fundraising goals"),{},mockBackend().fetcher)).status,503);
@@ -79,6 +84,10 @@ test("source wiring exposes account-safe question UI without pretending external
   assert.match(quota,/pg_advisory_xact_lock/);
   assert.match(quota,/ifund_story_subscription/);
   assert.match(quota,/already_reserved/);
+  assert.match(quota,/reservation_expires_at/);
+  assert.match(quota,/ifund_complete_agent_question/);
+  assert.match(quota,/ifund_release_agent_question/);
+  assert.match(quota,/status='completed'/);
 });
 
 
@@ -101,4 +110,13 @@ test("member UI checks actual entitlement and gateway before calling model",()=>
   assert.match(source,/gateway\.configured/);
   assert.match(source,/membership\.active/);
   assert.match(router,/\/api\/agents\/team\/status/);
+});
+
+test("failed provider inference releases the pending question reservation",async()=>{
+  const backend=mockBackend();
+  const failingEnv={...env,AI:{run:async()=>{throw new Error("temporary provider failure");}}};
+  const response=await routeTeamQuestion(request("How can I improve my campaign story?"),failingEnv,backend.fetcher);
+  assert.equal(response.status,503);
+  assert.ok(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_release_agent_question")));
+  assert.equal(backend.calls.some(([url])=>url.endsWith("/rpc/ifund_complete_agent_question")),false);
 });
