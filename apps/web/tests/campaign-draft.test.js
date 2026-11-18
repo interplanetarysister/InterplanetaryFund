@@ -17,7 +17,7 @@ const input = {
 const suggestion = (assistance = "assisted") => ({
   titles: ["One", "Two", "Three", "Four", "Five"],
   summaries: ["First summary", "Second summary"],
-  story: "A factual story about the documented community need. ".repeat(22),
+  story: "A factual story about the documented community need. ".repeat(22).trim(),
   image_prompt: "A symbolic garden illustration.",
   assistance,
   ai_inference: assistance === "assisted",
