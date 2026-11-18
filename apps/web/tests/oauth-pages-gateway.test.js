@@ -9,7 +9,10 @@ test("member OAuth gateway is fail-closed without server readiness", async()=>{
  assert.equal(response.headers.get("cache-control"),"no-store");
  assert.equal(response.headers.get("x-content-type-options"),"nosniff");
  const result=await response.json();
- assert.match(result.error,/Provider connections are not configured/);
+ assert.match(result.error,/Supabase member authentication is not configured/);
+ assert.equal(result.enabled,false);
+ assert.ok(Array.isArray(result.runtime));
+ assert.equal(result.runtime.length,6);
 });
 test("gateway delegates to canonical worker OAuth handler, never a second token vault",async()=>{
  const gateway=readFileSync(new URL("../functions/api/oauth/[[path]].js",import.meta.url),"utf8");
