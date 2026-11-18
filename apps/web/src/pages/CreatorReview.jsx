@@ -5,12 +5,19 @@ import { publicCreatorMandateRequest } from "@/api/managedCreatorMandates";
 export default function CreatorReview() {
   const [params]=useSearchParams();
   const token=params.get("token")||"";
+  const externalDestinationToken=params.get("external_destination_token")||"";
+  const [externalDestination,setExternalDestination]=useState(null);
   const [mandate,setMandate]=useState(null);
   const [feedback,setFeedback]=useState("");
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [result,setResult]=useState("");
-  useEffect(()=>{let alive=true;(async()=>{try{const r=await publicCreatorMandateRequest("review",token);if(alive)setMandate(r.mandate)}catch(e){if(alive)setError(e.message)}})();return()=>{alive=false}},[token]);
+  useEffect(()=>{let alive=true;(async()=>{try{if(externalDestinationToken){const r=await publicCreatorMandateRequest("external_destination_approve",externalDestinationToken);if(alive)setExternalDestination(r.destination)}else{const r=await publicCreatorMandateRequest("review",token);if(alive)setMandate(r.mandate)}}catch(e){if(alive)setError(e.message)}})();return()=>{alive=false}},[token,externalDestinationToken]);
+  async function approveExternalDestination(){
+    setBusy(true);setError("");setResult("");
+    try{await publicCreatorMandateRequest("external_destination_approve",externalDestinationToken,{approve:true});setExternalDestination(null);setResult("You approved this exact external donation destination. IFund must still verify provider ownership and complete its compliance review. This does not publish the campaign.");}
+    catch(e){setError(e.message)}finally{setBusy(false)}
+  }
   async function decide(decision){
     if(decision==="revoked"&&!window.confirm("Revoke IFund's authority to manage this fundraiser?"))return;
     if(decision==="changes_requested"&&feedback.trim().length<10){setError("Describe the changes you need (at least 10 characters).");return}
@@ -23,6 +30,12 @@ export default function CreatorReview() {
     <header className="space-y-2"><p className="text-sm font-semibold uppercase tracking-[.16em] text-emerald-600">Interplanetary Fund</p><h1 className="text-3xl font-bold">Review your fundraiser draft</h1><p className="text-sm text-muted-foreground">This private link is for the creator named in the mandate. Do not forward it.</p></header>
     {error&&<p role="alert" className="rounded-xl border border-red-500/40 p-3 text-sm">{error}</p>}
     {result&&<p role="status" className="rounded-xl border border-emerald-500/40 p-4 text-sm">{result}</p>}
+    {externalDestination&&!result&&<section className="space-y-5 rounded-2xl border border-border bg-card p-5">
+      <div><p className="text-sm text-muted-foreground">External donation destination approval</p><h2 className="text-xl font-semibold">{externalDestination.provider_label}</h2></div>
+      <dl className="space-y-2 text-sm"><div><dt className="text-muted-foreground">Donation destination</dt><dd className="break-all"><a href={externalDestination.donation_url} target="_blank" rel="noreferrer" className="underline">{externalDestination.donation_url}</a></dd></div><div><dt className="text-muted-foreground">Account owner</dt><dd>{externalDestination.destination_owner_name}</dd></div><div><dt className="text-muted-foreground">Relationship to fundraiser</dt><dd>{externalDestination.destination_owner_relationship}</dd></div></dl>
+      <p className="text-sm leading-6">Approving confirms this exact URL and the named destination owner. Donations will be paid directly by the provider, not collected or held by IFund. IFund must independently verify provider ownership and complete compliance review. Approval does not publish the campaign.</p>
+      <button disabled={busy} onClick={approveExternalDestination} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">Approve this exact donation destination</button>
+    </section>}
     {mandate&&!result&&<section className="space-y-5 rounded-2xl border border-border bg-card p-5">
       <div><p className="text-sm text-muted-foreground">Creator</p><p className="font-semibold">{mandate.creator_name}</p><p className="mt-2 text-sm text-muted-foreground">Fundraiser</p><p className="font-semibold">{mandate.fundraiser_label}</p><p className="mt-2 text-sm text-muted-foreground">Beneficiary</p><p className="font-semibold">{mandate.beneficiary_name}</p><a href={mandate.fundraiser_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm underline">View original fundraiser</a></div>
       <div className="space-y-3 border-t border-border pt-4"><h2 className="text-xl font-semibold">{mandate.draft_payload.title}</h2><p className="text-sm text-muted-foreground">Category: {mandate.draft_payload.category} · Fundraising goal: {Number(mandate.draft_payload.goal_amount).toLocaleString("en-US")} USD</p>{mandate.draft_payload.summary&&<p className="text-sm leading-6">{mandate.draft_payload.summary}</p>}<article className="whitespace-pre-wrap text-sm leading-7">{mandate.draft_payload.story}</article><p className="text-xs text-muted-foreground">Prepared by IFund under your managed-service authorization. This is a draft and is not public.</p></div>
