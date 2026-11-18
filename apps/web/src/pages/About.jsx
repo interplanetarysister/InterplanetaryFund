@@ -8,6 +8,7 @@ import LegalFooter from "@/components/LegalFooter";
 export default function About() {
   return (
     <div className="ifund-public min-h-dvh bg-background">
+      <main id="main-content">
       {/* Hero */}
       <section className="ifund-public-hero relative overflow-hidden deep-space">
         <div className="relative px-5 sm:px-8 py-16 sm:py-24 max-w-3xl mx-auto text-center">
@@ -56,6 +57,7 @@ export default function About() {
           <Button asChild className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Link to="/create"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign <ArrowRight className="w-4 h-4 ml-2" /></Link></Button>
         </div>
       </section>
+      </main>
       <LegalFooter />
     </div>
   );
