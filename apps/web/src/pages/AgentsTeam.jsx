@@ -32,7 +32,8 @@ export default function AgentsTeam() {
   const [questionError,setQuestionError]=useState("");
   const [questionBusy,setQuestionBusy]=useState(false);
   const [gateway,setGateway]=useState({status:"loading",configured:false});
-  const [membership,setMembership]=useState({status:"loading",active:false});
+  const [membership,setMembership]=useState({status:"loading",active:false,ownerId:null});
+  const membershipActive=Boolean(user?.id && membership.ownerId===user.id && membership.status==="ready" && membership.active);
   const requestRef=useRef({generation:0,controller:null});
   useEffect(()=>{
     const controller=new AbortController();
@@ -48,19 +49,19 @@ export default function AgentsTeam() {
   },[]);
   useEffect(()=>{
     let active=true;
-    setMembership({status:"loading",active:false});
-    if(!user?.id){setMembership({status:"signed-out",active:false});return()=>{active=false};}
+    setMembership({status:"loading",active:false,ownerId:user?.id||null});
+    if(!user?.id){setMembership({status:"signed-out",active:false,ownerId:null});return()=>{active=false};}
     const owner=user.id;
     try {
       const client=authClient();
       client.rpc("ifund_story_subscription").then(async({data,error})=>{
         const {data:identity}=await client.auth.getUser();
         if(!active||identity?.user?.id!==owner)return;
-        setMembership({status:error?"unavailable":"ready",
+        setMembership({status:error?"unavailable":"ready",ownerId:owner,
           active:!error&&data?.active===true&&Number.isInteger(data?.level)&&data.level>=1});
-      }).catch(()=>{if(active)setMembership({status:"unavailable",active:false});});
+      }).catch(()=>{if(active)setMembership({status:"unavailable",active:false,ownerId:owner});});
     } catch {
-      if(active)setMembership({status:"unavailable",active:false});
+      if(active)setMembership({status:"unavailable",active:false,ownerId:owner});
     }
     return()=>{active=false;};
   },[user?.id]);
@@ -77,7 +78,7 @@ export default function AgentsTeam() {
     event.preventDefault();
     if(questionBusy || agentQuestion.trim().length<8) return;
     if(!gateway.configured){setQuestionError("Direct AI questions are not yet enabled here. Use the available specialist tools.");return;}
-    if(!membership.active){setQuestionError("An active verified AI membership is needed for direct agent answers.");return;}
+    if(!membershipActive){setQuestionError("An active verified AI membership is needed for direct agent answers.");return;}
     const owner=user?.id;
     if(!owner){setQuestionError("Sign in with a verified email account to ask a specialist.");return;}
     requestRef.current.controller?.abort();
@@ -134,10 +135,10 @@ export default function AgentsTeam() {
         {gateway.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking agent service availability…</p>}
         {gateway.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Direct AI answers are not enabled on this deployment. You can still choose specialist tools below.</p>}
         {gateway.configured&&membership.status==="loading"&&<p role="status" className="text-sm text-muted-foreground">Checking your AI membership…</p>}
-        {gateway.configured&&membership.status==="ready"&&!membership.active&&<p role="status" className="text-sm">Free specialist matching is available. <Link to="/subscriptions" className="text-primary underline">See verified AI plans</Link> for direct answers.</p>}
+        {gateway.configured&&membership.status==="ready"&&!membershipActive&&<p role="status" className="text-sm">Free specialist matching is available. <Link to="/subscriptions" className="text-primary underline">See verified AI plans</Link> for direct answers.</p>}
         {gateway.configured&&membership.status==="unavailable"&&<p role="status" className="text-sm text-muted-foreground">Your AI membership could not be verified. No paid question was sent.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
-        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membership.active}
+        <button type="submit" disabled={questionBusy || !user || agentQuestion.trim().length<8 || !gateway.configured || !membershipActive}
           className="min-h-11 rounded-xl bg-primary px-5 font-semibold text-primary-foreground disabled:opacity-50">
           {questionBusy ? "Asking your agent…" : "Ask iFund"}
         </button>
