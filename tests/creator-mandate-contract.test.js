@@ -68,6 +68,9 @@ test("creator review supports change requests, exact draft approval and revocati
   assert.match(review, /Approve this final draft/);
   assert.match(review, /Request changes/);
   assert.match(review, /Revoke IFund authorization/);
+  assert.match(api, /creator_review_state,creator_feedback,creator_approved_at,campaign_id,draft_payload/);
+  assert.match(admin, /Load saved draft for revision/);
+  assert.match(admin, /Creator feedback:/);
 });
 
 test("managed service does not create creator accounts, change campaign ownership or publish automatically", () => {
