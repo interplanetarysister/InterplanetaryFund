@@ -80,3 +80,25 @@ test("source wiring exposes account-safe question UI without pretending external
   assert.match(quota,/ifund_story_subscription/);
   assert.match(quota,/already_reserved/);
 });
+
+
+test("gateway status reports configuration, not a fake specialist answer",async()=>{
+  const req=new Request("https://ifund.test/api/agents/team/status",{method:"GET"});
+  const available=await routeTeamQuestion(req,env,mockBackend().fetcher);
+  assert.equal(available.status,200);
+  const body=await available.json();
+  assert.equal(body.configured,true);
+  assert.equal(body.requires_membership,true);
+  assert.equal(body.external_publishing,false);
+  const disabled=await routeTeamQuestion(req,{},mockBackend().fetcher);
+  assert.equal((await disabled.json()).configured,false);
+});
+test("member UI checks actual entitlement and gateway before calling model",()=>{
+  const source=readFileSync(new URL("../apps/web/src/pages/AgentsTeam.jsx",import.meta.url),"utf8");
+  const router=readFileSync(new URL("../worker/index.js",import.meta.url),"utf8");
+  assert.match(source,/ifund_story_subscription/);
+  assert.match(source,/\/api\/agents\/team\/status/);
+  assert.match(source,/gateway\.configured/);
+  assert.match(source,/membership\.active/);
+  assert.match(router,/\/api\/agents\/team\/status/);
+});
