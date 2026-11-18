@@ -69,6 +69,54 @@ test("corrupt setup and storage failures do not falsely acknowledge saved progre
   assert.equal(s.rows.get(key),"broken private bytes");
   assert.equal(rememberWizard({getItem(){throw Error("private storage blocked");}},owner,null,emptyWizard()),false);
 });
+test("wizard save requires storage readback and never falsely acknowledges silent writes",()=>{
+  const s=storage(),expected={...emptyWizard(),draft_step:1,location:"Keep the original note"};
+  assert.equal(rememberWizard(s,owner,null,expected),true);
+  const raw=[...s.rows.values()][0];
+  const silent={...s,setItem(){}};
+  assert.equal(rememberWizard(silent,owner,null,{...expected,location:"Not persisted"}),false);
+  assert.equal([...s.rows.values()][0],raw);
+  const empty=storage();
+  assert.equal(rememberWizard({...empty,setItem(){}},owner,null,expected),false);
+});
+
+test("wizard cleanup confirms storage removal and preserves foreign or corrupt bytes",()=>{
+  const s=storage();
+  assert.equal(rememberWizard(s,owner,null,emptyWizard()),true);
+  const key=[...s.rows.keys()][0],raw=s.rows.get(key);
+  assert.equal(forgetWizard({...s,removeItem(){}},owner,null),false);
+  assert.equal(s.rows.get(key),raw);
+  assert.equal(forgetWizard(s,other,null),true);
+  assert.equal(s.rows.get(key),raw);
+  assert.equal(forgetWizard(s,owner,null),true);
+  assert.equal(s.rows.has(key),false);
+  s.rows.set(key,"corrupt private preferences");
+  assert.equal(forgetWizard(s,owner,null),false);
+  assert.equal(s.rows.get(key),"corrupt private preferences");
+});
+
+test("wizard guest transfer does not delete an unverified original and permits explicit safe retry",()=>{
+  const s=storage(),guest={...emptyWizard(),draft_step:2,location:"Personal private preferences"};
+  assert.equal(rememberWizard(s,null,null,guest),true);
+  const source=[...s.rows.keys()][0],raw=s.rows.get(source);
+  assert.equal(importGuestWizard({...s,removeItem(){}},owner),false);
+  assert.equal(s.rows.get(source),raw);
+  assert.equal(restoreWizard(s,owner).location,guest.location);
+  assert.equal(importGuestWizard(s,owner),true,"identical imported owner copy can safely finish cleanup");
+  assert.equal(s.rows.get(source),undefined);
+  assert.equal(restoreWizard(s,owner).location,guest.location);
+});
+
+test("wizard guest retry never overwrites edited owner preferences",()=>{
+  const s=storage(),guest={...emptyWizard(),draft_step:2,location:"Original guest"};
+  rememberWizard(s,null,null,guest);
+  assert.equal(importGuestWizard({...s,removeItem(){}},owner),false);
+  assert.equal(rememberWizard(s,owner,null,{...guest,location:"Edited by owner"}),true);
+  assert.equal(importGuestWizard(s,owner),false);
+  assert.equal(restoreWizard(s,null).location,guest.location);
+  assert.equal(restoreWizard(s,owner).location,"Edited by owner");
+});
+
 test("setup save and reload preserve progress, deadline, instructions and writing brief in existing relation",async()=>{
   const h=clientFixture(),snapshot={...emptyWizard(),end_date:"2026-12-30",location:"Private note",ai_profile:{tone:"Clear",never_change:"Do not invent donors"},writing_brief:{writingPath:"write",details:"Budget details",need:"Fridge",beneficiary:"Pantry"}};
   const written=await saveCampaignSetup(h.client,campaign,snapshot,2);
