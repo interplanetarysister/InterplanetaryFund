@@ -74,5 +74,8 @@ test("managed service does not create creator accounts, change campaign ownershi
   assert.doesNotMatch(api, /from\(["']ifund_campaigns["']\)\.(insert|update)/);
   assert.match(admin, /does not create or publish/);
   assert.match(policy, /does NOT yet create a canonical public IFund campaign/);
+  assert.match(policy, /private Story AI draft preparation and creator review only/);
+  assert.match(policy, /does not enable other specialist agent operations/);
+  assert.match(policy, /assigned to the acting admin account/);
   assert.match(review, /Publishing still requires separate authorization/);
 });
