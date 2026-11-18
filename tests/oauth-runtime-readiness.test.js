@@ -77,7 +77,7 @@ test('OAuth status denies active non-admin members', async () => {
         status: 200, headers: { 'content-type': 'application/json' },
       });
     }
-    if (url.endsWith('/rpc/ifund_current_user_is_verified_super_admin')) {
+    if (url.endsWith('/rpc/ifund_current_user_is_verified_admin')) {
       return new Response('false', { status: 200, headers: { 'content-type': 'application/json' } });
     }
     assert.fail('Unexpected upstream request: ' + url);
@@ -87,7 +87,7 @@ test('OAuth status denies active non-admin members', async () => {
   assert.deepEqual(await result.json(), { error: 'Verified administrator access required.' });
 });
 
-test('OAuth status returns readiness details to a verified super administrator', async () => {
+test('OAuth status returns readiness details to a verified administrator', async () => {
   const request = new Request('https://interplanetaryfund.com/api/oauth/status', {
     headers: {
       origin: 'https://interplanetaryfund.com',
@@ -100,7 +100,7 @@ test('OAuth status returns readiness details to a verified super administrator',
         status: 200, headers: { 'content-type': 'application/json' },
       });
     }
-    if (url.endsWith('/rpc/ifund_current_user_is_verified_super_admin')) {
+    if (url.endsWith('/rpc/ifund_current_user_is_verified_admin')) {
       return new Response('true', { status: 200, headers: { 'content-type': 'application/json' } });
     }
     assert.fail('Unexpected upstream request: ' + url);
