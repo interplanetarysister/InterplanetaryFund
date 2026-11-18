@@ -33,7 +33,15 @@ const hash = async (value) => {
   return Array.from(new Uint8Array(bytes), (b) => b.toString(16).padStart(2, "0")).join("");
 };
 const safeUrl = (value) => {
-  try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password; } catch { return false; }
+  try {
+    const u = new URL(value);
+    const host = u.hostname.toLowerCase().replace(/^\\[|\\]$/g, "");
+    const privateHost = host === "localhost" || host.endsWith(".localhost") || host === "::1" ||
+      host === "0.0.0.0" || /^127\\./.test(host) || /^10\\./.test(host) ||
+      /^192\\.168\\./.test(host) || /^169\\.254\\./.test(host) ||
+      /^172\\.(1[6-9]|2[0-9]|3[01])\\./.test(host);
+    return u.protocol === "https:" && !u.username && !u.password && !privateHost;
+  } catch { return false; }
 };
 const event = async (db, mandateId, actorKind, actorId, eventType, details = {}) => {
   const { error } = await db.from("ifund_creator_mandate_events").insert({
@@ -187,6 +195,11 @@ Deno.serve(async (req) => {
         .eq("creator_approval_token_hash", await hash(publicToken))
         .eq("status", "pending_creator_approval").maybeSingle();
       if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
+      const { data: mandate, error: mandateError } = await publicDb.from("ifund_creator_mandates")
+        .select("status,expires_at,scopes").eq("id", destination.mandate_id).maybeSingle();
+      if (mandateError || !mandate || mandate.status !== "active" ||
+          new Date(mandate.expires_at).getTime() <= Date.now() || mandate.scopes?.publish !== true)
+        return json(410, { error: "creator_authorization_expired_or_revoked" }, origin);
       return json(200, { destination }, origin);
     }
 
@@ -198,6 +211,11 @@ Deno.serve(async (req) => {
         .select("id,mandate_id,donation_url,status")
         .eq("creator_approval_token_hash", tokenHash).eq("status", "pending_creator_approval").maybeSingle();
       if (error || !destination) return json(404, { error: "destination_review_unavailable" }, origin);
+      const { data: mandate, error: mandateError } = await publicDb.from("ifund_creator_mandates")
+        .select("status,expires_at,scopes").eq("id", destination.mandate_id).maybeSingle();
+      if (mandateError || !mandate || mandate.status !== "active" ||
+          new Date(mandate.expires_at).getTime() <= Date.now() || mandate.scopes?.publish !== true)
+        return json(410, { error: "creator_authorization_expired_or_revoked" }, origin);
       const { data: updated, error: updateError } = await publicDb.from("ifund_managed_external_destinations").update({
         creator_approved_at: new Date().toISOString(),
         creator_approved_url_sha256: await hash(destination.donation_url),
@@ -277,6 +295,11 @@ Deno.serve(async (req) => {
       const { data: mandate, error: mandateError } = await db.from("ifund_creator_mandates")
         .select("id").eq("id", destination.mandate_id).eq("assigned_admin_id", user.id).maybeSingle();
       if (mandateError || !mandate) return json(404, { error: "assigned_mandate_not_found" }, origin);
+      const { data: activeMandate, error: activeError } = await db.from("ifund_creator_mandates")
+        .select("status,expires_at,scopes").eq("id", destination.mandate_id).maybeSingle();
+      if (activeError || !activeMandate || activeMandate.status !== "active" ||
+          new Date(activeMandate.expires_at).getTime() <= Date.now() || activeMandate.scopes?.publish !== true)
+        return json(403, { error: "active_creator_publish_authorization_required" }, origin);
       const { error } = await db.from("ifund_managed_external_destinations").update({
         provider_owner_verified_at: new Date().toISOString(), provider_owner_verified_by: user.id,
         provider_verification_evidence: evidence, status: "pending_compliance", updated_at: new Date().toISOString(),
@@ -417,6 +440,10 @@ Deno.serve(async (req) => {
       }).eq("id", mandateId).eq("assigned_admin_id", user.id).in("status", ["invited","consented_pending_verification","active"])
         .select("id").maybeSingle();
       if (error || !row) throw error || new Error("Active mandate assigned to this admin was not found.");
+      const { error: destinationError } = await db.from("ifund_managed_external_destinations").update({
+        status: "revoked", creator_approval_token_hash: null, updated_at: new Date().toISOString(),
+      }).eq("mandate_id", row.id).not("status", "in", "(rejected,revoked)");
+      if (destinationError) throw destinationError;
       await event(db, row.id, "admin", user.id, "revoked", { reason });
       return json(200, { revoked: true }, origin);
     }
