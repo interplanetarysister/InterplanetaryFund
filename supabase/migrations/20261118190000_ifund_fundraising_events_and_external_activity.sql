@@ -240,9 +240,9 @@ create policy ifund_event_items_owner_delete
   on public.ifund_event_items for delete to authenticated
   using (owner_id=(select auth.uid()));
 
-create policy ifund_event_registrations_member_or_organizer_read
+create policy ifund_event_registrations_member_private_read
   on public.ifund_event_registrations for select to authenticated
-  using (user_id=(select auth.uid()) or event_owner_id=(select auth.uid()));
+  using (user_id=(select auth.uid()));
 
 create policy ifund_event_registrations_verified_member_insert
   on public.ifund_event_registrations for insert to authenticated
