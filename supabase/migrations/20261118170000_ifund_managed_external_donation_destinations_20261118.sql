@@ -105,20 +105,22 @@ begin
     raise exception 'creator-approved donation URL is immutable; request a new approval';
   end if;
 
-  if new.creator_approved_at is not null
-     and (v_mandate.status <> 'active'
-          or v_mandate.expires_at <= now()
-          or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
-          or new.creator_approved_by_token is not true
-          or new.creator_approval_token_hash is not null) then
-    raise exception 'active mandate and separate creator publication scope are required';
-  end if;
+  if new.status not in ('revoked','rejected') then
+    if new.creator_approved_at is not null
+       and (v_mandate.status <> 'active'
+            or v_mandate.expires_at <= now()
+            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true
+            or new.creator_approved_by_token is not true
+            or new.creator_approval_token_hash is not null) then
+      raise exception 'active mandate and separate creator publication scope are required';
+    end if;
 
-  if new.status in ('pending_provider_verification','pending_compliance','ready')
-     and (v_mandate.status <> 'active'
-          or v_mandate.expires_at <= now()
-          or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true) then
-    raise exception 'active mandate and separate creator publication scope are required';
+    if new.status in ('pending_provider_verification','pending_compliance','ready')
+       and (v_mandate.status <> 'active'
+            or v_mandate.expires_at <= now()
+            or coalesce((v_mandate.scopes ->> 'publish')::boolean, false) is not true) then
+      raise exception 'active mandate and separate creator publication scope are required';
+    end if;
   end if;
 
   return new;
