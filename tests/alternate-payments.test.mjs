@@ -70,7 +70,7 @@ test("UI allows only server-ready provider, no redirect-as-capture, native remai
   assert.match(ui,/config\?\.environment === "live"/);
   assert.match(ui,/config\.wallet_enabled === true/);
   assert.match(ui,/config\.crypto_enabled === true/);
-  assert.match(ui,/external_checkout/);
+  assert.match(ui,/A donation appears in My Giving only after verified provider settlement/);
   assert.match(ui,/window\.location\.assign/);
   assert.match(dialog,/if \(nativeCheckoutUnavailable\) return/);
   assert.match(dialog,/AlternativeDonationOptions/);
