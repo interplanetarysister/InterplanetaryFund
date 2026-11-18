@@ -21,6 +21,8 @@ test("event checkout validation rejects lookalike, unsafe, credentialed and mism
     ["https://eventbrite.com@evil.example/e/123", "eventbrite"],
     ["https://user:pass@eventbrite.com/e/123", "eventbrite"],
     ["https://eventbrite.com:8443/e/123", "eventbrite"],
+    ["https://eventbrite.com", "eventbrite"],
+    ["https://paypal.com/?ref=campaign", "paypal"],
     ["https://paypal.com/paypalme/communityfund", "eventbrite"],
     ["https://checkout.example.org/auction", "other"],
   ]) {
