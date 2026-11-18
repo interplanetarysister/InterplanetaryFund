@@ -1,4 +1,4 @@
-import { authenticatedUser, response } from './reads.js';
+import { authenticatedAdminUser, authenticatedUser, response } from './reads.js';
 
 const PROVIDERS = Object.freeze({
   google: {
@@ -228,13 +228,56 @@ function serviceConfigured(env) {
     return false;
   }
 }
+
+function validFrontendOrigins(value) {
+  if (typeof value !== 'string' || !value.trim()) return false;
+  const origins = value.split(',').map((origin) => origin.trim()).filter(Boolean);
+  if (!origins.length) return false;
+  const configured = new Set(origins);
+  // Both active public Pages hostnames serve the member app; neither redirects
+  // to the other, so both must be allowed before the gateway can be ready.
+  if (!configured.has('https://interplanetaryfund.com') ||
+      !configured.has('https://www.interplanetaryfund.com')) return false;
+  return origins.every((origin) => {
+    try {
+      const parsed = new URL(origin);
+      return parsed.protocol === 'https:' && parsed.origin === origin &&
+        !parsed.username && !parsed.password;
+    } catch {
+      return false;
+    }
+  });
+}
+
+/**
+ * Safe, value-free diagnostics for the admin readiness screen. Never return
+ * binding values, provider secrets, token material, or database credentials.
+ */
+const CANONICAL_SUPABASE_URL = 'https://ssibsfmtodgximseeqsv.supabase.co';
+
+export function oauthRuntimeRequirements(env = {}) {
+  const secretKey = env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY;
+  let encryptionKeyReady = false;
+  try {
+    encryptionKeyReady = fromBase64(env.OAUTH_ENCRYPTION_KEY || '').length === 32;
+  } catch {
+    encryptionKeyReady = false;
+  }
+  return [
+    { name: 'OAUTH_API_ENABLED', configured: env.OAUTH_API_ENABLED === 'true' },
+    { name: 'OAUTH_FRONTEND_ORIGINS', configured: validFrontendOrigins(env.OAUTH_FRONTEND_ORIGINS) },
+    // Keep the service-role key and encrypted token vault pinned to the same
+    // canonical project used by the browser auth client. A different valid
+    // Supabase URL is a misconfiguration, not a healthy runtime.
+    { name: 'SUPABASE_URL', configured: env.SUPABASE_URL === CANONICAL_SUPABASE_URL },
+    { name: 'SUPABASE_PUBLISHABLE_KEY', configured: typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.trim().length > 0 },
+    { name: 'SUPABASE_SECRET_KEY', configured: typeof secretKey === 'string' && secretKey.length > 20 },
+    { name: 'OAUTH_ENCRYPTION_KEY', configured: encryptionKeyReady },
+  ];
+}
+
 function oauthRuntimeReady(env) {
-  return env?.OAUTH_API_ENABLED === 'true' &&
-    /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env?.SUPABASE_URL || '') &&
-    typeof env?.SUPABASE_PUBLISHABLE_KEY === 'string' &&
-    env.SUPABASE_PUBLISHABLE_KEY.length > 0 &&
-    typeof env?.OAUTH_FRONTEND_ORIGINS === 'string' && env.OAUTH_FRONTEND_ORIGINS.trim().length > 0 &&
-    serviceConfigured(env);
+  return oauthRuntimeRequirements(env).every((item) => item.configured);
 }
 export function oauthCorsOrigin(request, env) {
   // Same-origin GET requests do not normally carry an Origin header.
@@ -667,19 +710,42 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
   const url = new URL(request.url);
   if (url.pathname === '/api/oauth/status') {
     if (request.method !== 'GET') return response(405, { error: 'Method not allowed.' });
-    if (env.OAUTH_API_ENABLED !== 'true') return response(503, { error: 'Provider connections are not configured.' });
-    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
-    // Availability can be reported before any provider is provisioned. Never
-    // advertise an enabled provider until the complete token vault is ready.
-    const storageReady = serviceConfigured(env);
-    if (Object.values(providers).some(Boolean) && !oauthRuntimeReady(env)) {
-      return response(503, { error: 'Provider credential storage is not configured.' });
-    }
-    const origin = oauthCorsOrigin(request, env);
+    const sameOriginDiagnostic = request.method === 'GET' &&
+      !request.headers.get('origin') &&
+      request.headers.get('Sec-Fetch-Site') === 'same-origin' &&
+      url.protocol === 'https:';
+    const origin = oauthCorsOrigin(request, env) || (sameOriginDiagnostic ? url.origin : '');
     if (!origin) return response(403, { error: 'Origin not allowed.' });
-    const account = await activeOAuthAccount(request, env, fetcher);
-    if (!account) return response(401, { error: 'Sign in to view provider availability.' });
-    return response(200, { enabled: true, storage_ready: storageReady, providers });
+    const runtime = oauthRuntimeRequirements(env);
+    const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
+    const storageReady = serviceConfigured(env);
+    const canValidateMember = env.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
+      typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0;
+
+    // When the Supabase public auth endpoint itself is not configured, return
+    // only value-free binding diagnostics. Once it is configured, require a
+    // verified active member before returning the full provider readiness view.
+    if (!canValidateMember) {
+      return response(503, {
+        enabled: false, storage_ready: storageReady, providers: {}, runtime,
+        error: 'Supabase member authentication is not configured.',
+      });
+    }
+    let administrator;
+    try {
+      administrator = await authenticatedAdminUser(request, env, fetcher);
+    } catch {
+      return response(503, { error: 'Administrator verification unavailable.' });
+    }
+    if (administrator?.role !== 'admin') {
+      return response(403, { error: 'Verified administrator access required.' });
+    }
+    return response(200, {
+      enabled: env.OAUTH_API_ENABLED === 'true',
+      storage_ready: storageReady,
+      runtime,
+      providers,
+    });
   }
   const match = /^\/api\/oauth\/([a-z_]+)\/(start|callback|refresh|disconnect)$/.exec(url.pathname);
   if (!match) return response(404, { error: 'Not found.' });

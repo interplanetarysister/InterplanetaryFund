@@ -415,6 +415,26 @@
       "owner": "frontend"
     },
     {
+      "route": "/events",
+      "role": "public+member+owner",
+      "component": "Events",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database+qa"
+    },
+    {
+      "route": "/events/:id",
+      "role": "public+member+owner",
+      "component": "Events",
+      "source_status": "not_verified",
+      "source_evidence": "",
+      "behavior_evidence": "",
+      "backend_evidence": "",
+      "owner": "frontend+database+qa"
+    },
+    {
       "route": "/finances",
       "role": "member",
       "component": "FinanceDashboard",
