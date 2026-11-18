@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
       SUPABASE_SECRET_KEY: Deno.env.get("SUPABASE_SECRET_KEY") || "",
     });
     if (action === "list" && req.method === "GET") {
-      const { data, error } = await db.from("ifund_creator_mandates").select("id,creator_name,creator_email,fundraiser_url,fundraiser_label,beneficiary_name,status,scopes,expires_at,identity_verified_at,identity_evidence_note,creator_review_state,creator_feedback,creator_approved_at,campaign_id,created_at,updated_at")
+      const { data, error } = await db.from("ifund_creator_mandates").select("id,creator_name,creator_email,fundraiser_url,fundraiser_label,beneficiary_name,status,scopes,expires_at,identity_verified_at,identity_evidence_note,creator_review_state,creator_feedback,creator_approved_at,campaign_id,draft_payload,created_at,updated_at")
         .or(`assigned_admin_id.eq.${user.id},created_by_admin.eq.${user.id}`).order("created_at", { ascending: false }).limit(100);
       if (error) throw error;
       return json(200, { mandates: data || [] }, origin);
