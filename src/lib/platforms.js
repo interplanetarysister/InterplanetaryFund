@@ -1,4 +1,4 @@
-// Platform names transplanted from the Base44-era connection catalog; no OAuth state is assumed.
+// Platform names retained from the legacy connection catalog; no OAuth state is assumed.
 export const platforms = [
   { id: "facebook", name: "Facebook" },
   { id: "instagram", name: "Instagram" },
