@@ -719,7 +719,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     const runtime = oauthRuntimeRequirements(env);
     const providers = Object.fromEntries(Object.keys(PROVIDERS).map((name) => [name, !!providerConfig(name, env)]));
     const storageReady = serviceConfigured(env);
-    const canValidateMember = /^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL || '') &&
+    const canValidateMember = env.SUPABASE_URL === CANONICAL_SUPABASE_URL &&
       typeof env.SUPABASE_PUBLISHABLE_KEY === 'string' && env.SUPABASE_PUBLISHABLE_KEY.length > 0;
 
     // When the Supabase public auth endpoint itself is not configured, return
