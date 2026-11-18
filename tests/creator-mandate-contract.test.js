@@ -88,6 +88,7 @@ test("creator must affirm full control and all AI features; sensitive scopes rem
   assert.match(consent, /mandate\.authorizationText/);
   assert.match(consent, /Invited email/);
   assert.match(api, /creatorEmail: row\.creator_email\.replace/);
+  assert.match(api, /\[\^@\]\[\^@\]\*/);
   assert.match(consent, /subscription\/usage entitlements/);
   assert.match(consent, /Separate high-impact permissions/);
 });
