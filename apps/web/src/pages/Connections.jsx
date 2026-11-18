@@ -75,12 +75,13 @@ export default function Connections() {
   const busyLock = useRef(false);
   const ownerScope = useRef({owner:null,generation:0});
   const [loadedOwner,setLoadedOwner] = useState(null);
+  const [loadedGeneration,setLoadedGeneration] = useState(-1);
   const currentOwner = user?.id || null;
   if (ownerScope.current.owner !== currentOwner) {
     ownerScope.current = {owner:currentOwner,generation:ownerScope.current.generation+1};
     busyLock.current=false;
   }
-  const ownerVerified = Boolean(currentOwner && loadedOwner===currentOwner);
+  const ownerVerified = Boolean(currentOwner && loadedOwner===currentOwner && loadedGeneration===ownerScope.current.generation);
   const validScope = (scope) => ownerScope.current.owner===scope.owner && ownerScope.current.generation===scope.generation;
   const verifiedSession = async (scope) => {
     const client=authClient();
@@ -144,6 +145,7 @@ export default function Connections() {
       if (jobs[2].status!=="fulfilled" || jobs[2].value?.error) setRecordError("Your sharing choices could not be loaded. Choose Refresh to try again.");
       setDiagnosticError(jobs.map((entry,i)=>entry.status==="rejected" ? "Load "+i+": "+String(entry.reason) : entry.value?.error ? "Load "+i+": "+entry.value.error.message : "").filter(Boolean).join("; "));
       setLoadedOwner(scope.owner);
+      setLoadedGeneration(scope.generation);
       setLoading(false);
     }
     load().catch(()=>{ if (active && validScope(scope)) { setLoading(false); setRecordError("Connections could not be loaded right now. Choose Refresh to try again."); } });
@@ -242,7 +244,7 @@ export default function Connections() {
       await verifiedSession(scope);
       setNotice("Saved page removed.");setRefreshKey(i=>i+1);
     } catch(cause) { if(validScope(scope))setError(cause.message); }
-    finally { busyLock.current=false;setBusy("");}
+    finally {if(validScope(scope)){busyLock.current=false;setBusy("");}}
   }
   async function saveChoice(value) {
     if (!ownerVerified || busyLock.current) return;
