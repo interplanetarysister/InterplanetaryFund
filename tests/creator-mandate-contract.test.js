@@ -93,7 +93,7 @@ test("managed service does not create creator accounts, change campaign ownershi
   assert.match(admin, /canonical campaign draft is owned by the assigned IFund admin/);
   assert.match(policy, /creation\/linkage of an unpublished canonical IFund campaign draft/);
   assert.match(policy, /private Story AI draft preparation and creator review/);
-  assert.match(policy, /does not enable other specialist agent operations/);
+  assert.match(policy, /does not enable Connections\/account access/);
   assert.match(policy, /assigned to the acting admin account/);
   assert.match(review, /Publishing still requires separate authorization/);
 });
@@ -114,7 +114,7 @@ test("managed Story AI calls are bound to a live, verified mandate at execution 
   assert.match(preview, /managed_mandate_id/);
   assert.match(draftClient, /managed_mandate_id/);
   assert.match(admin, /managed_mandate_id: selected\.id/);
-  assert.match(admin, /Other specialist agents and high-impact actions are not yet connected/);
+  assert.match(admin, /Story, Strategy, Growth and Communications AI endpoints now enforce the linked mandate/);
 });
 
 
