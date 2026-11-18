@@ -740,7 +740,7 @@ export default {
       "tools": [
         {
           "function_name": "managePlatformIncidents",
-          "description": "Super-admin-only platform-wide frontend error investigation and fix planning; list, save_plan, reject and approve explicit administrator-reviewed incident fixes. Super-admin approval creates a task; backend dispatches a real Base44 app-builder change turn only when authorized backend credentials and credits are explicitly enabled. It never confirms deployment just from a dispatch."
+          "description": "Super-admin-only platform-wide frontend error investigation and fix planning; list, save_plan, reject and approve explicit administrator-reviewed incident fixes. Super-admin approval creates a reviewable implementation task; it does not modify code or deploy. Implementation must be completed in the canonical GitHub repository, verified in Cloudflare Pages preview, and promoted through the approved production release process."
         },
         {
           "function_name": "manageAdminBuilderWork",
