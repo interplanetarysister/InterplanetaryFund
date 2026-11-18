@@ -44,6 +44,7 @@ const reserved = new Set([
   "admin",
   "verified_admin",
   "owner_approval_verified",
+  "platform_communication_verified",
   "receipt_verified",
   "__proto__",
   "constructor",
