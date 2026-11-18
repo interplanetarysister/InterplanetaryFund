@@ -537,7 +537,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
   return <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
     <header><h1 ref={headingRef} tabIndex={-1} className="font-display text-3xl font-bold">Create a campaign · {WIZARD_STEPS[step]}</h1><p className="mt-2 text-muted-foreground">Explore the campaign creator without identity verification. Guest drafts stay in this browser. Sign in with a verified email account to save a campaign to your account or publish it.</p><div className="mt-3 flex flex-wrap items-center gap-4"><Link to="/campaigns" className="underline">My campaigns</Link><Link to="/fundraising-partners" className="font-semibold text-primary underline">Use iFund to prepare for another fundraising platform</Link></div></header>
     <nav aria-label="Campaign setup progress"><ol className="grid grid-cols-1 gap-2 sm:grid-cols-3">{WIZARD_STEPS.map((label,index)=><li key={label} aria-current={step===index?"step":undefined}><button type="button" disabled={disabled||index>step} onClick={()=>advanceWizard(index)} className={"min-h-12 w-full rounded-xl border p-3 text-sm "+(step===index?"border-primary bg-primary/10 font-semibold":"border-border")}>{index+1}. {label}</button></li>)}</ol></nav>
-    <AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} />
+    <details className="rounded-2xl border border-border bg-card p-4 sm:p-5"><summary className="cursor-pointer font-semibold text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Optional: AI team and campaign analysis</summary><p className="mt-2 text-sm text-muted-foreground">Use specialized assistants to refine your campaign. You can complete all three steps without these tools.</p><div className="mt-3"><AgentFeatureLauncher campaignId={ownerId?(draftId||saved||campaignId.current):null} disabled={disabled} /></div></details>
     {wizardError&&<p role="alert" className="rounded-xl border border-destructive p-4">{wizardError}</p>}
     {progressNotice&&<p role="status" className="text-sm text-muted-foreground">{progressNotice}</p>}
     {!storageReadable && <section role="alert" className="rounded-xl border border-destructive p-4 space-y-2">
@@ -551,10 +551,10 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
     </section>}
     {loadingDraft && <p role="status">Loading your saved draft…</p>}
     {draftLoadError && <p role="alert" className="text-destructive">{draftLoadError} <Link to="/campaigns" className="underline">My campaigns</Link></p>}
-    <div hidden={step!==0}><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div>
-    <div hidden={step!==1}><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div>
-    <div hidden={step!==1}><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div>
-    <section hidden={step!==0&&step!==1} className="space-y-4 rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Campaign writing assistant">
+    <details hidden={step!==0} className="rounded-2xl border border-border bg-card p-4"><summary className="cursor-pointer font-semibold">Optional: prepare for an external fundraising platform</summary><div className="mt-3"><ExternalCampaignHandoff form={form} disabled={privacyDecisionPending || loadingDraft || Boolean(draftLoadError) || (draftId && loadedDraftId !== draftId)} /></div></details>
+    <details hidden={step!==1} className="rounded-2xl border border-border bg-card p-4"><summary className="cursor-pointer font-semibold">Optional: campaign documents</summary><div className="mt-3"><CampaignDocuments key={(ownerId||"guest")+":"+(draftId||saved||campaignId.current||"new")} campaignId={draftId||saved||campaignId.current||null} ownerId={ownerId} /></div></details>
+    <details hidden={step!==1} className="rounded-2xl border border-border bg-card p-4"><summary className="cursor-pointer font-semibold">Optional: review earlier AI writing proposals</summary><div className="mt-3"><WritingDraftReview onBusyChange={setHandoffBusy} ownerId={ownerId} campaignId={draftId || null} disabled={disabled} onApply={copy => { applyCampaignFields(copy); setError(""); }} /></div></details>
+    <details hidden={step!==0&&step!==1} className="rounded-2xl border border-border bg-card p-5 sm:p-8" aria-label="Optional AI campaign refinement"><summary className="cursor-pointer text-lg font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary">Optional: AI writing and story refinement</summary><div className="mt-4 space-y-4">
       <fieldset disabled={disabled} className="space-y-4">
       <div hidden={step!==0} className="space-y-4">
       <h2 className="text-xl font-semibold">Your campaign details</h2>
@@ -642,7 +642,7 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
         </div>
       </>}
       </div></fieldset>
-    </section>
+    </div></details>
     <form hidden={step===2} id="campaign-editor" onSubmit={event => { event.preventDefault(); save("draft"); }} className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-8">
       <fieldset disabled={disabled} className="space-y-5">
       <div hidden={step!==0} className="space-y-5"><label className="block font-semibold">Campaign title<input id="campaign-title" maxLength={TITLE_MAX} value={form.title} onChange={e=>change("title",e.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
@@ -673,10 +673,11 @@ function CampaignComposer({ memberAccess = false, ownerId = null }) {
           <img src={form.cover_image_url} alt="Campaign cover preview" loading="lazy" className="max-h-56 w-full rounded-lg object-contain" />
         </div>}
       </div>
-      <label className="block font-semibold">Optional campaign end date<input type="date" value={wizard.end_date||""} onChange={event=>changeWizard("end_date",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
+      <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer font-semibold">Optional: schedule and campaign location</summary><div className="mt-4 space-y-4"><label className="block font-semibold">Optional campaign end date<input type="date" value={wizard.end_date||""} onChange={event=>changeWizard("end_date",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <label className="block font-semibold">Private location note<input maxLength={160} value={wizard.location} onChange={event=>changeWizard("location",event.target.value)} className="mt-2 min-h-12 w-full rounded-xl border border-input bg-background px-4" /></label>
       <p className="text-sm text-muted-foreground">This setup note stays private. Public Atlas placement below is a separate choice.</p>
       <CampaignLocationFields form={form} change={change} disabled={disabled} />
+      </div></details>
       </div>
       </fieldset>
     </form>
