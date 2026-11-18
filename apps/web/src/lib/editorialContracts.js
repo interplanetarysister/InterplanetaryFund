@@ -1,5 +1,5 @@
 // Browser-safe input contract for the verified public publication RPC.
-// The original Base44 entity IDs are text (typically 24 characters), not UUIDs.
+// Legacy entity IDs are text (typically 24 characters), not UUIDs.
 export const EDITORIAL_REF = /^[A-Za-z0-9_-]{1,128}$/;
 export function validEditorialRef(value) {
   return typeof value === "string" && EDITORIAL_REF.test(value);
