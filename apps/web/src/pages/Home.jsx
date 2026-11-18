@@ -66,11 +66,11 @@ export default function Home() {
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed mb-9 max-w-xl mx-auto">One place to ask for help — or make something possible.</p>
           <div className="flex flex-wrap items-center justify-center gap-3">
             {isAuthenticated ? (
-              <Link to="/dashboard"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Button></Link>
+              <Button asChild size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Link to="/dashboard">Go to dashboard <ArrowRight className="w-4 h-4 ml-2" /></Link></Button>
             ) : (
               <>
-                <Link to="/create"><Button size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign</Button></Link>
-                <Link to="/discover"><Button size="lg" variant="outline" className="rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
+                <Button asChild size="lg" className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 shadow-lg shadow-blue-500/25 hover:opacity-90"><Link to="/create"><Sparkles className="w-4 h-4 mr-2" /> Start a campaign</Link></Button>
+                <Button asChild size="lg" variant="outline" className="rounded-xl border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white"><Link to="/discover"><Compass className="w-4 h-4 mr-2" /> Explore causes</Link></Button>
               </>
             )}
           </div>
@@ -116,8 +116,8 @@ export default function Home() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/discover"><Button variant="outline" className="rounded-xl"><Compass className="w-4 h-4 mr-2" /> Explore causes</Button></Link>
-          <Link to="/create"><Button className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Button></Link>
+          <Button asChild variant="outline" className="rounded-xl"><Link to="/discover"><Compass className="w-4 h-4 mr-2" /> Explore causes</Link></Button>
+          <Button asChild className="rounded-xl bg-gradient-to-r from-cyan-400 to-blue-600 text-white border-0 hover:opacity-90"><Link to="/create"><Sparkles className="w-4 h-4 mr-2" /> Start your own fund</Link></Button>
           <div className="max-w-sm mx-auto mt-9 rounded-2xl border border-border p-4 text-center">
             <p className="text-sm font-medium text-foreground mb-2">Support Interplanetary Fund itself</p>
             <p className="text-xs text-muted-foreground mb-3">This donation helps operate the platform. It is not credited to any individual campaign.</p>
