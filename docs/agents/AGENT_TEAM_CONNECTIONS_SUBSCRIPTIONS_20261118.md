@@ -41,3 +41,10 @@
 4. Verify OAuth provider secrets, redirect exact-origin checks, signed authorization and per-scope consent for each platform. Do not mark external publishing as live until destination API acceptance and delivery receipts exist.
 5. Enforce deployment/account budget for Workers AI and hard stops before turning on IFUND_TEAM_QUESTIONS_ENABLED. Staging first, no GitHub-hosted Actions minutes during November, full-site release gate stays closed unless all required route acceptance is independently completed.
 6. Production release requires explicit verified acceptance and deployment evidence; commits and one verified provider row are not proof of a working end-to-end subscription.
+
+
+## Question quota reservation recovery (source only)
+
+The daily Agent Team allowance now uses a short-lived reservation rather than charging a question permanently at the first request. Each reservation is bound to the owner, request ID, input SHA-256 and selected specialist, expires after 10 minutes, and is finalized only after a usable answer and any enabled owner-context write succeed. Provider/context failures release the reservation; an abandoned reservation can be retried after expiry. Completed questions remain counted against the daily 20/40/60 entitlement limit. The reserve, complete and release RPCs are owner-scoped and authenticated-only.
+
+The SQL migration stack (atomic PayPal prerequisite 20261116034738, question quota 20261118190000, and verified subscription projection 20261118200000) was executed against the current production schema inside one explicit transaction and rolled back. PostgreSQL accepted the full sequence and the expected functions/columns/tables existed inside the transaction. No production schema changes were retained. The actual Node test runner, Worker deployment, Workers AI inference, payment webhook, merchant verification and browser acceptance remain outstanding.
