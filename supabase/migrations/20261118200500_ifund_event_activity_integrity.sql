@@ -51,6 +51,59 @@ alter table public.ifund_event_items
     )
   );
 
+-- Merge the owner and public SELECT policies without changing their visibility rules.
+drop policy if exists ifund_events_owner_read on public.ifund_events;
+drop policy if exists ifund_events_public_read on public.ifund_events;
+create policy ifund_events_owner_or_public_read
+  on public.ifund_events
+  for select
+  to anon, authenticated
+  using (
+    owner_id = (select auth.uid())
+    or (
+      status = 'published'
+      and visibility = 'public'
+      and (
+        campaign_id is null
+        or exists (
+          select 1
+          from public.ifund_campaigns c
+          where c.id = ifund_events.campaign_id
+            and c.status = 'active'
+        )
+      )
+    )
+  );
+
+drop policy if exists ifund_event_items_owner_read on public.ifund_event_items;
+drop policy if exists ifund_event_items_public_read on public.ifund_event_items;
+create policy ifund_event_items_owner_or_public_read
+  on public.ifund_event_items
+  for select
+  to anon, authenticated
+  using (
+    owner_id = (select auth.uid())
+    or (
+      status = 'available'
+      and exists (
+        select 1
+        from public.ifund_events e
+        where e.id = ifund_event_items.event_id
+          and e.status = 'published'
+          and e.visibility = 'public'
+          and (
+            e.campaign_id is null
+            or exists (
+              select 1
+              from public.ifund_campaigns c
+              where c.id = e.campaign_id
+                and c.status = 'active'
+            )
+          )
+      )
+    )
+  );
+
 create or replace function public.ifund_guard_event_registration_cancellation()
 returns trigger
 language plpgsql
