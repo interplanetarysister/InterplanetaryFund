@@ -8,6 +8,7 @@ import providerCatalog from "../worker/connections/provider-catalog.js";
 import positionContracts from "../worker/services/position-contracts.js";
 import skillManifest from "../worker/services/skills/manifest.js";
 import { serviceSkill } from "../worker/services/skills/index.js";
+import { CONNECTION_PLATFORMS } from "../apps/web/src/lib/connectionCatalog.mjs";
 
 const migration=readFileSync(new URL("../supabase/migrations/20261113080000_ifund_member_connections_hub.sql",import.meta.url),"utf8");
 const owner="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -106,11 +107,18 @@ test("connection methods advertise OAuth only when the provider has a registered
  assert.equal(connectionMethods("eventbrite").method, "oauth");
  assert.equal(connectionMethods("facebook").method, "oauth");
  assert.equal(connectionMethods("google").method, "oauth");
+ assert.equal(connectionMethods("twitch").method, "oauth");
+ assert.equal(connectionMethods("patreon").method, "oauth");
+ assert.equal(connectionMethods("youtube").method, "oauth");
+ assert.equal(connectionMethods("pinterest").method, "oauth");
+ assert.equal(connectionMethods("reddit").method, "oauth");
+ assert.equal(connectionMethods("x").method, "oauth");
  for (const id of ["gmail","googledrive","googlecalendar","notion","outlook","microsoft_teams","one_drive","dropbox","gitlab","gumroad","wordpress_com"]) {
   assert.equal(connectionMethods(id).method, "protected_provider_step", id);
   assert.equal(supported.has(id), false, id);
  }
  assert.equal(connectionMethods("gofundme").method, "public_page");
+ assert.ok(CONNECTION_PLATFORMS.every(platform => connectionProvider(platform.id)), "every member-facing platform must exist in the backend catalog");
 });
 
 test("provider catalog loads through the Worker JavaScript module and exposes only safe summary fields", () => {
