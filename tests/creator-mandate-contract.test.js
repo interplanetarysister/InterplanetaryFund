@@ -398,6 +398,8 @@ test("pre-save Story AI requires a backend-verified campaign, mandate, or native
   assert.match(storyCreationSessions, /owner_id uuid not null/);
   assert.match(storyCreationSessions, /request_id uuid not null/);
   assert.match(storyCreationSessions, /expires_at > statement_timestamp/);
+  assert.match(storyCreationSessions, /delete from public\.ifund_story_campaign_creation_sessions/);
+  assert.match(storyCreationSessions, /where expires_at <= statement_timestamp/);
   assert.match(storyCreationSessions, /email_confirmed_at is not null/);
   assert.match(storyCreationSessions, /grant execute on function public\.ifund_story_campaign_creation_session_authorized\(uuid, uuid\) to authenticated/);
 });
