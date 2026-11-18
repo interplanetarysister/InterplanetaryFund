@@ -41,6 +41,8 @@ test("creator tokens are random, hashed, expiring and single-use for consent", (
   assert.match(api, /consent_token_hash/);
   assert.match(api, /review_token_hash/);
   assert.match(api, /expires_at/);
+  assert.match(api, /request_too_large/);
+  assert.match(api, /invalid_json/);
   assert.match(api, /consent_token_hash: null/);
 });
 
@@ -70,5 +72,6 @@ test("managed service does not create creator accounts, change campaign ownershi
   assert.doesNotMatch(api, /auth\.admin\.createUser|signUp\(/);
   assert.doesNotMatch(api, /from\(["']ifund_campaigns["']\)\.(insert|update)/);
   assert.match(admin, /does not create or publish/);
+  assert.match(policy, /does NOT yet create a canonical public IFund campaign/);
   assert.match(review, /Publishing still requires separate authorization/);
 });
