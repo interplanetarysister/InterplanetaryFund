@@ -73,6 +73,7 @@ create table if not exists public.ifund_event_items (
   constraint ifund_event_items_event_owner_fk
     foreign key (event_id, owner_id) references public.ifund_events(id, owner_id) on delete cascade,
   constraint ifund_event_items_id_event_owner_unique unique (id, event_id, owner_id),
+  constraint ifund_event_items_id_event_unique unique (id, event_id),
   constraint ifund_event_items_checkout_pair check (
     (checkout_url is null and checkout_provider is null) or
     (checkout_url is not null and checkout_provider is not null)
@@ -95,8 +96,7 @@ create table if not exists public.ifund_event_items (
 
 create table if not exists public.ifund_event_registrations (
   id uuid primary key default gen_random_uuid(),
-  event_id uuid not null,
-  event_owner_id uuid not null references auth.users(id) on delete cascade,
+  event_id uuid not null references public.ifund_events(id) on delete cascade,
   item_id uuid,
   user_id uuid not null references auth.users(id) on delete cascade,
   activity_type text not null check (activity_type in ('rsvp','external_purchase_reported')),
@@ -108,11 +108,9 @@ create table if not exists public.ifund_event_registrations (
   reported_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint ifund_event_registrations_event_owner_fk
-    foreign key (event_id, event_owner_id) references public.ifund_events(id, owner_id) on delete cascade,
   constraint ifund_event_registrations_item_fk
-    foreign key (item_id, event_id, event_owner_id)
-    references public.ifund_event_items(id, event_id, owner_id) on delete cascade,
+    foreign key (item_id, event_id)
+    references public.ifund_event_items(id, event_id) on delete cascade,
   constraint ifund_event_registrations_activity_shape check (
     (activity_type='rsvp' and item_id is null and reported_amount_cents is null
       and reported_at is null and external_reference is null)
@@ -147,9 +145,25 @@ alter table public.ifund_event_registrations enable row level security;
 
 revoke all on public.ifund_events, public.ifund_event_items, public.ifund_event_registrations
   from public, anon, authenticated;
-grant select on public.ifund_events, public.ifund_event_items to anon, authenticated;
+grant select (
+  id,campaign_id,event_type,title,description,starts_at,ends_at,timezone,
+  venue_name,location_label,checkout_provider,checkout_url,status,visibility,
+  published_at,created_at,updated_at
+) on public.ifund_events to anon;
+grant select (
+  id,event_id,item_type,title,description,estimated_value_cents,starting_bid_cents,
+  checkout_provider,checkout_url,status,created_at,updated_at
+) on public.ifund_event_items to anon;
+grant select on public.ifund_events, public.ifund_event_items to authenticated;
 grant insert, update on public.ifund_events, public.ifund_event_items to authenticated;
-grant select, insert on public.ifund_event_registrations to authenticated;
+grant select (
+  id,event_id,item_id,user_id,activity_type,status,quantity,reported_amount_cents,
+  reported_currency,external_reference,reported_at,created_at,updated_at
+) on public.ifund_event_registrations to authenticated;
+grant insert (
+  event_id,item_id,user_id,activity_type,status,quantity,reported_amount_cents,
+  reported_currency,external_reference,reported_at,updated_at
+) on public.ifund_event_registrations to authenticated;
 grant update(status) on public.ifund_event_registrations to authenticated;
 
 create policy ifund_events_public_read
@@ -248,7 +262,7 @@ create policy ifund_event_registrations_verified_member_insert
   on public.ifund_event_registrations for insert to authenticated
   with check (
     user_id=(select auth.uid())
-    and event_owner_id<>(select auth.uid())
+    and not exists (select 1 from public.ifund_events e where e.id=event_id and e.owner_id=(select auth.uid()))
     and (select (auth.jwt()->>'is_anonymous') = 'false')
     and exists (
       select 1 from public.ifund_profiles p
@@ -259,7 +273,7 @@ create policy ifund_event_registrations_verified_member_insert
     )
     and exists (
       select 1 from public.ifund_events e
-      where e.id=event_id and e.owner_id=event_owner_id
+      where e.id=event_id
         and e.status='published' and e.visibility='public'
         and (activity_type='rsvp' or e.checkout_url is not null or exists (
           select 1 from public.ifund_event_items i
