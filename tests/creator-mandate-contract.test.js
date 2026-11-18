@@ -26,6 +26,7 @@ const auditGuard = await readFile(new URL("../supabase/migrations/20261118163055
 const mandateApi = await readFile(new URL("../supabase/functions/ifund-managed-creator-mandates/index.ts", import.meta.url), "utf8");
 const scopeAtomicity = await readFile(new URL("../supabase/migrations/20261118163545_ifund_managed_campaign_scope_atomicity_20261118.sql", import.meta.url), "utf8");
 const scopeNullGuard = await readFile(new URL("../supabase/migrations/20261118163813_ifund_campaign_scope_null_guard_20261118.sql", import.meta.url), "utf8");
+const initialMetadataGuard = await readFile(new URL("../supabase/migrations/20261118170000_ifund_managed_campaign_initial_metadata_guard.sql", import.meta.url), "utf8");
 const story = await readFile(new URL("../worker/agents/story.js", import.meta.url), "utf8");
 const preview = await readFile(new URL("../worker/services/campaign-preview.js", import.meta.url), "utf8");
 const draftClient = await readFile(new URL("../apps/web/src/api/campaignDraft.js", import.meta.url), "utf8");
@@ -257,4 +258,12 @@ test("donor messaging and account connection actions enforce separate scopes ato
 test("managed campaign scope gate rejects missing scope names", () => {
   assert.match(scopeNullGuard, /p_scope is null/);
   assert.match(scopeNullGuard, /p_scope not in/);
+});
+
+
+test("managed campaign linkage rejects unapproved imagery and location metadata", () => {
+  assert.match(initialMetadataGuard, /cover_image_url/);
+  assert.match(initialMetadataGuard, /map_opt_in is true/);
+  assert.match(initialMetadataGuard, /public_location_label/);
+  assert.match(initialMetadataGuard, /Managed campaign must start without unapproved imagery or public location data/);
 });
