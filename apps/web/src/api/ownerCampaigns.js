@@ -59,8 +59,17 @@ export function isCampaignConflict(cause) {
   return cause?.message === CAMPAIGN_CONFLICT_MESSAGE;
 }
 
+function managedCampaignWriteError(error) {
+  const message = typeof error?.message === "string" ? error.message : "";
+  if (/Managed fundraiser publication is disabled/.test(message))
+    return "This managed fundraiser cannot be published yet. Beneficiary payout and separate creator publication authorization must be completed first.";
+  if (/Managed campaign content can only be changed|Managed campaign content must exactly match/.test(message))
+    return "This managed fundraiser can only be revised after the creator approves the exact new draft in the managed fundraiser workspace.";
+  return null;
+}
+
 function confirmedWrite(result, { owner, id, expectedStatus, failureMessage }) {
-  if (result.error) throw new Error(failureMessage);
+  if (result.error) throw new Error(managedCampaignWriteError(result.error) || failureMessage);
   const rows = Array.isArray(result.data) ? result.data : result.data ? [result.data] : [];
   // Zero affected rows means the compare-and-swap condition matched nothing.
   if (rows.length !== 1) throw new Error(CAMPAIGN_CONFLICT_MESSAGE);
