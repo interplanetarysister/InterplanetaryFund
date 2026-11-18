@@ -297,7 +297,7 @@ export async function storyRoute(request, env, fetcher = fetch) {
     });
   if (
     (env.IFUND_STORY_ENABLED !== "enabled" &&
-      !["/clear-preferences", "/cancel-queued", "/queued-requests"].some(
+      !["/authorize", "/clear-preferences", "/cancel-queued", "/queued-requests"].some(
         (suffix) => path.endsWith(suffix),
       )) ||
     env.SUPABASE_URL !== ORIGIN ||
