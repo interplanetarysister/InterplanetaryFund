@@ -122,6 +122,7 @@ const navItems = navSections.flatMap((s) => s.items);
 const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
+  { to: "/events", label: "Fundraising Events", icon: CalendarDays },
   { to: "/create", label: "Create a campaign", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/social", label: "Social Feed", icon: Radio },
