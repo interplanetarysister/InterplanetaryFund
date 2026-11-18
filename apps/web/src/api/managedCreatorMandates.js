@@ -9,7 +9,13 @@ function functionUrl() {
   return new URL("/functions/v1/ifund-managed-creator-mandates", parsed.origin).toString();
 }
 
-function publishableKey() {\n  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;\n  if (!key) throw new Error("IFund API access is not configured.");\n  return key;\n}\n\nasync function parseResponse(response) {
+function publishableKey() {
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!key) throw new Error("IFund API access is not configured.");
+  return key;
+}
+
+async function parseResponse(response) {
   let data;
   try { data = await response.json(); } catch { throw new Error("The authorization service returned an invalid response."); }
   if (!response.ok) throw new Error(data?.error || "The authorization request could not be completed.");
