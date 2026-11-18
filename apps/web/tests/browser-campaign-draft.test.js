@@ -41,6 +41,22 @@ test("successful saving erases the browser handoff without changing a saved reco
   forgetBrowserCampaign(storage, A);
   assert.deepEqual(restoreBrowserCampaign(storage, A), emptyCampaignForm());
 });
+test("browser campaign autosave requires exact readback, including unchanged existing drafts", () => {
+  const storage = store();
+  const form = { ...emptyCampaignForm(), title: "Original campaign" };
+  assert.equal(rememberBrowserCampaign(storage, A, form), true);
+  const key = "ifund-guest-campaign-v1:owner:" + encodeURIComponent(A);
+  const before = storage.getItem(key);
+  const blocked = { ...storage, setItem() {} };
+  const changed = { ...form, story: "New details not stored" };
+  assert.equal(rememberBrowserCampaign(blocked, A, changed), false);
+  assert.equal(storage.getItem(key), before);
+  assert.equal(restoreBrowserCampaign(storage, A).story, form.story);
+  const fresh = store();
+  assert.equal(rememberBrowserCampaign({ ...fresh, setItem() {} }, B, form), false);
+  assert.deepEqual(restoreBrowserCampaign(fresh, B), emptyCampaignForm());
+});
+
 test("silent scoped deletion cannot masquerade as a successful privacy cleanup", () => {
   const storage = store();
   const form = { ...emptyCampaignForm(), title: "Private work still present" };
