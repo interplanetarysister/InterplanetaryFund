@@ -756,7 +756,7 @@ export async function routeOAuthRequest(request, env, fetcher = fetch) {
     if (url.protocol !== 'https:' || request.headers.get('origin') !== url.origin) {
       return response(403, { error: 'Origin not allowed.' });
     }
-    if (!/^https:\/\/[a-z0-9.-]+\.supabase\.co$/i.test(env.SUPABASE_URL || '') ||
+    if (env.SUPABASE_URL !== CANONICAL_SUPABASE_URL ||
         !env.SUPABASE_PUBLISHABLE_KEY) {
       return response(503, { error: 'Connection management is unavailable.' });
     }
