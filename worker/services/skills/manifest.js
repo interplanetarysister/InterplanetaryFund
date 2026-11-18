@@ -16,7 +16,8 @@ export default {
       "managed_skill_references": [],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "e77d8d0d3bcd1c0303cde7f49892b91739f1d3ab7226a6ea8083ea98fabb1967"
     },
     {
       "agent": "chief_of_staff",
@@ -96,7 +97,8 @@ export default {
       ],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "2e41880e43683e2ddf20105487f3012dbbd4aebc19b11e6da3f68dd39ebdc820"
     },
     {
       "agent": "communications_agent",
@@ -138,7 +140,8 @@ export default {
       ],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "db1ed90e6c37a9b17c325409060b4fbed858260809d2a502e5cf01955e2b4c1e"
     },
     {
       "agent": "connection_discovery_agent",
@@ -181,7 +184,8 @@ export default {
       "managed_skill_references": [],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "b23396b0c0c1b68a3815e57ce9b343dd95b976b010fbd737b315af0e0b00fcc7"
     },
     {
       "agent": "finance_agent",
@@ -223,7 +227,8 @@ export default {
       "managed_skill_references": [],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "2363d3e8a92c3b90761cac3c59c25fab7925c2e6f53706b3f4af650a81618cbc"
     },
     {
       "agent": "growth_agent",
@@ -264,7 +269,8 @@ export default {
       ],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "bd5e1d57dea54dc8af2e37906c3ee8d602bdfe77ca966eb461821496ef810ab3"
     },
     {
       "agent": "managed_connection_agent",
@@ -284,7 +290,8 @@ export default {
       "managed_skill_references": [],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "daeeac1aa205167996ebffb1230a593b746929b656646209600c8925d9ecb289"
     },
     {
       "agent": "outreach_agent",
@@ -332,7 +339,8 @@ export default {
       ],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "3db9bc47e21f18d05c1638a9fcc8b8b9ad8a993a0da267dd28c563fe7c97feda"
     },
     {
       "agent": "story_agent",
@@ -360,7 +368,8 @@ export default {
       "managed_skill_references": [],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "ae4b2656769b35451a37635251f4bc53b4b4b5e8d3dfb87d2635b68d2abdbe0e"
     },
     {
       "agent": "strategy_agent",
@@ -397,7 +406,8 @@ export default {
       ],
       "remote_content_reconciled": false,
       "instruction_asset": "../position-contracts.json",
-      "permissions_from_assets": false
+      "permissions_from_assets": false,
+      "policy_sha256": "267429b81111ddcdcf9ea0a00ece6de602c383d03f304229dddae33632f642e6"
     }
   ]
 };
