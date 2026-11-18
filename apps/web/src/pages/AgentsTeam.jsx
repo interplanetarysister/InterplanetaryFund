@@ -92,6 +92,7 @@ export default function AgentsTeam() {
           <p className="text-sm">Recommended: <strong>{AGENT_IDENTITIES[recommendation.target]?.name}</strong> — {recommendation.reason}</p>
           {recommendation.requiresCoordination && <p className="mt-1 text-xs text-muted-foreground">NEXUS can coordinate: {recommendation.topics.map(id => AGENT_IDENTITIES[id]?.name).join(", ")}.</p>}
           <p className="mt-1 text-xs text-muted-foreground">The recommendation is informational until you submit your question.</p>
+          <button type="button" onClick={()=>{setSelected(recommendation.target);setShowWriting(false);setShowService(false);}} className="mt-3 min-h-11 rounded-lg border border-border px-4 text-sm font-semibold">Open recommended agent tools</button>
         </div>}
         {authStatus!=="loading" && !user && <p className="text-sm"><Link className="text-primary underline" to="/login?returnTo=%2Fagents">Sign in</Link> to ask an agent.</p>}
         {questionError && <p role="alert" className="text-sm text-red-600">{questionError}</p>}
@@ -110,7 +111,9 @@ export default function AgentsTeam() {
         <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{agentReply.answer}</p>
         <p className="text-xs text-muted-foreground">This answer does not send messages, change campaigns, move money or publish content.</p>
       </article>}
-      <p className="mt-3 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}. Agent responses depend on the verified iFund AI service being enabled and your AI drafting permission.</p>
+      <p className="mt-3 text-xs text-muted-foreground">Free accounts can use specialist matching and available campaign tools. Direct AI answers require an active provider-backed AI membership, available service capacity, and campaign AI permission. This does not authorize outside posting.</p>
+      <div className="mt-2 flex flex-wrap gap-4 text-sm"><Link to="/subscriptions" className="text-primary underline">View AI membership</Link><Link to="/permissions" className="text-primary underline">Manage AI permission</Link><Link to="/connections" className="text-primary underline">Connect your accounts</Link></div>
+      <p className="mt-2 text-xs text-muted-foreground">Specialty directory: {TRAINING_VERSION}.</p>
     </section>
     <div aria-label="IFund agents" className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {TEAM.map(id => { const agent = AGENT_IDENTITIES[id]; return <button key={id} type="button" aria-label={agent.name + ", " + agent.role} aria-pressed={selected === id}
