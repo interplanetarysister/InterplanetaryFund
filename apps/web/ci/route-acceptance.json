@@ -418,20 +418,20 @@
       "route": "/events",
       "role": "public",
       "component": "Events",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx; supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
+      "behavior_evidence": "apps/web/tests/events.test.js; production Cloudflare Pages deployment 303f9036-ab76-4c03-9176-40f7ee07d0f1 for commit c6d0118886139a3d1ec4d90172f300e125c93001 completed successfully on 2026-11-18: 167 web test files, 866 tests passed, 0 failed; Vite production build and Pages Functions bundle succeeded. Browser/device sign-in and live member actions were not independently exercised in this run.",
+      "backend_evidence": "Production Supabase migration version 20261118194006 (ifund_fundraising_events_and_external_activity_20261118) is recorded as applied. Verified ifund_events, ifund_event_items and ifund_event_registrations exist with RLS enabled and 11 owner/public/member-scoped policies. Anonymous reads are limited to public event/item columns; attendee registrations remain member-private. Organizer checkout is outbound only and reported purchases are not IFund donations, receipts or ledger entries.",
       "owner": "frontend"
     },
     {
       "route": "/events/:id",
       "role": "public",
       "component": "Events",
-      "source_status": "not_verified",
-      "source_evidence": "",
-      "behavior_evidence": "",
-      "backend_evidence": "",
+      "source_status": "source_ready",
+      "source_evidence": "apps/web/src/pages/Events.jsx; apps/web/src/api/events.js; apps/web/src/components/dashboard/EventsDashboardSection.jsx; apps/web/src/mobile/MobileStoreEvents.jsx; apps/web/src/MobileStoreApp.jsx; supabase/migrations/20261118194006_ifund_fundraising_events_and_external_activity_20261118.sql",
+      "behavior_evidence": "apps/web/tests/events.test.js; production Cloudflare Pages deployment 303f9036-ab76-4c03-9176-40f7ee07d0f1 for commit c6d0118886139a3d1ec4d90172f300e125c93001 completed successfully on 2026-11-18: 167 web test files, 866 tests passed, 0 failed; Vite production build and Pages Functions bundle succeeded. Browser/device sign-in and live member actions were not independently exercised in this run.",
+      "backend_evidence": "Production Supabase migration version 20261118194006 (ifund_fundraising_events_and_external_activity_20261118) is recorded as applied. Verified ifund_events, ifund_event_items and ifund_event_registrations exist with RLS enabled and 11 owner/public/member-scoped policies. Anonymous reads are limited to public event/item columns; attendee registrations remain member-private. Organizer checkout is outbound only and reported purchases are not IFund donations, receipts or ledger entries.",
       "owner": "frontend"
     },
     {
