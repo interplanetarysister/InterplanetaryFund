@@ -12,7 +12,7 @@ const validEnv = {
   OAUTH_ENCRYPTION_KEY: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
 };
 
-test('OAuth runtime diagnostics identify every required binding without returning values', () => {
+test('OAuth runtime diagnostics identify every required binding without returning values', async () => {
   const checks = oauthRuntimeRequirements(validEnv);
   assert.equal(checks.length, 6);
   assert.ok(checks.every((item) => item.configured === true));
