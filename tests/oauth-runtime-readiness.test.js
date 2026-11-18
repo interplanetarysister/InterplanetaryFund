@@ -25,6 +25,19 @@ test('OAuth runtime diagnostics identify every required binding without returnin
     'OAUTH_ENCRYPTION_KEY',
   ]);
   assert.doesNotMatch(JSON.stringify(checks), /ssibsfmt|sb_secret|example_public|AAAA/);
+  const apexOnly = oauthRuntimeRequirements({ ...validEnv, OAUTH_FRONTEND_ORIGINS: "https://interplanetaryfund.com" });
+  assert.equal(apexOnly.find((item) => item.name === "OAUTH_FRONTEND_ORIGINS").configured, false);
+});
+
+test("OAuth CORS accepts both active public domains and rejects an unconfigured www alias", () => {
+  const wwwRequest = new Request("https://www.interplanetaryfund.com/api/oauth/status", {
+    headers: { origin: "https://www.interplanetaryfund.com" },
+  });
+  assert.equal(oauthCorsOrigin(wwwRequest, validEnv), "https://www.interplanetaryfund.com");
+  assert.equal(oauthCorsOrigin(wwwRequest, {
+    ...validEnv,
+    OAUTH_FRONTEND_ORIGINS: "https://interplanetaryfund.com",
+  }), "");
 });
 
 test('OAuth runtime diagnostics identify missing and malformed bindings', () => {
