@@ -4,6 +4,7 @@ import { authClient } from "@/api/auth";
 import { listActiveCampaigns } from "@/api/publicData";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
 import CampaignCard from "@/components/campaigns/CampaignCard";
+import EventsDashboardSection from "@/components/dashboard/EventsDashboardSection";
 import { observeDashboardSession } from "@/lib/dashboardSession";
 import { TERMS_VERSION } from "@/lib/legalPolicy";
 import { hasGuestNotice } from "@/lib/guestAccess";
@@ -57,6 +58,7 @@ export default function Dashboard() {
       <Link to="/giving" className="mt-4 mr-5 inline-block text-primary underline">My Giving</Link>
       <Link to="/discover" className="mt-4 inline-block text-primary underline">Explore campaigns</Link>
     </section>
+    <EventsDashboardSection />
     {myCampaignError && <p role="alert">{myCampaignError}</p>}
     {myCampaigns.length > 0 && <section aria-label="Your saved campaigns"><h2 className="mb-4 text-xl font-semibold">Your saved campaigns</h2><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{myCampaigns.map(c => <CampaignCard key={c.id} campaign={c} />)}</div></section>}
     {campaignError && <p role="alert">{campaignError}</p>}

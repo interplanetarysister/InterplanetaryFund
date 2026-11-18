@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Outlet, NavLink, Link, useLocation, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Compass, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
+import { LayoutDashboard, Compass, CalendarDays, PlusCircle, HeartHandshake, MessageSquare, Sparkles, Users, Building2, BarChart3, Server, Menu, X, User, CreditCard, Wallet, Link2, MailOpen, Heart, ChevronLeft, Globe2, Bot, Satellite, Plug, Radio, BookOpen, House, CircleHelp, Leaf, FolderKanban } from "lucide-react";
 import BrandLogo from "@/components/brand/BrandLogo";
 import { SLOGAN } from "@/components/brand/brand";
 import useSwipeBack from "@/hooks/useSwipeBack";
@@ -23,7 +23,7 @@ import { LifeBuoy, ArrowUpRight, Sun, Moon } from "lucide-react";
 const PAGE_TITLES = {
   "/admin": "Administration",
   "/dashboard": "Overview", "/help": "Help Center", "/admin/help": "Help Center Editor", "/devices": "Connected Devices",
-  "/discover": "Discover", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
+  "/discover": "Discover", "/events": "Fundraising Events", "/shorts": "Orbit Shorts", "/globe": "Global Globe", "/finances": "Financial Center", "/giving": "My Giving", "/communications": "ECHO Drafts", "/agents": "AI Team",
   "/inbox": "Inbox", "/following": "Following", "/mission": "Mission Control", "/ai-images": "AI Image Studio", "/ops": "Ops Center",
   "/connections": "Connections", "/community": "Community", "/institutions": "Institutions",
   "/analytics": "Command Center", "/plans": "Plans", "/subscriptions": "Manage subscriptions", "/withdrawals": "Withdrawals",
@@ -53,6 +53,7 @@ const navSections = [
       { to: "/analytics", label: "Command Center", icon: BarChart3 },
       { to: "/campaigns", label: "My Campaigns", icon: FolderKanban },
       { to: "/discover", label: "Discover", icon: Compass },
+      { to: "/events", label: "Fundraising Events", icon: CalendarDays },
       { to: "/shorts", label: "Orbit Shorts", icon: Radio },
       { to: "/globe", label: "Global Globe", icon: Globe2 },
       { to: "/planetary-impact", label: "Planetary Impact", icon: Leaf },
@@ -121,6 +122,7 @@ const navItems = navSections.flatMap((s) => s.items);
 const publicNavItems = [
   { to: "/", label: "Home", icon: House },
   { to: "/discover", label: "Discover", icon: Compass },
+  { to: "/events", label: "Fundraising Events", icon: CalendarDays },
   { to: "/create", label: "Create a campaign", icon: PlusCircle },
   { to: "/community", label: "Community", icon: Users },
   { to: "/social", label: "Social Feed", icon: Radio },

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { UserCircle, LogOut, ShieldCheck, FolderKanban } from "lucide-react";
+import MobileStoreEvents from "@/mobile/MobileStoreEvents";
 import { useAuthSession } from "@/hooks/useAuthSession";
 import { authClient } from "@/api/auth";
 import { blockedOrganizerIds, unblockOrganizer } from "@/mobile/organizerBlock";
@@ -83,6 +84,7 @@ export default function MobileStoreAccount() {
        <button type="button" onClick={signOut} disabled={busy} className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/30 px-4 text-sm disabled:opacity-50"><LogOut aria-hidden="true" className="h-5 w-5"/> {busy?"Signing out…":"Sign out"}</button>
        {error&&<p role="alert" className="text-sm text-rose-200">{error}</p>}
      </section>}
+    <MobileStoreEvents embedded />
     <section className="space-y-3 rounded-2xl border border-white/15 p-5 text-sm">
       <h2 className="font-bold">Your privacy controls</h2>
       <p className="leading-6 text-slate-300">Read how campaign information, personal details and third-party connections are processed, or request access to or deletion of account data.</p>
