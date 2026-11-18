@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, MapPin, Plus, Ticket, XCircle } from "lucide-react";
 import { authClient } from "@/api/auth";
 import { listMyCampaigns } from "@/api/ownerCampaigns";
@@ -107,6 +107,8 @@ function MoneyInput({value,onChange,label="Amount (optional)"}) {
 
 export default function Events() {
   const {id:eventId}=useParams();
+  const [searchParams]=useSearchParams();
+  const createFromLink=searchParams.get("create")==="1";
   const navigate=useNavigate();
   const [client]=useState(()=>authClient());
   const [user,setUser]=useState(null);
@@ -150,6 +152,11 @@ export default function Events() {
     finally {setLoading(false);}
   },[client]);
   useEffect(()=>{reload();},[reload]);
+  useEffect(()=>{
+    if(!eventId&&createFromLink&&user?.email_confirmed_at&&!user.is_anonymous){
+      setForm(blankEvent());setEditingEventId(null);setShowCreator(true);
+    }
+  },[eventId,createFromLink,user?.id]);
 
   const loadDetail=useCallback(async()=>{
     if(!eventId){setEvent(null);setItems([]);return;}
