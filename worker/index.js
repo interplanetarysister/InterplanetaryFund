@@ -19,7 +19,7 @@ export default {
   async fetch(request, env = {}) {
     const pathname = new URL(request.url).pathname;
     if (pathname === '/api/geocode/city') return routeGeocodeCity(request, env);
-    if (pathname === '/api/agents/team/question') return routeTeamQuestion(request, env);
+    if (pathname === '/api/agents/team/question' || pathname === '/api/agents/team/status') return routeTeamQuestion(request, env);
     if (pathname.startsWith('/api/agents/strategy/')) return strategyRoute(request, env);
     if (pathname.startsWith('/api/agents/growth/')) return growthRoute(request, env);
     if (pathname.startsWith('/api/agents/communications/')) return communicationsRoute(request, env);
