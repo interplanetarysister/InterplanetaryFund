@@ -19,6 +19,7 @@ const Discover = lazy(() => import("./pages/Discover"));
 const OrbitShorts = lazy(() => import("./pages/OrbitShorts"));
 const IFundLive = lazy(() => import("./pages/IFundLive"));
 const ManageLiveEvents = lazy(() => import("./pages/ManageLiveEvents"));
+const LiveEventDetail = lazy(() => import("./pages/LiveEventDetail"));
 const FundraisingTips = lazy(() => import("./pages/FundraisingTips"));
 const Atlas = lazy(() => import("./pages/Atlas"));
 const Institutions = lazy(() => import("./pages/Institutions"));
@@ -127,6 +128,7 @@ function AppRoutes() {
       <Route path="/shorts" element={<OrbitShorts />} />
       <Route path="/live" element={<IFundLive />} />
       <Route path="/live/manage" element={<MemberAccess><ManageLiveEvents /></MemberAccess>} />
+      <Route path="/live/:id" element={<LiveEventDetail />} />
       <Route path="/fundraising-tips" element={<FundraisingTips />} />
       <Route path="/globe" element={<Atlas />} />
       <Route path="/institutions" element={<Institutions />} />
