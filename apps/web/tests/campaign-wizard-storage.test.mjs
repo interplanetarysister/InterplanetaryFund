@@ -22,6 +22,27 @@ test("silent remove failure cannot falsely acknowledge guest import",()=>{
  assert.equal(s.data.size,2);
  assert.equal(importGuestWizard(s,B),false);
 });
+test("retry finishes matching partial guest import without overwriting owner draft",()=>{
+ const s=memory({ignoreRemove:true});
+ const draft={...emptyWizard(),draft_step:3};
+ assert.equal(rememberWizard(s,null,null,draft),true);
+ assert.equal(importGuestWizard(s,A),false);
+ assert.equal(restoreWizard(s,A).draft_step,3);
+ s.removeItem=k=>s.data.delete(k);
+ assert.equal(importGuestWizard(s,A),true);
+ assert.equal(s.data.size,1);
+ assert.equal(restoreWizard(s,A).draft_step,3);
+ assert.equal(importGuestWizard(s,B),true,"no guest draft is a no-op for a new owner");
+});
+test("retry refuses mismatched owner draft and preserves both copies",()=>{
+ const s=memory({ignoreRemove:true});
+ assert.equal(rememberWizard(s,null,null,{...emptyWizard(),draft_step:3}),true);
+ assert.equal(rememberWizard(s,A,null,{...emptyWizard(),draft_step:2}),true);
+ assert.equal(importGuestWizard(s,A),false);
+ assert.equal(s.data.size,2);
+ assert.equal(restoreWizard(s,A).draft_step,2);
+ assert.equal(restoreWizard(s,null).draft_step,3);
+});
 test("storage errors fail closed and do not claim successful save",()=>{
  for(const op of ["get","set","remove"]){
   const s=memory({throwOn:op});
