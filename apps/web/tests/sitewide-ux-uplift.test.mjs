@@ -44,6 +44,9 @@ test("subscription outage never invents prices or allows unverified enrollment",
   assert.match(plans, /to="\/help"/);
   assert.match(plans, /to="\/contact"/);
   assert.match(plans, /plan\.available === true && plan\.verified === true/);
+  assert.match(plans, /const isPreview = typeof window/);
+  assert.match(plans, /isPreview\) \{ setState\(\{ phase: "preview"/);
+  assert.match(plans, /Subscription enrollment is disabled in this preview/);
 });
 
 test("route crashes show accessible recovery and theme-consistent UI", () => {
