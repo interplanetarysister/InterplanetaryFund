@@ -36,13 +36,13 @@ test("tracked components remain mounted under their declared access guards",()=>
 });
 
 test("each lazy route component resolves to a bundled frontend module",()=>{
-  const sourceRoot=fileURLToPath(new URL("../src/",import.meta.url));
+  const sourceUrl=new URL("../src/",import.meta.url);
   const modules=[...router.matchAll(/lazy\(\(\)\s*=>\s*import\("([^"]+)"\)\)/g)]
     .map(match=>match[1]);
   assert.ok(modules.length>=60,"Unexpected missing lazy module declarations");
   for(const relative of modules){
     assert.ok(relative.startsWith("./"),"Lazy module must be a local frontend component: "+relative);
-    const absolute=fileURLToPath(new URL(relative, "file://"+sourceRoot+"/"));
+    const absolute=fileURLToPath(new URL(relative,sourceUrl));
     assert.ok([".jsx",".js",".mjs",".tsx",".ts"].some(ext=>existsSync(absolute+ext)) ||
       existsSync(absolute+"/index.jsx") || existsSync(absolute+"/index.js"),
       "Missing lazy-loaded module: "+relative);
